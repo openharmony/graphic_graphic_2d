@@ -3362,6 +3362,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
+    MemoryManager::CheckIsClearApp();
     EraseIf(applicationAgentMap_,
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
 }

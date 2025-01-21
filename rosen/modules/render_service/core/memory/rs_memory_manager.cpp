@@ -71,6 +71,7 @@ const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.js
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
+constexpr uint32_t CLEAR_TWO_APPS_TIME = 1000; // 1000ms
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
@@ -718,6 +719,19 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
     KillProcessByPid(pid, bundleName, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
+}
+
+void MemoryManager::CheckIsClearApp()
+{
+    // Clear two Applications in one second, post task to reclaim.
+    if (!RSUniRenderThread::Instance().IsTimeToReclaim()) {
+        static std::chrono::steady_clock::time_point lastClearAppTime = std::chrono::steady_clock::now();
+        auto currentTime = std::chrono::steady_clock::now();
+        bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
+            currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
+        RSUniRenderThread::Instance().SetTimeToReclaim(isTimeToReclaim);
+        lastClearAppTime = currentTime;
+    }
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
