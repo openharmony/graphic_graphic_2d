@@ -185,6 +185,10 @@ void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
 void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float frameInterval)
 {
     auto currAnimateValue = property_->Clone();
+    if (currAnimateValue == nullptr) {
+        ROSEN_LOGE("%{public}s, currAnimateValue is null", __func__);
+        return;
+    }
     float currAnimateFloatValue = currAnimateValue->ToFloat();
     auto diffValue = currAnimateValue - lastAnimateValue_;
     auto diffFloatValue = currAnimateFloatValue - lastAnimateValue_->ToFloat();

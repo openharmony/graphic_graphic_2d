@@ -289,8 +289,10 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
     // inherit spring status from last spring animation
     startValue_ = lastValue->Clone();
     initialVelocity_ = velocity;
-    originValue_ = startValue_->Clone();
-    lastValue_ = startValue_->Clone();
+    if (startValue_) {
+        originValue_ = startValue_->Clone();
+        lastValue_ = startValue_->Clone();
+    }
     springValueEstimator_->UpdateStartValueAndLastValue(startValue_, lastValue_);
     springValueEstimator_->SetInitialVelocity(velocity);
     return true;
