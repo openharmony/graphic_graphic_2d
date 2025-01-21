@@ -805,9 +805,9 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
 
 Drawing::TextureOrigin RSCanvasDrawingRenderNodeDrawable::GetTextureOrigin()
 {
-#if defined(RS_ENABLE_GL)
-    return Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        return Drawing::TextureOrigin::BOTTOM_LEFT;
+    }
     return Drawing::TextureOrigin::TOP_LEFT;
 }
 
