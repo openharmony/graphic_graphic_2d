@@ -858,9 +858,14 @@ bool RSRenderServiceConnection::GetShowRefreshRateEnabled()
     return RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled();
 }
 
-void RSRenderServiceConnection::SetShowRefreshRateEnabled(bool enable)
+void RSRenderServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
-    return RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
+    return RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enabled, type);
+}
+
+uint32_t RSRenderServiceConnection::GetRealtimeRefreshRate(ScreenId screenId)
+{
+    return RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate(screenId);
 }
 
 std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)

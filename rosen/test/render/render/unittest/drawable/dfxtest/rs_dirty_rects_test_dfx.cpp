@@ -135,7 +135,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isPartialRenderEnabled_ = true;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = true;
     renderThreadParams->isVisibleRegionDfxEnabled_ = true;
-    RSRealtimeRefreshRateManager::Instance().enableState_ = true;
+    RSRealtimeRefreshRateManager::Instance().showEnabled_ = true;
     rsDirtyRectsDfx_->OnDraw(*canvas_);
 
     renderThreadParams->isDirtyRegionDfxEnabled_ = true;
@@ -145,7 +145,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isPartialRenderEnabled_ = false;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = false;
     renderThreadParams->isVisibleRegionDfxEnabled_ = false;
-    RSRealtimeRefreshRateManager::Instance().enableState_ = false;
+    RSRealtimeRefreshRateManager::Instance().showEnabled_ = false;
     renderThreadParams->isDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = false;

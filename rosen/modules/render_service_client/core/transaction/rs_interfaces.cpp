@@ -317,9 +317,14 @@ bool RSInterfaces::GetShowRefreshRateEnabled()
     return renderServiceClient_->GetShowRefreshRateEnabled();
 }
 
-void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
+void RSInterfaces::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
-    return renderServiceClient_->SetShowRefreshRateEnabled(enable);
+    return renderServiceClient_->SetShowRefreshRateEnabled(enabled, type);
+}
+
+uint32_t RSInterfaces::GetRealtimeRefreshRate(ScreenId id)
+{
+    return renderServiceClient_->GetRealtimeRefreshRate(id);
 }
 
 std::string RSInterfaces::GetRefreshInfo(pid_t pid)

@@ -1173,7 +1173,7 @@ bool RSRenderServiceConnectionProxy::GetShowRefreshRateEnabled()
     return enable;
 }
 
-void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enable)
+void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1184,7 +1184,7 @@ void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enable)
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteBool(enable)) {
+    if (!data.WriteBool(enabled) || !data.WriteInt32(type)) {
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
@@ -1193,6 +1193,30 @@ void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enable)
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return;
     }
+}
+
+uint32_t RSRenderServiceConnectionProxy::GetRealtimeRefreshRate(ScreenId id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return SUCCESS;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        return SUCCESS;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
+        return SUCCESS;
+    }
+    uint32_t rate = reply.ReadUint32();
+    return rate;
 }
 
 std::string RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid)

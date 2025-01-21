@@ -471,13 +471,15 @@ bool DoSetScreenRefreshRate()
     ScreenId id = GetData<uint64_t>();
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
-    bool enable = GetData<bool>();
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
     rsConn_->SetScreenRefreshRate(id, sceneId, rate);
     rsConn_->GetScreenCurrentRefreshRate(id);
     rsConn_->GetScreenSupportedRefreshRates(id);
     rsConn_->GetCurrentRefreshRateMode();
     rsConn_->GetShowRefreshRateEnabled();
-    rsConn_->SetShowRefreshRateEnabled(enable);
+    rsConn_->SetShowRefreshRateEnabled(enabled, type);
+    rsConn_->GetRealtimeRefreshRate(id);
     return true;
 }
 

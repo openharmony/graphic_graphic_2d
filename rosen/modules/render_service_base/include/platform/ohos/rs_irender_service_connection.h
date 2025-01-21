@@ -147,7 +147,9 @@ public:
 
     virtual bool GetShowRefreshRateEnabled() = 0;
 
-    virtual void SetShowRefreshRateEnabled(bool enable) = 0;
+    virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;
+
+    virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
 
     virtual std::string GetRefreshInfo(pid_t pid) = 0;
 

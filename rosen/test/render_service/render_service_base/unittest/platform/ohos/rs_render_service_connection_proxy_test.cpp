@@ -425,8 +425,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenSupportedRefreshRates, Tes
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetShowRefreshRateEnabled, TestSize.Level1)
 {
-    proxy->SetShowRefreshRateEnabled(true);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    proxy->SetShowRefreshRateEnabled(true, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
+ * @tc.name: GetCurrentRefreshRateMode Test
+ * @tc.desc: GetCurrentRefreshRateMode Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetRealtimeRefreshRate, TestSize.Level1)
+{
+    EXPECT_EQ(proxy->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
 
 /**

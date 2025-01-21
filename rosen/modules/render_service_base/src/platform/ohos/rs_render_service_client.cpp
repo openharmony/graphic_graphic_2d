@@ -687,7 +687,7 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
     return renderService->GetRefreshInfo(pid);
 }
 
-void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
+void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -695,7 +695,18 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
         return;
     }
 
-    return renderService->SetShowRefreshRateEnabled(enable);
+    return renderService->SetShowRefreshRateEnabled(enabled, type);
+}
+
+uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->GetRealtimeRefreshRate(id);
 }
 
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)

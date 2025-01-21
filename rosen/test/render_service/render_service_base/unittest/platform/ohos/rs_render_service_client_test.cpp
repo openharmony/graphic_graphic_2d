@@ -595,11 +595,22 @@ HWTEST_F(RSClientTest, GetScreenSupportedRefreshRates001, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 {
-    rsClient->SetShowRefreshRateEnabled(false);
+    rsClient->SetShowRefreshRateEnabled(false, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
-    rsClient->SetShowRefreshRateEnabled(true);
+    rsClient->SetShowRefreshRateEnabled(true, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
+}
+
+/**
+ * @tc.name: GetRealtimeRefreshRate001 Test
+ * @tc.desc: GetRealtimeRefreshRate001 Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, GetRealtimeRefreshRate001, TestSize.Level1)
+{
+    EXPECT_NE(rsClient->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
 
 /**

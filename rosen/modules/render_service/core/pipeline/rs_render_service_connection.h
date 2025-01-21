@@ -148,7 +148,9 @@ private:
 
     bool GetShowRefreshRateEnabled() override;
 
-    void SetShowRefreshRateEnabled(bool enable) override;
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
+
+    uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
 
     std::string GetRefreshInfo(pid_t pid) override;
 
