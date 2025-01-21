@@ -339,6 +339,8 @@ bool RSPerfMonitorReporter::NeedReportSubHealth(NodeId& nodeId, int updateTimes,
         return true;
     }
     return false;
+#else
+    return false;
 #endif
 }
 
@@ -352,6 +354,8 @@ bool RSPerfMonitorReporter::CheckAllDrawingCacheDurationTimeout(NodeId& nodeId)
         }
     }
     return true;
+#else
+    return false;
 #endif
 }
 
@@ -369,14 +373,16 @@ bool RSPerfMonitorReporter::MeetReportFrequencyControl(NodeId& nodeId,
         }
     }
     return false;
+#else
+    return false;
 #endif
 }
 
 std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
 {
+    std::string result;
 #ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
-    std::string result;
     if (drawingCacheTimeTakenMap_.find(nodeId) != drawingCacheTimeTakenMap_.end()) {
         for (auto& it: drawingCacheTimeTakenMap_[nodeId]) {
             result += std::to_string(it) + ",";
@@ -385,6 +391,8 @@ std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
     if (result.size() > 0 && result.back() == ',') {
         result.pop_back();
     }
+    return result;
+#else
     return result;
 #endif
 }
