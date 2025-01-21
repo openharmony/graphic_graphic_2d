@@ -557,10 +557,11 @@ public:
     explicit CustomScreenChangeCallback(const ScreenChangeCallback &callback) : cb_(callback) {}
     ~CustomScreenChangeCallback() override {};
 
-    void OnScreenChanged(ScreenId id, ScreenEvent event) override
+    void OnScreenChanged(ScreenId id, ScreenEvent event,
+        ScreenChangeReason reason) override
     {
         if (cb_ != nullptr) {
-            cb_(id, event);
+            cb_(id, event, reason);
         }
     }
 

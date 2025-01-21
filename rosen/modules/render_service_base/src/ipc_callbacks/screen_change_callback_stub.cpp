@@ -30,7 +30,8 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED): {
             ScreenId id = data.ReadUint64();
             ScreenEvent event = static_cast<ScreenEvent>(data.ReadUint8());
-            OnScreenChanged(id, event);
+            ScreenChangeReason reason = static_cast<ScreenChangeReason>(data.ReadUint8());
+            OnScreenChanged(id, event, reason);
             break;
         }
         default: {

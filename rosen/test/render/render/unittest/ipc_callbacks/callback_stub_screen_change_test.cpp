@@ -25,7 +25,8 @@ class RSScreenCallbackStubChangeMock : public RSScreenChangeCallbackStub {
 public:
     RSScreenCallbackStubChangeMock() = default;
     virtual ~RSScreenCallbackStubChangeMock() = default;
-    void OnScreenChanged(ScreenId id, ScreenEvent event) override {};
+    void OnScreenChanged(ScreenId id, ScreenEvent event,
+        ScreenChangeReason reason) override {};
 };
 
 class RSScreenChangeCallbackStubTest : public testing::Test {
