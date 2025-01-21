@@ -34,6 +34,7 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
 {
     std::unique_lock<std::mutex> threadLock(threadMutex_);
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+<<<<<<< HEAD
     if (frameRateMgr == nullptr || 
         type <= static_cast<int32_t>(RealtimeRefreshRateType::START) ||
         type >= static_cast<int32_t>(RealtimeRefreshRateType::END)) {
@@ -42,12 +43,23 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
     
     RealtimeRefreshRateType enumType = static_cast<RealtimeRefreshRateType>(type);
     if (enumType == RealtimeRefreshRateType::SHOW) {
+=======
+    if (frameRateMgr == nullptr ) {
+        return;
+    }
+
+    if (type == 1) { // need collect and show realtime refresh rate
+>>>>>>> a3c9002d9305f2ba63544824bff1f2e171282879
         if (showEnabled_ == enabled) {
             return;
         }
         showEnabled_ = enabled;
         frameRateMgr->SetShowRefreshRateEnabled(showEnabled_);
+<<<<<<< HEAD
     } else if (enumType == RealtimeRefreshRateType::COLLECT) {
+=======
+    } else if (type == 0) { // only collect realtime refresh rate
+>>>>>>> a3c9002d9305f2ba63544824bff1f2e171282879
         if (collectEnabled_ == enabled) {
             return;
         }
@@ -59,8 +71,12 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
     StatisticsRefreshRateData(frameRateMgr);
 }
 
+<<<<<<< HEAD
 void RSRealtimeRefreshRateManager::StatisticsRefreshRateDataLocked(std::shared_ptr<HgmFrameRateManager> frameRateMgr)
 {
+=======
+void RSRealtimeRefreshRateManager::StatisticsRefreshRateData(std::shared_ptr<HgmFrameRateManager> frameRateMgr) {
+>>>>>>> a3c9002d9305f2ba63544824bff1f2e171282879
     if (!showEnabled_ && !collectEnabled_) {
         HgmTaskHandleThread::Instance().RemoveEvent(EVENT_ID);
         isCollectRefreshRateTaskRunning_ = false;
