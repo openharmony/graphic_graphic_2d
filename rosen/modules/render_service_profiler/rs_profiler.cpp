@@ -271,6 +271,7 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     constexpr size_t headerOffset = 8 + 1;
     if (out.size() >= headerOffset) {
         g_recordFile.WriteRSData(deltaTime, out.data() + headerOffset, out.size() - headerOffset);
+        BetaRecordSetLastParcelTime();
     }
     Network::SendBinary(out.data(), out.size());
     return g_recordParcelNumber;
@@ -568,6 +569,7 @@ void RSProfiler::OnFrameBegin(uint64_t syncTime)
     g_renderServiceCpuId = Utils::GetCpuId();
     g_frameNumber++;
 
+    BetaRecordOnFrameBegin();
     StartBetaRecord();
 }
 
@@ -604,7 +606,9 @@ void RSProfiler::OnFrameEnd()
     RecordUpdate();
 
     UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);
-    UpdateBetaRecord();
+    if (g_context) {
+        UpdateBetaRecord(*g_context);
+    }
     BlinkNodeUpdate();
     CalcPerfNodeUpdate();
 
@@ -621,6 +625,7 @@ void RSProfiler::OnFrameEnd()
         }
         Network::SendMessage(value);
     }
+    BetaRecordOnFrameEnd();
 }
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
@@ -1813,10 +1818,11 @@ void RSProfiler::RecordStop(const ArgList& args)
 
     SetMode(Mode::SAVING);
 
-    std::thread thread([]() {
+    bool isBetaRecordingStarted = IsBetaRecordStarted();
+    std::thread thread([isBetaRecordingStarted]() {
         g_recordFile.SetWriteTime(g_recordStartTime);
 
-        if (IsBetaRecordStarted()) {
+        if (isBetaRecordingStarted) {
             SaveBetaRecordFile(g_recordFile);
         } else {
             RecordSave();

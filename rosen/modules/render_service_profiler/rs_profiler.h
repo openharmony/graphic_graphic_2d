@@ -243,16 +243,18 @@ private:
     static void StartBetaRecord();
     static void StopBetaRecord();
     static bool IsBetaRecordStarted();
-    static void UpdateBetaRecord();
+    static void UpdateBetaRecord(const RSContext& context);
     static void SaveBetaRecord();
     static bool IsBetaRecordInactive();
     static void RequestVSyncOnBetaRecordInactivity();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
+    static void LaunchBetaRecordFileSplitThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
     static void UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion);
+    static void BetaRecordSetLastParcelTime();
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static bool IsEnabled();
@@ -265,6 +267,9 @@ private:
     RSB_EXPORT static NodeId GetParentNode();
     RSB_EXPORT static void SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent);
     RSB_EXPORT static pid_t GetSubstitutingPid();
+
+    RSB_EXPORT static void BetaRecordOnFrameBegin();
+    RSB_EXPORT static void BetaRecordOnFrameEnd();
 
 private:
     RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);
