@@ -95,6 +95,8 @@
       *HgmFrameRateManager::UpdateUIFrameworkDirtyNodes*;
       *HgmFrameRateManager::UpdateVoteRule*;
 
+      *HgmHfbcConfig::HandleHfbcConfig*;
+
       *HgmIdleDetector::GetSurfaceIdleState*;
       *HgmIdleDetector::GetTouchUpExpectedFPS*;
       *HgmIdleDetector::SetAceAnimatorIdleState*;
