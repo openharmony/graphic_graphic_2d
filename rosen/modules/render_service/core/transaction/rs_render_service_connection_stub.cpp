@@ -270,6 +270,11 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
 
     return true;
 }
+
+static void TypefaceXcollieCallback(void* arg)
+{
+    RS_LOGW("RSRenderServiceConnectionStub::OnRemoteRequest register typeface timeout");
+}
 }
 
 void RSRenderServiceConnectionStub::SetQos()
@@ -1329,22 +1334,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
-            // timer: 3s
-            OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
             bool result = false;
-            uint64_t uniqueId = data.ReadUint64();
-            uint32_t hash = data.ReadUint32();
-            // safe check
-            if (ExtractPid(uniqueId) == callingPid) {
-                std::shared_ptr<Drawing::Typeface> typeface;
-                result = RSMarshallingHelper::Unmarshalling(data, typeface);
-                if (result && typeface) {
-                    typeface->SetHash(hash);
-                    RegisterTypeface(uniqueId, typeface);
+            std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+            {
+                // timer: 3s
+                OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" +
+                    std::to_string(callingPid), 3, TypefaceXcollieCallback, nullptr, 0);
+                uint64_t uniqueId = data.ReadUint64();
+                uint32_t hash = data.ReadUint32();
+                // safe check
+                if (ExtractPid(uniqueId) == callingPid) {
+                    result = RSMarshallingHelper::Unmarshalling(data, typeface);
+                    if (result && typeface) {
+                        typeface->SetHash(hash);
+                        RegisterTypeface(uniqueId, typeface);
+                    }
+                } else {
+                    RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                        "no permission REGISTER_TYPEFACE", callingPid);
                 }
-            } else {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
-                    "no permission REGISTER_TYPEFACE", callingPid);
             }
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
