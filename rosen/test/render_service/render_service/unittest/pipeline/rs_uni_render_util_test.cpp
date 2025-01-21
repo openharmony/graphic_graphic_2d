@@ -1119,6 +1119,59 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest003, Function | SmallTest |
 }
 
 /*
+ * @tc.name: DealWithNodeGravityTest004
+ * @tc.desc: Test DealWithNodeGravity when a component totalMatrix/bound/frame changed
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest004, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
+    node1.GetRSSurfaceHandler()->consumer_ = OHOS::IConsumerSurface::Create();
+    node1.renderContent_->renderProperties_.SetBoundsWidth(1080);
+    node1.renderContent_->renderProperties_.SetBoundsHeight(1653);
+    node1.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.SetDstRect({0, 1106, 1080, 1135});
+    node1.SetSrcRect({0, 0, 1080, 1135});
+    node1.isFixRotationByUser_ = false;
+    Drawing::Matrix totalMatrix = Drawing::Matrix();
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 1106, 0, 0, 1);
+    ScreenInfo screenInfo;
+    screenInfo.rotation = ScreenRotation::ROTATION_90;
+    RSUniRenderUtil::DealWithNodeGravity(node1, screenInfo, totalMatrix);
+    RectI expectedDstRect = {0, 1106, 1080, 1135};
+    RectI expectedSrcRect = {0, 0, 1080, 1135};
+    EXPECT_TRUE(node1.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node1.GetSrcRect() == expectedSrcRect);
+
+    NodeId id = 2;
+    RSSurfaceRenderNode node2(id);
+    node2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1647);
+    node2.GetRSSurfaceHandler()->consumer_ = OHOS::IConsumerSurface::Create();
+    node2.renderContent_->renderProperties_.SetBoundsWidth(1080);
+    node2.renderContent_->renderProperties_.SetBoundsHeight(1647);
+    node2.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node2.SetDstRect({873, 75, 358, 699});
+    node2.SetSrcRect({0, 0, 1080, 554});
+    node2.isFixRotationByUser_ = false;
+    totalMatrix.SetMatrix(0.0f, 0.646842, 873.114075, -0.646842, 0.0f, 774/0f, 0.0f, 0.0f, 1.0f);
+    screenInfo.rotation = ScreenRotation::ROTATION_180;
+    RSUniRenderUtil::DealWithNodeGravity(node2, screenInfo, totalMatrix);
+    expectedDstRect = {0, 1106, 1080, 1135};
+    expectedSrcRect = {0, 0, 1080, 1135};
+    EXPECT_TRUE(node2.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node2.GetSrcRect() == expectedSrcRect);
+}
+
+/*
  * @tc.name: LayerRotateTest
  * @tc.desc: Verify function LayerRotate
  * @tc.type: FUNC
