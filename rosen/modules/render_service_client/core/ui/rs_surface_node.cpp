@@ -494,8 +494,10 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     RSSurfaceNodeConfig config = { name };
+    RS_LOGI("RSSurfaceNode::Unmarshalling, Node: %{public}" PRIu64 ", Name: %{public}s", id, name.c_str());
 
     if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+        RS_LOGW("RSSurfaceNode::Unmarshalling, the node id is already in the map");
         // if the node id is already in the map, we should not create a new node
         return prevNode->ReinterpretCastTo<RSSurfaceNode>();
     }
@@ -656,6 +658,8 @@ RSSurfaceNode::~RSSurfaceNode()
     if (transactionProxy == nullptr) {
         return;
     }
+
+    RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
 
     // both divided and unirender need to unregister listener when surfaceNode destroy
     auto renderServiceClient =
@@ -1019,6 +1023,30 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
         transactionProxy->AddCommand(command, true);
         RS_LOGD(
             "RSSurfaceNode::SetApiCompatibleVersion: Node: %{public}" PRIu64 ", version: %{public}u", GetId(), version);
+    }
+}
+
+void RSSurfaceNode::AttachToWindowContainer(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeAttachToWindowContainer>(GetId(), screenId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        RS_LOGD("RSSurfaceNode::AttachToWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
+            GetId(), screenId);
+    }
+}
+
+void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeDetachFromWindowContainer>(GetId(), screenId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        RS_LOGD("RSSurfaceNode::DetachFromWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
+            GetId(), screenId);
     }
 }
 } // namespace Rosen

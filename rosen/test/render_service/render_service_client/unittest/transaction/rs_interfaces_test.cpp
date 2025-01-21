@@ -92,6 +92,26 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureForUI003
+ * @tc.desc: test results of TakeSurfaceCaptureForUI
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    bool res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+}
+
+/**
  * @tc.name: SetHwcNodeBoundsTest
  * @tc.desc: test results of SetHwcNodeBounds
  * @tc.type: FUNC
@@ -503,5 +523,20 @@ HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
     EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: SetWindowContainer001
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    NodeId nodeId = {};
+    instance.SetWindowContainer(nodeId, false);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 } // namespace OHOS::Rosen

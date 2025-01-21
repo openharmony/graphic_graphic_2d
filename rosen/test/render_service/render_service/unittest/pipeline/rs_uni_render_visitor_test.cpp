@@ -40,8 +40,8 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -5574,5 +5574,26 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     RSDirtyRegionManager dirtyManager;
     rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+}
+
+/*
+ * @tc.name: SetHdrWhenMultiDisplayChangeInPCTest
+ * @tc.desc: Test SetHdrWhenMultiDisplayChangeInPCTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHdrWhenMultiDisplayChangeInPCTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    bool isForceCloseHdr = RSLuminanceControl::Get().IsForceCloseHdr();
+    auto mainThread = RSMainThread::Instance();
+    auto isMultiDisplay = mainThread->GetMultiDisplayStatus();
+    rsUniRenderVisitor->SetHdrWhenMultiDisplayChangeInPC();
+    if (mainThread->GetDeviceType() != DeviceType::PC) {
+        EXPECT_EQ(isForceCloseHdr, RSLuminanceControl::Get().IsForceCloseHdr());
+    } else {
+        EXPECT_EQ(isMultiDisplay, RSLuminanceControl::Get().IsForceCloseHdr());
+    }
 }
 } // OHOS::Rosen

@@ -22,7 +22,7 @@
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_render_engine.h"
 #include "params/rs_display_render_params.h"
 
@@ -157,6 +157,7 @@ HWTEST(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level1)
     ASSERT_NE(renderEngine, nullptr);
     renderEngine->Init();
 
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);

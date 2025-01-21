@@ -73,6 +73,7 @@ public:
     bool GetForceRefreshFlag() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
+    uint64_t GetFastComposeTimeStampDiff() const;
 
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
@@ -119,6 +120,8 @@ public:
     {
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
+
+    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache);
 
     void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
@@ -202,7 +205,6 @@ public:
         return wallpaperTranslate_;
     }
 
-    void ClearGPUCompositionCache();
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

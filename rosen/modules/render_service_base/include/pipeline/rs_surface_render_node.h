@@ -687,6 +687,11 @@ public:
         isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
     }
 
+    bool GetOcclusionInSpecificScenes() const
+    {
+        return isOcclusionInSpecificScenes_;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -1098,6 +1103,13 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    bool GetUifirstContentDirty()
+    {
+        bool uifirstContentDirty = uifirstContentDirty_;
+        uifirstContentDirty_ = false;
+        return uifirstContentDirty;
+    }
+
     void UpdateSurfaceCacheContentStatic();
 
     void UpdateSurfaceCacheContentStatic(
@@ -1174,7 +1186,7 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
-    void SetUifirstNodeEnableParam(MultiThreadCacheType b);
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType b);
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
@@ -1369,7 +1381,6 @@ public:
     void CalDrawBehindWindowRegion() override;
     RectI GetFilterRect() const override;
     RectI GetBehindWindowRegion() const override;
-    void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {
         crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };
@@ -1378,20 +1389,14 @@ public:
     {
         crossNodeSkippedDisplayOffsets_.clear();
     }
-    bool GetHdrVideo() const
+    HdrStatus GetHdrVideo() const
     {
-        return hasHdrVideoSurface_;
+        return hdrVideoSurface_;
     }
 
-    HDR_TYPE GetHdrVideoType() const
+    void SetHdrVideo(HdrStatus hasHdrVideoSurface)
     {
-        return hdrVideoType_;
-    }
-
-    void SetHdrVideo(bool hasHdrVideoSurface, HDR_TYPE hdrVideoType)
-    {
-        hasHdrVideoSurface_ = hasHdrVideoSurface;
-        hdrVideoType_ = hdrVideoType;
+        hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
@@ -1451,7 +1456,7 @@ private:
     bool isGlobalPositionEnabled_ = false;
     bool hasFingerprint_ = false;
     // hdr video
-    bool hasHdrVideoSurface_ = false;
+    HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
@@ -1525,6 +1530,7 @@ private:
     bool lastFrameShouldPaint_ = true;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+    bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
     bool isLastHardCursor_ = false;
@@ -1554,7 +1560,6 @@ private:
     float contextAlpha_ = 1.0f;
     // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
     int hdrNum_ = 0;
-    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;

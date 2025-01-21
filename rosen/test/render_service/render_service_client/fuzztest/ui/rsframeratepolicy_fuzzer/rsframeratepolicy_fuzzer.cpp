@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "ui/rs_frame_rate_policy.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "transaction/rs_hgm_config_data.h"
 #include "modifier/rs_modifier_type.h"
 

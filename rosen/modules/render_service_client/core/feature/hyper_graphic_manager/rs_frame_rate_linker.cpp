@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 
 #include "command/rs_frame_rate_linker_command.h"
 #include "platform/common/rs_log.h"

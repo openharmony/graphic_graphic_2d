@@ -91,14 +91,14 @@ public:
         isUiFirstOn_ = uiFirstSwitch;
     }
 
-    void SetHasDoneNodeFlag(bool flag)
+    void SetNodeNeedForceUpdateFlag(bool flag)
     {
-        hasDoneNode_ = flag;
+        hasForceUpdateNode_ = flag;
     }
 
-    bool HasDoneNode()
+    bool HasForceUpdateNode()
     {
-        return hasDoneNode_;
+        return hasForceUpdateNode_;
     }
 
     void MergeOldDirty(NodeId id);
@@ -177,7 +177,7 @@ private:
     void UpdateCompletedSurface(NodeId id);
 
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId id);
-    void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
+    bool SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
     void RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
@@ -189,6 +189,7 @@ private:
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -201,7 +202,6 @@ private:
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
-    void UifirstFirstFrameCacheState(RSSurfaceRenderNode& node);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
     void NotifyUIStartingWindow(NodeId id, bool wait);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
@@ -218,7 +218,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
-    bool hasDoneNode_ = false;
+    bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
     std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
@@ -326,8 +326,12 @@ public:
         }
     }
     // return false when timeout
-    static void NotifyAll()
+    static inline void NotifyAll(std::function<void()> condChange)
     {
+        if (LIKELY(condChange)) {
+            std::unique_lock<std::mutex> lock(notifyMutex_);
+            condChange();
+        }
         notifyCv_.notify_all();
     }
     static bool CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch = true);

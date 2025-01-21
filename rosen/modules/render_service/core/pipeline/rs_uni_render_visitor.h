@@ -26,7 +26,7 @@
 #include "system/rs_system_parameters.h"
 
 #include "params/rs_render_thread_params.h"
-#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
@@ -132,19 +132,6 @@ public:
         screenInfo_ = screenInfo;
     }
 
-    void PredictDrawLargeAreaBlur(RSRenderNode& node, std::pair<bool, bool>& predictDrawLargeAreaBlur);
-    void GetPredictDrawLargeAreaBlur(std::pair<bool, bool>& predictDrawLargeAreaBlur)
-    {
-        predictDrawLargeAreaBlur.first = predictDrawLargeAreaBlur_.first;
-        predictDrawLargeAreaBlur.second = predictDrawLargeAreaBlur_.second;
-    }
-
-    void ResetPredictDrawLargeAreaBlur()
-    {
-        predictDrawLargeAreaBlur_.first = false;
-        predictDrawLargeAreaBlur_.second = false;
-    }
-
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
@@ -199,6 +186,7 @@ private:
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
+    bool CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node);
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
@@ -329,6 +317,9 @@ private:
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
+    // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
+    void SetHdrWhenMultiDisplayChangeInPC();
+
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -382,6 +373,7 @@ private:
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     Drawing::Matrix parentSurfaceNodeMatrix_;
+    bool isSwitchToSourceCrossNodePrepare_ = false;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
     // opinc feature
@@ -448,7 +440,6 @@ private:
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
     uint32_t layerNum_ = 0;
-    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
 
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
 };

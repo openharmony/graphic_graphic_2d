@@ -27,7 +27,7 @@
 #include "event_handler.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "screen_manager/screen_types.h"
-#include "pipeline/round_corner_display/rs_round_corner_config.h"
+#include "feature/round_corner_display/rs_round_corner_config.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -27,7 +27,7 @@ RSLuminanceControl::~RSLuminanceControl()
     // destructor
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
 {
     // Update HDR status in order to determine brightness.
     return false;

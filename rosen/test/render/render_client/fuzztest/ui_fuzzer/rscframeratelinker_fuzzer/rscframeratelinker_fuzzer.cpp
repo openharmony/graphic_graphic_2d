@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "ui/rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 
 namespace OHOS {
 namespace Rosen {

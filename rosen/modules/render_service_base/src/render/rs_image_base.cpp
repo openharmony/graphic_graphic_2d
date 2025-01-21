@@ -587,8 +587,13 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
 void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
     if (pixelMap_ && !pixelMap_->IsAstc()) {
-            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
-        if (!image_) {
+        std::shared_ptr<Drawing::Image> imageCache = nullptr;
+        if (!pixelMap_->IsEditable()) {
+            imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+        }
+        if (imageCache) {
+            image_ = imageCache;
+        } else {
             image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
             if (image_) {
                 SKResourceManager::Instance().HoldResource(image_);

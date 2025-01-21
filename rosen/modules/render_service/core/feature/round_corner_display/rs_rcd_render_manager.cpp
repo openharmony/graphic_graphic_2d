@@ -19,7 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_message_bus.h"
+#include "feature/round_corner_display/rs_message_bus.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"

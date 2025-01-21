@@ -128,7 +128,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    const Drawing::Rect& specifiedAreaRect)
 {
     return false;
 }
@@ -247,6 +248,11 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 {
     return "";
+}
+
+int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return 0;
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -688,7 +694,11 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
-void RSRenderServiceClient::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+}
+
+void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 } // namespace Rosen

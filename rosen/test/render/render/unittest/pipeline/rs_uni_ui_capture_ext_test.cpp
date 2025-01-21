@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "feature/round_corner_display/rs_round_corner_display.h"
 #include "common/rs_singleton.h"
 #include "limit_number.h"
 

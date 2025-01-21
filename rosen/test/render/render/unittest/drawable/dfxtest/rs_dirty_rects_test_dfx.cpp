@@ -18,7 +18,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 

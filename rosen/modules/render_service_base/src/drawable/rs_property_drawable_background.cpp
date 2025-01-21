@@ -689,6 +689,12 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (paintFilterCanvas == nullptr) {
             return;
         }
+        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW && paintFilterCanvas->GetIsWindowFreezeCapture()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
+            RS_LOGD("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
+            paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            return;
+        }
         const auto& effectData = paintFilterCanvas->GetEffectData();
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {

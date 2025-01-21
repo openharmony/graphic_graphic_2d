@@ -19,7 +19,7 @@
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_virtual_screen_processor.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;

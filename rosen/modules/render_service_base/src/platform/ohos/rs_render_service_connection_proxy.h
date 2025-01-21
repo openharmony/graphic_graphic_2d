@@ -127,6 +127,8 @@ public:
 
     std::string GetRefreshInfo(pid_t pid) override;
 
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;
@@ -143,6 +145,7 @@ public:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -151,6 +154,8 @@ public:
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+
+    bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
 
     void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
@@ -318,7 +323,9 @@ public:
 
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void NotifyScreenSwitched(ScreenId id) override;
+    void NotifyScreenSwitched() override;
+
+    void SetWindowContainer(NodeId nodeId, bool value) override;
 
 private:
     bool FillParcelWithTransactionData(

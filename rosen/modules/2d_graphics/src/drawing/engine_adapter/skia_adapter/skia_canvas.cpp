@@ -38,6 +38,7 @@
 #include "utils/performanceCaculate.h"
 #include "SkOverdrawCanvas.h"
 #include "include/utils/SkNoDrawCanvas.h"
+#include "src/core/SkCanvasPriv.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1004,6 +1005,15 @@ bool SkiaCanvas::IsClipRect()
         return false;
     }
     return skCanvas_->isClipRect();
+}
+
+void SkiaCanvas::ResetClip()
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    return SkCanvasPriv::ResetClip(skCanvas_);
 }
 
 bool SkiaCanvas::QuickReject(const Path& path)

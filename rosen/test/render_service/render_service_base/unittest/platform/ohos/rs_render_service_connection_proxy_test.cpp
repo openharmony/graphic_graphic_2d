@@ -494,13 +494,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = 10;
-    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -1077,6 +1078,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.
 {
     proxy->SetFreeMultiWindowStatus(true);
     proxy->SetFreeMultiWindowStatus(false);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetWindowContainer Test
+ * @tc.desc: SetWindowContainer Test
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetWindowContainer, TestSize.Level1)
+{
+    NodeId nodeId = {};
+    proxy->SetWindowContainer(nodeId, false);
     ASSERT_TRUE(proxy);
 }
 } // namespace Rosen

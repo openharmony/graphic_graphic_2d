@@ -23,7 +23,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
-#include "ui/rs_frame_rate_policy.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -328,7 +328,8 @@ std::string RSInterfaces::GetRefreshInfo(pid_t pid)
 }
 
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -350,7 +351,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -413,11 +414,17 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 }
 
 #ifndef ROSEN_ARKUI_X
+int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return renderServiceClient_->SetPhysicalScreenResolution(id, width, height);
+}
+
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
 #endif // !ROSEN_ARKUI_X
+
 bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
@@ -788,12 +795,6 @@ void RSInterfaces::DisableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(false);
 }
 
-void RSInterfaces::SetScreenSwitching(bool flag)
-{
-    ScreenId id{INVALID_SCREEN_ID};
-    renderServiceClient_->NotifyScreenSwitched(id);
-}
-
 void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
@@ -910,9 +911,14 @@ void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
 }
 
-void RSInterfaces::NotifyScreenSwitched(ScreenId id)
+void RSInterfaces::NotifyScreenSwitched()
 {
-    renderServiceClient_->NotifyScreenSwitched(id);
+    renderServiceClient_->NotifyScreenSwitched();
+}
+
+void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
+{
+    renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 } // namespace Rosen
 } // namespace OHOS

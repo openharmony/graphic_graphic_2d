@@ -65,6 +65,21 @@ void RSRenderServiceListener::OnBufferAvailable()
         RSMainThread::Instance()->ForceRefreshForUni();
         return;
     }
+    if (auto consumer = surfaceHandler->GetConsumer()) {
+        bool supportFastCompose = false;
+        GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
+        if (ret == GSERROR_OK && supportFastCompose) {
+            int64_t lastFlushedDesiredPresentTimeStamp = 0;
+            ret = consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
+            if (ret == GSERROR_OK) {
+                RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, " \
+                "bufferTimeStamp : %" PRId64, supportFastCompose, lastFlushedDesiredPresentTimeStamp);
+                RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
+                return;
+            }
+            
+        }
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 
@@ -101,7 +116,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
             *bufSeqNum = curBuffer->GetSeqNum();
         }
     }
-
+    surfaceHandler->ResetBufferAvailableCount();
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
     RSMainThread::Instance()->PostTask([surfaceNode]() {
         auto node = surfaceNode.lock();
@@ -116,8 +131,9 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache in mainthread node id:%{public}" PRIu64, node->GetId());
         surfaceHandler->ResetPreBuffer();
-        surfaceHandler->ResetBufferAvailableCount();
-        node->NeedClearPreBuffer(RSMainThread::Instance()->GetUnmappedCacheSet());
+        std::set<uint32_t> tmpSet;
+        node->NeedClearPreBuffer(tmpSet);
+        RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
     });
 }
 
@@ -132,7 +148,9 @@ void RSRenderServiceListener::OnGoBackground()
         }
         auto surfaceHandler = node->GetMutableRSSurfaceHandler();
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
-        node->NeedClearBufferCache(RSMainThread::Instance()->GetUnmappedCacheSet());
+        std::set<uint32_t> tmpSet;
+        node->NeedClearBufferCache(tmpSet);
+        RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
         node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);

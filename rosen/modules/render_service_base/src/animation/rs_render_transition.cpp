@@ -31,54 +31,6 @@ void RSRenderTransition::DumpAnimationInfo(std::string& out) const
     out += "Type:RSRenderTransition";
 }
 
-bool RSRenderTransition::Marshalling(Parcel& parcel) const
-{
-    if (!RSRenderAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderTransition::Marshalling, step1 failed");
-        return false;
-    }
-    if (!RSMarshallingHelper::Marshalling(parcel, effects_) ||
-        !RSMarshallingHelper::Marshalling(parcel, isTransitionIn_) || interpolator_ == nullptr ||
-        !interpolator_->Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderTransition::Marshalling, step2 failed");
-        return false;
-    }
-    return true;
-}
-
-RSRenderTransition* RSRenderTransition::Unmarshalling(Parcel& parcel)
-{
-    RSRenderTransition* renderTransition = new RSRenderTransition();
-    if (!renderTransition->ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderTransition::Unmarshalling, ParseParam Failed");
-        delete renderTransition;
-        return nullptr;
-    }
-    return renderTransition;
-}
-
-bool RSRenderTransition::ParseParam(Parcel& parcel)
-{
-    if (!RSRenderAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderTransition::ParseParam, RenderAnimation failed");
-        return false;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, effects_)) {
-        ROSEN_LOGE("RSRenderTransition::ParseParam, effect failed");
-        return false;
-    }
-    if (!RSMarshallingHelper::Unmarshalling(parcel, isTransitionIn_)) {
-        ROSEN_LOGE("RSRenderTransition::ParseParam, transition direction failed");
-        return false;
-    }
-    std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
-    if (interpolator == nullptr) {
-        ROSEN_LOGE("RSRenderTransition::ParseParam, interpolator is nullptr");
-        return false;
-    }
-    SetInterpolator(interpolator);
-    return true;
-}
 void RSRenderTransition::OnAnimate(float fraction)
 {
     float valueFraction = interpolator_->Interpolate(fraction);

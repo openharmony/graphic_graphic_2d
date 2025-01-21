@@ -1936,7 +1936,20 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
 {
 #ifdef RS_ENABLE_GPU
     auto contentStatic = false;
+    uifirstContentDirty_ = false;
     if (IsLeashWindow()) {
+        for (auto& child : *GetSortedChildren()) {
+            if (!child) {
+                continue;
+            }
+            auto childSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurface) {
+                continue;
+            }
+            if (child->IsDirty() || child->IsSubTreeDirty()) {
+                uifirstContentDirty_ = true;
+            }
+        }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
     } else if (IsAbilityComponent()) {
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
@@ -1944,6 +1957,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         contentStatic = surfaceCacheContentStatic_;
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
+    uifirstContentDirty_ = uifirstContentDirty_ || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -1952,9 +1966,10 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         AddToPendingSyncList();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
-        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] forceUpdate:[%d] accessibilityChanged:[%d]",
-        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
-        isAccessibilityChanged);
+        "name[%s] Id[%" PRIu64 "], contentStatic[%d] subTreeDirty[%d] contentDirty[%d] forceUpdate[%d] "
+        "accessibilityChanged[%d] hasRemovedChild[%d], GetChildrenCount[%d], uifirstContentDirty:%d",
+        GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
+        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
 #endif
 }
 
@@ -2296,7 +2311,11 @@ void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerR
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
-    auto absRect = GetDstRect().IntersectRect(GetOldDirtyInSurface());
+    auto absRect = GetOldDirtyInSurface();
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr) {
+        absRect = absRect.IntersectRect(geoPtr->GetAbsRect());
+    }
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
@@ -3108,26 +3127,17 @@ void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
+bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
+    bool ret = false;
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        ret = stagingSurfaceParams->SetUifirstNodeEnableParam(b);
         AddToPendingSyncList();
     }
 #endif
-}
-
-void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
-{
-#ifdef RS_ENABLE_GPU
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstStartingFlag(flag);
-        AddToPendingSyncList();
-    }
-#endif
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)

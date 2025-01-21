@@ -19,6 +19,7 @@
 #include "rs_test_util.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "mock/mock_hdi_device.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -276,7 +277,8 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     bool hasGameScene = true;
@@ -319,7 +321,8 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     uint32_t currentRate = 120;
     int64_t currTime = 1000000000;
@@ -328,6 +331,150 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
     EXPECT_EQ(hardwareThread.delayTime_ == 0, true);
 }
 
+/**
+ * @tc.name: RecordTimestamp
+ * @tc.desc: Test RSHardwareThreadTest.RecordTimestamp
+ * @tc.type: FUNC
+ * @tc.require: IBE7GI
+ */
+HWTEST_F(RSHardwareThreadTest, RecordTimestamp, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RectI dstRect{0, 0, 400, 600};
+    surfaceNode1->SetSrcRect(dstRect);
+    surfaceNode1->SetDstRect(dstRect);
+    surfaceNode2->SetSrcRect(dstRect);
+    surfaceNode2->SetDstRect(dstRect);
+    surfaceNode3->SetSrcRect(dstRect);
+    surfaceNode3->SetDstRect(dstRect);
+    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    ASSERT_NE(layer1, nullptr);
+    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    ASSERT_NE(layer2, nullptr);
+    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    ASSERT_NE(layer3, nullptr);
+
+    std::vector<LayerInfoPtr> layers;
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
+    layers.emplace_back(layer3);
+
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RegisterSurfaceFps(layer1->GetNodeId(), layer1->GetSurface()->GetName());
+    hardwareThread.RecordTimestamp(layers);
+    surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
+}
+
+/**
+ * @tc.name: ExecuteSwitchRefreshRate
+ * @tc.desc: Test RSHardwareThreadTest.ExecuteSwitchRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, ExecuteSwitchRefreshRate, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(output, nullptr);
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    hgmCore.hgmFrameRateMgr_ = frameRateMgr;
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    //  设置屏幕尺寸为1080p，物理屏尺寸包含1080p即可
+    ScreenSize sSize = {720, 1080, 685, 1218};
+    hgmCore.AddScreen(screenId_, 0, sSize);
+    auto screen = hgmCore.GetScreen(screenId_);
+    screen->SetSelfOwnedScreenFlag(true);
+    hgmCore.SetScreenRefreshRateImme(1);
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    int32_t status = hgmCore.SetScreenRefreshRate(0, screenId_, 0);
+    ASSERT_TRUE(status < EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: PerformSetActiveMode
+ * @tc.desc: Test RSHardwareThreadTest.PerformSetActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(output, nullptr);
+
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    OHOS::Rosen::impl::RSScreenManager::instance_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
+    hardwareThread.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+    int32_t rate = 3;
+    hgmCore.modeListToApply_->insert({screenId_, rate});
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
+    ASSERT_EQ(supportedModes.size(), 0);
+}
+
+/**
+ * @tc.name: OnPrepareComplete
+ * @tc.desc: Test RSHardwareThreadTest.OnPrepareComplete
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, OnPrepareComplete, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    PrepareCompleteParam para;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    hardwareThread.OnPrepareComplete(psurface, para, nullptr);
+
+    para.needFlushFramebuffer = true;
+    hardwareThread.OnPrepareComplete(psurface, para, nullptr);
+
+    ASSERT_TRUE(hardwareThread.redrawCb_ != nullptr);
+}
+
+/**
+ * @tc.name: CreateFrameBufferSurfaceOhos
+ * @tc.desc: Test RSHardwareThreadTest.CreateFrameBufferSurfaceOhos
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, CreateFrameBufferSurfaceOhos, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto rsSurfaceOhosPtr = hardwareThread.CreateFrameBufferSurfaceOhos(psurface);
+    ASSERT_NE(rsSurfaceOhosPtr, nullptr);
+}
 /*
  * Function: PreAllocateProtectedBuffer
  * Type: Function

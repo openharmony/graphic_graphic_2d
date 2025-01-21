@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_vblank_idle_corrector.h"
+#include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"

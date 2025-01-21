@@ -139,7 +139,8 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
@@ -218,6 +219,8 @@ public:
     std::string GetRefreshInfo(pid_t pid);
 
 #ifndef ROSEN_ARKUI_X
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
@@ -397,9 +400,11 @@ public:
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
-    void NotifyScreenSwitched(ScreenId id);
+    void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);

@@ -154,6 +154,8 @@ private:
         const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
     void DrawImageShaderRectOnCanvas(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
+    void DrawImageWithFirMatrixRotateOnCanvas(
+        const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
@@ -175,6 +177,7 @@ private:
     Drawing::Paint paint_;
     uint32_t dynamicRangeMode_ = 0;
     std::optional<Drawing::Matrix> fitMatrix_ = std::nullopt;
+    bool isFitMatrixValid = false;
 };
 
 template<>

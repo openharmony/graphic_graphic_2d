@@ -218,6 +218,11 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDrawExpandSlrEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
@@ -462,7 +467,7 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)

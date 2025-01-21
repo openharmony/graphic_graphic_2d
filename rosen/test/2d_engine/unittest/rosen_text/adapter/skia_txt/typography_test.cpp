@@ -18,6 +18,12 @@
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"
+#define private public
+#ifndef OHOS_TEXT_ENABLE
+#define OHOS_TEXT_ENABLE
+#endif
+#include "txt/text_bundle_config_parser.h"
+#undef private
 
 
 using namespace testing;
@@ -25,6 +31,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+const double ARC_FONT_SIZE = 28;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
@@ -349,12 +356,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
     text.push_back(0xD83D);
     OHOS::Rosen::TextStyle typographyTextStyle;
     typographyCreate->PushStyle(typographyTextStyle);
+
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().targetApiVersionResult_ =
+        OHOS::Rosen::SPText::SINCE_API16_VERSION;
     typographyCreate->AppendText(text);
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
+
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
- 
     typography->Layout(maxWidth);
     // The value of longestlineWithIndent will Close to 16 if the truncation of emoji fails.
-    ASSERT_TRUE(typography->GetLongestLineWithIndent() < 14);
+    ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE / 2));
 }
  
 /*
@@ -377,12 +389,18 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
     text.push_back(0xD83D);
     OHOS::Rosen::TextStyle typographyTextStyle;
     typographyCreate->PushStyle(typographyTextStyle);
+    
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().targetApiVersionResult_ =
+        OHOS::Rosen::SPText::SINCE_API16_VERSION;
     typographyCreate->AppendText(text);
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
+
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
  
     typography->Layout(maxWidth);
     // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
-    ASSERT_TRUE(typography->GetLongestLineWithIndent() < 28);
+    ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE));
 }
 } // namespace Rosen
 } // namespace OHOS

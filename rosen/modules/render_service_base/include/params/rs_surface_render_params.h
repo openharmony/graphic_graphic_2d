@@ -214,13 +214,14 @@ public:
         return isLeashWindowVisibleRegionEmpty_;
     }
 
-    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
-            return;
+            return false;
         }
         uiFirstFlag_ = isUifirst;
         needSync_ = true;
+        return true;
     }
 
     MultiThreadCacheType GetUifirstNodeEnableParam() const
@@ -553,9 +554,6 @@ public:
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
-    void SetUifirstStartingFlag(bool flag);
-    bool GetUifirstStartingFlag() const;
-
     inline bool HasSubSurfaceNodes() const
     {
         return hasSubSurfaceNodes_;
@@ -644,7 +642,6 @@ private:
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
-    bool uifirstStartingFlag_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;

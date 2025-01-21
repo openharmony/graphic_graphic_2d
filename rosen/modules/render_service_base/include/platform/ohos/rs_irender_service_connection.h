@@ -151,6 +151,8 @@ public:
 
     virtual std::string GetRefreshInfo(pid_t pid) = 0;
 
+    virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
@@ -165,6 +167,7 @@ public:
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -348,7 +351,9 @@ public:
 
     virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void NotifyScreenSwitched(ScreenId id) = 0;
+    virtual void NotifyScreenSwitched() = 0;
+
+    virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

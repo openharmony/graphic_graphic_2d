@@ -1219,6 +1219,33 @@ std::string RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid)
     return enable;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: WriteInterfaceToken error.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(width)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(height)) {
+        return WRITE_PARCEL_ERR;
+    }
+    auto code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+    if (SendRequest(code, data, reply, option) != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: SendRequest error.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     MessageParcel data;
@@ -1374,7 +1401,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    RSSurfaceCapturePermissions /* permissions */)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1399,6 +1426,10 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
     if (!WriteSurfaceCaptureBlurParam(blurParam, data)) {
         ROSEN_LOGE("%{public}s write blurParam failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureAreaRect(specifiedAreaRect, data)) {
+        ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
@@ -1471,6 +1502,16 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureBlurParam(
     const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data)
 {
     if (!data.WriteBool(blurParam.isNeedBlur) || !data.WriteFloat(blurParam.blurRadius)) {
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureAreaRect(
+    const Drawing::Rect& specifiedAreaRect, MessageParcel& data)
+{
+    if (!data.WriteFloat(specifiedAreaRect.left_) || !data.WriteFloat(specifiedAreaRect.top_) ||
+        !data.WriteFloat(specifiedAreaRect.right_) || !data.WriteFloat(specifiedAreaRect.bottom_)) {
         return false;
     }
     return true;
@@ -3690,6 +3731,32 @@ void RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, b
     }
 }
 
+void RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool value)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write Uint64 val err.");
+        return;
+    }
+    if (!data.WriteBool(value)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write Bool val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: Send Request err.");
+        return;
+    }
+}
+
 int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -3699,17 +3766,13 @@ int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-void RSRenderServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
-        return;
-    }
-    if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("%{public}s: write Uint64 val err.", __func__);
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

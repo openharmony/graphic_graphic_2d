@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "ui/rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "animation/rs_transition.h"
 
 using namespace testing;

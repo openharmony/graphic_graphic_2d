@@ -29,6 +29,7 @@ bool RSSurfaceFps::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
     count_ = (count_ + 1) % FRAME_RECORDS_NUM;
     return true;
 }
+
 void RSSurfaceFps::Dump(std::string& result)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -38,6 +39,7 @@ void RSSurfaceFps::Dump(std::string& result)
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
 }
+
 void RSSurfaceFps::ClearDump()
 {
     std::unique_lock<std::mutex> lock(mutex_);

@@ -17,6 +17,7 @@
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
 
+#include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
@@ -2655,6 +2656,67 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
     
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistory001
+ * @tc.desc: test MergeDirtyHistory
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryInVirtual001
+ * @tc.desc: test MergeDirtyHistoryInVirtual
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(*displayDrawable, bufferAge, screenInfo);
+    EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
 }
 } // namespace OHOS::Rosen

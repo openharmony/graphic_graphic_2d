@@ -135,7 +135,6 @@ class DRAWING_API CoreCanvas {
 public:
     CoreCanvas();
     explicit CoreCanvas(DrawingType type);
-    explicit CoreCanvas(void* rawCanvas);
     virtual ~CoreCanvas() {}
     void Bind(const Bitmap& bitmap);
 
@@ -534,6 +533,12 @@ public:
      * @return true if clip is rect and not empty
      */
     virtual bool IsClipRect();
+
+    /**
+     * @deprecated this interface will be remove in furture and SHOULD NOT be used anymore.
+     * @brief Reset Clip States.
+     */
+    virtual void ResetClip();
 
     /**
      * @brief Returns true if clip is empty Path path, transformed by Matrix,

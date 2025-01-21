@@ -23,13 +23,13 @@
 #include "hgm_frame_rate_manager.h"
 #include "hisysevent.h"
 #include "parameters.h"
-#include "rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
 #include "vsync_sampler.h"
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -157,11 +157,13 @@ uint32_t RSHardwareThread::GetunExecuteTaskNum()
 void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
 {
     std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
-    PostTask([uniRenderEngine, bufferIds]() {
-        if (auto engine = uniRenderEngine.lock()) {
-            engine->ClearCacheSet(bufferIds);
-        }
-    });
+    PostDelayTask(
+        [uniRenderEngine, bufferIds]() {
+            if (auto engine = uniRenderEngine.lock()) {
+                engine->ClearCacheSet(bufferIds);
+            }
+        },
+        delayTime_);
 }
 
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
@@ -328,7 +330,7 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
                 continue;
             }
             uint64_t id = layer->GetNodeId();
-            const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+            auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
             surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }
@@ -380,7 +382,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
         // 2 period for draw and composition, pipelineOffset = 2 * period
-        frameOffset = 2 * period + vsyncOffset;
+        frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     } else {
         idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
@@ -393,7 +395,8 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
+        frameOffset = periodNum * idealPeriod + vsyncOffset +
+            static_cast<int64_t>(dvsyncOffset) - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     }
     expectCommitTime = param.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
@@ -403,9 +406,10 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
-        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 "",
+        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 "",
         pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
-        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period, idealPipelineOffset);
+        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
+        idealPipelineOffset, param.fastComposeTimeStampDiff);
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
         delayTime_);
@@ -556,6 +560,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
             .vsyncId = hgmCore.GetVsyncId(),
             .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
             .isForceRefresh = hgmCore.GetForceRefreshFlag(),
+            .fastComposeTimeStampDiff = hgmCore.GetFastComposeTimeStampDiff()
         };
     } else {
         param = {
@@ -565,6 +570,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
             .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
             .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
             .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
+            .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff()
         };
     }
     return param;
@@ -752,11 +758,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
-    bool isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled() && isDefaultScreen) {
+        if (RSSystemProperties::GetDrmEnabled()) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;
@@ -780,7 +785,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
-        true, isProtected, colorGamut, pixelFormat);
+        isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
     // set color space to surface buffer metadata
     using namespace HDI::Display::Graphic::Common::V1_0;
@@ -791,7 +796,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         }
     }
 #else
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, isProtected);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, isProtected);
 #endif
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);
