@@ -71,14 +71,16 @@ enum class RoundCornerDirtyType : uint8_t {
     RCD_DIRTY_ALL = 0x03
 };
 
+using RectU = RectT<uint32_t>;
+
 class RoundCornerDisplay {
 public:
     RoundCornerDisplay() {};
     explicit RoundCornerDisplay(NodeId id);
     virtual ~RoundCornerDisplay();
 
-    // update displayWidth_ and displayHeight_
-    void UpdateDisplayParameter(uint32_t width, uint32_t height);
+    // update Render Rect
+    void UpdateDisplayParameter(uint32_t left, uint32_t top, uint32_t width, uint32_t height);
 
     // update notchStatus_
     void UpdateNotchStatus(int status);
@@ -162,12 +164,10 @@ private:
     Drawing::Bitmap bitmapTopHidden_;
     Drawing::Bitmap bitmapBottomPortrait_;
     // current display resolution
-    uint32_t displayWidth_ = 0;
-    uint32_t displayHeight_ = 0;
+    RectU displayRect_;
 
     // last time rcv display resolution and notchState
-    uint32_t lastRcvDisplayWidth_ = 0;
-    uint32_t lastRcvDisplayHeight_ = 0;
+    RectU lastRcvDisplayRect_;
 
     // status of the notch
     int notchStatus_ = WINDOW_NOTCH_DEFAULT;

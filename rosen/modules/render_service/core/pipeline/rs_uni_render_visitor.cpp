@@ -3672,8 +3672,18 @@ void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
         RSRcdRenderManager::GetInstance().CheckRenderTargetNode(RSMainThread::Instance()->GetContext());
         RSSingleton<RoundCornerDisplayManager>::GetInstance().AddRoundCornerDisplay(node.GetId());
         using rcd_msg = RSSingleton<RsMessageBus>;
-        rcd_msg::GetInstance().SendMsg<NodeId, uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
-            node.GetId(), screenInfo_.width, screenInfo_.height);
+        uint32_t left = 0; // render region
+        uint32_t top = 0;
+        uint32_t width = screenInfo_.width;
+        uint32_t height = screenInfo_.height;
+        if (!screenInfo_.activeRect.IsEmpty()) {
+            left = screenInfo_.activeRect.GetLeft();
+            top = screenInfo_.activeRect.GetTop();
+            width = screenInfo_.activeRect.GetWidth();
+            height = screenInfo_.activeRect.GetHeight();
+        }
+        rcd_msg::GetInstance().SendMsg<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
+            node.GetId(), left, top, width, height);
         rcd_msg::GetInstance().SendMsg<NodeId, ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
             node.GetId(), node.GetScreenRotation());
         rcd_msg::GetInstance().SendMsg<NodeId, int>(TOPIC_RCD_DISPLAY_NOTCH,

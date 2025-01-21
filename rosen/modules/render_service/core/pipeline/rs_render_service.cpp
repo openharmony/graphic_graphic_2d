@@ -189,7 +189,7 @@ void RSRenderService::RegisterRcdMsg()
             auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
             auto& rcdHardManager = RSRcdRenderManager::GetInstance();
             auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t>(
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
                 TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
                 &RoundCornerDisplayManager::UpdateDisplayParameter);
             msgBus.RegisterTopic<NodeId, ScreenRotation>(

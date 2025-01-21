@@ -29,6 +29,7 @@
 #include <thread>
 #include <unordered_map>
 
+#include "common/rs_rect.h"
 #include "image/bitmap.h"
 #include "securec.h"
 #include "platform/common/rs_log.h"
@@ -98,8 +99,6 @@ struct RoundCornerLayer {
     int bufferSize = 0;
     int cldWidth = 0;
     int cldHeight = 0;
-    uint32_t layerWidth = 0;
-    uint32_t layerHeight = 0;
     Drawing::Bitmap* curBitmap = nullptr;
     bool ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std::string>& attrArray);
 };
@@ -107,6 +106,7 @@ struct RoundCornerLayer {
 struct RoundCornerHardware {
     bool resourceChanged = false;
     bool resourcePreparing = false;
+    RectT<uint32_t> displayRect;
     std::shared_ptr<RoundCornerLayer> topLayer = nullptr;
     std::shared_ptr<RoundCornerLayer> bottomLayer = nullptr;
 };
