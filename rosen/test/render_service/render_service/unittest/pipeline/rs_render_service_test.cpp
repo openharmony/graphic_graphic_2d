@@ -196,20 +196,4 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 
     DoDumpSingleArg(renderService);
 }
-
-/**
- * @tc.name: DoDump003
- * @tc.desc: test DoDump, with different single arg.
- * @tc.type: FUNC
- * @tc.require: issueIAJCOS
- */
-HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
-{
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-    ASSERT_NE(renderService->mainThread_, nullptr);
-    ASSERT_NE(renderService->screenManager_, nullptr);
-
-    DoDumpSingleArg(renderService);
-}
 } // namespace OHOS::Rosen
