@@ -213,6 +213,7 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    void ClearDrawingCacheDataMap();
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
