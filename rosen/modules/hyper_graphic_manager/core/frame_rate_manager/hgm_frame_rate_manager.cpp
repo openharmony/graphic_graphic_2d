@@ -835,7 +835,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    multiAppStrategy_.SetScreenType(state);
+    multiAppStrategy_.SetScreenType(isLtpo_);
     multiAppStrategy_.HandleLightFactorStatus(state);
     isAmbientStatus_ = state;
     MarkVoteChange();
