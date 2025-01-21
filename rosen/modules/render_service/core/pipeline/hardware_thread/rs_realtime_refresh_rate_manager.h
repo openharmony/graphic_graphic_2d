@@ -56,11 +56,7 @@ private:
             realtimeFrameCountMap_[screenId]++;
         }
     }
-<<<<<<< HEAD
     void StatisticsRefreshRateDataLocked(std::shared_ptr<HgmFrameRateManager> frameRateMgr);
-=======
-    void StatisticsRefreshRateData(std::shared_ptr<HgmFrameRateManager> frameRateMgr);
->>>>>>> a3c9002d9305f2ba63544824bff1f2e171282879
 
     std::atomic<bool> showEnabled_ = false;
     std::atomic<bool> collectEnabled_ = false;
