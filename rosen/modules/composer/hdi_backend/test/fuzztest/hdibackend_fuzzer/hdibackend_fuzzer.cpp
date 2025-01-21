@@ -71,8 +71,6 @@ namespace OHOS {
         void* data3 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         void* data4 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         void* data5 = static_cast<void*>(GetStringFromData(STR_LEN).data());
-        void* data6 = static_cast<void*>(GetStringFromData(STR_LEN).data());
-        void* data7 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         uint32_t deviceId = GetData<uint32_t>();
         int64_t period = GetData<int64_t>();
         int64_t timestamp = GetData<int64_t>();
@@ -83,18 +81,14 @@ namespace OHOS {
         HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
 
         // test
-
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
         outputptr->Init();
 
         hdiBackend_->RegScreenHotplug(nullptr, data1);
-        hdiBackend_->RegScreenRefresh(nullptr, data2);
-        hdiBackend_->RegScreenRefresh(onScreenRefreshFunc, data7);
+        hdiBackend_->RegScreenRefresh(onScreenRefreshFunc, data2);
         hdiBackend_->RegPrepareComplete(nullptr, data3);
-        hdiBackend_->OnHdiBackendRefreshEvent(deviceId, data4);
-        hdiBackend_->OnHdiBackendRefreshEvent(deviceId, nullptr);
-        hdiBackend_->RegHwcDeadListener(nullptr, data5);
-        hdiBackend_->RegScreenVBlankIdleCallback(nullptr, data6);
+        hdiBackend_->RegHwcDeadListener(nullptr, data4);
+        hdiBackend_->RegScreenVBlankIdleCallback(nullptr, data5);
         hdiBackend_->SetPendingMode(nullptr, period, timestamp);
         hdiBackend_->PrepareCompleteIfNeed(outputptr, false);
         hdiBackend_->Repaint(nullptr);
