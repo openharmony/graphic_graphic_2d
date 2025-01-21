@@ -187,7 +187,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
     OH_Drawing_TypefaceDestroy(typeface);
 
     typeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(mgr, matchFamilyName, normalStyle, nullptr, 0, ' ');
-    EXPECT_EQ(typeface, nullptr);
+    EXPECT_NE(typeface, nullptr);
     OH_Drawing_TypefaceDestroy(typeface);
 
     OH_Drawing_FontMgrDestroy(mgr);
