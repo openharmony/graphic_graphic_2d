@@ -426,7 +426,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenSupportedRefreshRates, Tes
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetShowRefreshRateEnabled, TestSize.Level1)
 {
     proxy->SetShowRefreshRateEnabled(true, 0);
-    ASSERT_NE(proxy->transactionDataIndex_, 5);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
