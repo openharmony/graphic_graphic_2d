@@ -119,7 +119,6 @@ public:
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
-        drawWindowCache_.ClearCache();
         if (isNotClearCompleteCacheSurface) {
             ClearCacheSurfaceOnly();
         } else {
@@ -250,11 +249,6 @@ public:
         return cacheSurface_ ? true : false;
     }
     int GetTotalProcessedSurfaceCount() const;
-
-    bool HasCache() const override
-    {
-        return drawWindowCache_.HasCache();
-    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(

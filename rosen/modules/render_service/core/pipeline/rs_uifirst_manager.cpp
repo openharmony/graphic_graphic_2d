@@ -124,8 +124,6 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         pendingForceUpdateNode_.push_back(nodePtr->GetId());
     }
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
-    RS_OPTIONAL_TRACE_NAME_FMT("ResetUifirstNode %" PRIu64", IsOnTheTree:%d, IsNodeToBeCaptured:%d",
-        nodePtr->GetId(), nodePtr->IsOnTheTree(), nodePtr->IsNodeToBeCaptured());
     auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
     if (!drawable) {
         return;
@@ -1216,7 +1214,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         if (RSUifirstManager::Instance().IsRecentTaskScene()) {
             isNeedAssignToSubThread = node.IsScale() && LeashWindowContainMainWindow(node);
         } else {
-            isNeedAssignToSubThread = animation && LeashWindowContainMainWindow(node);
+            isNeedAssignToSubThread = animation;
         }
         // 1: Planning: support multi appwindows
         isNeedAssignToSubThread = (isNeedAssignToSubThread ||
@@ -1301,24 +1299,6 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
     return false;
 }
 
-void RSUifirstManager::UifirstFirstFrameCacheState(RSSurfaceRenderNode& node)
-{
-    if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE &&
-        !node.GetSubThreadAssignable()) {
-        UifirstStateChange(node, MultiThreadCacheType::NONE); // mark as draw win in RT thread
-        auto drawable = GetSurfaceDrawableByID(node.GetId());
-        if (drawable && drawable->HasCache()) {
-            node.SetSubThreadAssignable(true); // mark as assignable to uifirst next frame
-        }
-        node.SetNeedCacheSurface(true); // mark as that needs cache win in RT
-        // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
-        node.SetHwcChildrenDisabledState();
-        node.SetUifirstStartingFlag(true);
-    } else {
-        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
-    }
-}
-
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
@@ -1329,7 +1309,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-        UifirstFirstFrameCacheState(node);
+        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
         return;
     }
     if (RSUifirstManager::IsNonFocusWindowCache(node, ancestorNodeHasAnimation)) {
@@ -1394,6 +1374,10 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
             }
+            if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
+                node.SetUifirstUseStarting(LeashWindowContainMainWindowAndStarting(*surfaceNode));
+                NotifyUIStartingWindow(node.GetId(), true);
+            }
             auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);
             node.SetUifirstStartTime(GetCurSysTime());
@@ -1401,12 +1385,10 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddCardNodes(node.GetId(), currentFrameCacheType);
             node.SetSubThreadAssignable(true);
             node.SetNeedCacheSurface(false);
-            node.SetUifirstStartingFlag(false);
         } else { // keep disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64"", node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
-            node.SetUifirstStartingFlag(false);
         }
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
@@ -1428,7 +1410,6 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             RemoveCardNodes(node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
-            node.SetUifirstStartingFlag(false);
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameCacheType);

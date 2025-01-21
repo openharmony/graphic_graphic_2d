@@ -483,6 +483,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
+        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
+        return;
+    }
+
+    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams, *uniParam)) {
+        SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
+        return;
+    }
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
@@ -1137,20 +1147,16 @@ bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& s
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
-    bool useDmaBuffer = UseDmaBuffer();
-    if (!useDmaBuffer && drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, uniParams)) {
-        return true;
-    }
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
     auto cacheState = GetCacheSurfaceProcessedStatus();
-    if (((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
+    if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
         // WAITING may change to DOING in subThread at any time
         cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING) ||
-        (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) && !drawWindowCache_.HasCache()) {
+        (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d, HasCache:%d",
-        name_.c_str(), surfaceParams.GetId(), enableType, cacheState, drawWindowCache_.HasCache());
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d",
+        name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
@@ -1159,6 +1165,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
+    bool useDmaBuffer = UseDmaBuffer();
+    // This branch is entered only when the conditions for executing the DrawUIFirstCache function are met.
     if (surfaceParams.GetGlobalPositionEnabled() &&
         surfaceParams.GetUifirstUseStarting() == INVALID_NODEID && !useDmaBuffer) {
         auto matrix = surfaceParams.GetTotalMatrix();
@@ -1167,12 +1175,17 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         RS_LOGD("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
     }
+
     DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;
-    bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
-        uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
-    drawCacheSuccess = useDmaBuffer ?
-        DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
+    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
+        drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
+    } else {
+        bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
+            uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
+        drawCacheSuccess = useDmaBuffer ?
+            DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
+    }
     if (!drawCacheSuccess) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());

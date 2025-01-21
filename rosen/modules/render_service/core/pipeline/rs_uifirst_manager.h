@@ -201,7 +201,6 @@ private:
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
-    void UifirstFirstFrameCacheState(RSSurfaceRenderNode& node);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
     void NotifyUIStartingWindow(NodeId id, bool wait);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
