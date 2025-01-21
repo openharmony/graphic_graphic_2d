@@ -168,6 +168,9 @@ public:
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
+        float realImageWidth, float realImageHeight);
+
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);

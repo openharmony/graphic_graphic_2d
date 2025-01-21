@@ -1450,31 +1450,15 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
 
         auto watermark = RSUniRenderThread::Instance().GetWatermarkImg();
         auto screenInfo = screenManager->QueryScreenInfo(params->GetScreenId());
-        auto screenWidth = static_cast<float>(screenInfo.width);
-        auto screenHeight = static_cast<float>(screenInfo.height);
+        float realImageWidth = static_cast<float>(image->GetWidth());
+        float realImageHeight = static_cast<float>(image->GetHeight());
 
         curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
-        auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
-
-        float imageScaleWidth = screenWidth / static_cast<float>(image->GetWidth());
-        float imageScaleHeight = screenHeight / static_cast<float>(image->GetHeight());
-        auto imageWidth = image->GetWidth() * imageScaleHeight;
-        auto imageHeight = image->GetHeight() * imageScaleWidth;
-        // Ensure that the security mask is located in the middle of the virtual screen.
-        if (imageScaleWidth > imageScaleHeight) {
-            // Left and right set black
-            float halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
-            float halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
-            dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
-        }
-
-        if (imageScaleWidth < imageScaleHeight) {
-            // Up and down set black
-            float halfBoundHeightTop = (screenHeight - imageHeight) / 2;
-            float halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
-            dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
-        }
+        float screenWidth = static_cast<float>(screenInfo.width);
+        float screenHeight = static_cast<float>(screenInfo.height);
+        // Area to be drawn in the actual image
+        auto dstRect = RSUniRenderUtil::GetImageRegions(screenWidth, screenHeight, realImageWidth, realImageHeight);
         // Make sure the canvas is oriented accurately.
         curCanvas_->ResetMatrix();
 

@@ -2468,5 +2468,35 @@ void RSUniRenderUtil::MultiLayersPerf(size_t layerNum)
         lastRequestPerfTime = currentTime;
     }
 }
+
+Drawing::Rect RSUniRenderUtil::GetImageRegions(float screenWidth, float screenHeight,
+    float realImageWidth, float realImageHeight)
+{
+    auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
+    if (realImageWidth == 0.0f || realImageHeight == 0.0f) {
+        return dstRect;
+    }
+    float imageScaleWidth = screenWidth / static_cast<float>(realImageWidth);
+    float imageScaleHeight = screenHeight / static_cast<float>(realImageHeight);
+    auto imageWidth = realImageWidth * imageScaleHeight;
+    auto imageHeight = realImageHeight * imageScaleWidth;
+    // Ensure that the security mask is located in the middle of the virtual screen.
+    if (imageScaleWidth > imageScaleHeight) {
+        // Left and right set black
+        float halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
+        float halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
+        dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
+        return dstRect;
+    }
+
+    if (imageScaleWidth < imageScaleHeight) {
+        // Up and down set black
+        float halfBoundHeightTop = (screenHeight - imageHeight) / 2;
+        float halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
+        dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
+        return dstRect;
+    }
+    return dstRect;
+}
 } // namespace Rosen
 } // namespace OHOS
