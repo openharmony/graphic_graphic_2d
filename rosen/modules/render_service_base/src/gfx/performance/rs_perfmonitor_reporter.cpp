@@ -33,6 +33,7 @@ constexpr int32_t DRAWING_CACHE_DURATION_TIMEOUT_THRESHOLD = 1000;
 constexpr int32_t REPORT_INTERVAL = 120000000;
 constexpr int32_t DRAWING_CACHE_MAX_CONTINUOUS_UPDATE_TIME = 7;
 constexpr int32_t STORED_TIMESTAMP_COUNT = DRAWING_CACHE_UPDATE_TIME_THRESHOLD - 1;
+constexpr int32_t PRINT_SUBHEALTH_TRACE_INTERVAL = 5000;
 #endif
 
 RSPerfMonitorReporter& RSPerfMonitorReporter::GetInstance()
@@ -263,6 +264,28 @@ bool RSPerfMonitorReporter::IsOpenPerf()
     return isOpenPerf;
 #else
     return false;
+#endif
+}
+
+std::chrono::time_point<high_resolution_clock> RSPerfMonitorReporter::StartRendergroupMonitor()
+{
+    return high_resolution_clock::now();
+}
+
+void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime,
+    NodeId& nodeId, int updateTimes)
+{
+#ifdef ROSEN_OHOS
+    auto endTime = high_resolution_clock::now();
+    auto interval = std::chrono::duration_cast<microseconds>(endTime - startTime);
+    bool needTrace = interval.count() > PRINT_SUBHEALTH_TRACE_INTERVAL;
+    if (needTrace) {
+        RS_TRACE_BEGIN("SubHealthEvent Rendergroup, updateCache interval:" + std::to_string(interval.count()));
+    }
+    ProcessRendergroupSubhealth(nodeId, updateTimes, interval.count(), startTime);
+    if (needTrace) {
+        RS_TRACE_END();
+    }
 #endif
 }
 
