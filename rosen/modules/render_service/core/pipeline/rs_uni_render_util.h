@@ -89,6 +89,7 @@ public:
     static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
+    static float GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,

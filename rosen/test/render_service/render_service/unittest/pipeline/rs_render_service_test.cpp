@@ -113,7 +113,7 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump002, TestSize.Level1)
 void DoDumpSingleArg(sptr<RSRenderService> renderService)
 {
     std::string dumpResult = "";
-
+    
     dumpResult = GetDumpResult(renderService, u"screen");
     ASSERT_TRUE(dumpResult.find("screen") != std::string::npos);
 
@@ -179,6 +179,22 @@ void DoDumpSingleArg(sptr<RSRenderService> renderService)
 
     dumpResult = GetDumpResult(renderService, u"client");
     ASSERT_TRUE(dumpResult.find("client") != std::string::npos);
+}
+
+/**
+ * @tc.name: DoDump003
+ * @tc.desc: test DoDump, with different single arg.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJCOS
+ */
+HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
+{
+    auto renderService = GetAndInitRenderService();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_NE(renderService->mainThread_, nullptr);
+    ASSERT_NE(renderService->screenManager_, nullptr);
+
+    DoDumpSingleArg(renderService);
 }
 
 /**

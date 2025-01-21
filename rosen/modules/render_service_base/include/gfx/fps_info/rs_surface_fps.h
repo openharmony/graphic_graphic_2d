@@ -35,12 +35,13 @@ public:
     bool RecordPresentTime(uint64_t timestamp, uint32_t seqNum);
     void Dump(std::string& result);
     void ClearDump();
-    std::string GetName() {
+    std::string GetName() const {
         return name_;
     }
 
 private:
     static constexpr int FRAME_RECORDS_NUM = 384;
+    // record self drawing layer timestamp
     std::array<FPSStat, FRAME_RECORDS_NUM> presentTimeRecords_ {};
     uint32_t count_ = 0;
     std::mutex mutex_;

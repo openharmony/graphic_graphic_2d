@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ui/rs_ext_node_operation.h"
+#include "feature/anco_manager/rs_ext_node_operation.h"
 
 namespace OHOS {
 namespace Rosen {

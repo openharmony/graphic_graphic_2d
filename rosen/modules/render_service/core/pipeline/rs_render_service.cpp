@@ -357,8 +357,20 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) cons
 void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
-    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    surfaceFpsManager.Dump(dumpString, fpsArg);
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            }).wait();
+    }
 }
 
 void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
@@ -405,8 +417,20 @@ void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) con
 void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
-    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    surfaceFpsManager.ClearDump(dumpString, fpsArg);
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            }).wait();
+    }
 }
 
 void RSRenderService::DumpRSEvenParam(std::string& dumpString) const

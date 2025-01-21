@@ -135,14 +135,17 @@ VsyncError VSyncConnection::RequestNextVSync(const std::string &fromWhom, int64_
             return VSYNC_ERROR_API_FAILED;
         }
         if (distributor_ == nullptr) {
+            VLOGE("%{public}s distributor_ is null, name:%{public}s.", __func__, info_.name_.c_str());
             return VSYNC_ERROR_NULLPTR;
         }
         distributor = distributor_.promote();
         if (distributor == nullptr) {
+            VLOGE("%{public}s distributor is null, name:%{public}s.", __func__, info_.name_.c_str());
             return VSYNC_ERROR_NULLPTR;
         }
         if (isFirstRequestVsync_) {
             isFirstRequestVsync_ = false;
+            distributor->FirstRequestVsync();
             VLOGI("First vsync is requested, name: %{public}s", info_.name_.c_str());
         }
     }
@@ -631,6 +634,10 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period,
     uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
     std::unique_lock<std::mutex> locker(mutex_);
+    if (isFirstSend_) {
+        isFirstSend_ = false;
+        VLOGI("First vsync OnDVSyncTrigger");
+    }
     vsyncMode_ = vsyncMode;
     dvsync_->RuntimeSwitch();
     if (IsDVsyncOn()) {
@@ -680,6 +687,10 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
     {
         bool waitForVSync = false;
         std::lock_guard<std::mutex> locker(mutex_);
+        if (isFirstSend_) {
+            isFirstSend_ = false;
+            VLOGI("First vsync OnVSyncTrigger");
+        }
         // Start of DVSync
         DVSyncRecordVSync(now, period, refreshRate, false);
         // End of DVSync
@@ -1044,6 +1055,12 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         ConnPostEvent(connection, timestamp, period, vsyncCount);
     }
     // End of DVSync
+    if (isFirstRequest_) {
+        isFirstRequest_ = false;
+        isFirstSend_ = true;
+        VLOGI("First vsync RequestNextVSync conn:%{public}s, rate:%{public}d, highPriorityRate:%{public}d",
+            connection->info_.name_.c_str(), connection->rate_, connection->highPriorityRate_);
+    }
     VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
@@ -1575,6 +1592,12 @@ void VSyncDistributor::PrintConnectionsStatus()
     VLOGI("DVSync featureEnable %{public}d on %{public}d needDVSyncRnv %{public}d, needDVSyncTrigger %{public}d",
         dvsync_->IsFeatureEnabled(), IsDVsyncOn(), dvsync_->NeedDVSyncRNV(), dvsync_->NeedDVSyncTrigger());
 #endif
+}
+
+void VSyncDistributor::FirstRequestVsync()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    isFirstRequest_ = true;
 }
 }
 }

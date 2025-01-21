@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ui/rs_ui_display_soloist.h"
+#include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 

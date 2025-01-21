@@ -157,6 +157,7 @@ HWTEST(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level1)
     ASSERT_NE(renderEngine, nullptr);
     renderEngine->Init();
 
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);

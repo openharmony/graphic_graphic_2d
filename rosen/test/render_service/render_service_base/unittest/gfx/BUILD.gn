@@ -21,7 +21,11 @@ module_output_path = "graphic_2d/rosen_engine/render_service_base/gfx"
 ohos_unittest("RSRenderServiceBaseGfxTest") {
   module_out_path = module_output_path
 
-  sources = [ "dump/rs_dump_manager_test.cpp" ]
+  sources = [
+    "dump/rs_dump_manager_test.cpp",
+    "fps_info/rs_surface_fps_manager_test.cpp",
+    "fps_info/rs_surface_fps_test.cpp",
+  ]
 
   configs = [
     ":render_test",

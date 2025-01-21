@@ -23,6 +23,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1023,6 +1024,27 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
+}
+
+/**
+ * @tc.name: RecordTimestamp
+ * @tc.desc: Test RecordTimestamp
+ * @tc.type: FUNC
+ * @tc.require: IBE7GI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, RecordTimestamp, TestSize.Level1)
+{
+    uint32_t seqNum = 0;
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string name("surfacefps");
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    surfaceFpsManager.RegisterSurfaceFps(DEFAULT_ID, name);
+    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    seqNum = 1;
+    EXPECT_TRUE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    surfaceFpsManager.UnregisterSurfaceFps(DEFAULT_ID);
 }
 
 /**

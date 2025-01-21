@@ -23,7 +23,7 @@
 #include "hgm_frame_rate_manager.h"
 #include "hisysevent.h"
 #include "parameters.h"
-#include "rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
 #include "vsync_sampler.h"
 
@@ -330,7 +330,7 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
                 continue;
             }
             uint64_t id = layer->GetNodeId();
-            const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+            auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
             surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }

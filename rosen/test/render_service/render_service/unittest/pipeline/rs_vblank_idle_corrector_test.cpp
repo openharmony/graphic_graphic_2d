@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_vblank_idle_corrector.h"
+#include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
 
 using namespace testing;
 using namespace testing::ext;

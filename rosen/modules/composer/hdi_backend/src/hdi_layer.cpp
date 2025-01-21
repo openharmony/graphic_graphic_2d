@@ -646,6 +646,7 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
         std::unique_lock<std::mutex> lock(mutex_);
         const uint32_t offset = count_;
         for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+            // Reverse output timestamp array
             uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
             auto windowsName = presentTimeRecords_[order].windowsName;
             auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);

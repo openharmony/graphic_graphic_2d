@@ -116,7 +116,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
             *bufSeqNum = curBuffer->GetSeqNum();
         }
     }
-
+    surfaceHandler->ResetBufferAvailableCount();
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
     RSMainThread::Instance()->PostTask([surfaceNode]() {
         auto node = surfaceNode.lock();
@@ -131,7 +131,6 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache in mainthread node id:%{public}" PRIu64, node->GetId());
         surfaceHandler->ResetPreBuffer();
-        surfaceHandler->ResetBufferAvailableCount();
         std::set<uint32_t> tmpSet;
         node->NeedClearPreBuffer(tmpSet);
         RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);

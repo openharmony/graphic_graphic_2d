@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "ui/rs_ui_display_soloist.h"
+#include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
 
 using namespace testing;
 using namespace testing::ext;

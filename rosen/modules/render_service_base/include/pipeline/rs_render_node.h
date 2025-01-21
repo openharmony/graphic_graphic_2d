@@ -104,6 +104,7 @@ public:
     // Only used in PC extend screen
     void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1);
     void RemoveCrossScreenChild(const SharedPtr& child);
+    void ClearCloneCrossNode();
 
     WeakPtr GetSourceCrossNode() const
     {
@@ -113,6 +114,15 @@ public:
     bool IsCloneCrossNode() const
     {
         return isCloneCrossNode_;
+    }
+
+    void SetCurCloneNodeParent(SharedPtr node)
+    {
+        curCloneNodeParent_ = node;
+    }
+    WeakPtr GetCurCloneNodeParent() const
+    {
+        return curCloneNodeParent_;
     }
 
     virtual void CollectSurface(const std::shared_ptr<RSRenderNode>& node,
@@ -1066,6 +1076,7 @@ private:
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     WeakPtr sourceCrossNode_;
+    WeakPtr curCloneNodeParent_;
     std::weak_ptr<RSContext> context_ = {};
     WeakPtr parent_;
     // including enlarged draw region
