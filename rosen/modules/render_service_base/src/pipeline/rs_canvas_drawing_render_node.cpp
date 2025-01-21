@@ -81,10 +81,8 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     if (!image) {
         return false;
     }
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
-#if defined(RS_ENABLE_GL)
-    origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-#endif
+    Drawing::TextureOrigin origin = RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL
+        ? Drawing::TextureOrigin::BOTTOM_LEFT : Drawing::TextureOrigin::TOP_LEFT;
     auto sharedBackendTexture = image->GetBackendTexture(false, &origin);
     if (!sharedBackendTexture.IsValid()) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedBackendTexture is nullptr");
