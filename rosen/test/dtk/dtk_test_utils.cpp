@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
+ */
 #include "dtk_test_utils.h"
 #include "text/font.h"
 #include "text/font_mgr.h"
@@ -86,7 +90,7 @@ void TestUtils::OnDrawArc(TestPlaybackCanvas* playbackCanvas_, Drawing::Pen& pen
     Drawing::Image& image)
 {
     playbackCanvas_->DrawArc(Drawing::Rect(15.0f, 15.0f, RECT_SIZE - 15.0f, RECT_SIZE - 15.0f), // 15.0: offset
-        0 , 180); // 180: angle
+        0, 180); // 180: angle
 }
 
 void TestUtils::OnDrawPath(TestPlaybackCanvas* playbackCanvas_, Drawing::Pen& pen, Drawing::Brush& brush,

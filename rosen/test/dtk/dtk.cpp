@@ -137,7 +137,7 @@ void SkipInitial(const std::shared_ptr<TestBase>& initCase, const std::shared_pt
 }
 
 void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestBase>()> creator, int testCount,
-                        int frame, bool noDump)
+                   int frame, bool noDump)
 {
     string demoName = "dtk_" + testCaseName;
     RSSystemProperties::GetUniRenderEnabled();
@@ -193,7 +193,7 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
 }
 
 void runSingleTestCase(std::string testCaseName, std::function<std::shared_ptr<TestBase>()> creator,
-                        int testCount, int frame, bool offscreen, bool noDump, bool skipInitial, bool runLoadCase)
+                       int testCount, int frame, bool offscreen, bool noDump, bool skipInitial, bool runLoadCase)
 {
     cout << "testCase--" << testCaseName << "-- starts! " << endl;
     runWithWindow(testCaseName, creator, testCount, frame, noDump);
@@ -241,7 +241,7 @@ void printNames(bool isFullname)
 }
 
 int findIntParam(unordered_map<string, int>& params, char* argv[], string op1, string op2,
-                int defaultValue)
+                 int defaultValue)
 {
     if (params.find(op1) != params.end()) {
         int i = params.find(op1)->second + 1;

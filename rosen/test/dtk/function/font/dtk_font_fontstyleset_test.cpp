@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
+ */
 #include "../../dtk_test_ext.h"
 #include "text/font.h"
 #include "recording/mem_allocator.h"
@@ -8,8 +12,8 @@
 #include "utils/rect.h"
 #include "text/typeface.h"
 
-namespace OHOS{
-namespace Rosen{
+namespace OHOS {
+namespace Rosen {
 
 //演示用例 FontStyleSet_CreateTypeface_3001
 DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 1)
@@ -26,9 +30,9 @@ DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 1)
     std::string text1 = "DDGR ddgr 鸿蒙 !@#%￥^&*;：，。";
     std::string text2 = "-_=+()123`.---~|{}【】,./?、？<>《》";
     std::string text3 = "\xE2\x99\x88\xE2\x99\x8A\xE2\x99\x88\xE2\x99\x8C\xE2\x99\x8D\xE2\x99\x8D";
-    std::string texts[] = {text1,text2,text3};
+    std::string texts[] = {text1, text2, text3};
     int line = 200;
-    for (auto text :texts){
+    for (auto text :texts) {
         std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromText(text.c_str(), text.size(), font);
         Drawing::Brush brush;
         playbackCanvas_->AttachBrush(brush);
@@ -40,7 +44,7 @@ DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 1)
         playbackCanvas_->DrawTextBlob(textBlob.get(), 200, line);
         line += 200;
         playbackCanvas_->DetachPen();
-    }    
+    }
 }
 
 }

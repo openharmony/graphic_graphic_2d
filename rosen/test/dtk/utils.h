@@ -1,4 +1,5 @@
 /*
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
  */
 #ifndef RS_UTILS_H

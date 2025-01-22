@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
+ */
 #include "dtk_test_register.h"
 
 namespace OHOS {
@@ -12,8 +16,8 @@ DtkTestRegister* DtkTestRegister::Instance()
 }
 
 bool DtkTestRegister::regist(const std::string testName,
-                                const std::function<std::shared_ptr<TestBase>()> testCase,
-                                TestLevel testLevel, int testCaseIndex)
+                             const std::function<std::shared_ptr<TestBase>()> testCase,
+                             TestLevel testLevel, int testCaseIndex)
 {
     int iTestLevel = testLevel;
     std::string key = testName + "_L" + std::to_string(iTestLevel) + "_" + std::to_string(testCaseIndex);

@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024. All rights reserved.
+ */
 #include "utils.h"
 #include "foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/draw/surface.h"
 #include <memory>
