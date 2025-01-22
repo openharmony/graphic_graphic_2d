@@ -32,7 +32,8 @@ const size_t VERSION_DIVISOR = 100;
 #endif
 
 #ifdef OHOS_TEXT_ENABLE
-bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData, const AppExecFwk::BundleInfo& bundleInfo)
+bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData,
+    const AppExecFwk::BundleInfo& bundleInfo)
 {
     for (const auto& info : bundleInfo.hapModuleInfos) {
         for (const auto& data : info.metadata) {
