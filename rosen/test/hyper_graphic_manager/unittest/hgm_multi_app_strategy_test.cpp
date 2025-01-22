@@ -528,15 +528,48 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
 
-        multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_LOW);
-        multiAppStrategy_->GetVoteRes(strategyConfig);
-        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
-        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+        STEP("1. normal strategy") {
+            multiAppStrategy_->isLtpo_ = true;
+            multiAppStrategy_->lowAmbientStatus_ = false;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_LOW);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
 
-        multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_HIGH);
-        multiAppStrategy_->GetVoteRes(strategyConfig);
-        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
-        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_HIGH);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->lowAmbientStatus_ = true;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_LOW);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_HIGH);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+        }
+        STEP("2. brightness level strategy") {
+            multiAppStrategy_->isLtpo_ = false;
+            multiAppStrategy_->lowAmbientStatus_ = true;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::LOW_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::MIDDLE_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::HIGH_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+        }
     }
 }
 
