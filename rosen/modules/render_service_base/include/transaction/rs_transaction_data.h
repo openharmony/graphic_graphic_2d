@@ -172,6 +172,7 @@ public:
 
     bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
         std::string& commandMapDesc) const;
+    void DumpCommand(std::string& dumpString);
 
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
