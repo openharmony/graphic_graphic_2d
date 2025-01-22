@@ -65,7 +65,7 @@ public:
     virtual bool IsVirtual() const = 0;
     virtual void SetActiveMode(uint32_t modeId) = 0;
     virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
-    virtual void SetResolution(uint32_t width, uint32_t height) = 0;
+    virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
@@ -174,7 +174,7 @@ public:
     bool IsVirtual() const override;
     void SetActiveMode(uint32_t modeId) override;
     uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
-    void SetResolution(uint32_t width, uint32_t height) override;
+    int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;

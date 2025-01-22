@@ -186,8 +186,7 @@ public:
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
     static bool GetHardCursorEnabled();
-    static bool GetDrawExpandSlrEnabled();
-    static bool GetSLRScaleFunctionEnable();
+    static bool GetSLRScaleEnabled();
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
     static bool GetFilterCacheEnabled();

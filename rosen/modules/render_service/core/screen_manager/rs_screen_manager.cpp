@@ -1422,8 +1422,7 @@ int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    screensIt->second->SetResolution(width, height);
-    return SUCCESS;
+    return screensIt->second->SetResolution(width, height);
 }
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
