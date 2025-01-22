@@ -1532,6 +1532,24 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID): {
+            uint64_t pid;
+            if (!data.ReadUint64(pid)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+            int32_t result = GetPixelMapByProcessId(pixelMapVector, static_cast<pid_t>(pid));
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapVector)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {

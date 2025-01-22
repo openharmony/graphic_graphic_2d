@@ -161,6 +161,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
+        InsertSelfDrawingNodeOfProcess(surfaceNode);
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
         }
@@ -187,6 +188,15 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     return true;
 }
 
+void RSRenderNodeMap::InsertSelfDrawingNodeOfProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    NodeId id = surfaceNode->GetId();
+    pid_t pid = ExtractPid(id);
+    if (surfaceNode->IsSelfDrawingType()) {
+        selfDrawingNodeInProcess_[pid].insert({ id, surfaceNode });
+    }
+}
+
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     pid_t pid = ExtractPid(id);
@@ -202,6 +212,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
+        EraseSelfDrawingNodeOfProcess(id);
         surfaceNodeMap_.erase(id);
         RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(id);
     }
@@ -209,6 +220,22 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
     purgeableNodeMap_.erase(id);
+}
+
+void RSRenderNodeMap::EraseSelfDrawingNodeOfProcess(NodeId id)
+{
+    pid_t pid = ExtractPid(id);
+    auto iter = selfDrawingNodeInProcess_.find(pid);
+    if (iter != selfDrawingNodeInProcess_.end()) {
+        auto& subMap = iter->second;
+        auto subIter = subMap.find(id);
+        if (subIter != subMap.end()) {
+            subMap.erase(id);
+            if (subMap.empty()) {
+                selfDrawingNodeInProcess_.erase(iter);
+            }
+        }
+    }
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -387,6 +414,15 @@ void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
 std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
 {
     return std::move(purgeableNodeMap_);
+}
+
+std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
+{
+    auto iter = selfDrawingNodeInProcess_.find(pid);
+    if (iter != selfDrawingNodeInProcess_.end()) {
+        return iter->second;
+    }
+    return std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>();
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
