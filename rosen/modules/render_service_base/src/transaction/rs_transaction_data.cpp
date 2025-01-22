@@ -18,6 +18,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -287,6 +288,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     static_cast<uint32_t>(commandSubType));
             }
             payloadLock.lock();
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
+                command->PrintType().c_str());
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
