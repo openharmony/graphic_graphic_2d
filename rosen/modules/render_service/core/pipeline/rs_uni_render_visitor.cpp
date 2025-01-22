@@ -3167,7 +3167,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             }
         }
         RectI clipRect;
-        UpdateClipRect(hwcNodePtr, clipRect, rootNode);
+        UpdateHWCNodeClipRect(hwcNodePtr, clipRect, rootNode);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
@@ -3189,8 +3189,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
     }
 }
 
-bool RSUniRenderVisitor::FindRootAndUpdateMatrix(
-    std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix, const RSRenderNode& rootNode)
+bool RSUniRenderVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
+    const RSRenderNode& rootNode)
 {
     bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
     while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
@@ -3199,7 +3199,8 @@ bool RSUniRenderVisitor::FindRootAndUpdateMatrix(
         } else {
             break;
         }
-        parent = parent->GetParent().lock();
+        auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
+        parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
         if (!parent) {
             break;
         }
@@ -3208,8 +3209,8 @@ bool RSUniRenderVisitor::FindRootAndUpdateMatrix(
     return findInRoot;
 }
 
-void RSUniRenderVisitor::UpdateClipRect(
-    std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect, const RSRenderNode& rootNode)
+void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
+    const RSRenderNode& rootNode)
 {
     const auto& property = hwcNodePtr->GetRenderProperties();
     auto geoPtr = property.GetBoundsGeometry();
