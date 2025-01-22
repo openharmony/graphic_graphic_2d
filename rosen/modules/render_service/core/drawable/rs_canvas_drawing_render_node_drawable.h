@@ -77,6 +77,8 @@ private:
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
     void FlushForVK(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
+    Drawing::TextureOrigin GetTextureOrigin();
+    void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
     bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);

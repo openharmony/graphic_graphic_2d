@@ -81,13 +81,13 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     if (!image) {
         return false;
     }
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::TextureOrigin origin = RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL
+        ? Drawing::TextureOrigin::BOTTOM_LEFT : Drawing::TextureOrigin::TOP_LEFT;
     auto sharedBackendTexture = image->GetBackendTexture(false, &origin);
     if (!sharedBackendTexture.IsValid()) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedBackendTexture is nullptr");
         return false;
     }
-
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
     auto context = canvas.GetGPUContext();
