@@ -1,0 +1,92 @@
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_executable("dtk") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  defines = []
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/test/2d_graphics/dtk",
+  ]
+  # function demo
+  sources = [
+    "dtk.cpp",
+    "dtk_test_base.cpp",
+    "dtk_test_register.cpp",
+    "dtk_test_utils.cpp",
+    "function/font/dtk_font_fontstyleset_test.cpp",
+    #"function/Image/dtk_Image_Scene.cpp",
+    "utils.cpp",
+  ]
+  # performance demo
+  sources += [
+    # "performance/effect/dtk_arithmeticImageFilter_load_test.cpp",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    #"//third_party/zlib:libz",
+  ]
+  deps += [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    #"//foundation/window/window_manager/wm:libwm",
+    #"//foundation/window/window_manager/wmserver:libwms",
+  ]
+
+  include_dirs += [
+    #"//foundation/window/window_manager/interfaces/innerkits",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+  ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+
+  if (ace_enable_gpu) {
+    defines += [ "ACE_ENABLE_GPU" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "image_framework:image_native",
+    "safwk:system_ability_fwk",
+    #"graphic_2d:EGL",
+    #"graphic_2d:GLESv3",
+    "skia:skia_canvaskit",
+    "zlib:libz",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
+    "window_manager:libdm",
+    "window_manager:libwms",
+    "window_manager:libwm",
+    "hitrace:hitrace_meter",
+  ]
+
+  public_deps = [
+    #"//third_party/skia:skia_ohos",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
