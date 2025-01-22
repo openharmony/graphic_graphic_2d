@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-#define private public
-#ifndef OHOS_TEXT_ENABLE
-#define OHOS_TEXT_ENABLE
-#endif
-#include "txt/text_bundle_config_parser.h"
-#undef private
 #include "gtest/gtest.h"
 #include "application_info.h"
 #include "bundle_info.h"
 #include "hap_module_info.h"
+#include "txt/text_bundle_config_parser.h"
+
+#ifndef OHOS_TEXT_ENABLE
+#define OHOS_TEXT_ENABLE
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -56,27 +55,6 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
 
 #ifdef OHOS_TEXT_ENABLE
 /*
- * @tc.name: GetSystemAbilityManagerTest001
- * @tc.desc: test for GetSystemAbilityManager
- * @tc.type: FUNC
- */
-HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Level1)
-{
-    EXPECT_EQ(TextBundleConfigParser::GetInstance().GetSystemAbilityManager(), nullptr);
-}
-
-/*
- * @tc.name: IsMetaDataExistInModuleTest001
- * @tc.desc: test for IsMetaDataExistInModule
- * @tc.type: FUNC
- */
-HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInModuleTest001, TestSize.Level1)
-{
-    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsMetaDataExistInModule(metaData));
-    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsMetaDataExistInModule(""));
-}
-
-/*
  * @tc.name: IsTargetApiVersionText001
  * @tc.desc: test for IsTargetApiVersion
  * @tc.type: FUNC
@@ -84,7 +62,7 @@ HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInModuleTest001, TestSize.Le
 HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level1)
 {
     TextBundleConfigParser::GetInstance().initStatus_ = true;
-    TextBundleConfigParser::GetInstance().targetApiVersionResult_ = SINCE_API16_VERSION;
+    TextBundleConfigParser::GetInstance().bundleApiVersion_ = SINCE_API16_VERSION;
     ASSERT_TRUE(TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API16_VERSION));
     TextBundleConfigParser::GetInstance().initStatus_ = false;
 }

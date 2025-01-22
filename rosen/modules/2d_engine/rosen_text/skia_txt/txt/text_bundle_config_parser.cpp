@@ -31,59 +31,72 @@ const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_
 const size_t VERSION_DIVISOR = 100;
 #endif
 
-bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData)
-{
 #ifdef OHOS_TEXT_ENABLE
-    for (const auto& info : bundleInfo_.hapModuleInfos) {
+bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData,
+    const AppExecFwk::BundleInfo& bundleInfo)
+{
+    for (const auto& info : bundleInfo.hapModuleInfos) {
         for (const auto& data : info.metadata) {
             if (data.name == metaData) {
                 return true;
             }
         }
     }
-#endif
     return false;
 }
 
-#ifdef OHOS_TEXT_ENABLE
-sptr<AppExecFwk::IBundleMgr> TextBundleConfigParser::GetSystemAbilityManager()
+bool TextBundleConfigParser::GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo)
 {
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
-        TEXT_LOGE("Failed to get System ability manager");
-        return nullptr;
+        TEXT_LOGE("Failed to get systemAbilityManager");
+        return false;
     }
 
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    sptr<IRemoteObject> remoteObject =
+        systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (remoteObject == nullptr) {
-        TEXT_LOGE("Failed to get remote object");
-        return nullptr;
+        TEXT_LOGE("Failed to get remoteObject");
+        return false;
     }
-
-    return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    
+    sptr<AppExecFwk::IBundleMgr> iBundleMgr =
+        iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (iBundleMgr == nullptr) {
+        TEXT_LOGE("Failed to get iBundleMgr");
+        return false;
+    }
+    if (iBundleMgr->GetBundleInfoForSelf(0, bundleInfo) != ERR_OK) {
+        TEXT_LOGE("Failed to get bundleInfo");
+        return false;
+    }
+    return true;
 }
 #endif
 
 bool TextBundleConfigParser::IsAdapterTextHeightEnabled()
 {
-#ifdef OHOS_TEXT_ENABLE
     return initStatus_ && adapterTextHeightEnable_;
-#else
-    return false;
-#endif
 }
 
 bool TextBundleConfigParser::IsTargetApiVersion(size_t targetVersion)
 {
-    return initStatus_ && targetApiVersionResult_ >= targetVersion;
+    return initStatus_ && bundleApiVersion_ >= targetVersion;
 }
 
 #ifdef OHOS_TEXT_ENABLE
 void TextBundleConfigParser::InitTextBundleConfig()
 {
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!GetBundleInfo(bundleInfo)) {
+        InitTextBundleFailed();
+        return;
+    }
+    
     initStatus_ = true;
-    targetApiVersionResult_ = bundleInfo_.targetVersion % VERSION_DIVISOR;
-    adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA);
+    bundleApiVersion_ = bundleInfo.targetVersion % VERSION_DIVISOR;
+    adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA, bundleInfo);
     TEXT_LOGI("Adapter text height enabled: %{public}d", adapterTextHeightEnable_);
 }
 #endif
@@ -92,29 +105,12 @@ void TextBundleConfigParser::InitTextBundleFailed()
 {
     initStatus_ = false;
     adapterTextHeightEnable_ = false;
-    targetApiVersionResult_ = std::numeric_limits<uint32_t>::max();
+    bundleApiVersion_ = std::numeric_limits<uint32_t>::max();
 }
 
 void TextBundleConfigParser::InitBundleInfo()
 {
 #ifdef OHOS_TEXT_ENABLE
-    sptr<AppExecFwk::IBundleMgr> bundleMgr = GetSystemAbilityManager();
-    if (bundleMgr == nullptr) {
-        TEXT_LOGE("Failed to Get bundle manager");
-        InitTextBundleFailed();
-        return;
-    }
-
-    ErrCode errCode = bundleMgr->GetBundleInfoForSelf(
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA),
-        bundleInfo_);
-    if (FAILED(errCode)) {
-        TEXT_LOGE("Failed to Get bundle info, errcode: %{public}x", errCode);
-        InitTextBundleFailed();
-        return;
-    }
-
     InitTextBundleConfig();
 #else
     InitTextBundleFailed();

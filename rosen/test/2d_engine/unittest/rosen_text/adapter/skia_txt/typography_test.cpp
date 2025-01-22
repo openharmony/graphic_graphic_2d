@@ -18,13 +18,10 @@
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"
-#define private public
+#include "txt/text_bundle_config_parser.h"
 #ifndef OHOS_TEXT_ENABLE
 #define OHOS_TEXT_ENABLE
 #endif
-#include "txt/text_bundle_config_parser.h"
-#undef private
-
 
 using namespace testing;
 using namespace testing::ext;
@@ -358,7 +355,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
     typographyCreate->PushStyle(typographyTextStyle);
 
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
-    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().targetApiVersionResult_ =
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
         OHOS::Rosen::SPText::SINCE_API16_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
@@ -389,15 +386,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
     text.push_back(0xD83D);
     OHOS::Rosen::TextStyle typographyTextStyle;
     typographyCreate->PushStyle(typographyTextStyle);
-    
+
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
-    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().targetApiVersionResult_ =
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
         OHOS::Rosen::SPText::SINCE_API16_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
 
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
- 
+
     typography->Layout(maxWidth);
     // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
     ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE));

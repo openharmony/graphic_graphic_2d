@@ -51,21 +51,20 @@ private:
 
     TextBundleConfigParser(const TextBundleConfigParser&) = delete;
     TextBundleConfigParser& operator=(const TextBundleConfigParser&) = delete;
+    TextBundleConfigParser(TextBundleConfigParser&&) = delete;
+    TextBundleConfigParser& operator=(TextBundleConfigParser&&) = delete;
 
-#ifdef OHOS_TEXT_ENABLE
-    AppExecFwk::BundleInfo bundleInfo_;
-#endif
-    uint32_t targetApiVersionResult_{0};
+    uint32_t bundleApiVersion_{0};
     bool adapterTextHeightEnable_{false};
     bool initStatus_{false};
 
     void InitBundleInfo();
     void InitTextBundleConfig();
     void InitTextBundleFailed();
-    bool IsMetaDataExistInModule(const std::string& metaData);
 
 #ifdef OHOS_TEXT_ENABLE
-    sptr<AppExecFwk::IBundleMgr> GetSystemAbilityManager();
+    bool IsMetaDataExistInModule(const std::string& metaData, const AppExecFwk::BundleInfo& bundleInfo);
+    bool GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo);
 #endif
 };
 } // namespace SPText
