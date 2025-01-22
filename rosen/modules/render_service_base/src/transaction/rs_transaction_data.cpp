@@ -359,5 +359,19 @@ void RSTransactionData::ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumbe
 {
     RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets_);
 }
+
+void RSTransactionData::DumpCommand(std::string& dumpString)
+{
+    dumpString.append(", [Command: ");
+    for (const auto& [_, followType, command] : payload_) {
+        if (command == nullptr) {
+            continue;
+        }
+        dumpString.append("(Node:" + std::to_string(command->GetNodeId()) +
+                          ", Type:" + std::to_string(command->GetType()) +
+                          ", SubType:" + std::to_string(command->GetSubType()) + ") ");
+    }
+    dumpString.append("]");
+}
 } // namespace Rosen
 } // namespace OHOS

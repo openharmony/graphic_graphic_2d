@@ -106,6 +106,7 @@ public:
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
+    void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
     void RenderServiceAllNodeDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
@@ -817,6 +818,7 @@ private:
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
+    std::mutex transactionDataMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
