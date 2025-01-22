@@ -33,7 +33,6 @@ public:
     void SetUp() override;
     void TearDown() override;
 protected:
-    static sptr<Window> window;
     static std::shared_ptr<RSCanvasNode> canvasNode;
     static std::shared_ptr<RSUIDirector> rsUiDirector;
     static std::shared_ptr<RSSurfaceNode> animationSurfaceNode;
