@@ -913,7 +913,15 @@ int32_t RSRenderServiceConnection::SetPhysicalScreenResolution(ScreenId id, uint
     if (!screenManager_) {
         return StatusCode::SCREEN_MANAGER_NULL;
     }
-    return screenManager_->SetPhysicalScreenResolution(id, width, height);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetPhysicalScreenResolution(id, width, height); }).get();
+    }
+    if (mainThread_ != nullptr) {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetPhysicalScreenResolution(id, width, height); }).get();
+    }
+    return StatusCode::SCREEN_NOT_FOUND;
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)

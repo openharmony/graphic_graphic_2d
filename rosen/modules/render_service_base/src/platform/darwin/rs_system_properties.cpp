@@ -218,7 +218,7 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSLRScaleEnabled()
+bool RSSystemProperties::GetDrawExpandSlrEnabled()
 {
     return false;
 }

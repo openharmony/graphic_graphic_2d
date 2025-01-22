@@ -1231,7 +1231,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     } else {
         auto cacheImage = mirroredDrawable->GetCacheImgForCapture();
         isMirrorSLRCopy_ = cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled() &&
-                           !enableVisibleRect_ && RSSystemProperties::GetSLRScaleEnabled();
+                           !enableVisibleRect_ && RSSystemProperties::GetSLRScaleFunctionEnable();
     }
 
     curCanvas_->Save();
@@ -1868,7 +1868,7 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
 
 void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
 {
-    if (screenInfo.isSamplingOn && RSSystemProperties::GetSLRScaleEnabled()) {
+    if (screenInfo.isSamplingOn && RSSystemProperties::GetDrawExpandSlrEnabled()) {
         if (slrScale_ == nullptr) {
             slrScale_ = std::make_unique<RSSLRScaleFunction>(
                 screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
@@ -1888,7 +1888,7 @@ void RSDisplayRenderNodeDrawable::ScaleCanvasIfNeeded(const ScreenInfo& screenIn
         slrScale_ = nullptr;
         return;
     }
-    if (RSSystemProperties::GetSLRScaleEnabled() && slrScale_ != nullptr) {
+    if (RSSystemProperties::GetDrawExpandSlrEnabled() && slrScale_ != nullptr) {
         slrScale_->CanvasScale(*curCanvas_);
         return;
     }
@@ -2104,7 +2104,7 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
     paint.SetAntiAlias(true);
     canvasBackup_->AttachBrush(paint);
     if (isSamplingOn) {
-        if (RSSystemProperties::GetSLRScaleEnabled() && slrScale_) {
+        if (RSSystemProperties::GetDrawExpandSlrEnabled() && slrScale_) {
             slrScale_->ProcessOffscreenImage(*canvasBackup_, *image);
         } else {
             canvasBackup_->DrawImage(*image, 0, 0, sampling);
