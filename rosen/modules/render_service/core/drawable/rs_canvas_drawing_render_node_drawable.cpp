@@ -1083,15 +1083,10 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
 
 Drawing::TextureOrigin RSCanvasDrawingRenderNodeDrawable::GetTextureOrigin()
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         return Drawing::TextureOrigin::BOTTOM_LEFT;
-    } else {
-#endif
-        return Drawing::TextureOrigin::TOP_LEFT;
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     }
-#endif
+    return Drawing::TextureOrigin::TOP_LEFT;
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds)

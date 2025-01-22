@@ -298,7 +298,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     PostDelayTask(task, delayTime_);
-    RS_LOGI_LIMIT("RSHardwareThread::CommitAndReleaseLayers finished");
 }
 
 std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers)
