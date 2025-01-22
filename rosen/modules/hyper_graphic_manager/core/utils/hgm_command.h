@@ -177,6 +177,8 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
+    // <"pkgName", "1">
+    std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     SupportedModeMap supportedModeConfigs_;

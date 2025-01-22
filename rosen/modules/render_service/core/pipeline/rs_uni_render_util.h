@@ -39,8 +39,13 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSDirtyRectsDfx;
 class RSUniRenderUtil {
 public:
+    static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
+    static std::vector<RectI> MergeDirtyHistoryInVirtual(
+        DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, ScreenInfo& screenInfo);
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
@@ -89,6 +94,7 @@ public:
     static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
+    static float GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -162,6 +168,9 @@ public:
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
+        float realImageWidth, float realImageHeight);
+
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);

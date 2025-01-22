@@ -51,6 +51,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
@@ -59,7 +60,6 @@
 #include "memory/rs_memory_track.h"
 #include "metadata_helper.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_anco_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -68,7 +68,7 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -415,7 +415,7 @@ void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_PROFILER_ON_FRAME_BEGIN();
+        RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
         if (isUniRender_ && !renderThreadParams_) {
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
@@ -1731,7 +1731,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         return;
     }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
-    CloseHdrWhenMultiDisplayInPC(isMultiDisplay);
+    MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
@@ -3362,6 +3362,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
+    MemoryManager::CheckIsClearApp();
     EraseIf(applicationAgentMap_,
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
 }
@@ -4314,10 +4315,12 @@ bool RSMainThread::IsSingleDisplay()
 
 bool RSMainThread::HasMirrorDisplay() const
 {
-    hasWiredMirrorDisplay_ = false;
-    bool hasVirtualMirrorDisplay_ = false;
+    bool hasWiredMirrorDisplay = false;
+    bool hasVirtualMirrorDisplay = false;
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+        hasWiredMirrorDisplay_.store(false);
+        hasVirtualMirrorDisplay_.store(false);
         return false;
     }
 
@@ -4331,13 +4334,15 @@ bool RSMainThread::HasMirrorDisplay() const
         }
         if (auto mirroredNode = displayNode->GetMirrorSource().lock()) {
             if (displayNode->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
-                hasWiredMirrorDisplay_ = true;
+                hasWiredMirrorDisplay = true;
             } else {
-                hasVirtualMirrorDisplay_ = true;
+                hasVirtualMirrorDisplay = true;
             }
         }
     }
-    return hasWiredMirrorDisplay_ || hasVirtualMirrorDisplay_;
+    hasWiredMirrorDisplay_.store(hasWiredMirrorDisplay);
+    hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
+    return hasWiredMirrorDisplay || hasVirtualMirrorDisplay;
 }
 
 void RSMainThread::UpdateRogSizeIfNeeded()
@@ -4738,7 +4743,7 @@ void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool for
     drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
     preIdealPeriod_ = idealPeriod;
     preExtraReserve_ = extraReserve;
-    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: " PRId64 ", reservedDrawingTime:" PRId64 "",
+    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
         currentRate, vsyncOffset, drawingTime);
 
     std::unordered_map<std::string, std::string> payload = {};
@@ -4746,17 +4751,13 @@ void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool for
     RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 
-void RSMainThread::CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay)
+void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
 {
-    if (deviceType_ != DeviceType::PC) {
-        return;
-    }
     if (isMultiDisplay == isMultiDisplayPre_) {
+        isMultiDisplayChange_ = false;
         return;
     }
-    RS_LOGI("RSMainThread::CloseHdrWhenMultiDisplayInPC closeHdrStatus: %{public}d.", isMultiDisplay);
-    RS_TRACE_NAME_FMT("RSMainThread::CloseHdrWhenMultiDisplayInPC closeHdrStatus: %d", isMultiDisplay);
-    RSLuminanceControl::Get().ForceCloseHdr(CLOSEHDR_SCENEID::MULTI_DISPLAY, isMultiDisplay);
+    isMultiDisplayChange_ = true;
     isMultiDisplayPre_ = isMultiDisplay;
 }
 } // namespace Rosen

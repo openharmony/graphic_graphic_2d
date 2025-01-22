@@ -16,8 +16,8 @@
 #ifndef GRAPHIC_RS_ANCO_MANAGER_MOCK_H
 #define GRAPHIC_RS_ANCO_MANAGER_MOCK_H
 
+#include "feature/anco_manager/rs_anco_manager.h"
 #include <gmock/gmock.h>
-#include "pipeline/rs_anco_manager.h"
 
 namespace OHOS {
 namespace Rosen {

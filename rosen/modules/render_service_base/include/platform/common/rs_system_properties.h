@@ -127,6 +127,7 @@ public:
     static std::string GetRecordingFile();
     static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
+    static int GetSceneJankFrameThreshold();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
     static bool GetVkQueuePriorityEnable();

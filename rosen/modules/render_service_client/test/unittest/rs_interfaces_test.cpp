@@ -2174,8 +2174,8 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
         "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    constexpr uint32_t colorWidth = 3000;
-    constexpr uint32_t colorHeight = 3000;
+    constexpr uint32_t colorWidth = 5000;
+    constexpr uint32_t colorHeight = 5000;
     uint32_t *color;
     color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
     memset_s(color, colorWidth * colorHeight, 0xffffffff, colorWidth * colorHeight * 2);

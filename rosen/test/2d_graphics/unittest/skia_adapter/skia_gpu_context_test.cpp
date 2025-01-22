@@ -155,9 +155,6 @@ HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
-    GrMockOptions options;
-    gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-    gpuContext->PurgeUnlockedResourcesByTag(true, tag);
 }
 
 /**

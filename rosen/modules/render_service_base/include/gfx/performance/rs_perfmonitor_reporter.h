@@ -18,9 +18,15 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "utils/perfmonitor_reporter.h"
+#include <chrono>
 #include <ctime>
 #include <mutex>
 #include <map>
+#include <queue>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 namespace OHOS {
 namespace Rosen {
@@ -67,14 +73,43 @@ public:
         bool isBlurType);
 
     void SetCurrentBundleName(const char* bundleName);
-    std::string GetCurrentBundleName();
+    RSB_EXPORT std::string GetCurrentBundleName();
     static bool IsOpenPerf();
+
+    RSB_EXPORT std::chrono::time_point<high_resolution_clock> StartRendergroupMonitor();
+    RSB_EXPORT void EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime, NodeId& nodeId,
+        int updateTimes);
+    // clear rendergroup data map
+    RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
+    // process rendergroup subhealth
+    void ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes, int interval,
+        std::chrono::time_point<high_resolution_clock>& startTime);
+
+protected:
+    //for rendergroup subhealth
+    bool NeedReportSubHealth(NodeId& nodeId, int updateTimes,
+        std::chrono::time_point<high_resolution_clock>& startTime);
+    bool CheckAllDrawingCacheDurationTimeout(NodeId& nodeId);
+    bool MeetReportFrequencyControl(NodeId& nodeId, std::chrono::time_point<high_resolution_clock>& startTime);
+    std::string GetUpdateCacheTimeTaken(NodeId& nodeId);
+
 private:
     std::map<std::string, std::vector<uint16_t>> statsBlur_;
     std::map<std::string, Drawing::RsBlurEvent> eventBlur_;
     std::map<std::string, std::vector<uint16_t>> statsReason_;
     std::string currentBundleName_ = "invalid";
     std::mutex mtx_;
+    
+    //for rendergroup subhealth
+    static inline std::mutex drawingCacheTimeTakenMapMutex_;
+    static inline std::unordered_map<NodeId, std::vector<int64_t>> drawingCacheTimeTakenMap_;
+    static inline std::mutex drawingCacheLastTwoTimestampMapMutex_;
+    static inline std::unordered_map<NodeId,
+        std::queue<std::chrono::time_point<high_resolution_clock>>> drawingCacheLastTwoTimestampMap_;
+    static inline std::mutex drawingCacheLastReportTimeMapMutex_;
+    static inline std::unordered_map<NodeId,
+        std::chrono::time_point<high_resolution_clock>> drawingCacheLastReportTimeMap_;
+    static inline const std::string RENDERGROUP_SUBHEALTH_EVENT_NAME = "RENDERGROUP_SUBHEALTH_EVENT";
 };
 
 } // namespace Rosen

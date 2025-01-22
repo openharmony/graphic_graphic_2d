@@ -90,6 +90,15 @@ struct DataBaseRs {
     std::string note;
 };
 
+struct AppInfo {
+    int64_t startTime = 0;
+    int64_t endTime = 0;
+    int32_t pid = 0;
+    std::string versionName;
+    int32_t versionCode = -1;
+    std::string bundleName;
+    std::string processName;
+};
 struct GameStateData {
     int32_t pid = -1;
     int32_t uid = 0;
@@ -139,7 +148,8 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
@@ -353,6 +363,10 @@ public:
     void ReportEventComplete(DataBaseRs info);
 
     void ReportEventJankFrame(DataBaseRs info);
+
+    void ReportRsSceneJankStart(AppInfo info);
+
+    void ReportRsSceneJankEnd(AppInfo info);
 
     void ReportGameStateData(GameStateData info);
 

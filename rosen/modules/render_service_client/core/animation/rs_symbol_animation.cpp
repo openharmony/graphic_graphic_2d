@@ -113,17 +113,19 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     }
 
     if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::NONE) {
+        std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
         rsNode_->replaceNodesSwapArr_[INVALID_STATUS].clear();
         rsNode_->replaceNodesSwapArr_[APPEAR_STATUS].clear();
-        NodeProcessBeforeAnimation(symbolAnimationConfig);
+        rsNode_->canvasNodesListMap_.erase(symbolAnimationConfig->symbolSpanId);
         return true; // pre code already clear nodes.
     }
 
     if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
             PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
+        } else {
+            NodeProcessBeforeAnimation(symbolAnimationConfig);
         }
-        NodeProcessBeforeAnimation(symbolAnimationConfig);
     }
 
     InitSupportAnimationTable();

@@ -70,6 +70,8 @@ public:
         timestamp_ = timestamp;
     }
 
+    void ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumber);
+
     std::string GetAbilityName() const
     {
         return abilityName_;
@@ -193,8 +195,10 @@ private:
     int32_t syncTransactionCount_ { 0 };
     int32_t parentPid_ { -1 };
     uint64_t syncId_ { 0 };
+    uint32_t parcelNumber_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
+    std::vector<uint32_t> commandOffsets_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

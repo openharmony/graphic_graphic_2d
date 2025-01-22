@@ -687,6 +687,11 @@ public:
         isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
     }
 
+    bool GetOcclusionInSpecificScenes() const
+    {
+        return isOcclusionInSpecificScenes_;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -1098,6 +1103,13 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    bool GetUifirstContentDirty()
+    {
+        bool uifirstContentDirty = uifirstContentDirty_;
+        uifirstContentDirty_ = false;
+        return uifirstContentDirty;
+    }
+
     void UpdateSurfaceCacheContentStatic();
 
     void UpdateSurfaceCacheContentStatic(
@@ -1369,7 +1381,6 @@ public:
     void CalDrawBehindWindowRegion() override;
     RectI GetFilterRect() const override;
     RectI GetBehindWindowRegion() const override;
-    void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {
         crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };
@@ -1519,6 +1530,7 @@ private:
     bool lastFrameShouldPaint_ = true;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+    bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
     bool isLastHardCursor_ = false;

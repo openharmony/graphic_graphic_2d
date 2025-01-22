@@ -3864,6 +3864,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    //NeedFilter
+    if (NeedFilter()) {
+        dumpInfo.append(", NeedFilter[true]");
+    }
+
     // Spherize
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {

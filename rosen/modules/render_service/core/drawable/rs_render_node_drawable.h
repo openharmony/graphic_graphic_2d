@@ -119,10 +119,6 @@ public:
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
 
-    virtual bool HasCache() const
-    {
-        return false;
-    }
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -217,6 +213,7 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    void ClearDrawingCacheDataMap();
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;

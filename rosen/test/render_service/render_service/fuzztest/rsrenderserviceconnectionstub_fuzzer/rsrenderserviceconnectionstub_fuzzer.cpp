@@ -3343,6 +3343,32 @@ bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoSetVirtualScreenRefreshRate()
+{
+    uint64_t id = GetData<uint64_t>();
+    uint32_t maxRefreshRate = GetData<uint32_t>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteUint32(maxRefreshRate)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -3459,6 +3485,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenPowerStatus(data, size);
     OHOS::Rosen::DoRegisterBufferAvailableListener(data, size);
     OHOS::Rosen::DoRegisterOcclusionChangeCallback(data, size);
+    OHOS::Rosen::DoSetVirtualScreenRefreshRate();
 
     return 0;
 }

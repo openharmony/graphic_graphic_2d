@@ -78,11 +78,16 @@ public:
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();
+    void ReclaimMemory();
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void SetReclaimMemoryFinished(bool isFinished);
+    bool IsReclaimMemoryFinished();
+    void SetTimeToReclaim(bool isTimeToReclaim);
+    bool IsTimeToReclaim();
     void SetDefaultClearMemoryFinished(bool isFinished);
     bool IsDefaultClearMemroyFinished();
     bool GetClearMemoryFinished() const;
@@ -210,6 +215,7 @@ private:
     ~RSUniRenderThread() noexcept;
     void Inittcache();
     void PerfForBlurIfNeeded();
+    void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
 
     bool displayNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
@@ -218,6 +224,8 @@ private:
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isDefaultCleanTaskFinished_ = true;
     bool postImageReleaseTaskFlag_ = false;
+    bool isReclaimMemoryFinished_ = true;
+    bool isTimeToReclaim_ = false;
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames

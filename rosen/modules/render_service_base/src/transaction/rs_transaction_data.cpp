@@ -266,6 +266,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
                 RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
             }
+            RS_PROFILER_PUSH_OFFSET(commandOffsets_, parcel.GetReadPosition());
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
             }
@@ -351,5 +352,9 @@ std::string RSTransactionData::PrintCommandMapDesc(
     return commandMapDesc;
 }
 
+void RSTransactionData::ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumber)
+{
+    RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets_);
+}
 } // namespace Rosen
 } // namespace OHOS

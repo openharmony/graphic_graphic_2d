@@ -1401,7 +1401,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    RSSurfaceCapturePermissions /* permissions */)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1426,6 +1426,10 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
     if (!WriteSurfaceCaptureBlurParam(blurParam, data)) {
         ROSEN_LOGE("%{public}s write blurParam failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureAreaRect(specifiedAreaRect, data)) {
+        ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
@@ -1498,6 +1502,16 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureBlurParam(
     const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data)
 {
     if (!data.WriteBool(blurParam.isNeedBlur) || !data.WriteFloat(blurParam.blurRadius)) {
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureAreaRect(
+    const Drawing::Rect& specifiedAreaRect, MessageParcel& data)
+{
+    if (!data.WriteFloat(specifiedAreaRect.left_) || !data.WriteFloat(specifiedAreaRect.top_) ||
+        !data.WriteFloat(specifiedAreaRect.right_) || !data.WriteFloat(specifiedAreaRect.bottom_)) {
         return false;
     }
     return true;
@@ -2984,6 +2998,40 @@ void RSRenderServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
     }
 }
 
+void RSRenderServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    WriteAppInfo(data, reply, option, info);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportRsSceneJankStart: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    WriteAppInfo(data, reply, option, info);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportRsSceneJankEnd: Send Request err.");
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::ReportDataBaseRs(
     MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info)
 {
@@ -3030,6 +3078,33 @@ void RSRenderServiceConnectionProxy::ReportDataBaseRs(
         return;
     }
     if (!data.WriteString(info.note)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+}
+
+void RSRenderServiceConnectionProxy::WriteAppInfo(
+    MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info)
+{
+    if (!data.WriteInt64(info.startTime)) {
+        return;
+    }
+    if (!data.WriteInt64(info.endTime)) {
+        return;
+    }
+    if (!data.WriteInt32(info.pid)) {
+        return;
+    }
+    if (!data.WriteString(info.versionName)) {
+        return;
+    }
+    if (!data.WriteInt32(info.versionCode)) {
+        return;
+    }
+    if (!data.WriteString(info.bundleName)) {
+        return;
+    }
+    if (!data.WriteString(info.processName)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

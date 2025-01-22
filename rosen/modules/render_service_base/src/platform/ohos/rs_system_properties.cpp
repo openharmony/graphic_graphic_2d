@@ -82,6 +82,13 @@ int RSSystemProperties::GetDumpFrameNum()
     return ConvertToInt(num, 0);
 }
 
+int RSSystemProperties::GetSceneJankFrameThreshold()
+{
+    static int sceneJankFrameThreshold =
+        std::atoi((system::GetParameter("persist.sys.graphic.sceneJankFrameThreshold", "50")).c_str());
+    return sceneJankFrameThreshold;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");

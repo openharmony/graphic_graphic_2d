@@ -23,7 +23,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
-#include "ui/rs_frame_rate_policy.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -34,7 +34,8 @@ namespace Rosen {
 namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
-constexpr uint32_t SECURITYMASK_PIXELMAP_SIZE_LIMIT = 4096 * 4096;
+constexpr uint32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
+constexpr uint32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
 }
 #endif
 RSInterfaces &RSInterfaces::GetInstance()
@@ -113,16 +114,17 @@ int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
 
 int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask)
 {
-#ifdef ROSEN_OHOS
-    if (securityMask &&  securityMask->GetCapacity() > SECURITYMASK_PIXELMAP_SIZE_LIMIT) {
-        ROSEN_LOGE("SetScreenSecurityMask failed, securityMask %{public}d is error",
-            securityMask->GetCapacity());
+    Media::ImageInfo imageInfo;
+    if (securityMask) {
+        securityMask->GetImageInfo(imageInfo);
+    }
+    if (securityMask && (imageInfo.size.width > SECURITYMASK_IMAGE_WIDTH_LIMIT ||
+        imageInfo.size.height > SECURITYMASK_IMAGE_HEIGHT_LIMIT)) {
+        ROSEN_LOGE("SetScreenSecurityMask failed, securityMask width: %{public}d, height: %{public}d is error",
+            imageInfo.size.width, imageInfo.size.height);
         return RS_CONNECTION_ERROR;
     }
     return renderServiceClient_->SetScreenSecurityMask(id, std::move(securityMask));
-#else
-    return RS_CONNECTION_ERROR;
-#endif
 }
 
 int32_t RSInterfaces::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
@@ -328,7 +330,8 @@ std::string RSInterfaces::GetRefreshInfo(pid_t pid)
 }
 
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -350,7 +353,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -757,6 +760,16 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 void RSInterfaces::ReportGameStateData(GameStateData info)
 {
     renderServiceClient_->ReportGameStateData(info);
+}
+
+void RSInterfaces::ReportRsSceneJankStart(AppInfo info)
+{
+    renderServiceClient_->ReportRsSceneJankStart(info);
+}
+
+void RSInterfaces::ReportRsSceneJankEnd(AppInfo info)
+{
+    renderServiceClient_->ReportRsSceneJankEnd(info);
 }
 
 void RSInterfaces::EnableCacheForRotation()

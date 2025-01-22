@@ -385,9 +385,22 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
-    bool HasWiredMirrorDisplay()
+    bool GetMultiDisplayChange() const
+    {
+        return isMultiDisplayChange_;
+    }
+    bool GetMultiDisplayStatus() const
+    {
+        return isMultiDisplayPre_;
+    }
+
+    bool HasWiredMirrorDisplay() const
     {
         return hasWiredMirrorDisplay_;
+    }
+    bool HasVirtualMirrorDisplay() const
+    {
+        return hasVirtualMirrorDisplay_;
     }
     uint64_t GetCurrentVsyncTime() const
     {
@@ -549,8 +562,8 @@ private:
 
     void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
 
-    // Used for closing HDR in PC multidisplay becauseof performance
-    void CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay);
+    // Record change status of multi or single display
+    void MultiDisplayChange(bool isMultiDisplay);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -565,7 +578,8 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
-    mutable bool hasWiredMirrorDisplay_ = false;
+    mutable std::atomic_bool hasWiredMirrorDisplay_ = false;
+    mutable std::atomic_bool hasVirtualMirrorDisplay_ = false;
     // used for hardware enabled case
     bool doDirectComposition_ = true;
 #ifdef RS_ENABLE_GPU
@@ -606,6 +620,7 @@ private:
     bool isForceRefresh_ = false;
     // record multidisplay status change
     bool isMultiDisplayPre_ = false;
+    bool isMultiDisplayChange_ = false;
 #ifdef RS_ENABLE_VK
     bool needCreateVkPipeline_ = true;
 #endif

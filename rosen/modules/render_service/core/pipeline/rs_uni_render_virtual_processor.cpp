@@ -67,6 +67,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
         canvasRotation_ = false;
     }
 
+    renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto mirroredDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredDisplayDrawable) {
@@ -77,9 +78,13 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
             mirroredScreenWidth_ = static_cast<float>(mainScreenInfo.width);
             mirroredScreenHeight_ = static_cast<float>(mainScreenInfo.height);
+            auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
             auto mirroredDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
-            if (mirroredDisplayParams) {
-                renderFrameConfig_.colorGamut = mirroredDisplayParams->GetNewColorSpace();
+            if (displayParams && mirroredDisplayParams &&
+                displayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB &&
+                mirroredDisplayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+                renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+                RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
             }
         }
     }
@@ -224,6 +229,11 @@ void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
 
 GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& damageRegion)
 {
+    if (renderFrame_ == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec renderFrame is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto& rsSurface = renderFrame_->GetSurface();
     if (rsSurface == nullptr) {
         RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec surface is null.");
@@ -411,9 +421,43 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
             mirrorScaleY_ = mirrorScaleX_;
             startY = (mirrorHeight - (mirrorScaleY_ * mainHeight)) / 2; // 2 for calc Y
         }
+
+        // enable slr on pc castscreen.
+        if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleFunctionEnable()) {
+            if (slrManager_ == nullptr) {
+                slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
+                    mirroredScreenWidth_, mirroredScreenHeight_);
+            } else {
+                slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
+                    mirroredScreenWidth_, mirroredScreenHeight_);
+            }
+            slrManager_->CanvasScale(canvas);
+            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR.");
+            return;
+        }
+
         canvas.Translate(startX, startY);
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     }
+}
+
+void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
+{
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::ProcessCacheImage: Canvas is null!");
+        return;
+    }
+    if (canvasRotation_ && RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleFunctionEnable()) {
+        if (slrManager_ == nullptr) {
+            RS_LOGW("RSUniRenderVirtualProcessor::ProcessCacheImage: SlrManager is null!");
+            RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);
+            return;
+        }
+        slrManager_->ProcessCacheImage(*canvas_, cacheImage);
+        RS_LOGD("RSUniRenderVirtualProcessor::ProcessCacheImage: Darw With SLR.");
+        return;
+    }
+    RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);
 }
 
 void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()

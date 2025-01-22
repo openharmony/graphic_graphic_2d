@@ -154,9 +154,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = -1;
@@ -168,7 +167,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -178,9 +177,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest003, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 100000;
@@ -192,7 +190,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest003, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -202,9 +200,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest003, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest004, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -216,7 +213,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest004, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -226,9 +223,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest004, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest005, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -240,7 +236,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest005, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -250,9 +246,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest005, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest006, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -264,7 +259,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest006, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -274,9 +269,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest006, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest007, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -288,7 +282,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest007, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -298,9 +292,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest007, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest008, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -312,7 +305,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest008, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 
 /**
@@ -322,9 +315,8 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest008, TestSize.Level1)
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest009, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
@@ -336,7 +328,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest009, TestSize.Level1)
     auto colorFilter = brush.GetFilter().GetColorFilter();
 
     HpsBlurFilter filter;
-    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
 } // namespace Rosen
 } // namespace OHOS

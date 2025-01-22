@@ -47,7 +47,7 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
@@ -1038,13 +1038,14 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 
 namespace {
 void TakeSurfaceCaptureForUiParallel(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const Drawing::Rect& specifiedAreaRect)
 {
 #ifdef RS_ENABLE_GPU
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
 
     if (captureConfig.isSync) {
@@ -1097,13 +1098,13 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    RSSurfaceCapturePermissions permissions)
+    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-    std::function<void()> captureTask = [id, callback, captureConfig, blurParam,
+    std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
         selfCapture = permissions.selfCapture]() -> void {
@@ -1120,7 +1121,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }
@@ -2297,6 +2298,22 @@ void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
 #endif
 }
 
+void RSRenderServiceConnection::ReportRsSceneJankStart(AppInfo info)
+{
+    auto task = [info]() -> void {
+        RSJankStats::GetInstance().SetReportRsSceneJankStart(info);
+    };
+    renderThread_.PostTask(task);
+}
+
+void RSRenderServiceConnection::ReportRsSceneJankEnd(AppInfo info)
+{
+    auto task = [info]() -> void {
+        RSJankStats::GetInstance().SetReportRsSceneJankEnd(info);
+    };
+    renderThread_.PostTask(task);
+}
+
 void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
 {
     RS_LOGD("RSRenderServiceConnection::ReportGameStateData = %{public}s, uid = %{public}d, state = %{public}d, "
@@ -2605,7 +2622,7 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
                 displayNode->SetWindowContainer(value ? node : nullptr);
             } else {
                 RS_LOGE("RSRenderServiceConnection::SetWindowContainer displayNode is nullptr, nodeId: %{public}"
-                    PRIu64, displayNode->GetId());
+                    PRIu64, displayNodeId);
             }
         } else {
             RS_LOGE("RSRenderServiceConnection::SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,

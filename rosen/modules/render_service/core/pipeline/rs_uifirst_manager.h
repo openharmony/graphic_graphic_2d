@@ -189,6 +189,7 @@ private:
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -201,7 +202,6 @@ private:
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
-    void UifirstFirstFrameCacheState(RSSurfaceRenderNode& node);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
     void NotifyUIStartingWindow(NodeId id, bool wait);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
@@ -326,8 +326,12 @@ public:
         }
     }
     // return false when timeout
-    static void NotifyAll()
+    static inline void NotifyAll(std::function<void()> condChange)
     {
+        if (LIKELY(condChange)) {
+            std::unique_lock<std::mutex> lock(notifyMutex_);
+            condChange();
+        }
         notifyCv_.notify_all();
     }
     static bool CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch = true);

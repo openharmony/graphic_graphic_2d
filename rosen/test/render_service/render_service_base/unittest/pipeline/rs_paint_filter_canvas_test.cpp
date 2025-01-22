@@ -1269,9 +1269,8 @@ HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationToOffscreenCanvasTest, TestSi
  */
 HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest001, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
     EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
     EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
     EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
@@ -1279,7 +1278,7 @@ HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest001, TestSize.Level
     EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
 
     std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
-    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(canvas.get());
 
     // Replace data
     paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
@@ -1332,14 +1331,13 @@ HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest001, TestSize.Level
  */
 HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest002, TestSize.Level1)
 {
-    Drawing::Surface surface;
-    Drawing::Canvas canvas(&surface);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
     std::shared_ptr<Drawing::Surface> surfacePtr = nullptr;
     std::shared_ptr<RSPaintFilterCanvas> canvasPtr = nullptr;
     paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
     surfacePtr = nullptr;
-    canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    canvasPtr = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
     surfacePtr = std::make_shared<Drawing::Surface>();
     canvasPtr = nullptr;
@@ -1349,7 +1347,7 @@ HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest002, TestSize.Level
     EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
 
     surfacePtr = std::make_shared<Drawing::Surface>();
-    canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    canvasPtr = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
     paintFilterCanvas.storeMainScreenSurface_.pop();
     paintFilterCanvas.storeMainScreenCanvas_.pop();

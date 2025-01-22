@@ -25,6 +25,7 @@
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
+#include "hgm_hfbc_config.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "parameters.h"
@@ -486,7 +487,7 @@ void HgmFrameRateManager::FrameRateReport()
     } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_60_HZ) {
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
-        rates[UNI_APP_PID] = schedulePreferredFps_;
+        rates[UNI_APP_PID] = OLED_120_HZ;
     }
     HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
@@ -837,6 +838,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
+    // check whether to enable HFBC
+    HgmHfbcConfig::HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
         for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {

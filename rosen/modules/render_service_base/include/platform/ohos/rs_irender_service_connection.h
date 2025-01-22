@@ -167,6 +167,7 @@ public:
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -302,6 +303,10 @@ public:
     virtual void ReportEventJankFrame(DataBaseRs info) = 0;
 
     virtual void ReportGameStateData(GameStateData info) = 0;
+
+    virtual void ReportRsSceneJankStart(AppInfo info) = 0;
+
+    virtual void ReportRsSceneJankEnd(AppInfo info) = 0;
 
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
         bool dynamicHardwareEnable) = 0;

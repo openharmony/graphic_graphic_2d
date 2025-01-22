@@ -264,6 +264,21 @@ bool RSScreen::IsSamplingOn() const
     return isSamplingOn_;
 }
 
+float RSScreen::GetSamplingTranslateX() const
+{
+    return samplingTranslateX_;
+}
+
+float RSScreen::GetSamplingTranslateY() const
+{
+    return samplingTranslateY_;
+}
+
+float RSScreen::GetSamplingScale() const
+{
+    return samplingScale_;
+}
+
 RectI RSScreen::GetActiveRect() const
 {
     return activeRect_;
@@ -387,6 +402,15 @@ void RSScreen::SetResolution(uint32_t width, uint32_t height)
     height_ = height;
     if (!IsVirtual()) {
         isSamplingOn_ = width_ > phyWidth_ || height_ > phyHeight_;
+        if (isSamplingOn_ && width_ > 0 && height_ > 0) {
+            samplingScale_ = std::min(static_cast<float>(phyWidth_) / width_,
+                static_cast<float>(phyHeight_) / height_);
+            samplingTranslateX_ = (phyWidth_ - width_ * samplingScale_) / 2.f;
+            samplingTranslateY_ = (phyHeight_ - height_ * samplingScale_) / 2.f;
+            RS_LOGI("RSScreen %{public}s: sampling is enable. "
+                "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
+                __func__, samplingScale_, samplingTranslateX_, samplingTranslateY_);
+        }
     }
 }
 

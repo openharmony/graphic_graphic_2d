@@ -98,7 +98,7 @@ public:
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
     void SetIsCrossNode(bool isCrossNode);
 
-    // Only used in PC extend screen
+    // PC extend screen use this
     void AddCrossScreenChild(SharedPtr child, int index);
     void RemoveCrossScreenChild(SharedPtr child);
 

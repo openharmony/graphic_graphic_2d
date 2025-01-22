@@ -168,6 +168,7 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -287,6 +288,10 @@ private:
     void ReportEventComplete(DataBaseRs info) override;
 
     void ReportEventJankFrame(DataBaseRs info) override;
+
+    void ReportRsSceneJankStart(AppInfo info) override;
+
+    void ReportRsSceneJankEnd(AppInfo info) override;
 
     void ReportGameStateData(GameStateData info) override;
 
