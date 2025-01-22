@@ -77,6 +77,7 @@ public:
     void AddOffTreeNode(NodeId nodeId);
     void RemoveOffTreeNode(NodeId nodeId);
     std::unordered_map<NodeId, bool>&& GetAndClearPurgeableNodeIds();
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetSelfDrawingNodeInProcess(pid_t pid);
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -84,6 +85,8 @@ private:
     RSRenderNodeMap(const RSRenderNodeMap&&) = delete;
     RSRenderNodeMap& operator=(const RSRenderNodeMap&) = delete;
     RSRenderNodeMap& operator=(const RSRenderNodeMap&&) = delete;
+    void InsertSelfDrawingNodeOfProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void EraseSelfDrawingNodeOfProcess(NodeId id);
 
 private:
     std::weak_ptr<RSContext> context_;
@@ -98,6 +101,8 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
     std::unordered_map<NodeId, bool> purgeableNodeMap_;
+    std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>>
+        selfDrawingNodeInProcess_;
 
     void Initialize(const std::weak_ptr<RSContext>& context);
 

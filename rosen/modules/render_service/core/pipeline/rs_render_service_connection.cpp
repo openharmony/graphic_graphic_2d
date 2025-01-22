@@ -500,6 +500,51 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     return conn;
 }
 
+int32_t RSRenderServiceConnection::GetPixelMapByProcessId(
+    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    std::vector<sptr<SurfaceBuffer>> surfaceBufferVector;
+    std::function<void()> getSurfaceBufferByPidTask = [weakThis = wptr<RSRenderServiceConnection>(this),
+                                                          &pixelMapVector, &surfaceBufferVector, pid]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto selfDrawingNodeMap =
+            connection->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
+        for (auto iter = selfDrawingNodeMap.begin(); iter != selfDrawingNodeMap.end(); ++iter) {
+            auto surfaceNode = iter->second;
+            if (surfaceNode) {
+                auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+                surfaceBufferVector.push_back(surfaceBuffer);
+            }
+        }
+    };
+    mainThread_->PostSyncTask(getSurfaceBufferByPidTask);
+
+    for (const auto &surfaceBuffer : surfaceBufferVector) {
+        if (surfaceBuffer) {
+            OHOS::Media::Rect rect = {
+                .left = 0,
+                .top = 0,
+                .width = surfaceBuffer->GetWidth(),
+                .height = surfaceBuffer->GetHeight(),
+            };
+            std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+            RSBackgroundThread::Instance().PostSyncTask([&surfaceBuffer, rect, &pixelmap]() {
+                pixelmap = OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, rect);
+            });
+            pixelMapVector.push_back(pixelmap);
+        } else {
+            RS_LOGE("RSRenderServiceConnection::CreatePixelMapFromSurface surfaceBuffer is null");
+        }
+    }
+    return SUCCESS;
+}
+
 std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
     const Rect &srcRect)
 {

@@ -70,6 +70,9 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) = 0;
 
+    virtual int32_t GetPixelMapByProcessId(
+        std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid) = 0;
+
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
 

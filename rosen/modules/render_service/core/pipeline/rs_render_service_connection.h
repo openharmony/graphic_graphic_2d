@@ -75,6 +75,8 @@ private:
                                                  NodeId windowNodeId = 0,
                                                  bool fromXcomponent = false) override;
 
+    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid) override;
+
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
     int32_t SetFocusAppInfo(

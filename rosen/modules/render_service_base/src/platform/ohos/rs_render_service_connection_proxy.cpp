@@ -321,6 +321,33 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     return conn;
 }
 
+int32_t RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
+    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteUint64(pid)) {
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Send Request err");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        pixelMapVector.clear();
+        if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapVector)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Unmarshalling failed");
+        }
+    } else {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Invalid reply");
+    }
+    return result;
+}
+
 std::shared_ptr<Media::PixelMap> RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
     const Rect &srcRect)
 {
