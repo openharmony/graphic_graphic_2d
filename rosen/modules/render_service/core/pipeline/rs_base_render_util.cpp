@@ -1320,8 +1320,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     int extraRotation = 0;
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
-        int degree = static_cast<int>(nodeParams->GetAbsRotation()) % 360;
-        extraRotation = degree - rotationDegree;
+        int degree = static_cast<int>(round(nodeParams->GetAbsRotation()));
+        extraRotation = (degree - rotationDegree) % ROUND_ANGLE;
     }
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
