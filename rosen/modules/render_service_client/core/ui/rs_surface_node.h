@@ -153,6 +153,7 @@ public:
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
+    void SetApiCompatibleVersion(uint32_t version);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
