@@ -3788,6 +3788,14 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
         }
     }
     dumpString.append("dumpMem: " + type + "\n");
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSMainThread::DumpMem screenManager is nullptr");
+        return;
+    }
+    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
+    dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
+        "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
     dumpString.append(log.GetString());
 #else
     dumpString.append("No GPU in this device");
