@@ -14,36 +14,36 @@
  */
 
 #include "string_util.h"
- 
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
- 
+
 static constexpr size_t SURROGATE_LENGTH = 2;
 static constexpr uint16_t LOW_SURROGATE_MIN = 0xDC00;
 static constexpr uint16_t LOW_SURROGATE_MAX = 0xDFFF;
 static constexpr uint16_t HIGHT_SURROGATE_MIN = 0xD800;
 static constexpr uint16_t HIGHT_SURROGATE_MAX = 0xDBFF;
 static constexpr uint16_t UTF16_REPLACEMENT_CHARACTER = 0xFFFD;
- 
+
 bool Utf16Utils::IsUTF16LowSurrogate(uint16_t ch)
 {
     return ch >= LOW_SURROGATE_MIN && ch <= LOW_SURROGATE_MAX;
 }
- 
+
 bool Utf16Utils::IsUTF16HighSurrogate(uint16_t ch)
 {
     return ch >= HIGHT_SURROGATE_MIN && ch <= HIGHT_SURROGATE_MAX;
 }
- 
+
 void Utf16Utils::HandleIncompleteSurrogatePairs(std::u16string& str)
 {
     size_t i = 0;
     size_t length = str.size();
- 
+
     while (i < length) {
         char16_t ch = str[i];
- 
+
         if (IsUTF16HighSurrogate(ch)) {
             if (i + 1 < length && IsUTF16LowSurrogate(str[i + 1])) {
                 i += SURROGATE_LENGTH;
@@ -55,7 +55,7 @@ void Utf16Utils::HandleIncompleteSurrogatePairs(std::u16string& str)
                 str[i] = UTF16_REPLACEMENT_CHARACTER;
             }
         }
- 
+
         ++i;
     }
 }

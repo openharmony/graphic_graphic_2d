@@ -32,5 +32,4 @@ public:
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // SPTEXT_STRING_UTIL_H
