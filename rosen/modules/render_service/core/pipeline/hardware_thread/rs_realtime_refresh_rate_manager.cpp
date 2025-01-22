@@ -56,7 +56,7 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
         return;
     }
 
-    StatisticsRefreshRateData(frameRateMgr);
+    StatisticsRefreshRateDataLocked(frameRateMgr);
 }
 
 void RSRealtimeRefreshRateManager::StatisticsRefreshRateDataLocked(std::shared_ptr<HgmFrameRateManager> frameRateMgr)
