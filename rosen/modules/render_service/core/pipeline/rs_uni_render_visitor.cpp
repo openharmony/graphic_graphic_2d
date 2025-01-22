@@ -3197,25 +3197,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         }
         auto originalMatrix = geoPtr->GetMatrix();
         auto matrix = Drawing::Matrix();
-        auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
-        if (parent == nullptr) {
-            parent = hwcNodePtr->GetParent().lock();
-        }
-        bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
-        while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
-            if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
-                matrix.PostConcat(opt.value());
-            } else {
-                break;
-            }
-            auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
-            parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
-            if (!parent) {
-                break;
-            }
-            findInRoot = parent->GetId() == rootNode.GetId() ? true : findInRoot;
-        }
-        if (!findInRoot) {
+        auto parent = hwcNodePtr->GetParent().lock();
+        if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
             continue;
         }
         if (parent) {
@@ -3224,6 +3207,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
                 matrix.PostConcat(parentGeoPtr->GetMatrix());
             }
         }
+        RectI clipRect;
+        UpdateHWCNodeClipRect(hwcNodePtr, clipRect, rootNode);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
@@ -3234,7 +3219,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         matrix.MapRect(absRect, bounds);
         RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
             std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
-        UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
+        UpdateDstRect(*hwcNodePtr, rect, clipRect);
         UpdateSrcRect(*hwcNodePtr, matrix, rect);
         UpdateHwcNodeByTransform(*hwcNodePtr, matrix);
         UpdateHwcNodeEnableByBackgroundAlpha(*hwcNodePtr);
@@ -3243,6 +3228,77 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         hwcNodePtr->SetTotalMatrix(matrix);
         hwcNodePtr->SetOldDirtyInSurface(geoPtr->MapRect(hwcNodePtr->GetSelfDrawRect(), matrix));
     }
+}
+
+bool RSUniRenderVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
+    const RSRenderNode& rootNode)
+{
+    bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
+    while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
+            matrix.PostConcat(opt.value());
+        } else {
+            break;
+        }
+        auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
+        parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
+        if (!parent) {
+            break;
+        }
+        findInRoot = parent->GetId() == rootNode.GetId() ? true : findInRoot;
+    }
+    return findInRoot;
+}
+
+void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
+    const RSRenderNode& rootNode)
+{
+    const auto& property = hwcNodePtr->GetRenderProperties();
+    auto geoPtr = property.GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return;
+    }
+    auto childRect = hwcNodePtr->GetSelfDrawRect();
+    Drawing::Rect childRectMapped;
+    geoPtr->GetMatrix().MapRect(childRectMapped,
+        {childRect.left_, childRect.top_,
+            childRect.left_ + childRect.width_,
+            childRect.top_ + childRect.height_});
+    auto hwcNodeParent = hwcNodePtr->GetParent().lock();
+    bool myFindInRoot = hwcNodeParent ? hwcNodeParent->GetId() == rootNode.GetId() : false;
+    while ((hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE) &&
+        !myFindInRoot) {
+        const auto& parentProperties = hwcNodeParent->GetRenderProperties();
+        const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+        if (parentProperties.GetClipToBounds()) {
+            auto parentDrawRectF = hwcNodeParent->GetSelfDrawRect();
+            Drawing::Rect parentDrawRect(parentDrawRectF.left_, parentDrawRectF.top_,
+            parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
+            childRectMapped.Intersect(parentDrawRect);
+        }
+        if (parentProperties.GetClipToFrame()) {
+            auto left = parentProperties.GetFrameOffsetX() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_X);
+            auto top = parentProperties.GetFrameOffsetY() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_Y);
+            Drawing::Rect frameRect(
+                left, top, left + parentProperties.GetFrameWidth(), top + parentProperties.GetFrameHeight());
+            Drawing::Rect frameClipRect;
+            parentGeoPtr->GetMatrix().MapRect(frameClipRect, frameRect);
+            childRectMapped.Intersect(frameClipRect);
+        }
+        auto tempRectMapped = childRectMapped;
+        parentGeoPtr->GetMatrix().MapRect(childRectMapped, tempRectMapped);
+        hwcNodeParent = hwcNodeParent->GetParent().lock();
+        if (!hwcNodeParent) {
+            break;
+        }
+        myFindInRoot = hwcNodeParent->GetId() == rootNode.GetId() ? true : myFindInRoot;
+    }
+    Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+    Drawing::Rect absClipRect;
+    rootNodeAbsMatrix.MapRect(absClipRect, childRectMapped);
+    clipRect = {std::floor(absClipRect.left_), std::floor(absClipRect.top_),
+        std::ceil(absClipRect.GetWidth()), std::ceil(absClipRect.GetHeight())};
+    clipRect = clipRect.IntersectRect(prepareClipRect_);
 }
 
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
