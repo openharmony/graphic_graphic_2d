@@ -25,6 +25,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "common/rs_xcollie.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -996,6 +997,8 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    // timer: 3s
+    OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + typeface->GetFamilyName(), 3);
     return renderService->RegisterTypeface(globalUniqueId, typeface);
 }
 
