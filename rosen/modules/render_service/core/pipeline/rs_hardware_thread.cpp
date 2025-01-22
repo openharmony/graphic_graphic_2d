@@ -658,6 +658,15 @@ void RSHardwareThread::SubScribeSystemAbility()
     }
 }
 
+void RSHardwareThread::DumpEventQueue()
+{
+    if (handler_ != nullptr) {
+        AppExecFwk::RSHardwareDumper dumper;
+        handler_->Dump(dumper);
+        dumper.PrintDumpInfo();
+    }
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
 {
@@ -741,3 +750,44 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 }
 #endif
 }
+
+namespace OHOS {
+namespace AppExecFwk {
+void RSHardwareDumper::Dump(const std::string& message)
+{
+    dumpInfo_ += message;
+}
+
+std::string RSHardwareDumper::GetTag()
+{
+    return "RSHardwareDumper";
+}
+
+void RSHardwareDumper::PrintDumpInfo()
+{
+    if (dumpInfo_.empty()) {
+        return;
+    }
+    size_t compareStrSize = sizeof("}\n");
+
+    size_t curRunningStart = dumpInfo_.find("Current Running: start");
+    if (curRunningStart != std::string::npos) {
+        size_t curRunningEnd = dumpInfo_.find("}\n", curRunningStart);
+        if (curRunningEnd != std::string::npos) {
+            RS_LOGE("%{public}s",
+                dumpInfo_.substr(curRunningStart, curRunningEnd - curRunningStart + compareStrSize).c_str());
+        }
+    }
+
+    size_t immediateStart = dumpInfo_.find("Immediate priority event queue information:");
+    if (immediateStart != std::string::npos) {
+        size_t immediateEnd = dumpInfo_.find("}\n", immediateStart);
+        if (immediateEnd != std::string::npos) {
+            RS_LOGE("%{public}s",
+                dumpInfo_.substr(immediateStart, immediateEnd - immediateStart + compareStrSize).c_str());
+        }
+    }
+}
+
+} // namespace AppExecFwk
+} // namespace OHOS

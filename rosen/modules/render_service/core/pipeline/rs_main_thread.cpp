@@ -2068,7 +2068,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to Execute");
+        RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to Execute"
+                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
+        RSHardwareThread::Instance().DumpEventQueue();
     }
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
