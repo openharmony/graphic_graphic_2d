@@ -27,7 +27,8 @@
 #include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
-enum class RealtimeRefreshRateType : int32_t{
+enum class RealtimeRefreshRateType : int32_t
+{
     START = -1,
     COLLECT = 0,
     SHOW = 1,
