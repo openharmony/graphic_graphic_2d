@@ -32,6 +32,7 @@ RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()
 
 void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
+    RS_LOGD("SetShowRefreshRateEnabled: enabled[%{public}d] type[%{public}d]", enabled, type);
     std::unique_lock<std::mutex> threadLock(threadMutex_);
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr ||
@@ -107,6 +108,7 @@ void RSRealtimeRefreshRateManager::StatisticsRefreshRateDataLocked(std::shared_p
 
 uint32_t RSRealtimeRefreshRateManager::GetRealtimeRefreshRate(ScreenId screenId)
 {
+    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}llu]", screenId);
     if (screenId == INVALID_SCREEN_ID) {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
