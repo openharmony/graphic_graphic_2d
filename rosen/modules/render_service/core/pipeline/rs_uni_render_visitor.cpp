@@ -1648,7 +1648,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     // [planning] degree only multiples of 90 now
     float degree = RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = !ROSEN_EQ(std::remainder(degree, 90.f), 0.f, EPSILON);
-    hasRotate = hasRotate || RSUniRenderUtil::HasNonZRotationTransform(totalMatrix);
+    hasRotate = hasRotate || RSUniRenderUtil::Is3DRotation(totalMatrix);
     if (hasRotate) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by rotation:%d",
             hwcNode->GetName().c_str(), hwcNode->GetId(), degree);
