@@ -552,6 +552,7 @@ public:
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
     void SyncPrivacyContentInfoToFirstLevelNode();
+    void SyncColorGamutInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
