@@ -494,7 +494,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 }
 
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
-    pid_t threadId, bool isNeedFP16)
+    pid_t threadId, bool isNeedFP16, GraphicColorGamut colorGamut)
 {
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
@@ -537,8 +537,9 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, nullptr,
+            Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_);
     }
 #endif
@@ -773,7 +774,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16,
+            curCanvas->GetTargetColorGamut());
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;

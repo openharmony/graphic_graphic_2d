@@ -157,7 +157,7 @@ protected:
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
-        bool isNeedFP16 = false);
+        bool isNeedFP16 = false, GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
