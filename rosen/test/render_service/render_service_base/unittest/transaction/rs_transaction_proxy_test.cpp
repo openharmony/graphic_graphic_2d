@@ -300,6 +300,8 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT003, TestSize.Lev
 HWTEST_F(RSTransactionProxyTest, Commit001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    EXPECT_NE(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->Commit(timestamp);
 }
 
