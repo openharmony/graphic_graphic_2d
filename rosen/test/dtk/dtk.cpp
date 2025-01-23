@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in comliance with the License.
- * You may obtian a copy of the License at
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -11,27 +11,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 #include <dlfcn.h>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <chrono>
-
-#include "utils/log.h"
-
 #include <message_parcel.h>
 #include <surface.h>
-
 #include "transaction/rs_transaction.h"
 #include "wm/window.h"
-#include "dtk_test_register.h"
-#include "dtk_test_utils.h"
-
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
+#include "utils/log.h"
+#include "dtk_test_register.h"
+#include "dtk_test_utils.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -41,16 +37,13 @@ shared_ptr<RSNode> rootNode;
 shared_ptr<RSCanvasNode> canvasNode;
 void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 {
-    cout << "rs pixelmap demo Init Rosen Backend!" << endl;
+    cout << "[INFO] rs pixelmap demo Init Rosen Backend!" << endl;
 
     rootNode = RSRootNode::Create();
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-#ifndef USE_ROSEN_DRAWING
-    rootNode->SetBackgroundColor(Sk_ColorWHITE);
-#else
+
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-#endif
 
     rsUiDirector->SetRoot(rootNode->GetId());
     canvasNode = RSCanvasNode::Create();
@@ -78,13 +71,13 @@ void ExportSkImage(sk_sp<SkImage>& image, const std::string& fileName)
     }
     outStream.write(img->bytes(), img->size());
     outStream.flush();
-    cout << "pixelmap write to jpg sucess" << endl;
+    cout << "[INFO] pixelmap write to jpg sucess" << endl;
 }
 
 void OnPixelMapCapture(std::shared_ptr<Media::PixelMap> pixelmap, std::string fileName)
 {
     if (pixelmap == nullptr) {
-        cout << "faild to get pixelmap, return nullptr!" << endl;
+        cout << "[ERROR] faild to get pixelmap, return nullptr!" << endl;
         return;
     }
 
@@ -102,7 +95,7 @@ void OnPixelMapCapture(std::shared_ptr<Media::PixelMap> pixelmap, std::string fi
 void OnImageCapture(std::shared_ptr<Drawing::Image> image, std::string fileName)
 {
     if (image == nullptr) {
-        cout << "failed to get image, return nullptr" << endl;
+        cout << "[ERROR] failed to get image, return nullptr" << endl;
         return;
     }
 
@@ -128,11 +121,7 @@ void SkipInitial(const std::shared_ptr<TestBase>& initCase, const std::shared_pt
     for (int i = 0; i < 10; i++) {
         initCase->SetCanvas(initCanvas.get());
         initCase->Recording();
-        if (isRunCase) {
-            initgpuCtx->FlushAndSubmit(true);
-        } else {
-            initgpuCtx->FlushAndSubmit(false);
-        }
+        initgpuCtx->FlushAndSubmit(isRunCase);
     }
 }
 
@@ -151,7 +140,7 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
     usleep(30000); // sleep 30000 microsecond
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
-        cout << "dtk create window failed: " << rect.width_ << rect.height_ << endl;
+        cout << "[ERROR] dtk create window failed: " << rect.width_ << rect.height_ << endl;
         window->Hide();
         window->Destroy();
         window = Window::Create(demoName, option);
@@ -159,7 +148,7 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
         usleep(30000); // sleep 30000 microsecond
         rect = window->GetRect();
     }
-    cout << "dtk create window success: " << rect.width_ << " " << rect.height_ << endl;
+    cout << "[INFO] dtk create window success: " << rect.width_ << " " << rect.height_ << endl;
     auto surfaceNode = window->GetSurfaceNode();
 
     auto rsUiDirector = RSUIDirector::Create();
@@ -171,7 +160,7 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
     Init(rsUiDirector, rect.width_, rect.height_);
     rsUiDirector->SendMessages();
     usleep(100000); // sleep 100000 microsecond
-    cout << "BeginRecording" << endl;
+    cout << "[INFO] BeginRecording" << endl;
 
     auto testCase = creator();
     testCase->SetTestCount(testCount);
@@ -184,7 +173,7 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
         usleep(16666); // sleep 16666 microsecond
     }
     usleep(50000); // sleep 50000 microsecond
-    cout << "FinishRecording" << endl;
+    cout << "[INFO] FinishRecording" << endl;
     if (!noDump) {
         OnPixelMapCapture(window->Snapshot(), testCaseName);
     }
@@ -195,9 +184,9 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
 void runSingleTestCase(std::string testCaseName, std::function<std::shared_ptr<TestBase>()> creator,
                        int testCount, int frame, bool offscreen, bool noDump, bool skipInitial, bool runLoadCase)
 {
-    cout << "testCase--" << testCaseName << "-- starts! " << endl;
+    cout << "[INFO]testCase--" << testCaseName << "-- starts! " << endl;
     runWithWindow(testCaseName, creator, testCount, frame, noDump);
-    cout << "rs draw demo end!" << endl;
+    cout << "[INFO] rs draw demo end!" << endl;
 }
 
 bool getTestLevel(std::string fullTestCaseName, int& currentLevel)
@@ -268,7 +257,7 @@ void dumpCovData(const std::string& soPath)
         reinterpret_cast<FuncType*>(func)();
         cout << "[INFO] Run __gcov_dump in " << soPath << "successfully" << endl;
     } else {
-        cout << "[EORROR] Cannot find __gcov_dump in " << soPath << endl;
+        cout << "[ERROR] Cannot find __gcov_dump in " << soPath << endl;
     }
 }
 
@@ -300,7 +289,7 @@ OPTIONS:
 int main(int argc, char* argv[])
 {
     if (argc < 2) { // should input more than 2 args
-        cout << "args are too less, please try again!" << endl;
+        cout << "[ERROR] args are too less, please try again!" << endl;
         return 0;
     }
     unordered_map<string, int> params;
@@ -380,7 +369,7 @@ int main(int argc, char* argv[])
         }
     }
     if (!testCaseExits) {
-        cout << "testCaseName(or testlevel or testCaseIndex) not exists" << endl;
+        cout << "[ERROR] testCaseName(or testlevel or testCaseIndex) not exists" << endl;
     }
 
     if (enableCoverage) {
