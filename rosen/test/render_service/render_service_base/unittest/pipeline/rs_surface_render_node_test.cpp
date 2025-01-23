@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
+#include "gmock/gmock.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -49,6 +50,8 @@ public:
     uint8_t MAX_ALPHA = 255;
     static constexpr float outerRadius = 30.4f;
     RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
+    RectI defaultLargeRect = {0, 0, 100, 100};
+    RectI defaultSmallRect = {0, 0, 20, 20};
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
@@ -69,6 +72,16 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
+};
+
+class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
+public:
+    explicit MockRSSurfaceRenderNode(NodeId id,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false)
+        : RSSurfaceRenderNode(id, context, isTextureExportNode) {}
+    ~MockRSSurfaceRenderNode() override {}
+    MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
+    MOCK_CONST_METHOD0(GetFilterRect, RectI());
 };
 
 /**
@@ -2346,6 +2359,46 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+}
+
+/**
+ * @tc.name: DealWithDrawBehindWindowTransparentRegion
+ * @tc.desc: DealWithDrawBehindWindowTransparentRegion, without such effect, noting updated.
+ * @tc.type: FUNC
+ * @tc.require: issueIBJJRI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion001, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
+    testNode->opaqueRegion_ = regionBeforeProcess;
+    testNode->DealWithDrawBehindWindowTransparentRegion();
+    ASSERT_TRUE(regionBeforeProcess.Sub(testNode->opaqueRegion_).IsEmpty());
+}
+
+/**
+ * @tc.name: DealWithDrawBehindWindowTransparentRegion
+ * @tc.desc: DealWithDrawBehindWindowTransparentRegion, filter rect should be subtract from opaque region.
+ * @tc.type: FUNC
+ * @tc.require: issueIBJJRI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, TestSize.Level1)
+{
+    auto testNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(testNode, nullptr);
+
+    auto regionBeforeProcess = Occlusion::Region{Occlusion::Rect{defaultLargeRect}};
+    testNode->opaqueRegion_ = regionBeforeProcess;
+    testNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    testNode->drawBehindWindowRegion_ = defaultSmallRect;
+    testNode->childrenBlurBehindWindow_ = { INVALID_NODEID };
+
+    EXPECT_CALL(*testNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*testNode, GetFilterRect()).WillRepeatedly(testing::Return(defaultSmallRect));
+
+    testNode->DealWithDrawBehindWindowTransparentRegion();
+    ASSERT_FALSE(regionBeforeProcess.Sub(testNode->opaqueRegion_).IsEmpty());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -365,6 +365,13 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& 
 void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams) const
 {
+    if (!displayParams_) {
+        return;
+    }
+    auto params = static_cast<RSDisplayRenderParams*>(displayParams_.get());
+    if (surfaceParams.IsFirstLevelCrossNode() && !params->IsFirstVisitCrossNodeDisplay()) {
+        return;
+    }
     const auto& opaqueRegionRects = surfaceParams.GetOpaqueRegion().GetRegionRects();
     for (const auto& subRect : opaqueRegionRects) {
         DrawDirtyRectForDFX(canvas, subRect.ToRectI(), Drawing::Color::COLOR_GREEN, RSPaintStyle::FILL, 0);

@@ -1204,6 +1204,7 @@ ohos_unittest("RSSurfaceRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
