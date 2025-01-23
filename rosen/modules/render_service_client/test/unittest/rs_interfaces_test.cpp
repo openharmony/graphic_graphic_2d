@@ -1291,8 +1291,8 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    bool isSafe = false;
-    rsInterfaces->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = 0;
+    rsInterfaces->NotifyLightFactorStatus(lightFactorStatus);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 

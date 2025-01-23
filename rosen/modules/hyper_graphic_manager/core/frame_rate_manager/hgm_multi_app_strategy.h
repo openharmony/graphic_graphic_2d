@@ -47,8 +47,9 @@ public:
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const TouchInfo& touchInfo);
-    void HandleLightFactorStatus(bool isSafe);
+    void HandleLightFactorStatus(int32_t state);
     void HandleLowAmbientStatus(bool isEffect);
+    void SetScreenType(bool isLtpo);
 
     void CalcVote();
     HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
@@ -110,8 +111,9 @@ private:
     }};
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE, OLED_120_HZ }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
-    std::atomic<bool> lightFactorStatus_{ false };
+    std::atomic<int32_t> lightFactorStatus_{ 0 };
     bool lowAmbientStatus_ = false;
+    bool isLtpo_ = true;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;

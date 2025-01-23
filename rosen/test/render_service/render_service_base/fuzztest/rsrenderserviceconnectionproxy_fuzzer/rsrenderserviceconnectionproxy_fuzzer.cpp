@@ -234,7 +234,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsRenderServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);
     rsRenderServiceConnectionProxy.ReportJankStats();
-    rsRenderServiceConnectionProxy.NotifyLightFactorStatus(true);
+    rsRenderServiceConnectionProxy.NotifyLightFactorStatus(1);
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);

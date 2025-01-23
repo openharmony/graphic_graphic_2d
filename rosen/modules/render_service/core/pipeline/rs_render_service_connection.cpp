@@ -2247,12 +2247,12 @@ void RSRenderServiceConnection::ReportJankStats()
 #endif
 }
 
-void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
+void RSRenderServiceConnection::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, isSafe]() {
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, lightFactorStatus]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
-            frameRateMgr->HandleLightFactorStatus(pid, isSafe);
+            frameRateMgr->HandleLightFactorStatus(pid, lightFactorStatus);
         }
     });
 }

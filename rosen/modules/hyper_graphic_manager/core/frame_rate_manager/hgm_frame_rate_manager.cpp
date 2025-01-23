@@ -646,7 +646,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
 {
     isAmbientEffect_ = false;
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
-    if (!configData || !isLtpo_) {
+    if (!configData) {
         return;
     }
 
@@ -710,7 +710,8 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
     bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
-    if (isAmbientSafe_ && isAmbientEffect_) {
+    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
+        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         supportRefreshRateVec = lowBrightVec_;
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
@@ -822,15 +823,23 @@ float HgmFrameRateManager::PixelToMM(float velocity)
     return velocityMM;
 }
 
-void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
+void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
-    HGM_LOGI("HandleLightFactorStatus status:%{public}u", isSafe);
+    // 1.normal strategy : there are two states {NORMAL_HIGH, NORMAL_LOW}
+    // NORMAL_HIGH : allowed to reduce the screen refresh rate; NORMAL_LOW : not allowed
+    // 2.brightness level strategy : there are three states {LOW_LEVEL, MIDDLE_LEVEL, HIGH_LEVEL}
+    // LOW_LEVEL : not allowed to reduce the screen refresh rate, up to 90Hz;
+    // MIDDLE_LEVEL : allowed to reduce the screen refresh rate, up to 90Hz;
+    // HIGH_LEVEL : allowed to reduce the screen refresh rate, up to 120Hz
+    HGM_LOGI("HandleLightFactorStatus status:%{public}d", state);
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    multiAppStrategy_.HandleLightFactorStatus(isSafe);
-    isAmbientSafe_ = isSafe;
+    multiAppStrategy_.SetScreenType(isLtpo_);
+    multiAppStrategy_.HandleLightFactorStatus(state);
+    isAmbientStatus_ = state;
+    MarkVoteChange();
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)
@@ -1195,7 +1204,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    if (refreshRate == currRefreshRate_) {
+    if (refreshRate == currRefreshRate_ && isAmbientStatus_ < LightFactorStatus::LOW_LEVEL) {
         return;
     }
 
@@ -1597,7 +1606,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
         for (auto cleanPidCallbackType : iter->second) {
             switch (cleanPidCallbackType) {
                 case CleanPidCallbackType::LIGHT_FACTOR:
-                    HandleLightFactorStatus(DEFAULT_PID, false);
+                    HandleLightFactorStatus(DEFAULT_PID, LightFactorStatus::NORMAL_HIGH);
                     break;
                 case CleanPidCallbackType::PACKAGE_EVENT:
                     HandlePackageEvent(DEFAULT_PID, {}); // handle empty pkg

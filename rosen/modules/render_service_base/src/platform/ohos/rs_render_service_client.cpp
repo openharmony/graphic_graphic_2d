@@ -1567,11 +1567,11 @@ uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePr
     return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
 }
 
-void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
+void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->NotifyLightFactorStatus(isSafe);
+        renderService->NotifyLightFactorStatus(lightFactorStatus);
     }
 }
 

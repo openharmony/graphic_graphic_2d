@@ -290,7 +290,7 @@ public:
 
     virtual void ReportJankStats() = 0;
 
-    virtual void NotifyLightFactorStatus(bool isSafe) = 0;
+    virtual void NotifyLightFactorStatus(int32_t lightFactorStatus) = 0;
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 

@@ -3257,7 +3257,7 @@ uint32_t RSRenderServiceConnectionProxy::SetHidePrivacyContent(NodeId id, bool n
     return reply.ReadUint32();
 }
 
-void RSRenderServiceConnectionProxy::NotifyLightFactorStatus(bool isSafe)
+void RSRenderServiceConnectionProxy::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3265,7 +3265,7 @@ void RSRenderServiceConnectionProxy::NotifyLightFactorStatus(bool isSafe)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    if (!data.WriteBool(isSafe)) {
+    if (!data.WriteInt32(lightFactorStatus)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

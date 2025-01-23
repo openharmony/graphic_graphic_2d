@@ -2145,7 +2145,7 @@ bool DoNotifyLightFactorStatus(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    bool isSafe = GetData<bool>();
+    int32_t lightFactorStatus = GetData<int32_t>();
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -2153,7 +2153,7 @@ bool DoNotifyLightFactorStatus(const uint8_t* data, size_t size)
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    dataP.WriteBool(isSafe);
+    dataP.WriteInt32(lightFactorStatus);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
     if (rsConnStub_ == nullptr) {
         return false;

@@ -304,7 +304,7 @@ private:
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
-    void NotifyLightFactorStatus(bool isSafe) override;
+    void NotifyLightFactorStatus(int32_t lightFactorStatus) override;
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 

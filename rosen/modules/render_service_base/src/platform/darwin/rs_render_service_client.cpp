@@ -594,7 +594,7 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
 }
 
-void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
+void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
 }
 

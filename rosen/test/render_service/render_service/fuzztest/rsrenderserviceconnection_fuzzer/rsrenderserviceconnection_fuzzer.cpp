@@ -1079,8 +1079,8 @@ bool DONotifyLightFactorStatus()
     if (rsConn_ == nullptr) {
         return false;
     }
-    bool isSafe = GetData<bool>();
-    rsConn_->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = GetData<int32_t>();
+    rsConn_->NotifyLightFactorStatus(lightFactorStatus);
     return true;
 }
 

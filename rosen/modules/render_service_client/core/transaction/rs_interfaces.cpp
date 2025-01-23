@@ -787,9 +787,9 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
-void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
+void RSInterfaces::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
-    renderServiceClient_->NotifyLightFactorStatus(isSafe);
+    renderServiceClient_->NotifyLightFactorStatus(lightFactorStatus);
 }
 
 void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)

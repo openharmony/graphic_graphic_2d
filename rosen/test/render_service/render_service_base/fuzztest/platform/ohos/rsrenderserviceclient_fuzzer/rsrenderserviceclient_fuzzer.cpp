@@ -1554,8 +1554,8 @@ bool DoNotifyLightFactorStatus(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    bool isSafe = GetData<bool>();
-    client->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = GetData<int32_t>();
+    client->NotifyLightFactorStatus(lightFactorStatus);
     return true;
 }
 

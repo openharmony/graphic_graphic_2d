@@ -2239,12 +2239,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
-            bool isSafe{false};
-            if (!data.ReadBool(isSafe)) {
+            int32_t lightFactorStatus{0};
+            if (!data.ReadInt32(lightFactorStatus)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            NotifyLightFactorStatus(isSafe);
+            NotifyLightFactorStatus(lightFactorStatus);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
