@@ -851,7 +851,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     }
     Drawing::Rect localClipBounds;
     canvas->Save();
-    canvas->ClipRect(Rect2DrawingRect(boundsRect),Drawing::ClipOp::INTERSECT,false);
+    canvas->ClipRect(Rect2DrawingRect(boundsRect), Drawing::ClipOp::INTERSECT, false);
     auto tmpBounds = canvas->GetDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawPixelStretch, tmpBounds: %s", tmpBounds.ToString().c_str());
