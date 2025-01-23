@@ -22,9 +22,8 @@ ohos_fuzztest("HdiFrameBufferSurfaceFuzzTest") {
   fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/hdi_backend/test/fuzztest/hdiframebuffersurface_fuzzer"
   module_out_path = module_output_path
 
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
-  ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/composer/hdi_backend/include" ]
   cflags = [
     "-g",
     "-O0",
