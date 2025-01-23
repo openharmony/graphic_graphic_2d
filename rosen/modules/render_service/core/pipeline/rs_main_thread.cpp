@@ -1417,13 +1417,21 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     const auto& nodeMap = GetContext().GetNodeMap();
     bool isHdrSwitchChanged = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
+    uint32_t frameRatePidFromRSS = ResschedEventListener::GetInstance()->GetCurrentPid();
+    bool isCurrentFrameCounted = false;
     nodeMap.TraverseSurfaceNodes(
-        [this, &needRequestNextVsync, isHdrSwitchChanged](
+        [this, &needRequestNextVsync, isHdrSwitchChanged, &isCurrentFrameCounted, frameRatePidFromRSS](
             const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
         }
-
+#ifdef RES_SCHED_ENABLE
+        uint32_t pidFromNode = ExtractPid(surfaceNode->GetId());
+        if (frameRatePidFromRSS == pidFromNode && !isCurrentFrameCounted) {
+            isCurrentFrameCounted = true;
+            ResschedEventListener::GetInstance()->ReportFrameCountAsync(pidFromNode);
+        }
+#endif // RES_SCHED_ENABLE
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
