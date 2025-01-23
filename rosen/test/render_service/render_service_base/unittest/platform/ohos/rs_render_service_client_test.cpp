@@ -428,10 +428,13 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
 {
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
-    auto callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
         screenId = id;
         screenEvent = event;
+        errorReason = reason;
         callbacked = true;
     };
     int32_t status = rsClient->SetScreenChangeCallback(callback);

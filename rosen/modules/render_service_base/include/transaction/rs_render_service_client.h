@@ -57,7 +57,7 @@
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
 #endif
