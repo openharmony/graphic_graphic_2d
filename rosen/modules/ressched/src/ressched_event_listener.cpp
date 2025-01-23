@@ -127,37 +127,41 @@ void ResschedEventListener::ReportFrameRateToRSS(const std::unordered_map<std::s
 
 void ResschedEventListener::ReportFrameCountAsync(uint32_t pid)
 {
-    ffrtQueue_->submit([pid, this]() {
-        if (currentType_ == DEFAULT_TYPE) {
-            return;
-        }
-        if (pid != currentPid_.load()) {
-            return;
-        }
-        if (isFrameRateFirstReport_) {
-            isFrameRateFirstReport_ = false;
-            beginTimeStamp_ = std::chrono::steady_clock::now();
-        }
-        endTimeStamp_ = std::chrono::steady_clock::now();
-        frameCountNum_++;
-    });
+    if (GetFfrtQueue()) {
+        ffrtQueue_->submit([pid, this]() {
+            if (currentType_ == DEFAULT_TYPE) {
+                return;
+            }
+            if (pid != currentPid_.load()) {
+                return;
+            }
+            if (isFrameRateFirstReport_) {
+                isFrameRateFirstReport_ = false;
+                beginTimeStamp_ = std::chrono::steady_clock::now();
+            }
+            endTimeStamp_ = std::chrono::steady_clock::now();
+            frameCountNum_++;
+        });
+    }
 }
 
 void ResschedEventListener::HandleFrameRateStatisticsBeginAsync(uint32_t pid, uint32_t type)
 {
-    ffrtQueue_->submit([pid, type, this]() {
-        RS_TRACE_BEGIN("HandleFrameRateStatisticsBeginAsync");
-        currentPid_.store(pid);
-        currentType_ = type;
-        frameCountNum_ = 0;
-        isFrameRateFirstReport_ = true;
-        RS_TRACE_END();
-    });
+    if (GetFfrtQueue()) {
+        ffrtQueue_->submit([pid, type, this]() {
+            RS_TRACE_BEGIN("HandleFrameRateStatisticsBeginAsync");
+            currentPid_.store(pid);
+            currentType_ = type;
+            frameCountNum_ = 0;
+            isFrameRateFirstReport_ = true;
+            RS_TRACE_END();
+        });
+    }
 }
 
 void ResschedEventListener::HandleFrameRateStatisticsBreakAsync(uint32_t pid, uint32_t type)
 {
-    if (pid == currentPid_.load()) {
+    if (pid == currentPid_.load() && GetFfrtQueue()) {
         ffrtQueue_->submit([this]() {
             RS_TRACE_BEGIN("HandleFrameRateStatisticsBreakAsync");
             currentPid_.store(DEFAULT_PID);
@@ -169,7 +173,7 @@ void ResschedEventListener::HandleFrameRateStatisticsBreakAsync(uint32_t pid, ui
 
 void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint32_t type)
 {
-    if (pid == currentPid_.load()) {
+    if (pid == currentPid_.load() && GetFfrtQueue()) {
         ffrtQueue_->submit([this]() {
             RS_TRACE_BEGIN("HandleFrameRateStatisticsEndAsync");
             std::chrono::duration<double> durationTime = endTimeStamp_ - beginTimeStamp_;
@@ -193,6 +197,20 @@ void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint
 uint32_t ResschedEventListener::GetCurrentPid()
 {
     return currentPid_.load();
+}
+
+bool ResschedEventListener::GetFfrtQueue()
+{
+    if (ffrtQueue_ == nullptr) {
+        ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_EVENT_LISTENER_QUEUE.c_str(),
+            ffrt::queue_attr().qos(ffrt::qos_default));
+    }
+    if (ffrtQueue_ == nullptr) {
+        RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
+        RS_TRACE_END();
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

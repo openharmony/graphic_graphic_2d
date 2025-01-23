@@ -62,6 +62,8 @@ private:
     void HandleFrameRateStatisticsBreakAsync(uint32_t pid, uint32_t type);
 
     void ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload);
+    
+    static bool GetFfrtQueue();
 };
 } // namespace Rosen
 } // namespace OHOS

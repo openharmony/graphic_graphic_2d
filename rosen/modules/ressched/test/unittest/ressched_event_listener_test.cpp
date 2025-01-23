@@ -86,6 +86,70 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameToRSS001, Function | MediumTest| 
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
     ASSERT_EQ(ResschedEventListener::GetInstance()->GetIsFirstReport(), false);
 }
+
+/*
+* Function: ReportFrameToRSS001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OnReceiveEvent
+ */
+HWTEST_F(ResschedEventListenerTest, OnReceiveEvent002, Function | MediumTest| Level3)
+{
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["pid"] = "100";
+    extInfo["type"] = "1";
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_START, extInfo);
+    sleep(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 100);
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_BREAK, extInfo);
+    sleep(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 0);
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_START, extInfo);
+    sleep(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 100);
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_END, extInfo);
+    sleep(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 0);
+}
+
+/*
+* Function: ReportFrameRateToRSS001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReportFrameRateToRSS001
+ */
+HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS001, Function | MediumTest| Level3)
+{
+    std::unordered_map<std::string, std::string> extInfo;
+    extInfo["pid"] = "100";
+    extInfo["type"] = "1";
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_START, extInfo);
+    sleep(1);
+    ResschedEventListener::GetInstance()->ReportFrameCountAsync(100);
+    ResschedEventListener::GetInstance()->ReportFrameCountAsync(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 100);
+    ResschedEventListener::GetInstance()->OnReceiveEvent(
+        ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS,
+        ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_BREAK, extInfo);
+    sleep(1);
+    ResschedEventListener::GetInstance()->ReportFrameCountAsync(100);
+    ResschedEventListener::GetInstance()->ReportFrameCountAsync(1);
+    ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 0);
+}
+
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
