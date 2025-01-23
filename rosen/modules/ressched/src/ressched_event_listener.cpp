@@ -120,8 +120,8 @@ void ResschedEventListener::HandleFrameRateStatisticsReport(uint32_t eventValue,
 
 void ResschedEventListener::ReportFrameRateToRss(const std::unordered_map<std::string, std::string>& mapPayload)
 {
-    uint32_t type = ResourceSchedule::ResType::ResType::RES_TYPE_FRAME_RATE_REPORT_FROM_RS;
-    int64_t value = ResourceSchedule::ResType::ResType::FrameRateReportState::FRAME_RATE_COMMON_REPORT;
+    uint32_t type = ResourceSchedule::ResType::RES_TYPE_FRAME_RATE_REPORT_FROM_RS;
+    int64_t value = ResourceSchedule::ResType::FrameRateReportState::FRAME_RATE_COMMON_REPORT;
     OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
 }
 
