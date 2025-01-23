@@ -22,6 +22,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
+#include "pipeline/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 
@@ -32,6 +33,10 @@ static bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
 static double g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
+static uint64_t g_lastParcelTime = 0;
+static int g_animationCount = 0;
+static std::mutex g_mutexBetaRecording;
+static bool g_mutexBetaRecordingLocked = false;
 
 // implemented in rs_profiler.cpp
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out);
@@ -76,6 +81,19 @@ void RSProfiler::LaunchBetaRecordNotificationThread()
     thread.detach();
 }
 
+void RSProfiler::LaunchBetaRecordFileSplitThread()
+{
+    std::thread thread([]() {
+        while (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
+            SaveBetaRecord();
+            
+            constexpr int32_t splitCheckTime = 100;
+            std::this_thread::sleep_for(std::chrono::milliseconds(splitCheckTime));
+        }
+    });
+    thread.detach();
+}
+
 void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
 {
     if (!IsBetaRecordEnabledWithMetrics()) {
@@ -96,6 +114,24 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
     thread.detach();
 }
 
+void RSProfiler::BetaRecordOnFrameBegin()
+{
+    if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
+        g_mutexBetaRecording.lock();
+        g_mutexBetaRecordingLocked = true;
+    } else {
+        g_mutexBetaRecordingLocked = false;
+    }
+}
+
+void RSProfiler::BetaRecordOnFrameEnd()
+{
+    if (g_mutexBetaRecordingLocked) {
+        g_mutexBetaRecording.unlock();
+        g_mutexBetaRecordingLocked = false;
+    }
+}
+
 void RSProfiler::StartBetaRecord()
 {
     if (HasInitializationFinished() && !IsBetaRecordStarted() && IsBetaRecordEnabled()) {
@@ -109,6 +145,8 @@ void RSProfiler::StartBetaRecord()
         RecordStart(ArgList());
 
         g_started = true;
+
+        LaunchBetaRecordFileSplitThread();
     }
 }
 
@@ -126,38 +164,48 @@ bool RSProfiler::IsBetaRecordStarted()
     return g_started;
 }
 
+void RSProfiler::BetaRecordSetLastParcelTime()
+{
+    g_lastParcelTime = Utils::Now();
+}
+
 void RSProfiler::SaveBetaRecord()
 {
+    if (g_animationCount) {
+        // doesn't start beta record during animations
+        return;
+    }
+    constexpr double inactivityThreshold = 0.0;
+    if (g_lastParcelTime + Utils::ToNanoseconds(inactivityThreshold) > Utils::Now()) {
+        // doesn't start beta record if parcels were sent less then 0.5 second ago
+        return;
+    }
+
+    if (IsNoneMode()) {
+        std::unique_lock<std::mutex> lock(g_mutexBetaRecording);
+        RecordStart(ArgList());
+        return;
+    }
+
     constexpr double recordMaxLengthSeconds = 30.0;
     const auto recordLength = Now() - g_recordsTimestamp;
     if (!IsBetaRecordSavingTriggered() && (recordLength <= recordMaxLengthSeconds)) {
+        // start new beta-record file every recordMaxLengthSeconds
         return;
     }
 
+    std::unique_lock<std::mutex> lock(g_mutexBetaRecording);
     RecordStop(ArgList());
     EnableBetaRecord();
-    RecordStart(ArgList());
 }
 
-void RSProfiler::UpdateBetaRecord()
+void RSProfiler::UpdateBetaRecord(const RSContext& context)
 {
-    if (!IsBetaRecordStarted()) {
-        return;
-    }
-    if (!IsBetaRecordEnabled()) {
-        return;
-    }
-
-    if (!IsRecording()) {
-        return;
-    }
-
-    SaveBetaRecord();
-
     // the last time any rendering is done
     if (g_currentFrameDirtyRegion > 0) {
         g_inactiveTimestamp = Now();
     }
+    g_animationCount = context.animatingNodeList_.size();
 }
 
 bool RSProfiler::OpenBetaRecordFile(RSFile& file)
