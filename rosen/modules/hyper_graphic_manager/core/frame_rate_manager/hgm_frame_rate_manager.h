@@ -242,7 +242,7 @@ private:
     void InitRsIdleTimer();
     void InitPowerTouchManager();
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
-    void CollectVRateChange(uint64_t linkerId, int& appFrameRate);
+    void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;

@@ -878,8 +878,14 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
     };
     if (!isDefaultClean) {
+        auto rate = GetRefreshRate();
+        if (rate == 0) {
+            RS_LOGE("PostClearMemoryTask::GetRefreshRate == 0, change refreshRate to 60.");
+            const int defaultRefreshRate = 60;
+            rate = defaultRefreshRate;
+        }
         PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate());
+            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
