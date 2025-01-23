@@ -65,10 +65,9 @@ const bool RSPropertiesPainter::FOREGROUND_FILTER_ENABLED = RSSystemProperties::
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::binarizationShaderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectShaderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectBlender_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicLightUpBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicDimShaderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectBlender_ = nullptr;
 
 Drawing::Rect RSPropertiesPainter::Rect2DrawingRect(const RectF& r)
 {
@@ -1699,29 +1698,11 @@ void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPa
     } else {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     }
-    if (RSSystemProperties::IsTabletType()) {
-        auto blender = MakeLightUpEffectBlender(properties.GetLightUpEffect());
-        Drawing::Brush brush;
-        brush.SetBlender(blender);
-        canvas.DrawBackground(brush);
-    } else {
-        auto clipBounds = canvas.GetDeviceClipBounds();
-        auto image = surface->GetImageSnapshot(clipBounds);
-        if (image == nullptr) {
-            ROSEN_LOGE("RSPropertiesPainter::DrawLightUpEffect image is null");
-            return;
-        }
-        Drawing::Matrix scaleMat;
-        auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
-            Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-        auto shader = MakeLightUpEffectShader(properties.GetLightUpEffect(), imageShader);
-        Drawing::Brush brush;
-        brush.SetShaderEffect(shader);
-        canvas.ResetMatrix();
-        canvas.Translate(clipBounds.GetLeft(), clipBounds.GetTop());
-        canvas.DrawBackground(brush);
-    }
+
+    auto blender = MakeLightUpEffectBlender(properties.GetLightUpEffect());
+    Drawing::Brush brush;
+    brush.SetBlender(blender);
+    canvas.DrawBackground(brush);
 }
 
 std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeLightUpEffectBlender(const float lightUpDeg)
@@ -1763,13 +1744,6 @@ std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeLightUpEffectBlender(
     auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
     builder->SetUniform("lightUpDeg", lightUpDeg);
     return builder->MakeBlender();
-}
-
-std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectShader(
-    float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
-{
-    // Realizations locate in SkiaShaderEffect::InitWithLightUp & DDGRShaderEffect::InitWithLightUp
-    return Drawing::ShaderEffect::CreateLightUp(lightUpDeg, *imageShader);
 }
 
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
