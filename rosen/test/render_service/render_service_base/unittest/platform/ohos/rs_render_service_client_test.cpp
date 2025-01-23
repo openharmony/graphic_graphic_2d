@@ -935,5 +935,20 @@ HWTEST_F(RSClientTest, SetWindowContainer001, TestSize.Level1)
     rsClient->SetWindowContainer(nodeId, true);
     rsClient->SetWindowContainer(nodeId, false);
 }
+
+/**
+ * @tc.name: GetPixelMapByProcessIdTest
+ * @tc.desc: Test GetPixelMapByProcessId
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    pid_t pid = 0;
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapVector, pid);
+    ASSERT_EQ(res, SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS
