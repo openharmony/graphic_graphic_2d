@@ -66,7 +66,7 @@ public:
     void RemoveRCDResource(NodeId id);
 
     // update displayWidth_ and displayHeight_
-    void UpdateDisplayParameter(NodeId id, uint32_t width, uint32_t height);
+    void UpdateDisplayParameter(NodeId id, uint32_t left, uint32_t top, uint32_t width, uint32_t height);
 
     // update notchStatus_
     void UpdateNotchStatus(NodeId id, int status);
