@@ -390,8 +390,16 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     std::string testFileDir = "testCachedata";
     std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
     const char *testKey1 = "";
-    const char *testValue = "";
-    cacheData->Rewrite(testKey1, 0, testValue, 0);
+    const char *testValue1 = "";
+    cacheData->Rewrite(testKey1, 0, testValue1, 0);
+    uint8_t *tempBuffer = new uint8_t[8]();
+    const char *testKey2 = "testKey2";
+    const char *testValue2 = "testValue2";
+    cacheData->Rewrite(testKey2, 8, testValue2, 8);
+    auto result = cacheData->Get(testKey2, 8, tempBuffer, 8);
+    size_t valuePointerSize = std::get<1>(result);
+    EXPECT_NE(0, valuePointerSize);
+    delete[] tempBuffer;
 }
 
 /**
@@ -456,6 +464,7 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     cacheData->RandClean(0);
     cacheData->cleanThreshold_ = 0;
     cacheData->RandClean(1);
+    EXPECT_GE(6, cacheData->totalSize_);
 }
 
 /**
