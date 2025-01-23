@@ -54,10 +54,11 @@ void VSyncReceiver::RegisterFileDescriptorListener()
 {
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
-    bool isApp = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
-    if (isApp && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
+    bool isAppMainThread = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) && (getpid() == gettid());
+    if (isAppMainThread && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
         (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
         listener_->SetDeamonWaiter();
+        listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
         looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
             static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
     } else {
