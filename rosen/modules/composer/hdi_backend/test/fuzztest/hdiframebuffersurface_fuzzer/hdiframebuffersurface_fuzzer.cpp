@@ -47,27 +47,16 @@ namespace OHOS {
         pos += objectSize;
         return object;
     }
-    
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    void HdiFramebufferSurfaceFuzzTest()
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
         sptr<HdiFramebufferSurface> fbSurface = HdiFramebufferSurface::CreateFramebufferSurface();
         if (fbSurface == nullptr) {
-            return false;
+            return;
         }
-
         //get data
         uint32_t bufferSize = GetData<uint32_t>() % 10 + 1; // 1-10
         uint8_t operation = GetData<uint8_t>(); //operation choice
         uint8_t operationCount = 4; //operation count
-
         enum FrameBufferAction {
             TRY_RELEASE_FRAMEBUFFER = 0,
             CLEAR_FRAMEBUFFER = 1,
@@ -107,6 +96,17 @@ namespace OHOS {
             default:
                 break;
         }
+    }
+    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+        // initialize
+        data_ = data;
+        size_ = size;
+        pos = 0;
+        HdiFramebufferSurfaceFuzzTest();
         return true;
     }
 }
