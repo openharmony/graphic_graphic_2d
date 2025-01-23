@@ -102,6 +102,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     }
     RS_TRACE_NAME_FMT("DealWithCachedWindow node[%lld] %s",
         surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+    RSAutoCanvasRestore acr(&canvas);
     if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
@@ -111,7 +112,6 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     surfaceDrawable->DrawBackground(canvas, boundSize);
     float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
     float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
-    canvas.Save();
     canvas.Scale(scaleX, scaleY);
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (image_->IsTextureBacked()) {
@@ -126,7 +126,6 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     // draw content/children
     canvas.DrawImage(*image_, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
     canvas.DetachBrush();
-    canvas.Restore();
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
