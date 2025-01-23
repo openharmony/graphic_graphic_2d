@@ -59,8 +59,7 @@ namespace OHOS {
         size_ = size;
         pos = 0;
         sptr<HdiFramebufferSurface> fbSurface = HdiFramebufferSurface::CreateFramebufferSurface();
-        if (fbSurface == nullptr) 
-        {
+        if (fbSurface == nullptr) {
             return false;
         }
 
@@ -68,13 +67,18 @@ namespace OHOS {
         uint32_t bufferSize = GetData<uint32_t>() % 10 + 1; // 1-10
         uint8_t operation = GetData<uint8_t>(); //operation choice
 
+        int operationCount = 4;
+        int tryReleaseFramebuffer = 0;
+        int clearFrameBuffer = 1;
+        int dump = 2;
+        int onBufferAvailable = 3;
         // test
         fbSurface->SetBufferQueueSize(bufferSize);
         fbSurface->GetBufferQueueSize();
         fbSurface->OnBufferAvailable();
         auto fbEntry = fbSurface->GetFramebuffer();
-        switch (operation % 4) {
-            case 0: {
+        switch (operation % operationCount) {
+            case tryReleaseFramebuffer: {
                 // try ReleaseFramebuffer
                 if (fbEntry) {
                     auto buffer = fbEntry->buffer;
@@ -83,16 +87,16 @@ namespace OHOS {
                 }
                 break;
             }
-            case 1: {
+            case clearFrameBuffer: {
                 fbSurface->ClearFrameBuffer();
                 break;
             }
-            case 2: {
+            case dump: {
                 std::string result;
                 fbSurface->Dump(result);
                 break;
             }
-            case 3: {
+            case onBufferAvailable: {
                 // multiple OnBufferAvailable, see if it can trigger queue full, Acquire failure, etc.
                 fbSurface->OnBufferAvailable();
                 fbSurface->OnBufferAvailable();
