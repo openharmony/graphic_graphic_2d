@@ -494,6 +494,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     RSRenderParams::OnSync(target);
 }
 
@@ -533,6 +534,20 @@ void RSSurfaceRenderParams::SetOpaqueRegion(const Occlusion::Region& opaqueRegio
 const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
 {
     return opaqueRegion_;
+}
+
+void RSSurfaceRenderParams::SetNeedCacheSurface(bool needCacheSurface)
+{
+    if (needCacheSurface_ == needCacheSurface) {
+        return;
+    }
+    needCacheSurface_ = needCacheSurface;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedCacheSurface() const
+{
+    return needCacheSurface_;
 }
 
 } // namespace OHOS::Rosen

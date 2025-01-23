@@ -33,6 +33,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_draw_window_cache.h"
 
 namespace OHOS::Rosen {
 class RSRenderThreadParams;
@@ -347,6 +348,9 @@ private:
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
     bool vmaCacheOff_ = false;
+
+    RSDrawWindowCache drawWindowCache_;
+    friend class OHOS::Rosen::RSDrawWindowCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

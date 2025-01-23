@@ -3067,5 +3067,14 @@ void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
 {
     childrenBlurBehindWindow_.erase(id);
 }
+
+void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetNeedCacheSurface(needCacheSurface);
+    }
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

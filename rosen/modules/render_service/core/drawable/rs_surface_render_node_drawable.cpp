@@ -106,11 +106,16 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
         canvas.Restore();
     }
 
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(canvas, bounds);
+    if (surfaceParams.GetNeedCacheSurface()) {
+        // 3/4 Draw content and children of this node by the main canvas, and cache
+        drawWindowCache_.DrawAndCacheWindowContent(this, canvas, bounds);
+    } else {
+        // 3. Draw content of this node by the main canvas.
+        DrawContent(canvas, bounds);
 
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(canvas, bounds);
+        // 4. Draw children of this node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
@@ -377,6 +382,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams)) {
+        return;
+    }
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
@@ -924,6 +932,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
     }
     DrawForeground(canvas, bounds);
+    DrawWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

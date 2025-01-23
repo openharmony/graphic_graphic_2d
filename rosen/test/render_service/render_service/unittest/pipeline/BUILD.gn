@@ -58,7 +58,7 @@ group("unittest") {
       ":RSRenderTaskTest",
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
-      ":RSUIFirstRenderListenerTest",
+      ":RSUIFirstRenderListenerTest",RSMagicPointerRenderManagerTest
     ]
   }
   if (graphic_2d_feature_enable_rspipeline) {
@@ -67,6 +67,11 @@ group("unittest") {
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     deps += [ ":RSPointerRenderManagerTest" ]
+  }
+  if (graphic_2d_feature_product == "pc") {
+    deps += [
+      ":RSDrawWindowCacheTest",
+    ]
   }
 }
 
@@ -1023,6 +1028,32 @@ ohos_unittest("RSUifirstManagerTest") {
 ohos_unittest("RSPointerRenderManagerTest") {
   module_out_path = module_output_path
   sources = [ "pointer_render/rs_pointer_render_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+}
+
+## Build RSDrawWindowCacheTest
+ohos_unittest("RSDrawWindowCacheTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_draw_window_cache_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

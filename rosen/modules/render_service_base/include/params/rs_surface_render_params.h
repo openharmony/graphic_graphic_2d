@@ -523,6 +523,9 @@ public:
         return apiCompatibleVersion_;
     }
 
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetNeedCacheSurface() const;
+
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -609,6 +612,7 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    bool needCacheSurface_ = false;
 
     bool hasSubSurfaceNodes_ = false;
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
