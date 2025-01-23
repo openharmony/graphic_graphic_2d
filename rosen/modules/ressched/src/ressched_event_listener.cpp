@@ -118,7 +118,7 @@ void ResschedEventListener::HandleFrameRateStatisticsReport(uint32_t eventValue,
     }
 }
 
-void ResschedEventListener::ReportFrameRateToRss(const std::unordered_map<std::string, std::string>& mapPayload)
+void ResschedEventListener::ReportFrameRateToRSS(const std::unordered_map<std::string, std::string>& mapPayload)
 {
     uint32_t type = ResourceSchedule::ResType::RES_TYPE_FRAME_RATE_REPORT_FROM_RS;
     int64_t value = ResourceSchedule::ResType::FrameRateReportState::FRAME_RATE_COMMON_REPORT;
@@ -179,8 +179,8 @@ void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint
                 mapPayload["pid"] = std::to_string(currentPid_.load());
                 mapPayload["type"] = std::to_string(currentType_);
                 mapPayload["frameRate"] = std::to_string(frameRate);
-                RS_TRACE_BEGIN("FrameRateStatistics ReportFrameRateToRss");
-                    ReportFrameRateToRss(mapPayload);
+                RS_TRACE_BEGIN("FrameRateStatistics ReportFrameRateToRSS");
+                    ReportFrameRateToRSS(mapPayload);
                 RS_TRACE_END();
             }
                 currentPid_.store(DEFAULT_PID);
