@@ -118,6 +118,38 @@ HWTEST_F(PixelMapFromSurfaceTest, CreatePixelMapFromSurface002, Function | Mediu
     // CreatePixelMapFromSurface should fail because this Process is not render_service
     ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurface(pSurface, {0, 0, 100, 100}), nullptr);
 }
+
+/*
+* Function: CreatePixelMapFromSurfaceBuffer001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription:
+    1. call CreatePixelMapFromSurfaceBuffer with nullptr suface and should return nullptr
+    2. call CreatePixelMapFromSurfaceBuffer with incorrect rect.left and should return nullptr
+    3. call CreatePixelMapFromSurfaceBuffer with incorrect rect.top and should return nullptr
+    4. call CreatePixelMapFromSurfaceBuffer with incorrect rect.width and should return nullptr
+    5. call CreatePixelMapFromSurfaceBuffer with incorrect rect.height and should return nullptr
+    6. call CreatePixelMapFromSurfaceBuffer without GPUContext and should return nullptr
+ */
+HWTEST_F(PixelMapFromSurfaceTest, CreatePixelMapFromSurfaceBuffer001, Function | MediumTest| Level3)
+{
+    OHOS::Media::Rect srcRect = {0, 0, 100, 100};
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(nullptr, srcRect), nullptr);
+    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+    ASSERT_EQ(surfaceBuffer, nullptr);
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+    surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    ASSERT_NE(surfaceBuffer, nullptr);
+    srcRect = {-1, 0, 100, 100};
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+    srcRect = {0, -1, 100, 100};
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+    srcRect = {0, 0, 0, 100};
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+    srcRect = {0, 0, 100, 0};
+    ASSERT_EQ(OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, srcRect), nullptr);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

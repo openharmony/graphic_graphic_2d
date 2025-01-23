@@ -18,6 +18,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -266,6 +267,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
                 RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
             }
+            RS_PROFILER_PUSH_OFFSET(commandOffsets_, parcel.GetReadPosition());
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
             }
@@ -286,6 +288,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     static_cast<uint32_t>(commandSubType));
             }
             payloadLock.lock();
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
+                command->PrintType().c_str());
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
@@ -351,5 +355,23 @@ std::string RSTransactionData::PrintCommandMapDesc(
     return commandMapDesc;
 }
 
+void RSTransactionData::ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumber)
+{
+    RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets_);
+}
+
+void RSTransactionData::DumpCommand(std::string& dumpString)
+{
+    dumpString.append(", [Command: ");
+    for (const auto& [_, followType, command] : payload_) {
+        if (command == nullptr) {
+            continue;
+        }
+        dumpString.append("(Node:" + std::to_string(command->GetNodeId()) +
+                          ", Type:" + std::to_string(command->GetType()) +
+                          ", SubType:" + std::to_string(command->GetSubType()) + ") ");
+    }
+    dumpString.append("]");
+}
 } // namespace Rosen
 } // namespace OHOS

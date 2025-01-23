@@ -15,7 +15,7 @@
 
 #include <vsync_receiver.h>
 #include "transaction/rs_interfaces.h"
-#include "ui/rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "vsync_log.h"
 #include "native_vsync.h"
 

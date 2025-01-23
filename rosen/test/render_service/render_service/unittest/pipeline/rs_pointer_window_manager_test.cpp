@@ -90,7 +90,7 @@ HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest002, TestSize.Leve
     surfaceNode->name_ = "pointer window";
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
-    ASSERT_NE(rsPointerWindowManager.hardCursorNodes_, nullptr);
+    ASSERT_NE(rsPointerWindowManager.hardCursorNodeMap_.size(), 0);
 }
 /**
  * @tc.name: HardCursorCreateLayerForDirect

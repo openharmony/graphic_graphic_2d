@@ -74,8 +74,35 @@ static inline void DrawCapturedImg(Drawing::Image& image,
 }
 #endif
 
+bool RSUiCaptureTaskParallel::IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect)
+{
+    RS_LOGD("RSUiCaptureTaskParallel::IsRectValid: NodeId:[%{public}" PRIu64 "],"
+        " Rect Left is [%{public}f], Top is [%{public}f],"
+        " Right is [%{public}f], Bottom is [%{public}f],",
+        nodeId, specifiedAreaRect.GetLeft(), specifiedAreaRect.GetTop(),
+        specifiedAreaRect.GetRight(), specifiedAreaRect.GetBottom());
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId);
+    if (node == nullptr) {
+        RS_LOGE("RSUiCaptureTaskParallel::IsRectValid: Invalid nodeId:[%{public}" PRIu64 "]", nodeId);
+        return false;
+    }
+    if (!specifiedAreaRect.IsValid()) {
+        RS_LOGD("RSUiCaptureTaskParallel::IsRectValid: specifiedAreaRect is an invalid rect");
+        return false;
+    }
+    if ((specifiedAreaRect.GetWidth() > node->GetRenderProperties().GetBoundsWidth()) ||
+        (specifiedAreaRect.GetHeight() > node->GetRenderProperties().GetBoundsHeight()) ||
+        (specifiedAreaRect.GetLeft() < 0) || (specifiedAreaRect.GetTop() < 0) ||
+        (specifiedAreaRect.GetRight() > node->GetRenderProperties().GetBoundsWidth()) ||
+        (specifiedAreaRect.GetBottom() > node->GetRenderProperties().GetBoundsHeight())) {
+        RS_LOGE("RSUiCaptureTaskParallel::IsRectValid: specifiedAreaRect is out of bounds");
+        return false;
+    }
+    return true;
+}
+
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+    const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect)
 {
     if (callback == nullptr) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
@@ -90,15 +117,23 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         ProcessUiCaptureCallback(callback, id, nullptr);
         return;
     }
-    if (!captureHandle->CreateResources()) {
+    if (!captureHandle->CreateResources(specifiedAreaRect)) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture CreateResources failed");
         ProcessUiCaptureCallback(callback, id, nullptr);
         return;
     }
+    Drawing::Rect chosenRect;
+    Drawing::Rect invalidRect(0.f, 0.f, 0.f, 0.f);
+    if (!IsRectValid(id, specifiedAreaRect)) {
+        chosenRect = invalidRect;
+        RS_LOGD("RSUiCaptureTaskParallel::Capture invalid rect");
+    } else {
+        chosenRect = specifiedAreaRect;
+    }
     auto taskName = UICAPTURE_TASK_PREFIX + std::to_string(id);
-    std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
+    std::function<void()> captureTask = [captureHandle, id, callback, chosenRect]() -> void {
         RSSystemProperties::SetForceHpsBlurDisabled(true);
-        if (!captureHandle->Run(callback)) {
+        if (!captureHandle->Run(callback, chosenRect)) {
             ProcessUiCaptureCallback(callback, id, nullptr);
         }
         RSSystemProperties::SetForceHpsBlurDisabled(false);
@@ -107,7 +142,7 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
     RSUniRenderThread::Instance().PostTask(captureTask, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
 }
 
-bool RSUiCaptureTaskParallel::CreateResources()
+bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedAreaRect)
 {
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
         captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
@@ -138,6 +173,8 @@ bool RSUiCaptureTaskParallel::CreateResources()
             width, height);
         return false;
     }
+    RS_LOGD("RSUiCaptureTaskParallel::CreateResources: Origin nodeBoundsWidth is [%{public}f,]"
+        " Origin nodeBoundsHeight is [%{public}f]", nodeBoundsWidth, nodeBoundsHeight);
 #endif
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         // Determine whether cache can be used
@@ -151,11 +188,19 @@ bool RSUiCaptureTaskParallel::CreateResources()
 
         nodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
-        pixelMap_ = CreatePixelMapByNode(curNode);
+        if (IsRectValid(nodeId_, specifiedAreaRect)) {
+            pixelMap_ = CreatePixelMapByRect(specifiedAreaRect);
+        } else {
+            pixelMap_ = CreatePixelMapByNode(curNode);
+        }
     } else if (auto canvasNode = node->ReinterpretCastTo<RSCanvasRenderNode>()) {
         nodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode));
-        pixelMap_ = CreatePixelMapByNode(canvasNode);
+        if (IsRectValid(nodeId_, specifiedAreaRect)) {
+            pixelMap_ = CreatePixelMapByRect(specifiedAreaRect);
+        } else {
+            pixelMap_ = CreatePixelMapByNode(canvasNode);
+        }
     } else {
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderNode!");
         return false;
@@ -167,7 +212,7 @@ bool RSUiCaptureTaskParallel::CreateResources()
     return true;
 }
 
-bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
+bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, const Drawing::Rect& specifiedAreaRect)
 {
     RS_TRACE_NAME("RSUiCaptureTaskParallel::TakeSurfaceCapture");
 
@@ -199,6 +244,14 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     Drawing::Matrix relativeMatrix = Drawing::Matrix();
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
+    int32_t rectLeft = specifiedAreaRect.GetLeft();
+    int32_t rectTop = specifiedAreaRect.GetTop();
+    const Drawing::scalar x_offset = static_cast<Drawing::scalar>(-1 * rectLeft);
+    const Drawing::scalar y_offset = static_cast<Drawing::scalar>(-1 * rectTop);
+    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_X, x_offset);
+    relativeMatrix.Set(Drawing::Matrix::Index::TRANS_Y, y_offset);
+    RS_LOGD("RSUiCaptureTaskParallel::Run: specifiedAreaRect offsetX is [%{public}f], offsetY is [%{public}f]",
+        x_offset, y_offset);
     Drawing::Matrix invertMatrix;
     if (nodeParams->GetMatrix().Invert(invertMatrix)) {
         relativeMatrix.PreConcat(invertMatrix);
@@ -247,6 +300,23 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     return true;
 }
 
+std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByRect(
+    const Drawing::Rect& specifiedAreaRect) const
+{
+    float pixmapWidth = specifiedAreaRect.GetWidth();
+    float pixmapHeight = specifiedAreaRect.GetHeight();
+    Media::InitializationOptions opts;
+    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
+    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
+    RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByRect:"
+        " origin pixelmap width is [%{public}f], height is [%{public}f],"
+        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
+        pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
+        captureConfig_.scaleX, captureConfig_.scaleY);
+    return Media::PixelMap::Create(opts);
+}
+
 std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     std::shared_ptr<RSRenderNode> node) const
 {
@@ -258,7 +328,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
         " created pixelmap width is [%{public}u], height is [%{public}u],"
-        " the scale is scaleY:[%{public}f], scaleY:[%{public}f]",
+        " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
         captureConfig_.scaleX, captureConfig_.scaleY);
     return Media::PixelMap::Create(opts);

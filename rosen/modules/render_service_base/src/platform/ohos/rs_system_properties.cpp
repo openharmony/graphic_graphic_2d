@@ -82,6 +82,13 @@ int RSSystemProperties::GetDumpFrameNum()
     return ConvertToInt(num, 0);
 }
 
+int RSSystemProperties::GetSceneJankFrameThreshold()
+{
+    static int sceneJankFrameThreshold =
+        std::atoi((system::GetParameter("persist.sys.graphic.sceneJankFrameThreshold", "50")).c_str());
+    return sceneJankFrameThreshold;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
@@ -503,14 +510,6 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetDrawExpandSlrEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.slr.expand.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
-}
-
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.skipForAlphaZero.enabled", "1");
@@ -586,7 +585,7 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     return enabled;
 }
 
-bool RSSystemProperties::GetSLRScaleFunctionEnable()
+bool RSSystemProperties::GetSLRScaleEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.SLRScale.enabled", "1");
     int changed = 0;

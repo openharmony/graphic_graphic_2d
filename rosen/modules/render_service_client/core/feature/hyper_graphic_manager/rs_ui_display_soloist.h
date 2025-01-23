@@ -21,7 +21,7 @@
 
 #include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
-#include "rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "transaction/rs_interfaces.h"
 #include "vsync_receiver.h"
 

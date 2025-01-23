@@ -90,14 +90,19 @@ void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
     CalcVote();
 }
 
-void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
+void HgmMultiAppStrategy::HandleLightFactorStatus(int32_t state)
 {
-    RS_TRACE_NAME_FMT("[HandleLightFactorStatus] isSafe: %d", isSafe);
-    if (lightFactorStatus_.load() == isSafe) {
+    RS_TRACE_NAME_FMT("[HandleLightFactorStatus] state: %d", state);
+    if (lightFactorStatus_.load() == state) {
         return;
     }
-    lightFactorStatus_.store(isSafe);
+    lightFactorStatus_.store(state);
     CalcVote();
+}
+
+void HgmMultiAppStrategy::SetScreenType(bool isLtpo)
+{
+    isLtpo_ = isLtpo;
 }
 
 void HgmMultiAppStrategy::HandleLowAmbientStatus(bool isEffect)
@@ -334,9 +339,13 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
 
 void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
 {
-    HGM_LOGD("lightFactorStatus:%{public}u, isFactor:%{public}u, lowAmbientStatus:%{public}u",
+    HGM_LOGD("lightFactorStatus:%{public}d, isFactor:%{public}u, lowAmbientStatus:%{public}u",
         lightFactorStatus_.load(), strategyRes.isFactor, lowAmbientStatus_);
-    if (lightFactorStatus_ && strategyRes.isFactor && !lowAmbientStatus_) {
+    if (!isLtpo_ && lowAmbientStatus_ && lightFactorStatus_.load() == LightFactorStatus::LOW_LEVEL) {
+        strategyRes.min = strategyRes.max;
+        return;
+    }
+    if (lightFactorStatus_.load() == LightFactorStatus::NORMAL_LOW && strategyRes.isFactor && !lowAmbientStatus_) {
         RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
         strategyRes.min = strategyRes.max;
     }

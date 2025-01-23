@@ -66,9 +66,9 @@ void RSSpecialLayerManager::RemoveIds(uint32_t type, NodeId id)
         auto IsSpecial = isType & 1;
         if (IsSpecial) {
             specialLayerIds_[currentType].erase(id);
-        }
-        if (specialLayerIds_[currentType].empty()) {
-            specialLayerType_ &= ~(currentType << SPECIAL_TYPE_NUM);
+            if (specialLayerIds_[currentType].empty()) {
+                specialLayerType_ &= ~(currentType << SPECIAL_TYPE_NUM);
+            }
         }
         isType >>= 1;
         currentType <<= 1;

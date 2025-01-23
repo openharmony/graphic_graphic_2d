@@ -123,6 +123,36 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateDisplayRenderNodeDrawable, TestS
 }
 
 /**
+ * @tc.name: UpdateSlrScale001
+ * @tc.desc: Test UpdateSlrScale
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UpdateSlrScale001, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto param = system::GetParameter("rosen.SLRScale.enabled", "");
+    const int32_t width = DEFAULT_CANVAS_SIZE * 2;
+    const int32_t height = DEFAULT_CANVAS_SIZE * 2;
+    ScreenInfo screenInfo = {
+        .phyWidth = DEFAULT_CANVAS_SIZE,
+        .phyHeight = DEFAULT_CANVAS_SIZE,
+        .width = width,
+        .height = height,
+        .isSamplingOn = true,
+    };
+    system::SetParameter("rosen.SLRScale.enabled", "1");
+    displayDrawable_->UpdateSlrScale(screenInfo);
+    ASSERT_NE(displayDrawable_->slrScale_, nullptr);
+    EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->slrScale_->GetKernelSize());
+
+    system::SetParameter("rosen.SLRScale.enabled", "0");
+    displayDrawable_->UpdateSlrScale(screenInfo);
+    EXPECT_EQ(displayDrawable_->slrScale_, nullptr);
+    system::SetParameter("rosen.SLRScale.enabled", param);
+}
+
+/**
  * @tc.name: ScaleCanvasIfNeeded
  * @tc.desc: Test ScaleCanvasIfNeeded
  * @tc.type: FUNC
@@ -131,7 +161,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateDisplayRenderNodeDrawable, TestS
 HWTEST_F(RSDisplayRenderNodeDrawableTest, ScaleCanvasIfNeeded001, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
-    auto param = system::GetParameter("rosen.slr.expand.enabled", "");
+    auto param = system::GetParameter("rosen.SLRScale.enabled", "");
     ScreenInfo screenInfo = {
         .phyWidth = DEFAULT_CANVAS_SIZE,
         .phyHeight = DEFAULT_CANVAS_SIZE,
@@ -139,15 +169,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ScaleCanvasIfNeeded001, TestSize.Level
         .height = DEFAULT_CANVAS_SIZE,
         .isSamplingOn = false,
     };
-    system::SetParameter("rosen.slr.expand.enabled", "1");
+    system::SetParameter("rosen.SLRScale.enabled", "1");
     displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
     ASSERT_EQ(displayDrawable_->slrScale_, nullptr);
 
     screenInfo.isSamplingOn = true;
-    system::SetParameter("rosen.slr.expand.enabled", "0");
+    system::SetParameter("rosen.SLRScale.enabled", "0");
     displayDrawable_->ScaleCanvasIfNeeded(screenInfo);
     ASSERT_EQ(displayDrawable_->slrScale_, nullptr);
-    system::SetParameter("rosen.slr.expand.enabled", param);
+    system::SetParameter("rosen.SLRScale.enabled", param);
 }
 
 /**

@@ -165,14 +165,14 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         mForceSerial |= CheckForSerialForced(name);
     }
 
-    if (isSecurityDisplay_ && node.GetSecurityLayer()) {
+    if (isSecurityDisplay_ && node.GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY)) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
         RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused \
             because of security SurfaceNode.", node.GetId());
         return;
     }
     
-    if (isSecurityDisplay_ && node.GetSkipLayer()) {
+    if (isSecurityDisplay_ && node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
         RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused \
             because of skip SurfaceNode.", node.GetId());
         return;
@@ -219,7 +219,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (!node.GetOcclusionVisible() && !doAnimate_ && RSSystemProperties::GetOcclusionEnabled()) {
         return;
     }
-    if (isSecurityDisplay_ && node.GetSkipLayer()) {
+    if (isSecurityDisplay_ && node.GetMultableSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
         RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused \
             because of skip SurfaceNode.", node.GetId());
         return;

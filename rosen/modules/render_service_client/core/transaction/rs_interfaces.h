@@ -72,7 +72,7 @@ public:
 
     int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
-    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
@@ -96,6 +96,8 @@ public:
     // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
+    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -110,7 +112,8 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
+        bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
@@ -130,6 +133,7 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
+    // width and height should be greater then physical width and height
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -170,7 +174,9 @@ public:
 
     bool GetShowRefreshRateEnabled();
 
-    void SetShowRefreshRateEnabled(bool enable);
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type = 1);
+
+    uint32_t GetRealtimeRefreshRate(ScreenId id);
 
     std::string GetRefreshInfo(pid_t pid);
 
@@ -274,7 +280,7 @@ public:
 
     void ReportJankStats();
 
-    void NotifyLightFactorStatus(bool isSafe);
+    void NotifyLightFactorStatus(int32_t lightFactorStatus);
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
@@ -291,6 +297,10 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
+
+    void ReportRsSceneJankStart(AppInfo info);
+
+    void ReportRsSceneJankEnd(AppInfo info);
 
     void EnableCacheForRotation();
 

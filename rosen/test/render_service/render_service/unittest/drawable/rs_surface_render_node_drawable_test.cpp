@@ -23,6 +23,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -367,31 +368,31 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(!surfaceParams->IsAttractionValid());
 
-    surfaceParams->protectedLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::PROTECTED, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->skipLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SKIP, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->snapshotSkipLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SNAPSHOT_SKIP, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->securityLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SECURITY, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->HasSkipLayer());
-    ASSERT_TRUE(surfaceParams->HasSnapshotSkipLayer());
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SNAPSHOT_SKIP));
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->isProtectedLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSkipLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSnapshotSkipLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSecurityLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
     CaptureParam param;
     param.isSingleSurface_ = true;
     RSUniRenderThread::SetCaptureParam(param);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->GetIsSecurityLayer());
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -421,10 +422,10 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface002, TestSize.Level1)
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    surfaceParams->isSecurityLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSecurityLayer_ = false;
-    surfaceParams->isProtectedLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 }
 
@@ -1023,6 +1024,27 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
+}
+
+/**
+ * @tc.name: RecordTimestamp
+ * @tc.desc: Test RecordTimestamp
+ * @tc.type: FUNC
+ * @tc.require: IBE7GI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, RecordTimestamp, TestSize.Level1)
+{
+    uint32_t seqNum = 0;
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string name("surfacefps");
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    surfaceFpsManager.RegisterSurfaceFps(DEFAULT_ID, name);
+    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    seqNum = 1;
+    EXPECT_TRUE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
+    surfaceFpsManager.UnregisterSurfaceFps(DEFAULT_ID);
 }
 
 /**

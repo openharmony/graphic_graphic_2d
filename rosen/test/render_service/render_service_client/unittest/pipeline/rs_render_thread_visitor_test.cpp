@@ -471,8 +471,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode001, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSCanvasRenderNode node(nodeId);
     node.GetMutableRenderProperties().SetAlpha(0);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**

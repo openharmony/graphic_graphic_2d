@@ -70,6 +70,9 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) = 0;
 
+    virtual int32_t GetPixelMapByProcessId(
+        std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid) = 0;
+
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
 
@@ -107,7 +110,8 @@ public:
     virtual int32_t SetScreenSecurityMask(ScreenId id,
         std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
-    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
+    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect,
+        bool supportRotation = false) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
 
@@ -147,7 +151,9 @@ public:
 
     virtual bool GetShowRefreshRateEnabled() = 0;
 
-    virtual void SetShowRefreshRateEnabled(bool enable) = 0;
+    virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;
+
+    virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
 
     virtual std::string GetRefreshInfo(pid_t pid) = 0;
 
@@ -167,6 +173,7 @@ public:
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -283,7 +290,7 @@ public:
 
     virtual void ReportJankStats() = 0;
 
-    virtual void NotifyLightFactorStatus(bool isSafe) = 0;
+    virtual void NotifyLightFactorStatus(int32_t lightFactorStatus) = 0;
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
@@ -302,6 +309,10 @@ public:
     virtual void ReportEventJankFrame(DataBaseRs info) = 0;
 
     virtual void ReportGameStateData(GameStateData info) = 0;
+
+    virtual void ReportRsSceneJankStart(AppInfo info) = 0;
+
+    virtual void ReportRsSceneJankEnd(AppInfo info) = 0;
 
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
         bool dynamicHardwareEnable) = 0;

@@ -146,6 +146,7 @@ public:
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
     void SetHasNativeBuffer();
     void PrintConnectionsStatus();
+    void FirstRequestVsync();
 
 private:
 
@@ -242,6 +243,8 @@ private:
     int64_t lastNotifyTime_ = 0;
     std::atomic<int64_t> beforePostEvent_ = 0;
     std::atomic<int64_t> startPostEvent_ = 0;
+    bool isFirstRequest_ = false;
+    bool isFirstSend_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

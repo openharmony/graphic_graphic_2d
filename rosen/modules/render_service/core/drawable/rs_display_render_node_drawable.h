@@ -156,6 +156,7 @@ private:
     void SetSecurityMask(RSProcessor& processor);
     void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     // Prepare for off-screen render
+    void UpdateSlrScale(ScreenInfo& screenInfo);
     void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
     void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
         bool useFixedSize = false, bool useCanvasSize = true);

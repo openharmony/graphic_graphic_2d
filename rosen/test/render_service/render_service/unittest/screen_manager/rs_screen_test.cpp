@@ -2004,4 +2004,50 @@ HWTEST_F(RSScreenTest, SetHasProtectedLayer_001, testing::ext::TestSize.Level1)
     ret = rsScreen->GetHasProtectedLayer();
     ASSERT_EQ(ret, false);
 }
+
+/*
+ * @tc.name: SetSecurityMask001
+ * @tc.desc: SetSecurityMask Test with non-virtualScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenTest, SetSecurityMask001, testing::ext::TestSize.Level1)
+{
+    ScreenId virtualScreenId = 1;
+    auto rsScreen = std::make_unique<impl::RSScreen>(virtualScreenId, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    auto ret = rsScreen->SetSecurityMask(nullptr);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetSecurityMask002
+ * @tc.desc: SetSecurityMask Test with virtualScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenTest, SetSecurityMask002, testing::ext::TestSize.Level1)
+{
+    ScreenId virtualScreenId = 1;
+    auto rsScreen = std::make_unique<impl::RSScreen>(virtualScreenId, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    auto ret = rsScreen->SetSecurityMask(nullptr);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSecurityMask001
+ * @tc.desc: GetScreenSecurityMask Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenTest, GetSecurityMask001, testing::ext::TestSize.Level1)
+{
+    ScreenId virtualScreenId = 1;
+    auto rsScreen = std::make_unique<impl::RSScreen>(virtualScreenId, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->SetSecurityMask(nullptr);
+    auto SecurityMaskGet = rsScreen->GetSecurityMask();
+    ASSERT_EQ(SecurityMaskGet, nullptr);
+}
 } // namespace OHOS::Rosen

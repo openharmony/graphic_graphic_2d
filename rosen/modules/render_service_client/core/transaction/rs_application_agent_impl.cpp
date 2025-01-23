@@ -17,6 +17,7 @@
 
 #ifdef ROSEN_OHOS
 #include "platform/ohos/rs_render_service_connect_hub.h"
+#include "platform/common/rs_log.h"
 #endif
 #include "rs_trace.h"
 #include "ui/rs_ui_director.h"
@@ -54,6 +55,7 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent()
         [weakThis = wptr<RSApplicationAgentImpl>(this)](sptr<RSIRenderServiceConnection>& conn) {
             sptr<IApplicationAgent> appSptr = weakThis.promote();
             if (appSptr == nullptr) {
+                ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent appSptr is null");
                 return;
             }
             // Not necessory to set pid

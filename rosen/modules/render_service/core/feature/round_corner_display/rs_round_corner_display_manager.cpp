@@ -128,7 +128,8 @@ void RoundCornerDisplayManager::RemoveRCDLayerInfo(NodeId id)
         id);
 }
 
-void RoundCornerDisplayManager::UpdateDisplayParameter(NodeId id, uint32_t width, uint32_t height)
+void RoundCornerDisplayManager::UpdateDisplayParameter(NodeId id, uint32_t left, uint32_t top,
+    uint32_t width, uint32_t height)
 {
     std::lock_guard<std::mutex> lock(rcdMapMut_);
     if (!CheckExist(id)) {
@@ -140,7 +141,7 @@ void RoundCornerDisplayManager::UpdateDisplayParameter(NodeId id, uint32_t width
         RemoveRoundCornerDisplay(id);
         return;
     }
-    rcdMap_[id]->UpdateDisplayParameter(width, height);
+    rcdMap_[id]->UpdateDisplayParameter(left, top, width, height);
 }
 
 void RoundCornerDisplayManager::UpdateNotchStatus(NodeId id, int status)

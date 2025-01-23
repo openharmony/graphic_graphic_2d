@@ -138,6 +138,14 @@ public:
         return res.Area();
     }
 
+    void Expand(int leftExpandSize, int topExpandSize, int rightExpandSize, int bottomExpandSize)
+    {
+        left_ -= leftExpandSize;
+        top_ -= topExpandSize;
+        right_ += rightExpandSize;
+        bottom_ += bottomExpandSize;
+    }
+
 private:
     void CheckAndCorrectValue()
     {

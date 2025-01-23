@@ -73,6 +73,8 @@ void RSJankStats::SetStartTime(bool doDirectComposition)
     if (isFirstSetStart_) {
         lastReportTime_ = rtStartTime_;
         lastReportTimeSteady_ = rtStartTimeSteady_;
+        lastSceneReportTime_ = rtStartTime_;
+        lastSceneReportTimeSteady_  = rtStartTimeSteady_;
     }
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         jankFrames.isReportEventResponse_ = jankFrames.isSetReportEventResponseTemp_;
@@ -99,6 +101,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     if (!doDirectComposition) { UpdateEndTime(); }
     if (discardJankFrames) { ClearAllAnimation(); }
     SetRSJankStats(skipJankAnimatorFrame || discardJankFrames, dynamicRefreshRate);
+    ReportSceneJankFrame(dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&firstFrameAppPids_, 0, 1);
@@ -215,9 +218,12 @@ void RSJankStats::SetRSJankStats(bool skipJankStats, uint32_t /* dynamicRefreshR
     } else {
         RS_TRACE_INT(JANK_FRAME_6F_COUNT_TRACE_NAME, missedVsync);
         lastJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;
+        lastSceneJankFrame6FreqTimeSteady_ = rtEndTimeSteady_;
     }
     rsJankStats_[type]++;
+    rsSceneJankStats_[type]++;
     isNeedReportJankStats_ = true;
+    isNeedReportSceneJankStats_ = true;
     if (type == JANK_FRAME_6_FREQ) {
         RS_TRACE_INT(JANK_FRAME_1_TO_5F_COUNT_TRACE_NAME, 0);
     } else {
@@ -351,7 +357,9 @@ void RSJankStats::ReportJankStats()
         RS_TRACE_NAME("RSJankStats::ReportJankStats in RSBackgroundThread");
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
             OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime),
-            "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsJankStats,
+            "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsJankStats, "PID", DEFAULT_INT_VALUE,
+            "BUNDLE_NAME", DEFAULT_STRING_VALUE, "PROCESS_NAME", DEFAULT_STRING_VALUE,
+            "VERSION_NAME", DEFAULT_STRING_VALUE, "VERSION_CODE", DEFAULT_INT_VALUE,
             "JANK_STATS_VER", JANK_RANGE_VERSION);
     });
     lastReportTime_ = reportTime;
@@ -359,6 +367,80 @@ void RSJankStats::ReportJankStats()
     lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
     std::fill(rsJankStats_.begin(), rsJankStats_.end(), 0);
     isNeedReportJankStats_ = false;
+}
+
+void RSJankStats::ReportSceneJankStats(const AppInfo& appInfo)
+{
+    if (lastSceneReportTime_ == TIMESTAMP_INITIAL || lastSceneReportTimeSteady_ == TIMESTAMP_INITIAL) {
+        ROSEN_LOGE("RSJankStats::ReportSceneJankStats lastReportTime is not initialized");
+        return;
+    }
+    int64_t reportTime = GetCurrentSystimeMs();
+    int64_t reportTimeSteady = GetCurrentSteadyTimeMs();
+    if (!isNeedReportSceneJankStats_) {
+        ROSEN_LOGD("RSJankStats::ReportSceneJankStats Nothing need to report");
+        lastSceneReportTime_ = reportTime;
+        lastSceneReportTimeSteady_ = reportTimeSteady;
+        lastSceneJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
+        std::fill(rsSceneJankStats_.begin(), rsSceneJankStats_.end(), 0);
+        return;
+    }
+    int64_t lastJankFrame6FreqTime = ((lastSceneJankFrame6FreqTimeSteady_ == TIMESTAMP_INITIAL) ? 0
+                                          : (reportTime - (reportTimeSteady - lastSceneJankFrame6FreqTimeSteady_)));
+    int64_t reportDuration = reportTimeSteady - lastSceneReportTimeSteady_;
+    int64_t lastReportTime = lastSceneReportTime_;
+    std::vector<uint16_t> rsSceneJankStats = rsSceneJankStats_;
+    RS_TRACE_NAME("RSJankStats::ReportSceneJankStats reportTime " + std::to_string(reportTime) +
+                  ", lastJankFrame6FreqTime " + std::to_string(lastJankFrame6FreqTime));
+
+    RSBackgroundThread::Instance().PostTask([reportDuration, lastReportTime, rsSceneJankStats, appInfo]() {
+        auto reportName = "JANK_STATS_RS";
+        RS_TRACE_NAME("RSJankStats::ReportSceneJankStats in RSBackgroundThread");
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime),
+            "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsSceneJankStats, "PID", appInfo.pid,
+            "BUNDLE_NAME", appInfo.bundleName, "PROCESS_NAME", appInfo.processName,
+            "VERSION_NAME", appInfo.versionName, "VERSION_CODE", appInfo.versionCode,
+            "JANK_STATS_VER", JANK_SCENE_RANGE_VERSION);
+    });
+    appInfo_.startTime = 0;
+    appInfo_.endTime = 0;
+    appInfo_.pid = 0;
+    lastSceneReportTime_ = reportTime;
+    lastSceneReportTimeSteady_ = reportTimeSteady;
+    lastSceneJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
+    std::fill(rsSceneJankStats_.begin(), rsSceneJankStats_.end(), 0);
+    isNeedReportSceneJankStats_ = false;
+    isLastReportSceneDone_ = true;
+}
+
+void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
+{
+    if (lastSceneReportTime_ == TIMESTAMP_INITIAL || lastSceneReportTimeSteady_ == TIMESTAMP_INITIAL) {
+        ROSEN_LOGE("RSJankStats::ReportSceneJankFrame lastSceneReportTime_ is not initialized");
+        return;
+    }
+
+    int64_t skipFrameTime = GetEffectiveFrameTime(true);
+    if (skipFrameTime < SCENE_JANK_FRAME_THRESHOLD) {
+        return;
+    }
+    if (dynamicRefreshRate == 0) {
+        dynamicRefreshRate = STANDARD_REFRESH_RATE;
+    }
+    const float accumulatedTime = accumulatedBufferCount_ * S_TO_MS / dynamicRefreshRate;
+
+    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs()));
+    const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
+    RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime]() {
+        auto reportName = "JANK_FRAME_RS";
+        RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame in RSBackgroundThread");
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
+            "PROCESS_NAME", appInfo.processName, "VERSION_NAME", appInfo.versionName,
+            "VERSION_CODE", appInfo.versionCode, "FILTER_TYPE", FILTER_TYPE,
+            "SKIPPED_FRAME_TIME", skipFrameTime, "REAL_SKIPPED_FRAME_TIME", realSkipFrameTime);
+    });
 }
 
 void RSJankStats::SetReportEventResponse(const DataBaseRs& info)
@@ -434,6 +516,33 @@ void RSJankStats::SetReportEventJankFrame(const DataBaseRs& info, bool isReportT
         }
         HandleImplicitAnimationEndInAdvance(animateJankFrames_[animationId], isReportTaskDelayed);
     }
+}
+
+void RSJankStats::SetReportRsSceneJankStart(const AppInfo& info)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RS_TRACE_NAME("RSJankStats::SetReportRsSceneJankStart receive notification: " + info.processName);
+    auto currentTime = GetCurrentSteadyTimeMs();
+    if (!isLastReportSceneDone_ && currentTime - appInfo_.startTime > MIN_FRAME_SHOW_TIME) {
+        appInfo_.endTime = currentTime;
+        ReportSceneJankStats(appInfo_);
+    }
+    appInfo_ = info;
+    appInfo_.startTime = currentTime;
+    isLastReportSceneDone_ = false;
+}
+
+void RSJankStats::SetReportRsSceneJankEnd(const AppInfo& info)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RS_TRACE_NAME("RSJankStats::SetReportRsSceneJankEnd receive notification: " + info.processName);
+    if (isLastReportSceneDone_ || appInfo_.pid != info.pid) {
+        ROSEN_LOGE("RSJankStats::SetReportRsSceneJankEnd error scene");
+        return;
+    }
+
+    appInfo_.endTime = GetCurrentSteadyTimeMs();
+    ReportSceneJankStats(appInfo_);
 }
 
 void RSJankStats::HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed)

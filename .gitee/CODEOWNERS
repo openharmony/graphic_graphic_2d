@@ -29,7 +29,12 @@ rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @hengming-wang
+rosen/modules/render_service/core/transaction/ @chuchengcheng
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.h @chuchengcheng
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @chuchengcheng
 
 [animation]
 interfaces/kits/napi/graphic/animation/window_animation_manager/ @comicchang

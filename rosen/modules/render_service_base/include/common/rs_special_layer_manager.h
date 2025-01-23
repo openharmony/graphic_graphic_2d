@@ -26,8 +26,10 @@ namespace Rosen {
 constexpr uint32_t SPECIAL_TYPE_NUM = 10;
 constexpr uint32_t IS_GENERAL_SPECIAL = 0x3FF;
 constexpr uint32_t HAS_GENERAL_SPECIAL = 0xFFC00;
-constexpr uint32_t VIRTUALSCREEN_SPECIAL = 0X1C00;  //contain security、skip、protected layer
-constexpr uint32_t SNAPSHOT_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
+constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、protected layer
+constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
+constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
+constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
 
 enum SpecialLayerType : uint32_t {
     NONE = 0,

@@ -177,11 +177,11 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
     if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed get utf16 length");
     }
-    char16_t buffer[len+1];
-    if (napi_get_value_string_utf16(env, argv[0], buffer, len + 1, &len) != napi_ok) {
+    auto buffer = std::make_unique<char16_t[]>(len + 1);
+    if (napi_get_value_string_utf16(env, argv[0], buffer.get(), len + 1, &len) != napi_ok) {
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed get utf16");
     }
-    typographyCreate_->AppendText(buffer);
+    typographyCreate_->AppendText(buffer.get());
     return NapiGetUndefined(env);
 }
 

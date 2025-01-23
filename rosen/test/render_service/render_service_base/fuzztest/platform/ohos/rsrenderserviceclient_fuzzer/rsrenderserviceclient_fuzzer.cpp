@@ -764,8 +764,26 @@ bool DoSetShowRefreshRateEnabled(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    bool enable = GetData<bool>();
-    client->SetShowRefreshRateEnabled(enable);
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
+    client->SetShowRefreshRateEnabled(enabled, type);
+    return true;
+}
+
+bool DoGetRealtimeRefreshRate(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    client->GetRealtimeRefreshRate(id);
     return true;
 }
 
@@ -1536,8 +1554,8 @@ bool DoNotifyLightFactorStatus(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    bool isSafe = GetData<bool>();
-    client->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = GetData<int32_t>();
+    client->NotifyLightFactorStatus(lightFactorStatus);
     return true;
 }
 
@@ -2115,7 +2133,8 @@ bool DoSyncFrameRateRange002(const uint8_t *data, size_t size)
     FrameRateRange range;
     int32_t animatorExpectedFrameRate = GetData<int32_t>();
     ScreenId screenId = GetData<ScreenId>();
-    bool enable = GetData<bool>();
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
@@ -2126,7 +2145,8 @@ bool DoSyncFrameRateRange002(const uint8_t *data, size_t size)
     client->GetCurrentRefreshRateMode();
     client->GetScreenSupportedRefreshRates(screenId);
     client->GetShowRefreshRateEnabled();
-    client->SetShowRefreshRateEnabled(enable);
+    client->SetShowRefreshRateEnabled(enabled, type);
+    client->GetRealtimeRefreshRate(screenId);
     client->SetVirtualScreenResolution(screenId, width, height);
     client->GetVirtualScreenResolution(screenId);
     client->MarkPowerOffNeedProcessOneFrame();
@@ -2379,6 +2399,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRefreshInfo(data, size);
     OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
+    OHOS::Rosen::DoGetRealtimeRefreshRate(data, size);
     OHOS::Rosen::DoSetPhysicalScreenResolution(data, size);
     OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
     OHOS::Rosen::DoGetVirtualScreenResolution(data, size);

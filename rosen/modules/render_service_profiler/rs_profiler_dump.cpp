@@ -122,6 +122,7 @@ void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, boo
     out["type"] = type;
     out["id"] = AdjustNodeId(node.GetId(), clearMockFlag);
     out["instanceRootNodeId"] = AdjustNodeId(node.GetInstanceRootNodeId(), clearMockFlag);
+    out["firstLevelNodeId"] = AdjustNodeId(node.GetFirstLevelNodeId(), clearMockFlag);
     DumpNodeSubsurfaces(node, out);
     auto sharedTrans = node.GetSharedTransitionParam();
     if (sharedTrans) {
@@ -168,9 +169,8 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
                               surfaceNode.GetVisibleRegion().GetRegionInfo();
         subclass["Opaque"] = surfaceNode.GetOpaqueRegion().GetRegionInfo();
         subclass["OcclusionBg"] = std::to_string((surfaceNode.GetAbilityBgAlpha()));
-        subclass["SecurityLayer"] = surfaceNode.GetSecurityLayer();
-        subclass["skipLayer"] = surfaceNode.GetSkipLayer();
-        subclass["snapshotSkipLayer"] = surfaceNode.GetSnapshotSkipLayer();
+        const auto specialLayerManager = surfaceNode.GetSpecialLayerMgr();
+        subclass["SpecialLayer"] = std::to_string(specialLayerManager.Get());
     } else if (node.GetType() == RSRenderNodeType::ROOT_NODE) {
         auto& rootNode = static_cast<const RSRootRenderNode&>(node);
         subclass["Visible"] = rootNode.GetRenderProperties().GetVisible();

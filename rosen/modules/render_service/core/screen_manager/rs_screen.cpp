@@ -264,6 +264,21 @@ bool RSScreen::IsSamplingOn() const
     return isSamplingOn_;
 }
 
+float RSScreen::GetSamplingTranslateX() const
+{
+    return samplingTranslateX_;
+}
+
+float RSScreen::GetSamplingTranslateY() const
+{
+    return samplingTranslateY_;
+}
+
+float RSScreen::GetSamplingScale() const
+{
+    return samplingScale_;
+}
+
 RectI RSScreen::GetActiveRect() const
 {
     return activeRect_;
@@ -380,14 +395,30 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 	    __func__, id_, width_, height_, phyWidth_, phyHeight_);
 }
 
-void RSScreen::SetResolution(uint32_t width, uint32_t height)
+int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
     RS_LOGI("RSScreen set resolution [%{public}u * %{public}u]", width, height);
+    if (IsVirtual()) {
+        width_ = width;
+        height_ = height;
+        return StatusCode::SUCCESS;
+    }
+    if (width < phyWidth_ || height < phyHeight_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     width_ = width;
     height_ = height;
-    if (!IsVirtual()) {
-        isSamplingOn_ = width_ > phyWidth_ || height_ > phyHeight_;
+    isSamplingOn_ = width > phyWidth_ || height > phyHeight_;
+    if (isSamplingOn_ && width_ > 0 && height_ > 0) {
+        samplingScale_ = std::min(static_cast<float>(phyWidth_) / width_,
+            static_cast<float>(phyHeight_) / height_);
+        samplingTranslateX_ = (phyWidth_ - width_ * samplingScale_) / 2.f;
+        samplingTranslateY_ = (phyHeight_ - height_ * samplingScale_) / 2.f;
+        RS_LOGI("RSScreen %{public}s: sampling is enable. "
+            "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
+            __func__, samplingScale_, samplingTranslateX_, samplingTranslateY_);
     }
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
@@ -1265,6 +1296,16 @@ void RSScreen::SetHasProtectedLayer(bool hasProtectedLayer)
 bool RSScreen::GetHasProtectedLayer()
 {
     return hasProtectedLayer_;
+}
+
+bool RSScreen::GetVisibleRectSupportRotation() const
+{
+    return isSupportRotation_;
+}
+
+void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
+{
+    isSupportRotation_ = supportRotation;
 }
 } // namespace impl
 } // namespace Rosen

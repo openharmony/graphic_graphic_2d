@@ -1330,8 +1330,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     int extraRotation = 0;
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
-        int degree = static_cast<int>(nodeParams->GetAbsRotation()) % 360;
-        extraRotation = degree - rotationDegree;
+        int degree = static_cast<int>(round(nodeParams->GetAbsRotation()));
+        extraRotation = (degree - rotationDegree) % ROUND_ANGLE;
     }
 
     rotationTransform = static_cast<GraphicTransformType>(
@@ -1504,7 +1504,8 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
 
 pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
 
-std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(MessageParcel& parcel)
+std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
+    MessageParcel& parcel, uint32_t parcelNumber)
 {
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
@@ -1514,6 +1515,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
         return nullptr;
     }
     lastSendingPid_ = transactionData->GetSendingPid();
+    transactionData->ProfilerPushOffsets(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;

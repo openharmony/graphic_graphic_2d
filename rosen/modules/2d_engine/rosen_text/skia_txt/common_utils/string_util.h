@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SPTEXT_STRING_UTIL
-#define SPTEXT_STRING_UTIL
+#ifndef SPTEXT_STRING_UTIL_H
+#define SPTEXT_STRING_UTIL_H
 
 #include <string>
 
@@ -22,13 +22,14 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-bool IsUTF16LowSurrogate(uint16_t ch);
+class Utf16Utils {
+public:
+    static bool IsUTF16LowSurrogate(uint16_t ch);
+    static bool IsUTF16HighSurrogate(uint16_t ch);
+    static void HandleIncompleteSurrogatePairs(std::u16string& str);
+};
 
-bool IsUTF16HighSurrogate(uint16_t ch);
-
-void HandleIncompleteSurrogatePairs(std::u16string& str);
-}
-}
-}
-
-#endif // SPTEXT_STRING_UTIL
+} // namespace SPText
+} // namespace Rosen
+} // namespace OHOS
+#endif // SPTEXT_STRING_UTIL_H

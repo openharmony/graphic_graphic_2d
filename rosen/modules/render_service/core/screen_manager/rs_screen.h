@@ -57,12 +57,15 @@ public:
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
     virtual bool IsSamplingOn() const = 0;
+    virtual float GetSamplingTranslateX() const = 0;
+    virtual float GetSamplingTranslateY() const = 0;
+    virtual float GetSamplingScale() const = 0;
     virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
     virtual void SetActiveMode(uint32_t modeId) = 0;
     virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
-    virtual void SetResolution(uint32_t width, uint32_t height) = 0;
+    virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
@@ -134,6 +137,8 @@ public:
     virtual Rect GetMainScreenVisibleRect() const = 0;
     virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
     virtual bool GetHasProtectedLayer() = 0;
+    virtual bool GetVisibleRectSupportRotation() const = 0;
+    virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
 };
 
 namespace impl {
@@ -161,12 +166,15 @@ public:
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
     bool IsSamplingOn() const override;
+    float GetSamplingTranslateX() const override;
+    float GetSamplingTranslateY() const override;
+    float GetSamplingScale() const override;
     RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
     void SetActiveMode(uint32_t modeId) override;
     uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
-    void SetResolution(uint32_t width, uint32_t height) override;
+    int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
@@ -238,6 +246,8 @@ public:
     Rect GetMainScreenVisibleRect() const override;
     void SetHasProtectedLayer(bool hasProtectedLayer) override;
     bool GetHasProtectedLayer() override;
+    bool GetVisibleRectSupportRotation() const override;
+    void SetVisibleRectSupportRotation(bool supportRotation) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -265,6 +275,9 @@ private:
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
     bool isSamplingOn_ = false;
+    float samplingTranslateX_ = 0.f;
+    float samplingTranslateY_ = 0.f;
+    float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
     RectI activeRect_;
@@ -315,6 +328,7 @@ private:
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
     mutable std::mutex skipFrameMutex_;
+    bool isSupportRotation_ = false;
     bool hasProtectedLayer_ = false;
 };
 } // namespace impl

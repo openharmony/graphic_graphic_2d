@@ -119,7 +119,6 @@ public:
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
-        drawWindowCache_.ClearCache();
         if (isNotClearCompleteCacheSurface) {
             ClearCacheSurfaceOnly();
         } else {
@@ -250,11 +249,6 @@ public:
         return cacheSurface_ ? true : false;
     }
     int GetTotalProcessedSurfaceCount() const;
-
-    bool HasCache() const override
-    {
-        return drawWindowCache_.HasCache();
-    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
@@ -300,6 +294,8 @@ private:
 
     // Watermark
     void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+
+    bool RecordTimestamp(NodeId id, uint32_t seqNum);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
@@ -359,7 +355,6 @@ private:
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region globalDirtyRegion_;
-    bool globalDirtyRegionIsEmpty_ = false;
 
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
