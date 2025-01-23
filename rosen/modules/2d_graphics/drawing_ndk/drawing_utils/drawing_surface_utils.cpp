@@ -260,7 +260,7 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
 bool DrawingSurfaceUtils::FlushSurface(Drawing::Surface* surface)
 {
     if (Drawing::SystemProperties::IsUseGl()) {
-        if (surface->GetCanvas() != nullptr) {
+        if (surface != nullptr && surface->GetCanvas() != nullptr) {
             surface->GetCanvas()->Flush();
         }
 
