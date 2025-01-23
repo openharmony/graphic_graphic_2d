@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_special_layer_manager.h"
 #include "draw/brush.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
@@ -435,8 +436,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
         return;
     }
+    auto specialLayerManager = surfaceParams->GetSpecialLayerMgr();
     hasSkipCacheLayer_ =
-        (surfaceParams->GetIsSecurityLayer() && !uniParam->GetSecExemption()) || surfaceParams->GetIsSkipLayer();
+        (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
+            specialLayerManager.Find(SpecialLayerType::SKIP);
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
     }
@@ -852,10 +855,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
         return;
     }
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
     auto isSnapshotSkipLayer =
-        RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
-    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
-        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
+        RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
+    if ((UNLIKELY(specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption()) ||
+        specialLayerManager.Find(SpecialLayerType::SKIP) || isSnapshotSkipLayer)) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64
                 "] name:[%{public}s]) with security or skip layer, isNeedBlur:[%{public}s]",
@@ -863,7 +867,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RS_TRACE_NAME_FMT("CaptureSurface with security or skip layer, isNeedBlur: %s",
             RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
         if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-            if (!(UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) &&
+            if (!(UNLIKELY(specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption()) &&
                 RSUniRenderThread::GetCaptureParam().isNeedBlur_)) {
                 Drawing::Brush rectBrush;
                 rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
@@ -878,7 +882,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         }
     }
 
-    if (surfaceParams.GetIsProtectedLayer()) {
+    if (specialLayerManager.Find(SpecialLayerType::PROTECTED)) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
             surfaceParams.GetId(), name_.c_str());
@@ -898,8 +902,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
-        surfaceParams.HasProtectedLayer() || surfaceParams.GetHDRPresent() || hasHidePrivacyContent)) {
+    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent)) {
         if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
             surfaceParams.SetHardwareEnabled(hwcEnable);
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
@@ -1003,7 +1006,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         }
         return;
     }
-    if (surfaceParams.GetIsProtectedLayer()) {
+    if (surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         RS_LOGD("protected layer cannot draw in non-protected context.");
         return;
     }

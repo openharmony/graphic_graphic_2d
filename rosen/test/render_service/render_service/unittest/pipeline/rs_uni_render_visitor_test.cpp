@@ -1823,9 +1823,9 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode001, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
-    rsUniRenderVisitor->displayHasSecSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->curDisplayNode_->GetMultableSpecialLayerMgr().RemoveIds(SpecialLayerType::SKIP, id);
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
-    ASSERT_EQ(rsUniRenderVisitor->displayHasSecSurface_[rsUniRenderVisitor->currentVisitDisplay_], true);
+    ASSERT_EQ(rsUniRenderVisitor->curDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP), false);
 }
 
 /*
@@ -1852,9 +1852,10 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode002, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
-    rsUniRenderVisitor->displayHasSkipSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
-    ASSERT_EQ(rsUniRenderVisitor->displayHasSkipSurface_[rsUniRenderVisitor->currentVisitDisplay_], true);
+    rsUniRenderVisitor->curDisplayNode_->GetMultableSpecialLayerMgr().
+        RemoveIds(SpecialLayerType::SKIP, surfaceNode->GetId());
+    ASSERT_EQ(rsUniRenderVisitor->curDisplayNode_->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP), false);
 }
 
 /*
@@ -1909,7 +1910,7 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode004, TestSize.Leve
     auto screenManager = CreateOrGetScreenManager();
     rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
-    rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = true;
+    rsUniRenderVisitor->curDisplayNode_->GetMultableSpecialLayerMgr().RemoveIds(SpecialLayerType::PROTECTED, id);
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
 }
 
@@ -1935,7 +1936,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
-    rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->curDisplayNode_->GetMultableSpecialLayerMgr().RemoveIds(SpecialLayerType::PROTECTED, id);
     rsUniRenderVisitor->PrepareSurfaceRenderNode(*surfaceNode);
 }
 
@@ -2939,7 +2940,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableBySrcRect_002, TestSize.Leve
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     ASSERT_NE(surfaceNode->GetRSSurfaceHandler()->GetConsumer(), nullptr);
@@ -2960,7 +2961,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableBySrcRect_003, TestSize.Leve
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->isHardwareForcedDisabledBySrcRect_ = true;
@@ -3001,7 +3002,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp_002,
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(true);
@@ -3026,7 +3027,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp_003,
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
@@ -3054,7 +3055,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp_004,
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
@@ -3177,7 +3178,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, Test
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(true);
@@ -3205,7 +3206,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_003, Test
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
@@ -3236,7 +3237,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_004, Test
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
@@ -5079,7 +5080,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
 
     rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
-    rsSurfaceRenderNode->isProtectedLayer_ = true;
+    rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
 }
 

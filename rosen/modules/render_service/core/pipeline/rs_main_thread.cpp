@@ -1515,8 +1515,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
             (surfaceHandler->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
-            if (!surfaceNode->GetProtectedLayer()) {
-                surfaceNode->SetProtectedLayer(true);
+            if (!surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+                surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
             }
             const auto& instanceNode = surfaceNode->GetInstanceRootNode();
             if (instanceNode && instanceNode->IsOnTheTree()) {

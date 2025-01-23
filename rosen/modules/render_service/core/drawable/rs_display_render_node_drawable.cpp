@@ -27,6 +27,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "common/rs_special_layer_manager.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
@@ -961,14 +962,17 @@ void RSDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(int32_t bufferage, b
 int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisibleRect)
 {
     auto& uniRenderThread = RSUniRenderThread::Instance();
-    auto hasGeneralSpecialLayer = (params.HasSecurityLayer() && isSecLayerInVisibleRect) || params.HasSkipLayer() ||
-        params.HasProtectedLayer() || params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
-    RS_LOGD("RSDisplayRenderNodeDrawable::GetSpecialLayerType, SecurityLayer:%{public}d, SkipLayer:%{public}d,"
-        "ProtectedLayer:%{public}d, CurtainScreen:%{public}d, HDRPresent:%{public}d, ColorFilter:%{public}d",
-        params.HasSecurityLayer(), params.HasSkipLayer(), params.HasProtectedLayer(),
+    const auto& specialLayerManager = params.GetSpecialLayerMgr();
+    bool hasGeneralSpecialLayer = (specialLayerManager.Find(SpecialLayerType::HAS_SECURITY) &&
+        isSecLayerInVisibleRect) || specialLayerManager.Find(SpecialLayerType::HAS_SKIP) ||
+        specialLayerManager.Find(SpecialLayerType::HAS_PROTECTED) ||
+        params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
+    RS_LOGD("RSDisplayRenderNodeDrawable::SpecialLayer:%{public}" PRIu32 ", CurtainScreen:%{public}d, "
+        "HDRPresent:%{public}d, ColorFilter:%{public}d", specialLayerManager.Get(),
         uniRenderThread.IsCurtainScreenOn(), params.GetHDRPresent(), uniRenderThread.IsColorFilterModeOn());
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        hasGeneralSpecialLayer |= (params.HasSnapshotSkipLayer() || uniRenderThread.IsCurtainScreenOn());
+        hasGeneralSpecialLayer |= (specialLayerManager.Find(SpecialLayerType::HAS_SNAPSHOT_SKIP) ||
+            uniRenderThread.IsCurtainScreenOn());
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
@@ -1054,9 +1058,9 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
-    auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
-    auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
-    if (hasSecSurface[mirroredParams->GetScreenId()] && !uniParam.GetSecExemption()) {
+    auto hasSecSurface = static_cast<RSDisplayRenderParams*>
+        (mirroredParams.get())->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+    if (hasSecSurface && !uniParam.GetSecExemption()) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         auto screenManager = CreateOrGetScreenManager();
@@ -1227,7 +1231,8 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
-        (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || mirroredParams.HasSecurityLayer()));
+        (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() ||
+            mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
@@ -1306,8 +1311,8 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        auto hasSecSurface = mirroredParams->GetDisplayHasSecSurface();
-        if (hasSecSurface[mirroredParams->GetScreenId()]) {
+        auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+        if (hasSecSurface) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
             RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
                 "set canvas to black because of security layer.");
