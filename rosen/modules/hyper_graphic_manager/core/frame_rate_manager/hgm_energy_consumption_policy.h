@@ -38,7 +38,7 @@ public:
 private:
     std::recursive_mutex mutex_;
     // <rateType, <isEnable, idleFps>>
-    std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
+    std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;
     bool isAnimationEnergyConsumptionAssuranceMode_ = false;
     bool isUiEnergyConsumptionAssuranceMode_ = false;
