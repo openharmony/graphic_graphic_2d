@@ -1095,7 +1095,7 @@ void VSyncGenerator::PrintGeneratorStatus()
         ", vsyncMode:%{public}d, listeners size:%{public}u", period_, phase_, referenceTime_, vsyncMode_,
         static_cast<uint32_t>(listeners_.size()));
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        VLOGI("i:%{public}d, listener phase is " VPUBI64 ", timeStamp is " VPUBI64,
+        VLOGI("i:%{public}u, listener phase is " VPUBI64 ", timeStamp is " VPUBI64,
             i, listeners_[i].phase_, listeners_[i].lastTime_);
     }
 }
