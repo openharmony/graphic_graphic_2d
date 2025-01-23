@@ -83,7 +83,7 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
         return;
     }
     char canonicalPath[PATH_MAX] = {0};
-    if (realPath(cacheDir_.c_str(), canonicalPath) == nullptr) {
+    if (realpath(cacheDir_.c_str(), canonicalPath) == nullptr) {
         LOGE("dump abnormal cache failed, because of realpath check");
         return;
     }
