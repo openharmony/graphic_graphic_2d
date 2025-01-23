@@ -1196,6 +1196,24 @@ constexpr pid_t VSyncDistributor::ExtractPid(uint64_t id)
     return static_cast<pid_t>(id >> bits);
 }
 
+std::vector<uint64_t> VSyncDistributor::GetSurfaceNodeLinkerIds(uint64_t windowNodeId)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    auto iter = connectionsMap_.find(windowNodeId);
+    if (iter == connectionsMap_.end()) {
+        return {};
+    }
+
+    std::vector<uint64_t> connectionLinkerIds {};
+    for (auto& connection : iter->second) {
+        if (connection != nullptr) {
+            connectionLinkerIds.push_back(connection->id_);
+        }
+    }
+
+    return connectionLinkerIds;
+}
+
 VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
 {
     std::lock_guard<std::mutex> locker(mutex_);

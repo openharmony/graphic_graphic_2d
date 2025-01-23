@@ -148,6 +148,9 @@ public:
     void PrintConnectionsStatus();
     void FirstRequestVsync();
 
+    // used by V Rate
+    std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
+
 private:
 
     // check, add more info

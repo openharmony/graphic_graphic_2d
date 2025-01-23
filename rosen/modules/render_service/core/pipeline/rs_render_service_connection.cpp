@@ -212,7 +212,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->UnRegisterOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
-            connection->mainThread_->GetRSVsyncRateReduceManager().ClearWindowLinkersMap(connection->remotePid_);
         }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
@@ -478,8 +477,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer,
-            &windowNodeId]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
@@ -488,7 +486,6 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
-            connection->mainThread_->GetRSVsyncRateReduceManager().SetWindowLinkersMap(windowNodeId, id);
         }).wait();
         conn->id_ = id;
         RS_LOGD("CreateVSyncConnection connect id: %{public}" PRIu64, id);
