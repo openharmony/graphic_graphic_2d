@@ -1389,16 +1389,16 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
     disableRenderControlScreens_.erase(id);
 }
 
-void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+int32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto screensIt = screens_.find(id);
     if (screensIt == screens_.end() || screensIt->second == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    screensIt->second->SetActiveMode(modeId);
+    return screensIt->second->SetActiveMode(modeId);
 }
 
 uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
