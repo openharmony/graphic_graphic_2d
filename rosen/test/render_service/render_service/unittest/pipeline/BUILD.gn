@@ -58,7 +58,7 @@ group("unittest") {
       ":RSRenderTaskTest",
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
-      ":RSUIFirstRenderListenerTest",RSMagicPointerRenderManagerTest
+      ":RSUIFirstRenderListenerTest",
     ]
   }
   if (graphic_2d_feature_enable_rspipeline) {
