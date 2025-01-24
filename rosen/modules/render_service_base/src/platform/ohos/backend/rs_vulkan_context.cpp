@@ -587,16 +587,6 @@ RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()
 VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t submitCount,
     VkSubmitInfo* pSubmits, VkFence fence)
 {
-    bool isProtected = RsVulkanContext::GetSingleton().GetIsProtected();
-    VkProtectedSubmitInfo protectedSubmitInfo;
-    if (isProtected) {
-        memset_s(&protectedSubmitInfo, sizeof(VkProtectedSubmitInfo), 0, sizeof(VkProtectedSubmitInfo));
-        protectedSubmitInfo.sType = VK_STRUCTURE_TYPE_PROTECTED_SUBMIT_INFO;
-        protectedSubmitInfo.pNext = nullptr;
-        protectedSubmitInfo.protectedSubmit = VK_TRUE;
-        pSubmits->pNext = &protectedSubmitInfo;
-    }
-
     RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     if (queue == vkInterface.GetHardwareQueue()) {
         std::lock_guard<std::mutex> lock(vkInterface.hGraphicsQueueMutex_);

@@ -449,6 +449,7 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
         return;
     }
 #ifdef RS_ENABLE_VK
+    std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface;
     auto surfaceId = fbSurface->GetUniqueId();
     {
@@ -801,6 +802,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);
     renderFrameConfig.height = static_cast<int32_t>(screenInfo.phyHeight);
+    std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     if (frameBufferSurfaceOhos_ == nullptr) {
         RS_LOGE("RSHardwareThread::Redraw fail, frameBufferSurfaceOhos_ is nullptr");
         frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
