@@ -153,6 +153,7 @@ void RSCanvasNode::FinishRecording()
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
     CheckThread();
+    RSNode::SetDrawNode();
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas->SetIsCustomTypeface(isCustomTypeface_);
@@ -197,6 +198,7 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
         return;
     }
     CheckThread();
+    RSNode::SetDrawNode();
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
