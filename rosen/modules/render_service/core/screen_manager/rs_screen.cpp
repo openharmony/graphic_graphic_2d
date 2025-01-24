@@ -320,26 +320,26 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
     }
 }
 
-void RSScreen::SetActiveMode(uint32_t modeId)
+int32_t RSScreen::SetActiveMode(uint32_t modeId)
 {
     if (IsVirtual()) {
         RS_LOGW("RSScreen %{public}s: virtual screen not support SetActiveMode.", __func__);
-        return;
+        return StatusCode::VIRTUAL_SCREEN;
     }
     if (!hdiScreen_) {
         RS_LOGE("RSScreen %{public}s failed, hdiScreen_ is nullptr",  __func__);
-        return;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
 
     if (modeId >= supportedModes_.size()) {
         RS_LOGE("RSScreen %{public}s: set fails because the index is out of bounds.", __func__);
-        return;
+        return StatusCode::INVALID_ARGUMENTS;
     }
     RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
         RS_LOGE("RSScreen %{public}s: Hdi SetScreenMode fails.", __func__);
-        return;
+        return StatusCode::SET_RATE_ERROR;
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
@@ -347,6 +347,7 @@ void RSScreen::SetActiveMode(uint32_t modeId)
         phyHeight_ = activeMode->height;
         WriteHisyseventEpsLcdInfo(activeMode.value());
     }
+    return StatusCode::SUCCESS;
 }
 
 uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
