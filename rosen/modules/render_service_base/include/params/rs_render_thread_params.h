@@ -453,6 +453,11 @@ public:
     {
         currentVisitDisplayDrawableId_ = displayId;
     }
+
+    bool HasPhysicMirror() const
+    {
+        return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;

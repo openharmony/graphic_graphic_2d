@@ -766,8 +766,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     if (surfaceParams->GetHardCursorStatus() &&
-        (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
-            RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
+        (uniParam->HasPhysicMirror() || RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
         return;
