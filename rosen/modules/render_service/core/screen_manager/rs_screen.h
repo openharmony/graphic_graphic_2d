@@ -63,7 +63,7 @@ public:
     virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
-    virtual void SetActiveMode(uint32_t modeId) = 0;
+    virtual int32_t SetActiveMode(uint32_t modeId) = 0;
     virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
     virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
@@ -172,7 +172,7 @@ public:
     RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
-    void SetActiveMode(uint32_t modeId) override;
+    int32_t SetActiveMode(uint32_t modeId) override;
     uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
     int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
