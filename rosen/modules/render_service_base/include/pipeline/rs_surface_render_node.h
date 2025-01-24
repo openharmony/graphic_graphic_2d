@@ -1269,6 +1269,15 @@ public:
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
 
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetSubThreadAssignable() const
+    {
+        return subThreadAssignable_;
+    }
+    void SetSubThreadAssignable(bool subThreadAssignable)
+    {
+        subThreadAssignable_ = subThreadAssignable;
+    }
 protected:
     void OnSync() override;
 
@@ -1559,6 +1568,8 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
 
     bool arsrTag_ = true;
+
+    bool subThreadAssignable_ = false;
 
     uint32_t apiCompatibleVersion_ = 0;
 
