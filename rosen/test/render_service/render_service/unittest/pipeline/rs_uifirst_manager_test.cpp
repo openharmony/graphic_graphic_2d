@@ -1388,7 +1388,6 @@ HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
     bool isOccluded = uifirstManager_.IsSubTreeNeedPrepareForSnapshot(*surfaceNode);
     ASSERT_EQ(isOccluded, false);
 }
-}
 
 /**
  * @tc.name: UpdateUifirstNodes002
@@ -1419,4 +1418,5 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
     EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
+}
 }
