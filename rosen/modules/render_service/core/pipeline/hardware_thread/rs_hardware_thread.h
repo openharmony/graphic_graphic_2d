@@ -68,7 +68,7 @@ public:
     GSError ClearFrameBuffers(OutputPtr output);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
-    std::string GetEventQueueDump() const;
+    void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
 private:
     RSHardwareThread() = default;
@@ -139,10 +139,9 @@ namespace OHOS {
 namespace AppExecFwk {
 class RSHardwareDumper : public Dumper {
 public:
-    virtual void Dump(const std::string& message) override;
-    virtual std::string GetTag() override;
-    std::string GetDumpInfo();
-
+    void Dump(const std::string& message) override;
+    std::string GetTag() override;
+    void PrintDumpInfo();
 private:
     std::string dumpInfo_;
 };

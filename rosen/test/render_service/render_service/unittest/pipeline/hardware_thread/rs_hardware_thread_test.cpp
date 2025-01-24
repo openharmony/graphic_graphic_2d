@@ -499,6 +499,23 @@ HWTEST_F(RSHardwareThreadTest, PreAllocateProtectedBuffer001, TestSize.Level1)
     hardwareThread.PreAllocateProtectedBuffer(buffer, screenId_);
 }
 
+/**
+ * @tc.name: DumpEventQueue
+ * @tc.desc: Test RSHardwareThreadTest.DumpEventQueue
+ * @tc.type: FUNC
+ * @tc.require: issueIBIDU9
+ */
+HWTEST_F(RSHardwareThreadTest, DumpEventQueue001, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.PostTask([&]() {});
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.PostTask([&]() {});
+    hardwareThread.ScheduleTask([=]() {}).wait();
+    hardwareThread.DumpEventQueue();
+}
+
 #ifdef RS_ENABLE_VK
 /*
  * Function: ComputeTargetColorGamut
