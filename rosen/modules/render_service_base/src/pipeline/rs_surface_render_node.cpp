@@ -1780,7 +1780,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     Occlusion::Rect dirtyRect { GetOldDirty() };
     transparentRegion_ = Occlusion::Region{ dirtyRect };
 
-    if (IsTransparent()) {
+    if (IsTransparent() && !NeedDrawBehindWindow()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] transparent: OcclusionBg:[%d], alpha:[%f], IsEmpty:[%d]",
             GetName().c_str(), static_cast<int>(GetAbilityBgAlpha()), GetGlobalAlpha(), IsEmptyAppWindow());
         opaqueRegion_ = Occlusion::Region();
@@ -1806,6 +1806,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
                 roundedCornerRegion_ = Occlusion::Region();
             }
         }
+        DealWithDrawBehindWindowTransparentRegion();
         transparentRegion_.SubSelf(opaqueRegion_);
     }
     Occlusion::Rect screen{screeninfo};
@@ -1814,6 +1815,19 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     opaqueRegion_.AndSelf(screenRegion);
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
+}
+
+void RSSurfaceRenderNode::DealWithDrawBehindWindowTransparentRegion()
+{
+    const auto& absDrawBehindWindowRegion = GetFilterRect();
+    RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] needDrawBehindWindow: [%d] localRegion: [%s], absRegion: [%s]",
+        GetName().c_str(), NeedDrawBehindWindow(), drawBehindWindowRegion_.ToString().c_str(),
+        absDrawBehindWindowRegion.ToString().c_str());
+    if (!NeedDrawBehindWindow() || drawBehindWindowRegion_.IsEmpty()) {
+        return;
+    }
+    auto partialTransparentRegion = Occlusion::Region{ Occlusion::Rect{ absDrawBehindWindowRegion} };
+    opaqueRegion_.SubSelf(partialTransparentRegion);
 }
 
 void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
@@ -2200,7 +2214,7 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
             return false;
         }
     }
-    if (IsTransparent() || GetAnimateState() || IsRotating() || IsSubSurfaceNode()) {
+    if ((IsTransparent() && !NeedDrawBehindWindow()) || GetAnimateState() || IsRotating() || IsSubSurfaceNode()) {
         return false;
     }
     return true;
@@ -2287,7 +2301,10 @@ bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, con
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         // 6. Container window changed.
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
-        opaqueRegionBaseInfo_.containerConfig_ == containerConfig_;
+        opaqueRegionBaseInfo_.containerConfig_ == containerConfig_ &&
+        // 7. Draw behind window region changed.
+        opaqueRegionBaseInfo_.needDrawBehindWindow_ == NeedDrawBehindWindow() &&
+        (NeedDrawBehindWindow() ? opaqueRegionBaseInfo_.absDrawBehindWindowRegion_ == GetFilterRect() : true);
     return ret;
 }
 
@@ -2303,6 +2320,8 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
     opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
     opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
     opaqueRegionBaseInfo_.containerConfig_ = containerConfig_;
+    opaqueRegionBaseInfo_.needDrawBehindWindow_ = NeedDrawBehindWindow();
+    opaqueRegionBaseInfo_.absDrawBehindWindowRegion_ = NeedDrawBehindWindow() ? RectI() : GetFilterRect();
 }
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported

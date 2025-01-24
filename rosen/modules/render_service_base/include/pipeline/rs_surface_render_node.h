@@ -959,6 +959,8 @@ public:
         const bool isFocusWindow, const Vector4<int>& cornerRadius) const;
     void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
+    void DealWithDrawBehindWindowTransparentRegion();
+
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
     // if surfacenode's buffer has been consumed, it should be set dirty
@@ -1702,6 +1704,8 @@ private:
         bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
         ContainerConfig containerConfig_;
+        bool needDrawBehindWindow_ = false;
+        RectI absDrawBehindWindowRegion_ = RectI();
     };
 
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
