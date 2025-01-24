@@ -27,6 +27,12 @@ namespace {
 constexpr size_t MATRIX_SIZE = 20;
 } // namespace
 namespace Drawing {
+/*
+ * 测试以下 ColorMatrix 接口：
+ * 1. SetIdentity()
+ * 2. SetScale(scalar sr, scalar sg, scalar sb, scalar sa)
+ * 3. SetSaturation(scalar sat)
+ */
 bool ColorMatrixFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -50,6 +56,12 @@ bool ColorMatrixFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ColorMatrix 接口：
+ * 1. ColorMatrix()
+ * 2. SetArray(scalar src[MATRIX_SIZE])
+ * 3. GetArray(scalar dst[MATRIX_SIZE])
+ */
 bool ColorMatrixFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -74,6 +86,14 @@ bool ColorMatrixFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ColorMatrix 接口：
+ * 1. ColorMatrix()
+ * 2. SetArray(scalar src[MATRIX_SIZE])
+ * 3. SetConcat(const ColorMatrix& a, const ColorMatrix& b)
+ * 4. PreConcat(const ColorMatrix& a)
+ * 5. PostConcat(const ColorMatrix& a)
+ */
 bool ColorMatrixFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

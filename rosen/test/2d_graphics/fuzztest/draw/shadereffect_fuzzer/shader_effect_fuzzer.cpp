@@ -35,6 +35,15 @@ namespace {
     constexpr size_t TILEMODE_SIZE = 4;
     constexpr size_t FILTERMODE_SIZE = 2;
 } // namespace
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateColorShader(...)
+ * 2. Deserialize(...)
+ * 3. Serialize()
+ * 4. GetType()
+ * 5. GetDrawingType()
+ */
 bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -67,6 +76,14 @@ bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateColorShader(...)
+ * 2. CreateColorSpaceShader(...)
+ * 3. ShaderEffect(...)
+ * 4. ShaderEffect(...)
+ * 5. CreateBlendShader(...)
+ */
 bool ShaderEffectFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -109,6 +126,12 @@ bool ShaderEffectFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateImageShader(...)
+ * 2. CreatePictureShader(...)
+ * 3. CreateLinearGradient(...)
+ */
 bool ShaderEffectFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -174,6 +197,15 @@ bool ShaderEffectFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateRadialGradient(...)
+ * 2. CreateTwoPointConical(...)
+ * 3. CreateSweepGradient(...)
+ * 4. CreateLightUp(...)
+ * 5. CreateExtendShader(...)
+ * 6. GetType()
+ */
 bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -223,6 +255,18 @@ bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
     shaderEffect.GetType();
     return true;
 }
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. ShaderEffect(ShaderEffectType type, uint32_t color)
+ * 2. ShaderEffect(ShaderEffectType type, Color4f color4f, std::shared_ptr<ColorSpace> colorSpace)
+ * 3. ShaderEffect(ShaderEffectType type, ShaderEffect shaderEffect1, ShaderEffect shaderEffect2,
+ *       BlendMode blendMode)
+ * 4. ShaderEffect(ShaderEffectType type, const Image& image, TileMode tileModeX, TileMode tileModeY,
+ *       const SamplingOptions& samplingOptions, const Matrix& matrix)
+ * 5. ShaderEffect(ShaderEffectType type, const Picture& picture, TileMode tileModeX, TileMode tileModeY,
+ *       FilterMode filterMode, const Matrix& matrix, const Rect& rect)
+ */
 
 bool ShaderEffectFuzzTest005(const uint8_t* data, size_t size)
 {

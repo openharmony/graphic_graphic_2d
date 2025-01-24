@@ -31,6 +31,15 @@ constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
 
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateColorBlurImageFilter(...)
+ * 2. InitWithColorBlur(...)
+ * 3. Serialize()
+ * 4. Deserialize(...)
+ * 5. GetType()
+ * 6. GetDrawingType()
+ */
 bool ImageFilterFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -73,6 +82,15 @@ bool ImageFilterFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateColorBlurImageFilter(...)
+ * 2. CreateBlurImageFilter(...)
+ * 3. CreateColorFilterImageFilter(...)
+ * 4. CreateOffsetImageFilter(...)
+ * 5. CreateComposeImageFilter(...)
+ * 6. CreateBlendImageFilter(...)
+ */
 bool ImageFilterFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -103,6 +121,18 @@ bool ImageFilterFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateColorBlurImageFilter(...)
+ * 2. ImageFilter(FilterType, scalar, scalar, std::shared_ptr<ImageFilter>)
+ * 3. ImageFilter(FilterType, scalar, scalar, TileMode, std::shared_ptr<ImageFilter>, ImageBlurType)
+ * 4. ImageFilter(FilterType, ColorFilter, std::shared_ptr<ImageFilter>)
+ * 5. ImageFilter(FilterType, ColorFilter, scalar, scalar, ImageBlurType)
+ * 6. ImageFilter(FilterType, std::shared_ptr<ImageFilter>, std::shared_ptr<ImageFilter>)
+ * 7. ImageFilter(FilterType)
+ * 8. ImageFilter(FilterType, BlendMode, std::shared_ptr<ImageFilter>, std::shared_ptr<ImageFilter>)
+ * 9. ImageFilter(FilterType, std::shared_ptr<ShaderEffect>, RectF)
+ */
 bool ImageFilterFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -153,6 +183,17 @@ bool ImageFilterFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateColorBlurImageFilter(...)
+ * 2. CreateBlurImageFilter(...)
+ * 3. CreateColorFilterImageFilter(...)
+ * 4. CreateArithmeticImageFilter(...)
+ * 5. CreateGradientBlurImageFilter(...)
+ * 6. ImageFilter(FilterType, std::vector<scalar>, bool, std::shared_ptr<ImageFilter>, std::shared_ptr<ImageFilter>)
+ * 7. ImageFilter(FilterType, float, std::vector<std::pair<float, float>>, GradientDir, GradientBlurType,
+ *      std::shared_ptr<ImageFilter>)
+ */
 bool ImageFilterFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -196,6 +237,10 @@ bool ImageFilterFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateShaderImageFilter(...)
+ */
 bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

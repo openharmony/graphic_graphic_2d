@@ -27,7 +27,15 @@ constexpr size_t MAX_SIZE = 5000;
 constexpr size_t TEXTUTF8_SIZE = 128;
 } // namespace
 namespace Drawing {
-
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromText(const char* text, int length, const Font& font, TextEncoding encoding)
+ * 2. Bounds()
+ * 3. Serialize(Data* data)
+ * 4. Deserialize(Data* data, size_t size, void* ctx)
+ * 5. GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
+ * 6. GetDrawingPathforTextBlob(uint16_t someParam, const TextBlob* blob)
+ */
 bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -62,6 +70,12 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromPosText(const char* text, int length, const Point* points, const Font& font, TextEncoding encoding)
+ * 2. GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
+ * 3. UniqueID()
+ */
 bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -105,6 +119,10 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromString(const char* text, const Font& font, TextEncoding encoding)
+ */
 bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -133,6 +151,14 @@ bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. Context(std::shared_ptr<Typeface> typeface, bool isCustomTypeface)
+ * 2. SetTypeface(std::shared_ptr<Typeface> typeface)
+ * 3. GetTypeface()
+ * 4. SetIsCustomTypeface(bool isCustomTypeface)
+ * 5. IsCustomTypeface()
+ */
 bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -163,6 +189,11 @@ bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromRSXform(const char* text, int length, const RSXform* xforms, const Font& font, TextEncoding encoding)
+ * 2. GetIntercepts(float* bounds, float* intervals, const Paint* paint)
+ */
 bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

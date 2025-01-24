@@ -31,7 +31,17 @@ constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
-
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
+ * 2. GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes)
+ * 3. ResetContext()
+ * 4. Flush()
+ * 5. Submit()
+ * 6. FlushAndSubmit(bool syncCpu)
+ * 7. GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes)
+ * 8. FreeGpuResources()
+ */
 bool GPUContextFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -79,6 +89,21 @@ bool GPUContextFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
+ * 2. DumpGpuStats(const std::string& str)
+ * 3. ReleaseResourcesAndAbandonContext()
+ * 4. PurgeUnlockedResources(bool scratchResourcesOnly)
+ * 5. PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag& tag)
+ * 6. PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
+ * 7. PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
+ * 8. PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
+ *      const std::set<pid_t>& protectedPidSet)
+ * 9. PurgeUnlockAndSafeCacheGpuResources()
+ * 10. SetCurrentGpuResourceTag(const GPUResourceTag& tag)
+ * 11. ReleaseByTag(const GPUResourceTag& tag)
+ */
 bool GPUContextFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -126,6 +151,12 @@ bool GPUContextFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
+ * 2. DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, const GPUResourceTag& tag)
+ * 3. DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
+ */
 bool GPUContextFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {

@@ -30,6 +30,16 @@ constexpr size_t OVER_DRAW_COLOR_NUM = 6;
 constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
+/*
+ * 测试以下 ColorFilter 接口：
+ * 1. CreateLinearToSrgbGamma()
+ * 2. Deserialize(...)
+ * 3. Serialize()
+ * 4. GetType()
+ * 5. GetDrawingType()
+ * 6. AsAColorMatrix(...)
+ * 7. InitWithCompose(...)
+ */
 bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -67,6 +77,20 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ColorFilter 接口：
+ * 1. 构造函数：
+ *    - ColorFilter(FilterType, ColorQuad, BlendMode)
+ *    - ColorFilter(FilterType, const ColorMatrix&)
+ * 2. CreateBlendModeColorFilter(...)
+ * 3. CreateComposeColorFilter(..., ...)
+ * 4. CreateComposeColorFilter(float[], float[])
+ * 5. CreateMatrixColorFilter(...)
+ * 6. CreateFloatColorFilter(...)
+ * 7. CreateSrgbGammaToLinear()
+ * 8. CreateOverDrawColorFilter(...)
+ * 9. CreateLumaColorFilter()
+ */
 bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

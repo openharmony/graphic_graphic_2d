@@ -32,6 +32,12 @@ constexpr size_t MAX_SIZE = 5000;
 constexpr size_t ORIGION_SIZE = 2;
 } // namespace
 namespace Drawing {
+/*
+ * 测试以下 Surface 接口：
+ * 1. Bind(...)
+ * 2. MakeFromBackendRenderTarget(...)
+ * 3. MakeFromBackendTexture(...)
+ */
 bool SurfaceFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -76,6 +82,21 @@ bool SurfaceFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Surface 接口：
+ * 1. MakeRenderTarget(...)
+ * 2. MakeRaster(...)
+ * 3. MakeRasterN32Premul(...)
+ * 4. GetCanvas()
+ * 5. GetImageSnapshot()
+ * 6. GetImageSnapshot(RectI)
+ * 7. GetImageInfo()
+ * 8. GetBackendTexture(...)
+ * 9. FlushAndSubmit(...)
+ * 10. Flush(...)
+ * 11. Width()
+ * 12. Height()
+ */
 bool SurfaceFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -124,6 +145,11 @@ bool SurfaceFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Surface 接口：
+ * 1. Surface()
+ * 2. MakeRasterDirect(...)
+ */
 bool SurfaceFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -161,6 +187,11 @@ bool SurfaceFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Surface 接口：
+ * 1. Surface()
+ * 2. Wait(...)
+ */
 bool SurfaceFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

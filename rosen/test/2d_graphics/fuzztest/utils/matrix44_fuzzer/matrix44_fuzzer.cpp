@@ -30,6 +30,15 @@ constexpr size_t MATH_ONE = 1;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 Matrix44 接口：
+ * 1. Translate
+ * 2. PreTranslate
+ * 3. PostTranslate
+ * 4. Scale
+ * 5. PreScale
+ * 6. SetCol
+ */
 void Martix44FuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
@@ -54,6 +63,14 @@ void Martix44FuzzTest000(const uint8_t* data, size_t size)
     matrix.SetCol(MATH_ONE, dx, dy, dz, w);
 }
 
+/*
+ * Martix44FuzzTest001(const uint8_t* data, size_t size)
+ * 测试以下 Matrix44 接口：
+ * 1. SetMatrix44ColMajor
+ * 2. SetMatrix44RowMajor
+ * 3. 操作符*
+ * 4. 静态类型转换为 Matrix
+ */
 void Martix44FuzzTest001(const uint8_t* data, size_t size)
 {
     // initialize

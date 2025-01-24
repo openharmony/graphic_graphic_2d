@@ -33,6 +33,26 @@ constexpr size_t ARRAY_MAX_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 CmdList 接口：
+ * 1. CreateFromData
+ * 2. GetType
+ * 3. AddCmdListData
+ * 4. GetCmdListData
+ * 5. GetData
+ * 6. SetUpImageData
+ * 7. AddImageData
+ * 8. GetImageData
+ * 9. GetAllImageData
+ * 10. AddBitmapData
+ * 11. GetBitmapData
+ * 12. SetUpBitmapData
+ * 13. GetAllBitmapData
+ * 14. GetExtendObject
+ * 15. AddExtendObject
+ * 16. GetAllExtendObject
+ * 17. SetupExtendObject
+ */
 void CmdListFuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
@@ -78,6 +98,25 @@ void CmdListFuzzTest000(const uint8_t* data, size_t size)
     }
 }
 
+
+/*
+ * 测试以下 CmdList 接口：
+ * 1. CreateFromData
+ * 2. GetImageObject
+ * 3. AddImageObject
+ * 4. GetAllObject
+ * 5. SetupObject
+ * 6. GetImageBaseObj
+ * 7. AddImageBaseObj
+ * 8. GetAllBaseObj
+ * 9. SetupBaseObj
+ * 10. GetDrawFuncObj
+ * 11. AddDrawFuncOjb
+ * 12. GetOpCnt
+ * 13. CopyObjectTo
+ * 14. AddImage
+ * 15. GetImage
+ */
 void CmdListFuzzTest001(const uint8_t* data, size_t size)
 {
     // initialize

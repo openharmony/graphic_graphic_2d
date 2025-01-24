@@ -29,6 +29,12 @@ namespace {
 constexpr size_t MIN_ARRAY_SIZE = 4;
 } // namespace
 namespace Drawing {
+/*
+ * 测试以下 PathIterator 接口：
+ * 1. PathIterator(const Path&)
+ * 2. Next(...)
+ * 3. Peek()
+ */
 bool PathIteratorFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
