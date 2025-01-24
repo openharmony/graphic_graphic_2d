@@ -397,9 +397,12 @@ void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
         unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
         unirenderThread.SetDefaultClearMemoryFinished(false);
     }
-    if (unirenderThread.IsReclaimMemoryFinished()) {
-        unirenderThread.ReclaimMemory();
-        unirenderThread.SetReclaimMemoryFinished(false);
+    // Preferentially open in wearable
+    if (system::GetParameter("const.product.devicetype", "pc") == "wearable") {
+        if (unirenderThread.IsReclaimMemoryFinished()) {
+            unirenderThread.ReclaimMemory();
+            unirenderThread.SetReclaimMemoryFinished(false);
+        }
     }
 }
 
