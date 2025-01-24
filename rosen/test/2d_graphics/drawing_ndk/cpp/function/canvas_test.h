@@ -156,7 +156,7 @@ public:
         int32_t imageHeight = 600; //600 for test
         OH_Drawing_Image_Info imageInfo { imageWidth, imageHeight, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_PREMUL };
         // 4 rgba
-        uint32_t* srcPixels_ = new uint32_t[imageWidth * imageHeight];
+        srcPixels_ = new uint32_t[imageWidth * imageHeight];
         if (srcPixels_ == nullptr) {
             return;
         }
@@ -254,5 +254,67 @@ public:
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionCanvasQuickRejectPath : public TestBase {
+public:
+    explicit FunctionCanvasQuickRejectPath(int type) : TestBase(type)
+    {
+        fileName_ = "FunctionCanvasQuickRejectPath";
+    };
+
+    ~FunctionCanvasQuickRejectPath() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionCanvasQuickRejectRect : public TestBase {
+public:
+    explicit FunctionCanvasQuickRejectRect(int type) : TestBase(type)
+    {
+        fileName_ = "FunctionCanvasQuickRejectRect";
+    };
+
+    ~FunctionCanvasQuickRejectRect() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionCanvasDrawArcWithCenter : public TestBase {
+public:
+    explicit FunctionCanvasDrawArcWithCenter(int type) : TestBase(type)
+    {
+        fileName_ = "FunctionCanvasDrawArcWithCenter";
+    };
+    ~FunctionCanvasDrawArcWithCenter() override {};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas* canvas) override;
+};
+
+class FunctionCanvasDrawNestedRoundRect : public TestBase {
+public:
+    explicit FunctionCanvasDrawNestedRoundRect(int type) : TestBase(type)
+    {
+        fileName_ = "FunctionCanvasDrawNestedRoundRect";
+    };
+    ~FunctionCanvasDrawNestedRoundRect() override{};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+};
+
+class FunctionCanvasDrawPixelMapNine : public TestBase {
+public:
+    explicit FunctionCanvasDrawPixelMapNine(int type) : TestBase(type)
+    {
+        fileName_ = "FunctionCanvasDrawPixelMapNine";
+    };
+    ~FunctionCanvasDrawPixelMapNine() override{};
+
+protected:
+    void OnTestFunction(OH_Drawing_Canvas *canvas) override;
 };
 #endif // FUNCTION_CANVAS_TEST_H

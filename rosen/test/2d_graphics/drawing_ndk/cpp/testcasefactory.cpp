@@ -47,6 +47,7 @@
 #include "dm/skbug_8955.h"
 #include "dm/stroke_rect_shader.h"
 #include "dm/strokes.h"
+#include "function/canvas_test.h"
 #include "function/path_effect_test.h"
 #include "interface/bitmap_test.h"
 #include "interface/brush_test.h"
@@ -63,6 +64,7 @@
 #include "interface/surface_test.h"
 #include "interface/text_blob_test.h"
 #include "interface/typeface_test.h"
+#include "performance/canvas_draw_performance.h"
 #include "performance/path_effect_performance.h"
 
 #include "common/log_common.h"
@@ -137,6 +139,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
             return std::make_shared<DrawBitmapRect2>();
         } }, // OH_Drawing_CanvasDrawRect接口有问题内部逻辑并未用画笔而是用画刷
     { "bigbitmaprect", []() -> std::shared_ptr<TestBase> { return std::make_shared<DrawBitmapRect4>(false); } },
+    { "canvasquickrejectpath",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasQuickRejectPath>(); } },
+    { "canvasquickrejectrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasQuickRejectRect>(); } },
+    { "canvasdrawarcwithcenter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawArcWithCenter>(); } },
+    { "canvasdrawnestedroundrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawNestedRoundRect>(); } },
+    { "canvasdrawpixelmapnine",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawPixelMapNine>(); } },
     { "anisotropic_hq",
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<Anisotropic>();
@@ -288,6 +300,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetHeight>(TestBase::DRAW_STYLE_COMPLEX); } },
     { "canvas_getwidth",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetWidth>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "canvas_quickrejectpath",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasQuickRejectPath>(); } },
+    { "canvas_quickrejectrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasQuickRejectRect>(); } },
+    { "canvas_drawarcwithcenter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawArcWithCenter>(); } },
+    { "canvas_drawnestedroundrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawNestedRoundRect>(); } },
+    { "canvas_drawpixelmapnine",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawImageNine>(); } },
 
     // path
     { "path_create",

@@ -2028,3 +2028,251 @@ export class CanvasSetColor extends TestBase {
   }
 
 }
+
+export class CanvasQuickRejectPath extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      let path: drawing.Path = new drawing.Path();
+      path.moveTo(100 + i * 0.01, 100 + i * 0.01);
+      path.lineTo(150 + i * 0.01, 50 + i * 0.01);
+      canvas.quickRejectPath(path);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    {
+      let path = new drawing.Path();
+      path.moveTo(5, 5)
+      path.lineTo(10, 10)
+
+      if (canvas.quickRejectPath(path)) {
+        console.log(TAG, 'CanvasQuickRejectPath true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectPath false');
+      }
+    }
+
+    {
+      let path = new drawing.Path();
+      path.moveTo(-5, -5)
+      path.lineTo(0, 10)
+
+      if (canvas.quickRejectPath(path)) {
+        console.log(TAG, 'CanvasQuickRejectPath true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectPath false');
+      }
+    }
+
+    {
+      let path = new drawing.Path();
+      path.moveTo(-5, -5)
+      path.lineTo(-5, 10)
+
+      if (canvas.quickRejectPath(path)) {
+        console.log(TAG, 'CanvasQuickRejectPath true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectPath false');
+      }
+    }
+
+    {
+      let path = new drawing.Path();
+      path.moveTo(10, -5)
+      path.lineTo(-5, 10)
+
+      if (canvas.quickRejectPath(path)) {
+        console.log(TAG, 'CanvasQuickRejectPath true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectPath false');
+      }
+    }
+  }
+}
+
+export class CanvasQuickRejectRect extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      let rect: common2D.Rect = { left: 100 + i * 0.01, top: 100 + i * 0.01, right: 300 + i * 0.01, bottom: 300 + i * 0.01 };
+      canvas.quickRejectRect(rect);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    {
+      let rect: common2D.Rect = { left: 10, top: 10, right: 150, bottom: 60 };
+      if (canvas.quickRejectRect(rect)) {
+        console.log(TAG, 'CanvasQuickRejectRect true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectRect false');
+      }
+    }
+
+    {
+      let rect: common2D.Rect = { left: -20, top: 30, right: 0, bottom: 10 };
+      if (canvas.quickRejectRect(rect)) {
+        console.log(TAG, 'CanvasQuickRejectRect true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectRect false');
+      }
+    }
+
+    {
+      let rect: common2D.Rect = { left: -20, top: -20, right: -10, bottom: -10 };
+      if (canvas.quickRejectRect(rect)) {
+        console.log(TAG, 'CanvasQuickRejectRect true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectRect false');
+      }
+    }
+
+    {
+      let rect: common2D.Rect = { left: 999000, top: 999000, right: 999999, bottom: 999999 };
+      if (canvas.quickRejectRect(rect)) {
+        console.log(TAG, 'CanvasQuickRejectRect true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectRect false');
+      }
+    }
+
+    {
+      let rect: common2D.Rect = { left: -1000, top: -1000, right: 999999, bottom: 999999 };
+      if (canvas.quickRejectRect(rect)) {
+        console.log(TAG, 'CanvasQuickRejectRect true');
+      } else {
+        console.log(TAG, 'CanvasQuickRejectRect false');
+      }
+    }
+  }
+}
+
+export class CanvasDrawArcWithCenter extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      let rect: common2D.Rect = { left: 100 + i * 0.01, top: 100 + i * 0.01, right: 300 + i * 0.01, bottom: 300 + i * 0.01 };
+      canvas.drawArcWithCenter(rect, 0, 180, true);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let pen = new drawing.Pen();
+    pen.setAntiAlias(true);
+    pen.setColor({ alpha: 255, red: 0, green: 0, blue: 255});
+    pen.setStrokeWidth(5.0);
+    canvas.attachPen(pen);
+    {
+      let rect: common2D.Rect = {left: 20, top: 20, right: 120, bottom: 120};
+      canvas.drawArcWithCenter(rect, 80, 280, true);
+    }
+
+    {
+      let rect: common2D.Rect = {left: 20, top: 140, right: 120, bottom: 240};
+      canvas.drawArcWithCenter(rect, -90, 180, false);
+    }
+
+    {
+      let rect: common2D.Rect = {left: 20, top: 260, right: 220, bottom: 360};
+      canvas.drawArcWithCenter(rect, 40, -555, true);
+    }
+
+    {
+      let rect: common2D.Rect = {left: 20, top: 380, right: 220, bottom: 480};
+      canvas.drawArcWithCenter(rect, 40, 666, false);
+    }
+  }
+}
+
+export class CanvasDrawImageNine extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg") //462,712
+    let center: common2D.Rect = { left: 30, top: 100, right: 432, bottom: 200 };
+    let dst: common2D.Rect = { left: 0, top: 0, right: 500, bottom: 500 };
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.drawImageNine(pixelMap, center, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg") //462,712
+    canvas.drawImage(pixelMap, 0, 0);
+    {
+      let center: common2D.Rect = { left: 100, top: 100, right: 402, bottom: 500 };
+      let dst: common2D.Rect = { left: 480, top: 10, right: 1000, bottom: 1500 };
+      canvas.drawImageNine(pixelMap, center, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+
+    {
+      let center: common2D.Rect = { left: 100, top: 100, right: 402, bottom: 500 };
+      let dst: common2D.Rect = { left: 30, top: 800, right: 190, bottom: 1312 };
+      canvas.drawImageNine(pixelMap, center, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+
+    {
+      let center: common2D.Rect = { left: 100, top: 100, right: 402, bottom: 500 };
+      let dst: common2D.Rect = { left: 230, top: 800, right: 350, bottom: 1200 };
+      canvas.drawImageNine(pixelMap, center, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+  }
+}
+
+export class CanvasDrawImageLattice extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg") //462,712
+    let xDivs: Array<number> = [30, 432];
+    let yDivs: Array<number> = [100, 200];
+    let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 2, 2);
+    let dst: common2D.Rect = { left: 0, top: 0, right: 500, bottom: 500 };
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.drawImageLattice(pixelMap, lattice, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_3.jpg"); //462,712
+    canvas.drawImage(pixelMap, 0, 0);
+
+    {
+      let xDivs: Array<number> = [30, 432];
+      let yDivs: Array<number> = [30, 300, 450, 682];
+      let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 2, 4);
+      let dst: common2D.Rect = { left: 640, top: 10, right: 1300, bottom: 1500 };
+      canvas.drawImageLattice(pixelMap, lattice, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+
+    {
+      let xDivs: Array<number> = [30, 100, 432];
+      let yDivs: Array<number> = [30, 200, 450, 500, 682];
+      let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 5);
+      let dst: common2D.Rect = { left: 30, top: 800, right: 362, bottom: 1262 };
+      canvas.drawImageLattice(pixelMap, lattice, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+
+    {
+      let xDivs: Array<number> = [30, 100, 432];
+      let yDivs: Array<number> = [30, 200, 450, 500, 682];
+      let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 5);
+      let dst: common2D.Rect = { left: 400, top: 800, right: 600, bottom: 1000 };
+      canvas.drawImageLattice(pixelMap, lattice, dst, drawing.FilterMode.FILTER_MODE_NEAREST);
+    }
+  }
+}

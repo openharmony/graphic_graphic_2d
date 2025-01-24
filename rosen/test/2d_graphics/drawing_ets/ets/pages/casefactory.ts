@@ -19,7 +19,8 @@ import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, Canvas
   FontIsSubpixel, FontIsLinearMetrics, FontIsEmbolden, FontGetSkewX, FontGetScaleX, FontGetHinting, FontGetEdging,
   BrushGetColorFilter, BrushSetImageFilter, PenGetColorFilter, PenSetImageFilter,
   CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion,
-  CanvasDrawShadow, CanvasCreateLattice, CanvasSetColor, CanvasClear } from '../testcase/interface/canvastest';
+  CanvasDrawShadow, CanvasCreateLattice, CanvasSetColor, CanvasQuickRejectPath, CanvasQuickRejectRect,
+  CanvasDrawArcWithCenter, CanvasDrawImageNine, CanvasDrawImageLattice, CanvasClear } from '../testcase/interface/canvastest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
@@ -150,6 +151,11 @@ export class CaseFactory {
       ['canvasresetmatrix', () => { return new CanvasResetMatrix(); }],
       ['canvasisclipempty', () => { return new CanvasIsClipEmpty(); }],
       ['canvasclipregion', () => { return new CanvasClipRegion(); }],
+      ['canvasquickrejectpath', () => { return new CanvasQuickRejectPath(); }],
+      ['canvasquickrejectrect', () => { return new CanvasQuickRejectRect(); }],
+      ['canvasdrawarcwithcenter', () => { return new CanvasDrawArcWithCenter(); }],
+      ['canvasdrawimagenine', () => { return new CanvasDrawImageNine(); }],
+      ['canvasdrawimagelattice', () => { return new CanvasDrawImageLattice(); }],
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['brushgetcolorfilter', () => { return new BrushGetColorFilter(); }],
       ['brushsetimagefilter', () => { return new BrushSetImageFilter(); }],
@@ -233,6 +239,11 @@ export class CaseFactory {
       ['canvas_isclipempty', () => { return new CanvasIsClipEmpty(); }],
       ['canvas_setmatrix', () => { return new CanvasSetMatrix(); }],
       ['canvas_resetmatrix', () => { return new CanvasResetMatrix(); }],
+      ['canvas_quickrejectpath', () => { return new CanvasQuickRejectPath(); }],
+      ['canvas_quickrejectrect', () => { return new CanvasQuickRejectRect(); }],
+      ['canvas_drawarcwithcenter', () => { return new CanvasDrawArcWithCenter(); }],
+      ['canvas_drawimagenine', () => { return new CanvasDrawImageNine(); }],
+      ['canvas_drawimagelattice', () => { return new CanvasDrawImageLattice(); }],
       ['path_lineto', () => { return new PathLineTo(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时70ms
       ['path_arcto', () => { return new PathArcTo(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时42ms
       ['path_quadto', () => { return new PathQuadTo(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时156ms

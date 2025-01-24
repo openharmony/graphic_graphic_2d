@@ -464,3 +464,183 @@ void FunctionCanvasClipRegion::OnTestFunction(OH_Drawing_Canvas* canvas)
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_BrushDestroy(brush);
 }
+
+void FunctionCanvasQuickRejectPath::OnTestFunction(OH_Drawing_Canvas* canvas)
+{
+    bool quickReject = false;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, 5, 5);
+    OH_Drawing_PathLineTo(path, 10, 10);
+    OH_Drawing_CanvasDrawPath(canvas, path);
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasQuickRejectPath(canvas, path, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+    
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path1, -5, -5);
+    OH_Drawing_PathLineTo(path1, 0, 10);
+    OH_Drawing_ErrorCode code1 = OH_Drawing_CanvasQuickRejectPath(canvas, path1, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code1);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+    
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path2, -5, -5);
+    OH_Drawing_PathLineTo(path2, -5, 10);
+    OH_Drawing_ErrorCode code2 = OH_Drawing_CanvasQuickRejectPath(canvas, path2, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code2);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+    
+    OH_Drawing_Path* path3 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path3, 10, -5);
+    OH_Drawing_PathLineTo(path3, -5, 10);
+    OH_Drawing_ErrorCode code3 = OH_Drawing_CanvasQuickRejectPath(canvas, path3, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code3);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+
+    OH_Drawing_ErrorCode code4 = OH_Drawing_CanvasQuickRejectPath(canvas, nullptr, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code4);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+    
+    OH_Drawing_ErrorCode code5 = OH_Drawing_CanvasQuickRejectPath(nullptr, path3, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test code = %{public}d", code5);
+    DRAWING_LOGI("FunctionCanvasQuickRejectPath test quickRejectPath = %{public}d", quickReject);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+    OH_Drawing_PathDestroy(path3);
+}
+
+void FunctionCanvasQuickRejectRect::OnTestFunction(OH_Drawing_Canvas* canvas)
+{
+    bool quickReject = false;
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(10, 10, 20, 20);
+    OH_Drawing_CanvasDrawRect(canvas, rect1);
+    OH_Drawing_ErrorCode code1 = OH_Drawing_CanvasQuickRejectRect(canvas, rect1, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code1);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(-20, -20, 0, 0);
+    OH_Drawing_CanvasDrawRect(canvas, rect2);
+    OH_Drawing_ErrorCode code2 = OH_Drawing_CanvasQuickRejectRect(canvas, rect2, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code2);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_Rect* rect3 = OH_Drawing_RectCreate(-20, -20, -10, -10);
+    OH_Drawing_CanvasDrawRect(canvas, rect3);
+    OH_Drawing_ErrorCode code3 = OH_Drawing_CanvasQuickRejectRect(canvas, rect3, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code3);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_Rect* rect4 = OH_Drawing_RectCreate(-20, -20, 999999, 999999);
+    OH_Drawing_CanvasDrawRect(canvas, rect3);
+    OH_Drawing_ErrorCode code4 = OH_Drawing_CanvasQuickRejectRect(canvas, rect4, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code4);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_ErrorCode code5 = OH_Drawing_CanvasQuickRejectRect(canvas, nullptr, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code5);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_ErrorCode code6 = OH_Drawing_CanvasQuickRejectRect(nullptr, rect4, &quickReject);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test code = %{public}d", code6);
+    DRAWING_LOGI("FunctionCanvasQuickRejectRect test quickRejectRect = %{public}d", quickReject);
+    
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RectDestroy(rect2);
+    OH_Drawing_RectDestroy(rect3);
+    OH_Drawing_RectDestroy(rect4);
+}
+
+void FunctionCanvasDrawArcWithCenter::OnTestFunction(OH_Drawing_Canvas* canvas)
+{
+    OH_Drawing_CanvasClear(canvas, 0xFFCCCCCC);
+    OH_Drawing_Pen *pen = OH_Drawing_PenCreate();
+    float penWidth = 3.f;
+    OH_Drawing_PenSetWidth(pen, penWidth);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(20, 20, 120, 120);
+    OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, 10.f, 100.f, true);
+    
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(220, 20, 320, 120);
+    OH_Drawing_CanvasDrawArcWithCenter(canvas, rect1, -90.f, 270.f, false);
+    
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(20, 220, 320, 320);
+    OH_Drawing_CanvasDrawArcWithCenter(canvas, rect2, 90.f, 570.f, true);
+    
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_PenDestroy(pen);
+}
+
+void FunctionCanvasDrawNestedRoundRect::OnTestFunction(OH_Drawing_Canvas *canvas)
+{
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    OH_Drawing_PenSetColor(pen, OH_Drawing_ColorSetArgb(0xFF, 0x45, 0x71, 0xC4));
+    OH_Drawing_PenSetAntiAlias(pen, true);
+    float penWidth = 3.f;
+    OH_Drawing_PenSetWidth(pen, penWidth);
+    OH_Drawing_CanvasAttachPen(canvas, pen);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 300, 300);
+    OH_Drawing_RoundRect* outer = OH_Drawing_RoundRectCreate(rect, 0, 0);
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100, 100, 300, 300);
+    OH_Drawing_RoundRect* inner = OH_Drawing_RoundRectCreate(rect1, 0, 0);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, inner);
+    
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, inner);
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(400, 100, 600, 300);
+    OH_Drawing_RoundRect* outer2 = OH_Drawing_RoundRectCreate(rect2, 10, 10);
+    OH_Drawing_Rect* rect12 = OH_Drawing_RectCreate(400, 120, 600, 300);
+    OH_Drawing_RoundRect* inner2 = OH_Drawing_RoundRectCreate(rect12, 10, 10);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer2, inner2);
+
+    OH_Drawing_Rect* rect3 = OH_Drawing_RectCreate(100, 400, 300, 600);
+    OH_Drawing_RoundRect* outer3 = OH_Drawing_RoundRectCreate(rect3, 10, 10);
+    OH_Drawing_Rect* rect13 = OH_Drawing_RectCreate(120, 420, 280, 580);
+    OH_Drawing_RoundRect* inner3 = OH_Drawing_RoundRectCreate(rect13, 10, 10);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer3, inner3);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, inner3, outer3);
+    
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RoundRectDestroy(outer);
+    OH_Drawing_RoundRectDestroy(inner);
+    OH_Drawing_PenDestroy(pen);
+}
+
+void FunctionCanvasDrawPixelMapNine::OnTestFunction(OH_Drawing_Canvas *canvas)
+{
+    OH_Drawing_CanvasClear(canvas, 0xFFFFFFFF);
+    OH_Pixelmap_InitializationOptions* createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    int32_t imageWidth = 100;
+    int32_t imageHeight = 100;
+    OH_PixelmapInitializationOptions_SetWidth(createOps, imageWidth);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, imageHeight);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);    // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2);      // 2 is ALPHA_FORMAT_PREMUL
+    size_t bufferSize = imageWidth * imageHeight * 4;                 // 4 for test
+    void* bitmapAddr = malloc(bufferSize);
+    if (bitmapAddr == nullptr) {
+        return;
+    }
+    for (int i = 0; i < imageWidth * imageHeight; i++) {
+        ((uint32_t*)bitmapAddr)[i] = DRAW_COLORBLUE;
+    }
+    OH_PixelmapNative* pixelMapNative = nullptr;
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NEAREST);
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t*)bitmapAddr, bufferSize, createOps, &pixelMapNative);
+    OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
+    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(0, 0, 100, 100);
+
+    OH_Drawing_ErrorCode code = OH_Drawing_CanvasDrawPixelMapNine(
+        canvas, pixelMap, nullptr, dst, OH_Drawing_FilterMode::FILTER_MODE_NEAREST);
+    
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_PixelmapNative_Release(pixelMapNative);
+    free(bitmapAddr);
+    OH_PixelmapInitializationOptions_Release(createOps);
+    OH_Drawing_CanvasDetachPen(canvas);
+    OH_Drawing_CanvasDetachBrush(canvas);
+}

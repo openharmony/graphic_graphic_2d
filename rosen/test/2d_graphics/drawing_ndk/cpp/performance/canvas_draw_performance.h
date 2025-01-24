@@ -182,4 +182,64 @@ protected:
     SpecialPerformance* performance_;
 };
 
+class PerformanceCanvasQuickRejectPath : public TestBase {
+public:
+    explicit PerformanceCanvasQuickRejectPath(int type) : TestBase(type)
+    {
+        fileName_ = "PerformanceCanvasQuickRejectPath";
+    };
+    ~PerformanceCanvasQuickRejectPath() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PerformanceCanvasQuickRejectRect : public TestBase {
+public:
+    explicit PerformanceCanvasQuickRejectRect(int type) : TestBase(type)
+    {
+        fileName_ = "PerformanceCanvasQuickRejectRect";
+    };
+    ~PerformanceCanvasQuickRejectRect() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PerformanceCanvasDrawArcWithCenter : public TestBase {
+public:
+    explicit PerformanceCanvasDrawArcWithCenter(int type) : TestBase(type)
+    {
+        fileName_ = "PerformanceCanvasDrawArcWithCenter";
+    };
+    ~PerformanceCanvasDrawArcWithCenter() override{};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PerformanceCanvasDrawNestedRoundRect : public TestBase {
+public:
+    explicit PerformanceCanvasDrawNestedRoundRect(int type) : TestBase(type)
+    {
+        fileName_ = "PerformanceCanvasDrawNestedRoundRect";
+    };
+    ~PerformanceCanvasDrawNestedRoundRect() override{};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PerformanceCanvasDrawImageNine : public TestBase {
+public:
+    explicit PerformanceCanvasDrawImageNine(int type) : TestBase(type)
+    {
+        fileName_ = "PerformanceCanvasDrawImageNine";
+    };
+    ~PerformanceCanvasDrawImageNine() override{};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
 #endif

@@ -415,3 +415,93 @@ void PerformanceDrawPixelMap::OnTestPerformance(OH_Drawing_Canvas* canvas)
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_CanvasDetachBrush(canvas);
 }
+
+void PerformanceCanvasQuickRejectPath::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    bool quickReject = false;
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_Path* path = OH_Drawing_PathCreate();
+        OH_Drawing_PathMoveTo(path, 100 + i * 0.01f, 100 + i * 0.01f);
+        OH_Drawing_PathLineTo(path, 150 + i * 0.01f, 50 + i * 0.01f);
+        OH_Drawing_CanvasQuickRejectPath(canvas, path, &quickReject);
+        OH_Drawing_PathDestroy(path);
+    }
+}
+
+void PerformanceCanvasQuickRejectRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    bool quickReject = false;
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(
+            100 + i * 0.01f, 100 + i * 0.01f, 300 + i * 0.01f, 300 + i * 0.01f);
+        OH_Drawing_CanvasQuickRejectRect(canvas, rect, &quickReject);
+        OH_Drawing_RectDestroy(rect);
+    }
+}
+
+void PerformanceCanvasDrawArcWithCenter::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(
+            100 + i * 0.01f, 100 + i * 0.01f, 300 + i * 0.01f, 300 + i * 0.01f);
+        OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, 0, 180, true);
+        OH_Drawing_RectDestroy(rect);
+    }
+}
+
+void PerformanceCanvasDrawNestedRoundRect::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_Rect* rect = OH_Drawing_RectCreate(
+            100 + i * 0.01f, 100 + i * 0.01f, 300 + i * 0.01f, 300 + i * 0.01f);
+        OH_Drawing_RoundRect* outer = OH_Drawing_RoundRectCreate(rect, 5, 3);
+        OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(
+            120 + i * 0.01f, 120 + i * 0.01f, 280 + i * 0.01f, 280 + i * 0.01f);
+        OH_Drawing_RoundRect* inner = OH_Drawing_RoundRectCreate(rect1, 3, 5);
+        OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, inner);
+        OH_Drawing_RectDestroy(rect);
+        OH_Drawing_RectDestroy(rect1);
+        OH_Drawing_RoundRectDestroy(outer);
+        OH_Drawing_RoundRectDestroy(inner);
+    }
+}
+
+void PerformanceCanvasDrawImageNine::OnTestPerformance(OH_Drawing_Canvas* canvas)
+{
+    OH_Drawing_CanvasClear(canvas, 0xFFFFFFFF);
+    OH_Pixelmap_InitializationOptions* createOps = nullptr;
+    auto ret = OH_PixelmapInitializationOptions_Create(&createOps);
+    int32_t imageWidth = 100;
+    int32_t imageHeight = 100;
+    OH_PixelmapInitializationOptions_SetWidth(createOps, imageWidth);
+    OH_PixelmapInitializationOptions_SetHeight(createOps, imageHeight);
+    OH_PixelmapInitializationOptions_SetPixelFormat(createOps, 3);    // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetSrcPixelFormat(createOps, 3); // 3 is RGBA fromat
+    OH_PixelmapInitializationOptions_SetAlphaType(createOps, 2);      // 2 is ALPHA_FORMAT_PREMUL
+    size_t bufferSize = imageWidth * imageHeight * 4;                 // 4 for test
+    void* bitmapAddr = malloc(bufferSize);
+    if (bitmapAddr == nullptr) {
+        return;
+    }
+    for (int i = 0; i < imageWidth * imageHeight; i++) {
+        ((uint32_t*)bitmapAddr)[i] = DRAW_COLORBLUE;
+    }
+    OH_PixelmapNative* pixelMapNative = nullptr;
+    OH_Drawing_SamplingOptions* samplingOptions =
+        OH_Drawing_SamplingOptionsCreate(FILTER_MODE_NEAREST, MIPMAP_MODE_NEAREST);
+    ret = OH_PixelmapNative_CreatePixelmap((uint8_t*)bitmapAddr, bufferSize, createOps, &pixelMapNative);
+    OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMapNative);
+    OH_Drawing_Rect* dst = OH_Drawing_RectCreate(0, 0, 500, 500); // 3, 8 for test
+
+    for (int i = 0; i < testCount_; i++) {
+        OH_Drawing_CanvasDrawPixelMapNine(
+            canvas, pixelMap, nullptr, dst, OH_Drawing_FilterMode::FILTER_MODE_NEAREST);
+    }
+    
+    OH_Drawing_SamplingOptionsDestroy(samplingOptions);
+    OH_PixelmapNative_Release(pixelMapNative);
+    free(bitmapAddr);
+    OH_PixelmapInitializationOptions_Release(createOps);
+    OH_Drawing_CanvasDetachPen(canvas);
+    OH_Drawing_CanvasDetachBrush(canvas);
+}
