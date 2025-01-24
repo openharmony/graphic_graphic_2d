@@ -352,6 +352,8 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     }
     if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
         RSRenderNodeDrawable::OnDraw(canvas);
+    } else {
+        DrawChildren(canvas, params.GetBounds());
     }
 }
 
