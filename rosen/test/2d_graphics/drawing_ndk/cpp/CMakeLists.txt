@@ -52,6 +52,7 @@ add_library(entry SHARED
     function/canvas_test.cpp
     function/filter_test.cpp
     function/path_test.cpp
+    function/path_effect_test.cpp
     function/font_measure_text_test.cpp
     function/function_path_test.cpp
     function/function_pen_test.cpp
@@ -103,6 +104,7 @@ add_library(entry SHARED
     performance/canvas_draw_performance.cpp
     performance/canvas_draw_performance_c_property.cpp
     performance/canvas_draw_performance_c_operation_switch.cpp
+    performance/path_effect_performance.cpp
 )
 
 add_library(myxnode SHARED
@@ -148,6 +150,7 @@ add_library(myxnode SHARED
     function/canvas_test.cpp
     function/filter_test.cpp
     function/path_test.cpp
+    function/path_effect_test.cpp
     function/font_measure_text_test.cpp
     function/function_path_test.cpp
     function/function_pen_test.cpp
@@ -199,6 +202,7 @@ add_library(myxnode SHARED
     performance/canvas_draw_performance.cpp
     performance/canvas_draw_performance_c_property.cpp
     performance/canvas_draw_performance_c_operation_switch.cpp
+    performance/path_effect_performance.cpp
 )
 
 find_library(
