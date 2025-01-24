@@ -25,7 +25,6 @@ namespace GraphicsEffectEngine {
 
 using namespace Rosen;
 
-// fuzz src & dst for DrawImageEffect
 bool GEExternalDynamicLoaderFuzzTest001(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
