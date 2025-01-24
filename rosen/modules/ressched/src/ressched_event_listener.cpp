@@ -31,6 +31,7 @@ constexpr double EPSILON = 0.1;
 std::once_flag ResschedEventListener::createFlag_;
 sptr<ResschedEventListener> ResschedEventListener::instance_ = nullptr;
 std::shared_ptr<ffrt::queue> ResschedEventListener::ffrtQueue_ = nullptr;
+std::mutex ffrtGetMutex_;
 constexpr uint64_t SAMPLE_TIME = 100000000;
 const std::string RS_RESSCHED_EVENT_LISTENER_QUEUE = "res_ressched_event_listener_queue";
 sptr<ResschedEventListener> ResschedEventListener::GetInstance() noexcept
