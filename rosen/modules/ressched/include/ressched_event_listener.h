@@ -49,7 +49,7 @@ private:
     std::chrono::steady_clock::time_point endTimeStamp_;
     uint64_t frameCountNum_;
     bool isFrameRateFirstReport_ = false;
-    std::mutex ffrtGetMutex_;
+    static std::mutex ffrtGetMutex_;
 
     static std::shared_ptr<ffrt::queue> ffrtQueue_;
 
