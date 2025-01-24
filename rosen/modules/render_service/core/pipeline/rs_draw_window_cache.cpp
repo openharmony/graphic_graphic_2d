@@ -128,8 +128,6 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     canvas.DetachBrush();
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
-    // draw watermark
-    surfaceDrawable->DrawWatermark(canvas, surfaceParams);
     return true;
 }
 
