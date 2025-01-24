@@ -3297,7 +3297,7 @@ RectI RSSurfaceRenderNode::GetFilterRect() const
     auto geoPtr = GetRenderProperties().GetBoundsGeometry();
     auto surfaceAbsMatrix = geoPtr->GetAbsMatrix();
     RectF regionF(drawBehindWindowRegion_.GetLeft(), drawBehindWindowRegion_.GetTop(),
-        drawBehindWindowRegion_.GetRight(), drawBehindWindowRegion_.GetBottom());
+        drawBehindWindowRegion_.GetWidth(), drawBehindWindowRegion_.GetHeight());
     return geoPtr->MapRect(regionF, surfaceAbsMatrix);
 }
 
