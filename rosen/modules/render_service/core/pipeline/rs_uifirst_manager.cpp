@@ -1223,9 +1223,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
     if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
         node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
-        (node.GetHasSharedTransitionNode() ||
-        RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) ||
-        !animation)) {
+        (node.GetHasSharedTransitionNode() || !animation)) {
         return false;
     }
     return node.QuerySubAssignable(isDisplayRotation);
