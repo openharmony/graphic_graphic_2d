@@ -75,6 +75,8 @@ private:
                                                  NodeId windowNodeId = 0,
                                                  bool fromXcomponent = false) override;
 
+    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid) override;
+
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
     int32_t SetFocusAppInfo(
@@ -108,7 +110,7 @@ private:
     int32_t SetScreenSecurityMask(ScreenId id,
         std::shared_ptr<Media::PixelMap> securityMask) override;
 
-    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
@@ -148,7 +150,9 @@ private:
 
     bool GetShowRefreshRateEnabled() override;
 
-    void SetShowRefreshRateEnabled(bool enable) override;
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
+
+    uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
 
     std::string GetRefreshInfo(pid_t pid) override;
 
@@ -168,6 +172,7 @@ private:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -288,6 +293,10 @@ private:
 
     void ReportEventJankFrame(DataBaseRs info) override;
 
+    void ReportRsSceneJankStart(AppInfo info) override;
+
+    void ReportRsSceneJankEnd(AppInfo info) override;
+
     void ReportGameStateData(GameStateData info) override;
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
@@ -295,7 +304,7 @@ private:
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
-    void NotifyLightFactorStatus(bool isSafe) override;
+    void NotifyLightFactorStatus(int32_t lightFactorStatus) override;
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 

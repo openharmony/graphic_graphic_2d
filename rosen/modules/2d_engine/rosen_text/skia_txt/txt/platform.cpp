@@ -15,10 +15,6 @@
 
 #include "txt/platform.h"
 
-#ifndef OHOS_STANDARD_SYSTEM
-#include "third_party/skia/src/ports/SkFontMgr_ohos.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 namespace SPText {

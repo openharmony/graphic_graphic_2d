@@ -41,6 +41,7 @@ struct RcdProcessInfo {
     std::shared_ptr<RSProcessor> uniProcessor = nullptr;
     std::shared_ptr<rs_rcd::RoundCornerLayer> topLayer = nullptr;
     std::shared_ptr<rs_rcd::RoundCornerLayer> bottomLayer = nullptr;
+    RectT<uint32_t> displayRect;
     bool resourceChanged = false;
 };
 

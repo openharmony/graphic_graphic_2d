@@ -633,7 +633,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     node->SetSkipLayer(true);
-    ASSERT_TRUE(node->GetSkipLayer());
+    ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
 }
 
 /**
@@ -650,7 +650,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayer001, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     node->SetSnapshotSkipLayer(true);
-    ASSERT_TRUE(node->GetSnapshotSkipLayer());
+    ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
 }
 
 /**
@@ -680,7 +680,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer002, TestSize.Level2)
     parentNode->SetIsOnTheTree(true);
     skipLayerNode->SetSkipLayer(true);
 
-    ASSERT_TRUE(parentNode->GetHasSkipLayer());
+    ASSERT_TRUE(skipLayerNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
 }
 
 /**
@@ -710,7 +710,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayer002, TestSize.Level2)
     parentNode->SetIsOnTheTree(true);
     snapshotSkipLayerNode->SetSnapshotSkipLayer(true);
 
-    ASSERT_TRUE(parentNode->GetHasSnapshotSkipLayer());
+    ASSERT_TRUE(parentNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SNAPSHOT_SKIP));
 }
 
 /**
@@ -727,7 +727,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer001, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     node->SetSecurityLayer(true);
-    ASSERT_TRUE(node->GetSecurityLayer());
+    ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 }
 
 /**
@@ -757,7 +757,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer002, TestSize.Level2)
     parentNode->SetIsOnTheTree(true);
     securityLayerNode->SetSecurityLayer(true);
 
-    ASSERT_TRUE(parentNode->GetHasSecurityLayer());
+    ASSERT_TRUE(parentNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
 }
 
 /**
@@ -1385,9 +1385,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayerTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetSkipLayer(true);
-    EXPECT_TRUE(node->isSkipLayer_);
+    EXPECT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     node->SetSkipLayer(false);
-    EXPECT_FALSE(node->isSkipLayer_);
+    EXPECT_FALSE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
 }
 
 /**
@@ -1400,48 +1400,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayerTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetSnapshotSkipLayer(true);
-    EXPECT_TRUE(node->isSnapshotSkipLayer_);
+    EXPECT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
     node->SetSnapshotSkipLayer(false);
-    EXPECT_FALSE(node->isSnapshotSkipLayer_);
-}
-
-/**
- * @tc.name: SyncSecurityInfoToFirstLevelNodeTest
- * @tc.desc: test results of SyncSecurityInfoToFirstLevelNode
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SyncSecurityInfoToFirstLevelNodeTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->SyncSecurityInfoToFirstLevelNode();
-    EXPECT_FALSE(node->isSkipLayer_);
-}
-
-/**
- * @tc.name: SyncSkipInfoToFirstLevelNode
- * @tc.desc: test results of SyncSkipInfoToFirstLevelNode
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SyncSkipInfoToFirstLevelNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->SyncSkipInfoToFirstLevelNode();
-    EXPECT_FALSE(node->isSkipLayer_);
-}
-
-/**
- * @tc.name: SyncSnapshotSkipInfoToFirstLevelNode
- * @tc.desc: test results of SyncSnapshotSkipInfoToFirstLevelNode
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SyncSnapshotSkipInfoToFirstLevelNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->SyncSnapshotSkipInfoToFirstLevelNode();
-    EXPECT_FALSE(node->isSnapshotSkipLayer_);
+    EXPECT_FALSE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
 }
 
 /**
@@ -1489,7 +1450,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, RegisterBufferAvailableListenerTest001, TestSi
     sptr<RSIBufferAvailableCallback> callback;
     bool isFromRenderThread = false;
     testNode->RegisterBufferAvailableListener(callback, isFromRenderThread);
-    EXPECT_FALSE(testNode->isSkipLayer_);
+    EXPECT_FALSE(testNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
 }
 
 /**
@@ -1515,7 +1476,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ConnectToNodeInRenderServiceTest, TestSize.Lev
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     testNode->ConnectToNodeInRenderService();
-    EXPECT_FALSE(testNode->isSkipLayer_);
+    EXPECT_FALSE(testNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
 }
 
 /**

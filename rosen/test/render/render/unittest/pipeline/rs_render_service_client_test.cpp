@@ -595,10 +595,10 @@ HWTEST_F(RSRenderServiceClientTest, GetScreenSupportedRefreshRates001, TestSize.
  */
 HWTEST_F(RSRenderServiceClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 {
-    rsClient->SetShowRefreshRateEnabled(false);
+    rsClient->SetShowRefreshRateEnabled(false, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
-    rsClient->SetShowRefreshRateEnabled(true);
+    rsClient->SetShowRefreshRateEnabled(true, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 }
 

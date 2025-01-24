@@ -17,6 +17,7 @@
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
 
+#include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
@@ -1115,6 +1116,59 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest003, Function | SmallTest |
     screenInfo.rotation = ScreenRotation::ROTATION_180;
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
+}
+
+/*
+ * @tc.name: DealWithNodeGravityTest004
+ * @tc.desc: Test DealWithNodeGravity when a component totalMatrix/bound/frame changed
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest004, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
+    node1.GetRSSurfaceHandler()->consumer_ = OHOS::IConsumerSurface::Create();
+    node1.renderContent_->renderProperties_.SetBoundsWidth(1080);
+    node1.renderContent_->renderProperties_.SetBoundsHeight(1653);
+    node1.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.SetDstRect({0, 1106, 1080, 1135});
+    node1.SetSrcRect({0, 0, 1080, 1135});
+    node1.isFixRotationByUser_ = false;
+    Drawing::Matrix totalMatrix = Drawing::Matrix();
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 1106, 0, 0, 1);
+    ScreenInfo screenInfo;
+    screenInfo.rotation = ScreenRotation::ROTATION_90;
+    RSUniRenderUtil::DealWithNodeGravity(node1, screenInfo, totalMatrix);
+    RectI expectedDstRect = {0, 1106, 1080, 1135};
+    RectI expectedSrcRect = {0, 0, 1080, 1135};
+    EXPECT_TRUE(node1.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node1.GetSrcRect() == expectedSrcRect);
+
+    id = 2;
+    RSSurfaceRenderNode node2(id);
+    node2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node2.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1647);
+    node2.GetRSSurfaceHandler()->consumer_ = OHOS::IConsumerSurface::Create();
+    node2.renderContent_->renderProperties_.SetBoundsWidth(1080);
+    node2.renderContent_->renderProperties_.SetBoundsHeight(1647);
+    node2.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node2.SetDstRect({873, 75, 358, 699});
+    node2.SetSrcRect({0, 0, 1080, 554});
+    node2.isFixRotationByUser_ = false;
+    totalMatrix.SetMatrix(0.0f, 0.646842, 873.114075, -0.646842, 0.0f, 774.0f, 0.0f, 0.0f, 1.0f);
+    screenInfo.rotation = ScreenRotation::ROTATION_180;
+    RSUniRenderUtil::DealWithNodeGravity(node2, screenInfo, totalMatrix);
+    expectedDstRect = {0, 1106, 1080, 1135};
+    expectedSrcRect = {0, 0, 1080, 1135};
+    EXPECT_TRUE(node2.GetDstRect() == expectedDstRect);
+    EXPECT_TRUE(node2.GetSrcRect() == expectedSrcRect);
 }
 
 /*
@@ -2655,6 +2709,67 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
     
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistory001
+ * @tc.desc: test MergeDirtyHistory
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryInVirtual001
+ * @tc.desc: test MergeDirtyHistoryInVirtual
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(*displayDrawable, bufferAge, screenInfo);
+    EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
 }
 } // namespace OHOS::Rosen

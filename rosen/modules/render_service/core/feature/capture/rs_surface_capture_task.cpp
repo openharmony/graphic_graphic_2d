@@ -339,7 +339,8 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         translateMatrix.PreTranslate(
             thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
     }
-    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY) ||
+        node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
@@ -372,7 +373,8 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
 
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY) ||
+        node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
             node.GetId());

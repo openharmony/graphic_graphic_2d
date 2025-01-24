@@ -24,7 +24,8 @@ namespace OHOS {
 namespace Rosen {
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it, just COMMENT it
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSFrameRateLinkerCommandType : uint16_t {
     FRAME_RATE_LINKER_DESTROY = 0,
     FRAME_RATE_LINKER_UPDATE_RANGE = 1,

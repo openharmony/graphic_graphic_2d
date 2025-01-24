@@ -57,7 +57,7 @@
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
 #endif
@@ -90,6 +90,15 @@ struct DataBaseRs {
     std::string note;
 };
 
+struct AppInfo {
+    int64_t startTime = 0;
+    int64_t endTime = 0;
+    int32_t pid = 0;
+    std::string versionName;
+    int32_t versionCode = -1;
+    std::string bundleName;
+    std::string processName;
+};
 struct GameStateData {
     int32_t pid = -1;
     int32_t uid = 0;
@@ -136,10 +145,13 @@ public:
         NodeId windowNodeId = 0,
         bool fromXcomponent = false);
 
+    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid);
+
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
@@ -173,7 +185,7 @@ public:
 
     int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
-    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
@@ -213,7 +225,9 @@ public:
 
     bool GetShowRefreshRateEnabled();
 
-    void SetShowRefreshRateEnabled(bool enable);
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type);
+
+    uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 
     std::string GetRefreshInfo(pid_t pid);
 
@@ -338,7 +352,7 @@ public:
 
     void ReportJankStats();
 
-    void NotifyLightFactorStatus(bool isSafe);
+    void NotifyLightFactorStatus(int32_t lightFactorStatus);
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
@@ -353,6 +367,10 @@ public:
     void ReportEventComplete(DataBaseRs info);
 
     void ReportEventJankFrame(DataBaseRs info);
+
+    void ReportRsSceneJankStart(AppInfo info);
+
+    void ReportRsSceneJankEnd(AppInfo info);
 
     void ReportGameStateData(GameStateData info);
 

@@ -26,7 +26,8 @@ namespace OHOS {
 namespace Rosen {
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it, just COMMENT it
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSNodeCommandType : uint16_t {
     ADD_MODIFIER = 0x0000,
     REMOVE_MODIFIER = 0x0001,

@@ -37,6 +37,7 @@ enum ClearMemoryMoment : uint32_t {
     LOW_MEMORY,
     NO_CLEAR,
     DEFAULT_CLEAN,
+    RECLAIM_CLEAN,
 };
 
 class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {

@@ -73,7 +73,20 @@ JANK_STATS_RS:
   STARTTIME: {type: UINT64, desc: begin time since last report}
   DURATION: {type: UINT64, desc: duration since last report}
   JANK_STATS: {type: UINT16, desc: jank frame stats}
+  PID: {type: INT32, desc: app pid}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
   JANK_STATS_VER: {type: UINT32, desc: jank range version}
+
+JANK_FRAME_RS:
+  __BASE: {type: FAULT, level: MINOR, tag: performance, desc: jank frame}
+  PID: {type: INT32, desc: app pid}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
 
 INTERACTION_RESPONSE_LATENCY:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction response statistics}

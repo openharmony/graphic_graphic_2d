@@ -36,7 +36,7 @@ public:
     void RemoveTask(const std::string& name = "");
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
         std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr,
-        std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr);
+        std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr, uint32_t parcelNumber = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
     void Wait();

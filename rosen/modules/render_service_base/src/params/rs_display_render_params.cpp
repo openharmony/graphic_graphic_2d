@@ -181,10 +181,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         allMainAndLeashSurfaceDrawables_.push_back(ptr);
     }
     targetDisplayParams->allMainAndLeashSurfaceDrawables_ = allMainAndLeashSurfaceDrawables_;
-    targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
-    targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
-    targetDisplayParams->displayHasSnapshotSkipSurface_ = displayHasSnapshotSkipSurface_;
-    targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
+    targetDisplayParams->specialLayerManager_ = specialLayerManager_;
     targetDisplayParams->displaySpecailSurfaceChanged_ = displaySpecailSurfaceChanged_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
     targetDisplayParams->hasChildCrossNode_ = hasChildCrossNode_;
@@ -237,46 +234,6 @@ std::string RSDisplayRenderParams::ToString() const
 DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetMirrorSourceDrawable()
 {
     return mirrorSourceDrawable_;
-}
-
-bool RSDisplayRenderParams::HasSecurityLayer() const
-{
-    bool hasSecLayerFlag = false;
-    auto iter = displayHasSecSurface_.find(screenId_);
-    if (iter != displayHasSecSurface_.end()) {
-        hasSecLayerFlag = iter->second;
-    }
-    return hasSecLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasSkipLayer() const
-{
-    bool hasSkipLayerFlag = false;
-    auto iter = displayHasSkipSurface_.find(screenId_);
-    if (iter != displayHasSkipSurface_.end()) {
-        hasSkipLayerFlag = iter->second;
-    }
-    return hasSkipLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasSnapshotSkipLayer() const
-{
-    bool hasSnapshotSkipLayerFlag = false;
-    auto iter = displayHasSnapshotSkipSurface_.find(screenId_);
-    if (iter != displayHasSnapshotSkipSurface_.end()) {
-        hasSnapshotSkipLayerFlag = iter->second;
-    }
-    return hasSnapshotSkipLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasProtectedLayer() const
-{
-    bool hasProtectedLayerFlag = false;
-    auto iter = displayHasProtectedSurface_.find(screenId_);
-    if (iter != displayHasProtectedSurface_.end()) {
-        hasProtectedLayerFlag = iter->second;
-    }
-    return hasProtectedLayerFlag;
 }
 
 bool RSDisplayRenderParams::HasCaptureWindow() const

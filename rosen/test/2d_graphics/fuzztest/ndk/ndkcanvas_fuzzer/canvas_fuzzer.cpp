@@ -47,6 +47,7 @@ constexpr uint32_t ENUM_RANGE_FIVE = 5;
 constexpr uint32_t ENUM_RANGE_TWENTY_EIGHT = 28;
 constexpr uint32_t WIDTH_FACTOR = 4;
 constexpr size_t DATA_MIN_SIZE = 2;
+constexpr size_t PATH_DIRECTION_ENUM_SIZE = 2;
 
 namespace OHOS {
 namespace Rosen {
@@ -578,6 +579,133 @@ void CanvasFuzzTest011(const uint8_t* data, size_t size)
     }
     OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils);
 }
+
+void CanvasFuzzTest012(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    bool quickReject = GetObject<bool>();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    uint32_t pathDirection = GetObject<uint32_t>();
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
+    OH_Drawing_CanvasBind(canvas, bitmap);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathAddRect(path, GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_CanvasQuickRejectPath(nullptr, path, &quickReject);
+    OH_Drawing_CanvasQuickRejectPath(canvas, nullptr, &quickReject);
+    OH_Drawing_CanvasQuickRejectPath(canvas, path, nullptr);
+    OH_Drawing_CanvasQuickRejectPath(canvas, path, &quickReject);
+    OH_Drawing_Rect* rect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_CanvasQuickRejectRect(nullptr, rect, &quickReject);
+    OH_Drawing_CanvasQuickRejectRect(canvas, nullptr, &quickReject);
+    OH_Drawing_CanvasQuickRejectRect(canvas, rect, nullptr);
+    OH_Drawing_CanvasQuickRejectRect(canvas, rect, &quickReject);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_RectDestroy(rect);
+}
+
+void CanvasFuzzTest013(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    bool useCenter = GetObject<bool>();
+    float startAngle = GetObject<float>();
+    float sweepAngle = GetObject<float>();
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_Rect* rect =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_CanvasDrawArcWithCenter(nullptr, rect, startAngle, sweepAngle, useCenter);
+    OH_Drawing_CanvasDrawArcWithCenter(canvas, nullptr, startAngle, sweepAngle, useCenter);
+    OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, startAngle, sweepAngle, useCenter);
+    OH_Drawing_Rect* rectOuter =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_Rect* rectInner =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_RoundRect* outer = OH_Drawing_RoundRectCreate(rectOuter, GetObject<float>(), GetObject<float>());
+    OH_Drawing_RoundRect* inner = OH_Drawing_RoundRectCreate(rectInner, GetObject<float>(), GetObject<float>());
+    OH_Drawing_CanvasDrawNestedRoundRect(nullptr, outer, inner);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, nullptr, inner);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, nullptr);
+    OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, inner);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_RectDestroy(rectOuter);
+    OH_Drawing_RectDestroy(rectInner);
+    OH_Drawing_RoundRectDestroy(outer);
+    OH_Drawing_RoundRectDestroy(inner);
+}
+
+void CanvasFuzzTest014(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapNative *pixelMap = nullptr;
+    size_t width = GetObject<size_t>() % MAX_ARRAY_MAX;
+    size_t height = GetObject<size_t>() % MAX_ARRAY_MAX;
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, WIDTH_FACTOR);
+    OH_PixelmapInitializationOptions_SetAlphaType(options, ENUM_RANGE_TWO);
+    size_t dataLength = width * height * WIDTH_FACTOR;
+    uint8_t* colorData = new uint8_t[dataLength];
+    for (size_t i = 0; i < width * height; i++) {
+        colorData[i] = GetObject<uint8_t>();
+    }
+    OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    OH_Drawing_Rect* center =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_Rect* dst =
+        OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+
+    OH_Drawing_CanvasDrawPixelMapNine(nullptr, drPixelMap, center, dst,
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO));
+    OH_Drawing_CanvasDrawPixelMapNine(canvas, nullptr, center, dst,
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO));
+    OH_Drawing_CanvasDrawPixelMapNine(canvas, drPixelMap, center, nullptr,
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO));
+    OH_Drawing_CanvasDrawPixelMapNine(canvas, drPixelMap, center, dst,
+        static_cast<OH_Drawing_FilterMode>(GetObject<uint32_t>() % ENUM_RANGE_TWO));
+
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    OH_Drawing_RectDestroy(center);
+    OH_Drawing_RectDestroy(dst);
+
+    if (colorData != nullptr) {
+        delete[] colorData;
+        colorData = nullptr;
+    }
+    OH_Drawing_CanvasDestroy(canvas);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -597,5 +725,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest009(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest010(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest011(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest012(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest013(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest014(data, size);
     return 0;
 }

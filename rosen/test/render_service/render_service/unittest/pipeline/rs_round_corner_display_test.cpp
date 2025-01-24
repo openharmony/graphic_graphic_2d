@@ -130,7 +130,7 @@ HWTEST_F(RSRoundCornerDisplayTest, UpdateParameterTest, TestSize.Level1)
 
     uint32_t width = 1344;
     uint32_t height = 2772;
-    rcdInstance.UpdateDisplayParameter(width, height);
+    rcdInstance.UpdateDisplayParameter(0, 0, width, height);
 
     std::map<std::string, bool> updateFlag = {
         {"display", true},
@@ -165,7 +165,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
 
     uint32_t width = 1344;
     uint32_t height = 2772;
-    rcdInstance.UpdateDisplayParameter(width, height);
+    rcdInstance.UpdateDisplayParameter(0, 0, width, height);
 
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(width, height);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
@@ -246,7 +246,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSGetSurfaceSourceTest, TestSize.Level1)
 
     uint32_t width = 1344;
     uint32_t height = 2772;
-    rcdInstance.UpdateDisplayParameter(width, height);
+    rcdInstance.UpdateDisplayParameter(0, 0, width, height);
 
     rcdInstance.GetTopSurfaceSource();
     rcdInstance.GetBottomSurfaceSource();
@@ -272,7 +272,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSChooseResourceTest, TestSize.Level1)
 
     uint32_t width = 1344;
     uint32_t height = 2772;
-    rcdInstance.UpdateDisplayParameter(width, height);
+    rcdInstance.UpdateDisplayParameter(0, 0, width, height);
 
     rcdInstance.RcdChooseTopResourceType();
 
@@ -407,10 +407,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
     }
     EXPECT_TRUE(portrait != std::nullopt);
     hardInfo.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
-    hardInfo.bottomLayer->layerWidth = width;
-    hardInfo.bottomLayer->layerHeight = height;
+    hardInfo.displayRect = RectU(0, 0, width, height);
     hardInfo.bottomLayer->curBitmap = &bitmapBottomPortrait;
-
     auto bottomSurfaceNode = RSRcdSurfaceRenderNode::Create(0, RCDSurfaceType::BOTTOM);
     HardwareLayerInfo info{};
     bottomSurfaceNode->FillHardwareResource(info, 0, 0);
@@ -765,8 +763,6 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
         10000, // bufferSize
         2, // cldWidth
         2, // cldHeight
-        0,
-        0,
         nullptr
     };
     auto nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
@@ -930,12 +926,11 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDisplayResource, TestSize.Level1
 
     rcdInstance.hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>();
     rcdInstance.hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>();
-    rcdInstance.displayWidth_ = 640;
-    rcdInstance.displayHeight_ = 480;
+    rcdInstance.displayRect_ = RectU(0, 0, 640, 480);
     EXPECT_TRUE(rcdInstance.SetHardwareLayerSize());
-    rcdInstance.UpdateDisplayParameter(rcdInstance.displayWidth_, rcdInstance.displayHeight_);
+    rcdInstance.UpdateDisplayParameter(0, 0, rcdInstance.displayRect_.GetWidth(), rcdInstance.displayRect_.GetHeight());
     rcdInstance.updateFlag_["display"] = false;
-    rcdInstance.UpdateDisplayParameter(0, 0);
+    rcdInstance.UpdateDisplayParameter(0, 0, 0, 0);
     EXPECT_TRUE(rcdInstance.updateFlag_["display"] == false);
 
     rcdInstance.rog_ = new rs_rcd::ROGSetting();
@@ -967,7 +962,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDisplayResource, TestSize.Level1
 
     rcdInstance.supportBottomSurface_ = true;
     EXPECT_TRUE(rcdInstance.LoadImgsbyResolution(0, 0) == true);
-    rcdInstance.UpdateDisplayParameter(0, 0);
+    rcdInstance.UpdateDisplayParameter(0, 0, 0, 0);
     EXPECT_TRUE(rcdInstance.updateFlag_["display"] == true);
     delete rcdInstance.rog_;
     rcdInstance.rog_ = nullptr;
@@ -1270,7 +1265,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerNULLRcd, TestSize.Le
     auto res = rcdInstance.CheckExist(id);
     EXPECT_TRUE(res == true);
     rcdInstance.rcdMap_[id] = nullptr;
-    rcdInstance.UpdateDisplayParameter(id, w, h);
+    rcdInstance.UpdateDisplayParameter(id, 0, 0, w, h);
     res = rcdInstance.CheckExist(id);
     EXPECT_TRUE(res == false);
     rcdInstance.rcdMap_[id] = nullptr;
@@ -1300,7 +1295,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerUpdate, TestSize.Lev
     std::function<void()> task = []() {std::cout << "hardwareComposer RoundCornerDisplayManager Task" << std::endl;};
     // normal flow
     rcdInstance.AddRoundCornerDisplay(id);
-    rcdInstance.UpdateDisplayParameter(id, w, h);
+    rcdInstance.UpdateDisplayParameter(id, 0, 0, w, h);
     rcdInstance.UpdateNotchStatus(id, status);
     rcdInstance.UpdateOrientationStatus(id, rot);
     auto hardInfo = rcdInstance.GetHardwareInfo(id);
@@ -1309,7 +1304,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerUpdate, TestSize.Lev
     EXPECT_TRUE(res == true);
     // no id flow
     rcdInstance.RemoveRoundCornerDisplay(id);
-    rcdInstance.UpdateDisplayParameter(id, w, h);
+    rcdInstance.UpdateDisplayParameter(id, 0, 0, w, h);
     rcdInstance.UpdateNotchStatus(id, status);
     rcdInstance.UpdateOrientationStatus(id, rot);
     hardInfo = rcdInstance.GetHardwareInfo(id);
@@ -1395,11 +1390,12 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     std::shared_ptr<Drawing::Bitmap> bitMap = std::make_shared<Drawing::Bitmap>();
     bitMap->Build(896, 1848,
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, 896, 1848, bitMap.get()};
+    rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
     std::shared_ptr<rs_rcd::RoundCornerLayer> topPtr = std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp);
     auto rsHardwareProcessor =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    info = {rsHardwareProcessor, topPtr, topPtr, true};
+    RectU displayRect{0, 0, 896, 1848};
+    info = {rsHardwareProcessor, topPtr, topPtr, displayRect, true};
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
     rcdManagerInstance.DoProcessRenderTask(id, info);
     RSContext context;

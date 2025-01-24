@@ -106,6 +106,7 @@ public:
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
+    void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
     void RenderServiceAllNodeDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
@@ -394,9 +395,13 @@ public:
         return isMultiDisplayPre_;
     }
 
-    bool HasWiredMirrorDisplay()
+    bool HasWiredMirrorDisplay() const
     {
         return hasWiredMirrorDisplay_;
+    }
+    bool HasVirtualMirrorDisplay() const
+    {
+        return hasVirtualMirrorDisplay_;
     }
     uint64_t GetCurrentVsyncTime() const
     {
@@ -574,7 +579,8 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
-    mutable bool hasWiredMirrorDisplay_ = false;
+    mutable std::atomic_bool hasWiredMirrorDisplay_ = false;
+    mutable std::atomic_bool hasVirtualMirrorDisplay_ = false;
     // used for hardware enabled case
     bool doDirectComposition_ = true;
 #ifdef RS_ENABLE_GPU
@@ -812,6 +818,7 @@ private:
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
+    std::mutex transactionDataMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

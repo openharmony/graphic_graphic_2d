@@ -16,6 +16,7 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 #define RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 
+#include "pipeline/rs_slr_scale.h"
 #include "rs_uni_render_processor.h"
 
 namespace OHOS {
@@ -55,6 +56,10 @@ public:
     void UniScale(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
 
+    std::shared_ptr<RSSLRScaleFunction> GetSlrManager()
+    {
+        return slrManager_;
+    }
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas()
     {
         return canvas_;
@@ -80,6 +85,7 @@ public:
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasClipRegionForUniscaleMode();
+    void ProcessCacheImage(Drawing::Image& cacheImage);
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
@@ -112,6 +118,7 @@ private:
     sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;
+    std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

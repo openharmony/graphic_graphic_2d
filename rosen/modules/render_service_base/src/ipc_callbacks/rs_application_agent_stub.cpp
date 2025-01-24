@@ -16,6 +16,7 @@
 #include "rs_application_agent_stub.h"
 
 #include "command/rs_command.h"
+#include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -25,6 +26,7 @@ int RSApplicationAgentStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != IApplicationAgent::GetDescriptor()) {
+        ROSEN_LOGE("%{public}s, token do not match", __func__);
         return ERR_INVALID_STATE;
     }
 

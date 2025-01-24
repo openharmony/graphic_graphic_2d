@@ -107,7 +107,6 @@ template("skia_libtxt") {
       }
     }
 
-    defines += [ "OHOS_STANDARD_SYSTEM" ]
     deps = [
       ":skia_paragraph",
       ":skia_shaper",
@@ -125,6 +124,7 @@ template("skia_libtxt") {
         "hilog:libhilog",
         "skia:skia_canvaskit",
       ]
+      defines += [ "OHOS_STANDARD_SYSTEM" ]
     }
 
     if (!is_cross_platform) {

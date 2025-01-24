@@ -131,6 +131,11 @@ public:
 
     void SetRenderTargetId(NodeId id);
 
+    void SetRenderDisplayRect(const RectT<uint32_t>& rect)
+    {
+        displayRect_ = rect;
+    }
+
     void PrintRcdNodeInfo();
 private:
     float GetSurfaceWidth() const;
@@ -145,6 +150,7 @@ private:
 
     std::shared_ptr<RSSurface> surface_ = nullptr;
     sptr<IBufferConsumerListener> consumerListener_;
+    RectT<uint32_t> displayRect_;
 
     RcdExtInfo rcdExtInfo_;
 

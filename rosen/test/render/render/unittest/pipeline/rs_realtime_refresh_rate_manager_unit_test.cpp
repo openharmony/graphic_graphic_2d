@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "test_header.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;

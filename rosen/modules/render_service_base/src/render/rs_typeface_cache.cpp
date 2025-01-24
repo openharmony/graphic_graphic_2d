@@ -338,7 +338,7 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
     uint64_t uniqueId;
     size_t dataSize;
     std::vector<uint8_t> data;
-    constexpr size_t maxTypefaceDataSize = 15'000'000;
+    constexpr size_t maxTypefaceDataSize = 40'000'000;
 
     ss.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
     for (size_t i = 0; i < fontCount; i++) {
@@ -346,7 +346,7 @@ std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
         ss.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
         if (dataSize > maxTypefaceDataSize) {
-            return "Typeface serialized data is over 15MB";
+            return "Typeface serialized data is over 40MB";
         }
         data.resize(dataSize);
         ss.read(reinterpret_cast<char*>(data.data()), data.size());

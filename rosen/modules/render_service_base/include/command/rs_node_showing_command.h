@@ -26,7 +26,8 @@ namespace Rosen {
 class RSRenderPropertyBase;
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it, just COMMENT it
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSNodeShowingCommandType : uint16_t {
     GET_RENDER_PROPERTY = 0,
     GET_RENDER_PROPERTIES = 1,

@@ -25,6 +25,7 @@
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
+#include "hgm_hfbc_config.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "parameters.h"
@@ -451,6 +452,50 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     ReportHiSysEvent(lastVoteInfo_);
 }
 
+void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& finalRange)
+{
+    auto iter = vRatesMap_.find(linkerId);
+    if (iter == vRatesMap_.end()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange not find pid = %d linkerId = %" PRIu64 " return",
+            ExtractPid(linkerId), linkerId);
+        HGM_LOGD("CollectVRateChange not find pid = %{public}d linkerId = %{public}" PRIu64 " return",
+            ExtractPid(linkerId), linkerId);
+        return;
+    }
+    if (iter->second == 1 || iter->second == 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return",
+            ExtractPid(linkerId), linkerId, iter->second);
+        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return",
+                linkerId, iter->second);
+        return;
+    }
+    int32_t& appFrameRate = finalRange.preferred_;
+    // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
+    if (appFrameRate != 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d "
+            "return because changed by self", ExtractPid(linkerId), linkerId, iter->second);
+        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return because changed by self",
+                linkerId, iter->second);
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CollectVRateChange Before modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d, vrate = %d",
+        ExtractPid(linkerId), linkerId, appFrameRate, iter->second);
+    HGM_LOGD("CollectVRateChange Before modification linkerId = %{public}" PRIu64 ","
+        "appFrameRate = %{public}d, vrate = %{public}d", linkerId, appFrameRate, iter->second);
+    appFrameRate = static_cast<int>(controllerRate_ / iter->second);
+    // vrate is int::max means app need not refreshing
+    if (appFrameRate == 0) {
+        //appFrameRate value is 1  means that not refreshing.
+        appFrameRate = 1;
+    }
+    finalRange.min_ = OLED_NULL_HZ;
+    finalRange.max_ = OLED_144_HZ;
+    RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", %d", linkerId, appFrameRate);
+    HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ", appFrameRate = %{public}d",
+                linkerId, appFrameRate);
+}
+
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 {
     if (frameRateVoteInfo.voterName.empty()) {
@@ -486,7 +531,7 @@ void HgmFrameRateManager::FrameRateReport()
     } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_60_HZ) {
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
-        rates[UNI_APP_PID] = schedulePreferredFps_;
+        rates[UNI_APP_PID] = OLED_120_HZ;
     }
     HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
@@ -495,42 +540,6 @@ void HgmFrameRateManager::FrameRateReport()
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     schedulePreferredFpsChange_ = false;
-}
-
-void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, int& appFrameRate)
-{
-    auto iter = vRatesMap_.find(linkerId);
-    if (iter == vRatesMap_.end()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange not find linkerId = %" PRIu64 " return", linkerId);
-        HGM_LOGD("CollectVRateChange return linkerId = %{public}" PRIu64 " return", linkerId);
-        return;
-    }
-    if (iter->second == 1 || iter->second == 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", vrate = %d return",
-            linkerId, iter->second);
-        HGM_LOGD("HgmFrameRateManager : CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return",
-                linkerId, iter->second);
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "CollectVRateChange Before modification linkerIdS = %" PRIu64 ",appFrameRate = %d, vrate = %d",
-        linkerId, appFrameRate, iter->second);
-    HGM_LOGD("HgmFrameRateManager: CollectVRateChange Before modification linkerId = %{public}" PRIu64 ","
-        "appFrameRate = %{public}d, vrate = %{public}d", linkerId, appFrameRate, iter->second);
-    // appFrameRate initial value is 0  means that the appframerate will not be changed.
-    if (appFrameRate == 0) {
-        appFrameRate = static_cast<int>(controllerRate_ / iter->second);
-    } else {
-        appFrameRate = static_cast<int>(appFrameRate / iter->second);
-    }
-    // vrate is int::max means app need not refreshing
-    if (appFrameRate == 0) {
-        //appFrameRate value is 1  means that not refreshing.
-        appFrameRate = 1;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", %d", linkerId, appFrameRate);
-    HGM_LOGD("HgmFrameRateManager: CollectVRateChange linkerId = %{public}" PRIu64 ", %{public}d",
-                linkerId, appFrameRate);
 }
 
 bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
@@ -562,7 +571,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
             continue;
         }
         auto expectedRange = linker.second->GetExpectedRange();
-        CollectVRateChange(linker.first, expectedRange.preferred_);
+        CollectVRateChange(linker.first, expectedRange);
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
@@ -645,7 +654,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
 {
     isAmbientEffect_ = false;
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
-    if (!configData || !isLtpo_) {
+    if (!configData) {
         return;
     }
 
@@ -709,7 +718,8 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
     bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
-    if (isAmbientSafe_ && isAmbientEffect_) {
+    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
+        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         supportRefreshRateVec = lowBrightVec_;
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
@@ -821,15 +831,23 @@ float HgmFrameRateManager::PixelToMM(float velocity)
     return velocityMM;
 }
 
-void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
+void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
-    HGM_LOGI("HandleLightFactorStatus status:%{public}u", isSafe);
+    // 1.normal strategy : there are two states {NORMAL_HIGH, NORMAL_LOW}
+    // NORMAL_HIGH : allowed to reduce the screen refresh rate; NORMAL_LOW : not allowed
+    // 2.brightness level strategy : there are three states {LOW_LEVEL, MIDDLE_LEVEL, HIGH_LEVEL}
+    // LOW_LEVEL : not allowed to reduce the screen refresh rate, up to 90Hz;
+    // MIDDLE_LEVEL : allowed to reduce the screen refresh rate, up to 90Hz;
+    // HIGH_LEVEL : allowed to reduce the screen refresh rate, up to 120Hz
+    HGM_LOGI("HandleLightFactorStatus status:%{public}d", state);
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    multiAppStrategy_.HandleLightFactorStatus(isSafe);
-    isAmbientSafe_ = isSafe;
+    multiAppStrategy_.SetScreenType(isLtpo_);
+    multiAppStrategy_.HandleLightFactorStatus(state);
+    isAmbientStatus_ = state;
+    MarkVoteChange();
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)
@@ -837,6 +855,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
+    // check whether to enable HFBC
+    HgmHfbcConfig::HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
         for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {
@@ -1192,7 +1212,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    if (refreshRate == currRefreshRate_) {
+    if (refreshRate == currRefreshRate_ && isAmbientStatus_ < LightFactorStatus::LOW_LEVEL) {
         return;
     }
 
@@ -1594,7 +1614,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
         for (auto cleanPidCallbackType : iter->second) {
             switch (cleanPidCallbackType) {
                 case CleanPidCallbackType::LIGHT_FACTOR:
-                    HandleLightFactorStatus(DEFAULT_PID, false);
+                    HandleLightFactorStatus(DEFAULT_PID, LightFactorStatus::NORMAL_HIGH);
                     break;
                 case CleanPidCallbackType::PACKAGE_EVENT:
                     HandlePackageEvent(DEFAULT_PID, {}); // handle empty pkg

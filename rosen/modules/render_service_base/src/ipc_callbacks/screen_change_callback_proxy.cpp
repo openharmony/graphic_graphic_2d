@@ -25,7 +25,8 @@ RSScreenChangeCallbackProxy::RSScreenChangeCallbackProxy(const sptr<IRemoteObjec
 {
 }
 
-void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event)
+void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event,
+    ScreenChangeReason reason)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -37,6 +38,7 @@ void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event
 
     data.WriteUint64(id);
     data.WriteUint8(ECast(event));
+    data.WriteUint8(ECast(reason));
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);

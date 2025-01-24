@@ -173,7 +173,7 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
     uint32_t bitmapHeight = static_cast<uint32_t>(layerBitmap.GetHeight());
     uint32_t bitmapWidth = static_cast<uint32_t>(layerBitmap.GetWidth());
-    if (bitmapHeight <= 0 || bitmapWidth <= 0 || layerInfo->layerHeight <= 0) {
+    if (bitmapHeight <= 0 || bitmapWidth <= 0 || displayRect_.GetHeight() <= 0) {
         RS_LOGE("bitmapHeight, bitmapWidth or layerHeight is wrong value");
         return false;
     }
@@ -183,11 +183,12 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
 
     if (IsTopSurface()) {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
-        rcdExtInfo_.dstRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
+        rcdExtInfo_.dstRect_ = RectI(displayRect_.GetLeft(), displayRect_.GetTop(), bitmapWidth, bitmapHeight);
         SetGlobalZOrder(RCD_LAYER_Z_TOP1);
     } else {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
-        rcdExtInfo_.dstRect_ = RectI(0, layerInfo->layerHeight - bitmapHeight, bitmapWidth, bitmapHeight);
+        rcdExtInfo_.dstRect_ = RectI(displayRect_.GetLeft(), displayRect_.GetHeight() - bitmapHeight +
+            displayRect_.GetTop(), bitmapWidth, bitmapHeight);
         SetGlobalZOrder(RCD_LAYER_Z_TOP2);
     }
     return true;

@@ -28,7 +28,8 @@ public:
     RSIScreenChangeCallback() = default;
     virtual ~RSIScreenChangeCallback() noexcept = default;
 
-    virtual void OnScreenChanged(ScreenId id, ScreenEvent event) = 0;
+    virtual void OnScreenChanged(ScreenId id, ScreenEvent event,
+        ScreenChangeReason reason = ScreenChangeReason::DEFAULT) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

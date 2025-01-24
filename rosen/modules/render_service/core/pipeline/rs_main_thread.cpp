@@ -68,7 +68,7 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -259,7 +259,7 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
         RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
             [id, &processor, &rcdInfo](void) {
                 auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
-                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
                     hardInfo.resourceChanged};
                 RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
             });
@@ -415,7 +415,7 @@ void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_PROFILER_ON_FRAME_BEGIN();
+        RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
         if (isUniRender_ && !renderThreadParams_) {
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later
@@ -1515,8 +1515,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
             (surfaceHandler->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
-            if (!surfaceNode->GetProtectedLayer()) {
-                surfaceNode->SetProtectedLayer(true);
+            if (!surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+                surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
             }
             const auto& instanceNode = surfaceNode->GetInstanceRootNode();
             if (instanceNode && instanceNode->IsOnTheTree()) {
@@ -1988,7 +1988,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     int changed = 0;
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
-        RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
+        RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
     // Start of DVSync
     bool isUiDvsyncOn = false;
@@ -3357,11 +3357,12 @@ bool RSMainThread::IsIdle() const
 
 void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationAgentMap_.emplace(pid, app);
+    applicationAgentMap_.insert_or_assign(pid, app);
 }
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
+    MemoryManager::CheckIsClearApp();
     EraseIf(applicationAgentMap_,
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
 }
@@ -3484,6 +3485,19 @@ void RSMainThread::SendCommands()
     });
 }
 
+void RSMainThread::TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString)
+{
+    for (const auto& [pid, transactionData] : transactionDataMap) {
+        dumpString.append("[pid: " + std::to_string(pid));
+        for (const auto& transcation : transactionData) {
+            dumpString.append(", [index: " + std::to_string(transcation->GetIndex()));
+            transcation->DumpCommand(dumpString);
+            dumpString.append("]");
+        }
+        dumpString.append("]");
+    }
+}
+
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
     if (LIKELY(forceDumpSingleFrame)) {
@@ -3496,6 +3510,12 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             dumpString.append(std::to_string(nodeId) + ", ");
         }
         dumpString.append("];\n");
+        dumpString.append("-- CacheTransactionData: ");
+        {
+            std::lock_guard<std::mutex> lock(transactionDataMutex_);
+            TransactionDataMapDump(cachedTransactionDataMap_, dumpString);
+        }
+        dumpString.append("\n");
         const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
         if (rootNode == nullptr) {
             dumpString.append("rootNode is null\n");
@@ -3787,6 +3807,14 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
         }
     }
     dumpString.append("dumpMem: " + type + "\n");
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSMainThread::DumpMem screenManager is nullptr");
+        return;
+    }
+    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
+    dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
+        "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
     dumpString.append(log.GetString());
 #else
     dumpString.append("No GPU in this device");
@@ -4314,10 +4342,12 @@ bool RSMainThread::IsSingleDisplay()
 
 bool RSMainThread::HasMirrorDisplay() const
 {
-    hasWiredMirrorDisplay_ = false;
-    bool hasVirtualMirrorDisplay_ = false;
+    bool hasWiredMirrorDisplay = false;
+    bool hasVirtualMirrorDisplay = false;
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+        hasWiredMirrorDisplay_.store(false);
+        hasVirtualMirrorDisplay_.store(false);
         return false;
     }
 
@@ -4331,13 +4361,15 @@ bool RSMainThread::HasMirrorDisplay() const
         }
         if (auto mirroredNode = displayNode->GetMirrorSource().lock()) {
             if (displayNode->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
-                hasWiredMirrorDisplay_ = true;
+                hasWiredMirrorDisplay = true;
             } else {
-                hasVirtualMirrorDisplay_ = true;
+                hasVirtualMirrorDisplay = true;
             }
         }
     }
-    return hasWiredMirrorDisplay_ || hasVirtualMirrorDisplay_;
+    hasWiredMirrorDisplay_.store(hasWiredMirrorDisplay);
+    hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
+    return hasWiredMirrorDisplay || hasVirtualMirrorDisplay;
 }
 
 void RSMainThread::UpdateRogSizeIfNeeded()
@@ -4738,7 +4770,7 @@ void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool for
     drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
     preIdealPeriod_ = idealPeriod;
     preExtraReserve_ = extraReserve;
-    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: " PRId64 ", reservedDrawingTime:" PRId64 "",
+    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
         currentRate, vsyncOffset, drawingTime);
 
     std::unordered_map<std::string, std::string> payload = {};

@@ -23,7 +23,8 @@ namespace OHOS {
 namespace Rosen {
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it, just COMMENT it
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSProxyNodeCommandType : uint16_t {
     PROXY_NODE_CREATE = 0,
     PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE = 1,

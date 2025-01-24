@@ -195,6 +195,7 @@ public:
     ~PixelMapFromSurface() noexcept;
 
     std::unique_ptr<OHOS::Media::PixelMap> Create(sptr<Surface> surface, const OHOS::Media::Rect &srcRect);
+    std::unique_ptr<OHOS::Media::PixelMap> Create(sptr<SurfaceBuffer> surfaceBuffer, const OHOS::Media::Rect &srcRect);
 
     PixelMapFromSurface(const PixelMapFromSurface &) = delete;
     void operator=(const PixelMapFromSurface &) = delete;
@@ -209,11 +210,14 @@ private:
     void Clear() noexcept;
 #if defined(RS_ENABLE_VK)
     static void DeleteVkImage(void *context);
+    std::unique_ptr<OHOS::Media::PixelMap> GetPixelMapForVK(const OHOS::Media::Rect &srcRect);
 #endif
     std::unique_ptr<OHOS::Media::PixelMap> CreatePixelMap(GraphicPixelFormat pixelFormat,
         const OHOS::Media::Rect &srcRect);
     void CopySurfaceBufferInfo(const sptr<SurfaceBuffer>& src, sptr<SurfaceBuffer>& dst);
     std::unique_ptr<OHOS::Media::PixelMap> CreateForVK(const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect);
+    std::unique_ptr<OHOS::Media::PixelMap> CreateForVK(
+        const sptr<SurfaceBuffer> &surfaceBuffer, const OHOS::Media::Rect &srcRect);
     bool DrawImageRectVK(const std::shared_ptr<Drawing::Image> &drawingImage,
         OHNativeWindowBuffer *nativeWindowBufferTmp, const sptr<SurfaceBuffer> &surfaceBufferTmp,
         const OHOS::Media::Rect &srcRect);
@@ -227,8 +231,11 @@ private:
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     std::unique_ptr<OHOS::Media::PixelMap> CreatePixelMapForGL(sk_sp<GrDirectContext> grContext,
         const OHOS::Media::Rect &srcRect);
+    std::unique_ptr<OHOS::Media::PixelMap> GetPixelMapForGL(const OHOS::Media::Rect &srcRect);
 #endif
     std::unique_ptr<OHOS::Media::PixelMap> CreateForGL(const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect);
+    std::unique_ptr<OHOS::Media::PixelMap> CreateForGL(
+        const sptr<SurfaceBuffer> &surfaceBuffer, const OHOS::Media::Rect &srcRect);
 
 #if defined(RS_ENABLE_VK)
     mutable Drawing::BackendTexture backendTexture_ = {};
@@ -332,8 +339,30 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_UNI_RENDER)
     ScopedBytrace trace(__func__);
     nativeWindowBuffer_ = GetNativeWindowBufferFromSurface(surfaceBuffer_, surface, srcRect);
+    return GetPixelMapForGL(srcRect);
+#else
+    return nullptr;
+#endif
+}
+
+std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sptr<SurfaceBuffer> &surfaceBuffer,
+    const OHOS::Media::Rect &srcRect)
+{
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_UNI_RENDER)
+    ScopedBytrace trace(__func__);
+    surfaceBuffer_ = surfaceBuffer;
+    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer_);
+    return GetPixelMapForGL(srcRect);
+#else
+    return nullptr;
+#endif
+}
+
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_UNI_RENDER)
+std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForGL(const OHOS::Media::Rect &srcRect)
+{
     if (!nativeWindowBuffer_ || !surfaceBuffer_) {
-        RS_LOGE("GetNativeWindowBufferFromSurface fail");
+        RS_LOGE("GetPixelMapForGL nativeWindowBuffer_ or surfaceBuffer_ is null");
         return nullptr;
     }
 
@@ -357,10 +386,8 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
         return nullptr;
     }
     return CreatePixelMapForGL(grContext, srcRect);
-#else
-    return nullptr;
-#endif
 }
+#endif
 
 #if defined(RS_ENABLE_VK)
 void PixelMapFromSurface::DeleteVkImage(void *context)
@@ -538,7 +565,30 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace(__func__);
     nativeWindowBuffer_ = GetNativeWindowBufferFromSurface(surfaceBuffer_, surface, srcRect);
+    return GetPixelMapForVK(srcRect);
+#else
+    return nullptr;
+#endif
+}
+
+std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sptr<SurfaceBuffer> &surfaceBuffer,
+    const OHOS::Media::Rect &srcRect)
+{
+#if defined(RS_ENABLE_VK)
+    ScopedBytrace trace(__func__);
+    surfaceBuffer_ = surfaceBuffer;
+    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer_);
+    return GetPixelMapForVK(srcRect);
+#else
+    return nullptr;
+#endif
+}
+
+#if defined(RS_ENABLE_VK)
+std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(const OHOS::Media::Rect &srcRect)
+{
     if (!nativeWindowBuffer_ || !surfaceBuffer_) {
+        RS_LOGE("GetPixelMapForVK nativeWindowBuffer_ or surfaceBuffer_ is null");
         return nullptr;
     }
 
@@ -550,7 +600,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap = CreatePixelMap(pixelFormat, srcRect);
     if (pixelMap == nullptr) {
-        RS_LOGE("create pixelMap fail in CreateForVK");
+        RS_LOGE("create pixelMap fail in GetPixelMapForVK");
         return nullptr;
     }
 
@@ -577,10 +627,8 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
     }
     DestroyNativeWindowBuffer(nativeWindowBufferTmp);
     return pixelMap;
-#else
-    return nullptr;
-#endif
 }
+#endif
 
 OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
     sptr<SurfaceBuffer> &surfaceBuffer, const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect)
@@ -751,6 +799,49 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
     return pixelMap;
 }
 
+std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
+    sptr<SurfaceBuffer> surfaceBuffer, const OHOS::Media::Rect &srcRect)
+{
+    ScopedBytrace trace(__func__);
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceBuffer invalid argument: surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    if (srcRect.left < 0 || srcRect.top < 0 || srcRect.width <= 0 || srcRect.height <= 0) {
+        RS_LOGE("surfaceBuffer invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
+            srcRect.left, srcRect.top, srcRect.width, srcRect.height);
+        return nullptr;
+    }
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+        RS_LOGE("surfaceBuffer check GPUContext fail");
+        return nullptr;
+    }
+#endif
+    RS_LOGI("PixelMapFromSurface::Create surfaceBuffer srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
+        srcRect.left, srcRect.top, srcRect.width, srcRect.height);
+
+    std::unique_ptr<PixelMap> pixelMap = nullptr;
+#if defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        pixelMap = CreateForGL(surfaceBuffer, srcRect);
+    }
+#endif
+
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        pixelMap = CreateForVK(surfaceBuffer, srcRect);
+    }
+#endif
+
+    if (pixelMap == nullptr) {
+        RS_LOGE("surfaceBuffer Create pixelMap fail");
+        Clear();
+    }
+    return pixelMap;
+}
+
 std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
     const OHOS::Media::Rect &srcRect)
 {
@@ -759,6 +850,18 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> s
     return helper->Create(surface, srcRect);
 #else
     RS_LOGE("CreatePixelMapFromSurface fail");
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
+    const OHOS::Media::Rect &srcRect)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    auto helper = std::make_unique<PixelMapFromSurface>();
+    return helper->Create(surfaceBuffer, srcRect);
+#else
+    RS_LOGE("CreatePixelMapFromSurfaceBuffer fail");
     return nullptr;
 #endif
 }

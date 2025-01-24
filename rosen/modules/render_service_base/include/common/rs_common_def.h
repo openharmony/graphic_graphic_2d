@@ -297,7 +297,8 @@ enum class UiFirstModeType : uint8_t {
 };
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it, just COMMENT it
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum class RSUIFirstSwitch {
     NONE = 0,               // follow RS rules
     MODAL_WINDOW_CLOSE = 1, // open app with modal window animation, close uifirst

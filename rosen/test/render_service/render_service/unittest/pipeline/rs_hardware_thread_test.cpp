@@ -19,6 +19,7 @@
 #include "rs_test_util.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "mock/mock_hdi_device.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -328,6 +329,43 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
 
     hardwareThread.CalculateDelayTime(hgmCore, param, currentRate, currTime);
     EXPECT_EQ(hardwareThread.delayTime_ == 0, true);
+}
+
+/**
+ * @tc.name: RecordTimestamp
+ * @tc.desc: Test RSHardwareThreadTest.RecordTimestamp
+ * @tc.type: FUNC
+ * @tc.require: IBE7GI
+ */
+HWTEST_F(RSHardwareThreadTest, RecordTimestamp, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RectI dstRect{0, 0, 400, 600};
+    surfaceNode1->SetSrcRect(dstRect);
+    surfaceNode1->SetDstRect(dstRect);
+    surfaceNode2->SetSrcRect(dstRect);
+    surfaceNode2->SetDstRect(dstRect);
+    surfaceNode3->SetSrcRect(dstRect);
+    surfaceNode3->SetDstRect(dstRect);
+    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    ASSERT_NE(layer1, nullptr);
+    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    ASSERT_NE(layer2, nullptr);
+    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    ASSERT_NE(layer3, nullptr);
+
+    std::vector<LayerInfoPtr> layers;
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
+    layers.emplace_back(layer3);
+
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RegisterSurfaceFps(layer1->GetNodeId(), layer1->GetSurface()->GetName());
+    hardwareThread.RecordTimestamp(layers);
+    surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
 }
 
 /**

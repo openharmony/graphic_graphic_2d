@@ -29,7 +29,7 @@
 #include "params/rs_display_render_params.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
-#define RS_PROFILER_ON_FRAME_BEGIN() RSProfiler::OnFrameBegin()
+#define RS_PROFILER_ON_FRAME_BEGIN(syncTime) RSProfiler::OnFrameBegin(syncTime)
 #define RS_PROFILER_ON_FRAME_END() RSProfiler::OnFrameEnd()
 #define RS_PROFILER_ON_RENDER_BEGIN() RSProfiler::OnRenderBegin()
 #define RS_PROFILER_ON_RENDER_END() RSProfiler::OnRenderEnd()
@@ -45,6 +45,9 @@
 #define RS_PROFILER_PATCH_TIME(time) time = RSProfiler::PatchTime(time)
 #define RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, time) time = RSProfiler::PatchTransactionTime(parcel, time)
 #define RS_PROFILER_PATCH_COMMAND(parcel, command) RSProfiler::PatchCommand(parcel, command)
+#define RS_PROFILER_PUSH_OFFSET(commandOffsets, offset) RSProfiler::PushOffset(commandOffsets, offset)
+#define RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets) \
+    RSProfiler::PushOffsets(parcel, parcelNumber, commandOffsets)
 #define RS_PROFILER_EXECUTE_COMMAND(command) RSProfiler::ExecuteCommand(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) RSProfiler::UnmarshalPixelMap(parcel, readSafeFdFunc)
@@ -65,13 +68,13 @@
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
 #else
 #define RS_PROFILER_INIT(renderSevice)
-#define RS_PROFILER_ON_FRAME_BEGIN()
+#define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
 #define RS_PROFILER_ON_FRAME_END()
 #define RS_PROFILER_ON_RENDER_BEGIN()
 #define RS_PROFILER_ON_RENDER_END()
 #define RS_PROFILER_ON_PROCESS_COMMAND()
 #define RS_PROFILER_ON_CREATE_CONNECTION(pid)
-#define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option)
+#define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) 0
 #define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data)
 #define RS_PROFILER_COPY_PARCEL(parcel) std::make_shared<MessageParcel>()
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id)
@@ -80,6 +83,8 @@
 #define RS_PROFILER_PATCH_TIME(time)
 #define RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, time)
 #define RS_PROFILER_PATCH_COMMAND(parcel, command)
+#define RS_PROFILER_PUSH_OFFSET(commandOffsets, offset)
+#define RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets)
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) Media::PixelMap::Unmarshalling(parcel, readSafeFdFunc)
@@ -141,7 +146,7 @@ public:
     static void StartNetworkThread();
 
     // see RSMainThread::Init
-    static void OnFrameBegin();
+    static void OnFrameBegin(uint64_t syncTime = 0);
     static void OnFrameEnd();
     static void OnRenderBegin();
     static void OnRenderEnd();
@@ -153,8 +158,9 @@ public:
     static void OnCreateConnection(pid_t pid);
 
     // see RenderServiceConnection::OnRemoteRequest
-    static void OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
+    static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
 
     // see UnmarshalThread::RecvParcel
     static void OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data);
@@ -179,6 +185,9 @@ public:
 
     RSB_EXPORT static bool ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr child, int index);
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
+    RSB_EXPORT static void PushOffset(std::vector<uint32_t>& commandOffsets, uint32_t offset);
+    RSB_EXPORT static void PushOffsets(
+        const Parcel& parcel, uint32_t parcelNumber, std::vector<uint32_t>& commandOffsets);
     RSB_EXPORT static void ExecuteCommand(const RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel,
@@ -234,28 +243,33 @@ private:
     static void StartBetaRecord();
     static void StopBetaRecord();
     static bool IsBetaRecordStarted();
-    static void UpdateBetaRecord();
+    static void UpdateBetaRecord(const RSContext& context);
     static void SaveBetaRecord();
     static bool IsBetaRecordInactive();
     static void RequestVSyncOnBetaRecordInactivity();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
+    static void LaunchBetaRecordFileSplitThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
     static void UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion);
+    static void BetaRecordSetLastParcelTime();
 
     RSB_EXPORT static void SetMode(Mode mode);
     RSB_EXPORT static bool IsEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
     RSB_EXPORT static uint32_t GetCommandExecuteCount();
-    RSB_EXPORT static std::string GetCommandParcelList(double recordStartTime);
+    RSB_EXPORT static std::string GetParcelCommandList();
 
     RSB_EXPORT static const std::vector<pid_t>& GetPids();
     RSB_EXPORT static NodeId GetParentNode();
     RSB_EXPORT static void SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent);
     RSB_EXPORT static pid_t GetSubstitutingPid();
+
+    RSB_EXPORT static void BetaRecordOnFrameBegin();
+    RSB_EXPORT static void BetaRecordOnFrameEnd();
 
 private:
     RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);

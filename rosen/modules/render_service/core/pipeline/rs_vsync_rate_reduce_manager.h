@@ -68,21 +68,7 @@ public:
 
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-    void SetWindowLinkersMap(NodeId windowId, uint64_t linkerId)
-    {
-        windowLinkerMap_.emplace(windowId, linkerId);
-    }
-    void ClearWindowLinkersMap(pid_t pid)
-    {
-        for (auto iter = windowLinkerMap_.begin(); iter != windowLinkerMap_.end();) {
-            // extract high 32 bits of linkerId as pid
-            if (static_cast<pid_t>(iter->second >> 32) == pid) {
-                iter = windowLinkerMap_.erase(iter);
-            } else {
-                ++iter;
-            }
-        }
-    }
+
     std::map<uint64_t, int> GetVrateMap()
     {
         return linkersRateMap_;

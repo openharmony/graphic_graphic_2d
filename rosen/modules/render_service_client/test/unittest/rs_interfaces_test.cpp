@@ -811,10 +811,13 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
 {
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
-    auto callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
         screenId = id;
         screenEvent = event;
+        errorReason = reason;
         callbacked = true;
     };
     int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
@@ -1291,8 +1294,8 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    bool isSafe = false;
-    rsInterfaces->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = 0;
+    rsInterfaces->NotifyLightFactorStatus(lightFactorStatus);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -2174,8 +2177,8 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
         "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    constexpr uint32_t colorWidth = 3000;
-    constexpr uint32_t colorHeight = 3000;
+    constexpr uint32_t colorWidth = 5000;
+    constexpr uint32_t colorHeight = 5000;
     uint32_t *color;
     color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
     memset_s(color, colorWidth * colorHeight, 0xffffffff, colorWidth * colorHeight * 2);

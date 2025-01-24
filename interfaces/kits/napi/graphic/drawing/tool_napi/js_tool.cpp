@@ -436,7 +436,7 @@ bool JsTool::MatchColorWithRGBA(const std::string& colorStr, uint32_t& result)
         auto red = static_cast<uint8_t>(redInt);
         auto green = static_cast<uint8_t>(greenInt);
         auto blue = static_cast<uint8_t>(blueInt);
-        auto alpha = static_cast<uint8_t>(round(static_cast<double>(opacityDouble) * 0xff)) & 0xff;
+        uint8_t alpha = static_cast<uint8_t>(round(static_cast<double>(opacityDouble) * 0xff));
         result = (alpha << COLOR_OFFSET_ALPHA) | (red << COLOR_OFFSET_RED) | (green << COLOR_OFFSET_GREEN) | blue;
         return true;
     }

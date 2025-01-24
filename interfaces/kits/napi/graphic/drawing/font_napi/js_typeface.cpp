@@ -164,13 +164,11 @@ napi_value JsTypeface::ConvertTypefaceToJsValue(napi_env env, JsTypeface* typefa
     napi_value jsObj = nullptr;
     napi_create_object(env, &jsObj);
     if (jsObj == nullptr) {
-        delete typeface;
         ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue Create Typeface failed!");
         return nullptr;
     }
     napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
-        delete typeface;
         ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue failed to wrap native instance");
         return nullptr;
     }

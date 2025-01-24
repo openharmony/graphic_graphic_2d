@@ -181,7 +181,8 @@ void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)
     int size = cJSON_GetArraySize(data);
     for (int index = 0; index < size; index++) {
         cJSON* extraPath = cJSON_GetArrayItem(data, index);
-        if (extraPath != nullptr && strlen(extraPath->string) != 0 && strlen(extraPath->valuestring) != 0) {
+        if (extraPath != nullptr && extraPath->string != nullptr && extraPath->valuestring != nullptr
+            && strlen(extraPath->string) != 0) {
             LOGI("%{public}s : %{public}s", extraPath->string, extraPath->valuestring);
             config.videoExtPath.emplace(extraPath->string, extraPath->valuestring);
         }

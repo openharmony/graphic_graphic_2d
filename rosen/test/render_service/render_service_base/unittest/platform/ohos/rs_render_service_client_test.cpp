@@ -428,10 +428,13 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
 {
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
-    auto callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
         screenId = id;
         screenEvent = event;
+        errorReason = reason;
         callbacked = true;
     };
     int32_t status = rsClient->SetScreenChangeCallback(callback);
@@ -595,11 +598,22 @@ HWTEST_F(RSClientTest, GetScreenSupportedRefreshRates001, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 {
-    rsClient->SetShowRefreshRateEnabled(false);
+    rsClient->SetShowRefreshRateEnabled(false, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
-    rsClient->SetShowRefreshRateEnabled(true);
+    rsClient->SetShowRefreshRateEnabled(true, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
+}
+
+/**
+ * @tc.name: GetRealtimeRefreshRate001 Test
+ * @tc.desc: GetRealtimeRefreshRate001 Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, GetRealtimeRefreshRate001, TestSize.Level1)
+{
+    EXPECT_GE(rsClient->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
 
 /**
@@ -934,6 +948,21 @@ HWTEST_F(RSClientTest, SetWindowContainer001, TestSize.Level1)
     NodeId nodeId = {};
     rsClient->SetWindowContainer(nodeId, true);
     rsClient->SetWindowContainer(nodeId, false);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessIdTest
+ * @tc.desc: Test GetPixelMapByProcessId
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    pid_t pid = 0;
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapVector, pid);
+    ASSERT_EQ(res, SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

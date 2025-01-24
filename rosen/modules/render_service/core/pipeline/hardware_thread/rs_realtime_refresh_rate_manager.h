@@ -23,19 +23,27 @@
 #include <thread>
 #include <unordered_map>
 
+#include "hgm_frame_rate_manager.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
+enum class RealtimeRefreshRateType : int32_t {
+    START = -1,
+    COLLECT = 0,
+    SHOW = 1,
+    END = 2,
+};
+
 class RSRealtimeRefreshRateManager {
 public:
     static RSRealtimeRefreshRateManager& Instance();
 
     bool GetShowRefreshRateEnabled() const
     {
-        return enableState_;
+        return showEnabled_;
     }
-    void SetShowRefreshRateEnabled(bool enable);
-    uint32_t GetRealtimeRefreshRate(const ScreenId screenId);
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type);
+    uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 private:
     friend class RSHardwareThread;
     RSRealtimeRefreshRateManager() = default;
@@ -43,13 +51,16 @@ private:
 
     inline void CountRealtimeFrame(const ScreenId screenId)
     {
-        if (enableState_) {
+        if (showEnabled_ || collectEnabled_) {
             std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
             realtimeFrameCountMap_[screenId]++;
         }
     }
+    void StatisticsRefreshRateDataLocked(std::shared_ptr<HgmFrameRateManager> frameRateMgr);
 
-    std::atomic<bool> enableState_ = false;
+    std::atomic<bool> showEnabled_ = false;
+    std::atomic<bool> collectEnabled_ = false;
+    std::atomic<bool> isCollectRefreshRateTaskRunning_ = false;
     std::unordered_map<ScreenId, uint32_t> currRealtimeRefreshRateMap_;
     std::unordered_map<ScreenId, uint32_t> realtimeFrameCountMap_;
     std::mutex showRealtimeFrameMutex_;

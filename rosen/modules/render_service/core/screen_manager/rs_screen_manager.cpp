@@ -520,7 +520,8 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
         for (auto &cb : screenChangeCallbacks_) {
             if (!isHwcDead_) {
                 cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
-                continue;
+            } else if (id != 0 && RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+                cb->OnScreenChanged(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
             }
         }
         auto screenIt = screens_.find(id);
@@ -1200,7 +1201,7 @@ std::shared_ptr<Media::PixelMap> RSScreenManager::GetScreenSecurityMask(ScreenId
     return iter->second->GetSecurityMask();
 }
 
-int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation)
 {
     if (id == INVALID_SCREEN_ID) {
         RS_LOGD("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
@@ -1221,9 +1222,10 @@ int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mai
     static Rect ZERO = {0, 0, 0, 0};
     mirrorScreen->second->SetEnableVisibleRect(mainScreenRect != ZERO);
     mirrorScreen->second->SetMainScreenVisibleRect(mainScreenRect);
+    mirrorScreen->second->SetVisibleRectSupportRotation(supportRotation);
     RS_LOGD("RSScreenManager %{public}s: mirror screen(id %{public}" PRIu64 "), "
-        "visible rect[%{public}d, %{public}d, %{public}d, %{public}d].",
-        __func__, id, mainScreenRect.x, mainScreenRect.y, mainScreenRect.w, mainScreenRect.h);
+        "visible rect[%{public}d, %{public}d, %{public}d, %{public}d]. supportRotation: %{public}d",
+        __func__, id, mainScreenRect.x, mainScreenRect.y, mainScreenRect.w, mainScreenRect.h, supportRotation);
     return SUCCESS;
 }
 
@@ -1421,8 +1423,7 @@ int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    screensIt->second->SetResolution(width, height);
-    return SUCCESS;
+    return screensIt->second->SetResolution(width, height);
 }
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1711,6 +1712,9 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
     info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
     info.isSamplingOn = screen->IsSamplingOn();
+    info.samplingTranslateX = screen->GetSamplingTranslateX();
+    info.samplingTranslateY = screen->GetSamplingTranslateY();
+    info.samplingScale = screen->GetSamplingScale();
     auto ret = screen->GetScreenColorGamut(info.colorGamut);
     if (ret != StatusCode::SUCCESS) {
         info.colorGamut = COLOR_GAMUT_SRGB;
@@ -2411,6 +2415,22 @@ void RSScreenManager::SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedL
         return;
     }
     screensIt->second->SetHasProtectedLayer(hasProtectedLayer);
+}
+
+bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto mirrorScreen = screens_.find(id);
+    if (mirrorScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+
+    if (mirrorScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+    return mirrorScreen->second->GetVisibleRectSupportRotation();
 }
 
 void RSScreenManager::SetScreenSwitchStatus(bool flag)
