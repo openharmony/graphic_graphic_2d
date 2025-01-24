@@ -43,14 +43,13 @@ private:
     std::atomic<bool> isFirstReport_ = {false};
     uint64_t lastReportTime_ = 0;
 
-    //processed only in ffrtQueue_
-    std::string currentBundleName_;
     std::atomic<uint32_t> currentPid_;
     uint32_t currentType_;
     std::chrono::steady_clock::time_point beginTimeStamp_;
     std::chrono::steady_clock::time_point endTimeStamp_;
     uint64_t frameCountNum_;
     bool isFrameRateFirstReport_ = false;
+    std::mutex ffrtGetMutex_;
 
     static std::shared_ptr<ffrt::queue> ffrtQueue_;
 

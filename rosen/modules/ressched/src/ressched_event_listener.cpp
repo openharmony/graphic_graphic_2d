@@ -187,9 +187,9 @@ void ResschedEventListener::HandleFrameRateStatisticsEndAsync(uint32_t pid, uint
                     ReportFrameRateToRSS(mapPayload);
                 RS_TRACE_END();
             }
-                currentPid_.store(DEFAULT_PID);
-                currentType_ = DEFAULT_TYPE;
-                RS_TRACE_END();
+            currentPid_.store(DEFAULT_PID);
+            currentType_ = DEFAULT_TYPE;
+            RS_TRACE_END();
         });
     }
 }
@@ -201,9 +201,15 @@ uint32_t ResschedEventListener::GetCurrentPid()
 
 bool ResschedEventListener::GetFfrtQueue()
 {
+    if (ffrtQueue_ != nullptr) {
+        return true;
+    }
     if (ffrtQueue_ == nullptr) {
-        ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_EVENT_LISTENER_QUEUE.c_str(),
-            ffrt::queue_attr().qos(ffrt::qos_default));
+        std::lock_guard<std::mutex> lock(ffrtGetMutex_);
+        if (ffrtQueue_ == nullptr) {
+            ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_EVENT_LISTENER_QUEUE.c_str(),
+                ffrt::queue_attr().qos(ffrt::qos_default));
+        }
     }
     if (ffrtQueue_ == nullptr) {
         RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
