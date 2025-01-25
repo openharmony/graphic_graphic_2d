@@ -100,6 +100,13 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEf
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
     : type_(t), object_(object) {}
 
+/* SdfShader */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithSdf(shape);
+}
+
 ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
@@ -181,11 +188,9 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<E
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::EXTEND_SHADER, object);
 }
 
-/* SdfShader */
-ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
-    : ShaderEffect(t)
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSdfShader(const SDFShapeBase& shape)
 {
-    impl_->InitWithSdf(shape);
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SDF_SHADER, shape);
 }
 
 std::shared_ptr<Data> ShaderEffect::Serialize() const
