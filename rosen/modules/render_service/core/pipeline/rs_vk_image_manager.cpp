@@ -80,9 +80,11 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     }
     WaitAcquireFence(acquireFence);
     std::lock_guard<std::mutex> lock(opMutex_);
+    bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) ||
+        RsVulkanContext::GetSingleton().GetIsProtected();
     auto bufferId = buffer->GetSeqNum();
-    if (imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end() || (buffer->GetUsage() & BUFFER_USAGE_PROTECTED)) {
-        return NewImageCacheFromBuffer(buffer, threadIndex);
+    if (isProtectedCondition || imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end()) {
+        return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     } else {
         return imageCacheSeqs_[bufferId];
     }
@@ -104,7 +106,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(s
 }
 
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
-    const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex)
+    const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition)
 {
     auto bufferId = buffer->GetSeqNum();
     auto imageCache = NativeVkImageRes::Create(buffer);
@@ -115,7 +117,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     }
 
     imageCache->SetThreadIndex(threadIndex);
-    if (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) {
+    if (isProtectedCondition) {
         return imageCache;
     }
     imageCacheSeqs_.emplace(bufferId, imageCache);
