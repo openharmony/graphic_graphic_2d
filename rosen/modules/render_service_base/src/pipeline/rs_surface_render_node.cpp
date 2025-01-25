@@ -2162,6 +2162,12 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
 void RSSurfaceRenderNode::OnSync()
 {
 #ifdef RS_ENABLE_GPU
+    if (!skipFrameDirtyRect_.IsEmpty()) {
+        auto surfaceDirtyRect = dirtyManager_->GetCurrentFrameDirtyRegion();
+        surfaceDirtyRect = surfaceDirtyRect.JoinRect(skipFrameDirtyRect_);
+        dirtyManager_->SetCurrentFrameDirtyRect(surfaceDirtyRect);
+        skipFrameDirtyRect_.Clear();
+    }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::OnSync name[%s] dirty[%s]",
         GetName().c_str(), dirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str());
     if (!renderDrawable_) {
@@ -2182,6 +2188,15 @@ void RSSurfaceRenderNode::OnSync()
 #endif
     RSRenderNode::OnSync();
 #endif
+}
+
+void RSSurfaceRenderNode::OnSkipSync()
+{
+    if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+        auto surfaceDirtyRect = dirtyManager_->GetCurrentFrameDirtyRegion();
+        skipFrameDirtyRect_ = skipFrameDirtyRect_.JoinRect(surfaceDirtyRect);
+    }
+    RSRenderNode::OnSkipSync();
 }
 
 bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const
