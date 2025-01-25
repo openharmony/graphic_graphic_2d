@@ -25,6 +25,20 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+/*
+ * 测试以下 PointF 接口：
+ * 1. SetX
+ * 2. GetX
+ * 3. SetY
+ * 4. GetY
+ * 5. Set
+ * 6. IsZero
+ * 7. Offset
+ * 8. += 运算符
+ * 9. -= 运算符
+ * 10. *= 运算符
+ * 11. /= 运算符
+ */
 void PointFuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
@@ -55,6 +69,16 @@ void PointFuzzTest000(const uint8_t* data, size_t size)
     pointf1 /= divisor;
 }
 
+/*
+ * 测试以下 PointF 接口：
+ * 1. 构造函数
+ * 2. + 运算符
+ * 3. - 运算符
+ * 4. 比较运算符 ==
+ * 5. 比较运算符 !=
+ * 6. *= 运算符
+ * 7. /= 运算符
+ */
 void PointFuzzTest001(const uint8_t* data, size_t size)
 {
     g_data = data;
@@ -80,6 +104,18 @@ void PointFuzzTest001(const uint8_t* data, size_t size)
     if (pointf != pointf1) {}
 }
 
+/*
+ * 测试以下 PointI 接口：
+ * 1. SetX
+ * 2. GetX
+ * 3. SetY
+ * 4. GetY
+ * 5. Set
+ * 6. += 运算符
+ * 7. -= 运算符
+ * 8. *= 运算符
+ * 9. /= 运算符
+ */
 void PointFuzzTest002(const uint8_t* data, size_t size)
 {
     g_data = data;
@@ -106,6 +142,16 @@ void PointFuzzTest002(const uint8_t* data, size_t size)
     pointi1 /= divisor;
 }
 
+/*
+ * 测试以下 PointI 接口：
+ * 1. 构造函数
+ * 2. + 运算符
+ * 3. - 运算符
+ * 4. 比较运算符 ==
+ * 5. 比较运算符 !=
+ * 6. *= 运算符
+ * 7. /= 运算符
+ */
 void PointFuzzTest003(const uint8_t* data, size_t size)
 {
     g_data = data;

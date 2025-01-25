@@ -33,6 +33,12 @@ constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
+/*
+ *  测试以下 ImageInfo 接口：
+ *  1. 构造函数 ImageInfo(int width, int height, ColorType colorType, AlphaType alphaType)
+ *  2. GetBytesPerPixel() - 获取每像素的字节数。
+ *  3. GetBound() - 获取 ImageInfo 的边界尺寸。
+ */
 bool ImageInfoFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -54,6 +60,10 @@ bool ImageInfoFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试以下 ImageInfo 接口：
+ *  1. MakeN32Premul(int width, int height) - 创建具有 N32 格式和 Premul alpha 的 ImageInfo。
+ */
 bool ImageInfoFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -70,7 +80,21 @@ bool ImageInfoFuzzTest002(const uint8_t* data, size_t size)
     imageInfo.MakeN32Premul(width, height);
     return true;
 }
-
+/*
+ * 测试以下 ImageInfo 接口：
+ * 1. SetWidth(int width) - 设置 ImageInfo 的宽度。
+ * 2. GetWidth() - 获取 ImageInfo 的宽度。
+ * 3. SetHeight(int height) - 设置 ImageInfo 的高度。
+ * 4. GetHeight() - 获取 ImageInfo 的高度。
+ * 5. SetColorType(ColorType colorType) - 设置颜色类型。
+ * 6. GetColorType() - 获取颜色类型。
+ * 7. SetAlphaType(AlphaType alphaType) - 设置 Alpha 类型。
+ * 8. GetAlphaType() - 获取 Alpha 类型。
+ * 9. SetColorSpace(std::shared_ptr<ColorSpace> colorSpace) - 设置颜色空间。
+ * 10. GetColorSpace() - 获取颜色空间。
+ * 11. GetBytesPerPixel() - 获取每像素的字节数。
+ * 12. GetBound() - 获取 ImageInfo 的边界尺寸。
+ */
 bool ImageInfoFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {

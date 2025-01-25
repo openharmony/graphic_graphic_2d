@@ -22,7 +22,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
+/*
+ * 测试以下 Pen 接口：
+ * 1. SetColor(...)
+ * 2. GetColorSpace()
+ * 3. GetColor4f()
+ */
 void PenFuzzTestInner01(Pen& pen)
 {
     scalar red = GetObject<scalar>();
@@ -41,6 +46,20 @@ void PenFuzzTestInner01(Pen& pen)
     pen.GetColor4f();
 }
 
+/*
+ * 测试以下 Pen 接口：
+ * 1. SetAlpha(...)
+ * 2. SetAlphaF(...)
+ * 3. GetAlpha()
+ * 4. SetWidth(...)
+ * 5. GetWidth()
+ * 6. SetMiterLimit(...)
+ * 7. GetMiterLimit()
+ * 8. SetCapStyle(...)
+ * 9. GetCapStyle()
+ * 10. SetJoinStyle(...)
+ * 11. GetJoinStyle()
+ */
 void PenFuzzTestInner02(Pen& pen)
 {
     uint32_t alpha1 = GetObject<uint32_t>();
@@ -66,6 +85,22 @@ void PenFuzzTestInner02(Pen& pen)
     pen.GetJoinStyle();
 }
 
+/*
+ * 测试以下 Pen 接口：
+ * 1. SetBlendMode(...)
+ * 2. GetBlendMode()
+ * 3. SetAntiAlias(...)
+ * 4. IsAntiAlias()
+ * 5. SetPathEffect(...)
+ * 6. GetPathEffect()
+ * 7. GetPathEffectPtr()
+ * 8. SetFilter(...)
+ * 9. GetFilter()
+ * 10. SetShaderEffect(...)
+ * 11. GetShaderEffect()
+ * 12. GetShaderEffectPtr()
+ * 13. Reset()
+ */
 void PenFuzzTestInner03(Pen& pen)
 {
     BlendMode mode = GetObject<BlendMode>();
@@ -95,6 +130,25 @@ void PenFuzzTestInner03(Pen& pen)
     pen.Reset();
 }
 
+/*
+ * 测试以下 Pen 接口：
+ * 1. Pen()
+ * 2. Pen(const Pen&)
+ * 3. Pen(const Color&)
+ * 4. Pen(int)
+ * 5. GetColor()
+ * 6. GetColorSpacePtr()
+ * 7. GetAlphaF()
+ * 8. SetBlender(...)
+ * 9. GetBlender()
+ * 10. GetBlenderPtr()
+ * 11. HasFilter()
+ * 12. SetLooper(...)
+ * 13. GetLooper()
+ * 14. GetFillPath(...)
+ * 15. operator==
+ * 16. operator!=
+ */
 void PenFuzzTestInner04(Pen& pen)
 {
     uint32_t alpha = GetObject<uint32_t>();

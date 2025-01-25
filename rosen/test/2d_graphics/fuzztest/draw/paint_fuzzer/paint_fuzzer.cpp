@@ -29,6 +29,33 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+/*
+ * 测试以下 Paint 接口：
+ * 1. Paint()
+ * 2. Paint(const Paint&)
+ * 3. Paint(const Color&, const ColorSpace&)
+ * 4. CanCombinePaint(...)
+ * 5. AttachBrush(...)
+ * 6. AttachPen(...)
+ * 7. SetStyle(...)
+ * 8. GetStyle()
+ * 9. IsValid()
+ * 10. HasStrokeStyle()
+ * 11. SetColor(...)
+ * 12. SetARGB(...)
+ * 13. SetColor(...)
+ * 14. GetColor()
+ * 15. GetColor4f()
+ * 16. GetColorSpace()
+ * 17. SetAlpha(...)
+ * 18. SetAlphaF(...)
+ * 19. GetAlpha()
+ * 20. GetAlphaF()
+ * 21. SetWidth(...)
+ * 22. GetWidth()
+ * 23. SetMiterLimit(...)
+ * 24. GetMiterLimit()
+ */
 bool PaintFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -84,6 +111,27 @@ bool PaintFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Paint 接口：
+ * 1. Paint()
+ * 2. SetCapStyle(...)
+ * 3. GetCapStyle()
+ * 4. SetJoinStyle(...)
+ * 5. GetJoinStyle()
+ * 6. SetBlendMode(...)
+ * 7. GetBlendMode()
+ * 8. SetFilter(...)
+ * 9. GetFilter()
+ * 10. HasFilter()
+ * 11. SetShaderEffect(...)
+ * 12. GetShaderEffect()
+ * 13. SetPathEffect(...)
+ * 14. GetPathEffect()
+ * 15. SetBlender(...)
+ * 16. GetBlender()
+ * 17. SetLooper(...)
+ * 18. GetLooper()
+ */
 bool PaintFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -129,6 +177,17 @@ bool PaintFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Paint 接口：
+ * 1. Paint()
+ * 2. SetAntiAlias(...)
+ * 3. IsAntiAlias()
+ * 4. Reset()
+ * 5. Disable()
+ * 6. Paint(const Paint&)
+ * 7. operator==
+ * 8. operator!=
+ */
 bool PaintFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

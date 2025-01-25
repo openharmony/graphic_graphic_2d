@@ -41,6 +41,10 @@ constexpr size_t ORIGIN_SIZE = 2;
 } // namespace
 
 namespace Drawing {
+/*
+ *  测试使用 Bitmap 构建 Image 的功能，包括:
+ *  1. Image::BuildFromBitmap()
+ */
 bool BuildImageFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -59,6 +63,20 @@ bool BuildImageFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试 Image 的基本功能，包括:
+ *  1. AsLegacyBitmap()
+ *  2. GetWidth()
+ *  3. GetHeight()
+ *  4. GetColorType()
+ *  5. GetAlphaType()
+ *  6. GetColorSpace()
+ *  7. GetUniqueID()
+ *  8. GetImageInfo()
+ *  9. Serialize()
+ *  10. Deserialize()
+ *  11. MakeRasterImage()
+ */
 bool ImageFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -92,6 +110,10 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Bitmap 构建 Image 的功能:
+ *  1. Image::BuildFromBitmap()
+ */
 bool ImageFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -114,6 +136,10 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     return image->BuildFromBitmap(bitmap);
 }
 
+/*
+ *  测试从 Pixmap 构建栅格 Image 的功能:
+ *  1. Image::MakeFromRaster()
+ */
 bool ImageFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -142,6 +168,10 @@ bool ImageFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Data 构建栅格 Image 的功能:
+ *  1. Image::MakeRasterData()
+ */
 bool ImageFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -171,6 +201,14 @@ bool ImageFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试 Image 的属性和像素操作，包括:
+ *  1. GetROPixels()
+ *  2. IsLazyGenerated()
+ *  3. CanPeekPixels()
+ *  4. IsTextureBacked()
+ *  5. IsOpaque()
+ */
 bool ImageFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -199,6 +237,11 @@ bool ImageFuzzTest005(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 GPUContext 和 Bitmap 构建 Image 的功能:
+ *  1. Image::BuildFromBitmap()
+ *  2. Image::BuildFromBitmap(GPUContext& gpuContext, Bitmap& bitmap)
+ */
 bool ImageFuzzTest006(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -223,6 +266,10 @@ bool ImageFuzzTest006(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Data 构建编码的 Image 的功能:
+ *  1. Image::MakeFromEncoded()
+ */
 bool ImageFuzzTest007(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -250,6 +297,10 @@ bool ImageFuzzTest007(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从压缩数据构建 Image 的功能:
+ *  1. Image::BuildFromCompressed()
+ */
 bool ImageFuzzTest008(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -282,6 +333,10 @@ bool ImageFuzzTest008(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从纹理构建 Image 的功能:
+ *  1. Image::BuildFromTexture()
+ */
 bool ImageFuzzTest009(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -325,6 +380,10 @@ bool ImageFuzzTest009(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Surface 构建 Image 的功能:
+ *  1. Image::BuildFromSurface()
+ */
 bool ImageFuzzTest010(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -359,6 +418,10 @@ bool ImageFuzzTest010(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Image 中读取像素到 Bitmap 的功能:
+ *  1. Image::ReadPixels(Bitmap&)
+ */
 bool ImageFuzzTest011(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -382,6 +445,10 @@ bool ImageFuzzTest011(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Image 中读取像素到 Pixmap 的功能:
+ *  1. Image::ReadPixels(Pixmap&)
+ */
 bool ImageFuzzTest012(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -422,6 +489,10 @@ bool ImageFuzzTest012(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Image 中读取像素到缓冲区的功能:
+ *  1. Image::ReadPixels(ImageInfo, void*, size_t, int, int)
+ */
 bool ImageFuzzTest013(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -460,6 +531,10 @@ bool ImageFuzzTest013(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试缩放像素到 Bitmap 的功能:
+ *  1. Image::ScalePixels()
+ */
 bool ImageFuzzTest014(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -490,6 +565,10 @@ bool ImageFuzzTest014(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试将 Image 编码为指定格式的功能:
+ *  1. Image::EncodeToData()
+ */
 bool ImageFuzzTest015(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -519,6 +598,10 @@ bool ImageFuzzTest015(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 YUVAPixmaps 构建 Image 的功能:
+ *  1. Image::MakeFromYUVAPixmaps()
+ */
 bool ImageFuzzTest016(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {

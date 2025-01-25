@@ -84,6 +84,14 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. Path(const Path&)
+ * 3. GetDrawingType()
+ * 4. ConvertToSVGString()
+ * 5. operator=
+ */
 bool PathFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -103,6 +111,25 @@ bool PathFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. ArcTo(...)
+ * 3. ArcTo(...)
+ * 4. ArcTo(...)
+ * 5. CubicTo(...)
+ * 6. CubicTo(...)
+ * 7. QuadTo(...)
+ * 8. QuadTo(...)
+ * 9. ConicTo(...)
+ * 10. RMoveTo(...)
+ * 11. RLineTo(...)
+ * 12. RArcTo(...)
+ * 13. RCubicTo(...)
+ * 14. RQuadTo(...)
+ * 15. RConicTo(...)
+ * 16. GetPositionAndTangent(...)
+ */
 bool PathFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -147,6 +174,19 @@ bool PathFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. AddRect(...)
+ * 3. AddRect(...)
+ * 4. AddRect(...)
+ * 5. AddOval(...)
+ * 6. AddOval(...)
+ * 7. AddArc(...)
+ * 8. AddCircle(...)
+ * 9. AddRoundRect(...)
+ * 10. AddRoundRect(...)
+ */
 bool PathFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -185,6 +225,28 @@ bool PathFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. AddPath(...)
+ * 3. AddPath(...)
+ * 4. AddPath(...)
+ * 5. Contains(...)
+ * 6. ReverseAddPath(...)
+ * 7. GetBounds()
+ * 8. SetFillStyle(...)
+ * 9. BuildFromInterpolate(...)
+ * 10. Transform(...)
+ * 11. TransformWithPerspectiveClip(...)
+ * 12. Offset(...)
+ * 13. Offset(...)
+ * 14. IsValid()
+ * 15. GetLength(...)
+ * 16. IsClosed(...)
+ * 17. GetMatrix(...)
+ * 18. Serialize()
+ * 19. Deserialize(...)
+ */
 bool PathFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -230,6 +292,11 @@ bool PathFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. BuildFromSVGString(...)
+ */
 bool PathFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -252,6 +319,11 @@ bool PathFuzzTest005(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. AddPoly(...)
+ */
 bool PathFuzzTest006(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

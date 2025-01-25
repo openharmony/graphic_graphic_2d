@@ -34,6 +34,25 @@ constexpr size_t MATH_NINE = 9;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 Matrix 接口：
+ * 1. Get
+ * 2. Skew
+ * 3. Rotate
+ * 4. Translate
+ * 5. Scale
+ * 6. SetScale
+ * 7. SetScaleTranslate
+ * 8. SetSkew
+ * 9. PreRotate
+ * 10. PostRotate
+ * 11. PreTranslate
+ * 12. PostTranslate
+ * 13. PreScale
+ * 14. PostScale
+ * 15. PreSkew
+ * 16. PostSkew
+ */
 bool MatrixFuzzTest000(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -79,6 +98,22 @@ bool MatrixFuzzTest000(const uint8_t* data, size_t size)
     return false;
 }
 
+/*
+ * 测试以下 Matrix 接口：
+ * 1. PreConcat
+ * 2. PostConcat
+ * 3. Invert
+ * 4. SetMatrix
+ * 5. SetRectToRect
+ * 6. MapRect
+ * 7. Set
+ * 8. IsIdentity
+ * 9. Reset
+ * 10. HasPerspective
+ * 11. Swap
+ * 12. 操作符==
+ * 13. 操作符*
+ */
 void MatrixFuzzTest001(const uint8_t* data, size_t size)
 {
     // initialize
@@ -123,6 +158,14 @@ void MatrixFuzzTest001(const uint8_t* data, size_t size)
     Matrix other2 = other * other1;
 }
 
+/*
+ * 测试以下 Matrix 接口：
+ * 1. MapPoints
+ * 2. SetPolyToPoly
+ * 3. SetAll
+ * 4. GetAll
+ * 5. GetMinMaxScales
+ */
 void MatrixFuzzTest002(const uint8_t* data, size_t size)
 {
     // initialize

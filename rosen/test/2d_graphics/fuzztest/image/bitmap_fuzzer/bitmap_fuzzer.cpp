@@ -32,6 +32,15 @@ constexpr size_t COLORTYPE_SIZE = 10;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Build(int width, int height, const BitmapFormat& format)
+ * 2. GetWidth()
+ * 3. GetHeight()
+ * 4. GetPixels()
+ * 5. ClearWithColor(ColorType color)
+ * 6. Free()
+ */
 bool BitmapFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -54,6 +63,14 @@ bool BitmapFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Build(const ImageInfo& info, int32_t stride)
+ * 2. GetRowBytes()
+ * 3. GetColorType()
+ * 4. GetAlphaType()
+ * 5. ExtractSubset(Bitmap& dst, const Rect& subset)
+ */
 bool BitmapFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -90,6 +107,11 @@ bool BitmapFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Bitmap()
+ * 2. ReadPixels(const ImageInfo& info, uint32_t* pixels, size_t rowBytes, int32_t srcX, int32_t srcY)
+ */
 bool BitmapFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -124,7 +146,14 @@ bool BitmapFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
-bool BitmapFuzzTest004(const uint8_t* data, size_t size)
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Bitmap()
+ * 2. ComputeByteSize()
+ * 3. PeekPixels(Pixmap& pixmap)
+ * 4. SetPixels(uint32_t* pixels)
+ * 5. GetPixels()
+ */bool BitmapFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -153,6 +182,18 @@ bool BitmapFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Bitmap()
+ * 2. CopyPixels(Bitmap& dst, int srcLeft, int srcTop)
+ * 3. SetImmutable()
+ * 4. IsImmutable()
+ * 5. IsValid()
+ * 6. IsEmpty()
+ * 7. ClearWithColor(ColorQuad color)
+ * 8. GetColor(int x, int y)
+ * 9. Free()
+ */
 bool BitmapFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -179,6 +220,18 @@ bool BitmapFuzzTest005(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Bitmap()
+ * 2. GetFormat()
+ * 3. SetFormat(const BitmapFormat& format)
+ * 4. SetInfo(const ImageInfo& info)
+ * 5. GetImageInfo()
+ * 6. GetPixmap()
+ * 7. TryAllocPixels(const ImageInfo& info)
+ * 8. Serialize()
+ * 9. Deserialize(Data* data)
+ */
 bool BitmapFuzzTest006(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -207,6 +260,11 @@ bool BitmapFuzzTest006(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Bitmap 接口：
+ * 1. Bitmap()
+ * 2. InstallPixels(const ImageInfo& info, uint32_t* pixels, size_t rowBytes, void* releaseProc, void* context)
+ */
 bool BitmapFuzzTest007(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
