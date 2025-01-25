@@ -531,7 +531,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
   ]
 
   external_deps += [ "skia:skia_canvaskit" ]
-  
+
   if (defined(graphic_2d_feature_enable_sdf) && graphic_2d_feature_enable_sdf) {
     deps = [ "graphic_2d_ext:libsdf" ]
     include_dirs += [ "$graphic_2d_ext_root/sdf/include" ]
