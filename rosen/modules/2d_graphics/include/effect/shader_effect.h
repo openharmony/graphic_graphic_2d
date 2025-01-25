@@ -19,6 +19,7 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "utils/drawing_macros.h"
 #include "utils/extend_object.h"
+#include "draw/sdf_shaper_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,7 @@ public:
         SWEEP_GRADIENT,
         LIGHT_UP,
         EXTEND_SHADER,
+        SDF_SHADER
     };
 
     /**
@@ -86,6 +88,8 @@ public:
     static std::shared_ptr<ShaderEffect> CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader);
 
     static std::shared_ptr<ShaderEffect> CreateExtendShader(std::shared_ptr<ExtendObject>);
+
+    static std::shared_ptr<ShaderEffect> CreateSdfShader(const SDFShapeBase& shape);
 
     virtual ~ShaderEffect() = default;
 
@@ -144,6 +148,9 @@ public:
     ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept;
 
     ShaderEffect(ShaderEffectType t) noexcept;
+
+    /* SdfShader*/
+    ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept;
 
     ShaderEffect() noexcept;
 

@@ -181,6 +181,13 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<E
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::EXTEND_SHADER, object);
 }
 
+/* SdfShader */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithSdf(shape);
+}
+
 std::shared_ptr<Data> ShaderEffect::Serialize() const
 {
     return impl_->Serialize();
