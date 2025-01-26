@@ -1421,7 +1421,7 @@ public:
 
 protected:
     void OnSync() override;
-
+    void OnSkipSync() override;
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
     void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
@@ -1547,6 +1547,7 @@ private:
     bool arsrTag_ = true;
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
+    RectI skipFrameDirtyRect_;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
