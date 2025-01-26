@@ -197,6 +197,22 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetScaleZTest
+ * @tc.desc: Verify the GetScaleZ
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShowingPropertiesFreezerTest, GetScaleZTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleZTest start";
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetScaleZ(5.f);
+    auto result = canvasNode->GetShowingProperties().GetScaleZ();
+    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result == 5.f);
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetScaleZTest end";
+}
+
+/**
  * @tc.name: GetSkewTest
  * @tc.desc: Verify the GetSkew
  * @tc.type:FUNC
@@ -205,7 +221,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetSkewTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetSkewTest start";
     auto canvasNode = RSCanvasNode::Create();
-    canvasNode->SetSkew(Vector2f(SHOWING_FLOAT_NUM, 0.f));
+    canvasNode->SetSkew(Vector3f(SHOWING_FLOAT_NUM, 0.f, 1.f));
     auto result = canvasNode->GetShowingProperties().GetSkew();
     EXPECT_TRUE(result.has_value());
     EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);
@@ -221,7 +237,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetPerspTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetPerspTest start";
     auto canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(Vector2f(SHOWING_FLOAT_NUM, 0.f));
+    canvasNode->SetPersp(Vector4f(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f));
     auto result = canvasNode->GetShowingProperties().GetPersp();
     EXPECT_TRUE(result.has_value());
     EXPECT_TRUE(result->x_ == SHOWING_FLOAT_NUM);

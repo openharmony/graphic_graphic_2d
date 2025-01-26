@@ -979,19 +979,29 @@ void RSNode::SetScaleY(float scaleY)
     property->Set(scale);
 }
 
+void RSNode::SetScaleZ(const float& scaleZ)
+{
+    SetProperty<RSScaleZModifier, RSAnimatableProperty<float>>(RSModifierType::SCALE_Z, scaleZ);
+}
+
 void RSNode::SetSkew(float skew)
 {
-    SetSkew({ skew, skew });
+    SetSkew({ skew, skew, skew });
 }
 
 void RSNode::SetSkew(float skewX, float skewY)
 {
-    SetSkew({ skewX, skewY });
+    SetSkew({ skewX, skewY, 0.f });
 }
 
-void RSNode::SetSkew(const Vector2f& skew)
+void RSNode::SetSkew(float skewX, float skewY, float skewZ)
 {
-    SetProperty<RSSkewModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SKEW, skew);
+    SetSkew({ skewX, skewY, skewZ });
+}
+
+void RSNode::SetSkew(const Vector3f& skew)
+{
+    SetProperty<RSSkewModifier, RSAnimatableProperty<Vector3f>>(RSModifierType::SKEW, skew);
 }
 
 void RSNode::SetSkewX(float skewX)
@@ -1003,7 +1013,7 @@ void RSNode::SetSkewX(float skewX)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1021,7 +1031,7 @@ void RSNode::SetSkewY(float skewY)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1030,19 +1040,42 @@ void RSNode::SetSkewY(float skewY)
     property->Set(skew);
 }
 
+void RSNode::SetSkewZ(float skewZ)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::SKEW);
+    if (iter == propertyModifiers_.end()) {
+        SetSkew(0.f, 0.f, skewZ);
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto skew = property->Get();
+    skew.z_ = skewZ;
+    property->Set(skew);
+}
+
 void RSNode::SetPersp(float persp)
 {
-    SetPersp({ persp, persp });
+    SetPersp({ persp, persp, 0.f, 1.f });
 }
 
 void RSNode::SetPersp(float perspX, float perspY)
 {
-    SetPersp({ perspX, perspY });
+    SetPersp({ perspX, perspY, 0.f, 1.f });
 }
 
-void RSNode::SetPersp(const Vector2f& persp)
+void RSNode::SetPersp(float perspX, float perspY, float perspZ, float perspW)
 {
-    SetProperty<RSPerspModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PERSP, persp);
+    SetPersp({ perspX, perspY, perspZ, perspW });
+}
+
+void RSNode::SetPersp(const Vector4f& persp)
+{
+    SetProperty<RSPerspModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PERSP, persp);
 }
 
 void RSNode::SetPerspX(float perspX)
@@ -1050,11 +1083,11 @@ void RSNode::SetPerspX(float perspX)
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::PERSP);
     if (iter == propertyModifiers_.end()) {
-        SetPersp(perspX, 0.f);
+        SetPersp({perspX, 0.f, 0.0f, 1.0f});
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1068,16 +1101,52 @@ void RSNode::SetPerspY(float perspY)
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::PERSP);
     if (iter == propertyModifiers_.end()) {
-        SetPersp(0.f, perspY);
+        SetPersp({0.f, perspY, 0.f, 1.f});
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
     auto persp = property->Get();
     persp.y_ = perspY;
+    property->Set(persp);
+}
+
+void RSNode::SetPerspZ(float perspZ)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp({0.f, 0.f, perspZ, 1.f});
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.z_ = perspZ;
+    property->Set(persp);
+}
+
+void RSNode::SetPerspW(float perspW)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp({0.f, 0.f, 0.f, perspW});
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.w_ = perspW;
     property->Set(persp);
 }
 

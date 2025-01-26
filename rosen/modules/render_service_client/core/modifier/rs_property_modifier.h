@@ -166,6 +166,16 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+class RSC_EXPORT RSScaleZModifier : public RSGeometryModifier {
+public:
+    explicit RSScaleZModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSScaleZModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
+};
+
 class RSC_EXPORT RSSkewModifier : public RSGeometryModifier {
 public:
     explicit RSSkewModifier(const std::shared_ptr<RSPropertyBase>& property);

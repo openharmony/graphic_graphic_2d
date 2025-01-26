@@ -128,14 +128,19 @@ Vector2f RSModifierExtractor::GetScale() const
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, SCALE, Vector2f(1.f, 1.f), *=);
 }
 
-Vector2f RSModifierExtractor::GetSkew() const
+float RSModifierExtractor::GetScaleZ() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, SKEW, Vector2f(0.f, 0.f), +=);
+    GET_PROPERTY_FROM_MODIFIERS(float, SCALE_Z, 1.f, *=);
 }
 
-Vector2f RSModifierExtractor::GetPersp() const
+Vector3f RSModifierExtractor::GetSkew() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, PERSP, Vector2f(0.f, 0.f), +=);
+    GET_PROPERTY_FROM_MODIFIERS(Vector3f, SKEW, Vector3f(0.f, 0.f, 0.f), +=);
+}
+
+Vector4f RSModifierExtractor::GetPersp() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, PERSP, Vector4f(0.f, 0.f, 0.f, 1.f), =);
 }
 
 float RSModifierExtractor::GetAlpha() const
