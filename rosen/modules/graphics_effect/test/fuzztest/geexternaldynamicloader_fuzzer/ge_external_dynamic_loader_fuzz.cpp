@@ -16,6 +16,7 @@
 #include "ge_external_dynamic_loader.h"
 #include "ge_external_dynamic_loader_fuzz.h"
 #include "ge_shader_filter.h"
+#include "ge_visual_effect_impl.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -24,7 +25,6 @@ namespace GraphicsEffectEngine {
 
 using namespace Rosen;
 
-// fuzz src & dst for DrawImageEffect
 bool GEExternalDynamicLoaderFuzzTest001(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
@@ -37,6 +37,10 @@ bool GEExternalDynamicLoaderFuzzTest001(const uint8_t *data, size_t size)
 
     auto& dynamicLoader = GEExternalDynamicLoader::GetInstance();
     uint32_t type = GETest::GetPlainData<uint32_t>();
+    // Only parameter struct containing basic types can be tested
+    if (type != (uint32_t)Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR) {
+        type = (uint32_t)Drawing::GEVisualEffectImpl::FilterType::NONE;
+    }
     uint32_t len = GETest::GetPlainData<uint32_t>();
     uint8_t* param = (uint8_t*)(data + GETest::g_pos);
     auto object = dynamicLoader.CreateGEXObjectByType(type, len, param);
