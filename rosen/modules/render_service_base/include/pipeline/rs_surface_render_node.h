@@ -807,6 +807,7 @@ public:
     void NotifyUIBufferAvailable();
     bool IsNotifyUIBufferAvailable() const;
     void SetIsNotifyUIBufferAvailable(bool available);
+    void NotifyUIBufferAvailableIfReady();
 
     // UI Thread would not be notified when SurfaceNode created by Video/Camera in RenderService has available buffer.
     // And RenderThread does not call mainFunc_ if nothing in UI thread is changed

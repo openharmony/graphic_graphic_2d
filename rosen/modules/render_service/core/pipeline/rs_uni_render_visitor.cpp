@@ -1048,6 +1048,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.UpdateDrawableBehindWindow();
         node.SetOldNeedDrawBehindWindow(node.NeedDrawBehindWindow());
     }
+    node.NotifyUIBufferAvailableIfReady();
 }
 
 bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
