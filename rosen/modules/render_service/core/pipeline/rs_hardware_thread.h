@@ -65,6 +65,7 @@ public:
     GSError ClearFrameBuffers(OutputPtr output);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void DumpEventQueue();
+    void ClearRedrawGPUCompositionCache(const std::set<int32_t>& bufferIds);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
