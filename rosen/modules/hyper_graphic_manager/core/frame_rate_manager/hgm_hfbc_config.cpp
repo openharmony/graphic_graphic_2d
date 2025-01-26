@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void HgmHfbcConfig::HandleHfbcConfig(const std::vector<std::string>& packageList) { }
+void HgmHfbcConfig::HandleHfbcConfig([[maybe_unused]] const std::vector<std::string>& packageList) { }
 
 } // namespace Rosen
 } // namespace OHOS
