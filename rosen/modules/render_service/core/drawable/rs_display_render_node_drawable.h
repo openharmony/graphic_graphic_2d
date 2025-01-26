@@ -150,6 +150,7 @@ private:
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void DrawCurtainScreen() const;
     void InitTranslateForWallpaper();
+    void CalculateTranslationForWallpaper();
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);

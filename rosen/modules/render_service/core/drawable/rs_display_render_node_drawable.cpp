@@ -146,21 +146,27 @@ void RSDisplayRenderNodeDrawable::InitTranslateForWallpaper()
     if (!RSSystemProperties::GetCacheOptimizeRotateEnable()) {
         return;
     }
-    std::call_once(g_initTranslateForWallpaperFlag, [this]() {
-        auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
-        if (UNLIKELY(!params)) {
-            return;
-        }
-        auto framesize = params->GetFrameRect();
-        int32_t offscreenWidth = static_cast<int32_t>(framesize.GetWidth());
-        int32_t offscreenHeight = static_cast<int32_t>(framesize.GetHeight());
-        int32_t screenWidth = params->GetScreenInfo().width;
-        int32_t screenHeight = params->GetScreenInfo().height;
-        auto maxRenderSize = std::ceil(std::sqrt(screenWidth * screenWidth + screenHeight * screenHeight));
-        auto translateX = std::round((maxRenderSize - offscreenWidth) / HALF);
-        auto translateY = std::round((maxRenderSize - screenHeight) / HALF);
-        RSUniRenderThread::Instance().SetWallpaperTranslate(translateX, translateY);
-    });
+    std::call_once(g_initTranslateForWallpaperFlag, [this]() { CalculateTranslationForWallpaper(); });
+}
+
+void RSDisplayRenderNodeDrawable::CalculateTranslationForWallpaper()
+{
+    if (!RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        return;
+    }
+    auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+    if (UNLIKELY(!params)) {
+        return;
+    }
+    auto framesize = params->GetFrameRect();
+    int32_t offscreenWidth = static_cast<int32_t>(framesize.GetWidth());
+    int32_t offscreenHeight = static_cast<int32_t>(framesize.GetHeight());
+    int32_t screenWidth = params->GetScreenInfo().width;
+    int32_t screenHeight = params->GetScreenInfo().height;
+    auto maxRenderSize = std::ceil(std::sqrt(screenWidth * screenWidth + screenHeight * screenHeight));
+    auto translateX = std::round((maxRenderSize - offscreenWidth) / HALF);
+    auto translateY = std::round((maxRenderSize - offscreenHeight) / HALF);
+    RSUniRenderThread::Instance().SetWallpaperTranslate(translateX, translateY);
 }
 
 std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
@@ -767,6 +773,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             bool isOpDropped = uniParam->IsOpDropped();
             bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
             bool needOffscreen = params->GetNeedOffscreen() || isHdrOn || isScRGBEnable || screenInfo.isSamplingOn;
+            if (params->IsRotationChanged() && !needOffscreen) {
+                CalculateTranslationForWallpaper();
+            }
             if (params->GetNeedOffscreen()) {
                 uniParam->SetOpDropped(false);
             }
