@@ -3132,7 +3132,7 @@ bool RSMainThread::IsIdle() const
 
 void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationAgentMap_.emplace(pid, app);
+    applicationAgentMap_.insert_or_assign(pid, app);
 }
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
