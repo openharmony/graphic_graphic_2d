@@ -1539,4 +1539,46 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
 }
+
+/*
+ * @tc.name: IntersectRect
+ * @tc.desc: test GraphicIRect intersect with GraphicIRect
+ * @tc.type: FUNC
+ * @tc.require: issueIARLU9
+ */
+HWTEST_F(RSUniRenderUtilTest, IntersectRect, TestSize.Level2)
+{
+    GraphicIRect srcRect = { 0, 0, 1080, 1920 };
+    GraphicIRect emptyRect = { 0, 0, 0, 0 };
+
+    GraphicIRect rect = emptyRect; // no intersect
+    GraphicIRect result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { -500, -500, -100, -100 }; // no intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { 1100, 0, 100, 100 }; // no intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { 200, 200, 800, 800 }; // all intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, rect);
+
+    rect = { -100, -100, 3000, 3000 }; // src rect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, srcRect);
+
+    rect = { -100, -100, 1000, 1000 }; // partial intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    GraphicIRect expect = { 0, 0, 900, 900 };
+    ASSERT_EQ(result, expect);
+
+    rect = { 500, 500, 2000, 2000 }; // partial intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    expect = { 500, 500, 580, 1420 };
+    ASSERT_EQ(result, expect);
+}
 } // namespace OHOS::Rosen
