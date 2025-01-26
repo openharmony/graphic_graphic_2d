@@ -3210,12 +3210,12 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
         const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
         auto tempRectMapped = childRectMapped;
         parentGeoPtr->GetMatrix().MapRect(childRectMapped, tempRectMapped);
-	if (parentProperties.GetClipToBounds()) {
+	    if (parentProperties.GetClipToBounds()) {
             auto parentDrawRectF = hwcNodeParent->GetSelfDrawRect();
             Drawing::Rect parentDrawRect(parentDrawRectF.left_, parentDrawRectF.top_,
             parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
-	    Drawing::Rect parentDrawClipRect;
-	    parentGeoPtr->GetMatrix().MapRect(parentDrawClipRect, parentDrawRect);
+	        Drawing::Rect parentDrawClipRect;
+	        parentGeoPtr->GetMatrix().MapRect(parentDrawClipRect, parentDrawRect);
             childRectMapped.Intersect(parentDrawClipRect);
         }
         if (parentProperties.GetClipToFrame()) {
