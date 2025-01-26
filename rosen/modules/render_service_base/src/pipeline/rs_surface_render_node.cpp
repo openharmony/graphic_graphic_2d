@@ -1702,13 +1702,27 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
     auto contentStatic = false;
+    uifirstContentDirty_ = false;
     if (IsLeashWindow()) {
+        for (auto& child : *GetSortedChildren()) {
+            if (!child) {
+                continue;
+            }
+            auto childSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurface) {
+                continue;
+            }
+            if (child->IsDirty() || child->IsSubTreeDirty()) {
+                uifirstContentDirty_ = true;
+            }
+        }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
     } else if (IsAbilityComponent()) {
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     } else {
         contentStatic = surfaceCacheContentStatic_;
     }
+    uifirstContentDirty_ = uifirstContentDirty_ || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -1717,8 +1731,10 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
         AddToPendingSyncList();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
-        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] forceUpdate:[%d]",
-        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), GetForceUpdateByUifirst());
+        "name[%s] Id[%" PRIu64 "], contentStatic[%d] subTreeDirty[%d] contentDirty[%d] forceUpdate[%d] "
+        "hasRemovedChild[%d], GetChildrenCount[%d], uifirstContentDirty:%d",
+        GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
+        HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
 }
 
 bool RSSurfaceRenderNode::IsOccludedByFilterCache() const
