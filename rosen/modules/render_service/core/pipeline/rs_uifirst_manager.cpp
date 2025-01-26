@@ -362,6 +362,12 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSu
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
         return false;
     }
+    if (ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) &&
+        RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::LOCKSCREEN_TO_LAUNCHER &&
+        node->IsLeashWindow()) {
+        RS_TRACE_NAME_FMT("Doing LOCKSCREEN_TO_LAUNCHER, fullTransparent node[%s] skips", node->GetName().c_str());
+        return true;
+    }
     for (auto& child : *node->GetSortedChildren()) {
         if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
@@ -1271,8 +1277,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
         // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
         if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE &&
-            !node.GetSubThreadAssignable() &&
-            node.GetSurfaceWindowType() != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+            !node.GetSubThreadAssignable()) {
             UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
             node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT

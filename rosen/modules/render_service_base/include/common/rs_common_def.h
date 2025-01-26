@@ -256,6 +256,7 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
     ENTER_RECENTS, // Enter recents
     EXIT_RECENTS, // Exit recents
+    LOCKSCREEN_TO_LAUNCHER, // Enter unlock screen for pc scene
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
