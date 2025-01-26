@@ -3227,7 +3227,7 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
             parentGeoPtr->GetMatrix().MapRect(frameClipRect, frameRect);
             childRectMapped.Intersect(frameClipRect);
         }
-        auto tempRectMapped = childRectMapped;
+        hwcNodeParent = hwcNodeParent->GetParent().lock();
         if (!hwcNodeParent) {
             break;
         }
