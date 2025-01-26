@@ -72,6 +72,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::ROTATION_Y, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::CAMERA_DISTANCE, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::SCALE, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::SCALE_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::SKEW, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::PERSP, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::TRANSLATE, RSPropertyDrawableSlot::BOUNDS_MATRIX },

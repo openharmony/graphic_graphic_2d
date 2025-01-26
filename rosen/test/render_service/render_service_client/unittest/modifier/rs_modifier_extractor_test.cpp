@@ -359,4 +359,43 @@ HWTEST_F(RSModifierExtractorTest, GetIlluminatedType001, TestSize.Level1)
     int illuminatedType = extractor.GetIlluminatedType();
     EXPECT_TRUE(illuminatedType == 0);
 }
+
+/**
+ * @tc.name: GetScaleZ
+ * @tc.desc: test results of GetScaleZ
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetScaleZ, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetScaleZ(), 1.0f);
+}
+
+/**
+ * @tc.name: GetSkew
+ * @tc.desc: test results of GetSkew
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetSkew, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetSkew(), Vector3f(0.f, 0.f, 0.f));
+}
+
+/**
+ * @tc.name: GetPersp
+ * @tc.desc: test results of GetPersp
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetPersp, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
+}
 } // namespace OHOS::Rosen
