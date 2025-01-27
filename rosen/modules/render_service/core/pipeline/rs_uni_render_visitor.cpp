@@ -633,7 +633,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
-    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_;
+    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
+        curDisplayDirtyManager_->IsActiveSurfaceRectChanged();
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -775,6 +776,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
+    curSurfaceDirtyManager_->ClipDirtyRectWithinSurface();
 
     // Update whether leash window's visible region is empty after prepare children
     UpdateLeashWindowVisibleRegionEmpty(node);
@@ -1152,8 +1154,10 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         return false;
     }
     screenInfo_ = screenManager_->QueryScreenInfo(node.GetScreenId());
+    screenRect_ = screenInfo_.activeRect.IsEmpty() ? RectI{0, 0, screenInfo_.width, screenInfo_.height} :
+        screenInfo_.activeRect;
     curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-    screenRect_ = RectI{0, 0, screenInfo_.width, screenInfo_.height};
+    curDisplayDirtyManager_->SetActiveSurfaceRect(screenInfo_.activeRect);
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -1214,6 +1218,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         }
         curSurfaceDirtyManager_->Clear();
         curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        curSurfaceDirtyManager_->SetActiveSurfaceRect(screenInfo_.activeRect);
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
         // update surfaceNode contentDirty and subTreeDirty flag for UIFirst purging policy
         RSMainThread::Instance()->CheckAndUpdateInstanceContentStaticStatus(curSurfaceNode_);
@@ -1949,6 +1954,15 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     ResetDisplayDirtyRegion();
+    if (curDisplayDirtyManager_) {
+        curDisplayDirtyManager_->ClipDirtyRectWithinSurface();
+        if (curDisplayDirtyManager_->IsActiveSurfaceRectChanged()) {
+            RS_TRACE_NAME_FMT("ActiveSurfaceRectChanged, form %s to %s",
+                curDisplayDirtyManager_->GetLastActiveSurfaceRect().ToString().c_str(),
+                curDisplayDirtyManager_->GetActiveSurfaceRect().ToString().c_str());
+            curDisplayDirtyManager_->MergeDirtyRect(curDisplayDirtyManager_->GetSurfaceRect());
+        }
+    }
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 

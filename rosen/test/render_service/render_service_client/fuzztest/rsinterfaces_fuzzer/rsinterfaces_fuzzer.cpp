@@ -30,8 +30,8 @@ const uint32_t usleepTime = 1000;
 
 class SurfaceCaptureFuture : public SurfaceCaptureCallback {
     public:
-         SurfaceCaptureFuture() = default;
-        ~SurfaceCaptureFuture() {};
+        SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
         {
             pixelMap_ = pixelmap;
@@ -86,10 +86,21 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t height = GetData<uint32_t>();
     bool canvasRotation = GetData<bool>();
     uint32_t scaleMode = GetData<uint32_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
+    rsInterfaces.SetScreenActiveRect(static_cast<ScreenId>(id), activeRect);
     rsInterfaces.SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
     rsInterfaces.SetScreenBacklight(static_cast<ScreenId>(id), level);
     rsInterfaces.SetScreenColorGamut(static_cast<ScreenId>(id), modeIdx);
