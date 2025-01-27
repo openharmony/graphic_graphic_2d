@@ -373,7 +373,7 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
     if (path == nullptr) {
         return false;
     }
-    strcpy(path, pathPrefix.c_str());
+    strlcpy(path, pathPrefix.c_str(), pathPrefixLength);
     for (size_t i = pathPrefixLength; i < countT + pathPrefixLength; i++) {
         path[i] =  GetObject<char>();
     }
