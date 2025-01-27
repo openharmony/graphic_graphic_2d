@@ -90,6 +90,7 @@ private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
+    bool EnableSlrScale();
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;

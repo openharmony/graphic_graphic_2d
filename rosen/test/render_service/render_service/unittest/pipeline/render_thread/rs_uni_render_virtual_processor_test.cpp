@@ -558,4 +558,20 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessCacheImage, TestSize.Level2)
 
     virtualProcessor->ProcessCacheImage(*image);
 }
+
+/**
+ * @tc.name: EnableSlrScale
+ * @tc.desc: test enable slr scale switch.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBJLYR
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+    bool res = virtualProcessor->EnableSlrScale();
+    ASSERT_NE(false, res);
+}
 } // namespace OHOS::Rosen

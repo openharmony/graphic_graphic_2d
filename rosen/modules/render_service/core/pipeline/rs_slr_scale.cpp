@@ -66,7 +66,6 @@ const float BIT_BOUND = 32767.0f;
 const int SLR_MAX_WIN_SIZE = 4;
 const int SLR_TAO_MAX_SIZE = 2;
 const float SLR_SCALE_THR_LOW = 0.6f;
-const float SLR_SCALE_THR_HIGH = 0.79f;
 const float SLR_ALPHA_LOW = 0.6f;
 const float SLR_ALPHA_HIGH = 0.1f;
 
@@ -148,11 +147,10 @@ void RSSLRScaleFunction::RefreshScreenData()
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)
 {
     canvas.Translate((mirrorWidth_ - dstWidth_) / 2, (mirrorHeight_ - dstHeight_) / 2);
-    saveCount_ = canvas.GetSaveCount();
+    canvas.Save();
+    canvas.Scale(scaleNum_, scaleNum_);
     scaleMatrix_ = canvas.GetTotalMatrix();
-    scaleMatrix_.SetScaleTranslate(scaleNum_, scaleNum_,
-        (mirrorWidth_ - dstWidth_) / 2, (mirrorHeight_ - dstHeight_) / 2);
-    canvas.ClipRect(Drawing::Rect(0, 0, dstWidth_, dstHeight_), Drawing::ClipOp::INTERSECT, false);
+    canvas.Restore();
 }
 
 void RSSLRScaleFunction::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed)

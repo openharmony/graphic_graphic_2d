@@ -1150,7 +1150,6 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
     if (slrManager) {
-        curCanvas_->RestoreToCount(slrManager->GetSaveCount());
         curCanvas_->Save();
         auto scaleNum = slrManager->GetScaleNum();
         curCanvas_->Scale(scaleNum, scaleNum);
@@ -1172,7 +1171,6 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
         virtualProcesser->ProcessDisplaySurfaceForRenderThread(mirrorDrawable);
     }
     if (slrManager) {
-        curCanvas_->RestoreToCount(slrManager->GetSaveCount());
         curCanvas_->Save();
         auto scaleNum = slrManager->GetScaleNum();
         curCanvas_->Scale(scaleNum, scaleNum);

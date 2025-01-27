@@ -422,8 +422,7 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
             startY = (mirrorHeight - (mirrorScaleY_ * mainHeight)) / 2; // 2 for calc Y
         }
 
-        // enable slr on pc castscreen.
-        if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled()) {
+        if (EnableSlrScale()) {
             if (slrManager_ == nullptr) {
                 slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
                     mirroredScreenWidth_, mirroredScreenHeight_);
@@ -441,13 +440,23 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
     }
 }
 
+bool RSUniRenderVirtualProcessor::EnableSlrScale()
+{
+    float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
+    if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
+        (slrScale < SLR_SCALE_THR_HIGH)) {
+        return true;
+    }
+    return false;
+}
+
 void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
 {
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::ProcessCacheImage: Canvas is null!");
         return;
     }
-    if (canvasRotation_ && RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled()) {
+    if (EnableSlrScale()) {
         if (slrManager_ == nullptr) {
             RS_LOGW("RSUniRenderVirtualProcessor::ProcessCacheImage: SlrManager is null!");
             RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);

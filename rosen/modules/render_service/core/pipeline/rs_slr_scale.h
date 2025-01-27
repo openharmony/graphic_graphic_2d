@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
+const float SLR_SCALE_THR_HIGH = 0.79f;
 class RSSLRScaleFunction {
 public:
     RSSLRScaleFunction(float dstWidth, float dstHeight, float srcWidth, float srcHeight);
