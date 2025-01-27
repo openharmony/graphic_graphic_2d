@@ -1932,6 +1932,19 @@ void RSMainThread::ProcessUiCaptureTasks()
     }
 }
 
+void RSMainThread::ClearUnmappedCache()
+{
+    std::set<int32_t> bufferIds;
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        bufferIds.swap(unmappedCacheSet_);
+    }
+    if (!bufferIds.empty()) {
+        RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferIds);
+        RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(bufferIds);
+    }
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     if (isAccessibilityConfigChanged_) {
