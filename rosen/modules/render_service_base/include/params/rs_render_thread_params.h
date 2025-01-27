@@ -405,10 +405,6 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
-    bool IsAceDebugBoundaryEnabled() const
-    {
-        return isAceDebugBoundaryEnabled_;
-    }
     const ScreenInfo& GetScreenInfo() const
     {
         return screenInfo_;
@@ -489,7 +485,6 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
-    bool isAceDebugBoundaryEnabled_ = false;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
     bool isMirrorScreen_ = false;
 

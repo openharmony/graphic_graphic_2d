@@ -440,7 +440,6 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
-    void UpdateAceDebugBoundaryEnabled();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -591,9 +590,6 @@ private:
     std::atomic<bool> isGlobalDarkColorMode_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
-
-    bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
-    bool hasPostUpdateAceDebugBoundaryTask_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
