@@ -621,6 +621,60 @@ HWTEST_F(HgmFrameRateMgrTest, CollectFrameRateChange, Function | SmallTest | Lev
     EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), false);
 }
 
+/**
+ * @tc.name: CollectVRateChange
+ * @tc.desc: Verify the result of CollectVRateChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CollectVRateChange, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    InitHgmFrameRateManager(mgr);
+    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    mgr.vRatesMap_ = {
+        {0, 0},
+        {1, 1},
+        {2, 2}
+    };
+    uint64_t linkerId = 2;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
+    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
+
+    linkerId = 0;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
+    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
+
+    linkerId = 1;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
+    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
+    
+    linkerId = 2;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
+    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
+
+    finalRange.preferred_ = 0;
+    mgr.controllerRate_ = 0;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
+    EXPECT_EQ(finalRange.preferred_, 1);
+
+    finalRange.preferred_ = 0;
+    mgr.controllerRate_ = 100;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
+    EXPECT_EQ(finalRange.preferred_, 50);
+}
 
 /**
  * @tc.name: HandleFrameRateChangeForLTPO

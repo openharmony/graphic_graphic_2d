@@ -60,6 +60,7 @@
       *HgmFrameRateManager::ChangePriority*;
       *HgmFrameRateManager::CleanVote*;
       *HgmFrameRateManager::CollectFrameRateChange*;
+      *HgmFrameRateManager::CollectVRateChange*;
       *HgmFrameRateManager::DeliverRefreshRateVote*;
       *HgmFrameRateManager::FrameRateReport*;
       *HgmFrameRateManager::GetDrawingFrameRate*;
