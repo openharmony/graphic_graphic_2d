@@ -713,7 +713,12 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
         } else {
             CollectConnections(waitForVSync, now, conns, event_.vsyncCount);
         }
-        if (!waitForVSync) {
+#if defined(RS_ENABLE_DVSYNC_2)
+        bool canDisableVsync = isRs_ || !DVSync::Instance().IsAppDVSyncOn();
+#else
+        bool canDisableVsync = true;
+#endif
+        if (!waitForVSync && canDisableVsync) {
             DisableVSync();
             return;
         }
