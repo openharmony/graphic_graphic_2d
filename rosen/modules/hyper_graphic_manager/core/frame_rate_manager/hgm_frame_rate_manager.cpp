@@ -483,7 +483,7 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
         ExtractPid(linkerId), linkerId, appFrameRate, iter->second);
     HGM_LOGD("CollectVRateChange Before modification linkerId = %{public}" PRIu64 ","
         "appFrameRate = %{public}d, vrate = %{public}d", linkerId, appFrameRate, iter->second);
-    appFrameRate = static_cast<int>(controllerRate_ / iter->second);
+    appFrameRate = static_cast<int>(controllerRate_) / iter->second;
     // vrate is int::max means app need not refreshing
     if (appFrameRate == 0) {
         //appFrameRate value is 1  means that not refreshing.
