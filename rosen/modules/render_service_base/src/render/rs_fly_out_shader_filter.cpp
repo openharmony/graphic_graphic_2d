@@ -78,6 +78,36 @@ Drawing::Brush RSFlyOutShaderFilter::GetBrush(const std::shared_ptr<Drawing::Ima
     return brush;
 }
 
+void RSFlyOutShaderFilter::SetPathTo(Drawing::Path &path, const float width,
+    const std::array<Drawing::Point, POINT_NUM>& flyUp, const std::array<Drawing::Point, POINT_NUM>& flyDown) const
+{
+    // The 0th point is the starting point of drawing.
+    path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
+    // The 3th point is the upper right corner of the bound.
+    path.LineTo(flyUp[3].GetX(), flyUp[3].GetY());
+    // The 4th, 5th and 6th control points are connected to represent the right edge of upper part.
+    path.CubicTo(CloserToHalf(flyUp[4], width, width), CloserToHalf(flyUp[5], width, width), flyUp[6]);
+    // The 4th, 5th and 6th control points are connected to represent the right edge of lower part.
+    path.CubicTo(flyDown[4], flyDown[5], flyDown[6]);
+    // The 9th point is the bottom left corner of the bound.
+    path.LineTo(flyDown[9].GetX(), flyDown[9].GetY());
+    // The 10th, 11th and 0th control points are connected to represent the left edge of lower part.
+    path.CubicTo(flyDown[10], flyDown[11], flyDown[0]);
+    // The 10th, 11th and 0th control points are connected to represent the left edge of upper part.
+    path.CubicTo(CloserToHalf(flyUp[10], 0, width), CloserToHalf(flyUp[11], 0, width), flyUp[0]);
+}
+
+Drawing::Point RSFlyOutShaderFilter::CloserToHalf(const Drawing::Point &pointOfPatch,
+    const float nodeBounds, const float width) const
+{
+    Drawing::Point newBounds;
+    newBounds.SetY(pointOfPatch.GetY());
+    // 0.5 means the center of the node
+    float center = 0.5 * width;
+    newBounds.SetX((fabs(pointOfPatch.GetX() - center) < fabs(nodeBounds - center)) ? pointOfPatch.GetX() : nodeBounds);
+    return newBounds;
+}
+
 void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, POINT_NUM>& flyUp,
     std::array<Drawing::Point, POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const
 {
@@ -165,22 +195,12 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
         Drawing::Point{0.0f, height + segmentHeightTwo}, Drawing::Point{0.0f, height + segmentHeightOne}
     };
 
-    Drawing::Path path;
-    // The 0th point is the starting point of drawing.
-    path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
-    // The 3th point is the upper right corner of the bound.
-    path.LineTo(flyUp[3].GetX(), flyUp[3].GetY());
-    // The 6th point is the bottom right corner of the bound.
-    path.LineTo(flyDown[6].GetX(), flyDown[6].GetY());
-    // The 9th point is the bottom left corner of the bound.
-    path.LineTo(flyDown[9].GetX(), flyDown[9].GetY());
-    // The 0th point is the upper left corner of the bound.
-    path.LineTo(flyUp[0].GetX(), flyUp[0].GetY());
-    // The path is the bound of the original node
-    canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
-
     // calculate deformation coordinate
     CalculateDeformation(flyUp, flyDown, width, imageHeight);
+
+    Drawing::Path path;
+    SetPathTo(path, width, flyUp, flyDown);
+    canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
 
     canvas.DrawPatch(flyUp.data(), nullptr, texCoordsUp.data(), Drawing::BlendMode::SRC_OVER);
     canvas.DrawPatch(flyDown.data(), nullptr, texCoordsDown.data(), Drawing::BlendMode::SRC_OVER);

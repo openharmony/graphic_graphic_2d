@@ -39,6 +39,10 @@ public:
     float GetDegree() const;
     uint32_t GetFlyMode() const;
     // 12 means anchor points of one patch
+    void SetPathTo(Drawing::Path &path, const float width, const std::array<Drawing::Point, 12>& flyUp,
+        const std::array<Drawing::Point, 12>& flyDown) const;
+    Drawing::Point CloserToHalf(const Drawing::Point &pointOfPatch, const float nodeBounds, const float width) const;
+    // 12 means anchor points of one patch
     void CalculateDeformation(std::array<Drawing::Point, 12>& flyUp,
         std::array<Drawing::Point, 12>& flyDown, const float deformWidth, const float deformHeight) const;
 
