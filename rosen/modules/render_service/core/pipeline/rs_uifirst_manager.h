@@ -91,14 +91,14 @@ public:
         isUiFirstOn_ = uiFirstSwitch;
     }
 
-    void SetHasDoneNodeFlag(bool flag)
+    void SetNodeNeedForceUpdateFlag(bool flag)
     {
-        hasDoneNode_ = flag;
+        hasForceUpdateNode_ = flag;
     }
 
-    bool HasDoneNode()
+    bool HasForceUpdateNode()
     {
-        return hasDoneNode_;
+        return hasForceUpdateNode_;
     }
 
     void MergeOldDirty(NodeId id);
@@ -170,7 +170,7 @@ private:
     void UpdateCompletedSurface(NodeId id);
 
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId id);
-    void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
+    bool SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
     void RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
@@ -237,7 +237,7 @@ private:
     std::set<NodeId> collectedCardNodes_;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
-    bool hasDoneNode_ = false;
+    bool hasForceUpdateNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>

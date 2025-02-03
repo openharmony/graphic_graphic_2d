@@ -2918,13 +2918,15 @@ void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
     stagingSurfaceParams->SetLeashWindowVisibleRegionEmptyParam(isLeashWindowVisibleRegionEmpty_);
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
+bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
+    bool ret = false;
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        ret = stagingSurfaceParams->SetUifirstNodeEnableParam(b);
         AddToPendingSyncList();
     }
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
