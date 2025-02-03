@@ -308,8 +308,12 @@ public:
         }
     }
     // return false when timeout
-    static void NotifyAll()
+    static inline void NotifyAll(std::function<void()> condChange)
     {
+        if (LIKELY(condChange)) {
+            std::unique_lock<std::mutex> lock(notifyMutex_);
+            condChange();
+        }
         notifyCv_.notify_all();
     }
     static bool CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch = true);
