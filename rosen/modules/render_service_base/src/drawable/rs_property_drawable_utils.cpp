@@ -530,30 +530,11 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawLightUpEffect surface is null");
         return;
     }
-    if (RSSystemProperties::IsTabletType()) {
-        auto blender = MakeLightUpEffectBlender(lightUpEffectDegree);
-        Drawing::Brush brush;
-        brush.SetBlender(blender);
-        canvas->DrawBackground(brush);
-    } else {
-        auto clipBounds = canvas->GetDeviceClipBounds();
-        auto image = surface->GetImageSnapshot(clipBounds, false);
-        if (image == nullptr) {
-            ROSEN_LOGE("RSPropertyDrawableUtils::DrawLightUpEffect image is null");
-            return;
-        }
 
-        Drawing::Matrix scaleMat;
-        auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-            Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-        auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
-        Drawing::Brush brush;
-        brush.SetShaderEffect(shader);
-        Drawing::AutoCanvasRestore acr(*canvas, true);
-        canvas->ResetMatrix();
-        canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
-        canvas->DrawBackground(brush);
-    }
+    auto blender = MakeLightUpEffectBlender(lightUpEffectDegree);
+    Drawing::Brush brush;
+    brush.SetBlender(blender);
+    canvas->DrawBackground(brush);
 }
 
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlender(const float lightUpDeg)

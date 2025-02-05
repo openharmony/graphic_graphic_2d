@@ -121,8 +121,6 @@ private:
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
-        float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(
         float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
@@ -136,10 +134,9 @@ private:
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     inline static int g_blurCnt = 0;
 };
 } // namespace Rosen
