@@ -25,6 +25,7 @@
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
+#include "hgm_hfbc_config.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "parameters.h"
@@ -758,6 +759,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         std::lock_guard<std::mutex> lock(cleanPidCallbackMutex_);
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
+    // check whether to enable HFBC
+    HgmHfbcConfig::HandleHfbcConfig(packageList);
     HgmTaskHandleThread::Instance().PostTask([this, packageList] () {
         if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
