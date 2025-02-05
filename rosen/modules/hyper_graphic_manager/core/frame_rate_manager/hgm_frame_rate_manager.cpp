@@ -1178,8 +1178,10 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetAppStrategyConfig(pkgName, config) == EXEC_SUCCESS) {
         isGameSupportAS_ = config.supportAS;
+        curGameNodeName_ = multiAppStrategy_.GetGameNodeName(pkgName);
     } else {
         isGameSupportAS_ = false;
+        curGameNodeName_ = "";
     }
     DeliverRefreshRateVote(
         {"VOTER_GAMES", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, gamePid}, eventInfo.eventStatus);

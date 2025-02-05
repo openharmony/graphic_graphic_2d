@@ -158,6 +158,12 @@ public:
     void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
+    bool IsGameNodeOnTree() const { return isGameNodeOnTree_; };
+    void SetGameNodeOnTree(const bool& isOnTree)
+    {
+        isGameNodeOnTree_ = isOnTree;
+    }
+    std::string GetGameNodeName() const { return curGameNodeName_; };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
@@ -312,6 +318,10 @@ private:
     std::atomic<bool> isAdaptive_ = false;
     // Does current game require Adaptive Sync
     bool isGameSupportAS_ = false;
+    // current game app's self drawing node name
+    std::string curGameNodeName_;
+    // if current game's self drawing node is on tree,default false
+    bool isGameNodeOnTree_ = false;
 
     std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

@@ -107,6 +107,8 @@ public:
         bool supportAS;
         // <bufferName, fps>
         std::unordered_map<std::string, int32_t> bufferFpsMap;
+        // game's self drawing node name
+        std::string nodeName;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -158,6 +160,8 @@ public:
         SceneConfigMap ancoSceneList;
         // <componentCode, idleFps>
         std::unordered_map<std::string, int32_t> componentPowerConfig;
+        // <"pkgName", "UnityPlayerSurface">
+        std::unordered_map<std::string, std::string> gameAppNodeList;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
