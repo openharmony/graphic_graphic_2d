@@ -1426,6 +1426,8 @@ public:
 
     void ResetIsBufferFlushed();
 
+    bool IsUIBufferAvailable();
+
     bool GetUIExtensionUnobscured() const;
 
 protected:

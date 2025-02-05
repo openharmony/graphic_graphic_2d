@@ -327,6 +327,8 @@ private:
     // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
     void SetHdrWhenMultiDisplayChangeInPC();
 
+    void TryNotifyUIBufferAvailable();
+
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -423,6 +425,7 @@ private:
     int32_t offsetY_ { 0 };
     bool isTargetUIFirstDfxEnabled_ = false;
     std::vector<std::string> dfxUIFirstSurfaceNames_;
+    std::vector<NodeId> uiBufferAvailableId_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
