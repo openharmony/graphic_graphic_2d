@@ -16,8 +16,8 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 #define RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 
-#include "pipeline/rs_slr_scale.h"
 #include "rs_uni_render_processor.h"
+#include "pipeline/slr_scale/rs_slr_scale.h"
 
 namespace OHOS {
 namespace Rosen {

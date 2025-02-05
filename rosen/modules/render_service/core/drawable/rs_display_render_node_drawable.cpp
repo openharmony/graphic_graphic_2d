@@ -1257,6 +1257,9 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {
+        std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(renderFrame, params,
+            isMirrorSLRCopy_ ? scaleManager_->GetScaleMatrix() : curCanvas_->GetTotalMatrix());
+        rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
         DrawWiredMirrorCopy(*mirroredDrawable);
     }
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
@@ -1424,15 +1427,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     auto mirrorScreenInfo = nodeParams->GetScreenInfo();
     auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
     auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
-    if (isMirrorSLRCopy_) {
-        if (scaleManager_ == nullptr) {
-            scaleManager_ = std::make_shared<RSSLRScaleFunction>(
-                mirrorWidth, mirrorHeight, mainWidth, mainHeight);
-        } else {
-            scaleManager_->CheckOrRefreshScreen(mirrorWidth, mirrorHeight, mainWidth, mainHeight);
-        }
-        isMirrorSLRCopy_ = scaleManager_->GetIsSLRCopy();
-    }
+
     auto rotation = mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager) {
@@ -1444,12 +1439,24 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
                 - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
         }
     }
+    // Rotate
+    RotateMirrorCanvas(rotation, mirrorWidth, mirrorHeight);
     // not support rotation for MirrorScreen enableVisibleRect
     rotation = enableVisibleRect_ ? ScreenRotation::ROTATION_0 : rotation;
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
-        std::swap(mainWidth, mainHeight);
+        std::swap(mirrorWidth, mirrorHeight);
     }
     curCanvas_->Clear(SK_ColorBLACK);
+    // must after rotate and swap width/height
+    if (isMirrorSLRCopy_) {
+        if (scaleManager_ == nullptr) {
+            scaleManager_ = std::make_shared<RSSLRScaleFunction>(
+                mirrorWidth, mirrorHeight, mainWidth, mainHeight);
+        } else {
+            scaleManager_->CheckOrRefreshScreen(mirrorWidth, mirrorHeight, mainWidth, mainHeight);
+        }
+        isMirrorSLRCopy_ = scaleManager_->GetIsSLRCopy();
+    }
     // Scale
     if (mainWidth > 0 && mainHeight > 0) {
         if (isMirrorSLRCopy_) {
@@ -1463,8 +1470,6 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
             curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
         }
     }
-    // Rotate
-    RotateMirrorCanvas(rotation, static_cast<float>(mainScreenInfo.width), static_cast<float>(mainScreenInfo.height));
 }
 
 void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
@@ -1517,22 +1522,24 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
     }
 }
 
-void RSDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight)
+void RSDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rotation, float width, float height)
 {
     switch (rotation) {
         case ScreenRotation::ROTATION_0:
             break;
         case ScreenRotation::ROTATION_90:
+            curCanvas_->Translate(width / 2.0f, height / 2.0f);
             curCanvas_->Rotate(90, 0, 0); // 90 is the rotate angle
-            curCanvas_->Translate(0, -mainHeight);
+            curCanvas_->Translate(-(height / 2.0f), -(width / 2.0f));
             break;
         case ScreenRotation::ROTATION_180:
             // 180 is the rotate angle, calculate half width and half height requires divide by 2
-            curCanvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
+            curCanvas_->Rotate(180, width / 2.0f, height / 2.0f);
             break;
         case ScreenRotation::ROTATION_270:
+            curCanvas_->Translate(width / 2.0f, height / 2.0f);
             curCanvas_->Rotate(270, 0, 0); // 270 is the rotate angle
-            curCanvas_->Translate(-mainWidth, 0);
+            curCanvas_->Translate(-(height / 2.0f), -(width / 2.0f));
             break;
         default:
             break;
