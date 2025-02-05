@@ -1287,7 +1287,7 @@ public:
     }
 protected:
     void OnSync() override;
-
+    void OnSkipSync() override;
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
     void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
@@ -1582,6 +1582,7 @@ private:
     uint32_t apiCompatibleVersion_ = 0;
 
     bool oldNeedDrawBehindWindow_ = false;
+    RectI skipFrameDirtyRect_;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>

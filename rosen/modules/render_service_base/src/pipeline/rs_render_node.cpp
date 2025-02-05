@@ -4214,6 +4214,13 @@ void RSRenderNode::OnSync()
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }
 
+void RSRenderNode::OnSkipSync()
+{
+    lastFrameSynced_ = false;
+    // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
+    addedToPendingSyncList_ = false;
+}
+
 bool RSRenderNode::ShouldClearSurface()
 {
     bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
