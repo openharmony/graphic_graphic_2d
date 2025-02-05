@@ -249,6 +249,8 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     std::lock_guard<std::mutex> lock(mutex_);
     if (boundsChangedCallback_) {
         boundsChangedCallback_(bounds);
+        RS_TRACE_NAME_FMT("node:[name: %s, id: %" PRIu64 ", bounds:%f %f %f %f] already callback",
+            GetName().c_str(), GetId(), bounds.x_, bounds.y_, bounds.z_, bounds.w_);
     }
 }
 
