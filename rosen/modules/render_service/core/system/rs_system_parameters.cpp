@@ -250,5 +250,11 @@ bool RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
+
+int32_t RSSystemParameters::GetWindowScreenScanType()
+{
+    static int32_t screenScanType = system::GetIntParameter<int32_t>("const.window.screen.scan_type", 0);
+    return screenScanType;
+}
 } // namespace Rosen
 } // namespace OHOS
