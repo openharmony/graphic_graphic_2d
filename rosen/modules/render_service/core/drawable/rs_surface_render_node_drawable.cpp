@@ -461,7 +461,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         EnableGpuOverDrawDrawBufferOptimization(*curCanvas_, surfaceParams);
     }
 
-    if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture()) {
+    if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture() && !isUiFirstNode) {
         RS_TRACE_NAME("Drawing cachedImage by capture");
         DrawCachedImage(*curCanvas_, surfaceParams->GetCacheSize());
     } else {
