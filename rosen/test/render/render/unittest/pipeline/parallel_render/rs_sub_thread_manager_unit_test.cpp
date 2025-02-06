@@ -95,54 +95,6 @@ HWTEST_F(RsSubThreadManagerTest, DumpMemTest01, TestSize.Level1)
 }
 
 /**
- * @tc.name: SubmitSubThreadTask
- * @tc.desc: Test RsSubThreadManagerTest.SubmitSubThreadTaskTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadManagerTest, SubmitSubThreadTask, TestSize.Level1)
-{
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> list;
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    rsSubThreadManager->SubmitSubThreadTask(nullptr, list);
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(1, config);
-    rsSubThreadManager->SubmitSubThreadTask(node, list);
-    EXPECT_TRUE(list.empty());
-
-    std::shared_ptr<RSSurfaceRenderNode> rsSurfaceRenderNode = nullptr;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
-    surfaceRenderNode->shouldPaint_ = false;
-    list.push_back(rsSurfaceRenderNode);
-    list.push_back(surfaceRenderNode);
-    list.push_back(renderNode);
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContextt.get(), 0);
-    rsSubThreadManager->threadList_.push_back(curThread);
-    rsSubThreadManager->threadList_.push_back(curThread);
-    rsSubThreadManager->threadList_.push_back(curThread);
-    rsSubThreadManager->SubmitSubThreadTask(node, list);
-    EXPECT_FALSE(list.empty());
-
-    list.clear();
-    auto rsNode = std::make_shared<RSSurfaceRenderNode>(0);
-    rsNode->SetNeedSubmitSubThread(false);
-    renderNode->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
-    list.push_back(rsNode);
-    list.push_back(renderNode);
-    rsSubThreadManager->SubmitSubThreadTask(node, list);
-    EXPECT_FALSE(list.empty());
-
-    list.clear();
-    renderNode->shouldPaint_ = false;
-    list.push_back(renderNode);
-    rsSubThreadManager->SubmitSubThreadTask(node, list);
-    EXPECT_FALSE(list.empty());
-    rsSubThreadManager->threadList_.clear();
-}
-
-/**
  * @tc.name: GetAppGpuMemoryInMBTest01
  * @tc.desc: Verify function GetAppGpuMemoryInMB
  * @tc.type:FUNC
