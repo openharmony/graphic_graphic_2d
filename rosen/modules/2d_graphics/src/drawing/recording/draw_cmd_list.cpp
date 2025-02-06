@@ -634,10 +634,30 @@ size_t DrawCmdList::CountTextBlobNum()
     return textBlobCnt;
 }
 
-void DrawCmdList::PatchTypefaceIds()
+void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList)
 {
-    constexpr int bitNumber = 30 + 32;
-    uint64_t replayMask = (uint64_t)1 << bitNumber;
+    if (!handle) {
+        return;
+    }
+    DrawTextBlobOpItem::ConstructorHandle* constructorHandle =
+        static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
+    if (takeIdFromList) {
+        if (count > 0 && count - 1 < drawOpItems_.size()) {
+            auto drawOpItem = drawOpItems_[count - 1];
+            if (drawOpItem && drawOpItem->GetType() == DrawOpItem::TEXT_BLOB_OPITEM) {
+                auto drawTextOpItem = static_cast<DrawTextBlobOpItem*>(drawOpItem.get());
+                constructorHandle->globalUniqueId = drawTextOpItem->GetTypefaceId();
+            }
+        }
+    } else if (constructorHandle->globalUniqueId) {
+        constexpr int bitNumber = 30 + 32;
+        uint64_t replayMask = (uint64_t)1 << bitNumber;
+        constructorHandle->globalUniqueId |= replayMask;
+    }
+}
+
+void DrawCmdList::PatchTypefaceIds(bool takeIdFromList)
+{
     size_t offset = offset_;
     size_t maxOffset = opAllocator_.GetSize();
     uint32_t count = 0;
@@ -652,9 +672,7 @@ void DrawCmdList::PatchTypefaceIds()
         if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
             DrawTextBlobOpItem::ConstructorHandle* handle =
                 static_cast<DrawTextBlobOpItem::ConstructorHandle*>(curOpItemPtr);
-            if (handle->globalUniqueId) {
-                handle->globalUniqueId |= replayMask;
-            }
+            ProfilerTextBlob(handle, count, takeIdFromList);
         }
         if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
             break;

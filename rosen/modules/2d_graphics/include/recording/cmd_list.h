@@ -339,6 +339,9 @@ public:
 #endif
 
 protected:
+    void ProfilerPushObjects(std::stringstream& stream, size_t size);
+    void ProfilerPopObjects(std::stringstream& stream, size_t size);
+
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;

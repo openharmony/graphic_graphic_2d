@@ -623,6 +623,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             if (auto commandList = reinterpret_cast<Drawing::DrawCmdList*>(modifier->GetDrawCmdListId())) {
                 std::string allocData = commandList->ProfilerPushAllocators();
                 commandList->MarshallingDrawOps();
+                commandList->PatchTypefaceIds(true);
                 MarshalRenderModifier(*modifier, data);
                 commandList->ProfilerPopAllocators(allocData);
             } else {
