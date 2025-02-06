@@ -221,7 +221,7 @@ private:
     bool isRs_ = false;
     std::atomic<bool> hasVsync_ = false;
     void ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &conns, int64_t now, int64_t period,
-        int64_t generatorRefreshRate, int64_t vsyncCount, bool isDvsyncController);
+        uint32_t generatorRefreshRate, int64_t vsyncCount, bool isDvsyncController);
     void ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int64_t period, int64_t vsyncCount);
     void TriggerNext(sptr<VSyncConnection> con);
     // Start of DVSync
