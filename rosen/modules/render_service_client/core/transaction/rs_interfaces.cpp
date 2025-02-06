@@ -498,6 +498,11 @@ int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrame
     return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);
 }
 
+uint32_t RSInterfaces::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    return renderServiceClient_->SetScreenActiveRect(id, activeRect);
+}
+
 bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
 {
     return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes);

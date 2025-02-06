@@ -139,10 +139,11 @@ void RSDirtyRegionManager::IntersectDirtyRect(const RectI& rect)
 
 void RSDirtyRegionManager::ClipDirtyRectWithinSurface()
 {
-    int left = std::max(std::max(currentFrameDirtyRegion_.left_, 0), surfaceRect_.left_);
-    int top = std::max(std::max(currentFrameDirtyRegion_.top_, 0), surfaceRect_.top_);
-    int width = std::min(currentFrameDirtyRegion_.GetRight(), surfaceRect_.GetRight()) - left;
-    int height = std::min(currentFrameDirtyRegion_.GetBottom(), surfaceRect_.GetBottom()) - top;
+    auto clipRect = activeSurfaceRect_.IsEmpty() ? surfaceRect_ : activeSurfaceRect_;
+    int left = std::max(std::max(currentFrameDirtyRegion_.left_, 0), clipRect.left_);
+    int top = std::max(std::max(currentFrameDirtyRegion_.top_, 0), clipRect.top_);
+    int width = std::min(currentFrameDirtyRegion_.GetRight(), clipRect.GetRight()) - left;
+    int height = std::min(currentFrameDirtyRegion_.GetBottom(), clipRect.GetBottom()) - top;
     // If new region is invalid, currentFrameDirtyRegion_ would be reset as [0, 0, 0, 0]
     currentFrameDirtyRegion_ = ((width <= 0) || (height <= 0)) ? RectI() : RectI(left, top, width, height);
 }
@@ -167,6 +168,8 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     if (!targetManager) {
         return;
     }
+    targetManager->lastActiveSurfaceRect_ = lastActiveSurfaceRect_;
+    targetManager->activeSurfaceRect_ = activeSurfaceRect_;
     targetManager->surfaceRect_ = surfaceRect_;
     targetManager->dirtyRegion_ = dirtyRegion_;
     targetManager->hwcDirtyRegion_ = hwcDirtyRegion_;
@@ -325,24 +328,16 @@ bool RSDirtyRegionManager::SetBufferAge(const int age)
     return true;
 }
 
-bool RSDirtyRegionManager::SetSurfaceSize(const int32_t width, const int32_t height)
-{
-    if (width < 0 || height < 0) {
-        return false;
-    }
-    surfaceRect_ = RectI(0, 0, width, height);
-    return true;
-}
-
 void RSDirtyRegionManager::MergeSurfaceRect()
 {
-    return MergeDirtyRect(GetSurfaceRect());
+    return MergeDirtyRect(activeSurfaceRect_.IsEmpty() ? surfaceRect_ : activeSurfaceRect_);
 }
 
 void RSDirtyRegionManager::ResetDirtyAsSurfaceSize()
 {
-    dirtyRegion_ = surfaceRect_;
-    currentFrameDirtyRegion_ = surfaceRect_;
+    const auto& rect = activeSurfaceRect_.IsEmpty() ? surfaceRect_ : activeSurfaceRect_;
+    dirtyRegion_ = rect;
+    currentFrameDirtyRegion_ = rect;
 }
 
 void RSDirtyRegionManager::UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirtyDebugType)
@@ -378,7 +373,8 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirt
 RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 {
     if (age == 0 || age > historySize_) {
-        return surfaceRect_;
+        rect = rect.JoinRect(surfaceRect_);
+        age = historySize_;
     }
     // GetHistory(historySize_) is equal to dirtyHistory_[historyHead_] (latest his rect)
     // therefore, this loop merges rect with age frames' dirtyRect

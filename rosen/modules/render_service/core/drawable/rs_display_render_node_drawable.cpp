@@ -78,7 +78,7 @@ std::string RectVectorToString(std::vector<RectI>& regionRects)
     return results;
 }
 
-Drawing::Region GetFlippedRegion(std::vector<RectI>& rects, ScreenInfo& screenInfo)
+Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo)
 {
     Drawing::Region region;
 
@@ -554,8 +554,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     ScreenId paramScreenId = params->GetScreenId();
     SetScreenRotationForPointLight(*params);
     const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "](%d, %d, %d, %d), zoomed(%d)", paramScreenId,
-        dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_, params->GetZoomed());
+    const auto& activeSurfaceRect = GetSyncDirtyManager()->GetActiveSurfaceRect();
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "](%d, %d, %d, %d), zoomed(%d), active(%d, %d, %d, %d)",
+        paramScreenId, dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
+        params->GetZoomed(), activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_,
+        activeSurfaceRect.height_);
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -778,6 +781,20 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
             SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
+            auto dirtyManager = GetSyncDirtyManager();
+            const auto& activeRect = dirtyManager->GetActiveSurfaceRect();
+            if (!activeRect.IsEmpty() && (!dirtyManager->GetDirtyRegion().IsInsideOf(activeRect) ||
+                !uniParam->IsPartialRenderEnabled() || uniParam->IsRegionDebugEnabled())) {
+                RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of active surface rect:[%s], "
+                    "clear extra area to black", dirtyManager->GetDirtyRegion().ToString().c_str(),
+                    activeRect.ToString().c_str());
+                curCanvas_->Save();
+                auto activeRegion = RSUniRenderUtil::ScreenIntersectDirtyRects(
+                    Occlusion::Region(activeRect), screenInfo);
+                curCanvas_->ClipRegion(GetFlippedRegion(activeRegion, screenInfo), Drawing::ClipOp::DIFFERENCE);
+                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+                curCanvas_->Restore();
+            }
         }
         rsDirtyRectsDfx.OnDraw(*curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
@@ -826,7 +843,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
-    SetDirtyRects(damageRegionrects);
+    if (screenInfo.activeRect.IsEmpty() ||
+        screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height)) {
+        SetDirtyRects(damageRegionrects);
+    } else {
+        SetDirtyRects({GetSyncDirtyManager()->GetRectFlipWithinSurface(screenInfo.activeRect)});
+    }
     processor->ProcessDisplaySurfaceForRenderThread(*this);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     processor->PostProcess();

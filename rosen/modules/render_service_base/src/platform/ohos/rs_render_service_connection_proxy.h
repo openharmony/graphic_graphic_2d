@@ -193,6 +193,8 @@ public:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) override;
+
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(

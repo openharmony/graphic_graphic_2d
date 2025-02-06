@@ -133,6 +133,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     CREATE_DISPLAY_NODE,
     SET_LAYER_TOP,
     SET_HIDE_PRIVACY_CONTENT,
+    SET_SCREEN_ACTIVE_RECT,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

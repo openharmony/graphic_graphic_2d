@@ -419,6 +419,11 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
     return {};
 }
 
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};

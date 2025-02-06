@@ -287,6 +287,8 @@ public:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
