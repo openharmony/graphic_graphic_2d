@@ -45,11 +45,6 @@ const std::shared_ptr<Drawing::ShaderEffect>& RSFlowLightSweepShader::GetDrawing
 
 bool RSFlowLightSweepShader::Marshalling(Parcel& parcel)
 {
-    if (!parcel.WriteUint32((uint32_t)type_)) {
-        ROSEN_LOGD("RSFlowLightSweepShader::Marshalling write ge effect type failed");
-        return false;
-    }
-
     if (!params_) {
         return false;
     }
@@ -57,8 +52,9 @@ bool RSFlowLightSweepShader::Marshalling(Parcel& parcel)
     return params_->Marshalling(parcel);
 }
 
-bool RSFlowLightSweepShader::Unmarshalling(Parcel& parcel)
+bool RSFlowLightSweepShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
+    needReset = false;
     params_ = std::make_shared<GEXFlowLightSweepParams>();
     if (!params_) {
         return false;

@@ -590,10 +590,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSSh
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
         return parcel.WriteInt32(-1);
-    } else {
-        parcel.WriteInt32(0);
     }
-    return val->Marshalling(parcel);
+    bool success = parcel.WriteInt32(static_cast<int>(val->GetShaderType()));
+    success &= val->Marshalling(parcel);
+    return success;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
@@ -603,10 +603,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         val = nullptr;
         return true;
     }
-    val = RSShader::CreateRSShader(parcel);
-    if (val != nullptr)
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader succes");
-    return val != nullptr;
+
+    val = RSShader::CreateRSShader(static_cast<RSShader::ShaderType>(type));
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, create RSShader failed");
+        return false;
+    }
+
+    bool needReset = false;
+    bool success = val->Unmarshalling(parcel, needReset);
+    if (needReset) {
+        val = nullptr;
+    }
+    return success;
 }
 
 // Drawing::Matrix
