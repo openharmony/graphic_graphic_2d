@@ -408,8 +408,10 @@ bool RSRenderNodeDrawable::IsIntersectedWithFilter(std::vector<FilterNodeInfo>::
 
 void RSRenderNodeDrawable::ClearDrawingCacheDataMap()
 {
-    std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-    drawingCacheUpdateTimeMap_.erase(nodeId_);
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
+        drawingCacheUpdateTimeMap_.erase(nodeId_);
+    }
     // clear Rendergroup dfx data map
     RSPerfMonitorReporter::GetInstance().ClearRendergroupDataMap(nodeId_);
 }

@@ -41,7 +41,7 @@ public:
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
 
     bool Marshalling(Parcel& parcel) override;
-    bool Unmarshalling(Parcel& parcel) override;
+    bool Unmarshalling(Parcel& parcel, bool& needReset) override;
 
 private:
     std::shared_ptr<DotMatrixShaderParams> params_ = std::make_shared<DotMatrixShaderParams>();

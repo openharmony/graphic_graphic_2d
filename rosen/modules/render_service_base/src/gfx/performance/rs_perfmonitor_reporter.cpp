@@ -45,10 +45,10 @@ RSPerfMonitorReporter& RSPerfMonitorReporter::GetInstance()
 void RSPerfMonitorReporter::SetFocusAppInfo(const char* bundleName)
 {
 #ifdef ROSEN_OHOS
+    SetCurrentBundleName(bundleName);
     if (!IsOpenPerf()) {
         return;
     }
-    SetCurrentBundleName(bundleName);
     auto task = [this]() {
         this->ReportBlurStatEvent();
         this->ReportTextureStatEvent();
@@ -292,8 +292,14 @@ void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_r
 void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
 {
 #ifdef ROSEN_OHOS
-    drawingCacheTimeTakenMap_.erase(nodeId);
-    drawingCacheLastTwoTimestampMap_.erase(nodeId);
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
+        drawingCacheTimeTakenMap_.erase(nodeId);
+    }
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheLastTwoTimestampMapMutex_);
+        drawingCacheLastTwoTimestampMap_.erase(nodeId);
+    }
 #endif
 }
 

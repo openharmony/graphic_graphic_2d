@@ -296,6 +296,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest005, TestSize.Level1)
     std::shared_ptr<RSShader> val;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     val = RSShader::CreateRSShader();
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     Drawing::Color color;
     auto drShader = Drawing::ShaderEffect::CreateColorShader(color.COLOR_TRANSPARENT);
     val->SetDrawingShader(drShader);

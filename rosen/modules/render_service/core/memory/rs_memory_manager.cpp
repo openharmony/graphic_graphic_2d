@@ -509,8 +509,53 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
 #endif
 }
 
+void ProcessJemallocString(std::string* sp, const char* str)
+{
+    sp->append("strbuf size = " + std::to_string(strlen(str)) + "\n");
+    // split ///////////////////////////////
+    std::vector<std::string> lines;
+    std::string currentLine;
+
+    for (int i = 0; str[i] != '\0' && i < INT_MAX; ++i) {
+        if (str[i] == '\n') {
+            lines.push_back(currentLine);
+            currentLine.clear();
+        } else {
+            currentLine += str[i];
+        }
+    }
+    // last line
+    if (!currentLine.empty()) {
+        lines.push_back(currentLine);
+    }
+
+    // compute tcache and decay free ///////////////////////
+    // tcache_bytes:                     784
+    // decaying:  time       npages       sweeps     madvises       purged
+    //   dirty:   N/A           94         5084        55957       295998
+    //   muzzy:   N/A            0         3812        39219       178519
+    const char* strArray[] = {"tcache_bytes:", "decaying:", "   dirty:", "   muzzy:"};
+    size_t size = sizeof(strArray) / sizeof(strArray[0]);
+    size_t total = 0;
+    for (const auto& line : lines) {
+        for (size_t i = 0; i < size; ++i) {
+            if (strncmp(line.c_str(), strArray[i], strlen(strArray[i])) == 0) {
+                sp->append(line + "\n");
+                total ++;
+            }
+        }
+
+        // get first one: (the total one, others are separated by threads)
+        if (total >= size) {
+            break;
+        }
+    }
+}
+
 void MemoryManager::DumpMallocStat(std::string& log)
 {
+    log.append("malloc stats :\n");
+
     malloc_stats_print(
         [](void* fp, const char* str) {
             if (!fp) {
@@ -519,12 +564,7 @@ void MemoryManager::DumpMallocStat(std::string& log)
             }
             std::string* sp = static_cast<std::string*>(fp);
             if (str) {
-                // cause log only support 2096 len. we need to only output critical log
-                // and only put total log in RSLOG
-                // get allocated string
-                if (strncmp(str, "Allocated", strlen("Allocated")) == 0) {
-                    sp->append(str);
-                }
+                ProcessJemallocString(sp, str);
                 RS_LOGW("[mallocstat]:%{public}s", str);
             }
         },

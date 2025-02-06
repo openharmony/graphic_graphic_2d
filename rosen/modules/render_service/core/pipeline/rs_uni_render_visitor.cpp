@@ -791,6 +791,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     RSUifirstManager::Instance().SetRotationChanged(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         QuickPrepareChildren(node);
+        TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
     UpdateHwcNodeEnable();
@@ -1047,6 +1048,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.UpdateDrawableBehindWindow();
         node.SetOldNeedDrawBehindWindow(node.NeedDrawBehindWindow());
+    }
+    if (node.IsUIBufferAvailable()) {
+        uiBufferAvailableId_.emplace_back(node.GetId());
     }
 }
 
@@ -2324,6 +2328,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         // 0. update hwc node dirty region and create layer
         UpdateHwcNodeDirtyRegionAndCreateLayer(surfaceNode);
+        // cal done node dirtyRegion for uifirst
+        RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
         UpdatePointWindowDirtyStatus(surfaceNode);
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
@@ -3874,6 +3880,18 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC()
     RS_LOGI("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %{public}d.", isMultiDisplay);
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %d", isMultiDisplay);
     RSLuminanceControl::Get().ForceCloseHdr(CLOSEHDR_SCENEID::MULTI_DISPLAY, isMultiDisplay);
+}
+
+void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
+{
+    for (auto& id : uiBufferAvailableId_) {
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+        if (surfaceNode) {
+            surfaceNode->NotifyUIBufferAvailable();
+        }
+    }
+    uiBufferAvailableId_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

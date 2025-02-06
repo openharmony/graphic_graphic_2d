@@ -444,7 +444,7 @@ bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
     if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
-        (slrScale < SLR_SCALE_THR_HIGH)) {
+        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect()) {
         return true;
     }
     return false;

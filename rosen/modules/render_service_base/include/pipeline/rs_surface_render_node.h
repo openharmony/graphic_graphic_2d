@@ -1426,7 +1426,14 @@ public:
 
     void ResetIsBufferFlushed();
 
+    bool IsUIBufferAvailable();
+
     bool GetUIExtensionUnobscured() const;
+
+    std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
+    {
+        return dirtyManager_;
+    }
 
 protected:
     void OnSync() override;

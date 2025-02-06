@@ -83,11 +83,11 @@ public:
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
- 
+
     int32_t SetPointerColorInversionEnabled(bool enable);
- 
+
     int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
- 
+
     int32_t UnRegisterPointerLuminanceChangeCallback();
 #endif
 
@@ -133,7 +133,7 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
-    // width and height should be greater then physical width and height
+    // width and height should be greater than physical width and height
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
