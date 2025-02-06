@@ -312,6 +312,48 @@ HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ParagraphTest015
+ * @tc.desc: test for text add hyphen
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest015, TestSize.Level1)
+{
+    OHOS::Rosen::SPText::TextStyle style;
+    style.locale = "en-gb";
+    style.fontSize = 50;
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = 10;
+    paragraphStyle.spTextStyle = style;
+    paragraphStyle.customSpTextStyle = true;
+    paragraphStyle.wordBreakType = OHOS::Rosen::SPText::WordBreakType::BREAK_HYPHEN;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    std::u16string text = u"British English is the official language of the United Kingdom. It has some differences in "
+                          u"spelling, pronunciation, and vocabulary compared to American English.";
+    paragraphBuilder->AddText(text);
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(693);
+    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    size_t lineCount = paragraph_->GetLineCount();
+    ASSERT_EQ(lineCount, 7);
+    ASSERT_EQ(textLines.size(), lineCount);
+    std::unique_ptr<SPText::TextLineBase>& textLine = textLines.at(0);
+    std::vector<std::unique_ptr<SPText::Run>> runs = textLine->GetGlyphRuns();
+    ASSERT_EQ(runs.size(), 1);
+    std::vector<uint16_t> glyphs = runs.at(0)->GetGlyphs();
+    ASSERT_EQ(glyphs.size(), 5);
+    EXPECT_EQ(glyphs.at(0), 66);
+    EXPECT_EQ(glyphs.at(1), 83);
+    EXPECT_EQ(glyphs.at(2), 85);
+    EXPECT_EQ(glyphs.at(3), 1546);
+    EXPECT_EQ(glyphs.at(4), 1546);
+}
+
+/*
  * @tc.name: ParagraphTest016
  * @tc.desc: test for combin follow liga
  * @tc.type: FUNC
