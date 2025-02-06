@@ -1254,6 +1254,8 @@ public:
         isHwcPendingDisabled_ = isHwcPendingDisabled;
     }
 
+    bool IsUIBufferAvailable();
+
 protected:
     void OnSync() override;
 

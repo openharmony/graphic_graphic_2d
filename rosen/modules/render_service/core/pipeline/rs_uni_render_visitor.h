@@ -462,6 +462,8 @@ private:
 
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
+    void TryNotifyUIBufferAvailable();
+
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -543,6 +545,7 @@ private:
     QuickSkipPrepareType quickSkipPrepareType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
+    std::vector<NodeId> uiBufferAvailableId_;
     bool isRegionDebugEnabled_ = false;
     bool isDirty_ = false;
     // added for judge if drawing cache changes
