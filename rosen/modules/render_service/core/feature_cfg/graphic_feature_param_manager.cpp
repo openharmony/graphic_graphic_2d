@@ -38,11 +38,13 @@ void GraphicFeatureParamManager::Init()
     featureParseMap_[featureModules[HDR]] = std::make_unique<HDRParamParse>();
     featureParseMap_[featureModules[DRM]] = std::make_unique<DRMParamParse>();
     featureParseMap_[featureModules[HWC]] = std::make_unique<HWCParamParse>();
+    featureParseMap_[featureModules[HFBC]] = std::make_unique<HfbcParamParse>();
 
     // param map init
     featureParamMap_[featureModules[HDR]] = std::make_unique<HDRParam>();
     featureParamMap_[featureModules[DRM]] = std::make_unique<DRMParam>();
     featureParamMap_[featureModules[HWC]] = std::make_unique<HWCParam>();
+    featureParamMap_[featureModules[HFBC]] = std::make_unique<HfbcParam>();
 
     FeatureParamParseEntry();
 }

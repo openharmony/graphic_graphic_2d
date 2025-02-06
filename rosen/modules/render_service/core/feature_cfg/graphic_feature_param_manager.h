@@ -29,6 +29,8 @@
 #include "hdr_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
+#include "hfbc_param_parse.h"
+#include "hfbc_param.h"
 
 namespace OHOS::Rosen {
 class GraphicFeatureParamManager : public RefBase {

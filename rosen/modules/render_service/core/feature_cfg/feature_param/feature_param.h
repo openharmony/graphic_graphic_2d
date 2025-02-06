@@ -28,13 +28,15 @@ namespace OHOS::Rosen {
 const std::vector<std::string> featureModules = {
     "HdrConfig",
     "DrmConfig",
-    "HwcConfig"
+    "HwcConfig",
+    "HfbcConfig"
 };
 
 enum FeatureModule {
     HDR = 0,
     DRM,
     HWC,
+    HFBC,
 };
 
 enum ParseErrCode {
