@@ -3192,6 +3192,19 @@ void RSMainThread::SendCommands()
     });
 }
 
+void RSMainThread::TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString)
+{
+    for (const auto& [pid, transactionData] : transactionDataMap) {
+        dumpString.append("[pid: " + std::to_string(pid));
+        for (const auto& transcation : transactionData) {
+            dumpString.append(", [index: " + std::to_string(transcation->GetIndex()));
+            transcation->DumpCommand(dumpString);
+            dumpString.append("]");
+        }
+        dumpString.append("]");
+    }
+}
+
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
     if (LIKELY(forceDumpSingleFrame)) {
@@ -3204,6 +3217,12 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             dumpString.append(std::to_string(nodeId) + ", ");
         }
         dumpString.append("];\n");
+        dumpString.append("-- CacheTransactionData: ");
+        {
+            std::lock_guard<std::mutex> lock(transitionDataMutex_);
+            TransactionDataMapDump(cachedTransactionDataMap_, dumpString);
+        }
+        dumpString.append("\n");
         const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
         if (rootNode == nullptr) {
             dumpString.append("rootNode is null\n");
