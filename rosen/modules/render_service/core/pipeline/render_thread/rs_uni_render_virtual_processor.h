@@ -80,6 +80,7 @@ public:
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
+    GSError SetColorSpace(GraphicColorGamut colorSpace);
     bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
