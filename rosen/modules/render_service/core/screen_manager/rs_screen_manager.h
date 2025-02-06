@@ -94,7 +94,7 @@ public:
     virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
-    
+
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
@@ -233,7 +233,7 @@ public:
     virtual bool IsScreenPowerOff(ScreenId id) const = 0;
 
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
-    
+
     virtual int GetDisableRenderControlScreensCount() const = 0;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -325,13 +325,13 @@ public:
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
     int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
-        
+
     std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const override;
 
     Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
+
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
