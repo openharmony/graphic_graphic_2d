@@ -4206,11 +4206,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 #ifdef RS_ENABLE_GPU
         isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
         isLastFrameDirectComposition_ = doDirectComposition_;
-        if (isHardwareForcedDisabled_) {
-            doDirectComposition_ = false;
-        } else {
-            doDirectComposition_ = RSSystemProperties::GetDoDirectCompositionEnabled();
-        }
+        doDirectComposition_ = isHardwareForcedDisabled_ ? false : RSSystemProperties::GetDoDirectCompositionEnabled();
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
         hardwareEnabledNodes_.clear();

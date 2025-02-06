@@ -151,14 +151,10 @@ public:
         return isDumpRsTreeDetailEnabled_;
     }
 
-    uint32_t nodePreparedSeqNum_ = 0;
-
     uint32_t IncreasePrepareSeq()
     {
         return ++nodePreparedSeqNum_;
     }
-
-    uint32_t nodePostPreparedSeqNum_ = 0;
 
     uint32_t IncreasePostPrepareSeq()
     {
@@ -473,6 +469,10 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
 
     bool isDumpRsTreeDetailEnabled_ = false;
+
+    uint32_t nodePreparedSeqNum_ = 0;
+
+    uint32_t nodePostPreparedSeqNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

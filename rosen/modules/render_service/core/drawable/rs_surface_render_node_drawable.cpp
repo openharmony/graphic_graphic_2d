@@ -1078,10 +1078,12 @@ void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas
     canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
         std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
     canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
-    Drawing::RectF absRect;
-    canvas.GetTotalMatrix().MapRect(absRect, bounds);
-    RS_TRACE_NAME_FMT("hwc debug: clipHole: [%f,%f,%f,%f], absRect: [%s]", bounds.GetLeft(), bounds.GetTop(),
-        bounds.GetRight(), bounds.GetBottom(), absRect.ToString().c_str());
+    if (RSSystemProperties::GetDebugTraceEnabled()) {
+        Drawing::RectF absRect;
+        canvas.GetTotalMatrix().MapRect(absRect, bounds);
+        RS_TRACE_NAME_FMT("hwc debug: clipHole: [%f,%f,%f,%f], absRect: [%s]", bounds.GetLeft(), bounds.GetTop(),
+            bounds.GetRight(), bounds.GetBottom(), absRect.ToString().c_str());
+    }
 }
 
 void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas,
