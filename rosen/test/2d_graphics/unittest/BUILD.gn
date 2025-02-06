@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/ohos.gni")
+
 group("unittest") {
   testonly = true
 
@@ -23,8 +25,12 @@ group("unittest") {
     "ndk:unittest",
     "recording:unittest",
     "render_context:unittest",
-    "skia_adapter:unittest",
     "text:unittest",
     "utils:unittest",
   ]
+
+  if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
+      !graphic_2d_ext_feature_enable_ddgr) {
+    deps += [ "skia_adapter:unittest" ]
+  }
 }
