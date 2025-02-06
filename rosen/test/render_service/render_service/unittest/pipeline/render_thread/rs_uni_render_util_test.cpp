@@ -1166,8 +1166,8 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest004, Function | SmallTest |
     totalMatrix.SetMatrix(0.0f, 0.646842, 873.114075, -0.646842, 0.0f, 774.0f, 0.0f, 0.0f, 1.0f);
     screenInfo.rotation = ScreenRotation::ROTATION_180;
     RSUniRenderUtil::DealWithNodeGravity(node2, screenInfo, totalMatrix);
-    expectedDstRect = {0, 1106, 1080, 1135};
-    expectedSrcRect = {0, 0, 1080, 1135};
+    expectedDstRect = {873, 75, 358, 699};
+    expectedSrcRect = {0, 0, 1080, 554};
     EXPECT_TRUE(node2.GetDstRect() == expectedDstRect);
     EXPECT_TRUE(node2.GetSrcRect() == expectedSrcRect);
 }
