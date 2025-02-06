@@ -1082,6 +1082,10 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     data.WriteBool(captureConfig.useCurWindow);
     data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data.WriteBool(captureConfig.isSync);
+    data.WriteFloat(captureConfig.screenLeft);
+    data.WriteFloat(captureConfig.screenTop);
+    data.WriteFloat(captureConfig.screenWidth);
+    data.WriteFloat(captureConfig.screenHeight);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

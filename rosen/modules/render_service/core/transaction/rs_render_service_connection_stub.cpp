@@ -768,6 +768,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             captureConfig.useCurWindow = data.ReadBool();
             captureConfig.captureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
             captureConfig.isSync = data.ReadBool();
+            captureConfig.screenLeft = data.ReadFloat();
+            captureConfig.screenTop = data.ReadFloat();
+            captureConfig.screenWidth = data.ReadFloat();
+            captureConfig.screenHeight = data.ReadFloat();
             RSSurfaceCapturePermissions permissions;
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
