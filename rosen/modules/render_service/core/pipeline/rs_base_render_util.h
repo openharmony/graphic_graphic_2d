@@ -116,6 +116,8 @@ enum class ColorFilterMode {
     COLOR_FILTER_END = 32,
 };
 
+constexpr int32_t ROUND_ANGLE = 360;
+
 class RSBaseRenderUtil {
 public:
     static bool IsNeedClient(RSRenderNode& node, const ComposeInfo& info);

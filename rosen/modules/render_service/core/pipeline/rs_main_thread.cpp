@@ -1932,6 +1932,19 @@ void RSMainThread::ProcessUiCaptureTasks()
     }
 }
 
+void RSMainThread::ClearUnmappedCache()
+{
+    std::set<int32_t> bufferIds;
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        bufferIds.swap(unmappedCacheSet_);
+    }
+    if (!bufferIds.empty()) {
+        RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferIds);
+        RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(bufferIds);
+    }
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     if (isAccessibilityConfigChanged_) {
@@ -3052,7 +3065,7 @@ bool RSMainThread::IsIdle() const
 
 void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    applicationAgentMap_.emplace(pid, app);
+    applicationAgentMap_.insert_or_assign(pid, app);
 }
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
@@ -3179,6 +3192,19 @@ void RSMainThread::SendCommands()
     });
 }
 
+void RSMainThread::TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString)
+{
+    for (const auto& [pid, transactionData] : transactionDataMap) {
+        dumpString.append("[pid: " + std::to_string(pid));
+        for (const auto& transcation : transactionData) {
+            dumpString.append(", [index: " + std::to_string(transcation->GetIndex()));
+            transcation->DumpCommand(dumpString);
+            dumpString.append("]");
+        }
+        dumpString.append("]");
+    }
+}
+
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
     if (LIKELY(forceDumpSingleFrame)) {
@@ -3191,6 +3217,12 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             dumpString.append(std::to_string(nodeId) + ", ");
         }
         dumpString.append("];\n");
+        dumpString.append("-- CacheTransactionData: ");
+        {
+            std::lock_guard<std::mutex> lock(transitionDataMutex_);
+            TransactionDataMapDump(cachedTransactionDataMap_, dumpString);
+        }
+        dumpString.append("\n");
         const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
         if (rootNode == nullptr) {
             dumpString.append("rootNode is null\n");

@@ -1016,11 +1016,13 @@ void RSRenderServiceConnection::SetWindowFreezeImmediately(
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     if (!mainThread_) {
+        RS_LOGE("RSRenderServiceConnection::RegisterApplicationAgent mainThread_ is nullptr");
         return;
     }
     auto captureTask = [weakThis = wptr<RSRenderServiceConnection>(this), pid, app]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
-        if (!connection) {
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::RegisterApplicationAgent connection or mainThread_ is nullptr");
             return;
         }
         connection->mainThread_->RegisterApplicationAgent(pid, app);
@@ -1664,6 +1666,21 @@ int32_t RSRenderServiceConnection::SetVirtualScreenRefreshRate(
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+}
+
+uint32_t RSRenderServiceConnection::SetScreenActiveRect(
+    ScreenId id, const Rect& activeRect)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    GraphicIRect dstActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    return screenManager_->SetScreenActiveRect(id, dstActiveRect);
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)

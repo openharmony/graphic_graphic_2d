@@ -106,11 +106,16 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
         canvas.Restore();
     }
 
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(canvas, bounds);
+    if (surfaceParams.GetNeedCacheSurface()) {
+        // 3/4 Draw content and children of this node by the main canvas, and cache
+        drawWindowCache_.DrawAndCacheWindowContent(this, canvas, bounds);
+    } else {
+        // 3. Draw content of this node by the main canvas.
+        DrawContent(canvas, bounds);
 
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(canvas, bounds);
+        // 4. Draw children of this node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
@@ -377,6 +382,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams)) {
+        return;
+    }
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
@@ -454,7 +462,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         EnableGpuOverDrawDrawBufferOptimization(*curCanvas_, surfaceParams);
     }
 
-    if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture()) {
+    if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture() && !isUiFirstNode) {
         RS_TRACE_NAME("Drawing cachedImage by capture");
         DrawCachedImage(*curCanvas_, surfaceParams->GetCacheSize());
     } else {

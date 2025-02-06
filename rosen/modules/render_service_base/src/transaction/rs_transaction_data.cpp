@@ -331,5 +331,18 @@ std::string RSTransactionData::PrintCommandMapDesc(
     return commandMapDesc;
 }
 
+void RSTransactionData::DumpCommand(std::string& dumpString)
+{
+    dumpString.append(", [Command: ");
+    for (const auto& [_, followType, command] : payload_) {
+        if (command == nullptr) {
+            continue;
+        }
+        dumpString.append("(Node:" + std::to_string(command->GetNodeId()) +
+                          ", Type:" + std::to_string(command->GetType()) +
+                          ", SubType:" + std::to_string(command->GetSubType()) + ") ");
+    }
+    dumpString.append("]");
+}
 } // namespace Rosen
 } // namespace OHOS

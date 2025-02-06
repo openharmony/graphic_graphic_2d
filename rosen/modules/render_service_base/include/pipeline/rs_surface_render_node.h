@@ -1007,6 +1007,13 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    bool GetUifirstContentDirty()
+    {
+        bool uifirstContentDirty = uifirstContentDirty_;
+        uifirstContentDirty_ = false;
+        return uifirstContentDirty;
+    }
+
     void UpdateSurfaceCacheContentStatic();
 
     void UpdateSurfaceCacheContentStatic(
@@ -1269,6 +1276,15 @@ public:
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
 
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetSubThreadAssignable() const
+    {
+        return subThreadAssignable_;
+    }
+    void SetSubThreadAssignable(bool subThreadAssignable)
+    {
+        subThreadAssignable_ = subThreadAssignable;
+    }
 protected:
     void OnSync() override;
 
@@ -1528,6 +1544,7 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+    bool uifirstContentDirty_ = false;
 
     // point window
     bool isHardCursor_ = false;
@@ -1559,6 +1576,8 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
 
     bool arsrTag_ = true;
+
+    bool subThreadAssignable_ = false;
 
     uint32_t apiCompatibleVersion_ = 0;
 

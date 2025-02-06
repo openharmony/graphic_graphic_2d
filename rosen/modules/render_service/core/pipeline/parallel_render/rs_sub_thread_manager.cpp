@@ -386,8 +386,9 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
 
+    auto guard = std::make_shared<RSMainThread::GPUCompositonCacheGuard>();
     subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
-                            uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
+                            uniParam = new RSRenderThreadParams(*rtUniParam), guard]() mutable {
         if (UNLIKELY(!uniParam)) {
             RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable subThread param is nullptr");
             return;
