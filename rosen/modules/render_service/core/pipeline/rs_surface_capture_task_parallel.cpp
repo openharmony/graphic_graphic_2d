@@ -190,6 +190,10 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
+    if (captureConfig_.screenWidth > 0 && captureConfig_.screenHeight > 0) {
+        canvas.ClipRect({0, 0, captureConfig_.screenWidth, captureConfig_.screenHeight});
+        canvas.Translate(0 - captureConfig_.screenLeft, 0 - captureConfig_.screenTop);
+    }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     // Currently, capture do not support HDR display
@@ -266,6 +270,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
+    // Surface Node currently does not support regional screenshot
+    captureConfig_.screenLeft = 0.0f;
+    captureConfig_.screenTop = 0.0f;
+    captureConfig_.screenWidth = 0.0f;
+    captureConfig_.screenHeight = 0.0f;
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
@@ -296,7 +305,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
-
+    if (captureConfig_.screenWidth > 0 && captureConfig_.screenHeight > 0 &&
+        captureConfig_.screenWidth <= pixmapWidth && captureConfig_.screenHeight <= pixmapHeight) {
+        pixmapWidth = floor(captureConfig_.screenWidth);
+        pixmapHeight = floor(captureConfig_.screenHeight);
+    }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
@@ -304,9 +317,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         " origin pixelmap size: [%{public}u, %{public}u],"
         " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d]",
+        " useDma: [%{public}d],"
+        " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma);
+        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma,
+        captureConfig_.screenLeft, captureConfig_.screenTop, captureConfig_.screenWidth, captureConfig_.screenHeight);
     return Media::PixelMap::Create(opts);
 }
 

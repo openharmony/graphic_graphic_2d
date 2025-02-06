@@ -209,6 +209,10 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    float screenLeft = 0.0f;
+    float screenTop = 0.0f;
+    float screenWidth = 0.0f;
+    float screenHeight = 0.0f;
 };
 
 struct RSSurfaceCapturePermissions {
