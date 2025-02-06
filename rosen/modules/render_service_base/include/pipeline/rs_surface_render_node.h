@@ -1430,6 +1430,11 @@ public:
 
     bool GetUIExtensionUnobscured() const;
 
+    std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
+    {
+        return dirtyManager_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;

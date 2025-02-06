@@ -163,6 +163,16 @@ void RSDirtyRegionManager::SetCurrentFrameDirtyRect(const RectI& dirtyRect)
     currentFrameDirtyRegion_ = dirtyRect;
 }
 
+const RectI& RSDirtyRegionManager::GetUifirstFrameDirtyRegion()
+{
+    return uifirstFrameDirtyRegion_;
+}
+
+void RSDirtyRegionManager::SetUifirstFrameDirtyRect(const RectI& dirtyRect)
+{
+    uifirstFrameDirtyRegion_ = dirtyRect;
+}
+
 void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetManager)
 {
     if (!targetManager) {
@@ -175,6 +185,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->dirtyRegion_ = dirtyRegion_;
     ptr->hwcDirtyRegion_ = hwcDirtyRegion_;
     ptr->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
+    ptr->uifirstFrameDirtyRegion_ = uifirstFrameDirtyRegion_;
     ptr->debugRect_ = debugRect_;
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
         ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
@@ -183,6 +194,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     }
     // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
     Clear();
+    uifirstFrameDirtyRegion_.Clear();
 }
 
 RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const

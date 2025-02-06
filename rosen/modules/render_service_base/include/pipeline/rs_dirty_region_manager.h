@@ -214,6 +214,9 @@ public:
         return hwcDirtyRegion_;
     }
 
+    const RectI& GetUifirstFrameDirtyRegion();
+    void SetUifirstFrameDirtyRect(const RectI& dirtyRect);
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
@@ -246,6 +249,7 @@ private:
     RectI surfaceRect_;             // rect of the canvas surface
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    RectI uifirstFrameDirtyRegion_; // dirtyRegion in current frame
     RectI hwcDirtyRegion_;          // hwc dirty region used in virtual screen
     RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
     RectI mergedDirtyInVirtualScreen_;
