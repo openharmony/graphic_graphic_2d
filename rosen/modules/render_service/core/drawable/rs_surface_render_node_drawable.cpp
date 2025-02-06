@@ -392,6 +392,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    TotalProcessedSurfaceCountInc(*rscanvas);
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
     auto realTid = gettid();
     if (realTid == RSUniRenderThread::Instance().GetTid()) {

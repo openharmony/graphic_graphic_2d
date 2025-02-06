@@ -244,6 +244,7 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
+    int GetTotalProcessedSurfaceCount() const;
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
@@ -265,6 +266,8 @@ private:
     // To be deleted after captureWindow being deleted
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
+    void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
+    void ClearTotalProcessedSurfaceCount();
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -347,6 +350,7 @@ private:
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
     bool vmaCacheOff_ = false;
+    static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
