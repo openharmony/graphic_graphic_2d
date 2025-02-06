@@ -130,7 +130,8 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
             return GRAPHIC_DISPLAY_NULL_PTR;
         }
     } else {
-        bufferCacheCountMax_ = surface->GetQueueSize();
+        // The number of buffers cycle in the surface is larger than the queue size.
+        surface->GetCycleBuffersNumber(bufferCacheCountMax_);
     }
     uint32_t layerId = INT_MAX;
     GraphicLayerInfo hdiLayerInfo = {
