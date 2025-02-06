@@ -150,6 +150,11 @@ uint32_t RSHardwareThread::GetunExecuteTaskNum()
     return unExecuteTaskNum_.load();
 }
 
+void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<int32_t>& bufferIds)
+{
+    PostDelayTask([this, bufferIds]() { uniRenderEngine_->ClearCacheSet(bufferIds);}, delayTime_);
+}
+
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {

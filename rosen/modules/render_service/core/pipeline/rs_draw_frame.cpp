@@ -50,6 +50,7 @@ void RSDrawFrame::RenderFrame()
 {
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
+    RSMainThread::GPUCompositonCacheGuard guard;
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().RSRenderStart();
     }

@@ -366,6 +366,37 @@ public:
     }
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    void StartGPUDraw()
+    {
+        gpuDrawCount_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    void EndGPUDraw()
+    {
+        if (gpuDrawCount_.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            // gpuDrawCount_ is now 0
+            ClearUnmappedCache();
+        }
+    }
+
+    struct GPUCompositonCacheGuard {
+        GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->StartGPUDraw();
+        }
+        ~GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->EndGPUDraw();
+        }
+    };
+
+    void AddToUnmappedCacheSet(int32_t bufferId)
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(bufferId);
+    }
+
+    void ClearUnmappedCache();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -507,6 +538,9 @@ private:
     std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
+    std::set<int32_t> unmappedCacheSet_ = {};
+    std::mutex unmappedCacheSetMutex_;
+    std::atomic<int> gpuDrawCount_ = 0;
     uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
     uint64_t vsyncId_ = 0;
