@@ -948,5 +948,16 @@ RSSurfaceNodeAbilityState RSSurfaceNode::GetAbilityState() const
 {
     return abilityState_;
 }
+
+void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetApiCompatibleVersion>(GetId(), version);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        RS_LOGD(
+            "RSSurfaceNode::SetApiCompatibleVersion: Node: %{public}" PRIu64 ", version: %{public}u", GetId(), version);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
