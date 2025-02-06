@@ -254,6 +254,35 @@ public:
         isHardwareForcedDisabledByFilter_ = forcesDisabled;
     }
 
+    void ResetMakeImageState()
+    {
+        intersectWithAIBar_ = false;
+        hardwareNeedMakeImage_ = false;
+    }
+
+    void SetHardwareNeedMakeImage(bool needMakeImage)
+    {
+        hardwareNeedMakeImage_ = needMakeImage;
+    }
+
+    bool IsHardwareNeedMakeImage() const
+    {
+        if (isProtectedLayer_) {
+            return false;
+        }
+        return hardwareNeedMakeImage_;
+    }
+
+    void SetIntersectWithAIBar(bool flag)
+    {
+        intersectWithAIBar_ = flag;
+    }
+
+    bool GetIntersectWithAIBar() const
+    {
+        return intersectWithAIBar_;
+    }
+
     bool IsHardwareForcedDisabledByFilter() const
     {
         return isHardwareForcedDisabledByFilter_;
@@ -1468,6 +1497,8 @@ private:
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
+    bool hardwareNeedMakeImage_ = false;
+    bool intersectWithAIBar_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight

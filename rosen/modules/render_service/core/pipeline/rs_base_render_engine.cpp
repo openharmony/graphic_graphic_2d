@@ -727,21 +727,22 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
     return colorSpace;
 }
 
-void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
+    BufferDrawParam& params, VideoInfo& videoInfo)
 {
-    RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
     auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
-        RS_LOGE("RSBaseRenderEngine::DrawImage invalid buffer!");
-        return;
+        RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer invalid buffer!");
+        return nullptr;
     }
+    videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();
 
-    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
-    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
-    if (ret == GSERROR_OK) {
-        drawingColorSpace = GetCanvasColorSpace(canvas);
+    videoInfo.parameter_ = {};
+    videoInfo.retGetColorSpaceInfo_ = MetadataHelper::GetColorSpaceInfo(params.buffer,
+        videoInfo.parameter_.inputColorSpace.colorSpaceInfo);
+    if (videoInfo.retGetColorSpaceInfo_ == GSERROR_OK) {
+        videoInfo.drawingColorSpace_ = GetCanvasColorSpace(canvas);
     }
 #endif
 
@@ -758,14 +759,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         auto contextDrawingVk = canvas.GetGPUContext();
         if (contextDrawingVk == nullptr || image == nullptr || imageCache == nullptr) {
             RS_LOGE("contextDrawingVk or image or imageCache is nullptr.");
-            return;
+            return nullptr;
         }
         auto& backendTexture = imageCache->GetBackendTexture();
         if (!image->BuildFromTexture(*contextDrawingVk, backendTexture.GetTextureInfo(),
-            surfaceOrigin, bitmapFormat, drawingColorSpace,
+            surfaceOrigin, bitmapFormat, videoInfo.drawingColorSpace_,
             NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
-            ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");
-            return;
+            ROSEN_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: backendTexture is not valid!!!");
+            return nullptr;
         }
     }
 #endif // RS_ENABLE_VK
@@ -773,13 +774,24 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef RS_ENABLE_GL // RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
-            drawingColorSpace);
+            videoInfo.drawingColorSpace_);
         if (image == nullptr) {
-            RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
-            return;
+            RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: image is nullptr!");
+            return nullptr;
         }
     }
 #endif // RS_ENABLE_GL
+    return image;
+}
+
+void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+    VideoInfo videoInfo;
+    auto image = CreateImageFromBuffer(canvas, params, videoInfo);
+    if (image == nullptr) {
+        return;
+    }
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
@@ -813,20 +825,22 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.paint.SetFilter(filter);
     }
 
-    if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.", ret);
+    if (videoInfo.retGetColorSpaceInfo_ != GSERROR_OK) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
+            videoInfo.retGetColorSpaceInfo_);
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
-    
-    if (!ConvertDrawingColorSpaceToSpaceInfo(drawingColorSpace, parameter.outputColorSpace.colorSpaceInfo)) {
+
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
  
-    if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries
-        && parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc) {
+    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
@@ -848,7 +862,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
         params.paint.SetShaderEffect(imageShader);
-        ColorSpaceConvertor(imageShader, params, parameter);
+        ColorSpaceConvertor(imageShader, params, videoInfo.parameter_);
     }
     canvas.AttachBrush(params.paint);
     canvas.DrawRect(params.dstRect);
