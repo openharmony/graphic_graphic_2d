@@ -142,7 +142,9 @@ HWTEST_F(RSDotMatrixShaderTest, MarshallingAndUnmarshalling001, TestSize.Level1)
     testShader.SetRippleEffect(params);
     Parcel parcel;
     EXPECT_TRUE(testShader.Marshalling(parcel));
+    bool needReset = true;
     EXPECT_TRUE(testShader.Unmarshalling(parcel));
+    EXPECT_FALSE(needReset);
 }
 
 } // namespace OHOS::Rosen

@@ -33,7 +33,7 @@ public:
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
 
     bool Marshalling(Parcel& parcel) override;
-    bool Unmarshalling(Parcel& parcel) override;
+    bool Unmarshalling(Parcel& parceln, bool& needReset) override;
 
 private:
     std::shared_ptr<GEXFlowLightSweepParams> params_ = std::make_shared<GEXFlowLightSweepParams>();
