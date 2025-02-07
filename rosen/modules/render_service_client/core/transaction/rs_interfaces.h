@@ -196,6 +196,8 @@ public:
        change screen refresh rate finally */
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);

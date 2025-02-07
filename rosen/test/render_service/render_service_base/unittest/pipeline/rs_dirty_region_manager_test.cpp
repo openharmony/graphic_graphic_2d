@@ -106,6 +106,54 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSize001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ResetDirtyAsSurfaceSize001
+ * @tc.desc: test ResetDirtyAsSurfaceSize
+ * @tc.type: FUNC
+ * @tc.require: issueIB5YPQ
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ResetDirtyAsSurfaceSize001, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    RectI surfaceRect(0, 0, validWidth, validHeight);
+    bool ret = rsDirtyManager->SetSurfaceRect(surfaceRect);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(rsDirtyManager->GetSurfaceRect(), surfaceRect);
+    RectI emptyRect;
+    rsDirtyManager->SetActiveSurfaceRect(emptyRect);
+    EXPECT_EQ(rsDirtyManager->GetActiveSurfaceRect(), emptyRect);
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), surfaceRect);
+
+    RectI halfSurfaceRect(0, 0, validWidth, validHeight / 2);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->GetActiveSurfaceRect(), halfSurfaceRect);
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), halfSurfaceRect);
+}
+
+/*
+ * @tc.name: IsActiveSurfaceRectChanged001
+ * @tc.desc: test IsActiveSurfaceRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issueIB5YPQ
+ */
+HWTEST_F(RSDirtyRegionManagerTest, IsActiveSurfaceRectChanged001, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    RectI surfaceRect(0, 0, validWidth, validHeight);
+    RectI halfSurfaceRect(0, 0, validWidth, validHeight / 2);
+    bool ret = rsDirtyManager->SetSurfaceRect(surfaceRect);
+    EXPECT_EQ(ret, true);
+    rsDirtyManager->SetActiveSurfaceRect(surfaceRect);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->IsActiveSurfaceRectChanged(), true);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->IsActiveSurfaceRectChanged(), false);
+}
+
+/*
  * @tc.name: GetDefaultDirtyRegion
  * @tc.desc: Get dirtyManager's default dirty region
  * @tc.type: FUNC

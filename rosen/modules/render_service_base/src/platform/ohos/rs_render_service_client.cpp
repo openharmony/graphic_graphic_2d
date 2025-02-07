@@ -1024,6 +1024,15 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
     return renderService->SetScreenSkipFrameInterval(id, skipFrameInterval);
 }
 
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenActiveRect(id, activeRect);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:
