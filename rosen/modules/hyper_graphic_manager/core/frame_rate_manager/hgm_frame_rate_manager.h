@@ -158,20 +158,18 @@ public:
     void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
+    // called by RSMainThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
+    // called by RSMainThread
     void SetGameNodeOnTree(bool isOnTree)
     {
         isGameNodeOnTree_.store(isOnTree);
     }
+    // called by RSMainThread
     std::string GetGameNodeName() const
     {
-        std::lock_guard<std::mutex> lock(curGameNodeNameMutex_);
+        std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
-    }
-    void SetGameNodeName(std::string nodeName)
-    {
-        std::lock_guard<std::mutex> lock(curGameNodeNameMutex_);
-        curGameNodeName_ = nodeName;
     }
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
@@ -258,18 +256,25 @@ private:
     void InitPowerTouchManager();
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    void SetGameNodeName(std::string nodeName)
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        curGameNodeName_ = nodeName;
+    }
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
 
     // concurrency protection >>>
-    std::mutex pendingMutex_;
+    mutable std::mutex pendingMutex_;
     std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t lastPendingConstraintRelativeTime_ = 0;
     uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
+    // current game app's self drawing node name
+    std::string curGameNodeName_;
     // concurrency protection <<<
 
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
@@ -327,10 +332,6 @@ private:
     std::atomic<bool> isAdaptive_ = false;
     // Does current game require Adaptive Sync
     bool isGameSupportAS_ = false;
-    // current game app's self drawing node name
-    std::string curGameNodeName_;
-    // concurrency protection
-    mutable std::mutex curGameNodeNameMutex_;
     // if current game's self drawing node is on tree,default false
     std::atomic<bool> isGameNodeOnTree_ = false;
 

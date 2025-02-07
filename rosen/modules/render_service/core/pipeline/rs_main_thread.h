@@ -817,7 +817,7 @@ private:
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
     // last frame game self-drawing node is on tree or not
-    bool isLastGameNodeOnTree = false;
+    bool isLastGameNodeOnTree_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

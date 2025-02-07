@@ -1695,11 +1695,11 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
-    if (isAdaptive && LIKELY(frameRateMgr != nullptr) && isGameNodeOnTree != isLastGameNodeOnTree) {
+    if (isAdaptive && LIKELY(frameRateMgr != nullptr) && isGameNodeOnTree != isLastGameNodeOnTree_) {
         RS_TRACE_NAME_FMT("Adaptive Sync Mode, game node on tree: %d", isGameNodeOnTree);
         frameRateMgr->SetGameNodeOnTree(isGameNodeOnTree);
     }
-    isLastGameNodeOnTree = isGameNodeOnTree;
+    isLastGameNodeOnTree_ = isGameNodeOnTree;
 #endif
 }
 
