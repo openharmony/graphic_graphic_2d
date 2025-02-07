@@ -72,4 +72,59 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_2)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(0.5, 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_3)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(0.0, 0, 45.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(0.5, 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test_4)
+{
+    const int dataCounts = 3;
+    std::array<float, dataCounts> scaleData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> skewData = { 0.f, 0.5f, -0.5f};
+    std::array<float, dataCounts> perspData = { 1.0f, 2.0f, 0.5f };
+    for (int i = 0; i < dataCounts; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(45.0, 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        testNode->SetPersp(0.0, 0.0, perspData[i], 1.0);
+        testNode->SetTranslate(0.5, 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

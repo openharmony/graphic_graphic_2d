@@ -63,6 +63,7 @@ public:
     Vector4 operator*(float scale) const;
     Vector4 operator*(const Vector4<T>& other) const;
     Vector4& operator*=(const Vector4<T>& other);
+    Vector4& operator+=(const Vector4<T>& other);
     Vector4& operator=(const Vector4<T>& other);
     bool operator==(const Vector4& other) const;
     bool operator!=(const Vector4& other) const;
@@ -404,6 +405,17 @@ Vector4<T>& Vector4<T>::operator*=(const Vector4<T>& other)
     data_[1] *= data1;
     data_[2] *= data2;
     data_[3] *= data3;
+    return *this;
+}
+
+template<typename T>
+Vector4<T>& Vector4<T>::operator+=(const Vector4<T>& other)
+{
+    const T* oData = other.data_;
+    data_[0] += oData[0]; // 0, x component of the quaternion
+    data_[1] += oData[1]; // 1, y component of the quaternion
+    data_[2] += oData[2]; // 2, z component of the quaternion
+    data_[3] += oData[3]; // 3, w component of the quaternion
     return *this;
 }
 

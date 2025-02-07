@@ -46,6 +46,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_NOISE_FIELD_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
+    UPDATE_MODIFIER_VECTOR3F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
     UPDATE_MODIFIER_VECTOR4_COLOR,
     UPDATE_MODIFIER_VECTOR4F,
@@ -242,6 +243,9 @@ ADD_COMMAND(RSUpdatePropertyShader,
 ADD_COMMAND(RSUpdatePropertyVector2f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR2F,
         RSNodeCommandHelper::UpdateModifier<Vector2f>, NodeId, Vector2f, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyVector3f,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR3F, RSNodeCommandHelper::UpdateModifier<Vector3f>,
+        NodeId, Vector3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
         RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,

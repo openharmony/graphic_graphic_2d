@@ -41,6 +41,7 @@ enum class RSModifierType : int16_t {
     ROTATION_Y,
     CAMERA_DISTANCE,
     SCALE,
+    SCALE_Z,
     SKEW,
     PERSP,
     TRANSLATE,
@@ -201,6 +202,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_QUATERNION,
     PROPERTY_FILTER,
     PROPERTY_VECTOR2F,
+    PROPERTY_VECTOR3F,
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
@@ -233,6 +235,7 @@ public:
             case RSModifierType::ROTATION_Y: return "RotationY";
             case RSModifierType::CAMERA_DISTANCE: return "CameraDistance";
             case RSModifierType::SCALE: return "Scale";
+            case RSModifierType::SCALE_Z: return "ScaleZ";
             case RSModifierType::SKEW: return "Skew";
             case RSModifierType::PERSP: return "Persp";
             case RSModifierType::TRANSLATE: return "Translate";
