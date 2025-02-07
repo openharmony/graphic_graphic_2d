@@ -49,6 +49,12 @@ namespace OHOS {
         return object;
     }
 
+    static int64_t SystemTime(){
+        timespec t = {};
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; //1000000000ns = 1s
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -62,20 +68,21 @@ namespace OHOS {
 
         // get data
         bool enable = GetData<bool>();
-        int64_t period = GetData<int64_t>();
-        int64_t occurTimestamp = GetData<int64_t>();
-        int64_t nextTimestamp = GetData<int64_t>();
-        int64_t occurReferenceTime = GetData<int64_t>();
+        int64_t period = GetData<int64_t>() % 16666666; // no more than 16666666ns
+        int64_t period2 = 16666666 + GetData<int64_t>() % 100000; // no more than 16666666 + 100000 ns
+        int64_t occurTimestamp = SystemTime() - (GetData<int64_t>() % 16666666);
+        int64_t nextTimestamp = SystemTime() - (GetData<int64_t>() % 16666666);
+        int64_t occurReferenceTime = SystemTime() - (GetData<int64_t>() % 16666666);
         //bool isWakeup = GetData<bool>();
-        int64_t offset = GetData<int64_t>();
-        int phase = GetData<int64_t>();
-        int64_t lastTime = GetData<int64_t>();
-        int64_t lastTimeRecord = GetData<int64_t>();
-        int64_t now = GetData<int64_t>();
+        int64_t offset = GetData<int64_t>() % 16666666; // no more than 16666666ns
+        int phase = GetData<int64_t>() % 16666666; // no more than 16666666ns
+        int64_t lastTime = SystemTime() - (GetData<int64_t>() % 16666666);
+        int64_t lastTimeRecord = SystemTime() - (GetData<int64_t>() % 16666666);
+        int64_t now = SystemTime();
         std::pair<uint64_t, uint32_t> pair1 = {GetData<uint64_t>(), GetData<uint32_t>()};
         uint32_t generatorRefreshRate = GetData<uint32_t>();
         int64_t rsVsyncCount = GetData<int64_t>();
-        int64_t expectNextVsyncTime = GetData<int64_t>();
+        int64_t expectNextVsyncTime = SystemTime() + (GetData<int64_t>() % 16666666);
         int32_t offsetByPulseNum = GetData<int32_t>();
         int64_t hardwareVsyncInterval = GetData<int64_t>();
         bool frameRateChanging = GetData<bool>();
@@ -97,7 +104,7 @@ namespace OHOS {
             .lastTimeRecord_ = lastTimeRecord
         };
         vsyncGenerator->UpdatePeriodLocked(period);
-        vsyncGenerator->JudgeRefreshRateLocked(period);
+        vsyncGenerator->JudgeRefreshRateLocked(period2);
         vsyncGenerator->SetExpectNextVsyncTimeInternal(now);
         Rosen::VSyncGenerator::ListenerRefreshRateData listenerRefreshRateData = {
             .cb = vsyncController,
