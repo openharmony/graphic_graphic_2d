@@ -26,7 +26,6 @@ namespace OHOS {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
-        constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
     }
 
     /*
@@ -49,7 +48,8 @@ namespace OHOS {
         return object;
     }
 
-    static int64_t SystemTime(){
+    static int64_t SystemTime()
+    {
         timespec t = {};
         clock_gettime(CLOCK_MONOTONIC, &t);
         return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; //1000000000ns = 1s
@@ -127,7 +127,6 @@ namespace OHOS {
         vsyncGenerator->CheckAndUpdateReferenceTime(hardwareVsyncInterval, occurReferenceTime);
         vsyncGenerator->SetFrameRateChangingStatus(frameRateChanging);
         //TearDownTestCase
-        sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
         Rosen::DestroyVSyncGenerator();
         vsyncGenerator = nullptr;
         return true;
