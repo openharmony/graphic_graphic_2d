@@ -2747,7 +2747,8 @@ void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2765,6 +2766,10 @@ void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const c
         return;
     }
 
+    if (!data.WriteUint8(static_cast<uint8_t>(tpFeatureConfigType))) {
+        return;
+    }
+
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -2773,6 +2778,7 @@ void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const c
     }
 }
 #endif
+
 void RSRenderServiceConnectionProxy::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
     MessageParcel data;
