@@ -96,7 +96,7 @@ private:
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
-    std::map<GraphicColorGamut, HDI::Display::Graphic::Common::V1_0::colorSpaceType> COLORSPACETYPE {
+    std::map<GraphicColorGamut, HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType> COLORSPACETYPE {
         { GRAPHIC_COLOR_GAMUT_SRGB, Media::VideoProcessingEngine::CM_SRGB_LIMIT },
         { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, Media::VideoProcessingEngine::CM_P3_LIMIT }
     };

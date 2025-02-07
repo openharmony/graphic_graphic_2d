@@ -238,7 +238,6 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
         return GSERROR_NO_BUFFER;
     }
     using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
     auto iter = COLORSPACETYPE.find(colorSpace);
     if (iter == COLORSPACETYPE.end()) {
         return GSERROR_OK;
