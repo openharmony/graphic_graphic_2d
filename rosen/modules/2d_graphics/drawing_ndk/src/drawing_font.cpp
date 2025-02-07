@@ -38,11 +38,6 @@ static const Font* CastToFont(const OH_Drawing_Font* cFont)
     return reinterpret_cast<const Font*>(cFont);
 }
 
-static const Font& CastToFont(const OH_Drawing_Font& cFont)
-{
-    return reinterpret_cast<const Font&>(cFont);
-}
-
 static Typeface* CastToTypeface(OH_Drawing_Typeface* cTypeface)
 {
     return reinterpret_cast<Typeface*>(cTypeface);
@@ -453,7 +448,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, cons
     if (themeFont != nullptr) {
         font = themeFont.get();
     }
-    CastToFont(*cFont).GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
+    font->GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
     return OH_DRAWING_SUCCESS;
 }
 
