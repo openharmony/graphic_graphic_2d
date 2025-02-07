@@ -184,7 +184,7 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isVirtualDirtyDfxEnabled_ = RSSystemProperties::GetVirtualDirtyDebugEnabled();
     isVirtualDirtyEnabled_ = RSSystemProperties::GetVirtualDirtyEnabled() &&
-        (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL);
+        (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) && !isRegionDebugEnabled_;
     isExpandScreenDirtyEnabled_ = RSSystemProperties::GetExpandScreenDirtyEnabled();
 }
 
