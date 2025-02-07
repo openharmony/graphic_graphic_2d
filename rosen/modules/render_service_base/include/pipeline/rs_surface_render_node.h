@@ -201,7 +201,8 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
                 name_ == "VMLinuxXComponentSurface" || name_.find("oh_flutter") != std::string::npos ||
-                name_.find("HwStylusFeature") != std::string::npos);
+                name_.find("HwStylusFeature") != std::string::npos || name_ == "qtMainWindowSurface" ||
+                name_.find("xweb_") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
