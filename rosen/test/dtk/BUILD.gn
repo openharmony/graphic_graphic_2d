@@ -65,6 +65,8 @@ ohos_executable("dtk") {
     "safwk:system_ability_fwk",
     "skia:skia_canvaskit",
     "zlib:libz",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",        
     "window_manager:libdm",
     "window_manager:libwms",
     "window_manager:libwm",
