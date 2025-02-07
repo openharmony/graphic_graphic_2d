@@ -652,6 +652,27 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
     return colorSpace;
 }
 
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(
+    OHOS::ColorManager::ColorSpaceName colorSpaceName)
+{
+    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
+    switch (colorSpaceName) {
+        case OHOS::ColorManager::ColorSpaceName::DISPLAY_P3:
+        case OHOS::ColorManager::ColorSpaceName::DCI_P3:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            break;
+        case OHOS::ColorManager::ColorSpaceName::ADOBE_RGB:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+            break;
+        default:
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
+            break;
+    }
+    return colorSpace;
+}
+
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
     BufferDrawParam& params, VideoInfo& videoInfo)
 {

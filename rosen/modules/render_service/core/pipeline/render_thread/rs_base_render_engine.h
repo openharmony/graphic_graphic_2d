@@ -209,6 +209,8 @@ public:
         Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
 #endif
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorSpaceNameToDrawingColorSpace(
+        OHOS::ColorManager::ColorSpaceName colorSpaceName);
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
