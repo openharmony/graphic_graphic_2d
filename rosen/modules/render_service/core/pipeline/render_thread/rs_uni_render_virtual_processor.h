@@ -98,8 +98,8 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     static inline const std::map<GraphicColorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType> COLORSPACE_TYPE {
-            { GRAPHIC_COLOR_GAMUT_SRGB, Media::VideoProcessingEngine::CM_SRGB_LIMIT },
-            { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, Media::VideoProcessingEngine::CM_P3_LIMIT }
+            { GRAPHIC_COLOR_GAMUT_SRGB, HDI::Display::Graphic::Common::V1_0::CM_SRGB_LIMIT },
+            { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, HDI::Display::Graphic::Common::V1_0::CM_P3_LIMIT }
     };
     bool forceCPU_ = false;
     bool isExpand_ = false;
