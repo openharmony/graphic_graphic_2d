@@ -204,19 +204,19 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "0") != "0";
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
     return isPurgeable;
 }
 
 bool RSSystemProperties::GetRSImagePurgeEnabled()
 {
-    static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "1") != "0";
     return isPurgeable;
 }
 
 bool RSSystemProperties::GetClosePixelMapFdEnabled()
 {
-    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.close.fd", "0") != "0";
     return isClosePixelMapFd;
 }
 

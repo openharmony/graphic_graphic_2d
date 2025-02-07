@@ -632,18 +632,4 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
     ASSERT_EQ(result, false);
 }
 #endif
-
-/**
- * @tc.name: Purge
- * @tc.desc: Test If Purge Can Run
- * @tc.type: FUNC
- * @tc.require: issueIB1KMY
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PurgeTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    drawable->Purge();
-    ASSERT_EQ(drawable->isPurge_, false);
-}
 }

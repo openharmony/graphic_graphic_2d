@@ -231,9 +231,8 @@ const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
     std::string pixelformat_str = "-1";
 
 #ifdef ROSEN_OHOS
-    auto pixelMap = info.pixelMap.lock();
-    if (pixelMap) {
-        use_cnt_str = std::to_string(pixelMap->GetUseCount());
+    if (auto pixelMap = info.pixelMap.lock()) {
+        use_cnt_str = std::to_string(pixelMap.use_count());
         is_un_map_str = std::to_string(pixelMap->IsUnMap());
         un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
         OHOS::Media::ImageInfo imageInfo;
