@@ -764,12 +764,16 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 void MemoryManager::CheckIsClearApp()
 {
     // Clear two Applications in one second, post task to reclaim.
-    if (!RSUniRenderThread::Instance().IsTimeToReclaim()) {
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (!unirenderThread.IsTimeToReclaim()) {
         static std::chrono::steady_clock::time_point lastClearAppTime = std::chrono::steady_clock::now();
         auto currentTime = std::chrono::steady_clock::now();
         bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
             currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
-        RSUniRenderThread::Instance().SetTimeToReclaim(isTimeToReclaim);
+        if (isTimeToReclaim) {
+            unirenderThread.ReclaimMemory();
+            unirenderThread.SetTimeToReclaim(true);
+        }
         lastClearAppTime = currentTime;
     }
 }
