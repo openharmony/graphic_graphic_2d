@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "font_napi/js_typeface.h"
 #include "js_drawing_utils.h"
 
 #ifdef ROSEN_OHOS
@@ -20,6 +21,7 @@
 #endif
 
 #include "draw/color.h"
+#include "rosen_text/font_collection.h"
 
 namespace OHOS::Rosen {
 
@@ -222,6 +224,29 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
             metrics->fStrikeoutPosition));
     }
     return objValue;
+}
+
+std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
+{
+    if (!font->IsThemeFontFollowed() || font->GetTypeface() != JsTypeface::GetZhCnTypeface()) {
+        return nullptr;
+    }
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    if (fontCollection == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<FontMgr> fontMgr = fontCollection->GetFontMgr();
+    if (fontMgr == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> themeTypeface =
+        std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyle(THEME_FONT, FontStyle()));
+    if (themeTypeface == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = std::make_shared<Font>(*font);
+    themeFont->SetTypeface(themeTypeface);
+    return themeFont;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

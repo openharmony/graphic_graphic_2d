@@ -121,6 +121,10 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTextBlob::MakeFromRunBuffer font is nullptr");
         return nullptr;
     }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
 
     TextBlobBuilder::RunBuffer runBuffer;
     std::shared_ptr<TextBlobBuilder> textBlobBuilder = std::make_shared<TextBlobBuilder>();
@@ -205,6 +209,10 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     if (font == nullptr) {
         ROSEN_LOGE("JsTextBlob::MakeFromString font is nullptr");
         return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
     }
 
     // Chinese characters need to be encoded with UTF16
@@ -338,6 +346,10 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
         delete[] buffer;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: font is nullptr");
         return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
     }
 
     Point* points = new(std::nothrow) Point[pointsSize];
