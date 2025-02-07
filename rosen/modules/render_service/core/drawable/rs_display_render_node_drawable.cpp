@@ -355,7 +355,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
     auto isHardCursor = HardCursorCreateLayer(processor);
-    RS_TRACE_NAME_FMT("DisplayNode skip, isForceCommitLayer: %d, pendingDrawables size: %d, isHardCursor: %d",
+    RS_TRACE_NAME_FMT("DisplayNode skip, isForceCommitLayer: %d, pendingDrawables size: %zu, isHardCursor: %d",
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer(),
         pendingDrawables.size(), isHardCursor);
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
