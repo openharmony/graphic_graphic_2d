@@ -143,25 +143,27 @@ void JsPath::Destructor(napi_env env, void *nativeObject, void *finalize)
 napi_value JsPath::CreateJsPath(napi_env env, Path* path)
 {
     napi_value constructor = nullptr;
-    napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
-    if (status == napi_ok) {
-        auto jsPath = new JsPath(path);
-        napi_create_object(env, &result);
-        if (result == nullptr) {
-            delete jsPath;
-            ROSEN_LOGE("JsPath::CreateJsPath Create path object failed!");
-            return nullptr;
-        }
-        status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
-        if (status != napi_ok) {
-            delete jsPath;
-            ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
-            return nullptr;
-        }
-        napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
-        return result;
+    if (status != napi_ok) {
+        delete path;
+        ROSEN_LOGE("JsPath::CreateJsPath failed to get reference value!");
+        return nullptr;
     }
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        delete path;
+        ROSEN_LOGE("JsPath::CreateJsPath create object failed!");
+        return nullptr;
+    }
+    JsPath* jsPath = new JsPath(path);
+    status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsPath;
+        ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
 
