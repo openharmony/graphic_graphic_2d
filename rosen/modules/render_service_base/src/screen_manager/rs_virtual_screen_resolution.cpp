@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_virtual_screen_resolution.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,7 +37,11 @@ RSVirtualScreenResolution& RSVirtualScreenResolution::operator=(const RSVirtualS
 
 bool RSVirtualScreenResolution::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint32(width_) && parcel.WriteUint32(height_);
+    bool flag = parcel.WriteUint32(width_) && parcel.WriteUint32(height_);
+    if (!flag) {
+        ROSEN_LOGE("RSVirtualScreenResolution::Marshalling failed");
+    }
+    return flag;
 }
 
 RSVirtualScreenResolution* RSVirtualScreenResolution::Unmarshalling(Parcel& parcel)
@@ -44,6 +49,7 @@ RSVirtualScreenResolution* RSVirtualScreenResolution::Unmarshalling(Parcel& parc
     uint32_t width;
     uint32_t height;
     if (!(parcel.ReadUint32(width) && parcel.ReadUint32(height))) {
+        ROSEN_LOGE("RSVirtualScreenResolution::Unmarshalling failed");
         return nullptr;
     }
 

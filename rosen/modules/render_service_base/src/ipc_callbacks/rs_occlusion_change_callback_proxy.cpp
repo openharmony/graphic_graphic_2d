@@ -34,11 +34,15 @@ void RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged(std::shared_ptr<R
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteParcelable(occlusionData.get());
+    if (!data.WriteParcelable(occlusionData.get())) {
+        ROSEN_LOGE("RSOcclusionChangeCallbackProxy::OnOcclusionVisibleChanged WriteParcelable failed");
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
     
     auto remote = Remote();

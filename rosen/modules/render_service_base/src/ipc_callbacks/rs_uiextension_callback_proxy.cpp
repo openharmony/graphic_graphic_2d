@@ -34,6 +34,7 @@ void RSUIExtensionCallbackProxy::OnUIExtension(std::shared_ptr<RSUIExtensionData
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIUIExtensionCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSUIExtensionCallbackProxy::OnUIExtension WriteInterfaceToken failed");
         return;
     }
 
@@ -44,8 +45,14 @@ void RSUIExtensionCallbackProxy::OnUIExtension(std::shared_ptr<RSUIExtensionData
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteParcelable(uiExtensionData.get());
-    data.WriteUint64(userId);
+    if (!data.WriteParcelable(uiExtensionData.get())) {
+        ROSEN_LOGE("RSUIExtensionCallbackProxy::OnUIExtension WriteParcelable failed");
+        return;
+    }
+    if (!data.WriteUint64(userId)) {
+        ROSEN_LOGE("RSUIExtensionCallbackProxy::OnUIExtension WriteUint64 failed");
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(RSIUIExtensionCallbackInterfaceCode::ON_UIEXTENSION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

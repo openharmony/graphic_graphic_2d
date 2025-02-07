@@ -34,6 +34,7 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable()
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIBufferAvailableCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable WriteInterfaceToken failed");
         return;
     }
 

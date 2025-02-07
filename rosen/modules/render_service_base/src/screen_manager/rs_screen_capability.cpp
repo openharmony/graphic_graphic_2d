@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_screen_capability.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -110,6 +111,7 @@ bool RSScreenCapability::WriteVector(const std::vector<RSScreenProps> &props, Pa
 {
     for (uint32_t propIndex = 0; propIndex < props.size(); propIndex++) {
         if (!parcel.WriteParcelable(&props[propIndex])) {
+            ROSEN_LOGE("RSScreenCapability::WriteVector WriteParcelable failed");
             return false;
         }
     }
@@ -132,30 +134,39 @@ bool RSScreenCapability::ReadVector(std::vector<RSScreenProps> &unmarProps, uint
 bool RSScreenCapability::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(name_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteString failed");
         return false;
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(type_))) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 1 failed");
         return false;
     }
     if (!parcel.WriteUint32(phyWidth_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 2 failed");
         return false;
     }
     if (!parcel.WriteUint32(phyHeight_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 3 failed");
         return false;
     }
     if (!parcel.WriteUint32(supportLayers_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 4 failed");
         return false;
     }
     if (!parcel.WriteUint32(virtualDispCount_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 5 failed");
         return false;
     }
     if (!parcel.WriteBool(supportWriteBack_)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteBool failed");
         return false;
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(props_.size()))) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteUint32 6 failed");
         return false;
     }
     if (!WriteVector(props_, parcel)) {
+        ROSEN_LOGE("RSScreenCapability::Marshalling WriteVector failed");
         return false;
     }
     return true;
@@ -173,30 +184,39 @@ RSScreenCapability* RSScreenCapability::Unmarshalling(Parcel &parcel)
     uint32_t propCount;
     std::vector<RSScreenProps> props;
     if (!parcel.ReadString(name)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadString failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(type)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 type failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(phyWidth)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 phyWidth failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(phyHeight)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 phyHeight failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(supportLayers)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 supportLayers failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(virtualDispCount)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 virtualDispCount failed");
         return nullptr;
     }
     if (!parcel.ReadBool(supportWriteBack)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadBool supportWriteBack failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(propCount)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadUint32 propCount failed");
         return nullptr;
     }
     if (!ReadVector(props, propCount, parcel)) {
+        ROSEN_LOGE("RSScreenCapability::Unmarshalling ReadVector failed");
         return nullptr;
     }
     RSScreenCapability* screenCapability = new RSScreenCapability(name, static_cast<ScreenInterfaceType>(type),

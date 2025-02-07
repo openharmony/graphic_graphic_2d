@@ -36,12 +36,22 @@ void RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedF
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate"
+            "WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteInt32(dstPid);
-    data.WriteInt32(expectedFps);
+    if (!data.WriteInt32(dstPid)) {
+        ROSEN_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate"
+            "WriteInt32 dstPid failed");
+        return;
+    }
+    if (!data.WriteInt32(expectedFps)) {
+        ROSEN_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate"
+            "WriteInt32 expectedFps failed");
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(
         RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
 

@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_screen_data.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,6 +70,7 @@ bool RSScreenData::WriteVector(const std::vector<RSScreenModeInfo> &supportModes
 {
     for (uint32_t modeIndex = 0; modeIndex < supportModes.size(); modeIndex++) {
         if (!parcel.WriteParcelable(&supportModes[modeIndex])) {
+            ROSEN_LOGE("RSScreenData::WriteVector WriteParcelable failed");
             return false;
         }
     }
@@ -91,18 +93,23 @@ bool RSScreenData::ReadVector(std::vector<RSScreenModeInfo> &unmarsupportModes, 
 bool RSScreenData::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteParcelable(&capability_)) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteParcelable 1 failed");
         return false;
     }
     if (!parcel.WriteParcelable(&activityModeInfo_)) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteParcelable 2 failed");
         return false;
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(supportModeInfo_.size()))) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteUint32 failed");
         return false;
     }
     if (!WriteVector(supportModeInfo_, parcel)) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteVector failed");
         return false;
     }
     if (!parcel.WriteUint8(static_cast<uint8_t>(powerStatus_))) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteUint8 failed");
         return false;
     }
     return true;
@@ -124,12 +131,14 @@ RSScreenData* RSScreenData::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     if (!parcel.ReadUint32(modeCount)) {
+        ROSEN_LOGE("RSScreenData::Unmarshalling ReadUint32 failed");
         return nullptr;
     }
     if (!ReadVector(supportModeInfo, modeCount, parcel)) {
         return nullptr;
     }
     if (!parcel.ReadUint8(powerStatus)) {
+        ROSEN_LOGE("RSScreenData::Unmarshalling ReadUint8 failed");
         return nullptr;
     }
     RSScreenData* screenData = new RSScreenData(*capability, *activityModeInfo,

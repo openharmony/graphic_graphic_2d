@@ -24,6 +24,7 @@ int RSBufferAvailableCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIBufferAvailableCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSBufferAvailableCallbackStub::OnRemoteRequest GetDescriptor failed");
         return ERR_INVALID_STATE;
     }
 

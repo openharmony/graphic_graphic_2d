@@ -704,7 +704,11 @@ RSRenderTransitionEffect* RSRenderTransitionEffect::Unmarshalling(Parcel& parcel
 
 bool RSTransitionFade::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint16(RSTransitionEffectType::FADE) && parcel.WriteFloat(alpha_);
+    bool flag = parcel.WriteUint16(RSTransitionEffectType::FADE) && parcel.WriteFloat(alpha_);
+    if (!flag) {
+        ROSEN_LOGE("RSTransitionFade::Marshalling, ParseParam Failed");
+    }
+    return flag;
 }
 
 RSRenderTransitionEffect* RSTransitionFade::Unmarshalling(Parcel& parcel)
@@ -719,8 +723,12 @@ RSRenderTransitionEffect* RSTransitionFade::Unmarshalling(Parcel& parcel)
 
 bool RSTransitionScale::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint16(RSTransitionEffectType::SCALE) && parcel.WriteFloat(scaleX_) &&
+    bool flag = parcel.WriteUint16(RSTransitionEffectType::SCALE) && parcel.WriteFloat(scaleX_) &&
            parcel.WriteFloat(scaleY_) && parcel.WriteFloat(scaleZ_);
+    if (!flag) {
+        ROSEN_LOGE("RSTransitionScale::Marshalling, ParseParam Failed");
+    }
+    return flag;
 }
 
 RSRenderTransitionEffect* RSTransitionScale::Unmarshalling(Parcel& parcel)
@@ -737,8 +745,12 @@ RSRenderTransitionEffect* RSTransitionScale::Unmarshalling(Parcel& parcel)
 
 bool RSTransitionTranslate::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint16(RSTransitionEffectType::TRANSLATE) && parcel.WriteFloat(translateX_) &&
+    bool flag = parcel.WriteUint16(RSTransitionEffectType::TRANSLATE) && parcel.WriteFloat(translateX_) &&
            parcel.WriteFloat(translateY_) && parcel.WriteFloat(translateZ_);
+    if (!flag) {
+        ROSEN_LOGE("RSTransitionTranslate::Marshalling, ParseParam failed");
+    }
+    return flag;
 }
 
 RSRenderTransitionEffect* RSTransitionTranslate::Unmarshalling(Parcel& parcel)
@@ -755,8 +767,12 @@ RSRenderTransitionEffect* RSTransitionTranslate::Unmarshalling(Parcel& parcel)
 
 bool RSTransitionRotate::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint16(RSTransitionEffectType::ROTATE) && parcel.WriteFloat(dx_) && parcel.WriteFloat(dy_) &&
-           parcel.WriteFloat(dz_) && parcel.WriteFloat(radian_);
+    bool flag = parcel.WriteUint16(RSTransitionEffectType::ROTATE) && parcel.WriteFloat(dx_) &&
+                parcel.WriteFloat(dy_) && parcel.WriteFloat(dz_) && parcel.WriteFloat(radian_);
+    if (!flag) {
+        ROSEN_LOGE("RSTransitionRotate::Marshalling, ParseParam failed");
+    }
+    return flag;
 }
 
 RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)

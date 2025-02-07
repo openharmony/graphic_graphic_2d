@@ -84,7 +84,11 @@ bool RSShader::Marshalling(Parcel& parcel)
         ROSEN_LOGE("RSShader::Marshalling, data is nullptr");
         return parcel.WriteInt32(-1);
     }
-    return parcel.WriteInt32(type) && RSMarshallingHelper::Marshalling(parcel, data);
+    bool flag = parcel.WriteInt32(type) && RSMarshallingHelper::Marshalling(parcel, data);
+    if (!flag) {
+        ROSEN_LOGE("unirender: RSShader::Marshalling WriteInt32 or RSMarshallingHelper::Marshalling failed");
+    }
+    return flag;
 }
 
 bool RSShader::Unmarshalling(Parcel& parcel, bool& needReset)

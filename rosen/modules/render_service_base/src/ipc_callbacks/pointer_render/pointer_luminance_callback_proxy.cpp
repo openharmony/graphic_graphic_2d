@@ -32,11 +32,14 @@ void RSPointerLuminanceChangeCallbackProxy::OnPointerLuminanceChanged(int32_t br
     MessageOption option;
  
     if (!data.WriteInterfaceToken(RSIPointerLuminanceChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSPointerLuminanceChangeCallbackProxy::OnPointerLuminanceChanged WriteInterfaceToken failed");
         return;
     }
- 
-    data.WriteInt32(brightness);
- 
+    if (!data.WriteInt32(brightness)) {
+        ROSEN_LOGE("RSPointerLuminanceChangeCallbackProxy::OnPointerLuminanceChanged WriteInt32 failed");
+        return;
+    }
+
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIPointerLuminanceChangeCallbackInterfaceCode::ON_POINTER_LUMINANCE_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

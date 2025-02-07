@@ -483,7 +483,11 @@ void RSSurfaceNode::SetAnimationFinished()
 
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());
+    bool flag = parcel.WriteUint64(GetId()) && parcel.WriteString(name_) && parcel.WriteBool(IsRenderServiceNode());
+    if (!flag) {
+        ROSEN_LOGE("RSSurfaceNode::Marshalling failed");
+    }
+    return flag;
 }
 
 std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)

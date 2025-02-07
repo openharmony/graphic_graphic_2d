@@ -436,6 +436,9 @@ bool RSImageBase::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, versionId) &&
                    RSMarshallingHelper::Marshalling(parcel, image_) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
+    if (!success) {
+        RS_LOGE("RSImageBase::Marshalling parcel fail");
+    }
     return success;
 }
 

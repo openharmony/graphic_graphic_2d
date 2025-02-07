@@ -45,8 +45,14 @@ bool RSOcclusionData::Marshalling(Parcel& parcel) const
 {
     parcel.WriteUint32(visibleData_.size());
     for (auto& data : visibleData_) {
-        parcel.WriteUint64(data.first);
-        parcel.WriteUint32(data.second);
+        if (!parcel.WriteUint64(data.first)) {
+            RS_LOGE("RSOcclusionData::Marshalling WriteUint64 first failed");
+            return false;
+        }
+        if (!parcel.WriteUint32(data.second)) {
+            RS_LOGE("RSOcclusionData::Marshalling WriteUint32 second failed");
+            return false;
+        }
     }
 
     return true;

@@ -431,14 +431,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         PropertyId id = 0;                                                                                            \
         int16_t typeId = 0;                                                                                           \
         if (!parcel.ReadInt16(typeId)) {                                                                              \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadInt16 failed");                                        \
             return false;                                                                                             \
         }                                                                                                             \
         RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);                                        \
         if (!parcel.ReadUint64(id)) {                                                                                 \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                                       \
             return false;                                                                                             \
         }                                                                                                             \
         T value;                                                                                                      \
         if (!Unmarshalling(parcel, value)) {                                                                          \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Unmarshalling failed");                                    \
             return false;                                                                                             \
         }                                                                                                             \
         val.reset(new TEMPLATE<T>(value, id, type));                                                                  \

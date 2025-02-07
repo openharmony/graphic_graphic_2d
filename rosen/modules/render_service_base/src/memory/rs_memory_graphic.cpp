@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "memory/rs_memory_graphic.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,8 +58,12 @@ void MemoryGraphic::SetGpuMemorySize(float gpuMemSize)
 
 bool MemoryGraphic::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteInt32(pid_) && parcel.WriteFloat(cpuMemSize_) &&
+    bool flag = parcel.WriteInt32(pid_) && parcel.WriteFloat(cpuMemSize_) &&
         parcel.WriteFloat(gpuMemSize_);
+    if (!flag) {
+        ROSEN_LOGE("MemoryGraphic::Marshalling failed");
+    }
+    return flag;
 }
 
 MemoryGraphic* MemoryGraphic::Unmarshalling(Parcel& parcel)
@@ -67,6 +72,7 @@ MemoryGraphic* MemoryGraphic::Unmarshalling(Parcel& parcel)
     float cpuMemSize;
     float gpuMemSize;
     if (!(parcel.ReadInt32(pid) && parcel.ReadFloat(cpuMemSize) && parcel.ReadFloat(gpuMemSize))) {
+        ROSEN_LOGE("MemoryGraphic::Unmarshalling failed");
         return nullptr;
     }
 
