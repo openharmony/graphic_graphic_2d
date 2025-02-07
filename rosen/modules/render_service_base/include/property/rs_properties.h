@@ -563,6 +563,11 @@ public:
     void OnApplyModifiers();
 
 private:
+    inline float DecreasePrecision(float value)
+    {
+        // preserve two digital precision when calculating hash, this can reuse filterCache as much as possible.
+        return 0.01 * round(value * 100);
+    }
     void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
     void SetDirty();
     void ResetDirty();

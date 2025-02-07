@@ -2862,7 +2862,14 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
     if (backgroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
         backgroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
-    uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
+
+    float radiusForHash = DecreasePrecision(backgroundBlurRadius_);
+    float saturationForHash = DecreasePrecision(backgroundBlurSaturation_);
+    float brightnessForHash = DecreasePrecision(backgroundBlurBrightness_);
+    uint32_t hash = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), 0);
+    hash = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash);
+    hash = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash);
+
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
@@ -2890,8 +2897,6 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
     } else {
-        hash = SkOpts::hash(&backgroundBlurSaturation_, sizeof(backgroundBlurSaturation_), hash);
-        hash = SkOpts::hash(&backgroundBlurBrightness_, sizeof(backgroundBlurBrightness_), hash);
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
