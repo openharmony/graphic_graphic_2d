@@ -26,7 +26,7 @@ namespace OHOS {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
-        const int64_t kMaxVsyncInterval = 16666666; // 16.666666ms
+        const int64_t kMaxVsyncInterval = 16666666; // 1/60s, 60fps 
     }
 
     /*
