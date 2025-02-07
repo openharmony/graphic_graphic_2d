@@ -87,6 +87,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
                 RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
             }
         }
+    } else if (isExpand_) {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+        if (displayParams && displayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+            renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        }
     }
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
