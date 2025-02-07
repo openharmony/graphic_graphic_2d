@@ -96,28 +96,28 @@ JsTypeface::~JsTypeface()
 napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Typeface> typeface)
 {
     napi_value constructor = nullptr;
-    napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
-    if (status == napi_ok) {
-        auto jsTypeface = new JsTypeface(typeface);
-        napi_create_object(env, &result);
-        if (result == nullptr) {
-            delete jsTypeface;
-            ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
-            return nullptr;
-        }
-        status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
-        if (status != napi_ok) {
-            delete jsTypeface;
-            ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
-            return nullptr;
-        }
-        napi_property_descriptor resultFuncs[] = {
-            DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
-        };
-        napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
-        return result;
+    if (status != napi_ok) {
+        ROSEN_LOGE("JsTypeface::CreateJsTypeface get reference value failed!");
+        return nullptr;
     }
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        ROSEN_LOGE("JsTypeface::CreateJsTypeface create object failed!");
+        return nullptr;
+    }
+    JsTypeface* jsTypeface = new JsTypeface(typeface);
+    status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsTypeface;
+        ROSEN_LOGE("JsTypeface::CreateJsTypeface failed to wrap native instance");
+        return nullptr;
+    }
+    napi_property_descriptor resultFuncs[] = {
+        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+    };
+    napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return result;
 }
 
