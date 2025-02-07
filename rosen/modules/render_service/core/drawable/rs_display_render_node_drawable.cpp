@@ -355,6 +355,9 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
     auto isHardCursor = HardCursorCreateLayer(processor);
+    RS_TRACE_NAME_FMT("DisplayNode skip, isForceCommitLayer: %d, pendingDrawables size: %d, isHardCursor: %d",
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer(),
+        pendingDrawables.size(), isHardCursor);
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
         pendingDrawables.size() == 0 && !isHardCursor) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
@@ -1441,6 +1444,9 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     }
     auto rotation = mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
+    RS_TRACE_NAME_FMT("ScaleAndRotateMirrorForWiredScreen[%" PRIu64 "](%f, %f), [%" PRIu64 "](%f, %f), rotation: %d",
+        mirroredParams->GetScreenId(), mainWidth, mainHeight, nodeParams->GetScreenId(),
+        mirrorWidth, mirrorHeight, rotation);
     if (screenManager) {
         auto screenCorrection = screenManager->GetScreenCorrection(mirroredParams->GetScreenId());
         if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
