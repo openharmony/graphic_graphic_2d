@@ -1231,5 +1231,10 @@ bool RSSystemProperties::GetHveFilterEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.HveFilterEnable", "1")).c_str()) != 0;
     return hveFilterEnabled;
 }
+
+bool RSSystemProperties::GetDmaReclaimParam()
+{
+    return system::GetBoolParameter("resourceschedule.memmgr.dma.reclaimable", false);
+}
 } // namespace Rosen
 } // namespace OHOS

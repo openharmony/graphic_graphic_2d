@@ -298,6 +298,7 @@ public:
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
     static bool GetHveFilterEnabled();
+    static bool GetDmaReclaimParam();
 private:
     RSSystemProperties() = default;
 
