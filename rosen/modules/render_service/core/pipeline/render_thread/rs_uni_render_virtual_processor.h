@@ -80,7 +80,6 @@ public:
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
-    GSError SetColorSpace(GraphicColorGamut colorSpace);
     bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
@@ -89,6 +88,7 @@ public:
     void ProcessCacheImage(Drawing::Image& cacheImage);
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
     bool EnableSlrScale();
@@ -96,6 +96,10 @@ private:
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
+    std::map<GraphicColorGamut, HDI::Display::Graphic::Common::V1_0::colorSpaceType> COLORSPACETYPE {
+        { GRAPHIC_COLOR_GAMUT_SRGB, Media::VideoProcessingEngine::CM_SRGB_LIMIT },
+        { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, Media::VideoProcessingEngine::CM_P3_LIMIT }
+    };
     bool forceCPU_ = false;
     bool isExpand_ = false;
     float mirrorWidth_ = 0.f;
