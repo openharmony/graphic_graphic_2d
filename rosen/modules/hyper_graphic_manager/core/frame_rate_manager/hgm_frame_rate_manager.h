@@ -275,6 +275,8 @@ private:
     std::atomic<bool> changeGeneratorRateValid_{ true };
     // current game app's self drawing node name
     std::string curGameNodeName_;
+    // if current game's self drawing node is on tree,default false
+    std::atomic<bool> isGameNodeOnTree_ = false;
     // concurrency protection <<<
 
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
@@ -332,8 +334,6 @@ private:
     std::atomic<bool> isAdaptive_ = false;
     // Does current game require Adaptive Sync
     bool isGameSupportAS_ = false;
-    // if current game's self drawing node is on tree,default false
-    std::atomic<bool> isGameNodeOnTree_ = false;
 
     std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
