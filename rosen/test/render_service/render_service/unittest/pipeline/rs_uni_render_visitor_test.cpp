@@ -1251,7 +1251,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
 
 /**
  * @tc.name: PrepareForCloneNode
- * @tc.desc: Test PrepareForCloneNode
+ * @tc.desc: Test PrepareForCloneNode while node is not clone
  * @tc.type: FUNC
  * @tc.require: issueIBH7WD
  */
@@ -1263,6 +1263,36 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode, TestSize.Level1)
 
     auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: PrepareForCloneNode
+ * @tc.desc: Test PrepareForCloneNode while node is clone
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto surfaceRenderNode = RSSurfaceRenderNode(1);
+    auto surfaceRenderNodeCloned = std::make_shared<RSSurfaceRenderNode>(2);
+    ASSERT_NE(surfaceRenderNodeCloned, nullptr);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNodeCloned);
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawable_ = DrawableV2::RSRenderNodeDrawable::OnGenerate(rsRenderNode);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(drawable_);
+    surfaceRenderNodeCloned->renderDrawable_ = clonedNodeRenderDrawableSharedPtr;
+
+    surfaceRenderNode.isCloneNode_ = true;
+    surfaceRenderNode.SetClonedNodeId(surfaceRenderNodeCloned->GetId());
+    auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
+    ASSERT_TRUE(result);
 }
 
 /**

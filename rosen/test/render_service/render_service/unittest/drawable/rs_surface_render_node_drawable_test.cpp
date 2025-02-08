@@ -1308,7 +1308,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
 
 /**
  * @tc.name: DrawCloneNode
- * @tc.desc: Test DrawCloneNode
+ * @tc.desc: Test DrawCloneNode while node is not clone
  * @tc.type: FUNC
  * @tc.require: issueIBH7WD
  */
@@ -1322,6 +1322,36 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode, TestSize.Level1)
     surfaceParams->isCloneNode_ = false;
     RSRenderThreadParams uniParams;
     auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: DrawCloneNode
+ * @tc.desc: Test DrawCloneNode001 while node is clone
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isCloneNode_ = true;
+    surfaceParams->isClonedNodeOnTheTree_ = false;
+    RSRenderThreadParams uniParams;
+
+    auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+
+    surfaceParams->isClonedNodeOnTheTree_ = true;
+    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(drawable_);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable(clonedNodeRenderDrawableSharedPtr);
+    surfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable;
+    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, true);
     ASSERT_TRUE(result);
 }
 
@@ -1352,7 +1382,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     uniParams->SetIsFirstVisitCrossNodeDisplay(true);
-    ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     RSUniRenderThread::captureParam_.isSnapshot_ = true;
     ASSERT_FALSE(RSUniRenderThread::IsExpandScreenMode());

@@ -563,6 +563,7 @@ public:
     bool IsCloneNode() const;
     void SetClonedNodeId(NodeId id);
     void SetIsCloned(bool isCloned);
+    void SetIsClonedNodeOnTheTree(bool isOnTheTree);
 
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
@@ -790,7 +791,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode();
+    void UpdateInfoForClonedNode(NodeId nodeId);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -1739,6 +1740,7 @@ private:
     // [Attention] The variable only used for unlocking screen for PC currently
     bool isCloneNode_ = false;
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
+    bool isClonedNodeOnTheTree_ = false;
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};

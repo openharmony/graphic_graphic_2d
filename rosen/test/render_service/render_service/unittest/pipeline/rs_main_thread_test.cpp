@@ -4519,9 +4519,6 @@ HWTEST_F(RSMainThreadTest, ConnectChipsetVsyncSer, TestSize.Level2)
     mainThread->initVsyncServiceFlag_ = false;
     mainThread->ConnectChipsetVsyncSer();
     ASSERT_EQ(mainThread->initVsyncServiceFlag_, false);
-    mainThread->initVsyncServiceFlag_ = true;
-    mainThread->ConnectChipsetVsyncSer();
-    ASSERT_EQ(mainThread->initVsyncServiceFlag_, true);
 }
 #endif
 

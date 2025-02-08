@@ -212,13 +212,14 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateInfoForClonedNode()
+void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
-    if (GetId() == clonedSourceNodeId_) {
+    bool isClonedNode = GetId() == nodeId;
+    if (isClonedNode && IsMainWindowType()) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
     }
-    SetIsCloned(GetId() == clonedSourceNodeId_);
+    SetIsCloned(isClonedNode);
 }
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
@@ -2985,6 +2986,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     }
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
+    surfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     surfaceParams->isCrossNode_ = IsCrossNode();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
     surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
@@ -3399,6 +3401,11 @@ void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
     }
     surfaceParams->SetIsCloned(isCloned);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetIsClonedNodeOnTheTree(bool isOnTheTree)
+{
+    isClonedNodeOnTheTree_ = isOnTheTree;
 }
 
 void RSSurfaceRenderNode::ResetIsBufferFlushed()
