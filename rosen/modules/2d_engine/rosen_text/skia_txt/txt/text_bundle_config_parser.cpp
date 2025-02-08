@@ -60,7 +60,7 @@ bool TextBundleConfigParser::GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo)
         TEXT_LOGE("Failed to get remoteObject");
         return false;
     }
-    
+
     sptr<AppExecFwk::IBundleMgr> iBundleMgr =
         iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
     if (iBundleMgr == nullptr) {
@@ -93,7 +93,7 @@ void TextBundleConfigParser::InitTextBundleConfig()
         InitTextBundleFailed();
         return;
     }
-    
+
     initStatus_ = true;
     bundleApiVersion_ = bundleInfo.targetVersion % VERSION_DIVISOR;
     adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA, bundleInfo);
