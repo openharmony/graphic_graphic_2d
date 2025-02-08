@@ -77,6 +77,7 @@ private:
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode_ = nullptr;
     NodeId nodeId_;
     RSSurfaceCaptureConfig captureConfig_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
