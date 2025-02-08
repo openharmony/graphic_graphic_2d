@@ -1222,7 +1222,6 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     auto screenInfo = mirroredParams->GetScreenInfo();
     uniParam->SetScreenInfo(screenInfo);
     Drawing::Rect rect(0, 0, screenInfo.width, screenInfo.height);
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
     curCanvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
@@ -1230,7 +1229,6 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     DrawCurtainScreen();
     DrawWatermarkIfNeed(*mirroredParams, *curCanvas_);
     SwitchColorFilter(*curCanvas_, 1.f); // 1.f: wired screen not use hdr, use default value 1.f
-    RSUniRenderThread::ResetCaptureParam();
 
     uniParam->SetOpDropped(isOpDropped);
 }
