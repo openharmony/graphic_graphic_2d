@@ -3331,7 +3331,7 @@ bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, st
 }
 
 void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder)
+    const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder)
 {
     if (!node) {
         return;
@@ -3358,7 +3358,7 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder)
+    const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder)
 {
     if (filterRect.IsEmpty()) {
         return;
