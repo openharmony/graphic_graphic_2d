@@ -38,8 +38,8 @@ public:
         return instance;
     }
 
-    bool IsAdapterTextHeightEnabled();
-    bool IsTargetApiVersion(size_t targetVersion);
+    bool IsAdapterTextHeightEnabled() const;
+    bool IsTargetApiVersion(size_t targetVersion) const;
 
 private:
     TextBundleConfigParser()
