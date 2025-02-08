@@ -25,6 +25,7 @@ ohos_executable("dtk") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/test/dtk",
   ]
+
   # function demo
   sources = [
     "dtk.cpp",
@@ -34,21 +35,14 @@ ohos_executable("dtk") {
     "function/font/dtk_font_fontstyleset_test.cpp",
     "utils.cpp",
   ]
-  # performance demo
-  sources += [
-  ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
-  deps += [
-    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-  ]
+  deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
-  include_dirs += [
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-  ]
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -60,17 +54,17 @@ ohos_executable("dtk") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
+    "hitrace:hitrace_meter",
     "image_framework:image_native",
+    "init:libbegetutil",
     "safwk:system_ability_fwk",
     "skia:skia_canvaskit",
-    "zlib:libz",
     "vulkan-headers:vulkan_headers",
-    "vulkan-loader:vulkan_loader",        
+    "vulkan-loader:vulkan_loader",
     "window_manager:libdm",
-    "window_manager:libwms",
     "window_manager:libwm",
-    "hitrace:hitrace_meter",
+    "window_manager:libwms",
+    "zlib:libz",
   ]
 
   public_deps = [
