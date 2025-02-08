@@ -1418,6 +1418,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     RSUifirstManager::Instance().SetRotationChanged(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         QuickPrepareChildren(node);
+        TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
     UpdateHwcNodeEnable();
@@ -1567,6 +1568,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
+    if (node.IsUIBufferAvailable()) {
+        uiBufferAvailableId_.emplace_back(node.GetId());
+    }
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
@@ -6119,5 +6123,16 @@ void RSUniRenderVisitor::CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNod
     node.SetGpuOverDrawBufferOptimizeNode(false);
 }
 
+void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
+{
+    for (auto& id : uiBufferAvailableId_) {
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+        if (surfaceNode) {
+            surfaceNode->NotifyUIBufferAvailable();
+        }
+    }
+    uiBufferAvailableId_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS
