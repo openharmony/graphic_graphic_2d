@@ -61,14 +61,17 @@ bool TextBundleConfigParser::GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo)
         return false;
     }
 
-    sptr<AppExecFwk::IBundleMgr> iBundleMgr =
+    sptr<AppExecFwk::IBundleMgr> bundleMgr =
         iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (iBundleMgr == nullptr) {
+    if (bundleMgr == nullptr) {
         TEXT_LOGE("Failed to get iBundleMgr");
         return false;
     }
-    if (iBundleMgr->GetBundleInfoForSelf(0, bundleInfo) != ERR_OK) {
-        TEXT_LOGE("Failed to get bundleInfo");
+    if (bundleMgr->GetBundleInfoForSelf(
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA),
+        bundleInfo) != ERR_OK) {
+        TEXT_LOGE("Failed to get bundle info");
         return false;
     }
     return true;
