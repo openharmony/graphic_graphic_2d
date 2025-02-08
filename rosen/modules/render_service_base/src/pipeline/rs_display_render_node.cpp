@@ -36,12 +36,14 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
     RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 void RSDisplayRenderNode::CollectSurface(

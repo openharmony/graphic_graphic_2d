@@ -117,6 +117,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
     RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
 #endif
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -133,6 +134,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
     RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
