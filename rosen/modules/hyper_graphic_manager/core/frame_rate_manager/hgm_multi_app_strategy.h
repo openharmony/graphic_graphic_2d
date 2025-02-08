@@ -16,6 +16,7 @@
 #ifndef HGM_MULTI_APP_STRATEGY_H
 #define HGM_MULTI_APP_STRATEGY_H
 
+#include <algorithm>
 #include <functional>
 #include <tuple>
 #include <unordered_map>
@@ -86,6 +87,9 @@ public:
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
     void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
+    void SetAppStrategyConfig(
+        const std::string& pkgName, const std::vector<std::pair<std::string, std::string>>& newConfig);
+    void UpdateAppStrategyConfigCache();
 private:
     void UseStrategyNum();
     void FollowFocus();
@@ -95,6 +99,8 @@ private:
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
+    void HandleAppBufferStrategy(const std::string& configName, const std::string& configValue,
+        PolicyConfigData::StrategyConfig& appStrategyConfig);
 
     std::vector<std::string> pkgs_;
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;
@@ -119,6 +125,11 @@ private:
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
     bool disableSafeVote_ = false;
+
+    PolicyConfigData::StrategyConfigMap& appStrategyConfigMapCache_;
+    PolicyConfigData::StrategyConfigMap& appStrategyConfigMapPreCache_;
+    bool appStrategyConfigMapChanged_ = false;
+    std::vector<std::string>& appBufferListCache_;
 };
 } // namespace Rosen
 } // namespace OHOS

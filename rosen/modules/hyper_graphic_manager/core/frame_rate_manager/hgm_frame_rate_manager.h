@@ -60,6 +60,7 @@ enum CleanPidCallbackType : uint32_t {
     PACKAGE_EVENT,
     TOUCH_EVENT,
     GAMES,
+    APP_STRATEGY_CONFIG_EVENT,
 };
 
 enum LightFactorStatus : int32_t {
@@ -194,6 +195,8 @@ public:
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
 private:
     void Reset();
     void UpdateAppSupportedState();

@@ -1585,6 +1585,15 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
     }
 }
 
+void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    }
+}
+
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

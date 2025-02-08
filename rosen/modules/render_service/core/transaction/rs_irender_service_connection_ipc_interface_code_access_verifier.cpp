@@ -287,6 +287,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_PACKAGE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_REFRESH_RATE_EVENT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
             break;

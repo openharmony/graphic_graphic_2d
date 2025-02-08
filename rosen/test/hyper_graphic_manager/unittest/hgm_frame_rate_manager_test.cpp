@@ -150,6 +150,7 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
 
     auto strategyConfigs = frameRateMgr.multiAppStrategy_.GetStrategyConfigs();
     auto screenSetting = frameRateMgr.multiAppStrategy_.GetScreenSetting();
+    frameRateMgr.HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = true };
     screenSetting.strategy = settingStrategyName;

@@ -294,6 +294,9 @@ public:
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
+    virtual void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) = 0;
+
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
     virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;

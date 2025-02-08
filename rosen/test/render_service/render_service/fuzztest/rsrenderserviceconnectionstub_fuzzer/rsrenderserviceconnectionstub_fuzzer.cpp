@@ -2192,6 +2192,41 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifyAppStrategyConfigChangeEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    auto pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    auto configKey = GetData<std::string>();
+    auto configValue = GetData<std::string>();
+    dataP.WriteString(pkgName);
+    dataP.WriteUint32(listSize);
+    dataP.WriteString(configKey);
+    dataP.WriteString(configValue);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -3523,6 +3558,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoNotifyLightFactorStatus(data, size);
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
+    OHOS::Rosen::DoNotifyAppStrategyConfigChangeEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoReportJankStats();
     OHOS::Rosen::DoReportEventResponse();
