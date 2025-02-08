@@ -34,6 +34,7 @@ RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>
     MemoryInfo info = { sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE };
     MemoryTrack::Instance().AddNodeRecord(id, info);
 #endif
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
 RSEffectRenderNode::~RSEffectRenderNode()
@@ -41,6 +42,7 @@ RSEffectRenderNode::~RSEffectRenderNode()
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
