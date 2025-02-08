@@ -437,11 +437,10 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
+        RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
+        auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
         {
             std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
-            RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
-            auto canvasDrawingDrawable =
-                std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
             if (surface != canvasDrawingDrawable->surface_) {
                 return;
             }
