@@ -60,6 +60,7 @@ public:
     }
     bool CheckPidValid(pid_t pid, bool onlyCheckForegroundApp = false);
 
+    std::string GetGameNodeName(const std::string& pkgName);
     std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType() const { return pidAppTypeMap_; }

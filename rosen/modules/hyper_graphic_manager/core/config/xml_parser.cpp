@@ -381,7 +381,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string &valueName, const std::string &keyName)
+                                const std::string &valueName, const std::string &keyName,
+                                const bool &canBeEmpty)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -400,9 +401,18 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
 
         auto key = ExtractPropertyValue(keyName, *currNode);
         auto value = ExtractPropertyValue(valueName, *currNode);
-        if (key.empty() || value.empty()) {
+        if (key.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }
+
+        if (value.empty()) {
+            if (canBeEmpty) {
+                continue;
+            } else {
+                return XML_PARSE_INTERNAL_FAIL;
+            }
+        }
+
         config[key] = value;
 
         HGM_LOGI("HgmXMLParser ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
@@ -556,6 +566,7 @@ int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::Screen
     } else {
         screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
     }
+    ParseSimplex(node, screenSetting.gameAppNodeList, "nodeName", "name", true);
     return ParseSimplex(node, screenSetting.appList, "strategy");
 }
 

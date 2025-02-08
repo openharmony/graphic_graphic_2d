@@ -176,6 +176,15 @@ bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
     return !backgroundPid_.Existed(pid);
 }
 
+std::string HgmMultiAppStrategy::GetGameNodeName(const std::string& pkgName)
+{
+    auto &appNodeMap = screenSettingCache_.gameAppNodeList;
+    if (appNodeMap.find(pkgName) != appNodeMap.end()) {
+        return appNodeMap.at(pkgName);
+    }
+    return "";
+}
+
 std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName)
 {
     auto &appConfigMap = screenSettingCache_.appList;
