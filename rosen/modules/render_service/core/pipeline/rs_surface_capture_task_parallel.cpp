@@ -208,10 +208,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
     canvas.SetCapture(true);
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
-        // make sure the previous uifirst task is completed.
-        if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
-            return false;
-        }
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(

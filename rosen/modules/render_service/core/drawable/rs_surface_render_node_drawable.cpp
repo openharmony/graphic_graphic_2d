@@ -724,16 +724,25 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
-        hasHdrPresent_ || hasHidePrivacyContent) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
-        surfaceParams.SetHardwareEnabled(hwcEnable);
-        return;
+        hasHdrPresent_ || hasHidePrivacyContent)) {
+        if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams)) {
+            surfaceParams.SetHardwareEnabled(hwcEnable);
+            if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+                RS_LOGI("%{public}s DealWithCachedWindow", __func__);
+            }
+            return;
+        }
+        if (DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+            surfaceParams.SetHardwareEnabled(hwcEnable);
+            if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+                RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
+            }
+            return;
+        }
     }
     surfaceParams.SetHardwareEnabled(hwcEnable);
 
-    // cannot useNodeMatchOptimize if leash window is on draw
-    auto cacheState = GetCacheSurfaceProcessedStatus();
-    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, useNodeMatchOptimize)) {
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, false)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;
     }
