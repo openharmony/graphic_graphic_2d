@@ -1,0 +1,77 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_executable("dtk") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  defines = []
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/test/dtk",
+  ]
+
+  # function demo
+  sources = [
+    "dtk.cpp",
+    "dtk_test_base.cpp",
+    "dtk_test_register.cpp",
+    "dtk_test_utils.cpp",
+    "function/font/dtk_font_fontstyleset_test.cpp",
+    "utils.cpp",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
+
+  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+
+  if (ace_enable_gpu) {
+    defines += [ "ACE_ENABLE_GPU" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "safwk:system_ability_fwk",
+    "skia:skia_canvaskit",
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
+    "window_manager:libdm",
+    "window_manager:libwm",
+    "window_manager:libwms",
+    "zlib:libz",
+  ]
+
+  public_deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
