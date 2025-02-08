@@ -151,12 +151,12 @@ public:
         return isDumpRsTreeDetailEnabled_;
     }
 
-    uint32_t IncreasePrepareSeq()
+    inline uint32_t IncreasePrepareSeq()
     {
         return ++nodePreparedSeqNum_;
     }
 
-    uint32_t IncreasePostPrepareSeq()
+    inline uint32_t IncreasePostPrepareSeq()
     {
         return ++nodePostPreparedSeqNum_;
     }
