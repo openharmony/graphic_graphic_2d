@@ -159,7 +159,7 @@ bool RSDrawFrame::CheckCanvasSkipSync(std::shared_ptr<RSRenderNode> node)
         if (nodeDrawable == nullptr) {
             return true;
         }
-        if (nodeDrawable->IsNeedDraw()) {
+        if (nodeDrawable->IsNeedDraw() && nodeDrawable->GetDrawSkipType() == DrawableV2::DrawSkipType::NONE) {
             stagingSyncCanvasDrawingNodes_.emplace(node->GetId(), node);
             return false;
         }
