@@ -318,6 +318,7 @@ void MemoryManager::CountMemory(
 
 static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
 {
+    constexpr int MAX_TREE_DEPTH = 256;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     uint64_t windowId = nodeId;
@@ -331,8 +332,9 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
     bool windowsNameFlag = false;
+    int seekDepth = 0;
     while (parent) {
-        if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
+        if (parent->IsInstanceOf<RSSurfaceRenderNode>() || seekDepth >= MAX_TREE_DEPTH) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
             windowId = surfaceNode->GetId();
@@ -340,6 +342,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
             break;
         }
         parent = parent->GetParent().lock();
+        seekDepth++;
     }
     if (!windowsNameFlag) {
         windowName = "EXISTS-BUT-NO-SURFACE";
