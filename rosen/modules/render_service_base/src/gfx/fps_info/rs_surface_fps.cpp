@@ -15,7 +15,6 @@
 
 #include "gfx/fps_info/rs_surface_fps.h"
 #include "rs_trace.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 bool RSSurfaceFps::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
@@ -25,7 +24,6 @@ bool RSSurfaceFps::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
         return false;
     }
     RS_TRACE_NAME_FMT("RSSurfaceFps::RecordPresentTime timestamp:%llu", timestamp);
-    RS_LOGD("RSSurfaceFps::RecordPresentTime timestamp:%{public}" PRIu64 " .", timestamp);
     presentTimeRecords_[count_].presentTime = timestamp;
     presentTimeRecords_[count_].seqNum = seqNum;
     count_ = (count_ + 1) % FRAME_RECORDS_NUM;

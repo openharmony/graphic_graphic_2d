@@ -16,7 +16,6 @@
 #include <memory>
 
 #include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 RSSurfaceFpsManager& RSSurfaceFpsManager::GetInstance()
@@ -29,7 +28,6 @@ bool RSSurfaceFpsManager::RegisterSurfaceFps(NodeId id, std::string name)
 {
     std::unique_lock<std::shared_mutex> lock(smtx);
     if (surfaceFpsMap_.find(id) != surfaceFpsMap_.end()) {
-        RS_LOGD("RSSurfaceFpsManager::RegisterSurfaceFps register node:%{public}" PRIu64 "already existed.", id);
         return false;
     }
     surfaceFpsMap_[id] = std::make_shared<RSSurfaceFps>(name);
@@ -40,7 +38,6 @@ bool RSSurfaceFpsManager::UnregisterSurfaceFps(NodeId id)
 {
     std::unique_lock<std::shared_mutex> lock(smtx);
     if (surfaceFpsMap_.find(id) == surfaceFpsMap_.end()) {
-        RS_LOGD("RSSurfaceFpsManager::Unregister node:%{public}" PRIu64 "not exist.", id);
         return false;
     }
     surfaceFpsMap_.erase(id);
@@ -72,7 +69,6 @@ bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, uint64_t timestamp, uint3
 {
     const auto& surfaceFps = GetSurfaceFps(id);
     if (surfaceFps == nullptr) {
-        RS_LOGD("RSSurfaceFpsManager::RecordPresentTime surfaceFps is nullptr.");
         return false;
     }
     return surfaceFps->RecordPresentTime(timestamp, seqNum);
