@@ -414,6 +414,9 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSu
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
     node->GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto& [id, subSurfaceNode] : allSubSurfaceNodes) {
+        if (hasSurfaceVisibleDirtyRegion) {
+            break;
+        }
         auto subSurfaceNodePtr = subSurfaceNode.lock();
         if (!subSurfaceNodePtr) {
             continue;
