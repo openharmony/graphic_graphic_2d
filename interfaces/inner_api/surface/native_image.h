@@ -221,6 +221,23 @@ void OH_NativeImage_Destroy(OH_NativeImage** image);
 int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16]);
 
 /**
+ * @brief Obtains the transform matrix that combines with crop rect.
+ *
+ * This API returns a transform matrix that combines the crop rect.
+ * Note that the matrix will not be updated until <b>OH_NativeImage_UpdateSurfaceImage</b> is called.\n
+ * This interface is a non-thread-safe type interface.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param matrix Indicates the retrieved 4*4 transform matrix .
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
+ *     {@link NATIVE_ERROR_MEM_OPERATION_ERROR} 30001000 - Memory operation error, failed to get transform matrix.
+ * @since 14
+ * @version 1.0
+ */
+int32_t OH_NativeImage_GetBufferMatrix(OH_NativeImage* image, float matrix[16]);
+/**
  * @brief Acquire an <b>OHNativeWindowBuffer</b> through an <b>OH_NativeImage</b> instance for content consumer.\n
  * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
  * This method will create an <b>OHNativeWindowBuffer</b>.\n

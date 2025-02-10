@@ -33,9 +33,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "metadata_helper.h"
-#endif
+
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()

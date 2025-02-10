@@ -384,6 +384,21 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
         params.srcRect.GetWidth(), params.srcRect.GetHeight());
 }
 
+void RSUniRenderUtil::SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer)
+{
+    Rect crop = {0, 0, 0, 0};
+    params.hasCropMetadata = buffer->GetCropMetadata(crop);
+
+    if (UNLIKELY(params.hasCropMetadata)) {
+        RS_LOGD("buffer has crop metadata, "
+            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            crop.x, crop.y, crop.w, crop.h);
+        params.srcRect = Drawing::Rect(crop.x, crop.y, crop.x + crop.w, crop.y + crop.h);
+    } else {
+        params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    }
+}
+
 Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node)
 {
     const sptr<SurfaceBuffer> buffer = node.GetRSSurfaceHandler()->GetBuffer();
@@ -445,8 +460,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     }
     params.buffer = buffer;
     params.acquireFence = useRenderParams ? nodeParams->GetAcquireFence() : surfaceHandler->GetAcquireFence();
-    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-
+    SetSrcRect(params, buffer);
     auto consumer = useRenderParams ? surfaceDrawable->GetConsumerOnDraw() : surfaceHandler->GetConsumer();
     if (consumer == nullptr) {
         return params;
@@ -495,8 +509,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     }
     params.buffer = buffer;
     params.acquireFence = nodeParams->GetAcquireFence();
-    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-
+    SetSrcRect(params, buffer);
     auto consumer = surfaceDrawable.GetConsumerOnDraw();
     if (consumer == nullptr) {
         return params;
@@ -604,7 +617,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     }
     params.buffer = buffer;
     params.acquireFence = surfaceHandler->GetAcquireFence();
-    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    SetSrcRect(params, buffer);
     params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     return params;
 }
@@ -624,7 +637,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     }
     bufferDrawParam.buffer = buffer;
     bufferDrawParam.acquireFence = surfaceHandler.GetAcquireFence();
-    bufferDrawParam.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    SetSrcRect(bufferDrawParam, buffer);
     bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     return bufferDrawParam;
 }
@@ -646,7 +659,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     }
     params.acquireFence = layer->GetAcquireFence();
     params.buffer = buffer;
-    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    SetSrcRect(params, buffer);
     auto boundRect = layer->GetBoundSize();
     params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
 
