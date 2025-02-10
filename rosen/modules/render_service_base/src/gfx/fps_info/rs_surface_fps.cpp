@@ -24,7 +24,7 @@ bool RSSurfaceFps::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
         return false;
     }
     RS_TRACE_NAME_FMT("RSSurfaceFps::RecordPresentTime timestamp:%llu", timestamp);
-    RS_LOGD("RSSurfaceFps::RecordPresentTime timestamp:%{public}" PRIu64 ".", timestamp);
+    RS_LOGD("RSSurfaceFps::RecordPresentTime timestamp:%{public}" PRIu64 " .", timestamp);
     presentTimeRecords_[count_].presentTime = timestamp;
     presentTimeRecords_[count_].seqNum = seqNum;
     count_ = (count_ + 1) % FRAME_RECORDS_NUM;
