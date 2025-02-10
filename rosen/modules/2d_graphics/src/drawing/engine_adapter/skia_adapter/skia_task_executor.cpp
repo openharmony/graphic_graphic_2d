@@ -77,10 +77,8 @@ void TaskPoolExecutor::EnqueueTask(Task&& task)
 #ifdef RES_SCHED_ENABLE
 void TaskPoolExecutor::PromoteThreadPriority()
 {
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().SetFrameParam(REQUEST_THREAD_PRIORITY_ID, REQUEST_THREAD_PRIORITY_LOAD,
-            REQUEST_THREAD_PRIORITY_NUM, gettid());
-    }
+    RsFrameReport::GetInstance().SetFrameParam(
+        REQUEST_THREAD_PRIORITY_ID, REQUEST_THREAD_PRIORITY_LOAD, REQUEST_THREAD_PRIORITY_NUM, gettid());
 }
 #endif
 
