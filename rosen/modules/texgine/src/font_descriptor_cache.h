@@ -59,7 +59,8 @@ private:
     bool FilterSymbolicCache(bool symbolic, std::set<FontDescSharedPtr>& finishRet);
     bool IsDefault(FontDescSharedPtr desc);
     int32_t WeightAlignment(int32_t weight);
-
+    bool AdjustSystemFontTypeNotCustomized(uint32_t fontType);
+    
 private:
     TextEngine::FontParser parser_;
 

@@ -59,6 +59,10 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
+    // System fonts have already been parsed
+    if (!fullNameMap_.empty()) {
+        return;;
+    }
     for (auto& item : parser_.GetSystemFonts()) {
         FontDescriptorScatter(item);
     }
@@ -67,6 +71,10 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
+    // Stylish fonts have already been parsed
+    if (!stylishFullNameMap_.empty()) {
+        return;
+    }
     std::vector<TextEngine::FontParser::FontDescriptor> descriptors = parser_.GetVisibilityFonts(TextEngine::ENGLISH);
     for (const auto& descriptor : descriptors) {
         FontDescSharedPtr descriptorPtr = std::make_shared<TextEngine::FontParser::FontDescriptor>(descriptor);
@@ -196,6 +204,11 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
+        ParserSystemFonts();
+        ParserStylishFonts();
+    }
+
     uint32_t fontCategory = static_cast<uint32_t>(fontType);
     if (fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
@@ -239,6 +252,16 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
     return false;
 }
 
+bool FontDescriptorCache::AdjustSystemFontTypeNotCustomized(uint32_t fontType)
+{
+    if ((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
+        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
+        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED)) {
+        return true;
+    }
+    return false;
+}
+
 void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& fullName,
     const int32_t& systemFontType, FontDescSharedPtr& result)
 {
@@ -256,6 +279,11 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         TEXT_LOGE("SystemFontType is an invalid value");
         result = nullptr;
         return;
+    }
+
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
+        ParserSystemFonts();
+        ParserStylishFonts();
     }
 
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
@@ -489,7 +517,8 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
         TEXT_LOGE("Desc is nullptr");
         return;
     }
-
+    ParserSystemFonts();
+    ParserStylishFonts();
     if (IsDefault(desc)) {
         result = std::set<FontDescSharedPtr>(allFontDescriptor_.begin(), allFontDescriptor_.end());
         return;
