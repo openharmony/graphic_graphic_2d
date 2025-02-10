@@ -121,7 +121,8 @@ void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRend
     if (!hardCursorNode) {
         return;
     }
-    if (!hardCursorNode->IsHardwareEnabledTopSurface()) {
+    if (!hardCursorNode->IsHardwareEnabledTopSurface() ||
+        (!hardCursorNode->ShouldPaint() && !hardCursorNode->GetHardCursorStatus())) {
         return;
     }
     auto nodeId = hardCursorNode->GetId();
