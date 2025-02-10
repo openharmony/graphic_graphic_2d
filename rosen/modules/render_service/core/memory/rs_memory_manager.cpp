@@ -334,7 +334,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
     bool windowsNameFlag = false;
     int seekDepth = 0;
     while (parent) {
-        if (parent->IsInstanceOf<RSSurfaceRenderNode>() || seekDepth >= MAX_TREE_DEPTH) {
+        if (parent->IsInstanceOf<RSSurfaceRenderNode>() || seekDepth < MAX_TREE_DEPTH) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
             windowId = surfaceNode->GetId();
