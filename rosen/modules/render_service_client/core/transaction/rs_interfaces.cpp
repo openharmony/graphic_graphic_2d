@@ -34,8 +34,8 @@ namespace Rosen {
 namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
-constexpr uint32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
-constexpr uint32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
+constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
+constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
 }
 #endif
 RSInterfaces &RSInterfaces::GetInstance()
