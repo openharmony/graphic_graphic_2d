@@ -646,6 +646,11 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
         return SkipSyncState::STATE_NOT_SKIP;
     }
     auto& params = drawable->GetRenderParams();
+    if (params->GetStartingWindowFlag()) {
+        RS_LOGD("starting node %{public}" PRIu64 " not skipsync", params->GetId());
+        RS_TRACE_NAME_FMT("starting node %" PRIu64 " not skipsync", params->GetId());
+        return SkipSyncState::STATE_NOT_SKIP;
+    }
     // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
     auto uifirstRootId = params->GetUifirstRootNodeId() != INVALID_NODEID ?
         params->GetUifirstRootNodeId() : params->GetFirstLevelNodeId();
@@ -955,6 +960,9 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         auto canvasChild = child->ReinterpretCastTo<RSCanvasRenderNode>();
         if (canvasChild && canvasChild->GetChildrenCount() == 0 && mainwindowNum > 0) {
             canvasNodeNum++;
+            if (startingWindow != nullptr) {
+                startingWindow->SetStartingWindowFlag(false);
+            }
             startingWindow = canvasChild;
             continue;
         }
@@ -971,6 +979,9 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
         startingWindow->SetStartingWindowFlag(true);
         return startingWindow->GetId();
     } else {
+        if (startingWindow) {
+            startingWindow->SetStartingWindowFlag(false);
+        }
         return INVALID_NODEID;
     }
 }
