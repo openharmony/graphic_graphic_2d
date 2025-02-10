@@ -324,7 +324,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 314)
     std::stringstream ss;
     ss<<std::hex<<s;
     ss>>a;
-    uint32_t tagid = *reinterpret_cast<uint32_t*>(s.c_str());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)s.c_str()));
     std::string typefacestr = "GetTableData = "
         + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
@@ -416,7 +416,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 316)
     // 2.组合typeface操作接口
     std::string str = "CPAL";
     reverse(str.begin(), str.end());
-    uint32_t tagid = *reinterpret_cast<uint32_t*>(str.c_str());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)str.c_str()));
     std::string typefacestr = "GetTableSize = " + std::to_string(typeface->GetTableSize(tagid));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
     auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
@@ -465,7 +465,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 317)
     std::stringstream ss;
     ss<<std::hex<<s;
     ss>>a;
-    uint32_t tagid = *reinterpret_cast<uint32_t*>(s.c_str());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)s.c_str()));
     std::string typefacestr = "GetTableData = "
         + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
@@ -747,7 +747,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 322)
     std::stringstream ss;
     ss<<std::hex<<s;
     ss>>a;
-    uint32_t tagid = *reinterpret_cast<uint32_t*>(s.c_str());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)s.c_str()));
     std::string typefacestr = "GetTableData = "
         + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
