@@ -49,6 +49,7 @@ public:
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displayHasSecSurface;
         std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasSnapshotSkipSurface;
         std::map<ScreenId, bool> displayHasProtectedSurface;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;

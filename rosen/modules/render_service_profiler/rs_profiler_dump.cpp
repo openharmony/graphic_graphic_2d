@@ -103,6 +103,7 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         subclass["OcclusionBg"] = std::to_string((surfaceNode.GetAbilityBgAlpha()));
         subclass["SecurityLayer"] = surfaceNode.GetSecurityLayer();
         subclass["skipLayer"] = surfaceNode.GetSkipLayer();
+        subclass["snapshotSkipLayer"] = surfaceNode.GetSnapshotSkipLayer();
     } else if (node.GetType() == RSRenderNodeType::ROOT_NODE) {
         auto& rootNode = static_cast<const RSRootRenderNode&>(node);
         subclass["Visible"] = rootNode.GetRenderProperties().GetVisible();

@@ -458,11 +458,13 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
     LeashPersistentId GetLeashPersistentId() const;
 
@@ -473,6 +475,7 @@ public:
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
     bool GetHasPrivacyContentLayer() const;
 
@@ -488,6 +491,8 @@ public:
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncOnTheTreeInfoToFirstLevelNode();
+    void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
 
@@ -1328,8 +1333,10 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     std::set<NodeId> privacyContentLayerIds_ = {};

@@ -248,6 +248,7 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRen
     displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
     displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
     displayParams->displayHasSkipSurface_ = std::move(screenRenderParams.displayHasSkipSurface);
+    displayParams->displayHasSnapshotSkipSurface_ = std::move(screenRenderParams.displayHasSnapshotSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(screenRenderParams.displayHasProtectedSurface);
     displayParams->displaySpecailSurfaceChanged_ = std::move(screenRenderParams.displaySpecailSurfaceChanged);
     displayParams->hasCaptureWindow_ = std::move(screenRenderParams.hasCaptureWindow);

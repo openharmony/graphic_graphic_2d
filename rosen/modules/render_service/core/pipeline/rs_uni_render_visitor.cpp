@@ -194,6 +194,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     screenInfo_ = visitor.screenInfo_;
     displayHasSecSurface_ = visitor.displayHasSecSurface_;
     displayHasSkipSurface_ = visitor.displayHasSkipSurface_;
+    displayHasSnapshotSkipSurface_ = visitor.displayHasSnapshotSkipSurface_;
     displayHasProtectedSurface_ = visitor.displayHasProtectedSurface_;
     displaySpecailSurfaceChanged_ = visitor.displaySpecailSurfaceChanged_;
     hasCaptureWindow_ = visitor.hasCaptureWindow_;
@@ -428,6 +429,9 @@ void RSUniRenderVisitor::UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRen
     }
     if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
+    }
+    if (node.GetHasSnapshotSkipLayer()) {
+        displayHasSnapshotSkipSurface_[currentVisitDisplay_] = true;
     }
     if (node.GetHasProtectedLayer()) {
         displayHasProtectedSurface_[currentVisitDisplay_] = true;
@@ -665,6 +669,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     screenRenderParams.screenInfo = std::move(screenInfo_);
     screenRenderParams.displayHasSecSurface = std::move(displayHasSecSurface_);
     screenRenderParams.displayHasSkipSurface = std::move(displayHasSkipSurface_);
+    screenRenderParams.displayHasSnapshotSkipSurface = std::move(displayHasSnapshotSkipSurface_);
     screenRenderParams.displayHasProtectedSurface = std::move(displayHasProtectedSurface_);
     screenRenderParams.displaySpecailSurfaceChanged = std::move(displaySpecailSurfaceChanged_);
     screenRenderParams.hasCaptureWindow = std::move(hasCaptureWindow_);
@@ -1134,6 +1139,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     currentVisitDisplay_ = node.GetScreenId();
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
+    displayHasSnapshotSkipSurface_.emplace(currentVisitDisplay_, false);
     displayHasProtectedSurface_.emplace(currentVisitDisplay_, false);
     displaySpecailSurfaceChanged_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);

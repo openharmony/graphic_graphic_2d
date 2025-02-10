@@ -688,7 +688,10 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
         return;
     }
-    if ((surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) || surfaceParams.GetIsSkipLayer()) {
+    auto isSnapshotSkipLayer =
+        RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
+    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
+        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
@@ -723,8 +726,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
-        hasHdrPresent_ || hasHidePrivacyContent) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
+        surfaceParams.HasProtectedLayer() || hasHdrPresent_ || hasHidePrivacyContent) &&
+        DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
