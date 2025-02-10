@@ -37,6 +37,9 @@
 #include "utils/matrix.h"
 #include "utils/data.h"
 #include "utils/log.h"
+#ifdef RS_ENABLE_SDF
+#include "draw/sdf_shape.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -259,6 +262,14 @@ void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffe
     } else {
         LOGE("SkiaShaderEffect::InitWithLightUp: imageShader is nullptr");
     }
+}
+void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
+{
+    sk_sp<SkShader> skShader = shape.Build<sk_sp<SkShader>>();
+    if (skShader == nullptr) {
+        return;
+    }
+    shader_ = skShader;
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
