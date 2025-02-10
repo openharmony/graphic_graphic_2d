@@ -1089,6 +1089,9 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     }
     curCanvas_->Save();
     virtualProcesser->ScaleMirrorIfNeed(GetOriginScreenRotation(), *curCanvas_);
+    auto mirroredScreenInfo = mirroredParams->GetScreenInfo();
+    UpdateSlrScale(mirroredScreenInfo);
+    ScaleCanvasIfNeeded(mirroredScreenInfo);
 
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     if (uniParam.IsVirtualDirtyEnabled()) {
@@ -1116,7 +1119,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     (mirroredDrawable.get()->*drawFunc)(*curCanvas_);
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
-    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST));
+    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST),
+        mirroredScreenInfo.isSamplingOn);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
@@ -1130,6 +1134,8 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam)
 {
     RS_TRACE_FUNC();
+    // mirroredParams not null in caller
+    const auto& mirroredParams = mirrorDrawable.GetRenderParams();
     auto cacheImage = mirrorDrawable.GetCacheImgForCapture();
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
@@ -1178,6 +1184,12 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     if (slrManager) {
         curCanvas_->Save();
         auto scaleNum = slrManager->GetScaleNum();
+        curCanvas_->Scale(scaleNum, scaleNum);
+        mirrorDrawable.DrawHardwareEnabledTopNodesMissedInCacheImage(*curCanvas_);
+        curCanvas_->Restore();
+    } else if (mirroredParams->GetScreenInfo().isSamplingOn) {
+        curCanvas_->Save();
+        auto scaleNum = mirroredParams->GetScreenInfo().samplingScale;
         curCanvas_->Scale(scaleNum, scaleNum);
         mirrorDrawable.DrawHardwareEnabledTopNodesMissedInCacheImage(*curCanvas_);
         curCanvas_->Restore();

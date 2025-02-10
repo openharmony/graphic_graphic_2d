@@ -76,8 +76,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             screenRotation_ = mirroredParams->GetScreenRotation();
             screenCorrection_ = screenManager->GetScreenCorrection(mirroredParams->GetScreenId());
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
-            mirroredScreenWidth_ = static_cast<float>(mainScreenInfo.width);
-            mirroredScreenHeight_ = static_cast<float>(mainScreenInfo.height);
+            mirroredScreenWidth_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyWidth) :
+                static_cast<float>(mainScreenInfo.width);
+            mirroredScreenHeight_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyHeight) :
+                static_cast<float>(mainScreenInfo.height);
             auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
             auto mirroredDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
             if (displayParams && mirroredDisplayParams &&
