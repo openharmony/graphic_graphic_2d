@@ -61,7 +61,8 @@ private:
     const DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable_;
     const std::unique_ptr<RSRenderParams>& displayParams_;
 
-    bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas, ScreenRotation rotation, uint64_t screenId);
+    bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
+        ScreenRotation rotation, int translateWidth, int translateHeight);
     void DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas);
     void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect,
         const Drawing::Color color, const RSPaintStyle fillType, int edgeWidth = 6) const;

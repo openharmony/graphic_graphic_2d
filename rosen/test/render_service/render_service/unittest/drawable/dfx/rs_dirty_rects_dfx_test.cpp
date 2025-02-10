@@ -237,26 +237,27 @@ HWTEST_F(RSDirtyRectsDFXTest, RefreshRateRotationProcess, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    uint64_t screenId = 0;
-    bool res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenId);
+    int screenWidth = 1260;
+    int screenHeight = 2720;
+    bool res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
     ASSERT_TRUE(res);
 
     rotation = ScreenRotation::ROTATION_90;
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenId);
+    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
     ASSERT_TRUE(res);
 
     rotation = ScreenRotation::ROTATION_180;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenId);
+    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
     ASSERT_TRUE(res);
 
     rotation = ScreenRotation::ROTATION_270;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenId);
+    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
     ASSERT_TRUE(res);
 
     rotation = ScreenRotation::INVALID_SCREEN_ROTATION;
-    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenId);
+    res = rsDirtyRectsDfx_->RefreshRateRotationProcess(*canvas_, rotation, screenWidth, screenHeight);
     ASSERT_FALSE(res);
 }
 
