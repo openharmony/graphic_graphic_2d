@@ -19,6 +19,7 @@
 #include <vector>
 #include <atomic>
 #include "image/bitmap.h"
+#include "metadata_helper.h"
 #include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
@@ -67,6 +68,8 @@ struct BufferDrawParam {
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
     Drawing::Rect dstRect; // surface's boundsSize
+    bool hasCropMetadata = false;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
 
     Vector4f cornerRadius;
     RRect clipRRect;
