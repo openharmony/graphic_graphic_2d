@@ -138,7 +138,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
     uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
     auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
-    if (SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
+    if (rsSurface != nullptr && SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
     }
     canvas_ = renderFrame_->GetCanvas();
