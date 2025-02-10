@@ -656,7 +656,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
                 mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
-        int32_t ret = screenManager->SetScreenActiveMode(id, modeId);
+        uint32_t ret = screenManager->SetScreenActiveMode(id, modeId);
         needRetrySetRate_ = (ret == StatusCode::SET_RATE_ERROR);
         RS_LOGD_IF(needRetrySetRate_, "RSHardwareThread: need retry set modeId %{public}d", modeId);
 

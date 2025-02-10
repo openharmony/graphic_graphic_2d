@@ -1390,7 +1390,7 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
     disableRenderControlScreens_.erase(id);
 }
 
-int32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
