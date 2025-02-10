@@ -613,7 +613,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 301)
     // 2.组合typeface操作接口
     std::string str = "CPAL";
     reverse(str.begin(), str.end());
-    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)str.c_str()));
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(str.c_str())));
     std::string typefacestr = "GetTableSize = " + std::to_string(typeface->GetTableSize(tagid));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
     auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);

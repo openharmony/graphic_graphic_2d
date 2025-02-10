@@ -72,7 +72,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 157)
     std::stringstream ss;
     ss<<std::hex<<s;
     ss>>a;
-    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)s.c_str()));
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(s.c_str())));
     std::string typefacestr = "GetTableData = "
         + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
@@ -297,7 +297,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 162)
     std::stringstream ss;
     ss<<std::hex<<s;
     ss>>a;
-    uint32_t tagid = *(reinterpret_cast<uint32_t*>((char*)s.c_str()));
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(s.c_str())));
     std::string typefacestr = "GetTableData = "
         + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
     // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
