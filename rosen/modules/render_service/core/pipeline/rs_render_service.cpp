@@ -496,7 +496,7 @@ void RSRenderService::DumpRenderServiceTree(std::string& dumpString, bool forceD
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
 #ifdef RS_ENABLE_GPU
-    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame);
+    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame, true);
 #endif
 }
 
