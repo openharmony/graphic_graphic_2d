@@ -1032,10 +1032,23 @@ HWTEST_F(VSyncGeneratorTest, SetCurrentRefreshRateTest001, Function | MediumTest
 {
     uint32_t currRefreshRate = 60;
     uint32_t lastRefreshRate = 30;
-    bool followRs = true;
-    int64_t delayTime = VSyncGeneratorTest::vsyncGenerator_->SetCurrentRefreshRate(currRefreshRate, lastRefreshRate,
-        followRs);
+    int64_t delayTime = VSyncGeneratorTest::vsyncGenerator_->SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
     ASSERT_EQ(delayTime, 0);
+}
+
+/*
+* Function: DVSyncRateChangedTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test DVSyncRateChanged
+ */
+HWTEST_F(VSyncGeneratorTest, DVSyncRateChangedTest001, Function | MediumTest| Level0)
+{
+    uint32_t currRefreshRate = 60;
+    bool frameRateChanged = false;
+    VSyncGeneratorTest::vsyncGenerator_->DVSyncRateChanged(currRefreshRate, frameRateChanged);
+    ASSERT_EQ(frameRateChanged, false);
 }
 
 /*

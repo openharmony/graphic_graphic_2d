@@ -764,18 +764,19 @@ void VSyncDistributor::ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &
 {
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t actualPeriod = period;
+        int64_t timestamp = now;
         if ((generatorRefreshRate > 0) && (conns[i]->refreshRate_ > 0) &&
             (generatorRefreshRate % conns[i]->refreshRate_ == 0)
             && !isDvsyncController) {
             actualPeriod = period * static_cast<int64_t>(generatorRefreshRate / conns[i]->refreshRate_);
         }
         // Start of DVSync
-        if (DVSyncCheckSkipAndUpdateTs(conns[i], now)) {
+        if (DVSyncCheckSkipAndUpdateTs(conns[i], timestamp)) {
             TriggerNext(conns[i]);
             continue;
         }
         // End of DVSync
-        ConnPostEvent(conns[i], now, actualPeriod, vsyncCount);
+        ConnPostEvent(conns[i], timestamp, actualPeriod, vsyncCount);
     }
 }
 
@@ -1568,7 +1569,7 @@ bool VSyncDistributor::DVSyncNeedSkipUi(const sptr<VSyncConnection> &connection)
 void VSyncDistributor::RecordEnableVsync()
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().RecordEnableVsync();
+    DVSync::Instance().RecordEnableVsync(this);
 #endif
 }
 

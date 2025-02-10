@@ -446,6 +446,8 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
+    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
+    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp, true);
     }
@@ -624,17 +626,17 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
 
     // Start of DVSync
-    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate, followRs);
+    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
     if (delayTime != 0) {
         int64_t controllerRate = controllerRate_;
         std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
         bool needUpdate = isNeedUpdateAppOffset_;
-        RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate, followRs]() {
+        RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
             if (controller_) {
                 vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
                     appChangeData, targetTime, needUpdate);
             }
-            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0, followRs);
+            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
         };
         HgmTaskHandleThread::Instance().PostTask(task, delayTime);
     } else if (controller_) {
@@ -1266,6 +1268,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     if (rsFrameRateLinker_ != nullptr) {
         frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
     }
+    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
+    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     auto& hgmCore = HgmCore::Instance();
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), false);
