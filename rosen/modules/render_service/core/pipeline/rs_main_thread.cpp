@@ -3508,9 +3508,18 @@ void RSMainThread::TransactionDataMapDump(const TransactionDataMap& transactionD
     }
 }
 
-void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
+void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame, bool needUpdateJankStats)
 {
     if (LIKELY(forceDumpSingleFrame)) {
+        int64_t onVsyncStartTime = 0;
+        int64_t onVsyncStartTimeSteady = 0;
+        float onVsyncStartTimeSteadyFloat = 0.0f;
+        if (needUpdateJankStats) {
+            onVsyncStartTime = GetCurrentSystimeMs();
+            onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
+            onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
+            RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
+        }
         RS_TRACE_NAME("GetDumpTree");
         dumpString.append("-- RS transactionFlags: " + transactionFlags_ + "\n");
         dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
@@ -3536,6 +3545,10 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
         dumpString += "\n====================================\n";
         RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
 #endif
+        if (needUpdateJankStats) {
+            needPostAndWait_ = false;
+            RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
+        }
     } else {
         dumpString += g_dumpStr;
         g_dumpStr = "";
