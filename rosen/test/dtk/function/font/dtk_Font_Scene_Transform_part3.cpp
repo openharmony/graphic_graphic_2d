@@ -55,7 +55,7 @@ static void DrawTextBlob(std::vector<std::string>& texts, std::shared_ptr<Drawin
 }
 
 // 用例 Font_Scene_Transform_0044
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 44)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 44)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -109,7 +109,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 44)
 }
 
 // 用例 Font_Scene_Transform_0046
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 46)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 46)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -160,7 +160,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 46)
 }
 
 // 用例 Font_Scene_Transform_0047
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 47)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 47)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -209,7 +209,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 47)
 }
 
 // 用例 Font_Scene_Transform_0048
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 48)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 48)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -261,7 +261,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 48)
 }
 
 // 用例 Font_Scene_Transform_0049
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 49)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 49)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -312,7 +312,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 49)
 }
 
 // 用例 Font_Scene_Transform_0050
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 50)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 50)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -351,7 +351,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 50)
 }
 
 // 用例 Font_Scene_Transform_0051
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 51)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 51)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -406,7 +406,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 51)
 }
 
 // 用例 Font_Scene_Transform_0052
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 52)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 52)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -457,7 +457,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 52)
 }
 
 // 用例 Font_Scene_Transform_0053
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 53)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 53)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -509,7 +509,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 53)
 }
 
 // 用例 Font_Scene_Transform_0054
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 54)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 54)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -558,7 +558,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 54)
 }
 
 // 用例 Font_Scene_Transform_0055
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 55)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 55)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -602,7 +602,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 55)
 }
 
 // 用例 Font_Scene_Transform_0056
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 56)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 56)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -648,7 +648,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 56)
 }
 
 // 用例 Font_Scene_Transform_0057
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 57)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 57)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -705,7 +705,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 57)
 }
 
 // 用例 Font_Scene_Transform_0058
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 58)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 58)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -764,7 +764,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 58)
 }
 
 // 用例 Font_Scene_Transform_0059
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 59)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 59)
 {
     // 1.创建typeface
     char data1[10] = {0};
@@ -815,7 +815,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 59)
 }
 
 // 用例 Font_Scene_Transform_0060
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 60)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 60)
 {
     // 1.创建typeface
     std::string name = "HarmonyOS-Sans";
@@ -864,7 +864,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 60)
 }
 
 // 用例 Font_Scene_Transform_0061
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 61)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 61)
 {
     // 1.创建typeface
     std::string name = "HarmonyOS-Sans";
@@ -918,7 +918,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 61)
 }
 
 // 用例 Font_Scene_Transform_0062
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 62)
+DEF_DTK(Font_Scene_Transform_3, TestLevel::L2, 62)
 {
     // 1.创建typeface
     std::string name = "HarmonyOS-Sans";

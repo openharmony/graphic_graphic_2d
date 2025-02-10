@@ -55,7 +55,7 @@ static void DrawTextBlob(std::vector<std::string>& texts, std::shared_ptr<Drawin
 }
 
 // 用例 Font_Scene_Transform_0326
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 326)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 326)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -108,7 +108,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 326)
 }
 
 // 用例 Font_Scene_Transform_0327
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 327)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 327)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -156,7 +156,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 327)
 }
 
 // 用例 Font_Scene_Transform_0328
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 328)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 328)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -205,7 +205,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 328)
 }
 
 // 用例 Font_Scene_Transform_0329
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 329)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 329)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -254,7 +254,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 329)
 }
 
 // 用例 Font_Scene_Transform_0330
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 330)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 330)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -316,7 +316,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 330)
 }
 
 // 用例 Font_Scene_Transform_0331
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 331)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 331)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -373,7 +373,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 331)
 }
 
 // 用例 Font_Scene_Transform_0332
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 332)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 332)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -426,7 +426,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 332)
 }
 
 // 用例 Font_Scene_Transform_0334
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 334)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 334)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -475,7 +475,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 334)
 }
 
 // 用例 Font_Scene_Transform_0336
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 336)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 336)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -536,7 +536,7 @@ DEF_DTK(Font_Scene_Transform, TestLevel::L2, 336)
 }
 
 // 用例 Font_Scene_Transform_0337
-DEF_DTK(Font_Scene_Transform, TestLevel::L2, 337)
+DEF_DTK(Font_Scene_Transform_18, TestLevel::L2, 337)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
