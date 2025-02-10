@@ -794,7 +794,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             // cpu boost feature end
             ffrt_cpu_boost_end(CPUBOOST_START_POINT + 1);
+            curCanvas_->Save();
+            curCanvas_->ResetMatrix();
+            Drawing::Matrix invertMatrix;
+            if (params->GetNeedOffscreen() && params->GetMatrix().Invert(invertMatrix)) {
+                curCanvas_->ConcatMatrix(invertMatrix);
+            }
             rsDirtyRectsDfx.OnDraw(*curCanvas_);
+            curCanvas_->Restore();
             DrawCurtainScreen();
             if (screenInfo.isSamplingOn) {
                 // In expand screen down-sampling situation, process watermark and color filter during offscreen render.
