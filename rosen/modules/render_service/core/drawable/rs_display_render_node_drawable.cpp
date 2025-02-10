@@ -372,7 +372,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
     if (GetSyncDirtyManager()->IsCurrentFrameDirty() ||
-        (params.GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode()) ||
+        (params.GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasForceUpdateNode()) ||
         RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
