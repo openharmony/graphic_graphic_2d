@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "gtest/gtest.h"
 
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 
 using namespace testing;

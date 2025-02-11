@@ -37,11 +37,12 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#ifdef RS_ENABLE_GPU
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#endif
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "include/gpu/GrDirectContext.h"
 #include "info_collection/rs_hdr_collection.h"
-#ifdef RS_ENABLE_GPU
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#endif
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -55,7 +56,6 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pixel_map_from_surface.h"

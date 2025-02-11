@@ -24,6 +24,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
@@ -35,7 +36,6 @@
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"

@@ -18,6 +18,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -25,7 +26,6 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "platform/common/rs_log.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 

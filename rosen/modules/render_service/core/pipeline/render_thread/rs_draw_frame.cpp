@@ -21,11 +21,11 @@
 #include "rs_trace.h"
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "property/rs_filter_cache_manager.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"

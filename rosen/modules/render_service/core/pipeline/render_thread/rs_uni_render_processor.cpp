@@ -28,9 +28,9 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "platform/common/rs_log.h"
 

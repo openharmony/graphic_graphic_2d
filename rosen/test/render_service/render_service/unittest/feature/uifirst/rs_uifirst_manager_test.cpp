@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gtest/gtest.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "rs_test_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 
