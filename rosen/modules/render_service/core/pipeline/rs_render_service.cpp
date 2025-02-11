@@ -713,7 +713,18 @@ void RSRenderService::DumpExistPidMem(std::unordered_set<std::u16string>& argSet
 }
 
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
-{
+{   
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::DoDump failed, args is empty");
+        return;
+    }
+
+    std::string cmd_str;
+    for (const std::u16string &cmd : argSets) {
+        cmd_str += std::string(cmd.begin(), cmd.end()) + " ";
+    }
+    RS_TRACE_NAME("RSRenderService::DoDump args is [ " + cmd_str + " ]");
+
     if (!mainThread_ || !screenManager_ || !rsDumpManager_) {
         RS_LOGE("RSRenderService::DoDump failed, mainThread, screenManager or rsDumpManager_ is nullptr");
         return;
@@ -726,9 +737,6 @@ void RSRenderService::RSGfxDumpInit()
 {
     // Get the instance of RSDumpManager
     rsDumpManager_ = RSDumpManager::GetInstance();
-    if (rsDumpManager_ == nullptr) {
-        return;
-    }
 
     RegisterRSGfxFuncs();
     RegisterRSTreeFuncs();

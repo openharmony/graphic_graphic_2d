@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ static const std::string RS_UNI_THREAD_NAME = "RenderServiceUniThread";
 static const std::string RS_HW_THREAD_NAME = "RenderServiceHwThread";
 
 // Define different dump points
-enum class RSDumpID : int8_t {
+enum class RSDumpID : uint8_t {
     HELP_INFO = 0,
     SCREEN_INFO,
     SURFACE_INFO,
@@ -125,12 +125,12 @@ public:
     void CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out);
 
 private:
-    void matchAndExecuteCommand(std::unordered_set<std::u16string> &argSets, std::string &out);
-    void doDump(RSDumpID rsDumpId, const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+    void MatchAndExecuteCommand(std::unordered_set<std::u16string> &argSets, std::string &out);
+    void DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                 std::string &out);
     
     // Generate help information
-    void dumpHelpInfo(std::string &out);
+    void DumpHelpInfo(std::string &out);
 
     // Store registered handers
     std::unordered_map<RSDumpID, RSDumpHander> rsDumpHanderMap_;

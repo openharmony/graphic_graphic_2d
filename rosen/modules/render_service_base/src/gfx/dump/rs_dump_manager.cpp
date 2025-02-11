@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ RSDumpManager::RSDumpManager()
     // Register the help information function to the function mapping table
     RSDumpFunc helpInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                                 std::string &dumpString) -> void {
-        dumpHelpInfo(dumpString);
+        DumpHelpInfo(dumpString);
     };
     Register({ RSDumpID::HELP_INFO, helpInfoFunc });
 }
@@ -82,7 +82,7 @@ void RSDumpManager::UnRegister(RSDumpID rsDumpId)
 void RSDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out)
 {
     if (!argSets.empty()) {
-        matchAndExecuteCommand(argSets, out);
+        MatchAndExecuteCommand(argSets, out);
     } else {
         // If the parameters are empty, output an error message
         RS_LOGE("RSDumpManager::CmdExec, args is empty.");
@@ -90,7 +90,7 @@ void RSDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::st
 }
 
 // Match and execute a command
-void RSDumpManager::matchAndExecuteCommand(std::unordered_set<std::u16string> &argSets, std::string &out)
+void RSDumpManager::MatchAndExecuteCommand(std::unordered_set<std::u16string> &argSets, std::string &out)
 {
     for (const std::u16string &cmd : argSets) {
         auto it = cmdMap_.find(cmd);
@@ -100,23 +100,23 @@ void RSDumpManager::matchAndExecuteCommand(std::unordered_set<std::u16string> &a
 
             RSDumpCmd entry = it->second;
             for (RSDumpID rsDumpId : entry.rsDumpIds) {
-                doDump(rsDumpId, cmd, argSets, out);
+                DoDump(rsDumpId, cmd, argSets, out);
             }
             break;
         }
     }
     if (out.empty()) {
         // If the command is not found, output help information
-        dumpHelpInfo(out);
+        DumpHelpInfo(out);
     }
 }
 
 // Execute a specific dump operation
-void RSDumpManager::doDump(RSDumpID rsDumpId, const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+void RSDumpManager::DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                            std::string &out)
 {
-    RS_TRACE_NAME_FMT("RSDumpManager::doDump rsDumpId [%d]", rsDumpId);
-    RS_LOGI("RSDumpManager::doDump, rsDumpId is '%{public}d'.", static_cast<uint8_t>(rsDumpId));
+    RS_TRACE_NAME_FMT("RSDumpManager::DoDump rsDumpId [%d]", rsDumpId);
+    RS_LOGI("RSDumpManager::DoDump, rsDumpId is '%{public}d'.", static_cast<uint8_t>(rsDumpId));
     auto it = rsDumpHanderMap_.find(rsDumpId);
     if (it != rsDumpHanderMap_.end()) {
         RSDumpHander hander = it->second;
@@ -126,12 +126,12 @@ void RSDumpManager::doDump(RSDumpID rsDumpId, const std::u16string &cmd, std::un
         hander.func(cmd, argSets, out);
     } else {
         // If the hander is not registered, output an error message
-        RS_LOGE("RSDumpManager::doDump, rsDumpId %{public}d not registered.", static_cast<int>(rsDumpId));
+        RS_LOGE("RSDumpManager::DoDump, rsDumpId %{public}d not registered.", static_cast<int>(rsDumpId));
     }
 }
 
 // Generate help information
-void RSDumpManager::dumpHelpInfo(std::string &out)
+void RSDumpManager::DumpHelpInfo(std::string &out)
 {
     out.append("------ Graphic2D--RenderSerice ------\n")
         .append("Usage:\n");
