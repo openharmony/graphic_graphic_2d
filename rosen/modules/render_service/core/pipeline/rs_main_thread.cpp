@@ -4391,7 +4391,7 @@ void RSMainThread::UpdateRogSizeIfNeeded()
         if (displayNode == nullptr) {
             return;
         }
-        RSHardwareThread::Instance().PostTask([this, displayNode]() {
+        RSHardwareThread::Instance().PostTask([displayNode]() {
             auto screenManager = CreateOrGetScreenManager();
             if (screenManager == nullptr) {
                 return;

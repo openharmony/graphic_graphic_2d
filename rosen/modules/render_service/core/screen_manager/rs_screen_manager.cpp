@@ -727,6 +727,8 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsy
         mainThread->PostTask([this, vsyncEnabledScreenId, enabled]() {
             auto screen = GetScreen(vsyncEnabledScreenId);
             if (screen == nullptr) {
+                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
+                    enabled, vsyncEnabledScreenId);
                 return;
             }
             screen->SetScreenVsyncEnabled(enabled);
@@ -747,6 +749,8 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
         RSHardwareThread::Instance().PostTask([this, vsyncEnabledScreenId, enabled]() {
             auto screen = GetScreen(vsyncEnabledScreenId);
             if (screen == nullptr) {
+                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
+                    enabled, vsyncEnabledScreenId);
                 return;
             }
             screen->SetScreenVsyncEnabled(enabled);
@@ -1388,9 +1392,9 @@ uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-
     return screen->SetActiveMode(modeId);
 }
 
@@ -1398,9 +1402,9 @@ uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& a
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-
     return screen->SetScreenActiveRect(activeRect);
 }
 
@@ -1441,9 +1445,9 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-
     screen->SetRogResolution(width, height);
     return SUCCESS;
 }
@@ -1961,6 +1965,7 @@ int32_t RSScreenManager::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screen->SetScreenColorGamut(modeIdx);
@@ -2168,6 +2173,7 @@ int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceTy
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screen->SetScreenColorSpace(colorSpace);
@@ -2423,12 +2429,10 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId scree
     std::lock_guard<std::mutex> lock(mutex_);
     auto screenIt = screens_.find(screenId);
     if (screenIt == screens_.end() || screenIt->second == nullptr) {
-        RS_LOGW("RSScreenManager GetScreen failed: There is no screen for id %{public}" PRIu64, screenId);
         return nullptr;
     }
     return screenIt->second;
 }
-
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()
