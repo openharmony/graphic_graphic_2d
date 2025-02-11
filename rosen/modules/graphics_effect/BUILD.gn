@@ -51,6 +51,7 @@ ohos_source_set("graphics_effect_src") {
   sources = [
     "src/ext/gex_dot_matrix_shader.cpp",
     "src/ext/gex_flow_light_sweep_shader.cpp",
+    "src/ext/gex_marshalling_helper.cpp",
     "src/ge_aibar_shader_filter.cpp",
     "src/ge_external_dynamic_loader.cpp",
     "src/ge_grey_shader_filter.cpp",
