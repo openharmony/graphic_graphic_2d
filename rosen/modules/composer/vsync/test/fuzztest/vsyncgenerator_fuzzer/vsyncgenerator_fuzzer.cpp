@@ -78,7 +78,6 @@ namespace OHOS {
         int64_t offset = GetData<int64_t>() % kMaxVsyncInterval; // no more than 16666666ns
         int phase = GetData<int64_t>() % kMaxVsyncInterval; // no more than 16666666ns
         int64_t lastTime = SystemTime() - (GetData<int64_t>() % kMaxVsyncInterval);
-        int64_t lastTimeRecord = SystemTime() - (GetData<int64_t>() % kMaxVsyncInterval);
         int64_t now = SystemTime();
         std::pair<uint64_t, uint32_t> pair1 = {GetData<uint64_t>(), GetData<uint32_t>()};
         uint32_t generatorRefreshRate = GetData<uint32_t>();
@@ -101,8 +100,7 @@ namespace OHOS {
         Rosen::impl::VSyncGenerator::Listener listener = {
             .phase_ = phase,
             .callback_ = vsyncController,
-            .lastTime_ = lastTime,
-            .lastTimeRecord_ = lastTimeRecord
+            .lastTime_ = lastTime
         };
         vsyncGenerator->UpdatePeriodLocked(period);
         vsyncGenerator->JudgeRefreshRateLocked(period2);

@@ -441,7 +441,7 @@ VsyncError VSyncGenerator::RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGen
     if (cb == nullptr) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    dvsyncListener_ = {0, nullptr, 0, 0};
+    dvsyncListener_ = {0, nullptr, 0};
     return VSYNC_ERROR_OK;
 }
 // End of DVSync
