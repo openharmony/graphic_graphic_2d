@@ -156,6 +156,9 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REPAINT_EVERYTHING,
     FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC,
     SET_WINDOW_CONTAINER,
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    SET_OVERLAY_DISPLAY_MODE,
+#endif
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

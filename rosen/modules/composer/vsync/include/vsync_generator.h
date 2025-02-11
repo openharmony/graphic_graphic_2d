@@ -146,7 +146,6 @@ private:
         int64_t phase_;
         sptr<OHOS::Rosen::VSyncGenerator::Callback> callback_;
         int64_t lastTime_;
-        int64_t lastTimeRecord_;
     };
 
     VSyncGenerator();
@@ -234,7 +233,7 @@ private:
     bool isLtpoNeedChange_ = false;
     int64_t occurDvsyncReferenceTime_ = 0;
     int64_t dvsyncPeriodRecord_ = 0;
-    Listener dvsyncListener_ = {0, nullptr, 0, 0};
+    Listener dvsyncListener_ = {0, nullptr, 0};
     // End of DVSync
 };
 } // impl

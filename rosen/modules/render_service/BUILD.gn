@@ -258,6 +258,10 @@ ohos_shared_library("librender_service") {
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
   }
 
+  if (graphic_2d_feature_overlay_display_enable) {
+    sources += [ "core/feature/overlay_display/rs_overlay_display_manager.cpp" ]
+  }
+
   if (rosen_is_ohos) {
     sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
   } else if (!is_arkui_x) {

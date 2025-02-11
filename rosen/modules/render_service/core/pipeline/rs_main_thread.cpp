@@ -53,6 +53,9 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
@@ -1581,6 +1584,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
     if (!isUniRender_) {
         return;
     }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    // pre proc for tv overlay display
+    RSOverlayDisplayManager::Instance().PreProcForRender();
+#endif
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
         RS_OPTIONAL_TRACE_NAME("rs debug: uiCapture SetDoDirectComposition false");
@@ -1722,6 +1729,15 @@ bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
     return false;
 }
 
+static bool CheckOverlayDisplayEnable()
+{
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    return RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync();
+#else
+    return false;
+#endif
+}
+
 void RSMainThread::CheckIfHardwareForcedDisabled()
 {
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
@@ -1770,8 +1786,9 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
-        (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode) && !hasProtectedLayer_) ||
-        hasColorFilter;
+        hasColorFilter || CheckOverlayDisplayEnable() ||
+        (isMultiDisplay && !hasProtectedLayer_ && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode));
+
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);

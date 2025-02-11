@@ -352,6 +352,10 @@ private:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode) override;
+#endif
+
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

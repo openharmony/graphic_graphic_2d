@@ -322,8 +322,9 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
 
 void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
 {
-    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
+    uint64_t currentTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
     for (auto& layer : layers) {
         if (layer == nullptr ||
             layer->GetUniRenderFlag()) {

@@ -1262,6 +1262,18 @@ bool DoCreatePixelMapFromSurface()
     return true;
 }
 
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+bool DoSetOverlayDisplayMode()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t mode = GetData<int32_t>();
+    rsConn_->SetOverlayDisplayMode(mode);
+    return true;
+}
+#endif
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1367,6 +1379,9 @@ void DoFuzzerTest3()
 {
     DoNotifySoftVsyncEvent();
     DoCreatePixelMapFromSurface();
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    DoSetOverlayDisplayMode();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

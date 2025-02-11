@@ -942,5 +942,13 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 {
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
+{
+    ROSEN_LOGI("RSInterfaces::SetOverlayDisplayMode enter.");
+    return renderServiceClient_->SetOverlayDisplayMode(mode);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

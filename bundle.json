@@ -56,7 +56,8 @@
         "graphic_2d_feature_use_aps_igameservice_func",
         "graphic_2d_feature_use_igraphics_extend_hooks",
         "graphic_2d_feature_vkqueue_priority_enable",
-        "graphic_2d_feature_bootanimation_ext_enable"
+        "graphic_2d_feature_bootanimation_ext_enable",
+        "graphic_2d_feature_overlay_display_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",

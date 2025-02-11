@@ -29,6 +29,9 @@
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
@@ -830,6 +833,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 DrawWatermarkIfNeed(*params, *curCanvas_);
                 SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
             }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+            RSOverlayDisplayManager::Instance().PostProcFilter(*curCanvas_);
+#endif
             auto dirtyManager = GetSyncDirtyManager();
             const auto& activeRect = dirtyManager->GetActiveSurfaceRect();
             if (!activeRect.IsEmpty() && (!dirtyManager->GetDirtyRegion().IsInsideOf(activeRect) ||

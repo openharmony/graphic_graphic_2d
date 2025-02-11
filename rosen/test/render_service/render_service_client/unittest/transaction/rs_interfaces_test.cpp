@@ -554,4 +554,28 @@ HWTEST_F(RSInterfacesTest, GetPixelMapByProcessIdTest, TestSize.Level1)
     int32_t res = instance.GetPixelMapByProcessId(pixelMapVector, pid);
     EXPECT_EQ(res, SUCCESS);
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+/**
+ * @tc.name: SetOverlayDisplayMode001
+ * @tc.desc: test results of SetOverlayDisplayMode
+ * @tc.type: FUNC
+ * @tc.require: issueIBHTL0
+ */
+HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+
+    // open overlay
+    int32_t mode = 1;
+    int32_t res = instance.SetOverlayDisplayMode(mode);
+    EXPECT_EQ(res, SUCCESS);
+
+    // close overlay
+    mode = 0;
+    res = instance.SetOverlayDisplayMode(mode);
+    EXPECT_EQ(res, SUCCESS);
+}
+#endif
 } // namespace OHOS::Rosen

@@ -352,6 +352,10 @@ public:
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    virtual int32_t SetOverlayDisplayMode(int32_t mode) = 0;
+#endif
+
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;

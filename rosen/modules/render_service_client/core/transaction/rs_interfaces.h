@@ -351,6 +351,10 @@ public:
     void ForceRefreshOneFrameWithNextVSync();
 
     void SetWindowContainer(NodeId nodeId, bool value);
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode);
+#endif
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;
