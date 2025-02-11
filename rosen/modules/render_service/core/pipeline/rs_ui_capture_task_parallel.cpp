@@ -198,11 +198,6 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
     }
 
-    //make sure the previous uifirst task is completed
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {
-        RS_LOGE("RSUiCaptureTaskParallel::Run: CheckMatchAndWaitNotify fail");
-        return false;
-    }
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(
