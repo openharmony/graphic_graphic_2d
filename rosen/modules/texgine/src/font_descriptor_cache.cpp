@@ -83,7 +83,7 @@ void FontDescriptorCache::ParserStylishFonts()
     }
 }
 
-void FontDescriptorCache::ParserFontsWithSystemType(const int32_t& fontType)
+void FontDescriptorCache::ParserFontsWithSystemType(int32_t fontType)
 {
     if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
         ParserSystemFonts();
