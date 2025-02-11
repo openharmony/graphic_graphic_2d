@@ -83,7 +83,7 @@ void FontDescriptorCache::ParserStylishFonts()
     }
 }
 
-void FontDescriptorCache::ParserFontsWithSystemType(int32_t fontType)
+void FontDescriptorCache::ParserFontsByFontType(int32_t fontType)
 {
     if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
         ParserSystemFonts();
@@ -214,7 +214,7 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
-    ParserFontsWithSystemType(fontType);
+    ParserFontsByFontType(fontType);
 
     uint32_t fontCategory = static_cast<uint32_t>(fontType);
     if (fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) {
@@ -260,7 +260,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
 }
 
 bool FontDescriptorCache::GetFontTypeFromParams(const std::string& fullName,
-    const int32_t& systemFontType, int32_t& fontType)
+    int32_t systemFontType, int32_t& fontType)
 {
     if (fullName.empty()) {
         TEXT_LOGE("Empty fullName is provided");
@@ -284,7 +284,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         return;
     }
 
-    ParserFontsWithSystemType(fontType);
+    ParserFontsByFontType(fontType);
 
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
         std::set<FontDescSharedPtr>>& map) -> bool {
