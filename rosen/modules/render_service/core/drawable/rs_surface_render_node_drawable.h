@@ -342,7 +342,6 @@ private:
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region globalDirtyRegion_;
-    bool globalDirtyRegionIsEmpty_ = false;
 
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;

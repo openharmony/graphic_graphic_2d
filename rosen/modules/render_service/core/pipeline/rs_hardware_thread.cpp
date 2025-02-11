@@ -568,7 +568,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
-        true, isProtected, colorGamut, pixelFormat);
+        isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
     // set color space to surface buffer metadata
     using namespace HDI::Display::Graphic::Common::V1_0;
@@ -579,7 +579,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         }
     }
 #else
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, isProtected);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, isProtected);
 #endif
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);

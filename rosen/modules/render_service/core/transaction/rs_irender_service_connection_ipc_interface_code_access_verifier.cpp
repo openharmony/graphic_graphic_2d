@@ -193,6 +193,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_BLACKLIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PHYSICAL_SCREEN_RESOLUTION): {
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_PHYSICAL_SCREEN_RESOLUTION");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_RESOLUTION): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_RESOLUTION");
             break;

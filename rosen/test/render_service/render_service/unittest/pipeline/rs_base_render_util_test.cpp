@@ -167,7 +167,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
     screenInfo.width = 480;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    BufferRequestConfig config = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true,
+    BufferRequestConfig config = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
         false, colorGamut, pixelFormat);
     ASSERT_EQ(static_cast<int32_t>(screenInfo.width), config.width);
     ASSERT_EQ(colorGamut, config.colorGamut);

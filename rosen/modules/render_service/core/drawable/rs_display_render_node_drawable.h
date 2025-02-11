@@ -25,6 +25,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_slr_scale.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -152,7 +153,7 @@ private:
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
-    void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
+    void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
 
     void DrawMirrorScreen(RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
@@ -169,9 +170,13 @@ private:
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
+    void UpdateSlrScale(ScreenInfo& screenInfo);
+    void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
+        bool useFixedSize = false, bool useCanvasSize = true);
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
-    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
+        bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
@@ -188,8 +193,8 @@ private:
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
-    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
-    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
+    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::unordered_set<NodeId> currentBlackList_;
     std::unordered_set<NodeId> lastBlackList_;
     bool curSecExemption_ = false;
@@ -221,7 +226,10 @@ private:
     std::shared_ptr<RSSurface> surface_ = nullptr;
     std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
 #endif
+    std::unique_ptr<RSSLRScaleFunction> slrScale_;
 
+    std::shared_ptr<RSSLRScaleFunction> scaleManager_ = nullptr;
+    bool isMirrorSLRCopy_ = false;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif

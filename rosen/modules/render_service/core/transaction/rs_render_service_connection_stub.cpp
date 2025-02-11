@@ -56,6 +56,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
@@ -724,6 +725,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             pid_t pid = data.ReadInt32();
             std::string refreshInfo = GetRefreshInfo(pid);
             if (!reply.WriteString(refreshInfo)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint32_t width{0};
+            uint32_t height{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = SetPhysicalScreenResolution(id, width, height);
+            if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;

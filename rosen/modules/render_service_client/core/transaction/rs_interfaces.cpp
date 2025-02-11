@@ -301,11 +301,17 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 }
 
 #ifndef ROSEN_ARKUI_X
+int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return renderServiceClient_->SetPhysicalScreenResolution(id, width, height);
+}
+
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
 #endif // !ROSEN_ARKUI_X
+
 bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);

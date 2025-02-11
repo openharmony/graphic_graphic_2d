@@ -48,6 +48,11 @@ public:
         dirtyRegion_ = dirtyRegion;
     }
 
+    void SetExpandedDirtyRegion(Occlusion::Region& expandedDirtyRegion)
+    {
+        expandedDirtyRegion_ = expandedDirtyRegion;
+    }
+
     void SetVirtualDirtyRects(const std::vector<RectI>& virtualDirtyRects, const ScreenInfo& screenInfo)
     {
         virtualDirtyRects_ = virtualDirtyRects;
@@ -56,6 +61,7 @@ public:
 
 private:
     Occlusion::Region dirtyRegion_;
+    Occlusion::Region expandedDirtyRegion_;
     std::vector<RectI> virtualDirtyRects_;
     ScreenInfo screenInfo_;
     const DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable_;
@@ -63,8 +69,8 @@ private:
 
     bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas, ScreenRotation rotation, uint64_t screenId);
     void DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas);
-    void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect,
-        const Drawing::Color color, const RSPaintStyle fillType, int edgeWidth = 6) const;
+    void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
+        const RSPaintStyle fillType, int edgeWidth = 6, bool isTextOutsideRect = false) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams) const;

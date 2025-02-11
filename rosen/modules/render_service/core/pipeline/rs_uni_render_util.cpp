@@ -26,6 +26,7 @@
 #include "scene_board_judgement.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
@@ -56,6 +57,97 @@ namespace {
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 }
+
+std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params)
+{
+    // renderThreadParams/dirtyManager not null in caller
+    auto dirtyManager = displayDrawable.GetSyncDirtyManager();
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
+    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
+        curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
+    const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
+    if (clipRectThreshold < 1.f) {
+        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+        allDirtyRegion.OrSelf(dirtyRegion);
+        auto bound = allDirtyRegion.GetBound();
+        if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
+            allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
+            dirtyManager->MergeDirtyRectAfterMergeHistory(bound.ToRectI());
+            RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
+                allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
+        }
+    }
+    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
+        Occlusion::Region expandedAllDirtyRegion;
+        constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
+        int expandSize = static_cast<int>(std::ceil(
+            (screenInfo.samplingDistance + expandSizeByFloatRounding) / screenInfo.samplingScale));
+        for (auto rect : allDirtyRegion.GetRegionRects()) {
+            rect.Expand(expandSize, expandSize, expandSize, expandSize);
+            Occlusion::Region expandedRegion{rect};
+            expandedAllDirtyRegion.OrSelf(expandedRegion);
+        }
+        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+            expandedAllDirtyRegion);
+        rsDirtyRectsDfx.SetExpandedDirtyRegion(expandedAllDirtyRegion);
+    } else {
+        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+            dirtyRegion.Or(globalDirtyRegion));
+    }
+
+    // DFX START
+    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
+    // DFX END
+
+    RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    if (!rect.IsEmpty()) {
+        rects.emplace_back(rect);
+        RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
+        GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
+    }
+    if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        std::vector<RectI> dstDamageRegionrects;
+        for (const auto& rect : rects) {
+            Drawing::Matrix scaleMatrix;
+            scaleMatrix.SetScaleTranslate(screenInfo.samplingScale, screenInfo.samplingScale,
+                screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
+            RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
+            const Vector4<int> expandSize{screenInfo.samplingDistance, screenInfo.samplingDistance,
+                screenInfo.samplingDistance, screenInfo.samplingDistance};
+            dstDamageRegionrects.emplace_back(mappedRect.MakeOutset(expandSize));
+        }
+        return dstDamageRegionrects;
+    }
+    return rects;
+}
+
+std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, ScreenInfo& screenInfo)
+{
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams || !params) {
+        return {};
+    }
+    auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
+    auto dirtyManager = displayDrawable.GetSyncDirtyManager();
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayDrawable, bufferAge);
+    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(curAllSurfaceDrawables);
+
+    RectI rect = dirtyManager->GetRectFlipWithinSurface(dirtyManager->GetDirtyRegionInVirtual());
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    if (!rect.IsEmpty()) {
+        rects.emplace_back(rect);
+    }
+
+    return rects;
+}
+
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, RSDisplayRenderParams& params, bool useAlignedDirtyRegion)
 {

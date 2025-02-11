@@ -587,6 +587,14 @@ bool RSSystemProperties::GetDynamicBrightnessEnabled()
     return enabled;
 }
 
+bool RSSystemProperties::GetSLRScaleEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.SLRScale.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetMagnifierEnabled()
 {
     // Determine whether the magnifier render should be enabled. The default value is 0,
