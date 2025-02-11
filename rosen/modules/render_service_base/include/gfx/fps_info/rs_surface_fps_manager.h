@@ -27,7 +27,7 @@ public:
     static RSSurfaceFpsManager &GetInstance();
     bool RegisterSurfaceFps(NodeId id, std::string name);
     bool UnregisterSurfaceFps(NodeId id);
-    bool RecordPresentTime(NodeId id, uint64_t timestamp, int32_t seqNum);
+    bool RecordPresentTime(NodeId id, uint64_t timestamp, uint32_t seqNum);
     void Dump(std::string& result, std::string& name);
     void ClearDump(std::string& result, std::string& name);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
