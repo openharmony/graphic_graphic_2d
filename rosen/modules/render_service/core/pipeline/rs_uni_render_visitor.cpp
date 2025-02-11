@@ -888,28 +888,53 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRect
     filterSet.clear();
 }
 
-void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& node)
+void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& surfaceNode)
 {
-    int32_t curOffsetX = curDisplayNode_->GetDisplayOffsetX();
-    int32_t curOffsetY = curDisplayNode_->GetDisplayOffsetY();
-    // 1. record this surface node and its position on second display, for global dirty region conversion.
-    curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
-    node.UpdateCrossNodeSkippedDisplayOffset(curDisplayNode_->GetId(), curOffsetX, curOffsetY);
-    RectI surfaceRect = node.GetOldDirty().Offset(
-        node.GetPreparedDisplayOffsetX() - curOffsetX,
-        node.GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_);
-    curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), surfaceRect);
-    curDisplayNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), surfaceRect);
-    // 2. record all children surface nodes and their position on second display, for global dirty region conversion.
+    // 1. Find the actual surface node of which the coordinates must be recalculated.
+    auto sourceNode = surfaceNode.GetSourceCrossNode().lock();
+    auto sourceSurface = sourceNode ? sourceNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    RSSurfaceRenderNode& nodeRef = sourceSurface ? *sourceSurface : surfaceNode;
+    auto geoPtr = nodeRef.GetRenderProperties().GetBoundsGeometry();
+    if (!geoPtr) {
+        return;
+    }
+    // 2. Get the AbsMatrix under current display node. Concatenate current parent matrix and nodeRef relative matrix.
+    Drawing::Matrix nodeAbsMatrix = geoPtr->GetMatrix();
+    if (nodeRef.GetGlobalPositionEnabled()) {
+        nodeAbsMatrix.PostTranslate(-curDisplayNode_->GetDisplayOffsetX(), -curDisplayNode_->GetDisplayOffsetY());
+    }
+    if (auto parent = surfaceNode.GetParent().lock()) {
+        auto parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
+        nodeAbsMatrix.PostConcat(parentGeoPtr ? parentGeoPtr->GetAbsMatrix() : Drawing::Matrix());
+    }
+    // 3. Get the conversion matrix from first display coordinate system to current display coordinate system.
+    // 3.1 Invert AbsMatrix under first display.
+    // 3.2 Apply AbsMatrix under second display.
+    Drawing::Matrix conversionMatrix;
+    if (!geoPtr->GetAbsMatrix().Invert(conversionMatrix)) {
+        curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
+        RS_LOGW("Cross-Node matrix inverting for %{public}s failed, set full screen dirty.", nodeRef.GetName().c_str());
+        return;
+    }
+    conversionMatrix.PostConcat(nodeAbsMatrix);
+
+    // 4. record this surface node and its position on second display, for global dirty region conversion.
+    curDisplayNode_->RecordMainAndLeashSurfaces(nodeRef.shared_from_this());
+    nodeRef.UpdateCrossNodeSkipDisplayConversionMatrices(curDisplayNode_->GetId(), conversionMatrix);
+    RectI surfaceRect =
+        geoPtr->MapRect(nodeRef.GetOldDirty().ConvertTo<float>(), conversionMatrix).IntersectRect(screenRect_);
+    curDisplayNode_->UpdateSurfaceNodePos(nodeRef.GetId(), surfaceRect);
+    curDisplayNode_->AddSurfaceNodePosByDescZOrder(nodeRef.GetId(), surfaceRect);
+    // 5. record all children surface nodes and their position on second display, for global dirty region conversion.
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
-    node.GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    nodeRef.GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto& [_, subSurfaceNode] : allSubSurfaceNodes) {
         if (auto childPtr = subSurfaceNode.lock()) {
             curDisplayNode_->RecordMainAndLeashSurfaces(childPtr);
-            childPtr->UpdateCrossNodeSkippedDisplayOffset(curDisplayNode_->GetId(), curOffsetX, curOffsetY);
-            RectI childSurfaceRect = childPtr->GetOldDirty().Offset(
-                childPtr->GetPreparedDisplayOffsetX() - curOffsetX,
-                childPtr->GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_);
+            childPtr->SetFirstLevelCrossNode(nodeRef.IsFirstLevelCrossNode());
+            childPtr->UpdateCrossNodeSkipDisplayConversionMatrices(curDisplayNode_->GetId(), conversionMatrix);
+            RectI childSurfaceRect = geoPtr->MapRect(
+                childPtr->GetOldDirty().ConvertTo<float>(), conversionMatrix).IntersectRect(screenRect_);
             curDisplayNode_->UpdateSurfaceNodePos(childPtr->GetId(), childSurfaceRect);
             curDisplayNode_->AddSurfaceNodePosByDescZOrder(childPtr->GetId(), childSurfaceRect);
         }
@@ -931,7 +956,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
     // skip CrossNode not on first display
     if (CheckSkipCrossNode(node)) {
         // when skip cloneCrossNode prepare, we need switch to record sourceNode dirty info
-        PrepareForSkippedCrossNode(node.IsCloneCrossNode() ? *sourceNode : node);
+        PrepareForSkippedCrossNode(node);
         return true;
     }
 
@@ -993,7 +1018,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.SetGlobalAlpha(curAlpha_);
     CheckFilterCacheNeedForceClearOrSave(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
-    node.ClearCrossNodeSkippedDisplayOffset();
+    node.ClearCrossNodeSkipDisplayConversionMatrices();
     node.SetPreparedDisplayOffsetX(curDisplayNode_->GetDisplayOffsetX());
     node.SetPreparedDisplayOffsetY(curDisplayNode_->GetDisplayOffsetY());
     if (node.GetGlobalPositionEnabled()) {
@@ -2731,10 +2756,13 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByCrossDisplayWindow(RSSurfaceRenderNode& surfaceNode) const
 {
+    auto geoPtr = surfaceNode.GetRenderProperties().GetBoundsGeometry();
+    if (!geoPtr) {
+        return;
+    }
     // transfer from the display coordinate system during quickprepare into current display coordinate system.
-    auto dirtyRect = surfaceNode.GetDirtyManager()->GetCurrentFrameDirtyRegion().Offset(
-        surfaceNode.GetPreparedDisplayOffsetX() - curDisplayNode_->GetDisplayOffsetX(),
-        surfaceNode.GetPreparedDisplayOffsetY() - curDisplayNode_->GetDisplayOffsetY());
+    auto dirtyRect = geoPtr->MapRect(surfaceNode.GetDirtyManager()->GetCurrentFrameDirtyRegion().ConvertTo<float>(),
+        surfaceNode.GetCrossNodeSkipDisplayConversionMatrix(curDisplayNode_->GetId()));
     RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeDisplayDirtyByCrossDisplayWindow %s, global dirty %s, add rect %s",
         surfaceNode.GetName().c_str(), curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
         dirtyRect.ToString().c_str());
@@ -2744,7 +2772,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByCrossDisplayWindow(RSSurfaceRen
 void RSUniRenderVisitor::CollectFilterInCrossDisplayWindow(
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion)
 {
-    if (!surfaceNode->IsFirstLevelCrossNode() || curDisplayNode_->IsFirstVisitCrossNodeDisplay()) {
+    auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+    if (!surfaceNode->IsFirstLevelCrossNode() || curDisplayNode_->IsFirstVisitCrossNodeDisplay() || !geoPtr) {
         return;
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -2753,9 +2782,8 @@ void RSUniRenderVisitor::CollectFilterInCrossDisplayWindow(
         if (!filterNode) {
             continue;
         }
-        auto filterRect = filterNode->GetAbsDrawRect().Offset(
-            filterNode->GetPreparedDisplayOffsetX() - curDisplayNode_->GetDisplayOffsetX(),
-            filterNode->GetPreparedDisplayOffsetY() - curDisplayNode_->GetDisplayOffsetY()).IntersectRect(screenRect_);
+        auto filterRect = geoPtr->MapRect(filterNode->GetAbsDrawRect().ConvertTo<float>(),
+            surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curDisplayNode_->GetId())).IntersectRect(screenRect_);
         if (surfaceNode->IsTransparent() && accumulatedDirtyRegion.IsIntersectWith(Occlusion::Rect(filterRect))) {
             RS_OPTIONAL_TRACE_NAME_FMT("CollectFilterInCrossDisplayWindow [%s] has filter, add [%s] to global dirty",
                 surfaceNode->GetName().c_str(), filterRect.ToString().c_str());
@@ -2860,14 +2888,14 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
 void RSUniRenderVisitor::AccumulateSurfaceDirtyRegion(
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const
 {
-    if (!surfaceNode->GetDirtyManager()) {
+    auto geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+    if (!surfaceNode->GetDirtyManager() || !geoPtr) {
         return;
     }
     auto surfaceDirtyRect = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
     if (surfaceNode->IsFirstLevelCrossNode() && !curDisplayNode_->IsFirstVisitCrossNodeDisplay()) {
-        surfaceDirtyRect = surfaceDirtyRect.Offset(
-            surfaceNode->GetPreparedDisplayOffsetX() - curDisplayNode_->GetDisplayOffsetX(),
-            surfaceNode->GetPreparedDisplayOffsetY() - curDisplayNode_->GetDisplayOffsetY());
+        surfaceDirtyRect = geoPtr->MapRect(surfaceDirtyRect.ConvertTo<float>(),
+            surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curDisplayNode_->GetId()));
     }
     auto surfaceDirtyRegion = Occlusion::Region{ Occlusion::Rect{ surfaceDirtyRect } };
     accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);

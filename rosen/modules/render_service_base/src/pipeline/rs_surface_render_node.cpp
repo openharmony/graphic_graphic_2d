@@ -2950,6 +2950,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
     surfaceParams->SetRoundedCornerRegion(GetRoundedCornerRegion());
+    surfaceParams->SetFirstLevelCrossNode(IsFirstLevelCrossNode());
 #endif
 }
 
@@ -3020,8 +3021,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->leashPersistentId_ = leashPersistentId_;
     surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
-    surfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
-    surfaceParams->preparedDisplayOffset_ = { GetPreparedDisplayOffsetX(), GetPreparedDisplayOffsetY() };
+    surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

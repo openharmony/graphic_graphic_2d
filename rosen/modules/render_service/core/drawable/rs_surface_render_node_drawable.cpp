@@ -634,19 +634,18 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
-void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionOffset(
+void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
     const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParam, RectI& surfaceDirtyRect) const
 {
     if (!surfaceParam.IsFirstLevelCrossNode()) {
         return;
     }
-    auto displayOffsets = surfaceParam.GetCrossNodeSkippedDisplayOffsets();
-    auto curDisplayOffset = displayOffsets.find(uniParam.GetCurrentVisitDisplayDrawableId());
-    if (curDisplayOffset != displayOffsets.end()) {
+    auto displayConversionMatrices = surfaceParam.GetCrossNodeSkipDisplayConversionMatrix();
+    auto curConversionMatrix = displayConversionMatrices.find(uniParam.GetCurrentVisitDisplayDrawableId());
+    if (curConversionMatrix != displayConversionMatrices.end()) {
         // transfer from the display coordinate system during quickprepare into current display coordinate system.
-        int32_t offsetX = surfaceParam.GetPreparedDisplayOffsetX() - curDisplayOffset->second.x_;
-        int32_t offsetY = surfaceParam.GetPreparedDisplayOffsetY() - curDisplayOffset->second.y_;
-        surfaceDirtyRect = surfaceDirtyRect.Offset(offsetX, offsetY);
+        std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
+        surfaceDirtyRect = geoPtr->MapRect(surfaceDirtyRect.ConvertTo<float>(), curConversionMatrix->second);
     }
 }
 
@@ -685,7 +684,7 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
         }
         // [planing] surfaceDirtyRegion can be optimized by visibleDirtyRegion in some case.
         auto surfaceDirtyRect = GetSyncDirtyManager()->GetDirtyRegion();
-        CrossDisplaySurfaceDirtyRegionOffset(uniParam, *surfaceParams, surfaceDirtyRect);
+        CrossDisplaySurfaceDirtyRegionConversion(uniParam, *surfaceParams, surfaceDirtyRect);
         auto surfaceDirtyRegion = Occlusion::Region { Occlusion::Rect{ surfaceDirtyRect } };
         accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
         // add children window dirty here for uifirst leasf window will not traverse cached children

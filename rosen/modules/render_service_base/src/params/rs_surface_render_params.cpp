@@ -566,8 +566,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
     targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
-    targetSurfaceParams->preparedDisplayOffset_ = preparedDisplayOffset_;
-    targetSurfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
+    targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     RSRenderParams::OnSync(target);

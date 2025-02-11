@@ -481,12 +481,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeSubSurfaceNodesDirtyRegionForMain
 }
 
 /**
- * @tc.name: CrossDisplaySurfaceDirtyRegionOffset
- * @tc.desc: Test CrossDisplaySurfaceDirtyRegionOffset, if node is cross-display, the surface dirty will be offset.
+ * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
+ * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC
  * @tc.require: issueIB670G
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionOffset_001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionConversion_001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     ASSERT_NE(surfaceDrawable_->GetRenderParams(), nullptr);
@@ -496,20 +496,20 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionOffset_0
     ASSERT_NE(uniParams, nullptr);
 
     NodeId curDisplayId = 1;
-    int32_t displayOffset = 10;
-    surfaceParams->preparedDisplayOffset_ = { 0, 0 };
-    surfaceParams->crossNodeSkippedDisplayOffsets_.insert({curDisplayId, {displayOffset, displayOffset}});
+    Drawing::Matrix matrix;
+    matrix.PreTranslate(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    surfaceParams->crossNodeSkipDisplayConversionMatrices_.insert({curDisplayId, matrix});
     uniParams->SetCurrentVisitDisplayDrawableId(curDisplayId);
     RectI surfaceDirtyRect = { DEFAULT_RECT.left_, DEFAULT_RECT.top_,
         DEFAULT_RECT.right_ - DEFAULT_RECT.left_, DEFAULT_RECT.bottom_ - DEFAULT_RECT.top_ };;
 
     // if surface node is not cross-display node, nothing will happen.
     surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(false);
-    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_EQ(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
     // if surface node is not cross-display node, the surface dirty region will be offset.
     surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(true);
-    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_NE(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
 }
 

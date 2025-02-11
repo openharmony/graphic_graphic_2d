@@ -1389,13 +1389,17 @@ public:
     void CalDrawBehindWindowRegion() override;
     RectI GetFilterRect() const override;
     RectI GetBehindWindowRegion() const override;
-    void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
+    void UpdateCrossNodeSkipDisplayConversionMatrices(NodeId displayId, const Drawing::Matrix& matrix)
     {
-        crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };
+        crossNodeSkipDisplayConversionMatrices_[displayId] = matrix;
     }
-    void ClearCrossNodeSkippedDisplayOffset()
+    const Drawing::Matrix& GetCrossNodeSkipDisplayConversionMatrix(NodeId displayId)
     {
-        crossNodeSkippedDisplayOffsets_.clear();
+        return crossNodeSkipDisplayConversionMatrices_[displayId];
+    }
+    void ClearCrossNodeSkipDisplayConversionMatrices()
+    {
+        crossNodeSkipDisplayConversionMatrices_.clear();
     }
     HdrStatus GetVideoHdrStatus() const
     {
@@ -1743,7 +1747,7 @@ private:
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
-    std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
+    std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
