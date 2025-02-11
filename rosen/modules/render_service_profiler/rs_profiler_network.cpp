@@ -104,8 +104,11 @@ void Network::Run()
             socket->Open(port);
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
+            if (!socket->Connected()) {
+                usleep(20000); // 20000: sleep 20ms to reduce power consumption on standing by
+            }
         } else if (state == SocketState::CONNECTED) {
-            Ping(*socket);
+            Ping(*socket); // add ping packet to a queue
             Send(*socket);
             Receive(*socket);
         } else if (state == SocketState::SHUTDOWN) {
@@ -364,7 +367,12 @@ void Network::Shutdown(Socket*& socket)
 
 void Network::Receive(Socket& socket)
 {
-    if (!socket.Connected() || !socket.Available()) {
+    if (!socket.Connected()) {
+        return;
+    }
+    constexpr int timeWait = 10;
+    if (socket.PollReceive(timeWait) == 0) {
+        // no data for 10 ms
         return;
     }
 

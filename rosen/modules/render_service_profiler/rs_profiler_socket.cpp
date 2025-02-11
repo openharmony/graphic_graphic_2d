@@ -23,6 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <poll.h>
 
 #include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
@@ -178,6 +179,10 @@ bool Socket::SendWhenReady(const void* data, size_t size)
     const char* bytes = reinterpret_cast<const char*>(data);
     size_t sent = 0;
     while (sent < size) {
+        if (PollSend(1) == 0) {
+            // wait for 1ms in worst case to have socket ready for sending
+            continue;
+        }
         const ssize_t sentBytes = send(client_, bytes, size - sent, 0);
         if ((sentBytes <= 0) && (errno != EINTR)) {
             HRPE("Socket: SendWhenReady: Invoke shutdown: %d", errno);
@@ -252,6 +257,22 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
     SetTimeout(client_, previousTimeout);
     SetBlocking(client_, false);
     return true;
+}
+
+int Socket::PollReceive(int timeout)
+{
+    struct pollfd pollFd = {0};
+    pollFd.fd = client_;
+    pollFd.events = POLLIN;
+    return poll(&pollFd, 1, timeout);
+}
+
+int Socket::PollSend(int timeout)
+{
+    struct pollfd pollFd = {0};
+    pollFd.fd = client_;
+    pollFd.events = POLLOUT;
+    return poll(&pollFd, 1, timeout);
 }
 
 } // namespace OHOS::Rosen

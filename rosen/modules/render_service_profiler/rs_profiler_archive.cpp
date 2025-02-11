@@ -16,7 +16,6 @@
 #include "rs_profiler_archive.h"
 
 namespace OHOS::Rosen {
-
 void Archive::Serialize(char& value)
 {
     Serialize(&value, sizeof(value));
@@ -91,5 +90,4 @@ void Archive::Serialize(void* data, size_t size)
         Write(data, size);
     }
 }
-
 } // namespace OHOS::Rosen

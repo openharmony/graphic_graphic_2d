@@ -21,12 +21,11 @@
 #include <map>
 #include <string>
 
-#include "recording/draw_cmd_list.h"
-
 #include "common/rs_vector4.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_render_node.h"
 #include "params/rs_display_render_params.h"
+#include "recording/draw_cmd_list.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime) RSProfiler::OnFrameBegin(syncTime)
@@ -237,6 +236,9 @@ private:
     RSB_EXPORT static void EnableSharedMemory();
     RSB_EXPORT static void DisableSharedMemory();
 
+    RSB_EXPORT static bool BaseSetPlaybackSpeed(double speed);
+    RSB_EXPORT static double BaseGetPlaybackSpeed();
+
     // Beta record
     RSB_EXPORT static void EnableBetaRecord();
     RSB_EXPORT static bool IsBetaRecordSavingTriggered();
@@ -273,7 +275,7 @@ private:
 
 private:
     RSB_EXPORT static void SetTransactionTimeCorrection(double replayStartTime, double recordStartTime);
-    RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime);
+    RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool immediate);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
     RSB_EXPORT static void TimePauseClear();
     RSB_EXPORT static uint64_t TimePauseGet();
@@ -363,7 +365,7 @@ private:
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
 
-    static void ScheduleTask(std::function<void()> && task);
+    static void ScheduleTask(std::function<void()>&& task);
     static void RequestNextVSync();
     static void AwakeRenderServiceThread();
     static void ResetAnimationStamp();
@@ -392,7 +394,7 @@ private:
     static void ProcessCommands();
     // Deprecated: Use SendMessage instead
     static void Respond(const std::string& message);
-    static void SendMessage(const char* format, ...);
+    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void Reset(const ArgList& args);
@@ -428,6 +430,8 @@ private:
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
+    static void PlaybackSetSpeed(const ArgList& args);
+    static void PlaybackSetImmediate(const ArgList& args);
 
     static void RecordStart(const ArgList& args);
     static void RecordStop(const ArgList& args);
