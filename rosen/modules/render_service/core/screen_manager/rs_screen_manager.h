@@ -553,7 +553,6 @@ private:
     int32_t GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
     int32_t GetScreenSupportedMetaDataKeysLocked(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const;
     int32_t GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const;
-    int32_t SetScreenColorGamutLocked(ScreenId id, int32_t modeIdx);
     int32_t SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mode);
     int32_t SetScreenCorrectionLocked(ScreenId id, ScreenRotation screenRotation);
     int32_t GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap& mode) const;
@@ -567,7 +566,6 @@ private:
     int32_t SetScreenHDRFormatLocked(ScreenId id, int32_t modeIdx);
     int32_t GetScreenSupportedColorSpacesLocked(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
     int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
-    int32_t SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
     ScreenInfo QueryScreenInfoLocked(ScreenId id) const;
     bool GetCastScreenEnableSkipWindow(ScreenId id) const;
 
@@ -580,6 +578,8 @@ private:
 
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+
+    std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId screenId);
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;
