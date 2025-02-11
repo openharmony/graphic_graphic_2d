@@ -198,6 +198,10 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
+    auto &hgmCore = HgmCore::Instance();
+    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
+    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    ASSERT_EQ(curScreenId, lastCurScreenId);
 }
 
 /**
