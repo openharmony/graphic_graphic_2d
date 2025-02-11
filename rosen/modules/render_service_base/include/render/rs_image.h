@@ -38,6 +38,7 @@ struct AdaptiveImageInfo {
     uint32_t dynamicRangeMode = 0;
     int32_t rotateDegree = 0;
     Rect frameRect;
+    Drawing::Matrix fitMatrix = Drawing::Matrix();
 };
 }
 
@@ -81,6 +82,7 @@ enum class ImageFit {
     BOTTOM,
     BOTTOM_RIGHT,
     COVER_TOP_LEFT,
+    MATRIX,
 };
 
 class RSB_EXPORT RSImage : public RSImageBase {
@@ -112,6 +114,8 @@ public:
     Drawing::AdaptiveImageInfo GetAdaptiveImageInfoWithCustomizedFrameRect(const Drawing::Rect& frameRect) const;
     RectF GetDstRect();
     void SetFrameRect(RectF frameRect);
+    void SetFitMatrix(const Drawing::Matrix& matrix);
+    Drawing::Matrix GetFitMatrix() const;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
@@ -145,10 +149,13 @@ private:
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
+    void DrawImageWithFirMatrixRotateOnCanvas(
+        const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(Parcel& parcel, int& fitNum, int& repeatNum,
-        std::vector<Drawing::Point>& radius, double& scale, int32_t& degree);
+        std::vector<Drawing::Point>& radius, double& scale, int32_t& degree,
+        bool& hasFitMatrix, Drawing::Matrix& fitMatrix);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
@@ -164,6 +171,8 @@ private:
     int32_t rotateDegree_;
     Drawing::Paint paint_;
     uint32_t dynamicRangeMode_ = 0;
+    std::optional<Drawing::Matrix> fitMatrix_ = std::nullopt;
+    bool isFitMatrixValid_ = false;
 };
 
 template<>

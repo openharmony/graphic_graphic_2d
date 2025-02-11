@@ -551,4 +551,110 @@ HWTEST_F(RSImageTest, dumpTest, TestSize.Level1)
     rsImage->dump(desc, 0);
     EXPECT_NE(desc, "dump ");
 }
+
+/**
+ * @tc.name: SetFitMatrixTest
+ * @tc.desc: Test RSImageTest.SetFitMatrix
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, SetFitMatrixTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->SetFitMatrix(matrix);
+    EXPECT_EQ(rsImage->fitMatrix_.value(), matrix);
+}
+
+/**
+ * @tc.name: GetFitMatrixTest
+ * @tc.desc: Test RSImageTest.GetFitMatrix
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, GetFitMatrixTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->fitMatrix_ = matrix;
+    EXPECT_EQ(rsImage->GetFitMatrix(), matrix);
+}
+
+/**
+ * @tc.name: addImageMatrixTest001
+ * @tc.desc: addImageMatrixtest001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixTest001, TestSize.Level1)
+{
+    RSImage image;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Rect rect;
+    Drawing::Brush brush;
+    image.SetImageFit(17);
+    EXPECT_EQ(image.GetImageFit(), ImageFit::MATRIX);
+}
+
+/**
+ * @tc.name: addImageMatrixTest002
+ * @tc.desc: addImageMatrixTest002.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixTest002, TestSize.Level1)
+{
+    RSImage image;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    bool isBackground = false;
+    Drawing::Rect rect;
+    Drawing::Brush brush;
+    image.SetImageFit(17);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    image.SetFitMatrix(matrix);
+    canvas.AttachBrush(brush);
+    image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
+    canvas.DetachBrush();
+    EXPECT_EQ(image.GetFitMatrix(), matrix);
+}
+
+/**
+ * @tc.name: addImageMatrixMarshallingTest
+ * @tc.desc: addImageMatrixMarshallingTest .
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->SetFitMatrix(matrix);
+
+    MessageParcel parcel;
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
+    std::shared_ptr<RSImage> newImage;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
+}
+
+/**
+ * @tc.name: GetAdaptiveImageInfoWithFrameRectTest002
+ * @tc.desc: Verify function GetAdaptiveImageInfoWithFrameRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetAdaptiveImageInfoWithFrameRectTest002, TestSize.Level1)
+{
+    Drawing::Rect frameRect;
+    auto image = std::make_shared<RSImage>();
+    image->imageFit_ = ImageFit::MATRIX;
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    image->SetFitMatrix(matrix);
+    EXPECT_EQ(
+        image->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect).fitMatrix, matrix);
+}
 } // namespace OHOS::Rosen

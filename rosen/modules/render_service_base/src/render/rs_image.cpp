@@ -127,9 +127,12 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
+    isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
+                       fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
-        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
+        Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (!canvas.GetOffscreen()) {
             frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
         }
@@ -137,21 +140,24 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
+        if (isFitMatrixValid_) {
+            canvas.ConcatMatrix(fitMatrix_.value());
+        }
         if (rotateDegree_ != 0) {
-            canvas.Save();
             canvas.Rotate(rotateDegree_);
             auto axis = CalculateByDegree(rect);
             canvas.Translate(axis.first, axis.second);
-            DrawImageRepeatRect(samplingOptions, canvas);
-            canvas.Restore();
-        } else {
-            DrawImageRepeatRect(samplingOptions, canvas);
         }
+        DrawImageRepeatRect(samplingOptions, canvas);
     } else {
-        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        bool needCanvasRestore = HasRadius() || (pixelMap_ != nullptr && pixelMap_->IsAstc()) ||
+                                 isFitMatrixValid_;
+        Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Save();
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+        }
+        if (isFitMatrixValid_) {
+            canvas.ConcatMatrix(fitMatrix_.value());
         }
         ReMapPixelMap(pixelMap_);
         if (image_) {
@@ -166,9 +172,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 DrawImageWithRotateDegree(canvas, rect, samplingOptions);
             }
         }
-        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Restore();
-        }
     }
     lastRect_ = rect;
 }
@@ -181,6 +184,13 @@ void RSImage::DrawImageWithRotateDegree(
         canvas.Rotate(rotateDegree_);
         auto axis = CalculateByDegree(rect);
         canvas.Translate(axis.first, axis.second);
+    }
+    if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
+        (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
+        fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
+        fitMatrix_->HasPerspective())) {
+        DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
+        return;
     }
     canvas.DrawImageRect(*image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
@@ -198,6 +208,9 @@ struct ImageParameter {
 RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, RectF tempRectF)
 {
     switch (imageFit_) {
+        case ImageFit::MATRIX:
+            tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
         case ImageFit::TOP_LEFT:
             tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
             return tempRectF;
@@ -348,8 +361,19 @@ Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(
         .dynamicRangeMode = dynamicRangeMode_,
         .rotateDegree = rotateDegree_,
         .frameRect = frameRect,
+        .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix()
     };
     return imageInfo;
+}
+
+void RSImage::SetFitMatrix(const Drawing::Matrix& matrix)
+{
+    fitMatrix_ = matrix;
+}
+
+Drawing::Matrix RSImage::GetFitMatrix() const
+{
+    return fitMatrix_.value();
 }
 
 RectF RSImage::GetDstRect()
@@ -532,9 +556,30 @@ void RSImage::DrawImageOnCanvas(
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {
+        if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
+            (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
+            fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
+            fitMatrix_->HasPerspective())) {
+            DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
+            return;
+        }
         canvas.DrawImageRect(
             *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
+}
+
+void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
+    const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const
+{
+    Drawing::Pen pen;
+    Drawing::Filter filter;
+    Drawing::scalar sigma = 1;
+    filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
+    pen.SetFilter(filter);
+    canvas.AttachPen(pen);
+    canvas.DrawImageRect(
+        *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachPen();
 }
 
 void RSImage::SetCompressData(
@@ -663,7 +708,9 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
                    RSMarshallingHelper::Marshalling(parcel, scale_) &&
-                   RSMarshallingHelper::Marshalling(parcel, rotateDegree_);
+                   RSMarshallingHelper::Marshalling(parcel, rotateDegree_) &&
+                   parcel.WriteBool(fitMatrix_.has_value()) &&
+                   fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
 }
 
@@ -693,7 +740,10 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     std::vector<Drawing::Point> radius(CORNER_SIZE);
     double scale;
     int32_t degree = 0;
-    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, degree)) {
+    bool hasFitMatrix;
+    Drawing::Matrix fitMatrix;
+    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, degree,
+                                  hasFitMatrix, fitMatrix)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -707,6 +757,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetScale(scale);
     rsImage->SetNodeId(nodeId);
     rsImage->SetImageRotateDegree(degree);
+    if (hasFitMatrix && !fitMatrix.IsIdentity()) {
+        rsImage->SetFitMatrix(fitMatrix);
+    }
     ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
     return rsImage;
 }
@@ -726,7 +779,8 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 }
 
 bool RSImage::UnmarshalImageProperties(
-    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale, int32_t& degree)
+    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale, int32_t& degree,
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -751,6 +805,18 @@ bool RSImage::UnmarshalImageProperties(
     if (!RSMarshallingHelper::Unmarshalling(parcel, degree)) {
         RS_LOGE("RSImage::Unmarshalling rotateDegree fail");
         return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+        RS_LOGE("RSImage::Unmarshalling hasFitMatrix fail");
+        return false;
+    }
+
+    if (hasFitMatrix) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, fitMatrix)) {
+            RS_LOGE("RSImage::Unmarshalling fitMatrix fail");
+            return false;
+        }
     }
 
     return true;

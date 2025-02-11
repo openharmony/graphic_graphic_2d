@@ -36,6 +36,8 @@ ohos_unittest("native_image_test") {
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]
+  external_deps =
+      [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
 }
 
 ## UnitTest native_image_test }}}
