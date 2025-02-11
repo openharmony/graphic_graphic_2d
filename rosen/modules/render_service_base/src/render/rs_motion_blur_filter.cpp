@@ -19,8 +19,8 @@
 #include "draw/surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "src/core/SkOpts.h"
 #include "rs_trace.h"
+#include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
