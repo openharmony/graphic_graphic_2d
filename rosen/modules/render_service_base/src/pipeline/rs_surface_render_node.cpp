@@ -2164,7 +2164,7 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
             containerConfig_.innerRect_.top_,
             containerConfig_.innerRect_.width_,
             containerConfig_.innerRect_.height_};
-        auto rect = geoPtr->MapAbsRect(r).IntersectRect(GetOldDirtyInSurface());
+        auto rect = geoPtr->MapAbsRect(r).IntersectRect(GetAbsDrawRect());
         config.innerRect_ = rect;
         return config;
     } else {
@@ -2276,11 +2276,7 @@ void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerR
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
-    auto absRect = GetOldDirtyInSurface();
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (geoPtr) {
-        absRect = absRect.IntersectRect(geoPtr->GetAbsRect());
-    }
+    auto absRect = GetAbsDrawRect();
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
@@ -2289,6 +2285,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
                                 static_cast<int>(std::round(tmpCornerRadius.w_)));
     auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
     if (boundsGeometry) {
+        absRect = absRect.IntersectRect(boundsGeometry->GetAbsRect());
         const auto& absMatrix = boundsGeometry->GetAbsMatrix();
         auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
             absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
@@ -2300,10 +2297,10 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
 
     if (!CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius)) {
         if (absRect.IsEmpty()) {
-            RS_LOGD("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
-                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
-            RS_TRACE_NAME_FMT("%s absRect is empty, dst rect: %s, old dirty in surface: %s",
-                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
+            RS_LOGD("%{public}s absRect is empty, absDrawRect: %{public}s",
+                GetName().c_str(), GetAbsDrawRect().ToString().c_str());
+            RS_TRACE_NAME_FMT("%s absRect is empty, absDrawRect: %s",
+                GetName().c_str(), GetAbsDrawRect().ToString().c_str());
         }
         ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
         SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);

@@ -1335,7 +1335,7 @@ public:
 
     void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
     {
-        if (!IsLeashWindow()) {
+        if (!IsLeashOrMainWindow()) {
             return;
         }
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
