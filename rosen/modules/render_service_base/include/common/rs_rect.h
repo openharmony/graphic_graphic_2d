@@ -347,6 +347,7 @@ public:
             "(" + std::to_string(radius_[3].x_) + "," + std::to_string(radius_[3].y_) + ")]";  //3: bottomLeft Corner
     }
 
+    RRectT Inset(const Vector4<T> radius) const;
     RRectT operator-(const RRectT<T>& other) const;
     RRectT operator+(const RRectT<T>& other) const;
     RRectT operator/(float scale) const;
@@ -361,6 +362,21 @@ public:
 };
 
 typedef RRectT<float> RRect;
+
+template<typename T>
+RRectT<T> RRectT<T>::Inset(const Vector4<T> width) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() + width.x_, rect_.GetTop() + width.y_,
+        rect_.GetWidth() - (width.x_ + width.z_),
+        rect_.GetHeight() - (width.y_ + width.w_));
+    
+    rrect.radius_[0] = radius_[0] - Vector2(width.x_, width.y_); // 0: topLeft Corner
+    rrect.radius_[1] = radius_[1] - Vector2(width.z_, width.y_); // 1: topRight Corner
+    rrect.radius_[2] = radius_[2] - Vector2(width.z_, width.w_); // 2: bottomRight Corner
+    rrect.radius_[3] = radius_[3] - Vector2(width.x_, width.w_); // 3: bottomLeft Corner
+    return rrect;
+}
 
 template<typename T>
 RRectT<T> RRectT<T>::operator-(const RRectT<T>& other) const
