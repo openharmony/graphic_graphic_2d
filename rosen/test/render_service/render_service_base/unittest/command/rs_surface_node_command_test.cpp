@@ -323,6 +323,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSnapshotSkipLayerTest001, TestSize.Level1)
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id2, isSnapshotSkipLayer);
+    EXPECT_EQ(isSnapshotSkipLayer, context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id2)->isSnapshotSkipLayer_);
 }
 
 /**
