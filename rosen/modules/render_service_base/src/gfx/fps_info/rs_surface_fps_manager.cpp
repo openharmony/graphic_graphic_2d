@@ -24,7 +24,7 @@ RSSurfaceFpsManager& RSSurfaceFpsManager::GetInstance()
     return instance;
 }
 
-bool RSSurfaceFpsManager::RegisterSurfaceFps(NodeId id, std::string name)
+bool RSSurfaceFpsManager::RegisterSurfaceFps(NodeId id, const std::string& name)
 {
     std::unique_lock<std::shared_mutex> lock(smtx);
     if (surfaceFpsMap_.find(id) != surfaceFpsMap_.end()) {
@@ -54,7 +54,7 @@ std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFps(NodeId id)
     return iter->second;
 }
 
-std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFps(std::string name)
+std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFps(std::string& name)
 {
     std::shared_lock<std::shared_mutex> lock(smtx);
     for (auto [id, surfaceFps] : surfaceFpsMap_) {
@@ -80,7 +80,7 @@ void RSSurfaceFpsManager::Dump(std::string& result, std::string& name)
     if (surfaceFps == nullptr) {
         return ;
     }
-    result += "\n surface [" + name + "]:\n";
+    result += " surface [" + name + "]:\n";
     surfaceFps->Dump(result);
 }
 
@@ -90,7 +90,7 @@ void RSSurfaceFpsManager::ClearDump(std::string& result, std::string& name)
     if (surfaceFps == nullptr) {
         return ;
     }
-    result += "\n The fps info of surface [" + name + "] is cleared.\n";
+    result += " The fps info of surface [" + name + "] is cleared.\n";
     surfaceFps->ClearDump();
 }
 

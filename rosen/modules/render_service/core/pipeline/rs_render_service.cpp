@@ -250,6 +250,7 @@ void RSRenderService::RemoveConnection(sptr<IRemoteObject> token)
 
 int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
 {
+    RS_LOGI("mcc enter RSRenderService::Dump");
     std::unordered_set<std::u16string> argSets;
     for (decltype(args.size()) index = 0; index < args.size(); ++index) {
         argSets.insert(args[index]);
