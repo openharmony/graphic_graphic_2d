@@ -23,50 +23,11 @@
 namespace OHOS {
 namespace Rosen {
 
-constexpr uint32_t SIZE_MAX_LIMIT = 100;  // 100 max length
-struct GEXFlowLightSweepParams {
+struct GE_EXPORT GEXFlowLightSweepParams {
     std::vector<std::pair<Drawing::Color, float>> effectColors_;
 
-    bool Marshalling(Parcel& parcel)
-    {
-        uint32_t effectColorsSize = static_cast<uint32_t>(effectColors_.size());
-        if (effectColorsSize > SIZE_MAX_LIMIT) {
-            return false;
-        }
-
-        if (!parcel.WriteUint32(effectColorsSize)) {
-            return false;
-        }
-
-        for (size_t i = 0; i < effectColorsSize; i++) {
-            if (!parcel.WriteUint32((uint32_t)effectColors_[i].first.CastToColorQuad())) {
-                return false;
-            }
-            if (!parcel.WriteFloat(effectColors_[i].second)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-    
-    bool Unmarshalling(Parcel& parcel)
-    {
-        uint32_t effectColorsSize = parcel.ReadUint32();
-        if (effectColorsSize > SIZE_MAX_LIMIT) {
-            return false;
-        }
-
-        for (size_t i = 0; i < effectColorsSize; i++) {
-            std::pair<Drawing::Color, float> effectColor;
-            effectColor.first = Drawing::Color(parcel.ReadUint32());
-            effectColor.second = parcel.ReadFloat();
-
-            effectColors_.emplace_back(effectColor);
-        }
-
-        return true;
-    }
+    bool Marshalling(Parcel& parcel);
+    bool Unmarshalling(Parcel& parcel);
 };
 
 class GE_EXPORT GEXFlowLightSweepShader : public GEShader {

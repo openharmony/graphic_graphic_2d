@@ -3971,16 +3971,17 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     } else {
         lastVsyncTime = timestamp_;
     }
-    lastVsyncTime = nowTime - ((nowTime - lastVsyncTime) % vsyncPeriod);
+    lastVsyncTime = (uint64_t)nowTime - (((uint64_t)nowTime - lastVsyncTime) % (uint64_t)vsyncPeriod);
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
         ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, nowTime, lastVsyncTime, timestamp_);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && nowTime - timestamp_ > vsyncPeriod &&
-        lastFlushedDesiredPresentTimeStamp > lastVsyncTime - vsyncPeriod &&
-        lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
-        nowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
+    if (isNeedSingleFrameCompose && (uint64_t)nowTime - timestamp_ > (uint64_t)vsyncPeriod &&
+        (uint64_t)lastFlushedDesiredPresentTimeStamp > lastVsyncTime - (uint64_t)vsyncPeriod &&
+        (uint64_t)lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
+        (uint64_t)nowTime - lastVsyncTime <
+        (uint64_t)(REFRESH_PERIOD / 2)) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
         RS_LOGD("RSMainThread::CheckFastCompose fastcompose start"
             ", buffer late for %{public}" PRIu64, nowTime - lastVsyncTime);
@@ -4408,12 +4409,14 @@ void RSMainThread::UpdateRogSizeIfNeeded()
         if (displayNode == nullptr) {
             return;
         }
-        auto screenManager_ = CreateOrGetScreenManager();
-        if (screenManager_ == nullptr) {
-            return;
-        }
-        screenManager_->SetRogScreenResolution(
-            displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
+        RSHardwareThread::Instance().PostTask([displayNode]() {
+            auto screenManager = CreateOrGetScreenManager();
+            if (screenManager == nullptr) {
+                return;
+            }
+            screenManager->SetRogScreenResolution(
+                displayNode->GetScreenId(), displayNode->GetRogWidth(), displayNode->GetRogHeight());
+        });
     }
 }
 

@@ -66,6 +66,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
+    { "rsrecord_replay_speed", PlaybackSetSpeed },
+    { "rsrecord_replay_immediate", PlaybackSetImmediate },
 };
 
 void RSProfiler::Invoke(const std::vector<std::string>& line)

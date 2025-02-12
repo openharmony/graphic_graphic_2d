@@ -30,7 +30,6 @@ std::shared_ptr<GEXDotMatrixShader> GEXDotMatrixShader::CreateDynamicImpl(DotMat
         return nullptr;
     }
     std::shared_ptr<GEXDotMatrixShader> dmShader(static_cast<GEXDotMatrixShader*>(impl));
-    GE_LOGE("GEXDotMatrixShader::CreateDynamicImpl success");
     return dmShader;
 }
 

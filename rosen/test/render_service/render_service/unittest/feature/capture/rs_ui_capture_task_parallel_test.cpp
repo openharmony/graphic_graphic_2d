@@ -18,7 +18,6 @@
 #include <memory>
 #include <unistd.h>
 
-#include "rs_test_util.h"
 #include "surface_buffer_impl.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
@@ -33,12 +32,12 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_proxy_node.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/rs_test_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_test_util.h"
 
 using namespace testing::ext;
 

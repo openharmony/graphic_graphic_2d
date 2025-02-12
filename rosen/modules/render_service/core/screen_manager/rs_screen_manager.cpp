@@ -725,14 +725,13 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsy
             return;
         }
         mainThread->PostTask([this, vsyncEnabledScreenId, enabled]() {
-            std::lock_guard<std::mutex> lock(mutex_);
-            auto screensIt = screens_.find(vsyncEnabledScreenId);
-            if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            auto screen = GetScreen(vsyncEnabledScreenId);
+            if (screen == nullptr) {
                 RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
-                enabled, vsyncEnabledScreenId);
+                    enabled, vsyncEnabledScreenId);
                 return;
             }
-            screensIt->second->SetScreenVsyncEnabled(enabled);
+            screen->SetScreenVsyncEnabled(enabled);
         });
     });
 }
@@ -748,14 +747,13 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
 #ifdef RS_ENABLE_GPU
     vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
         RSHardwareThread::Instance().PostTask([this, vsyncEnabledScreenId, enabled]() {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto screensIt = screens_.find(vsyncEnabledScreenId);
-            if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            auto screen = GetScreen(vsyncEnabledScreenId);
+            if (screen == nullptr) {
                 RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
                     enabled, vsyncEnabledScreenId);
                 return;
             }
-            screensIt->second->SetScreenVsyncEnabled(enabled);
+            screen->SetScreenVsyncEnabled(enabled);
         });
     });
 #endif
@@ -1392,26 +1390,22 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
 
 uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screensIt->second->SetActiveMode(modeId);
+    return screen->SetActiveMode(modeId);
 }
 
 uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screensIt->second->SetScreenActiveRect(activeRect);
+    return screen->SetScreenActiveRect(activeRect);
 }
 
 int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1449,14 +1443,12 @@ int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width,
 
 int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return SCREEN_NOT_FOUND;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    screensIt->second->SetRogResolution(width, height);
+    screen->SetRogResolution(width, height);
     return SUCCESS;
 }
 
@@ -1969,14 +1961,14 @@ int32_t RSScreenManager::GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut
     return screensIt->second->GetScreenColorGamut(mode);
 }
 
-int32_t RSScreenManager::SetScreenColorGamutLocked(ScreenId id, int32_t modeIdx)
+int32_t RSScreenManager::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screensIt->second->SetScreenColorGamut(modeIdx);
+    return screen->SetScreenColorGamut(modeIdx);
 }
 
 int32_t RSScreenManager::SetScreenGamutMapLocked(ScreenId id, ScreenGamutMap mode)
@@ -2177,14 +2169,14 @@ int32_t RSScreenManager::GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorS
     return screensIt->second->GetScreenColorSpace(colorSpace);
 }
 
-int32_t RSScreenManager::SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
 {
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screensIt->second->SetScreenColorSpace(colorSpace);
+    return screen->SetScreenColorSpace(colorSpace);
 }
 
 int32_t RSScreenManager::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) const
@@ -2242,12 +2234,6 @@ int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenColorGamutLocked(id, mode);
-}
-
-int32_t RSScreenManager::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return SetScreenColorGamutLocked(id, modeIdx);
 }
 
 int32_t RSScreenManager::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
@@ -2327,12 +2313,6 @@ int32_t RSScreenManager::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceTy
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenColorSpaceLocked(id, colorSpace);
-}
-
-int32_t RSScreenManager::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return SetScreenColorSpaceLocked(id, colorSpace);
 }
 
 void RSScreenManager::MarkPowerOffNeedProcessOneFrame()
@@ -2442,6 +2422,16 @@ void RSScreenManager::SetScreenSwitchStatus(bool flag)
 bool RSScreenManager::IsScreenSwitching() const
 {
     return isScreenSwitching_;
+}
+
+std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId screenId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screenIt = screens_.find(screenId);
+    if (screenIt == screens_.end() || screenIt->second == nullptr) {
+        return nullptr;
+    }
+    return screenIt->second;
 }
 } // namespace impl
 

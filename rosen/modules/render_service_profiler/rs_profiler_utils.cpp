@@ -604,6 +604,9 @@ void Utils::FileSeek(FILE* file, int64_t offset, int origin)
 
 void Utils::FileRead(FILE* file, void* data, size_t size)
 {
+    if (size == 0) { // Avoid the frequent logging when size is zero
+        return;
+    }
     if (!data) {
         HRPE("FileRead: Data is null"); // NOLINT
         return;

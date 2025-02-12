@@ -18,7 +18,6 @@
 #include <memory>
 #include <unistd.h>
 
-#include "rs_test_util.h"
 #include "surface_buffer_impl.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task.h"
@@ -30,6 +29,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_extractor.h"
+#include "pipeline/rs_test_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"

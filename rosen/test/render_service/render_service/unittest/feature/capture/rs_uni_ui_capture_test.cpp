@@ -21,7 +21,7 @@
 #include "common/rs_singleton.h"
 #include "limit_number.h"
 
-#include "rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;

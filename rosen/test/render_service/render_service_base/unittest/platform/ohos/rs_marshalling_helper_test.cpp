@@ -316,6 +316,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest006, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    parcel.WriteInt32(0);
     parcel.WriteInt32(1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }

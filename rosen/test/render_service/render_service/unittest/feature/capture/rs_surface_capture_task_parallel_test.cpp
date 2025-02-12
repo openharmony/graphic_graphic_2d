@@ -20,7 +20,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;

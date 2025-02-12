@@ -25,6 +25,7 @@ group("test") {
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/drawable:unittest",
+    "render_service/unittest/feature:unittest",
     "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",
     "render_service/unittest/pipeline:unittest",
@@ -154,9 +155,6 @@ group("test") {
       "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
       "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
     ]
-  }
-  if (tp_feature_enable) {
-    deps += [ "render_service/unittest/touch_screen:unittest" ]
   }
 
   if (graphic_2d_feature_enable_rspipeline) {

@@ -31,7 +31,6 @@ std::shared_ptr<GEXFlowLightSweepShader> GEXFlowLightSweepShader::CreateDynamicI
         return nullptr;
     }
     std::shared_ptr<GEXFlowLightSweepShader> dmShader(static_cast<GEXFlowLightSweepShader*>(impl));
-    GE_LOGE("GEXFlowLightSweepShader::CreateDynamicImpl success");
     return dmShader;
 }
 

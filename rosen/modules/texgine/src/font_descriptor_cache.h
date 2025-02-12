@@ -36,15 +36,15 @@ public:
     void ClearFontFileCache();
     void Dump();
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
-        const int32_t& systemFontType, FontDescSharedPtr& result);
-    void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
+        int32_t systemFontType, FontDescSharedPtr& result);
+    void GetSystemFontFullNamesByType(int32_t systemFontType, std::unordered_set<std::string>& fontList);
     void CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName);
     void DeleteDynamicTypefaceFromCache(const std::string &familyName);
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
     bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
-    bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
+    bool ProcessSystemFontType(int32_t systemFontType, int32_t& fontType);
     bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
@@ -59,7 +59,10 @@ private:
     bool FilterSymbolicCache(bool symbolic, std::set<FontDescSharedPtr>& finishRet);
     bool IsDefault(FontDescSharedPtr desc);
     int32_t WeightAlignment(int32_t weight);
-
+    bool GetFontTypeFromParams(const std::string& fullName,
+        int32_t systemFontType, int32_t& fontType);
+    void ParserFontsByFontType(int32_t fontType);
+    
 private:
     TextEngine::FontParser parser_;
 

@@ -1238,12 +1238,15 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     Reset();
 
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
-    if (lastVoteInfo_ == resultVoteInfo && !voterTouchEffective_) {
-        return;
+    if (lastVoteInfo_ == resultVoteInfo) {
+        if (!voterTouchEffective_) {
+            return;
+        }
+    } else {
+        lastVoteInfo_ = resultVoteInfo;
+        HGM_LOGI("Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- %{public}s", curScreenStrategyId_.c_str(),
+            static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
     }
-    lastVoteInfo_ = resultVoteInfo;
-    HGM_LOGI("Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- %{public}s", curScreenStrategyId_.c_str(),
-        static_cast<int>(curScreenId_.load()), curRefreshRateMode_, resultVoteInfo.ToSimpleString().c_str());
 
     // max used here
     FrameRateRange finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};

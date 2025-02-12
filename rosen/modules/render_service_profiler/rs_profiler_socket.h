@@ -44,6 +44,8 @@ public:
     void AcceptClient();
 
     bool SendWhenReady(const void* data, size_t size);
+    int PollSend(int timeout);
+    int PollReceive(int timeout);
 
     size_t Available();
     bool Receive(void* data, size_t& size);
