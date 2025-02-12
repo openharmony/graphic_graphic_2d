@@ -223,6 +223,11 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSLRScaleEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};

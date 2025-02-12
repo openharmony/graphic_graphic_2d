@@ -860,17 +860,17 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
     return false;
 }
 
-BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,
+BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo,
     bool isProtected, GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
-    const auto width = isPhysical ? screenInfo.width : screenInfo.GetRotatedWidth();
-    const auto height = isPhysical ? screenInfo.height : screenInfo.GetRotatedHeight();
+    auto width = screenInfo.isSamplingOn ? screenInfo.phyWidth : screenInfo.width;
+    auto height = screenInfo.isSamplingOn ? screenInfo.phyHeight : screenInfo.height;
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
-    config.colorGamut = isPhysical ? colorGamut : static_cast<GraphicColorGamut>(screenInfo.colorGamut);
-    config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
+    config.colorGamut = colorGamut;
+    config.format = pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     if (isProtected) {
         config.usage |= BUFFER_USAGE_PROTECTED | BUFFER_USAGE_DRM_REDRAW; // for redraw frameBuffer mem reservation

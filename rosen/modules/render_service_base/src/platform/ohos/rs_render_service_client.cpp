@@ -600,6 +600,17 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
     return renderService->SetShowRefreshRateEnabled(enable);
 }
 
+int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("%{public}s: render service is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetPhysicalScreenResolution(id, width, height);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

@@ -2190,7 +2190,11 @@ void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerR
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
-    auto absRect = GetDstRect().IntersectRect(GetOldDirtyInSurface());
+    auto absRect = GetOldDirtyInSurface();
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr) {
+        absRect = absRect.IntersectRect(geoPtr->GetAbsRect());
+    }
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),

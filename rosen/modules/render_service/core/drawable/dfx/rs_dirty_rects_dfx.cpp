@@ -194,8 +194,8 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas)
     canvas.DetachBrush();
 }
 
-void RSDirtyRectsDfx::DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas,
-    RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType, int edgeWidth) const
+void RSDirtyRectsDfx::DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
+    const RSPaintStyle fillType, int edgeWidth, bool isTextOutsideRect) const
 {
     if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
         ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
@@ -238,7 +238,11 @@ void RSDirtyRectsDfx::DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas,
     canvas.DetachPen();
     canvas.DetachBrush();
     canvas.AttachBrush(Drawing::Brush());
-    canvas.DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
+    if (isTextOutsideRect) {
+        canvas.DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ - edgeWidth);
+    } else {
+        canvas.DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
+    }
     canvas.DetachBrush();
 }
 
@@ -331,6 +335,12 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canva
         rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
     }
     DrawDirtyRegionForDFX(canvas, rects);
+
+    // draw expanded dirtyregion with cyan color
+    constexpr int edgeWidth = 6;
+    for (const auto& subRect : expandedDirtyRegion_.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_CYAN, RSPaintStyle::STROKE, edgeWidth, true);
+    }
 
     // draw display dirtyregion with red color
     RectI dirtySurfaceRect = targetDrawable_.GetSyncDirtyManager()->GetDirtyRegion();

@@ -959,6 +959,33 @@ std::string RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid)
     return enable;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: WriteInterfaceToken error.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(width)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(height)) {
+        return WRITE_PARCEL_ERR;
+    }
+    auto code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+    if (Remote()->SendRequest(code, data, reply, option) != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: SendRequest error.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     MessageParcel data;

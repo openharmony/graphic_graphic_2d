@@ -1007,12 +1007,7 @@ void RSSurfaceRenderNodeDrawable::SetAlignedVisibleDirtyRegion(const Occlusion::
 
 void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(Occlusion::Region region)
 {
-    if (!GetRenderParams()) {
-        return;
-    }
-    auto visibleRegion = GetRenderParams()->GetVisibleRegion();
-    globalDirtyRegion_ = visibleRegion.And(region);
-    globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
+    globalDirtyRegion_ = region;
 }
 
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetGlobalDirtyRegion() const

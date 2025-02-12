@@ -17,6 +17,7 @@
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
 
+#include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
@@ -58,25 +59,23 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     return surface->GetImageSnapshot();
 }
 
+RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
+{
+    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    if (!renderNode) {
+        return nullptr;
+    }
+    RSRenderNodeDrawableAdapter* displayAdapter = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    if (!displayAdapter) {
+        return nullptr;
+    }
+    return static_cast<RSDisplayRenderNodeDrawable*>(displayAdapter);
+}
+
 void RSUniRenderUtilTest::SetUpTestCase() {}
 void RSUniRenderUtilTest::TearDownTestCase() {}
 void RSUniRenderUtilTest::SetUp() {}
 void RSUniRenderUtilTest::TearDown() {}
-
-/*
- * @tc.name: MergeDirtyHistoryInVirtual001
- * @tc.desc: Verify function MergeDirtyHistoryInVirtual while displayNode has no param
- * @tc.type: FUNC
- * @tc.require: issueIAE6P0
-*/
-HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, Function | SmallTest | Level2)
-{
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(drawable, 0);
-    ASSERT_EQ(drawable.renderParams_, nullptr);
-}
 
 /*
  * @tc.name: MergeDirtyHistoryInVirtual002
@@ -1594,5 +1593,64 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
     screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+}
+
+/**
+ * @tc.name: MergeDirtyHistory001
+ * @tc.desc: test MergeDirtyHistory
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryInVirtual001
+ * @tc.desc: test MergeDirtyHistoryInVirtual
+ * @tc.type: FUNC
+ * @tc.require: #IBIOQ4
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(*displayDrawable, bufferAge, screenInfo);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable = nullptr;
 }
 } // namespace OHOS::Rosen
