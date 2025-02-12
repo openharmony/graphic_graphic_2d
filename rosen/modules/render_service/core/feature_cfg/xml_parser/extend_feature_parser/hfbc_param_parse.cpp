@@ -64,6 +64,9 @@ int32_t HfbcParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNo
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("HfbcParamParse parse MultiParam fail");
         }
+        if (name == "HfbcDisable") {
+            HgmCore::Instance().SetHfbcConfigMap(hfbcParam_->GetHfbcConfigMap());
+        }
     }
     HgmCore::Instance().SetHfbcConfigMap(hfbcParam_->GetHfbcConfigMap());
     return PARSE_EXEC_SUCCESS;
@@ -86,7 +89,8 @@ int32_t HfbcParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string 
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        RS_LOGI("%{public}s: appName:%{public}s, value:%{public}s", __func__, appName.c_str(), val.c_str());
+        RS_LOGI("HfbcParamParse %{public}s: appName:%{public}s, value:%{public}s",
+            __func__, appName.c_str(), val.c_str());
         if (name == "HfbcDisable") {
             hfbcParam_->SetHfbcConfigForApp(appName, val);
         } else {
