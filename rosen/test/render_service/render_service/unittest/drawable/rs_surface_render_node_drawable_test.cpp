@@ -369,15 +369,20 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->skipLayerIds_.insert(1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    surfaceParams->snapshotSkipLayerIds_.insert(1);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->securityLayerIds_.insert(1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(surfaceParams->HasSkipLayer());
+    ASSERT_TRUE(surfaceParams->HasSnapshotSkipLayer());
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     surfaceParams->isProtectedLayer_ = true;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->isSkipLayer_ = true;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    surfaceParams->isSnapshotSkipLayer_ = true;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->isSecurityLayer_ = true;
     CaptureParam param;

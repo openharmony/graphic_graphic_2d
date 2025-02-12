@@ -878,7 +878,7 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
     auto hasGeneralSpecialLayer = params.HasSecurityLayer() || params.HasSkipLayer() ||
         params.HasProtectedLayer() || params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        hasGeneralSpecialLayer |= uniRenderThread.IsCurtainScreenOn();
+        hasGeneralSpecialLayer |= (params.HasSnapshotSkipLayer() || uniRenderThread.IsCurtainScreenOn());
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }

@@ -126,6 +126,13 @@ void SurfaceNodeCommandHelper::SetSkipLayer(RSContext& context, NodeId id, bool 
     }
 }
 
+void SurfaceNodeCommandHelper::SetSnapshotSkipLayer(RSContext& context, NodeId id, bool isSnapshotSkipLayer)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetSnapshotSkipLayer(isSnapshotSkipLayer);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, bool hasFingerprint)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

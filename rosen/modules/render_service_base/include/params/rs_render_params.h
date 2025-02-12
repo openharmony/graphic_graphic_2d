@@ -170,6 +170,11 @@ public:
         return isSkipLayer_;
     }
 
+    inline bool IsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
+
     inline bool IsLayerDirty() const
     {
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
@@ -366,6 +371,7 @@ private:
     bool drawingCacheIncludeProperty_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;

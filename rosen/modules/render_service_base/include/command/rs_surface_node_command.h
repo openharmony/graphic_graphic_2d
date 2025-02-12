@@ -36,6 +36,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
     SURFACE_NODE_SET_SECURITY_LAYER,
     SURFACE_NODE_SET_SKIP_LAYER,
+    SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
     SURFACE_NODE_SET_FINGERPRINT,
     SURFACE_NODE_SET_COLOR_SPACE,
     SURFACE_NODE_UPDATE_SURFACE_SIZE,
@@ -80,6 +81,7 @@ public:
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
     static void SetLeashPersistentId(RSContext& context, NodeId nodeId, uint64_t leashPersistentId);
     static void SetSkipLayer(RSContext& context, NodeId nodeId, bool isSkipLayer);
+    static void SetSnapshotSkipLayer(RSContext& context, NodeId nodeId, bool isSnapshotSkipLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
@@ -129,6 +131,8 @@ ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER, SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer, ARG(SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetFingerprint,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FINGERPRINT, SurfaceNodeCommandHelper::SetFingerprint, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,

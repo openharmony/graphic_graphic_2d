@@ -390,6 +390,19 @@ HWTEST_F(RSSurfaceNodeTest, SetLeashPersistId001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSKipLayer001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSnapshotSkipLayer001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSnapshotSkipLayer(true);
+    EXPECT_TRUE(surfaceNode->GetSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: SetSkipLayer002
  * @tc.desc:
  * @tc.type:FUNC
@@ -403,6 +416,19 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipLayer002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayer002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSnapshotSkipLayer002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSnapshotSkipLayer(false);
+    EXPECT_FALSE(surfaceNode->GetSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: GetSkipLayer001
  * @tc.desc:
  * @tc.type:FUNC
@@ -412,6 +438,18 @@ HWTEST_F(RSSurfaceNodeTest, GetSkipLayer001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_FALSE(surfaceNode->GetSkipLayer());
+}
+
+/**
+ * @tc.name: GetSnapshotSkipLayer001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, GetSnapshotSkipLayer001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    EXPECT_FALSE(surfaceNode->GetSnapshotSkipLayer());
 }
 
 /**

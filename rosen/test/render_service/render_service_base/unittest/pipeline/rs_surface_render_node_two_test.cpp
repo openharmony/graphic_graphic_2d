@@ -165,6 +165,28 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSkipInfoToFirstLevelNode001, TestSize.L
 }
 
 /**
+ * @tc.name: SyncSnapshotSkipInfoToFirstLevelNodeTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueIA4VTS
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSnapshotSkipInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    renderNode->SetProtectedLayer(true);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNode->GetId() != 0);
+    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
+    renderNode->SetProtectedLayer(false);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_TRUE(renderNodeSecond->GetId() == 0);
+    EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
+    renderNodeSecond->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNodeSecond->snapshotSkipLayerIds_.size() == 0);
+}
+
+/**
  * @tc.name: SyncProtectedInfoToFirstLevelNodeTest
  * @tc.desc: function test
  * @tc.type:FUNC

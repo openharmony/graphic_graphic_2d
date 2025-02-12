@@ -832,6 +832,9 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
         out += ", SecurityLayer: " + std::to_string(surfaceNode->GetSecurityLayer());
         out += ", skipLayer: " + std::to_string(surfaceNode->GetSkipLayer());
+        if (surfaceNode->GetSnapshotSkipLayer()) {
+            out += ", snapshotSkipLayer: " + std::to_string(surfaceNode->GetSnapshotSkipLayer());
+        }
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
