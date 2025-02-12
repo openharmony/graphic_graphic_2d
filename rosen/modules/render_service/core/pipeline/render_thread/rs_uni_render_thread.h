@@ -126,7 +126,7 @@ public:
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
-    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache);
+    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen = false);
 
     void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();

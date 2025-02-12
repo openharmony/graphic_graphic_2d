@@ -417,7 +417,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RS_LOGD("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%{public}" PRIu64 "]", name_.c_str(),
         surfaceParams->GetId());
-    
+
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
@@ -1020,6 +1020,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
+    if (threadId == RSUniRenderThread::Instance().GetTid()) {
+        params.screenId = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetScreenInfo().id;
+    }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();

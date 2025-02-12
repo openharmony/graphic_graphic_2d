@@ -700,7 +700,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
-            params.acquireFence, params.threadIndex);
+            params.acquireFence, params.threadIndex, params.screenId);
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
@@ -873,6 +873,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
+            RSMainThread::Instance()->AddToUnmappedMirrorCacheSet(bufferId);
         };
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -931,14 +932,14 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
+void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (vkImageManager_ != nullptr) {
             for (auto id : unmappedCache) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id, isMatchVirtualScreen);
             }
         }
     }
@@ -951,6 +952,18 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
         }
     }
 #endif // RS_ENABLE_EGLIMAGE
+}
+
+void RSBaseRenderEngine::ClearVirtualScreenCacheSet()
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (vkImageManager_ != nullptr) {
+            vkImageManager_->UnMapAllVkImageVirtualScreenCache();
+        }
+    }
+#endif // RS_ENABLE_VK
 }
 } // namespace Rosen
 } // namespace OHOS

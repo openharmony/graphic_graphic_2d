@@ -139,6 +139,14 @@ RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(std::shared_ptr<const R
       syncDirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {}
 
+RSDisplayRenderNodeDrawable::~RSDisplayRenderNodeDrawable()
+{
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (renderEngine) {
+        renderEngine->ClearVirtualScreenCacheSet();
+    }
+}
+
 RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
     return new RSDisplayRenderNodeDrawable(std::move(node));
@@ -942,6 +950,8 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
         return;
     }
 
+    const auto screenInfo = uniParam->GetScreenInfo(); // record screenInfo
+    uniParam->SetScreenInfo(params.GetScreenInfo());
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     //if specialLayer is visible and no CacheImg
     if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
@@ -951,6 +961,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     } else {
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
+    uniParam->SetScreenInfo(screenInfo); // reset screenInfo
 }
 
 void RSDisplayRenderNodeDrawable::SetScreenRotationForPointLight(RSDisplayRenderParams &params)
