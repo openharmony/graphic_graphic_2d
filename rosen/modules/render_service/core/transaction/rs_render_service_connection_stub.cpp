@@ -1930,11 +1930,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-                RS_LOGW("SET_WINDOW_CONTAINER invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", nodeId, callingPid);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             SetWindowContainer(nodeId, isEnabled);
             break;
         }
