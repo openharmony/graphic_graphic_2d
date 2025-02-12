@@ -276,6 +276,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
         nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum_--;
+        RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
         return;
     }
     if (nodeDrawable->UseDmaBuffer()) {

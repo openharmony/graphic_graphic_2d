@@ -330,6 +330,7 @@ void RSUifirstManager::ProcessDoneNode()
             it = subthreadProcessingNode_.erase(it);
             continue;
         }
+        RS_LOGI("erase processingNode %{public}" PRIu64, id);
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
         ++it;
@@ -817,6 +818,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
         }
         sortedSubThreadNodeIds_.emplace_back(id);
     }
+    RS_TRACE_NAME_FMT("SetNodePriorty result [%zu] pendingNode [%zu]", result.size(), pendingNode.size());
 }
 
 void RSUifirstManager::SortSubThreadNodesPriority()
@@ -824,7 +826,8 @@ void RSUifirstManager::SortSubThreadNodesPriority()
     sortedSubThreadNodeIds_.clear();
     SetNodePriorty(sortedSubThreadNodeIds_, pendingPostNodes_);
     SetNodePriorty(sortedSubThreadNodeIds_, pendingPostCardNodes_);
-
+    RS_LOGI("SetNodePriorty result [%{public}zu] pendingNode [%{public}zu] pendingCardNode [%{public}zu]",
+        sortedSubThreadNodeIds_.size(), pendingPostNodes_.size(), pendingPostCardNodes_.size());
     sortedSubThreadNodeIds_.sort([this](const auto& first, const auto& second) -> bool {
         auto drawable1 = GetSurfaceDrawableByID(first);
         auto drawable2 = GetSurfaceDrawableByID(second);
@@ -861,6 +864,7 @@ void RSUifirstManager::PostUifistSubTasks()
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {
+        RS_TRACE_NAME_FMT("PostUifistSubTasks %zu", sortedSubThreadNodeIds_.size());
         for (auto& id : sortedSubThreadNodeIds_) {
             PostSubTask(id);
         }
