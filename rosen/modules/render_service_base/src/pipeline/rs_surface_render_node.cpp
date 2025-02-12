@@ -2667,7 +2667,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         firstLevelNodeId = GetId();
     } else if (IsAppWindow()) {
         firstLevelNodeId = GetId();
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
+        auto parentNode = GetParent().lock();
         if (parentNode && parentNode->GetFirstLevelNodeId() != INVALID_NODEID) {
             firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
