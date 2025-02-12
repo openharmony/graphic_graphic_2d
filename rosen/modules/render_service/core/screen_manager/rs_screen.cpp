@@ -280,6 +280,16 @@ RectI RSScreen::GetActiveRect() const
     return activeRect_;
 }
 
+RectI RSScreen::GetMaskRect() const
+{
+    return maskRect_;
+}
+
+RectI RSScreen::GetReviseRect() const
+{
+    return reviseRect_;
+}
+
 bool RSScreen::IsEnable() const
 {
     if (id_ == INVALID_SCREEN_ID) {
@@ -356,18 +366,51 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    
-    if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
-        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, "
-            "activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+    if (activeRect.w <= 0 || activeRect.w > width_ || activeRect.h <= 0 || activeRect.h > height_ ||
+        activeRect.x < 0 || activeRect.x > width_ || activeRect.y < 0 || activeRect.y > height_) {
+        RS_LOGW("RSScreen %{public}s failed:, for activeRect: "
+            "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
             __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-        return StatusCode::HDI_ERROR;
+        return StatusCode::INVALID_ARGUMENTS;
     }
-
     activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     RS_LOGI("RSScreen %{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    GraphicIRect reviseRect = activeRect;
+    if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect)) {
+        RS_LOGW("RSScreen CalculateMaskRect failed or not need");
+    }
+    reviseRect_ = RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+    if (hdiScreen_->SetScreenActiveRect(reviseRect) < 0) {
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, activeRect with revise:"
+            "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+            __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+        return StatusCode::HDI_ERROR;
+    }
+    RS_LOGI("RSScreen %{public}s success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
     return StatusCode::SUCCESS;
+}
+
+bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
+{
+    if (!RSSystemProperties::IsSuperFoldDisplay()) {
+        RS_LOGE("RSScreen device is not super fold display");
+        return false;
+    }
+    if (activeRect.w > 0 && activeRect.h > 0) {
+        // neet tobe configuration item
+        static RectI rect[2] = {{0, 0, 0, 0}, {0, 1008, 2232, 128}};
+        maskRect_ = (activeRect.h == height_) ? rect[0] : rect[1];
+        // Take the minimum rectangular area containing two rectangles
+        reviseRect.x = std::clamp(activeRect.x, 0, std::min(activeRect.x, maskRect_.left_));
+        reviseRect.y = std::clamp(activeRect.y, 0, std::min(activeRect.y, maskRect_.top_));
+        reviseRect.w = std::max(activeRect.x + activeRect.w, maskRect_.left_ + maskRect_.width_) - reviseRect.x;
+        reviseRect.h = std::max(activeRect.y + activeRect.h, maskRect_.top_ + maskRect_.height_) - reviseRect.y;
+        RS_LOGI("RSScreen %{public}s success, maskRect: %{public}s", __func__, maskRect_.ToString().c_str());
+        return true;
+    }
+    return false;
 }
 
 void RSScreen::SetRogResolution(uint32_t width, uint32_t height)

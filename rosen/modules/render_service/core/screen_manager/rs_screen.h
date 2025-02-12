@@ -61,6 +61,9 @@ public:
     virtual float GetSamplingTranslateY() const = 0;
     virtual float GetSamplingScale() const = 0;
     virtual RectI GetActiveRect() const = 0;
+    virtual RectI GetMaskRect() const = 0;
+    virtual RectI GetReviseRect() const = 0;
+    virtual bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
     virtual uint32_t SetActiveMode(uint32_t modeId) = 0;
@@ -170,6 +173,9 @@ public:
     float GetSamplingTranslateY() const override;
     float GetSamplingScale() const override;
     RectI GetActiveRect() const override;
+    RectI GetMaskRect() const override;
+    RectI GetReviseRect() const override;
+    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
     uint32_t SetActiveMode(uint32_t modeId) override;
@@ -280,7 +286,9 @@ private:
     float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
-    RectI activeRect_;
+    RectI activeRect_ = {};
+    RectI maskRect_ = {};
+    RectI reviseRect_ = {};
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;
