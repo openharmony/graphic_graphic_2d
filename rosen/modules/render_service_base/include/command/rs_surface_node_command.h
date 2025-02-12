@@ -197,10 +197,10 @@ ADD_COMMAND(
     RSSurfaceNodeSetApiCompatibleVersion, ARG(SURFACE_NODE, SURFACE_NODE_SET_API_COMPATIBLE_VERSION,
                                               SurfaceNodeCommandHelper::SetApiCompatibleVersion, NodeId, uint32_t))
 ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
-    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
+    ARG(SURFACE_NODE, SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::AttachToWindowContainer, NodeId, ScreenId))
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
-    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
+    ARG(SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
 } // namespace Rosen
 } // namespace OHOS

@@ -439,7 +439,6 @@ private:
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
     friend class DisplayNodeCommandHelper;
-
     int64_t lastRefreshTime_ = 0;
 
     bool curZoomState_ = false;

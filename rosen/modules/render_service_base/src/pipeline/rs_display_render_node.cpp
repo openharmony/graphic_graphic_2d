@@ -491,20 +491,6 @@ bool RSDisplayRenderNode::IsZoomStateChange() const
     return preZoomState_ != curZoomState_;
 }
 
-void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
-{
-    screenStatusNotifyTask_ = task;
-}
-
-void RSDisplayRenderNode::NotifyScreenNotSwitching()
-{
-    if (screenStatusNotifyTask_) {
-        screenStatusNotifyTask_(false);
-        ROSEN_LOGI("RSDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus true");
-        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
-    }
-}
-
 void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)
 {
     if (auto oldContainer = std::exchange(windowContainer_, container)) {

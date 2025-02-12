@@ -2185,7 +2185,7 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
                 displayNode->SetWindowContainer(value ? node : nullptr);
             } else {
                 RS_LOGE("RSRenderServiceConnection::SetWindowContainer displayNode is nullptr, nodeId: %{public}"
-                    PRIu64, displayNode->GetId());
+                    PRIu64, displayNodeId);
             }
         } else {
             RS_LOGE("RSRenderServiceConnection::SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
