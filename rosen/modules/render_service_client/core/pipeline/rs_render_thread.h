@@ -142,6 +142,9 @@ private:
     void Render();
     void SendCommands();
     void ReleasePixelMapInBackgroundThread();
+#ifdef CROSS_PLATFORM
+    void PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds);
+#endif
 
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;
