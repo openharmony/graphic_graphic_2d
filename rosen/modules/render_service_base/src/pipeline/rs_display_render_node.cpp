@@ -33,14 +33,14 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
-    RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
+    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", screenid:%{public}" PRIu64, id, screenId_);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
-    RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
+    RS_LOGI("RSScreen RSDisplayRenderNode dtor id:%{public}" PRIu64 ", screenId:%{public}" PRIu64, GetId(), screenId_);
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
