@@ -125,6 +125,9 @@ public:
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
 
+    bool IsRotationFinished() const;
+    void SetRotationFinished(bool finished);
+
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
 
@@ -194,6 +197,7 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
+    bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;

@@ -771,7 +771,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             bool isOpDropped = uniParam->IsOpDropped();
             bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
             bool needOffscreen = params->GetNeedOffscreen() || isHdrOn || isScRGBEnable || screenInfo.isSamplingOn;
-            if (params->IsRotationChanged() && !needOffscreen) {
+            if (params->IsRotationFinished()) {
                 CalculateTranslationForWallpaper();
             }
             if (params->GetNeedOffscreen()) {

@@ -81,6 +81,20 @@ bool RSDisplayRenderParams::IsRotationChanged() const
     return isRotationChanged_;
 }
 
+bool RSDisplayRenderParams::IsRotationFinished() const
+{
+    return isRotationFinished_;
+}
+
+void RSDisplayRenderParams::SetRotationFinished(bool finished)
+{
+    if (isRotationFinished_ == finished) {
+        return;
+    }
+    isRotationFinished_ = finished;
+    needSync_ = true;
+}
+
 void RSDisplayRenderParams::SetFingerprint(bool hasFingerprint)
 {
     if (hasFingerprint_ == hasFingerprint) {
@@ -204,6 +218,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->needOffscreen_ = needOffscreen_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
+    targetDisplayParams->isRotationFinished_ = isRotationFinished_;
     targetDisplayParams->hasFingerprint_ = hasFingerprint_;
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
