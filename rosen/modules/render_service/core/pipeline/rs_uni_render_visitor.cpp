@@ -1063,7 +1063,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
     PrepareForUIFirstNode(node);
     PrepareForCrossNode(node);
-    node.UpdateInfoForClonedNode();
+    node.UpdateInfoForClonedNode(clonedSourceNodeId_);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
@@ -1081,13 +1081,18 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
 bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
 {
-    if (!node.IsCloneNode()) {
+    if (!node.IsCloneNode() || !node.IsLeashOrMainWindow()) {
         return false;
     }
+    RS_LOGD("RSUniRenderVisitor::PrepareForCloneNode %{public}s is cloneNode", node.GetName().c_str());
+    node.SetIsClonedNodeOnTheTree(false);
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto clonedNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(node.GetClonedNodeId());
     if (clonedNode == nullptr) {
         RS_LOGE("RSUniRenderVisitor::PrepareForCloneNode clonedNode is nullptr");
+        return false;
+    }
+    if (!clonedNode->IsMainWindowType()) {
         return false;
     }
     auto clonedNodeRenderDrawable = clonedNode->GetRenderDrawable();
@@ -1095,6 +1100,7 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::PrepareForCloneNode clonedNodeRenderDrawable is nullptr");
         return false;
     }
+    node.SetIsClonedNodeOnTheTree(clonedNode->IsOnTheTree());
     clonedSourceNodeId_ = node.GetClonedNodeId();
     node.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
     node.UpdateRenderParams();

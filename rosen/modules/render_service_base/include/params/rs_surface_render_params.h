@@ -102,6 +102,10 @@ public:
     {
         return alpha_;
     }
+    bool IsClonedNodeOnTheTree() const
+    {
+        return isClonedNodeOnTheTree_;
+    }
     bool IsCrossNode() const
     {
         return isCrossNode_;
@@ -594,6 +598,7 @@ private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
 
     float alpha_ = 0;
+    bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
     bool clonedSourceNode_ = false;

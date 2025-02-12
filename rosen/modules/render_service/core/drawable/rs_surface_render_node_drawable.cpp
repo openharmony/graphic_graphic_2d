@@ -1056,6 +1056,13 @@ bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
         RS_LOGD("RSSurfaceRenderNodeDrawable::DrawCloneNode clonedNodeRenderDrawable is null");
         return false;
     }
+    if (!surfaceParams.IsClonedNodeOnTheTree()) {
+        RS_LOGI("RSSurfaceRenderNodeDrawable::DrawCloneNode clonedNode of %{public}s isn't on the tree",
+            name_.c_str());
+        clonedNodeRenderDrawable->drawWindowCache_.ClearCache();
+        return false;
+    }
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawCloneNode Draw cloneNode %s", name_.c_str());
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);

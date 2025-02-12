@@ -372,7 +372,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetClonedNodeRenderDrawable, TestSize.Level2
 {
     RSSurfaceRenderParams params(117);
     auto clonedNodeRenderDrawable = params.GetClonedNodeRenderDrawable();
-    EXPECT_FALSE(clonedNodeRenderDrawable.expired());
+    EXPECT_TRUE(clonedNodeRenderDrawable.expired());
 }
 
 /**
@@ -412,5 +412,18 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetIsCloned, TestSize.Level2)
     RSSurfaceRenderParams params(120);
     params.SetIsCloned(true);
     EXPECT_TRUE(params.clonedSourceNode_);
+}
+
+/**
+ * @tc.name: isClonedNodeOnTheTree
+ * @tc.desc: Test function isClonedNodeOnTheTree
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, isClonedNodeOnTheTree, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(121);
+    auto result = params.IsClonedNodeOnTheTree();
+    EXPECT_FALSE(result);
 }
 } // namespace OHOS::Rosen
