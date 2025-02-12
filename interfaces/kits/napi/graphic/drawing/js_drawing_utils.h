@@ -26,6 +26,7 @@
 #include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#include "text/font.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
 #include "utils/point.h"
@@ -178,6 +179,7 @@ private:
     } while (0)
 
 namespace Drawing {
+constexpr char THEME_FONT[] = "OhosThemeFont";
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -467,6 +469,8 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 }
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
+
+std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 

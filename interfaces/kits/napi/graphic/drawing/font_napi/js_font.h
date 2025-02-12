@@ -65,6 +65,8 @@ public:
     static napi_value GetHinting(napi_env env, napi_callback_info info);
     static napi_value GetEdging(napi_env env, napi_callback_info info);
     static napi_value TextToGlyphs(napi_env env, napi_callback_info info);
+    static napi_value SetThemeFontFollowed(napi_env env, napi_callback_info info);
+    static napi_value IsThemeFontFollowed(napi_env env, napi_callback_info info);
 
     std::shared_ptr<Font> GetFont();
     void SetFont(std::shared_ptr<Font> font);
@@ -100,6 +102,8 @@ private:
     napi_value OnGetHinting(napi_env env, napi_callback_info info);
     napi_value OnGetEdging(napi_env env, napi_callback_info info);
     napi_value OnTextToGlyphs(napi_env env, napi_callback_info info);
+    napi_value OnSetThemeFontFollowed(napi_env env, napi_callback_info info);
+    napi_value OnIsThemeFontFollowed(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Font> m_font = nullptr;

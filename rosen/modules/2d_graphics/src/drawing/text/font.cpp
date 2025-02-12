@@ -227,6 +227,16 @@ int Font::CountText(const void* text, size_t byteLength, TextEncoding encoding) 
 {
     return fontImpl_->CountText(text, byteLength, encoding);
 }
+
+void Font::SetThemeFontFollowed(bool followed)
+{
+    themeFontFollowed_ = followed;
+}
+
+bool Font::IsThemeFontFollowed() const
+{
+    return themeFontFollowed_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -58,6 +58,8 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
     DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
     DECLARE_NAPI_FUNCTION("textToGlyphs", JsFont::TextToGlyphs),
+    DECLARE_NAPI_FUNCTION("setThemeFontFollowed", JsFont::SetThemeFontFollowed),
+    DECLARE_NAPI_FUNCTION("isThemeFontFollowed", JsFont::IsThemeFontFollowed),
 };
 
 napi_value JsFont::Init(napi_env env, napi_value exportObj)
@@ -104,7 +106,7 @@ napi_value JsFont::Constructor(napi_env env, napi_callback_info info)
     }
 
     std::shared_ptr<Font> font = std::make_shared<Font>();
-    font->SetTypeface(JsTypeface::LoadZhCnTypeface());
+    font->SetTypeface(JsTypeface::GetZhCnTypeface());
     JsFont *jsFont = new JsFont(font);
 
     status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
@@ -328,6 +330,18 @@ napi_value JsFont::TextToGlyphs(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnTextToGlyphs(env, info) : nullptr;
 }
 
+napi_value JsFont::SetThemeFontFollowed(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnSetThemeFontFollowed(env, info) : nullptr;
+}
+
+napi_value JsFont::IsThemeFontFollowed(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnIsThemeFontFollowed(env, info) : nullptr;
+}
+
 napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
@@ -493,7 +507,9 @@ napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
     }
 
     std::unique_ptr<float[]> widthPtr = std::make_unique<float[]>(fontSize);
-    m_font->GetWidths(glyphPtr.get(), fontSize, widthPtr.get());
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    realFont->GetWidths(glyphPtr.get(), fontSize, widthPtr.get());
     napi_value widthJsArray;
     napi_status status = napi_create_array(env, &widthJsArray);
     if (status != napi_ok) {
@@ -542,7 +558,9 @@ napi_value JsFont::OnGetMetrics(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     FontMetrics metrics;
-    m_font->GetMetrics(&metrics);
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    realFont->GetMetrics(&metrics);
     return GetFontMetricsAndConvertToJsValue(env, &metrics);
 }
 
@@ -604,7 +622,9 @@ napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info inf
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Parameter verification failed. Input parameter0 should be single character.");
     }
-    return GetDoubleAndConvertToJsValue(env, m_font->MeasureSingleCharacter(unicode));
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    return GetDoubleAndConvertToJsValue(env, realFont->MeasureSingleCharacter(unicode));
 }
 
 napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
@@ -631,7 +651,9 @@ napi_value JsFont::OnMeasureText(napi_env env, napi_callback_info info)
             "Parameter verification failed. The TextEncoding input must be valid.");
     }
 
-    double textSize = m_font->MeasureText(text.c_str(), text.length(), TextEncoding);
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    double textSize = realFont->MeasureText(text.c_str(), text.length(), TextEncoding);
     return GetDoubleAndConvertToJsValue(env, textSize);
 }
 
@@ -719,7 +741,9 @@ napi_value JsFont::OnCountText(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    int32_t textSize = m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    int32_t textSize = realFont->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
     return CreateJsNumber(env, textSize);
 }
 
@@ -817,7 +841,9 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    uint32_t glyphCount = static_cast<uint32_t>(m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    uint32_t glyphCount = static_cast<uint32_t>(realFont->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
     if (argc == ARGC_TWO) {
         uint32_t inputCount = 0;
         GET_UINT32_PARAM(ARGC_ONE, inputCount);
@@ -827,7 +853,7 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
     }
 
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphCount);
-    m_font->TextToGlyphs(text.c_str(), text.length(), TextEncoding::UTF8, glyphPtr.get(), glyphCount);
+    realFont->TextToGlyphs(text.c_str(), text.length(), TextEncoding::UTF8, glyphPtr.get(), glyphCount);
 
     napi_value glyphJsArray;
     napi_status status = napi_create_array(env, &glyphJsArray);
@@ -850,6 +876,34 @@ std::shared_ptr<Font> JsFont::GetFont()
 void JsFont::SetFont(std::shared_ptr<Font> font)
 {
     m_font = font;
+}
+
+napi_value JsFont::OnSetThemeFontFollowed(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnSetThemeFontFollowed font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    bool followed = false;
+    GET_BOOLEAN_PARAM(ARGC_ZERO, followed);
+
+    m_font->SetThemeFontFollowed(followed);
+    return nullptr;
+}
+
+napi_value JsFont::OnIsThemeFontFollowed(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnIsThemeFontFollowed font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool followed = m_font->IsThemeFontFollowed();
+    return CreateJsValue(env, followed);
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
