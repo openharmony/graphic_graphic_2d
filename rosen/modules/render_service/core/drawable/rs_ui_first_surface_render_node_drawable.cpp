@@ -368,6 +368,7 @@ void RSSurfaceRenderNodeDrawable::UpdateBackendTexture()
 {
     RS_TRACE_NAME("RSRenderNodeDrawable::UpdateBackendTexture()");
     if (cacheSurface_ == nullptr) {
+        RS_LOGE("UpdateBackendTexture cacheSurface is nullptr");
         return;
     }
     cacheBackendTexture_ = cacheSurface_->GetBackendTexture();
