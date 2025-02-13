@@ -54,6 +54,10 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 
+#ifdef USE_GLFW_WINDOW
+#include <glfw_render_context.h>
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSRenderThreadVisitor::RSRenderThreadVisitor()
@@ -378,8 +382,16 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     drawCmdListVector_.clear();
     curDirtyManager_ = node.GetDirtyManager();
     const auto& property = node.GetRenderProperties();
+#ifdef USE_GLFW_WINDOW
+    int32_t glfwWidth = 0;
+    int32_t glfwHeight = 0;
+    GlfwRenderContext::GetGlobal()->GetFrameBufferSize(glfwWidth, glfwHeight);
+    const float bufferWidth = static_cast<float>(glfwWidth);
+    const float bufferHeight = static_cast<float>(glfwHeight);
+#else
     const float bufferWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
     const float bufferHeight = node.GetSuggestedBufferHeight() * property.GetScaleY();
+#endif
     // node's surface size already check, so here we do not need to check return
     // attention: currently surfaceW/H are float values transformed into int implicitly
     (void)curDirtyManager_->SetSurfaceSize(bufferWidth, bufferHeight);
