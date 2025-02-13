@@ -265,6 +265,8 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_RECENTS, // Enter recents only for phone, end with EXIT_RECENTS instead of OTHERS
     EXIT_RECENTS, // Exit recents only for phone
     LOCKSCREEN_TO_LAUNCHER, // Enter unlock screen for pc scene
+    ENTER_MIN_WINDOW, // Enter the window minimization state
+    RECOVER_MIN_WINDOW, // Recover minimized window
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
