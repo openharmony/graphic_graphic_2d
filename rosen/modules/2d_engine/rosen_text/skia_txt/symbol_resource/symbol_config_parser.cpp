@@ -54,19 +54,19 @@ const std::unordered_map<std::string, RSAnimationType> ANIMATIONS_TYPES = {
     {"pulse", RSAnimationType::PULSE_TYPE},
     {"replace_appear", RSAnimationType::REPLACE_APPEAR_TYPE},
     {"replace_disappear", RSAnimationType::REPLACE_DISAPPEAR_TYPE}
-}
+};
 
 const std::unordered_map<std::string, RSDrawing::DrawingCurveType> CURVE_TYPES = {
     {"spring", RSDrawing::DrawingCurveType::SPRING},
     {"linear", RSDrawing::DrawingCurveType::LINEAR},
     {"friction", RSDrawing::DrawingCurveType::FRICTION},
     {"sharp", RSDrawing::DrawingCurveType::SHARP}
-}
+};
 
-const std::unordered_map<std::string, SymbolRenderingStrategy> RENDER_STRATEGY = {
-    {"monochrome", SymbolRenderingStrategy::SINGLE},
-    {"multicolor", SymbolRenderingStrategy::MULTIPLE_COLOR},
-    {"hierarchical", SymbolRenderingStrategy::MULTIPLE_OPACITY},
+const std::unordered_map<std::string, RSSymbolRenderingStrategy> RENDER_STRATEGY = {
+    {"monochrome", RSSymbolRenderingStrategy::SINGLE},
+    {"multicolor", RSSymbolRenderingStrategy::MULTIPLE_COLOR},
+    {"hierarchical", RSSymbolRenderingStrategy::MULTIPLE_OPACITY},
 };
 };
 
@@ -78,7 +78,7 @@ bool SymbolConfigParser::ParseSymbolLayersGrouping(const Json::Value& root,
     if (!CheckSymbolLayersIsVaild(root)) {
         return false;
     }
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[SYMBOL_LAYERS_GROUPING][i].isObject()) {
             continue;
         }
@@ -105,9 +105,9 @@ void SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const Json::V
     nativeGlyphId = root[key].asInt();
 }
 
-void SymbolConfigParser::ParseComponets(const Json::Value& root, std::vector<size_t>& components)
+void SymbolConfigParser::ParseComponets(const Json::Value& root, std::vector<uint32_t>& components)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isInt()) {
             continue;
         }
@@ -124,9 +124,9 @@ void SymbolConfigParser::SymbolGlyphCase(const char* key, const Json::Value& roo
     symbolLayersGroups.symbolGlyphId = root[key].asInt();
 }
 
-void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::vector<size_t>>& layers)
+void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::vector<uint32_t>>& layers)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
         }
@@ -137,7 +137,7 @@ void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::v
         if (!root[i][COMPONENTS].isArray()) {
             continue;
         }
-        std::vector<size_t> components;
+        std::vector<uint32_t> components;
         ParseComponets(root[i][COMPONENTS], components);
         layers.push_back(components);
     }
@@ -164,12 +164,12 @@ void SymbolConfigParser::ParseOneSymbolRenderCase(const char* key, const Json::V
 void SymbolConfigParser::ParseRenderModes(const Json::Value& root,
     std::map<RSSymbolRenderingStrategy,std::vector<RSRenderGroup>>& renderModesGroups)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
         }
 
-        SymbolRenderingStrategy renderingStrategy;
+        RSSymbolRenderingStrategy renderingStrategy;
         if (root[i].isMember(MODE)) {
             if (!root[i][MODE].isString()) {
                 continue;
@@ -178,10 +178,10 @@ void SymbolConfigParser::ParseRenderModes(const Json::Value& root,
             if (RENDER_STRATEGY.count(modeValue) == 0) {
                 continue;
             }
-            renderingStrategy = RENDER_STRATEGY[modeValue];
+            renderingStrategy = RENDER_STRATEGY.at(modeValue);
         }
 
-        std::vector<RenderGroup> renderGroups;
+        std::vector<RSRenderGroup> renderGroups;
         if (root[i].isMember(RENDER_GROUPS)) {
             if (!root[i][RENDER_GROUPS].isArray()) {
                 continue;
@@ -194,12 +194,12 @@ void SymbolConfigParser::ParseRenderModes(const Json::Value& root,
 
 void SymbolConfigParser::ParseRenderGroups(const Json::Value& root, std::vector<RSRenderGroup>& renderGroups)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
         }
 
-        RenderGroup renderGroup;
+        RSRenderGroup renderGroup;
         if (root[i].isMember(GROUP_INDEXES) && root[i][GROUP_INDEXES].isArray()) {
             ParseGroupIndexes(root[i][GROUP_INDEXES], renderGroup.groupInfos);
         }
@@ -222,7 +222,7 @@ void SymbolConfigParser::ParseDefaultColor(const char* defaultColor, RSRenderGro
         return;
     }
 
-    for (size_t i = 1; i < defaultColorStrLen; i++) {
+    for (uint32_t i = 1; i < defaultColorStrLen; i++) {
         defaultColorHex[i + 1] = defaultColor[i];
     }
     defaultColorHex[defaultColorHexLen - 1] = '\0';
@@ -235,8 +235,8 @@ void SymbolConfigParser::ParseDefaultColor(const char* defaultColor, RSRenderGro
 
 void SymbolConfigParser::ParseGroupIndexes(const Json::Value& root, std::vector<RSGroupInfo>& groupInfos)
 {
-    for (size_t i = 0; i < root.size(); i++) {
-        GroupInfo groupInfo;
+    for (uint32_t i = 0; i < root.size(); i++) {
+        RSGroupInfo groupInfo;
         if (root[i].isMember(LAYER_INDEXES)) {
             if (!root[i][LAYER_INDEXES].isArray()) {
                 continue;
@@ -253,9 +253,9 @@ void SymbolConfigParser::ParseGroupIndexes(const Json::Value& root, std::vector<
     }
 }
 
-void SymbolConfigParser::ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<size_t>& indexes)
+void SymbolConfigParser::ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<uint32_t>& indexes)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isInt()) {
             continue;
         }
@@ -275,11 +275,11 @@ void SymbolConfigParser::ParseOneSymbolAnimateCase(const char* key, const Json::
 void SymbolConfigParser::ParseAnimationSettings(const Json::Value& root,
     std::vector<RSAnimationSetting>& animationSettings)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
         }
-        AnimationSetting animationSetting;
+        RSAnimationSetting animationSetting;
         ParseAnimationSetting(root[i], animationSetting);
         animationSettings.push_back(animationSetting);
     }
@@ -298,12 +298,12 @@ void SymbolConfigParser::ParseAnimationSetting(const Json::Value& root, RSAnimat
 
 void SymbolConfigParser::ParseAnimationTypes(const Json::Value& root, std::vector<RSAnimationType>& animationTypes)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isString()) {
             continue;
         }
         const std::string animationTypeStr = root[i].asCString();
-        AnimationType animationType;
+        RSAnimationType animationType;
         ParseAnimationType(animationTypeStr, animationType);
         animationTypes.push_back(animationType);
     }
@@ -319,11 +319,11 @@ void SymbolConfigParser::ParseAnimationType(const std::string& animationTypeStr,
 
 void SymbolConfigParser::ParseGroupSettings(const Json::Value& root, std::vector<RSGroupSetting>& groupSettings)
 {
-    for (size_t i = 0; i < root.size(); i++) {
+    for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             continue;
         }
-        GroupSetting groupSetting;
+        RSGroupSetting groupSetting;
         ParseGroupSetting(root[i], groupSetting);
         groupSettings.push_back(groupSetting);
     }
@@ -345,38 +345,38 @@ void SymbolConfigParser::ParseOneSymbol(const Json::Value& root,
 {
     std::vector<std::string> tags = {NATIVE_GLYPH_ID, SYMBOL_GLYPH_ID, LAYERS, RENDER_MODES, ANIMATION_SETTINGS};
     uint16_t nativeGlyphId;
-    SymbolLayersGroups symbolLayersGroups;
+    RSSymbolLayersGroups symbolLayersGroups;
 
     static SymbolKeyFuncMap funcMap = {
         {NATIVE_GLYPH_ID, [this, &nativeGlyphId](const char* key, const Json::Value& root,
-            SymbolLayersGroups& symbolLayersGroups)
+            RSSymbolLayersGroups& symbolLayersGroups)
             {
-                this.ParseOneSymbolNativeCase(key, root, symbolLayersGroups, nativeGlyphId);
+                ParseOneSymbolNativeCase(key, root, symbolLayersGroups, nativeGlyphId);
             }
         },
-        {SYMBOL_GLYPH_ID, [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+        {SYMBOL_GLYPH_ID, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
             {
-                this.SymbolGlyphCase(key, root, symbolLayersGroups);
+                SymbolGlyphCase(key, root, symbolLayersGroups);
             }
         },
-        {LAYERS, [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+        {LAYERS, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
             {
-                this.ParseOneSymbolLayerCase(key, root, symbolLayersGroups);
+                ParseOneSymbolLayerCase(key, root, symbolLayersGroups);
             }
         },
-        {RENDER_MODES, [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+        {RENDER_MODES, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
             {
-                this.ParseOneSymbolRenderCase(key, root, symbolLayersGroups);
+                ParseOneSymbolRenderCase(key, root, symbolLayersGroups);
             }
         },
         {ANIMATION_SETTINGS, [this](const char* key, const Json::Value& root,
-            SymbolLayersGroups& symbolLayersGroups)
+            RSSymbolLayersGroups& symbolLayersGroups)
             {
-                this.ParseOneSymbolAnimateCase(key, root, symbolLayersGroups);
+                ParseOneSymbolAnimateCase(key, root, symbolLayersGroups);
             }
         }
     };
-    for (size_t i = 0; i < tags.size(); i++) {
+    for (uint32_t i = 0; i < tags.size(); i++) {
         const char* key = tags[i].c_str();
         if (!root.isMember(key)) {
             continue;
@@ -385,5 +385,5 @@ void SymbolConfigParser::ParseOneSymbol(const Json::Value& root,
             funcMap[key](key, root, symbolLayersGroups);
         }
     }
-    symbolConfig.emplace({nativeGlyphId, symbolLayersGroups});
+    symbolConfig.emplace(nativeGlyphId, symbolLayersGroups);
 }
