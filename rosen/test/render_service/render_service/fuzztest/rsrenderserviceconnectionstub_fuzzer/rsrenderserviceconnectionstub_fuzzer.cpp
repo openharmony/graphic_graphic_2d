@@ -181,9 +181,11 @@ bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY);
     MessageParcel dataParcel;
@@ -211,20 +213,20 @@ bool DoGetScreenType(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
 
-    FuzzedDataProvider fdp(data, size);
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -239,11 +241,12 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-
-    pid_t newPid = getpid();
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
     MessageParcel dataParcel;
@@ -269,20 +272,19 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
 
-    FuzzedDataProvider fdp(data, size);
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    uint32_t num = GetData<uint32_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint32(num);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -706,22 +708,19 @@ bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    FuzzedDataProvider fdp(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
     auto newPid = getpid();
-
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, nullptr, token_->AsObject(), nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -768,22 +767,20 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    FuzzedDataProvider fdp(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    int32_t pid = GetData<int32_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteInt32(pid);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -798,14 +795,13 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-
-    FuzzedDataProvider fdp(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -851,22 +847,21 @@ bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    FuzzedDataProvider fdp(data, size);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -944,22 +939,21 @@ bool DoSetScreenBacklight(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    FuzzedDataProvider fdp(data, size);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    ScreenId id = GetData<uint64_t>();
+    uint32_t level = GetData<uint32_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(level);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -1285,10 +1279,12 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    pid_t newPid = getpid();
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
     MessageParcel dataParcel;
@@ -1317,10 +1313,12 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    pid_t newPid = getpid();
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     MessageParcel dataParcel;
@@ -1391,6 +1389,13 @@ bool Init(const uint8_t* data, size_t size)
 
 bool DoSetVirtualScreenSurface()
 {
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -1411,10 +1416,10 @@ bool DoSetVirtualScreenSurface()
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE);
-    if (rsConnStub_ == nullptr) {
+    if (connectionStub_ == nullptr) {
         return false;
     }
-    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
 
@@ -1479,6 +1484,12 @@ bool DoSetVirtualScreenResolution()
 
 bool DoGetVirtualScreenResolution()
 {
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -1492,10 +1503,10 @@ bool DoGetVirtualScreenResolution()
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION);
-    if (rsConnStub_ == nullptr) {
+    if (connectionStub_ == nullptr) {
         return false;
     }
-    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
 
@@ -3203,11 +3214,11 @@ bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-    
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -3237,10 +3248,11 @@ bool DoCommitTransaction(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     
     MessageOption option;
     MessageParcel dataParcel;
@@ -3265,10 +3277,11 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     
     MessageOption option;
     MessageParcel dataParcel;
@@ -3299,10 +3312,11 @@ bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     
     MessageOption option;
     MessageParcel dataParcel;
@@ -3361,10 +3375,11 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
     auto newPid = getpid();
-    NodeId nodeId = static_cast<NodeId>(newPid) << 32;
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     
     MessageOption option;
     MessageParcel dataParcel;
@@ -3373,7 +3388,7 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = iface_cast<RSIBufferAvailableCallback>(remoteObject);
-
+    auto nodeId = static_cast<NodeId>(newPid) << 32;
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
@@ -3396,11 +3411,11 @@ bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-    
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -3482,10 +3497,11 @@ bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
@@ -3514,10 +3530,11 @@ bool DoGetScreenCurrentRefreshRate(const uint8_t* data, size_t size)
     g_pos = 0;
 
     auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
@@ -3526,6 +3543,34 @@ bool DoGetScreenCurrentRefreshRate(const uint8_t* data, size_t size)
     uint64_t id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(id);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoCreateNode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    NodeId id = static_cast<NodeId>(newPid) << 32;
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteString("SurfaceName");
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -3650,6 +3695,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedMetaDataKeys(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoGetScreenCurrentRefreshRate(data, size);
+    OHOS::Rosen::DoCreateNode(data, size);
 
     return 0;
 }
