@@ -751,9 +751,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = !NeedBilinearInterpolation(params, canvas.GetTotalMatrix())
-                                ? Drawing::SamplingOptions()
-                                : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+            samplingOptions = NeedBilinearInterpolation(params, canvas.GetTotalMatrix())
+                                  ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
+                                  : Drawing::SamplingOptions();
         }
     }
 
