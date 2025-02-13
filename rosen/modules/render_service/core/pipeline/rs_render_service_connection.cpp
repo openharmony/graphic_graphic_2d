@@ -877,12 +877,13 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 
 namespace {
 void TakeSurfaceCaptureForUiParallel(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const Drawing::Rect& specifiedAreaRect)
 {
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
+        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
 
     if (captureConfig.isSync) {
@@ -931,12 +932,13 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
+    const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
+    RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         return;
     }
-    std::function<void()> captureTask = [id, callback, captureConfig,
+    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
         selfCapture = permissions.selfCapture]() -> void {
@@ -953,7 +955,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }

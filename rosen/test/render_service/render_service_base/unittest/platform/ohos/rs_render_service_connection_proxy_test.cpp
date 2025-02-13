@@ -442,13 +442,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     captureConfig.useDma = false;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = true;
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, specifiedAreaRect);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 

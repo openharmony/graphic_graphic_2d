@@ -141,7 +141,8 @@ public:
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
     bool TakeSurfaceCapture(
-        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig);
