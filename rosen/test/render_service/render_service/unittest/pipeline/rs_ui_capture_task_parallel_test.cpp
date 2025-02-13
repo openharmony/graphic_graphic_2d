@@ -312,11 +312,88 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateResources, F
     NodeId id = -1; // invalid id
     RSSurfaceCaptureConfig captureConfig;
     auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
-    ASSERT_EQ(handle->CreateResources(), false);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    ASSERT_EQ(handle->CreateResources(specifiedAreaRect), false);
     ASSERT_EQ(handle->captureConfig_.scaleX, 1.0f);
     ASSERT_EQ(handle->captureConfig_.scaleY, 1.0f);
     ASSERT_EQ(handle->pixelMap_, nullptr);
     ASSERT_EQ(handle->nodeDrawable_, nullptr);
+    ASSERT_EQ(specifiedAreaRect.left_, 0.f);
+    ASSERT_EQ(specifiedAreaRect.top_, 0.f);
+    ASSERT_EQ(specifiedAreaRect.right_, 0.f);
+    ASSERT_EQ(specifiedAreaRect.bottom_, 0.f);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_IsRectValid001
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid001, Function | SmallTest | Level2)
+{
+    NodeId id = -1; // invalid id
+    RSSurfaceCaptureConfig captureConfig;
+    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
+    auto node = RSTestUtil::CreateSurfaceNode();
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    ASSERT_EQ(handle->IsRectValid(id, specifiedAreaRect), false);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_IsRectValid002
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid002, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId surfaceRenderNodeId = 104;
+    RSSurfaceCaptureConfig config;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceRenderNodeId, std::make_shared<RSContext>(),
+        true);
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId, config);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    ASSERT_EQ(surfaceRenderNodeHandle->IsRectValid(surfaceRenderNodeId, specifiedAreaRect), false);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_IsRectValid003
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsRectValid
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid003, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId surfaceRenderNodeId = 105;
+    RSSurfaceCaptureConfig config;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceRenderNodeId, std::make_shared<RSContext>(),
+        true);
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId, config);
+    surfaceRenderNode->renderContent_->renderProperties_.SetBoundsWidth(HALF_BOUNDS_WIDTH);
+    surfaceRenderNode->renderContent_->renderProperties_.SetBoundsHeight(HALF_BOUNDS_HEIGHT);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
+    ASSERT_EQ(surfaceRenderNodeHandle->IsRectValid(surfaceRenderNodeId, specifiedAreaRect), false);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_CreatePixelMapByRect
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreatePixelMapByRect
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByRect, Function | SmallTest | Level2)
+{
+    NodeId id = -1; // invalid id
+    RSSurfaceCaptureConfig captureConfig;
+    auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
+    auto node = RSTestUtil::CreateSurfaceNode();
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    ASSERT_EQ(handle->CreatePixelMapByRect(specifiedAreaRect), nullptr);
 }
 
 /*

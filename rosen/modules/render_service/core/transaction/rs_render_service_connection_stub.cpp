@@ -782,9 +782,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceCaptureConfig captureConfig;
+            Drawing::Rect specifiedAreaRect;
             if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
                 ret = ERR_INVALID_DATA;
                 RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture write captureConfig failed");
+                break;
+            }
+            if (!ReadSurfaceCaptureAreaRect(specifiedAreaRect, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read specifiedAreaRect failed");
                 break;
             }
             RSSurfaceCapturePermissions permissions;
@@ -795,7 +801,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // we temporarily add a white list to avoid abnormal functionality or abnormal display.
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
-            TakeSurfaceCapture(id, cb, captureConfig, permissions);
+            TakeSurfaceCapture(id, cb, captureConfig, specifiedAreaRect, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
@@ -1983,6 +1989,16 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    return true;
+}
+
+bool RSRenderServiceConnectionStub::ReadSurfaceCaptureAreaRect(
+    Drawing::Rect& specifiedAreaRect, MessageParcel& data)
+{
+    if (!data.ReadFloat(specifiedAreaRect.left_) || !data.ReadFloat(specifiedAreaRect.top_) ||
+        !data.ReadFloat(specifiedAreaRect.right_) || !data.ReadFloat(specifiedAreaRect.bottom_)) {
+        return false;
+    }
     return true;
 }
 

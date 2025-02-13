@@ -1092,7 +1092,8 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions /* permissions */)
+    const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect,
+    RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -1113,6 +1114,10 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
     if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
         ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureAreaRect(specifiedAreaRect, data)) {
+        ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
@@ -1167,6 +1172,16 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync)) {
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureAreaRect(
+    const Drawing::Rect& specifiedAreaRect, MessageParcel& data)
+{
+    if (!data.WriteFloat(specifiedAreaRect.left_) || !data.WriteFloat(specifiedAreaRect.top_) ||
+        !data.WriteFloat(specifiedAreaRect.right_) || !data.WriteFloat(specifiedAreaRect.bottom_)) {
         return false;
     }
     return true;
