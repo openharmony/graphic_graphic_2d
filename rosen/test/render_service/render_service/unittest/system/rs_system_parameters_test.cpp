@@ -131,7 +131,7 @@ HWTEST_F(RSSystemParametersTest, IsNeedScRGBForP3Test, TestSize.Level2)
  * @tc.name: GetAnimationOcclusionEnabled
  * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: IBLVD4
+ * @tc.require: issueIBLVD4
  */
 HWTEST_F(RSSystemParametersTest, GetAnimationOcclusionEnabled, TestSize.Level2)
 {

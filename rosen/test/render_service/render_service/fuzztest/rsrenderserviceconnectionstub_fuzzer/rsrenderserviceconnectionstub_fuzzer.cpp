@@ -3020,7 +3020,8 @@ bool DoSetSystemAnimatedScenes()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
-    if (!dataP.WriteUint32(systemAnimatedScenes)) {
+    bool isRegularAnimation = GetData<bool>();
+    if (!dataP.WriteUint32(systemAnimatedScenes) || !dataP.WriteBool(isRegularAnimation)) {
         return false;
     }
     if (rsConnStub_ == nullptr) {
