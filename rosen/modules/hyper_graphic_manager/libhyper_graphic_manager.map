@@ -68,6 +68,7 @@
       *HgmFrameRateManager::GetLowBrightVec*;
       *HgmFrameRateManager::GetPreferredFps*;
       *HgmFrameRateManager::GetStylusVec*;
+      *HgmFrameRateManager::HandleAppStrategyConfigEvent*;
       *HgmFrameRateManager::HandleDynamicModeEvent*;
       *HgmFrameRateManager::HandleFrameRateChangeForLTPO*;
       *HgmFrameRateManager::HandleGamesEvent*;
@@ -107,6 +108,7 @@
       *HgmMultiAppStrategy::AnalyzePkgParam*;
       *HgmMultiAppStrategy::CalcVote*;
       *HgmMultiAppStrategy::CheckPackageInConfigList*;
+      *HgmMultiAppStrategy::GetAppStrategyConfig*;
       *HgmMultiAppStrategy::GetVoteRes*;
       *HgmMultiAppStrategy::HandleLightFactorStatus*;
       *HgmMultiAppStrategy::HandleLowAmbientStatus*;
@@ -115,6 +117,8 @@
       *HgmMultiAppStrategy::HandleTouchInfo*;
       *HgmMultiAppStrategy::HgmMultiAppStrategy*;
       *HgmMultiAppStrategy::OnStrategyChange*;
+      *HgmMultiAppStrategy::SetAppStrategyConfig*;
+      *HgmMultiAppStrategy::UpdateAppStrategyConfigCache*;
 
       *HgmScreen::AddScreenModeInfo*;
       *HgmScreen::GetActiveRefreshRate*;

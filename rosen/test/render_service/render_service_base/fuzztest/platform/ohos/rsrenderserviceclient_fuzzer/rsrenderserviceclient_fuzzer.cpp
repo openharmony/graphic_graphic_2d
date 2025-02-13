@@ -1577,6 +1577,28 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DONotifyAppStrategyConfigChangeEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    std::string configKey = GetData<std::string>();
+    std::string configValue = GetData<std::string>();
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(make_pair(configKey, configValue));
+    client->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    return true;
+}
+
 bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2438,6 +2460,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoNotifyLightFactorStatus(data, size);
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
+    OHOS::Rosen::DONotifyAppStrategyConfigChangeEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);

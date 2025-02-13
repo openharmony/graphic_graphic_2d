@@ -271,6 +271,7 @@ void HgmFrameRateManager::InitPowerTouchManager()
     powerTouchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
         [this] (TouchState lastState, TouchState newState) {
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
+        multiAppStrategy_.UpdateAppStrategyConfigCache();
         HgmCore::Instance().SetHgmTaskFlag(true);
         if (forceUpdateCallback_ != nullptr) {
             forceUpdateCallback_(false, true);
@@ -1666,6 +1667,9 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 case CleanPidCallbackType::GAMES:
                     DeliverRefreshRateVote({"VOTER_GAMES"}, false);
                     break;
+                case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
+                    HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
+                    break;
                 default:
                     break;
             }
@@ -1769,6 +1773,15 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     surfaceData_.clear();
     lastPostIdleDetectorTaskTimestamp_ = timestamp;
     return true;
+}
+
+void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    if (pid != DEFAULT_PID) {
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT);
+    }
+    multiAppStrategy_.SetAppStrategyConfig(pkgName, newConfig);
 }
 } // namespace Rosen
 } // namespace OHOS

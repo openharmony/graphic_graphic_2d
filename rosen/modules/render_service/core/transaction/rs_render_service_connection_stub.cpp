@@ -2279,6 +2279,36 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NotifyPackageEvent(listSize, packageList);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT) : {
+            std::string pkgName;
+            uint32_t listSize{0};
+            if (!data.ReadString(pkgName) || !data.ReadUint32(listSize)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            const uint32_t MAX_LIST_SIZE = 50;
+            if (listSize > MAX_LIST_SIZE) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            std::vector<std::pair<std::string, std::string>> newConfig;
+            bool errFlag{false};
+            for (uint32_t i = 0; i < listSize; i++) {
+                std::string key;
+                std::string value;
+                if (!data.ReadString(key) || !data.ReadString(value)) {
+                    errFlag = true;
+                    break;
+                }
+                newConfig.push_back(make_pair(key, value));
+            }
+            if (errFlag) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
             std::string eventName;
             bool eventStatus{false};

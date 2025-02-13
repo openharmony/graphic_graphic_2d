@@ -308,6 +308,9 @@ private:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) override;
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
     void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;

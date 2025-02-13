@@ -3580,6 +3580,40 @@ void RSRenderServiceConnectionProxy::NotifyPackageEvent(uint32_t listSize, const
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+
+    if (listSize != newConfig.size()) {
+        ROSEN_LOGE("input size doesn't match");
+        return;
+    }
+
+    if (!data.WriteString(pkgName) || !data.WriteUint32(listSize)) {
+        return;
+    }
+
+    for (const auto& [key, value] : newConfig) {
+        if (!data.WriteString(key) || !data.WriteString(value)) {
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent: Send Request err.");
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     MessageParcel data;

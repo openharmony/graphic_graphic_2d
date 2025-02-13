@@ -957,6 +957,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
 {
     std::vector<std::string> packageList;
     proxy->NotifyPackageEvent(1, packageList);
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    proxy->NotifyAppStrategyConfigChangeEvent("test", 1, newConfig);
     EventInfo eventInfo;
     proxy->NotifyRefreshRateEvent(eventInfo);
     int32_t touchStatus = 1;

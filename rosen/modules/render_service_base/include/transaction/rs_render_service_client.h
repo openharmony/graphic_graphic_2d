@@ -356,6 +356,9 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);

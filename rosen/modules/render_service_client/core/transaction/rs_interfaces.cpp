@@ -797,6 +797,12 @@ void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::
     renderServiceClient_->NotifyPackageEvent(listSize, packageList);
 }
 
+void RSInterfaces::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    renderServiceClient_->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+}
+
 void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);

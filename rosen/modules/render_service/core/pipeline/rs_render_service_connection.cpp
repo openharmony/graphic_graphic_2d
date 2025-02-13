@@ -2275,6 +2275,17 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
     });
 }
 
+void RSRenderServiceConnection::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, listSize, pkgName, newConfig] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandleAppStrategyConfigEvent(pid, pkgName, newConfig);
+        }
+    });
+}
+
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     if (VOTER_SCENE_BLUR == eventInfo.eventName) {
