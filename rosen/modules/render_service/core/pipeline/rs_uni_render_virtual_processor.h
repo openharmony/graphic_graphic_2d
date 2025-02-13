@@ -17,6 +17,8 @@
 #define RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 
 #include "rs_uni_render_processor.h"
+#include "metadata_helper.h"
+#include "v1_0/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,7 +88,13 @@ private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasInit(RSDisplayRenderNode& node);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
+    GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
 
+    static inline const std::map<GraphicColorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType> COLORSPACE_TYPE {
+            { GRAPHIC_COLOR_GAMUT_SRGB, HDI::Display::Graphic::Common::V1_0::CM_SRGB_LIMIT },
+            { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, HDI::Display::Graphic::Common::V1_0::CM_P3_LIMIT }
+    };
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;

@@ -288,6 +288,7 @@ ohos_shared_library("librender_service") {
 
   public_external_deps += [
     "config_policy:configpolicy_util",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "libxml2:libxml2",
   ]
 
