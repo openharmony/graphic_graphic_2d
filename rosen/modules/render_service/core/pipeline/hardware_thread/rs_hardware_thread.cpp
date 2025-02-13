@@ -201,13 +201,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
+    ScreenId curScreenId = hgmCore.GetActiveScreenId();
+    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(curScreenId);
     bool hasGameScene = FrameReport::GetInstance().HasGameScene();
 #ifdef RES_SCHED_ENABLE
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param,
-        currentRate = currentRate, hasGameScene = hasGameScene]() {
+        currentRate = currentRate, hasGameScene = hasGameScene, curScreenId = curScreenId]() {
 #ifdef HIPERF_TRACE_ENABLE
         RS_LOGW("hiperf_surface_counter3 %{public}" PRIu64 " ", static_cast<uint64_t>(layers.size()));
 #endif
@@ -235,7 +236,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount(output);
-        output->SetLayerInfo(layers);
+        if (RSSystemProperties::IsSuperFoldDisplay()) {
+            std::vector<LayerInfoPtr> reviseLayers = layers;
+            ChangeLayersForActiveRectOutside(reviseLayers, curScreenId);
+            output->SetLayerInfo(reviseLayers);
+        } else {
+            output->SetLayerInfo(layers);
+        }
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
@@ -299,6 +306,52 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     PostDelayTask(task, delayTime_);
+}
+
+void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId)
+{
+    if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
+        return;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        return;
+    }
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    const RectI& reviseRect = screenInfo.reviseRect;
+    if (reviseRect.width_ <= 0 || reviseRect.height_ <= 0) {
+        return;
+    }
+    const RectI& maskRect = screenInfo.maskRect;
+    if (maskRect.width_ > 0 && maskRect.height_ > 0) {
+        auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        solidColorLayer->SetZorder(INT_MAX - 1);
+        solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        GraphicIRect dstRect = {maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_};
+        solidColorLayer->SetLayerSize(dstRect);
+        solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+        bool debugFlag = (system::GetParameter("debug.foldscreen.shaft.color", "0") == "1");
+        if (debugFlag) {
+            solidColorLayer->SetLayerColor({0, 255, 0, 255});
+        } else {
+            solidColorLayer->SetLayerColor({0, 0, 0, 255});
+        }
+        layers.emplace_back(solidColorLayer);
+        RS_LOGD("make fold display black mask x y w h %{public}d %{public}d %{public}d %{public}d",
+            maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_);
+    }
+    for (auto& layerInfo : layers) {
+        GraphicIRect dstRect = layerInfo->GetLayerSize();
+        GraphicIRect tmpRect = dstRect;
+        // Limit the target area to the activated area
+        int reviseRight = reviseRect.left_ + reviseRect.width_;
+        int reviseBottom = reviseRect.top_ + reviseRect.height_;
+        tmpRect.x = std::clamp(dstRect.x, reviseRect.left_, reviseRight);
+        tmpRect.x = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
+        tmpRect.x = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
+        tmpRect.x = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
+        layerInfo->SetLayerSize(tmpRect);
+    }
 }
 
 std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers)

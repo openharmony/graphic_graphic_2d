@@ -70,6 +70,7 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
     void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
+    void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;

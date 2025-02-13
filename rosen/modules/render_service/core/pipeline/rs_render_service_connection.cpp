@@ -2053,14 +2053,22 @@ uint32_t RSRenderServiceConnection::SetScreenActiveRect(
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    auto result = screenManager_->SetScreenActiveRect(id, dstActiveRect);
-    if (result != StatusCode::SUCCESS) {
-        RS_LOGE("SetScreenActiveRect Fail with result: %{public}d", result);
+    if (!mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
     }
+    auto task = [weakScreenManager = wptr<RSScreenManager>(screenManager_), id, dstActiveRect]() -> void {
+        sptr<RSScreenManager> screenManager = weakScreenManager.promote();
+        if (!screenManager) {
+            return;
+        }
+        screenManager->SetScreenActiveRect(id, dstActiveRect);
+    };
+    mainThread_->ScheduleTask(task).wait();
+
     HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
             OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
     });
-    return result;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)

@@ -1400,12 +1400,23 @@ uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 
 uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
 {
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screen->SetScreenActiveRect(activeRect);
+    auto task = [weakScreenManager = wptr<RSScreenManager>(this), id, activeRect]() -> void {
+        sptr<RSScreenManager> screenManager = weakScreenManager.promote();
+        if (!screenManager) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(screenManager->mutex_);
+        auto screensIt = screenManager->screens_.find(id);
+        if (screensIt == screenManager->screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+            return;
+        }
+        if (screensIt->second->SetScreenActiveRect(activeRect) != StatusCode::SUCCESS) {
+            RS_LOGW("RSScreenManager %{public}s: Invalid param", __func__);
+        }
+    };
+    RSHardwareThread::Instance().ScheduleTask(task).wait();
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1729,6 +1740,8 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     info.whiteList = screen->GetWhiteList();
     info.enableVisibleRect = screen->GetEnableVisibleRect();
     info.activeRect = screen->GetActiveRect();
+    info.maskRect = screen->GetMaskRect();
+    info.reviseRect = screen->GetReviseRect();
     return info;
 }
 

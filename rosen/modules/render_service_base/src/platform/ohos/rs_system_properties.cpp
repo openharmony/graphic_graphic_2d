@@ -987,6 +987,13 @@ bool RSSystemProperties::IsPcType()
     return isPc;
 }
 
+bool RSSystemProperties::IsSuperFoldDisplay()
+{
+    static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    static const bool IsSuperFoldDisplay = foldScreenType.size() > 0 ? foldScreenType[0] == '6' : false;
+    return IsSuperFoldDisplay;
+}
+
 bool RSSystemProperties::IsBetaRelease()
 {
     static bool isBetaRelease = system::GetParameter("const.logsystem.versiontype", "") == "beta";
