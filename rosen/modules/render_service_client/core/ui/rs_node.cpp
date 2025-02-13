@@ -361,6 +361,7 @@ void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
+    SetDrawNode();
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
@@ -622,6 +623,9 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
 void RSNode::SetAlpha(float alpha)
 {
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
+    if (alpha < 1) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
@@ -634,6 +638,9 @@ void RSNode::SetBounds(const Vector4f& bounds)
 {
     SetProperty<RSBoundsModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BOUNDS, bounds);
     OnBoundsSizeChanged();
+    if (GetStagingProperties().GetBounds().x_ != 0 || GetStagingProperties().GetBounds().y_ != 0) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetBounds(float positionX, float positionY, float width, float height)
@@ -689,6 +696,10 @@ void RSNode::SetBoundsHeight(float height)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetProperty<RSFrameModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::FRAME, bounds);
+    if (GetStagingProperties().GetFrame().x_ != GetStagingProperties().GetBounds().x_
+        || GetStagingProperties().GetFrame().y_ != GetStagingProperties().GetBounds().y_) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetFrame(float positionX, float positionY, float width, float height)
@@ -715,6 +726,7 @@ void RSNode::SetFramePositionX(float positionX)
     auto frame = property->Get();
     frame.x_ = positionX;
     property->Set(frame);
+    SetDrawNode();
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -736,6 +748,7 @@ void RSNode::SetFramePositionY(float positionY)
     auto frame = property->Get();
     frame.y_ = positionY;
     property->Set(frame);
+    SetDrawNode();
 }
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
@@ -754,6 +767,9 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
 
 void RSNode::SetPositionZ(float positionZ)
 {
+    if (drawNodeChangeCallback_) {
+        drawNodeChangeCallback_(shared_from_this(), true);
+    }
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
 }
 
@@ -1273,6 +1289,9 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
+    if (color.GetAlpha() > 0) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
@@ -2227,6 +2246,13 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
+    if (modifier->GetModifierType() > RSModifierType::FRAME &&
+        modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
+        modifier->GetModifierType() != RSModifierType::ALPHA &&
+        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
+        SetDrawNode();
+    }
+    ROSEN_LOGD("RSNode:Id: %{public}" PRIu64 ", AddModifier:%{public}d", id_, (int16_t)modifier->GetModifierType());
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -2432,6 +2458,12 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+    if (isNodeGroup_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
+    }
 }
 
 void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
@@ -2458,6 +2490,12 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+    if (isSuggestOpincNode_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
     }
 }
 
@@ -2486,6 +2524,22 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+}
+
+void RSNode::SetDrawNode()
+{
+    if (isDrawNode_) {
+        return;
+    }
+    isDrawNode_ = true;
+    if (drawNodeChangeCallback_) {
+        drawNodeChangeCallback_(shared_from_this(), false);
+    }
+}
+
+bool RSNode::GetIsDrawn()
+{
+    return isDrawNode_;
 }
 
 void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
@@ -2663,6 +2717,9 @@ void RSNode::AddChild(SharedPtr child, int index)
     if (child->GetType() == RSUINodeType::DISPLAY_NODE) {
         // Disallow to add display node as child.
         return;
+    }
+    if (frameNodeId_ < 0) {
+        child->SetDrawNode();
     }
     NodeId childId = child->GetId();
     if (child->parent_ != 0) {
@@ -3117,6 +3174,15 @@ void RSNode::SetInstanceId(int32_t instanceId)
 {
     instanceId_ = instanceId;
     RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
+}
+
+DrawNodeChangeCallback RSNode::drawNodeChangeCallback_ = nullptr;
+void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
+{
+    if (drawNodeChangeCallback_) {
+        return;
+    }
+    drawNodeChangeCallback_ = callback;
 }
 
 } // namespace Rosen
