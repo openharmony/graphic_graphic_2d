@@ -82,7 +82,6 @@ bool SymbolConfigParser::ParseSymbolLayersGrouping(const Json::Value& root,
         }
         ParseOneSymbol(root[SYMBOL_LAYERS_GROUPING][i], symbolConfig);
     }
-    
     return true;
 }
 
@@ -103,7 +102,7 @@ void SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const Json::V
     nativeGlyphId = root[key].asInt();
 }
 
-void SymbolConfigParser::ParseComponets(const Json::Value& root, std::vector<uint32_t>& components)
+void SymbolConfigParser::ParseComponets(const Json::Value& root, std::vector<size_t>& components)
 {
     for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isInt()) {
@@ -122,7 +121,7 @@ void SymbolConfigParser::SymbolGlyphCase(const char* key, const Json::Value& roo
     symbolLayersGroups.symbolGlyphId = root[key].asInt();
 }
 
-void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::vector<uint32_t>>& layers)
+void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::vector<size_t>>& layers)
 {
     for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
@@ -135,7 +134,7 @@ void SymbolConfigParser::ParseLayers(const Json::Value& root, std::vector<std::v
         if (!root[i][COMPONENTS].isArray()) {
             continue;
         }
-        std::vector<uint32_t> components;
+        std::vector<size_t> components;
         ParseComponets(root[i][COMPONENTS], components);
         layers.push_back(components);
     }
@@ -254,7 +253,7 @@ void SymbolConfigParser::ParseGroupIndexes(const Json::Value& root, std::vector<
     }
 }
 
-void SymbolConfigParser::ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<uint32_t>& indexes)
+void SymbolConfigParser::ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<size_t>& indexes)
 {
     for (uint32_t i = 0; i < root.size(); i++) {
         if (!root[i].isInt()) {

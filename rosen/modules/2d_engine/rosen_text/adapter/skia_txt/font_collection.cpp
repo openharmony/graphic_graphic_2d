@@ -129,7 +129,7 @@ LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string &familyName
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     uint32_t faceHash = typeface->GetHash();
-    for (const &item : typefaces_) {
+    for (const auto& item : typefaces_) {
         if (faceHash == item.second->GetHash()) {
             return LoadSymbolErrorCode::SUCCESS;
         }

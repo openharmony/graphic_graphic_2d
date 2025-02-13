@@ -31,8 +31,8 @@ public:
     static CustomSymbolConfig* GetInstance();
     ~CustomSymbolConfig() = default;
 
-    std::optional<RSSymbolLayersGroups> GetSymbolLayersGroups(const std::string &familiName, uint16_t glyphId);
-    LoadSymbolErrorCode ParseConfigOfCustomSymbol(const std::string &familiName, const uint8_t *data, size_t datalen);
+    std::optional<RSSymbolLayersGroups> GetSymbolLayersGroups(const std::string &familyName, uint16_t glyphId);
+    LoadSymbolErrorCode ParseConfigOfCustomSymbol(const std::string &familyName, const uint8_t *data, size_t datalen);
 
 private:
     CustomSymbolConfig() {}

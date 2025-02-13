@@ -29,14 +29,14 @@ CustomSymbolConfig* CustomSymbolConfig::GetInstance()
     return &singleton;
 }
 
-LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::string &familiName,
+LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::string &familyName,
     const uint8_t *data, size_t datalen)
 {
     if (data == nullptr) {
         return LoadSymbolErrorCode::LOAD_FAILED;
     }
     
-    if (symbolConfig_.find(familiName) != symbolConfig_.end()) {
+    if (symbolConfig_.find(familyName) != symbolConfig_.end()) {
         return LoadSymbolErrorCode::SUCCESS;
     }
 
@@ -52,17 +52,17 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::str
     LoadSymbolErrorCode result = LoadSymbolErrorCode::JSON_ERROR;
     SymbolConfigParser symbolConfigTool;
     if (symbolConfigTool.ParseSymbolLayersGrouping(root, symbolConfigGroup)) {
-        symbolConfig_.emplace(familiName, symbolConfigGroup);
+        symbolConfig_.emplace(familyName, symbolConfigGroup);
         result = LoadSymbolErrorCode::SUCCESS;
     }
     root.clear();
     return result;
 }
 
-std::optional<RSSymbolLayersGroups> CustomSymbolConfig::GetSymbolLayersGroups(const std::string &familiName,
+std::optional<RSSymbolLayersGroups> CustomSymbolConfig::GetSymbolLayersGroups(const std::string &familyName,
     uint16_t glyphId)
 {
-    auto it = symbolConfig_.find(familiName);
+    auto it = symbolConfig_.find(familyName);
     if (it == symbolConfig_.end()) {
         return std::nullopt;
     }
