@@ -98,6 +98,7 @@ bool RSRenderService::Init()
 
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
+
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
 #endif
