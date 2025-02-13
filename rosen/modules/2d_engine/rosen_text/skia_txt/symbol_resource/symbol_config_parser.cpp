@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <functional>
+#include <utility>
 
 namespace {
 constexpr char SYMBOL_LAYERS_GROUPING[] = "symbol_layers_grouping";
@@ -42,7 +43,7 @@ constexpr uint32_t DEFAULT_COLOR_STR_LEN = 7;
 constexpr uint32_t HEX_FLAG = 16;
 constexpr uint32_t BYTE_LEN = 8;
 
-using SymbolKeyFunc = std::function<void(const char*, const Json::Value&, RSSymbolLayersGroups&)>;
+using SymbolKeyFunc = std::function<void(SymbolConfigParser*, const char*, const Json::Value&, RSSymbolLayersGroups&)>;
 using SymbolKeyFuncMap = std::unordered_map<std::string, SymbolKeyFunc>;
 
 const std::unordered_map<std::string, RSAnimationType> ANIMATIONS_TYPES = {
@@ -93,8 +94,7 @@ bool SymbolConfigParser::CheckSymbolLayersIsVaild(const Json::Value& root)
     return true;
 }
 
-void SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const Json::Value& root,
-    RSSymbolLayersGroups& symbolLayersGroups, uint16_t& nativeGlyphId)
+void SymbolConfigParser::ParseOneSymbolNativeCase(const char* key, const Json::Value& root, uint16_t& nativeGlyphId)
 {
     if (!root[key].isInt()) {
         return;
@@ -348,33 +348,17 @@ void SymbolConfigParser::ParseOneSymbol(const Json::Value& root,
     RSSymbolLayersGroups symbolLayersGroups;
 
     static SymbolKeyFuncMap funcMap = {
-        {NATIVE_GLYPH_ID, [this, &nativeGlyphId](const char* key, const Json::Value& root,
+        {NATIVE_GLYPH_ID, [&nativeGlyphId](SymbolConfigParser* scp, const char* key, const Json::Value& root,
             RSSymbolLayersGroups& symbolLayersGroups)
             {
-                ParseOneSymbolNativeCase(key, root, symbolLayersGroups, nativeGlyphId);
+                std::ignore = symbolLayersGroups;
+                scp->ParseOneSymbolNativeCase(key, root, nativeGlyphId);
             }
         },
-        {SYMBOL_GLYPH_ID, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
-            {
-                SymbolGlyphCase(key, root, symbolLayersGroups);
-            }
-        },
-        {LAYERS, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
-            {
-                ParseOneSymbolLayerCase(key, root, symbolLayersGroups);
-            }
-        },
-        {RENDER_MODES, [this](const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups)
-            {
-                ParseOneSymbolRenderCase(key, root, symbolLayersGroups);
-            }
-        },
-        {ANIMATION_SETTINGS, [this](const char* key, const Json::Value& root,
-            RSSymbolLayersGroups& symbolLayersGroups)
-            {
-                ParseOneSymbolAnimateCase(key, root, symbolLayersGroups);
-            }
-        }
+        {SYMBOL_GLYPH_ID, &SymbolConfigParser::SymbolGlyphCase},
+        {LAYERS, &SymbolConfigParser::ParseOneSymbolLayerCase},
+        {RENDER_MODES, &SymbolConfigParser::ParseOneSymbolRenderCase},
+        {ANIMATION_SETTINGS, &SymbolConfigParser::ParseOneSymbolAnimateCase}
     };
     for (uint32_t i = 0; i < tags.size(); i++) {
         const char* key = tags[i].c_str();
@@ -382,7 +366,7 @@ void SymbolConfigParser::ParseOneSymbol(const Json::Value& root,
             continue;
         }
         if (funcMap.count(key) > 0) {
-            funcMap[key](key, root, symbolLayersGroups);
+            funcMap[key](this, key, root, symbolLayersGroups);
         }
     }
     symbolConfig.emplace(nativeGlyphId, symbolLayersGroups);
