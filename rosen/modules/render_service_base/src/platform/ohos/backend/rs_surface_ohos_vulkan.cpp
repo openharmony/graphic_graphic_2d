@@ -173,6 +173,7 @@ bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t heig
         int fenceFd = -1;
         if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, true, true) != OHOS::GSERROR_OK) {
             RS_TRACE_NAME("PreAllocateProtectedBuffer failed.");
+            continue;
         }
         RS_TRACE_NAME("PreAllocateProtectedBuffer protectedSurfaceBufferList_ push back.");
         std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
