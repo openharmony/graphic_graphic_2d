@@ -155,6 +155,9 @@ public:
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
+
+    void AttachToWindowContainer(ScreenId screenId);
+    void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

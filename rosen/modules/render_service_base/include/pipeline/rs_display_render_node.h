@@ -369,6 +369,11 @@ public:
     }
 
     bool IsZoomStateChange() const;
+
+    // Window Container
+    void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+    std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
+
 protected:
     void OnSync() override;
 private:
@@ -430,6 +435,9 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+
+    // Window Container
+    std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
     friend class DisplayNodeCommandHelper;
     int64_t lastRefreshTime_ = 0;

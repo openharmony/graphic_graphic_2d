@@ -377,6 +377,8 @@ public:
         std::shared_ptr<SurfaceBufferCallback> callback);
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
