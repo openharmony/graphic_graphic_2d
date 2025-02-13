@@ -17,6 +17,7 @@
 #define RS_CORE_PIPELINE_UNI_RENDER_MIRROR_PROCESSOR_H
 
 #include "rs_uni_render_processor.h"
+#include "metadata_helper.h"
 
 namespace OHOS {
 namespace Rosen {
