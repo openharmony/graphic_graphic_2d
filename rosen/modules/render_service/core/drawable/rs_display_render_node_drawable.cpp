@@ -1045,6 +1045,15 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     RectI hwcRect = mirroredDrawable->GetSyncDirtyManager()->GetHwcDirtyRegion();
     if (!hwcRect.IsEmpty()) {
+        if (mainScreenInfo.isSamplingOn && mainScreenInfo.samplingScale > 0) {
+            Drawing::Matrix scaleMatrix;
+            scaleMatrix.SetScaleTranslate(mainScreenInfo.samplingScale, mainScreenInfo.samplingScale,
+                mainScreenInfo.samplingTranslateX, mainScreenInfo.samplingTranslateY);
+            hwcRect = RSObjAbsGeometry::MapRect(hwcRect.ConvertTo<float>(), scaleMatrix);
+            const Vector4<int> expandSize{mainScreenInfo.samplingDistance, mainScreenInfo.samplingDistance,
+                mainScreenInfo.samplingDistance, mainScreenInfo.samplingDistance};
+            hwcRect = hwcRect.MakeOutset(expandSize);
+        }
         RectI mappedHwcRect = tmpGeo->MapRect(hwcRect.ConvertTo<float>(), canvasMatrix);
         GetSyncDirtyManager()->MergeDirtyRect(mappedHwcRect);
     }
