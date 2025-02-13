@@ -28,8 +28,8 @@ public:
     bool RegisterSurfaceFps(NodeId id, const std::string& name);
     bool UnregisterSurfaceFps(NodeId id);
     bool RecordPresentTime(NodeId id, uint64_t timestamp, uint32_t seqNum);
-    void Dump(std::string& result, std::string& name);
-    void ClearDump(std::string& result, std::string& name);
+    void Dump(std::string& result, const std::string& name);
+    void ClearDump(std::string& result, const std::string& name);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
 private:
     RSSurfaceFpsManager() = default;
@@ -40,7 +40,7 @@ private:
     RSSurfaceFpsManager& operator=(const RSSurfaceFpsManager&&) = delete;
 
     std::shared_ptr<RSSurfaceFps> GetSurfaceFps(NodeId id);
-    std::shared_ptr<RSSurfaceFps> GetSurfaceFps(std::string& name);
+    std::shared_ptr<RSSurfaceFps> GetSurfaceFps(const std::string& name);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> surfaceFpsMap_;
     std::shared_mutex smtx;
 };
