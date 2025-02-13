@@ -385,6 +385,16 @@ public:
         return hasUniRenderHdrSurface_;
     }
 
+    void SetIsLuminanceStatusChange(bool isLuminanceStatusChange)
+    {
+        isLuminanceStatusChange_ = isLuminanceStatusChange;
+    }
+
+    bool GetIsLuminanceStatusChange() const
+    {
+        return isLuminanceStatusChange_;
+    }
+
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
@@ -546,6 +556,7 @@ private:
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
+    bool isLuminanceStatusChange_ = false;
     bool preRotationStatus_ = false;
     bool curRotationStatus_ = false;
     bool lastRotationChanged_ = false;

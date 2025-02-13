@@ -387,6 +387,9 @@ void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode
     }
     if (node.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
         SetHDRParam(node, true);
+        if (curDisplayNode_->GetIsLuminanceStatusChange()) {
+            node.SetContentDirty();
+        }
         pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
     }
@@ -445,6 +448,9 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         curDisplayNode_->SetHasUniRenderHdrSurface(true);
         curDisplayNode_->CollectHdrStatus(HdrStatus::HDR_PHOTO);
         SetHDRParam(node, true);
+        if (curDisplayNode_->GetIsLuminanceStatusChange()) {
+            node.SetContentDirty();
+        }
     }
 }
 
@@ -597,14 +603,13 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (curDisplayNode_ == nullptr) {
         return;
     }
-    ScreenId id = curDisplayNode_->GetScreenId();
     bool ret = CheckScreenPowerChange() ||
         CheckCurtainScreenUsingStatusChange() ||
         IsFirstFrameOfPartialRender() ||
         IsWatermarkFlagChanged() ||
         zoomStateChange_ ||
         isCompleteRenderEnabled_ ||
-        CheckLuminanceStatusChange(id) ||
+        curDisplayNode_->GetIsLuminanceStatusChange() ||
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged();
@@ -643,9 +648,12 @@ bool RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange() const
 
 bool RSUniRenderVisitor::CheckLuminanceStatusChange(ScreenId id)
 {
+    // ExchangeLuminanceChangingStatus will be reset false after called in one frame
+    // Use isLuminanceStatusChange_ if need call this function multiple times in one frame
     if (!RSMainThread::Instance()->ExchangeLuminanceChangingStatus(id)) {
         return false;
     }
+    curDisplayNode_->SetIsLuminanceStatusChange(true);
     RS_LOGD("RSUniRenderVisitor::CheckLuminanceStatusChange changed");
     return true;
 }
@@ -1032,7 +1040,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         parentSurfaceNodeMatrix_.Translate(
             -curDisplayNode_->GetDisplayOffsetX(), -curDisplayNode_->GetDisplayOffsetY());
     }
-    
+
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
     auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
@@ -1555,6 +1563,8 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
+    node.SetIsLuminanceStatusChange(false);
+    CheckLuminanceStatusChange(curDisplayNode_->GetScreenId());
     // 2 init screenManager info
     screenManager_ = CreateOrGetScreenManager();
     if (!screenManager_) {
