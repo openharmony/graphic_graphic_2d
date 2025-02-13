@@ -751,10 +751,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = !params.useBilinearInterpolation
-                                ? Drawing::SamplingOptions()
-                                : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR,
-                                    Drawing::MipmapMode::LINEAR);
+            samplingOptions = NeedBilinearInterpolation(params, canvas.GetTotalMatrix())
+                                  ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
+                                  : Drawing::SamplingOptions();
         }
     }
 
@@ -837,6 +836,36 @@ void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_
     canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
+}
+
+bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix)
+{
+    if (!params.useBilinearInterpolation) {
+        return false;
+    }
+    if (!ROSEN_EQ(params.dstRect.GetWidth(), params.srcRect.GetWidth()) ||
+        !ROSEN_EQ(params.dstRect.GetHeight(), params.srcRect.GetHeight())) {
+        return true;
+    }
+    auto scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
+    auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
+    auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
+    auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
+        if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
+            // has scale
+            return true;
+        }
+    } else if (ROSEN_EQ(scaleX, 0.0f) && ROSEN_EQ(scaleY, 0.0f)) {
+        if (!ROSEN_EQ(std::abs(skewX), 1.0f) || !ROSEN_EQ(std::abs(skewY), 1.0f)) {
+            // has scale
+            return true;
+        }
+    } else {
+        // skew and/or non 90 degrees rotation
+        return true;
+    }
+    return false;
 }
 
 HdrStatus RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer)
