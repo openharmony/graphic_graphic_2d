@@ -276,7 +276,7 @@ public:
     * @param systemAnimatedScenes indicates the system animation scene
     * @param isRegularAnimation indicates irregular windows in the animation scene
     * @return true if succeed, otherwise false
-    */ 
+    */
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
