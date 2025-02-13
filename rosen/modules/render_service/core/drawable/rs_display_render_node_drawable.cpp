@@ -632,6 +632,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (enableVisibleRect_) {
                 const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
                 curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+                RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect_);
             }
             currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
@@ -1880,6 +1881,9 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
+        // Use for mirror screen visible rect projection
+        const auto &visibleRect = RSUniRenderThread::Instance().GetVisibleRect();
+        matrix.PreTranslate(-visibleRect.GetLeft(), -visibleRect.GetTop());
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);
