@@ -32,6 +32,7 @@ private:
     bool SetVideoSound();
     std::shared_ptr<Media::Player> GetMediaPlayer() const;
     void StopVideo();
+    bool IsNormalBoot();
 
 #ifdef PLAYER_FRAMEWORK_ENABLE
     OHOS::sptr<OHOS::Surface> surface_;
