@@ -76,7 +76,10 @@ void RSSpringAnimation::OnStart()
     // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.blendDuration_);
+    if (const auto& springParams = timingCurve_.springParams_) {
+        animation->SetSpringParameters(
+            springParams->response_, springParams->dampingRatio_, springParams->blendDuration_);
+    }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
         animation->SetZeroThreshold(zeroThreshold_);

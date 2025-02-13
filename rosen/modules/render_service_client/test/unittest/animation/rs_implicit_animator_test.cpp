@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_animation_report.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_motion_path_option.h"
 #include "ui/rs_canvas_node.h"
@@ -256,6 +257,48 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationWithInitialVelocity002, 
 
     EXPECT_TRUE(implicitAnimator != nullptr);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimationWithInitialVelocity002 end";
+}
+
+/**
+ * @tc.name: ProcessAnimationFinishCallbackGuaranteeTaskTest001
+ * @tc.desc: Verify the ProcessAnimationFinishCallbackGuaranteeTaskTest001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest ProcessAnimationFinishCallbackGuaranteeTaskTest001 start";
+    RSAnimationTimingProtocol timingProtocol;
+    auto timingCurve = RSAnimationTimingCurve::SPRING;
+    timingProtocol.duration_ = 300;
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    std::shared_ptr<AnimationFinishCallback> callback =
+        std::make_shared<AnimationFinishCallback>([&]() {}, FinishCallbackType::TIME_INSENSITIVE);
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(callback));
+    EXPECT_TRUE(implicitAnimator != nullptr);
+    implicitAnimator->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    auto implicitAnimator2 = std::make_shared<RSImplicitAnimator>();
+    std::shared_ptr<AnimationFinishCallback> callback2 = std::make_shared<AnimationFinishCallback>([&]() {});
+    implicitAnimator2->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator2 != nullptr);
+    implicitAnimator2->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    auto timingCurve3 = RSAnimationTimingCurve::EASE;
+    auto implicitAnimator3 = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator3->OpenImplicitAnimation(timingProtocol, timingCurve3, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator3 != nullptr);
+    implicitAnimator3->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    RSAnimationTimingProtocol timingProtocol4;
+    timingProtocol4.duration_ = 0;
+    auto implicitAnimator4 = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator4->OpenImplicitAnimation(timingProtocol4, timingCurve3, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator4 != nullptr);
+    implicitAnimator4->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    RSAnimationReport::ReportFinishCallbackMissing(0, 0.f);
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest ProcessAnimationFinishCallbackGuaranteeTaskTest001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

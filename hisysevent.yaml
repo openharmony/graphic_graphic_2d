@@ -162,6 +162,11 @@ RS_NODE_LIMIT_EXCEEDED:
   RS_TOP3_APP_NAME: {type: STRING, desc: name of current app with top3 rs nodes}
   RS_TOP3_APP_NODE: {type: UINT32, desc: number of nodes of current app with top3 rs nodes}
 
+ANIMATION_CALLBACK_MISSING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: animation finish callback guarantee}
+  CURVE_TYPE: {type: INT32, desc: curve type}
+  DURATION: {type: FLOAT, desc: animation duration}
+
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}
   MSG: {type: STRING, desc: voter info}
