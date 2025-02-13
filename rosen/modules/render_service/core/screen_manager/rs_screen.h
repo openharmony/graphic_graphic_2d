@@ -67,7 +67,7 @@ public:
     virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
     virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
-    virtual void SetPowerStatus(uint32_t powerStatus) = 0;
+    virtual int32_t SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
     virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
     virtual const GraphicDisplayCapability& GetCapability() const = 0;
@@ -176,7 +176,7 @@ public:
     uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
     int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
-    void SetPowerStatus(uint32_t powerStatus) override;
+    int32_t SetPowerStatus(uint32_t powerStatus) override;
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
     const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
     const GraphicDisplayCapability& GetCapability() const override;

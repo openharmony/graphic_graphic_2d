@@ -107,7 +107,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
 {
     VirtualScreenInit();
     RS_LOGW("RSScreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64
-    ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
+        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
         id_, mirrorId_, width_, height_, name_.c_str(), screenType_);
 }
 
@@ -429,23 +429,19 @@ int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
     return -1;
 }
 
-void RSScreen::SetPowerStatus(uint32_t powerStatus)
+int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
 {
     if (!hdiScreen_) {
         RS_LOGE("[UL_POWER]RSScreen %{public}s failed, hdiScreen_ is nullptr",  __func__);
-        return;
-    }
-    if (IsVirtual()) {
-        RS_LOGW("[UL_POWER]RSScreen %{public}s: virtual screen not support SetPowerStatus.", __func__);
-        return;
+        return StatusCode::HDI_ERROR;
     }
 
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
-        RS_LOGW("[UL_POWER]RSScreen %{public}s powerStatus setting failed", __func__);
+        RS_LOGW("[UL_POWER]RSScreen %{public}s failed to set power status", __func__);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
-        return;
+        return StatusCode::HDI_ERROR;
     }
 
     powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
@@ -459,6 +455,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         }
     }
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus_);
+    return StatusCode::SUCCESS;
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
