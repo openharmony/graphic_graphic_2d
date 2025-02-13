@@ -59,9 +59,11 @@ template("skia_libtxt") {
     sources = [
       "$txt_root/common_utils/string_util.cpp",
       "$txt_root/impl/drawing_painter_impl.cpp",
+      "$txt_root/impl/text_font_utils.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
       "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
+      "$txt_root/impl/paragraph_relayout_impl.cpp",
       "$txt_root/impl/run_impl.cpp",
       "$txt_root/impl/text_line_impl.cpp",
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",

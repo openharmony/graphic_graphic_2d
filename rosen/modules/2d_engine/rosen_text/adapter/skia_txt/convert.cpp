@@ -93,6 +93,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .tab = Convert(style.tab),
         .paragraphSpacing = style.paragraphSpacing,
         .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
+        .relayoutChangeBitmap = style.relayoutChangeBitmap,
     };
 }
 
