@@ -19,7 +19,7 @@
 #include "wrapper_log.h"
 
 namespace OHOS {
-EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window)
+EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window, EGLint colorSpace)
     : EglWrapperObject(disp), surf_(surf), window_(window), colorSpace_(colorSpace)
 {
     WLOGD("");
