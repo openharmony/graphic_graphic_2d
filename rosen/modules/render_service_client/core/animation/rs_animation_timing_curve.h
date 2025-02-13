@@ -32,6 +32,7 @@ namespace {
 // the smaller the minimumAmplitudeRatio_, the closer it is to the endpoint at the end of the animation,
 // and the longer the animation duration.
 constexpr float DEFAULT_AMPLITUDE_RATIO = 0.00025f;
+constexpr float DEFAULT_AMPLITUDE_RATIO_SPRING = 0.001f;
 constexpr float DEFAULT_RESPONSE = 0.55f;
 constexpr float DEFAULT_DAMPING_RATIO = 0.825f;
 constexpr float DEFAULT_BLEND_DURATION = 0.0f;
@@ -69,7 +70,8 @@ public:
     // Create physical spring, which duration is determined by the spring model. When mixed with other physical spring
     // animations on the same property, each animation will be replaced by their successor, preserving velocity from one
     // animation to the next.
-    static RSAnimationTimingCurve CreateSpring(float response, float dampingRatio, float blendDuration = 0.0f);
+    static RSAnimationTimingCurve CreateSpring(float response, float dampingRatio, float blendDuration = 0.0f,
+        float minimumAmplitudeRatio = DEFAULT_AMPLITUDE_RATIO_SPRING);
 
     RSAnimationTimingCurve();
     RSAnimationTimingCurve(const RSAnimationTimingCurve& timingCurve) = default;
@@ -82,7 +84,7 @@ public:
 private:
     RSAnimationTimingCurve(const std::shared_ptr<RSInterpolator>& interpolator);
     RSAnimationTimingCurve(const std::function<float(float)>& customCurveFunc);
-    RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration);
+    RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio);
     RSAnimationTimingCurve(
         float response, float dampingRatio, float initialVelocity, CurveType curveType, float minimumAmplitudeRatio);
 

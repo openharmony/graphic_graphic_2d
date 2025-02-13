@@ -624,6 +624,7 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
     if (!(RSMarshallingHelper::Marshalling(parcel, response_) &&
             RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
+            RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
             RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
         ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, MarshallingHelper failed");
@@ -667,6 +668,7 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, blendDuration_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
             RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
             RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
