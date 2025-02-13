@@ -576,13 +576,14 @@ void MemoryManager::DumpMallocStat(std::string& log)
 
 void MemoryManager::DumpMemorySnapshot(DfxString& log)
 {
-    log.AppendFormat("\n---------------\nmemorySnapshots:\n");
+    size_t totalMemory = MemorySnapshot::Instance().GetTotalMemory();
+    log.AppendFormat("\n---------------\nmemorySnapshots, totalMemory %zuKB\n", totalMemory / MEMUNIT_RATE);
     std::unordered_map<pid_t, MemorySnapshotInfo> memorySnapshotInfo;
     MemorySnapshot::Instance().GetMemorySnapshot(memorySnapshotInfo);
     for (auto& [pid, snapshotInfo] : memorySnapshotInfo) {
         std::string infoStr = "pid: " + std::to_string(pid) +
-            ", cpu: " + std::to_string(snapshotInfo.cpuMemory) +
-            ", gpu: " + std::to_string(snapshotInfo.gpuMemory);
+            ", cpu: " + std::to_string(snapshotInfo.cpuMemory / MEMUNIT_RATE) +
+            "KB, gpu: " + std::to_string(snapshotInfo.gpuMemory / MEMUNIT_RATE) + "KB";
         log.AppendFormat("%s\n", infoStr.c_str());
     }
 }
