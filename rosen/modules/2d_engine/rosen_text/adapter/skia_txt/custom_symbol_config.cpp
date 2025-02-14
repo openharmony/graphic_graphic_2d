@@ -29,7 +29,7 @@ CustomSymbolConfig* CustomSymbolConfig::GetInstance()
     return &singleton;
 }
 
-LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::string &familyName,
+LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyName,
     const uint8_t *data, size_t datalen)
 {
     if (data == nullptr) {
@@ -48,6 +48,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::str
         return LoadSymbolErrorCode::JSON_ERROR;
     }
 
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfigGroup;
     LoadSymbolErrorCode result = LoadSymbolErrorCode::JSON_ERROR;
     SymbolConfigParser symbolConfigTool;
@@ -62,6 +63,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfigOfCustomSymbol(const std::str
 std::optional<RSSymbolLayersGroups> CustomSymbolConfig::GetSymbolLayersGroups(const std::string &familyName,
     uint16_t glyphId)
 {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     auto it = symbolConfig_.find(familyName);
     if (it == symbolConfig_.end()) {
         return std::nullopt;

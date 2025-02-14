@@ -17,6 +17,7 @@
 #define CUSTOM_SYMBOL_CONFIG_H
 
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 
@@ -32,7 +33,7 @@ public:
     ~CustomSymbolConfig() = default;
 
     std::optional<RSSymbolLayersGroups> GetSymbolLayersGroups(const std::string &familyName, uint16_t glyphId);
-    LoadSymbolErrorCode ParseConfigOfCustomSymbol(const std::string &familyName, const uint8_t *data, size_t datalen);
+    LoadSymbolErrorCode ParseConfig(const std::string &familyName, const uint8_t *data, size_t datalen);
 
 private:
     CustomSymbolConfig() {}
@@ -42,6 +43,7 @@ private:
     CustomSymbolConfig& operator=(CustomSymbolConfig&&) = delete;
 
     std::unordered_map<std::string, std::unordered_map<uint16_t, RSSymbolLayersGroups>> symbolConfig_;
+    std::shared_mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
