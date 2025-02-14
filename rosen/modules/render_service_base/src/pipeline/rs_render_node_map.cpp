@@ -362,6 +362,16 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
     }
 }
 
+void RSRenderNodeMap::TraverseSurfaceNodesBreakOnCondition(
+    std::function<bool (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : surfaceNodeMap_) {
+        if (func(node)) {
+            break;
+        }
+    }
+}
+
 bool RSRenderNodeMap::ContainPid(pid_t pid) const
 {
     return std::any_of(surfaceNodeMap_.begin(), surfaceNodeMap_.end(),
