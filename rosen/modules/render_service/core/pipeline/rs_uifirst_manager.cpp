@@ -1328,7 +1328,85 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
             surfaceName.c_str(), focus, animation, node.GetUIFirstSwitch());
         return false;
     }
-    return node.QuerySubAssignable(isDisplayRotation);
+    return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
+}
+
+bool RSUifirstManager::IsToSubByAppAnimation() const
+{
+    for (auto& it : currentFrameEvent_) {
+        if (std::find(toSubByAppAnimation_.begin(), toSubByAppAnimation_.end(), it.sceneId) !=
+            toSubByAppAnimation_.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg)
+{
+    bool hasTransparent = false;
+    if (node.IsLeashWindow()) {
+        for (auto &child : *node.GetSortedChildren()) {
+            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurfaceNode == nullptr) {
+                continue;
+            }
+            hasTransparent |= childSurfaceNode->IsTransparent();
+        }
+    } else {
+        hasTransparent = node.IsTransparent();
+    }
+    if (!hasTransparent || !IsToSubByAppAnimation()) {
+        // if not transparent, no need to check IsToSubByAppAnimation;
+        return hasTransparent;
+    }
+
+    bool isAbilityBgColorTransparent = true;
+    if (node.IsLeashWindow()) {
+        for (auto &child : *node.GetSortedChildren()) {
+            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurfaceNode == nullptr) {
+                continue;
+            }
+            const auto& properties = childSurfaceNode->GetRenderProperties();
+            if (properties.GetNeedDrawBehindWindow() || (childSurfaceNode->GetAbilityBgAlpha() < UINT8_MAX)) {
+                isAbilityBgColorTransparent = true;
+                dfxMsg = "AbBgAlpha: " + std::to_string(childSurfaceNode->GetAbilityBgAlpha()) + " behindWindow: " +
+                    std::to_string(properties.GetNeedDrawBehindWindow());
+                break;
+            } else {
+                isAbilityBgColorTransparent = false;
+            }
+        }
+    } else {
+        const auto& properties = node.GetRenderProperties();
+        isAbilityBgColorTransparent = properties.GetNeedDrawBehindWindow() || (node.GetAbilityBgAlpha() < UINT8_MAX);
+        dfxMsg = "AbBgAlpha: " + std::to_string(node.GetAbilityBgAlpha()) + " behindWindow: " +
+            std::to_string(properties.GetNeedDrawBehindWindow());
+    }
+    return isAbilityBgColorTransparent;
+}
+
+bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation)
+{
+    if (!node.IsFirstLevelNode()) {
+        return false;
+    }
+
+    auto childHasVisibleFilter = node.ChildHasVisibleFilter();
+    auto hasFilter = node.HasFilter();
+    auto globalAlpha = node.GetGlobalAlpha();
+    auto hasProtectedLayer = node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
+    std::string dfxMsg;
+    auto hasTransparentSurface = GetSubNodeIsTransparent(node, dfxMsg);
+
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d,"
+        "isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d %s", node.GetId(), hasTransparentSurface,
+        childHasVisibleFilter, hasFilter, isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(), globalAlpha,
+        hasProtectedLayer, dfxMsg.c_str());
+    bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
+        !(isRotation && ROSEN_EQ(globalAlpha, 0.0f)) : !isRotation;
+    return !(hasTransparentSurface && childHasVisibleFilter) && !hasFilter && rotateOptimize && !hasProtectedLayer;
 }
 
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
