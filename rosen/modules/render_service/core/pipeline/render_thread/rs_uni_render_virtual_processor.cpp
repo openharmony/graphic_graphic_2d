@@ -363,6 +363,20 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     if (EnableVisibleRect()) {
         mirroredScreenWidth = visibleRect_.GetWidth();
         mirroredScreenHeight = visibleRect_.GetHeight();
+        if (mirroredScreenWidth < EPSILON || mirroredScreenHeight < EPSILON) {
+            RS_LOGE("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, input is illegal.");
+            return;
+        }
+        if (!drawMirrorCopy_) {
+            float top = visibleRect_.GetTop();
+            float left = visibleRect_.GetLeft();
+            float startRectX = virtualScreenWidth_ * (left / mirroredScreenWidth);
+            float startRectY = virtualScreenHeight_ * (top / mirroredScreenHeight);
+            canvas.Translate(-startRectX, -startRectY);
+            RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, top:%{public}f, left:%{public}f, width:%{public}f,"
+                "height:%{public}f, X:%{public}f, Y:%{public}f", top, left, mirroredScreenWidth,
+                mirroredScreenHeight, startRectX, startRectY);
+        }
     }
 
     if (mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
@@ -490,7 +504,7 @@ bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
     if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
-        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect()) {
+        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect() && drawMirrorCopy_) {
         return true;
     }
     return false;

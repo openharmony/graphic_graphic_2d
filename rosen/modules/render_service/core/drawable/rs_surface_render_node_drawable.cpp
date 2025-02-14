@@ -492,16 +492,21 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams, *uniParam)) {
-        SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
-        return;
-    }
-    if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
-        if (GetDrawSkipType() == DrawSkipType::NONE) {
-            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+    // Regional screen recording does not enable uifirst.
+    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
+    if (!enableVisiableRect) {
+        if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams, *uniParam)) {
+            SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
+            return;
         }
-        return;
+        if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
+            if (GetDrawSkipType() == DrawSkipType::NONE) {
+                SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+            }
+            return;
+        }
     }
+    
     auto cacheState = GetCacheSurfaceProcessedStatus();
     auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
@@ -900,7 +905,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
-    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent)) {
+    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
+    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
+        enableVisiableRect)) {
         if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
             surfaceParams.SetHardwareEnabled(hwcEnable);
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {

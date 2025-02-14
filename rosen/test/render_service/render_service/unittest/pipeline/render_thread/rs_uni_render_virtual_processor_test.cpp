@@ -572,6 +572,21 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
     bool res = virtualProcessor->EnableSlrScale();
-    ASSERT_NE(false, res);
+    ASSERT_EQ(false, res);
+}
+
+/**
+ * @tc.name: SetSpecialLayerType
+ * @tc.desc: test draw virtual mirror screen by copy.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetSpecialLayerType, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+    virtualProcessor->SetDrawVirtualMirrorCopy(true);
 }
 } // namespace OHOS::Rosen

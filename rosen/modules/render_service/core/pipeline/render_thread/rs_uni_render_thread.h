@@ -222,6 +222,16 @@ public:
         return wallpaperTranslate_;
     }
 
+    void SetEnableVisiableRect(bool enableVisiableRect)
+    {
+        enableVisiableRect_.store(enableVisiableRect);
+    }
+
+    bool GetEnableVisiableRect() const
+    {
+        return enableVisiableRect_.load();
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -244,6 +254,7 @@ private:
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
     int imageReleaseCount_ = 0;
