@@ -299,6 +299,8 @@ private:
 
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
+    void TryNotifyUIBufferAvailable();
+
     // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
     void SetHdrWhenMultiDisplayChangeInPC();
 
@@ -387,6 +389,7 @@ private:
 
     float globalZOrder_ = 0.0f;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
+    std::vector<NodeId> uiBufferAvailableId_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     // vector of all app window nodes with surfaceView, sorted by zOrder
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;

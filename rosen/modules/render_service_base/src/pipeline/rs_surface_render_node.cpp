@@ -538,10 +538,11 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     }
     ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
+}
 
-    if ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
-        NotifyUIBufferAvailable();
-    }
+bool RSSurfaceRenderNode::IsUIBufferAvailable()
+{
+    return ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this));
 }
 
 bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)

@@ -649,6 +649,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     RSUifirstManager::Instance().SetRotationChanged(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         QuickPrepareChildren(node);
+        TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
     UpdateHwcNodeEnable();
@@ -803,6 +804,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.SetNeedOffscreen(isScreenRotationAnimating_);
     if (node.NeedUpdateDrawableBehindWindow()) {
         RSMainThread::Instance()->RequestNextVSync("drawBehindWindow");
+    }
+    if (node.IsUIBufferAvailable()) {
+        uiBufferAvailableId_.emplace_back(node.GetId());
     }
 }
 
@@ -3237,6 +3241,18 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC()
     RS_LOGI("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %{public}d.", isMultiDisplay);
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %d", isMultiDisplay);
     RSLuminanceControl::Get().ForceCloseHdr(CLOSEHDR_SCENEID::MULTI_DISPLAY, isMultiDisplay);
+}
+
+void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
+{
+    for (auto& id : uiBufferAvailableId_) {
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+        if (surfaceNode) {
+            surfaceNode->NotifyUIBufferAvailable();
+        }
+    }
+    uiBufferAvailableId_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS
