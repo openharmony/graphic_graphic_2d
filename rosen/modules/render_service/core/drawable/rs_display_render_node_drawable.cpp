@@ -2191,7 +2191,7 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
     } else if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
         if (isUseCustomShader) {
             Drawing::Rect imageRect { 0., 0., image->GetImageInfo().GetWidth(), image->GetImageInfo().GetHeight() };
-            imageRect.Offset(-offscreenTranslateX_, -offscreenTranslateY_);
+            canvasBackup_->Translate(-offscreenTranslateX_, -offscreenTranslateY_);
             canvasBackup_->DrawRect(imageRect);
         } else {
             canvasBackup_->DrawImage(*image, -offscreenTranslateX_, -offscreenTranslateY_, sampling);
