@@ -68,6 +68,8 @@ bool InitSurface()
     auto node2 = RSCanvasNode::Create();
     auto node3 = RSCanvasNode::Create();
     auto node4 = RSCanvasNode::Create();
+    node4->SetBounds(NODE_POSITION_X, 0, width, height);
+    node4->SetBackgroundColor(SK_ColorYELLOW);
     rootNode->AddChild(node1);
     rootNode->AddChild(node2);
     node1->AddChild(node3);

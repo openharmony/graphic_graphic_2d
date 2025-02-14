@@ -82,7 +82,15 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
-    DrawAll(canvas, bounds);
+    DrawBackground(canvas, bounds);
+
+    CollectInfoForUnobscuredUEC(canvas);
+
+    DrawContent(canvas, bounds);
+
+    DrawChildren(canvas, bounds);
+
+    DrawForeground(canvas, bounds);
 }
 
 /*

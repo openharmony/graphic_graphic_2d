@@ -562,6 +562,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;

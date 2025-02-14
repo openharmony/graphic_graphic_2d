@@ -223,6 +223,16 @@ public:
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
+    void SetUIExtensionNeedToDraw(bool needToDraw) override
+    {
+        uiExtensionNeedToDraw_ = needToDraw;
+    }
+
+    bool UIExtensionNeedToDraw() const override
+    {
+        return uiExtensionNeedToDraw_;
+    }
+
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
@@ -275,6 +285,7 @@ private:
         RSRenderThreadParams& uniParams) const;
     void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
     void ClearTotalProcessedSurfaceCount();
+    void PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas);
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -308,6 +319,7 @@ private:
 #endif
     std::shared_ptr<RSSurface> surface_ = nullptr;
     bool surfaceCreated_ = false;
+    bool uiExtensionNeedToDraw_ = false;
 
     // UIFIRST
     std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;

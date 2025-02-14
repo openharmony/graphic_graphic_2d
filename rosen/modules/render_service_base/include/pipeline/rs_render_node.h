@@ -878,6 +878,9 @@ public:
 
     CurFrameInfoDetail& GetCurFrameInfoDetail() { return curFrameInfoDetail_; }
 
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC();
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -990,6 +993,7 @@ private:
     // Test pipeline
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool unobscuredUECChildrenNeedSync_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
@@ -1095,7 +1099,7 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> originUECChildren_ =
+    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     WeakPtr sourceCrossNode_;
     WeakPtr curCloneNodeParent_;

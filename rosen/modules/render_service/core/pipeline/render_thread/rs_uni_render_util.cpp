@@ -2233,7 +2233,7 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     }
     // continue to traverse.
     for (const auto& child : *node->GetSortedChildren()) {
-        TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
+        TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData, isUnobscured);
     }
 }
 
