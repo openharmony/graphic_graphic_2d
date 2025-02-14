@@ -75,6 +75,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
     std::function<void()> syncTask = []() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+        int skipTimes = 0;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
             auto node = weakPtr.lock();
             if (node == nullptr) {
@@ -84,7 +85,11 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
                 node->Sync();
             } else {
                 node->SkipSync();
+                skipTimes++;
             }
+        }
+        if (skipTimes != 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CheckModifiers SkipSync times: [%{public}d]", skipTimes);
         }
         pendingSyncNodes.clear();
         RSUifirstManager::Instance().UifirstCurStateClear();
@@ -156,6 +161,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     }
 
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        surfaceNode_ = surfaceNode;
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
@@ -167,7 +173,9 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Node should not paint!");
             return false;
         }
-
+        if (curNode->GetSortedChildren()->size() == 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+        }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode);
@@ -277,13 +285,14 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    RS_LOGD("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
+    RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d], useCurWindow: [%{public}d]",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma, captureConfig_.useCurWindow);
+        " useDma: [%{public}d], useCurWindow: [%{public}d],"
+        " isOnTheTree: [%{public}d], isVisible: [%{public}d]",
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
+        !surfaceNode_->GetVisibleRegion().IsEmpty());
     return Media::PixelMap::Create(opts);
 }
 
