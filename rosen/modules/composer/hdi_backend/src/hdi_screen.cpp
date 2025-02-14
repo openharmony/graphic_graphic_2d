@@ -269,5 +269,11 @@ bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
     }
     return false;
 }
+
+int32_t HdiScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->GetDisplayIdentificationData(screenId_, outPort, edidData);
+}
 } // namespace Rosen
 } // namespace OHOS

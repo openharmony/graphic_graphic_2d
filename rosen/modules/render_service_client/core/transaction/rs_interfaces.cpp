@@ -645,6 +645,11 @@ int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
     return renderServiceClient_->GetScreenType(id, screenType);
 }
 
+int32_t RSInterfaces::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData)
+{
+    return renderServiceClient_->GetDisplayIdentificationData(id, outPort, edidData);
+}
+
 int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);

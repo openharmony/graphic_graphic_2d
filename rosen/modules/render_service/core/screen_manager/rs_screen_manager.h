@@ -236,6 +236,9 @@ public:
 
     virtual int GetDisableRenderControlScreensCount() const = 0;
 
+    virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
+        std::vector<uint8_t>& edidData) const = 0;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual float GetScreenBrightnessNits(ScreenId id) const = 0;
 #endif
@@ -452,6 +455,9 @@ public:
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
     void SetEqualVsyncPeriod(ScreenId id, bool isEqualVsyncPeriod) override;
+
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
+        std::vector<uint8_t>& edidData) const override;
 
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override

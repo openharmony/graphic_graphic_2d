@@ -355,6 +355,8 @@ public:
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
+    virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual int32_t SetOverlayDisplayMode(int32_t mode) = 0;
 #endif

@@ -440,6 +440,12 @@ int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFenc
     }
     return ret;
 }
+
+int32_t HdiDeviceImpl::GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayIdentificationData(screenId, outPort, edidData);
+}
 /* set & get device screen info end */
 
 /* set & get device layer info begin */

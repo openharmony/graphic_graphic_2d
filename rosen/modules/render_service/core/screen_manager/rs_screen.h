@@ -142,6 +142,7 @@ public:
     virtual bool GetHasProtectedLayer() = 0;
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
+    virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
 };
 
 namespace impl {
@@ -254,6 +255,7 @@ public:
     bool GetHasProtectedLayer() override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
+    int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
 
 private:
     // create hdiScreen and get some information from drivers.

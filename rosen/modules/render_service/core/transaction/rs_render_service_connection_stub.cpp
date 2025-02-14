@@ -84,6 +84,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
@@ -992,6 +993,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t status = SetVirtualScreenResolution(id, width, height);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint8_t outPort{0};
+            std::vector<uint8_t> edidData{};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = GetDisplayIdentificationData(id, outPort, edidData);
+            if (!reply.WriteUint8(result)) {
+                ret = IPC_STUB_WRITE_PARCEL_ERR;
+                break;
+            }
+            if (result != SUCCESS) {
+                break;
+            }
+            if (!reply.WriteUint8(outPort) ||
+                !reply.WriteUint32(static_cast<uint32_t>(edidData.size())) ||
+                !reply.WriteBuffer(edidData.data(), edidData.size())) {
+                ret = IPC_STUB_WRITE_PARCEL_ERR;
             }
             break;
         }
