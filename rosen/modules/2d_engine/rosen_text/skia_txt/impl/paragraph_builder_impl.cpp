@@ -308,6 +308,10 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
         skStyle.setPlaceholder();
     }
 
+    if (txt.symbol.GetSymbolType() == SymbolType::CUSTOM) {
+        skStyle.setCustomSymbol(true);
+    }
+
     return skStyle;
 }
 
