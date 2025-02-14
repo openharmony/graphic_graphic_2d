@@ -34,6 +34,7 @@
 #include "frame_rate_report.h"
 #include "hisysevent.h"
 #include "hdi_device.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1773,6 +1774,22 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     surfaceData_.clear();
     lastPostIdleDetectorTaskTimestamp_ = timestamp;
     return true;
+}
+
+void HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
+{
+    bool isGameSelfNodeOnTree = false;
+    std::string gameNodeName = GetGameNodeName();
+    nodeMap.TraverseSurfaceNodes(
+        [this, &isGameSelfNodeOnTree, &gameNodeName]
+        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if (surfaceNode->IsOnTheTree() && gameNodeName == surfaceNode->GetName()) {
+                isGameSelfNodeOnTree = true;
+            }
+        }
+    );
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d", isGameSelfNodeOnTree);
+    isGameNodeOnTree_.store(isGameSelfNodeOnTree);
 }
 
 void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,

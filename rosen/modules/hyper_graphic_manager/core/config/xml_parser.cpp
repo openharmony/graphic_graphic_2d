@@ -382,7 +382,7 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
                                 const std::string &valueName, const std::string &keyName,
-                                const bool &canBeEmpty)
+                                const bool canBeEmpty)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -408,9 +408,8 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
         if (value.empty()) {
             if (canBeEmpty) {
                 continue;
-            } else {
-                return XML_PARSE_INTERNAL_FAIL;
             }
+            return XML_PARSE_INTERNAL_FAIL;
         }
 
         config[key] = value;

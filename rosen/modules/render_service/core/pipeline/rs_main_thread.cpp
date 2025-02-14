@@ -1584,22 +1584,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
         RS_OPTIONAL_TRACE_NAME("rs debug: uiCapture SetDoDirectComposition false");
         doDirectComposition_ = false;
     }
-
-    bool isAdaptive = false;
-    std::string gameNodeName = "";
-    bool isGameNodeOnTree = false;
-
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    auto frameRateMgr = hgmCore.GetFrameRateMgr();
-    if (LIKELY(frameRateMgr != nullptr)) {
-        isAdaptive = frameRateMgr->IsAdaptive();
-        gameNodeName = frameRateMgr->GetGameNodeName();
-    }
-
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this, &nodeMap, &isGameNodeOnTree, gameNodeName, isAdaptive]
-        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
@@ -1625,10 +1612,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                         "and buffer consumed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
                 return;
-            }
-
-            if (isAdaptive && gameNodeName == surfaceNode->GetName()) {
-                isGameNodeOnTree = true;
             }
 
             if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
@@ -1690,11 +1673,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
-    if (isAdaptive && LIKELY(frameRateMgr != nullptr) && isGameNodeOnTree != isLastGameNodeOnTree_) {
-        RS_TRACE_NAME_FMT("Adaptive Sync Mode, game node on tree: %d", isGameNodeOnTree);
-        frameRateMgr->SetGameNodeOnTree(isGameNodeOnTree);
-    }
-    isLastGameNodeOnTree_ = isGameNodeOnTree;
 #endif
 }
 
@@ -2010,6 +1988,11 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
+    }
+
+    bool isAdaptive = frameRateMgr->IsAdaptive();
+    if (isAdaptive) {
+        frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
     }
 
     static std::once_flag initUIFwkTableFlag;

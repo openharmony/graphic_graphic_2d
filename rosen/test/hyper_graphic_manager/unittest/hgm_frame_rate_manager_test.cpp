@@ -21,6 +21,8 @@
 #include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_idle_detector.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "common/rs_common_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -157,6 +159,55 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
     frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
     frameRateMgr.ReportHiSysEvent({ .extInfo = "ON" });
+}
+
+/**
+ * @tc.name: HandleGameNodeTest
+ * @tc.desc: Verify the result of HandleGameNodeTest function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+ HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level1)
+ {
+    HgmFrameRateManager frameRateMgr;
+    frameRateMgr.curGameNodeName_ = "gameNode";
+    RSRenderNodeMap nodeMap;
+    RSSurfaceRenderNodeConfig config;
+
+    PART("HandleGameNodeTest") {
+        STEP("1. Test empty surfaceMap") {
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("2. Test with a normal surfaceNode on tree") {
+            config.id = 1;
+            config.name = "normalNode";
+            auto normalNode = std::make_shared<RSSurfaceRenderNode>(config);
+            normalNode->SetIsOnTheTree(true);
+            nodeMap.RegisterRenderNode(normalNode);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("3. Test with a game surfaceNode not on tree") {
+            config.id = 2;
+            config.name = "gameNode";
+            auto gameNode1 = std::make_shared<RSSurfaceRenderNode>(config);
+            gameNode1->SetIsOnTheTree(false);
+            nodeMap.RegisterRenderNode(gameNode1);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("4. Test with a game surfaceNode on tree") {
+            config.id = 3;
+            config.name = "gameNode";
+            auto gameNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+            gameNode2->SetIsOnTheTree(true);
+            nodeMap.RegisterRenderNode(gameNode2);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), true);
+        }
+    }
+    sleep(1);
 }
 
 /**
