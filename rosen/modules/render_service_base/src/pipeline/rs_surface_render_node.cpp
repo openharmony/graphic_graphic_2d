@@ -212,13 +212,16 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateInfoForClonedNode()
+void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
-    if (GetId() == clonedSourceNodeId_) {
+    bool isClonedNode = GetId() == nodeId;
+    if (isClonedNode && IsMainWindowType()) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
+            GetName().c_str(), GetId());
     }
-    SetIsCloned(GetId() == clonedSourceNodeId_);
+    SetIsCloned(isClonedNode);
 }
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
@@ -755,6 +758,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
     SetContentDirty();
     AddDirtyType(RSModifierType::SCALE);
     AddDirtyType(RSModifierType::SKEW);
+    AddDirtyType(RSModifierType::SCALE_Z);
     AddDirtyType(RSModifierType::PERSP);
     AddDirtyType(RSModifierType::TRANSLATE);
     if (!sendMsg) {
@@ -2161,7 +2165,7 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
             containerConfig_.innerRect_.top_,
             containerConfig_.innerRect_.width_,
             containerConfig_.innerRect_.height_};
-        auto rect = geoPtr->MapAbsRect(r).IntersectRect(GetOldDirtyInSurface());
+        auto rect = geoPtr->MapAbsRect(r).IntersectRect(GetAbsDrawRect());
         config.innerRect_ = rect;
         return config;
     } else {
@@ -2273,11 +2277,7 @@ void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerR
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
-    auto absRect = GetOldDirtyInSurface();
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (geoPtr) {
-        absRect = absRect.IntersectRect(geoPtr->GetAbsRect());
-    }
+    auto absRect = GetAbsDrawRect();
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
@@ -2286,6 +2286,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
                                 static_cast<int>(std::round(tmpCornerRadius.w_)));
     auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
     if (boundsGeometry) {
+        absRect = absRect.IntersectRect(boundsGeometry->GetAbsRect());
         const auto& absMatrix = boundsGeometry->GetAbsMatrix();
         auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
             absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
@@ -2297,10 +2298,10 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
 
     if (!CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius)) {
         if (absRect.IsEmpty()) {
-            RS_LOGD("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
-                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
-            RS_TRACE_NAME_FMT("%s absRect is empty, dst rect: %s, old dirty in surface: %s",
-                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
+            RS_LOGD("%{public}s absRect is empty, absDrawRect: %{public}s",
+                GetName().c_str(), GetAbsDrawRect().ToString().c_str());
+            RS_TRACE_NAME_FMT("%s absRect is empty, absDrawRect: %s",
+                GetName().c_str(), GetAbsDrawRect().ToString().c_str());
         }
         ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
         SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
@@ -2511,6 +2512,8 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
+                GetName().c_str(), GetId());
         }
     } else if (IsLeashWindow()) {
         for (auto& child : *GetChildren()) {
@@ -2753,7 +2756,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         firstLevelNodeId = GetId();
     } else if (IsAppWindow()) {
         firstLevelNodeId = GetId();
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
+        auto parentNode = GetParent().lock();
         if (parentNode && parentNode->GetFirstLevelNodeId() != INVALID_NODEID) {
             firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
@@ -2945,6 +2948,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
     surfaceParams->SetRoundedCornerRegion(GetRoundedCornerRegion());
+    surfaceParams->SetFirstLevelCrossNode(IsFirstLevelCrossNode());
 #endif
 }
 
@@ -2984,6 +2988,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     }
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
+    surfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     surfaceParams->isCrossNode_ = IsCrossNode();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
     surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
@@ -3015,8 +3020,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->leashPersistentId_ = leashPersistentId_;
     surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
-    surfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
-    surfaceParams->preparedDisplayOffset_ = { GetPreparedDisplayOffsetX(), GetPreparedDisplayOffsetY() };
+    surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
@@ -3398,6 +3402,11 @@ void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
     }
     surfaceParams->SetIsCloned(isCloned);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetIsClonedNodeOnTheTree(bool isOnTheTree)
+{
+    isClonedNodeOnTheTree_ = isOnTheTree;
 }
 
 void RSSurfaceRenderNode::ResetIsBufferFlushed()

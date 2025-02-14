@@ -419,9 +419,6 @@ void RSRenderThread::ProcessCommands()
         uiTimestamp_ = prevTimestamp_ - 1;
         return;
     }
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().ProcessCommandsStart();
-    }
 
     if (commandTimestamp_ != 0) {
         uiTimestamp_ = commandTimestamp_;
@@ -432,7 +429,29 @@ void RSRenderThread::ProcessCommands()
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %{public}lu\n", (unsigned long)cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
+#ifdef CROSS_PLATFORM
+    if (!cmds_.empty()) {
+        int index = 0;
+        while (index < cmds_.size()) {
+            RS_TRACE_NAME("RSRenderThread ProcessCommands index: " + std::to_string(index) + " cmdstamp:" +
+                              std::to_string(cmds_[index]->GetTimestamp()) + " curstamp:" + std::to_string(timestamp_));
+            if (cmds_[index]->GetTimestamp() < timestamp_) {
+                index++;
+            } else {
+                break;
+            }
+        }
+        for (int i = 0; i < index; i++) {
+            cmds.emplace_back(std::move(cmds_[i]));
+        }
+        cmds_.erase(cmds_.begin(), cmds_.begin() + index);
+        if (!cmds_.empty()) {
+            RequestNextVSync();
+        }
+    }
+#else
     std::swap(cmds, cmds_);
+#endif
     cmdLock.unlock();
 
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
@@ -458,10 +477,6 @@ void RSRenderThread::ProcessCommands()
 void RSRenderThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
-
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().AnimateStart();
-    }
 
     lastAnimateTimestamp_ = timestamp;
 
@@ -503,9 +518,7 @@ void RSRenderThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart(timestamp_);
-    }
+    RsFrameReport::GetInstance().RenderStart(timestamp_);
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();
 
@@ -531,9 +544,7 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().SendCommandsStart();
-    }
+    RsFrameReport::GetInstance().SendCommandsStart();
 
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

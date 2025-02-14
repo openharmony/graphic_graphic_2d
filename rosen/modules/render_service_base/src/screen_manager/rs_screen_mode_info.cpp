@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_screen_mode_info.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,8 +50,12 @@ RSScreenModeInfo& RSScreenModeInfo::operator=(const RSScreenModeInfo& other)
 
 bool RSScreenModeInfo::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteInt32(width_) && parcel.WriteInt32(height_) &&
+    bool flag = parcel.WriteInt32(width_) && parcel.WriteInt32(height_) &&
         parcel.WriteUint32(refreshRate_) && parcel.WriteInt32(modeId_);
+    if (!flag) {
+        ROSEN_LOGE("RSScreenModeInfo::Marshalling failed");
+    }
+    return flag;
 }
 
 RSScreenModeInfo* RSScreenModeInfo::Unmarshalling(Parcel& parcel)
@@ -61,6 +66,7 @@ RSScreenModeInfo* RSScreenModeInfo::Unmarshalling(Parcel& parcel)
     int32_t id;
     if (!(parcel.ReadInt32(width) && parcel.ReadInt32(height) && parcel.ReadUint32(refreshRate)
         && parcel.ReadInt32(id))) {
+        ROSEN_LOGE("RSScreenModeInfo::Unmarshalling failed");
         return nullptr;
     }
 

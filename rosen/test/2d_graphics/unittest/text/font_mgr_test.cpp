@@ -134,6 +134,44 @@ HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level1)
     ASSERT_NE(fontStyleSet, nullptr);
 }
 
+/**
+ * @tc.name:MatchFallbackc001
+ * @tc.desc: Test fallback typeface
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, MatchFallbackc001, TestSize.Level1)
+{
+    const char* ja = "Noto Sans CJK JP";
+    const char* hmSymbol = "HM Symbol";
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    auto typeface = fontMgr->MatchFamilyStyleCharacter(nullptr, {}, nullptr, 0, u'❶');
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), ja);
+    delete typeface;
+
+    // 0xF0000 is edge case of ulUnicodeRange
+    typeface = fontMgr->MatchFamilyStyleCharacter(nullptr, {}, nullptr, 0, 0xF0000);
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), hmSymbol);
+    delete typeface;
+
+    typeface = fontMgr->MatchFamilyStyleCharacter(nullptr, {}, nullptr, 0, u'✿');
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), ja);
+    delete typeface;
+
+    typeface = fontMgr->MatchFamilyStyleCharacter(nullptr, {}, nullptr, 0, u'♲');
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), ja);
+    delete typeface;
+
+    typeface = fontMgr->MatchFamilyStyleCharacter(nullptr, {}, nullptr, 0, u'❀');
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), ja);
+    delete typeface;
+}
+
 const char* TTF_FILE_PATH = "/system/fonts/Roboto-Regular.ttf";
 // The ttf font file fullname is the utf16BE format content corresponding to "Noto Sans Regular"
 const uint8_t TTF_FULLNAME[] = {0x0, 0x4e, 0x0, 0x6f, 0x0, 0x74, 0x0, 0x6f, 0x0, 0x20, 0x0, 0x53,

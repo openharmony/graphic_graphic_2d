@@ -17,6 +17,7 @@
 
 #include <cfloat>
 #include "rs_trace.h"
+#include "pipeline/rs_main_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -82,7 +83,7 @@ static std::shared_ptr<uint32_t[]> GetSLRWeights(float coeff, int width, int dst
             weights[j] = f;
             sum += f;
         }
-        if (sum <= FLT_EPSILON) {
+        if (ROSEN_LE(sum, 0.f)) {
             return nullptr;
         }
         for (auto j = 0; j < width; ++j) {
@@ -110,6 +111,9 @@ std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWi
     bitmap.Build(width, dstWidth, format, width * sizeof(uint32_t));
  
     auto weightW = GetSLRWeights(coeff, 2 * minBound, dstWidth, minBound);
+    if (weightW == nullptr) {
+        return nullptr;
+    }
     Drawing::ImageInfo imageInfo(width, dstWidth,
         Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE);
     bitmap.InstallPixels(imageInfo, weightW.get(), width * sizeof(uint32_t));
@@ -125,8 +129,8 @@ std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWi
 
 void RSSLRScaleFunction::RefreshScreenData()
 {
-    if (std::fabs(mirrorWidth_) <= FLT_EPSILON || std::fabs(srcWidth_) <= FLT_EPSILON ||
-        std::fabs(mirrorHeight_) <= FLT_EPSILON || std::fabs(srcHeight_) <= FLT_EPSILON) {
+    if (ROSEN_LE(mirrorWidth_, 0.f) || ROSEN_LE(srcWidth_, 0.f) ||
+        ROSEN_LE(mirrorHeight_, 0.f) || ROSEN_LE(srcHeight_, 0.f)) {
         isSLRCopy_ = false;
         return;
     }
@@ -135,13 +139,13 @@ void RSSLRScaleFunction::RefreshScreenData()
     dstHeight_ = scaleNum_ * srcHeight_;
     alpha_ = (SLR_SCALE_THR_LOW < scaleNum_ && scaleNum_ < SLR_SCALE_THR_HIGH) ?
         SLR_ALPHA_LOW :SLR_ALPHA_HIGH;
-    isSLRCopy_ = !(scaleNum_ >= SLR_SCALE_THR_HIGH);
+    float tao = 1.0f / scaleNum_;
+    kernelSize_ = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
 
     widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
     heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
-
-    float tao = 1.0f / scaleNum_;
-    kernelSize_ = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
+    isSLRCopy_ = scaleNum_ < SLR_SCALE_THR_HIGH && widthEffect_ && heightEffect_ &&
+        RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
 }
 
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)
@@ -218,20 +222,20 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSSLRScaleFunction::SLRImageShade
             slrFilterShader_ = RSSLRScaleFunction::MakeSLRShaderEffect();
         }
         if (!slrFilterShader_) {
-            RS_LOGE("RSBaseRenderEngine::SLRImageShader slrFilterShader_ is null");
+            RS_LOGE("RSSLRScaleFunction::SLRImageShader slrFilterShader_ is null");
             return nullptr;
         }
         slrShaderBuilder_ = std::make_shared<Drawing::RuntimeShaderBuilder>(slrFilterShader_);
     }
     if (!slrShaderBuilder_) {
-        RS_LOGE("RSBaseRenderEngine::SLRImageShader slrShaderBuilder_ is null");
+        RS_LOGE("RSSLRScaleFunction::SLRImageShader slrShaderBuilder_ is null");
         return nullptr;
     }
     Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, sampling, Drawing::Matrix());
     if (!imageShader) {
-        RS_LOGE("RSBaseRenderEngine::SLRImageShader imageShader is null");
+        RS_LOGE("RSSLRScaleFunction::SLRImageShader imageShader is null");
         return nullptr;
     }
     slrShaderBuilder_->SetChild("imageShader", imageShader);
@@ -305,7 +309,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSSLRScaleFunction::LaplaceShader
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, sampling, Drawing::Matrix());
     if (!imageShader) {
-        RS_LOGE("RSBaseRenderEngine::SLRImageShader imageShader is null");
+        RS_LOGE("RSSLRScaleFunction::SLRImageShader imageShader is null");
         return nullptr;
     }
     laplaceShaderBuilder_->SetChild("imageShader", imageShader);

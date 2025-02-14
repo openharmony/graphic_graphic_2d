@@ -54,7 +54,7 @@ void RSDrawFrame::RenderFrame()
     RS_TRACE_NAME_FMT("RenderFrame");
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
     RSMainThread::GPUCompositonCacheGuard guard;
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
+    RsFrameReport::GetInstance().UniRenderStart();
     JankStatsRenderFrameStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
@@ -64,11 +64,10 @@ void RSDrawFrame::RenderFrame()
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
-    RsFrameReport::GetInstance().UnblockMainThread();
+    RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
     Render();
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
@@ -78,6 +77,7 @@ void RSDrawFrame::RenderFrame()
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     JankStatsRenderFrameEnd(doJankStats);
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
+    RsFrameReport::GetInstance().RenderEnd();
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -159,7 +159,7 @@ bool RSDrawFrame::CheckCanvasSkipSync(std::shared_ptr<RSRenderNode> node)
         if (nodeDrawable == nullptr) {
             return true;
         }
-        if (nodeDrawable->IsNeedDraw()) {
+        if (nodeDrawable->IsNeedDraw() && nodeDrawable->GetDrawSkipType() == DrawableV2::DrawSkipType::NONE) {
             stagingSyncCanvasDrawingNodes_.emplace(node->GetId(), node);
             return false;
         }

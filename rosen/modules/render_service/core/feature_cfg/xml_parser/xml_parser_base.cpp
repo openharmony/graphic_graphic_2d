@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "xml_parser_base.h"
 
 #include <algorithm>
-
-#include "xml_parser_base.h"
 #include "graphic_feature_param_manager.h"
 
 namespace OHOS::Rosen {

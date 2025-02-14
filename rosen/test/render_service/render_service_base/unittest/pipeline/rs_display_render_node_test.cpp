@@ -617,6 +617,22 @@ HWTEST_F(RSDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsLuminanceStatusChange
+ * @tc.desc: test results of Get and Set IsLuminanceStatusChange
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, IsLuminanceStatusChangeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    EXPECT_EQ(node->GetIsLuminanceStatusChange(), false);
+    node->SetIsLuminanceStatusChange(true);
+    EXPECT_EQ(node->GetIsLuminanceStatusChange(), true);
+}
+
+/**
  * @tc.name: AddSecurityLayer001
  * @tc.desc: test results of AddSecurityLayer
  * @tc.type:FUNC

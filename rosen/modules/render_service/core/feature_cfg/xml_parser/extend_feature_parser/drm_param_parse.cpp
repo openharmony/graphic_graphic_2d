@@ -45,7 +45,7 @@ int32_t DRMParamParse::ParseDrmInternal(FeatureParamMapType &featureMap, xmlNode
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(featureModules[DRM]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[DRM]);
     if (iter != featureMap.end()) {
         drmParam_ = std::static_pointer_cast<DRMParam>(iter->second);
     } else {

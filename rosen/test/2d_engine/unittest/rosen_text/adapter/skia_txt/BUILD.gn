@@ -49,13 +49,18 @@ ohos_unittest("rosen_text_adapt_test") {
     "-Dprotected=public",
   ]
 
+  defines = []
+
   platform = current_os
   if (platform == "mingw") {
     platform = "windows"
   }
+  if (platform == "ohos" || platform == "ohos_ng") {
+    defines += [ "OHOS_TEXT_ENABLE" ]
+  }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [
+    defines += [
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]

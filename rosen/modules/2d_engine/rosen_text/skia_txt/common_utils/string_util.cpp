@@ -43,7 +43,6 @@ void Utf16Utils::HandleIncompleteSurrogatePairs(std::u16string& str)
 
     while (i < length) {
         char16_t ch = str[i];
-
         if (IsUTF16HighSurrogate(ch)) {
             if (i + 1 < length && IsUTF16LowSurrogate(str[i + 1])) {
                 i += SURROGATE_LENGTH;

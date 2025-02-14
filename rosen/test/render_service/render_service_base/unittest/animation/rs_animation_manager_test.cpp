@@ -178,17 +178,33 @@ HWTEST_F(RSAnimationManagerTest, SetRateDeciderEnableTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRateDeciderScaleSizeTest001
- * @tc.desc: test results of SetRateDeciderScaleSize
+ * @tc.name: SetRateDeciderSizeTest
+ * @tc.desc: test results of SetRateDeciderSize
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationManagerTest, SetRateDeciderScaleSizeTest001, TestSize.Level1)
+HWTEST_F(RSAnimationManagerTest, SetRateDeciderSizeTest, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
     float width = 0.0f;
     float height = 0.0f;
-    rsAnimationManager.SetRateDeciderScaleSize(width, height);
-    EXPECT_EQ(width, 0);
+    rsAnimationManager.SetRateDeciderSize(width, height);
+    EXPECT_EQ(width, rsAnimationManager.rateDecider_.nodeWidth_);
+    EXPECT_EQ(height, rsAnimationManager.rateDecider_.nodeHeight_);
+}
+
+/**
+ * @tc.name: SetRateDeciderScaleTest
+ * @tc.desc: test results of SetRateDeciderScale
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, SetRateDeciderScaleTest, TestSize.Level1)
+{
+    RSAnimationManager rsAnimationManager;
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    rsAnimationManager.SetRateDeciderSize(scaleX, scaleY);
+    EXPECT_EQ(scaleX, rsAnimationManager.rateDecider_.nodeScaleX_);
+    EXPECT_EQ(scaleY, rsAnimationManager.rateDecider_.nodeScaleY_);
 }
 
 /**

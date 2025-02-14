@@ -70,6 +70,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderProperty<std::shared_ptr<Drawing::DrawCmdList>>> prop;
             int16_t type;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
+                ROSEN_LOGE("RSModifierType::EXTENDE Unmarshalling or ReadInt16 failed");
                 return nullptr;
             }
             RSDrawCmdListRenderModifier* modifier = new RSDrawCmdListRenderModifier(prop);
@@ -80,6 +81,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::ENV_FOREGROUND_COLOR, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<Color>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSEnvForegroundColorRenderModifier(prop);
@@ -89,6 +91,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<ForegroundColorStrategyType>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSEnvForegroundColorStrategyRenderModifier(prop);
@@ -98,6 +101,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::CUSTOM_CLIP_TO_FRAME, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<Vector4f>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::CUSTOM_CLIP_TO_FRAME Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSCustomClipToFrameRenderModifier(prop);
@@ -107,6 +111,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::HDR_BRIGHTNESS, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::HDR_BRIGHTNESS Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSHDRBrightnessRenderModifier(prop);
@@ -117,6 +122,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop;
             int16_t type;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !parcel.ReadInt16(type)) {
+                ROSEN_LOGE("RSModifierType::GEOMETRYTRANS Unmarshalling or ReadInt16 failed");
                 return nullptr;
             }
             auto modifier = new RSGeometryTransRenderModifier(prop);
@@ -127,6 +133,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BEHIND_WINDOW_FILTER_ENABLED, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<bool>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_ENABLED Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterEnabledRenderModifier(prop);
@@ -136,6 +143,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_RADIUS Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterRadiusRenderModifier(prop);
@@ -145,6 +153,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_SATURATION Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterSaturationRenderModifier(prop);
@@ -154,6 +163,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterBrightnessRenderModifier(prop);
@@ -163,6 +173,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderAnimatableProperty<Color>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR Unmarshalling failed");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterMaskColorRenderModifier(prop);
@@ -192,15 +203,23 @@ void RSDrawCmdListRenderModifier::Update(const std::shared_ptr<RSRenderPropertyB
 
 bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
 {
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::EXTENDED)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::EXTENDED)) &&
         RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()));
+    if (!flag) {
+        ROSEN_LOGE("RSDrawCmdListRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 bool RSEnvForegroundColorRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::ENV_FOREGROUND_COLOR)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::ENV_FOREGROUND_COLOR)) &&
             RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSEnvForegroundColorRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSEnvForegroundColorRenderModifier::Apply(RSModifierContext& context) const
@@ -220,8 +239,12 @@ void RSEnvForegroundColorRenderModifier::Update(const std::shared_ptr<RSRenderPr
 bool RSEnvForegroundColorStrategyRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(property_);
-    return parcel.WriteInt16(static_cast<short>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY)) &&
+    bool flag = parcel.WriteInt16(static_cast<short>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY)) &&
             RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSEnvForegroundColorStrategyRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 
@@ -286,8 +309,12 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 bool RSCustomClipToFrameRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::CUSTOM_CLIP_TO_FRAME)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::CUSTOM_CLIP_TO_FRAME)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSCustomClipToFrameRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSCustomClipToFrameRenderModifier::Apply(RSModifierContext& context) const
@@ -309,8 +336,12 @@ void RSCustomClipToFrameRenderModifier::Update(const std::shared_ptr<RSRenderPro
 bool RSHDRBrightnessRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::HDR_BRIGHTNESS)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::HDR_BRIGHTNESS)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSHDRBrightnessRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSHDRBrightnessRenderModifier::Apply(RSModifierContext& context) const {}
@@ -338,8 +369,12 @@ void RSGeometryTransRenderModifier::Update(const std::shared_ptr<RSRenderPropert
 
 bool RSGeometryTransRenderModifier::Marshalling(Parcel& parcel)
 {
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::GEOMETRYTRANS)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::GEOMETRYTRANS)) &&
            RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()));
+    if (!flag) {
+        ROSEN_LOGE("RSGeometryTransRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSBehindWindowFilterEnabledRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
@@ -353,8 +388,12 @@ void RSBehindWindowFilterEnabledRenderModifier::Update(const std::shared_ptr<RSR
 bool RSBehindWindowFilterEnabledRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<bool>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSBehindWindowFilterEnabledRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSBehindWindowFilterRadiusRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
@@ -368,8 +407,12 @@ void RSBehindWindowFilterRadiusRenderModifier::Update(const std::shared_ptr<RSRe
 bool RSBehindWindowFilterRadiusRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSBehindWindowFilterRadiusRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSBehindWindowFilterSaturationRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop,
@@ -384,8 +427,12 @@ void RSBehindWindowFilterSaturationRenderModifier::Update(const std::shared_ptr<
 bool RSBehindWindowFilterSaturationRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSBehindWindowFilterSaturationRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSBehindWindowFilterBrightnessRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop,
@@ -400,8 +447,12 @@ void RSBehindWindowFilterBrightnessRenderModifier::Update(const std::shared_ptr<
 bool RSBehindWindowFilterBrightnessRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSBehindWindowFilterBrightnessRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 void RSBehindWindowFilterMaskColorRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop,
@@ -416,14 +467,19 @@ void RSBehindWindowFilterMaskColorRenderModifier::Update(const std::shared_ptr<R
 bool RSBehindWindowFilterMaskColorRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(property_);
-    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR)) &&
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
+    if (!flag) {
+        ROSEN_LOGE("RSBehindWindowFilterMaskColorRenderModifier::Marshalling failed");
+    }
+    return flag;
 }
 
 RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
 {
     int16_t type = 0;
     if (!parcel.ReadInt16(type)) {
+        ROSEN_LOGE("RSRenderModifier::Unmarshalling ReadInt16 failed");
         return nullptr;
     }
     auto it = funcLUT.find(static_cast<RSModifierType>(type));
@@ -473,8 +529,12 @@ const T& Replace(const std::optional<T>& a, T&& b)
     bool RS##MODIFIER_NAME##RenderModifier::Marshalling(Parcel& parcel)                                             \
     {                                                                                                               \
         auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                \
-        return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::MODIFIER_TYPE)) &&                            \
+        bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::MODIFIER_TYPE)) &&                       \
                RSMarshallingHelper::Marshalling(parcel, renderProperty);                                            \
+        if (!flag) {                                                                                                \
+            ROSEN_LOGE("ANIMATABLE_MODIFIER RenderModifier::Marshalling WriteInt16 or Marshalling failed");         \
+        }                                                                                                           \
+        return flag;                                                                                                \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                 \
     {                                                                                                               \
@@ -494,8 +554,12 @@ const T& Replace(const std::optional<T>& a, T&& b)
     bool RS##MODIFIER_NAME##RenderModifier::Marshalling(Parcel& parcel)                                             \
     {                                                                                                               \
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                          \
-        return parcel.WriteInt16(static_cast<short>(RSModifierType::MODIFIER_TYPE)) &&                              \
+        bool flag = parcel.WriteInt16(static_cast<short>(RSModifierType::MODIFIER_TYPE)) &&                         \
                RSMarshallingHelper::Marshalling(parcel, renderProperty);                                            \
+        if (!flag) {                                                                                                \
+            ROSEN_LOGE("NOANIMATABLE_MODIFIER RenderModifier::Marshalling WriteInt16 or Marshalling failed");       \
+        }                                                                                                           \
+        return flag;                                                                                                \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                 \
     {                                                                                                               \

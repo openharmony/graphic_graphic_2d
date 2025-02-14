@@ -728,8 +728,8 @@ double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
     if (mapVsyncId2Time_.count(vsyncId)) {
         return mapVsyncId2Time_[vsyncId];
     }
-    constexpr int64_t MAX_INT64T = 0x7FFFFFFFFFFFFFFF;
-    int64_t minVSync = MAX_INT64T;
+    constexpr int64_t maxInt64t = std::numeric_limits<int64_t>::max();
+    int64_t minVSync = std::numeric_limits<int64_t>::max();
     int64_t maxVSync = -1;
     for (const auto& item : mapVsyncId2Time_) {
         if (minVSync > item.first) {

@@ -351,7 +351,7 @@ bool RSPerfMonitorReporter::NeedReportSubHealth(NodeId& nodeId, int updateTimes,
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheLastTwoTimestampMapMutex_);
-        int timestampCounts = drawingCacheLastTwoTimestampMap_[nodeId].size();
+        size_t timestampCounts = drawingCacheLastTwoTimestampMap_[nodeId].size();
         if (timestampCounts != STORED_TIMESTAMP_COUNT) {
             return false;
         }

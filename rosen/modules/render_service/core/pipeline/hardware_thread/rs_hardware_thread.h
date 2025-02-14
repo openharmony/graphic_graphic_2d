@@ -70,6 +70,7 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
     void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
+    void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -115,7 +116,7 @@ private:
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
-    std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos_;
+    std::unordered_map<uint64_t,std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
 
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RSVBlankIdleCorrector vblankIdleCorrector_;

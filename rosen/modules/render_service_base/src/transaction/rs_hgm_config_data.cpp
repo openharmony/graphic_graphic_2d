@@ -62,20 +62,24 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
-    parcel.WriteFloat(ppi_);
-    parcel.WriteFloat(xDpi_);
-    parcel.WriteFloat(yDpi_);
-    parcel.WriteUint32(configData_.size());
-
-    for (auto& item : configData_) {
-        parcel.WriteString(item.animType);
-        parcel.WriteString(item.animName);
-        parcel.WriteInt32(item.minSpeed);
-        parcel.WriteInt32(item.maxSpeed);
-        parcel.WriteInt32(item.preferredFps);
+    bool flag = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
+        parcel.WriteUint32(configData_.size());
+    if (!flag) {
+        RS_LOGE("RSHgmConfigData::Marshalling parse dpi failed");
+        return flag;
     }
 
-    return true;
+    for (auto& item : configData_) {
+        flag = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
+               parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
+               parcel.WriteInt32(item.preferredFps);
+        if (!flag) {
+            RS_LOGE("RSHgmConfigData::Marshalling parse config item failed");
+            return flag;
+        }
+    }
+
+    return flag;
 }
 } // namespace Rosen
 } // namespace OHOS

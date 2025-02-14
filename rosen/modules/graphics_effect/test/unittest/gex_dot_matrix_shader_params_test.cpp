@@ -32,6 +32,7 @@ public:
     void SetUp() override;
     void TearDown() override;
 
+    uint32_t bigSize_ = 1000;
     std::vector<Drawing::Color> colorVector_ {Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_DKGRAY};
     std::vector<Drawing::Point> pointVector_ {{0., 0.}, {1., 1.}};
 };
@@ -51,6 +52,8 @@ HWTEST_F(DotMatrixShaderParamsTest, RotateEffectParamsMarshalling001, TestSize.L
     RotateEffectParams params;
     Parcel parcel;
     EXPECT_TRUE(params.Marshalling(parcel));
+    params.effectColors_.resize(bigSize_);
+    EXPECT_FALSE(params.Marshalling(parcel));
 }
 
 /**
@@ -63,9 +66,20 @@ HWTEST_F(DotMatrixShaderParamsTest, RotateEffectParamsUnmarshalling001, TestSize
     RotateEffectParams params;
     Parcel parcel;
     EXPECT_FALSE(params.Unmarshalling(parcel));
+
     parcel.WriteUint32(0);
     parcel.WriteUint32(0);
     EXPECT_TRUE(params.Unmarshalling(parcel));
+
+    Parcel parcel2;
+    parcel2.WriteUint32(1);
+    parcel2.WriteUint32(1);
+    EXPECT_FALSE(params.Unmarshalling(parcel2));
+
+    Parcel parcel3;
+    parcel3.WriteUint32(0);
+    parcel3.WriteUint32(bigSize_);
+    EXPECT_FALSE(params.Unmarshalling(parcel3));
 }
 
 /**
@@ -93,7 +107,17 @@ HWTEST_F(DotMatrixShaderParamsTest, RippleEffectParamsMarshalling001, TestSize.L
 {
     RippleEffectParams params;
     Parcel parcel;
-    ASSERT_TRUE(params.Marshalling(parcel));
+    EXPECT_TRUE(params.Marshalling(parcel));
+    params.effectColors_.resize(bigSize_);
+    EXPECT_FALSE(params.Marshalling(parcel));
+    
+    params = RippleEffectParams();
+    params.colorFractions_.resize(bigSize_);
+    EXPECT_FALSE(params.Marshalling(parcel));
+
+    params = RippleEffectParams();
+    params.startPoints_.resize(bigSize_);
+    EXPECT_FALSE(params.Marshalling(parcel));
 }
 
 /**
@@ -105,13 +129,24 @@ HWTEST_F(DotMatrixShaderParamsTest, RippleEffectParamsUnMarshalling001, TestSize
 {
     RippleEffectParams params;
     Parcel parcel;
-    ASSERT_FALSE(params.Unmarshalling(parcel));
+    EXPECT_FALSE(params.Unmarshalling(parcel));
+
     parcel.WriteUint32(0);
     parcel.WriteUint32(0);
     parcel.WriteUint32(0);
     parcel.WriteFloat(0.f);
     parcel.WriteBool(false);
-    ASSERT_TRUE(params.Unmarshalling(parcel));
+    EXPECT_TRUE(params.Unmarshalling(parcel));
+
+    Parcel parcel2;
+    parcel2.WriteUint32(bigSize_);
+    parcel2.WriteUint32(1);
+    EXPECT_FALSE(params.Unmarshalling(parcel2));
+
+    Parcel parcel3;
+    parcel3.WriteUint32(0);
+    parcel3.WriteUint32(bigSize_);
+    EXPECT_FALSE(params.Unmarshalling(parcel3));
 }
 
 /**
@@ -123,7 +158,7 @@ HWTEST_F(DotMatrixShaderParamsTest, DotMatrixNormalParamsMarshalling001, TestSiz
 {
     DotMatrixNormalParams params;
     Parcel parcel;
-    ASSERT_TRUE(params.Marshalling(parcel));
+    EXPECT_TRUE(params.Marshalling(parcel));
 }
 
 /**
@@ -140,7 +175,7 @@ HWTEST_F(DotMatrixShaderParamsTest, DotMatrixNormalParamsUnMarshalling001, TestS
     parcel.WriteFloat(0.f);
     parcel.WriteFloat(0.f);
     parcel.WriteUint32(0);
-    ASSERT_TRUE(params.Unmarshalling(parcel));
+    EXPECT_TRUE(params.Unmarshalling(parcel));
 }
 
 /**
@@ -152,7 +187,7 @@ HWTEST_F(DotMatrixShaderParamsTest, DotMatrixShaderParamsMarshalling001, TestSiz
 {
     DotMatrixShaderParams params;
     Parcel parcel;
-    ASSERT_TRUE(params.Marshalling(parcel));
+    EXPECT_TRUE(params.Marshalling(parcel));
 }
 
 /**

@@ -77,8 +77,8 @@ void RSSpringAnimation::OnStart()
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
     if (const auto& springParams = timingCurve_.springParams_) {
-        animation->SetSpringParameters(
-            springParams->response_, springParams->dampingRatio_, springParams->blendDuration_);
+        animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
+            springParams->blendDuration_, springParams->minimumAmplitudeRatio_);
     }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {

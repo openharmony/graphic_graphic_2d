@@ -56,11 +56,13 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
+void RSRenderSpringAnimation::SetSpringParameters(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
 {
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
+    minimumAmplitudeRatio_ = minimumAmplitudeRatio;
 }
 
 void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
@@ -226,6 +228,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(
         GetPropertyId(), GetAnimationId(), initialVelocity_, GetPropertyValue());
     springValueEstimator_->SetInitialVelocity(initialVelocity_);
+    springValueEstimator_->SetMinimumAmplitudeRatio(minimumAmplitudeRatio_);
     springValueEstimator_->UpdateSpringParameters();
 
     if (blendDuration_) {

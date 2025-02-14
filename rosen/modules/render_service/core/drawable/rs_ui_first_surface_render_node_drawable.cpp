@@ -380,6 +380,7 @@ void RSSurfaceRenderNodeDrawable::UpdateBackendTexture()
 {
     RS_TRACE_NAME("RSRenderNodeDrawable::UpdateBackendTexture()");
     if (cacheSurface_ == nullptr) {
+        RS_LOGE("UpdateBackendTexture cacheSurface is nullptr");
         return;
     }
     cacheBackendTexture_ = cacheSurface_->GetBackendTexture();
@@ -500,16 +501,11 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
             return false; // draw nothing
         }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        bool frameParamEnable = RsFrameReport::GetInstance().GetEnable();
-        if (frameParamEnable) {
-            RsFrameReport::GetInstance().SetFrameParam(
-                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_AWARE_LOAD, 0, GetLastFrameUsedThreadIndex());
-        }
+        RsFrameReport::GetInstance().SetFrameParam(
+            REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_AWARE_LOAD, 0, GetLastFrameUsedThreadIndex());
         RSSubThreadManager::Instance()->WaitNodeTask(nodeId_);
-        if (frameParamEnable) {
-            RsFrameReport::GetInstance().SetFrameParam(
-                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_STANDARD_LOAD, 0, GetLastFrameUsedThreadIndex());
-        }
+        RsFrameReport::GetInstance().SetFrameParam(
+            REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_STANDARD_LOAD, 0, GetLastFrameUsedThreadIndex());
         UpdateCompletedCacheSurface();
 #endif
     }

@@ -102,11 +102,11 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_connection.cpp",
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
-    "core/pipeline/rs_slr_scale.cpp",
     "core/pipeline/rs_unmarshal_task_manager.cpp",
     "core/pipeline/rs_unmarshal_thread.cpp",
     "core/pipeline/rs_virtual_screen_processor.cpp",
     "core/pipeline/rs_vsync_rate_reduce_manager.cpp",
+    "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
     "core/system/rs_system_parameters.cpp",
@@ -258,6 +258,10 @@ ohos_shared_library("librender_service") {
     defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
     deps += [ "$graphic_2d_ext_root/chipset_vsync:libchipset_vsync" ]
     include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+  }
+
+  if (graphic_2d_feature_overlay_display_enable) {
+    sources += [ "core/feature/overlay_display/rs_overlay_display_manager.cpp" ]
   }
 
   if (rosen_is_ohos) {

@@ -82,7 +82,8 @@ public:
     virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
     virtual int64_t GetVSyncOffset() = 0;
     // Start of DVSync
-    virtual int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate, bool followRs) = 0;
+    virtual int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate) = 0;
+    virtual void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) = 0;
     virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     // End of DVSync
@@ -132,7 +133,8 @@ public:
     int64_t GetVSyncOffset() override;
 
     // Start of DVSync
-    int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate, bool followRs) override;
+    int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate) override;
+    void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) override;
     VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     // End of DVSync
@@ -144,7 +146,6 @@ private:
         int64_t phase_;
         sptr<OHOS::Rosen::VSyncGenerator::Callback> callback_;
         int64_t lastTime_;
-        int64_t lastTimeRecord_;
     };
 
     VSyncGenerator();
@@ -232,7 +233,7 @@ private:
     bool isLtpoNeedChange_ = false;
     int64_t occurDvsyncReferenceTime_ = 0;
     int64_t dvsyncPeriodRecord_ = 0;
-    Listener dvsyncListener_ = {0, nullptr, 0, 0};
+    Listener dvsyncListener_ = {0, nullptr, 0};
     // End of DVSync
 };
 } // impl

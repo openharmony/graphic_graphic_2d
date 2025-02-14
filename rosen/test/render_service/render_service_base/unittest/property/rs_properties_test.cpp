@@ -350,7 +350,7 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     EXPECT_EQ(properties.GetPerspX(), 1.f);
     properties.SetPerspY(1.f);
     EXPECT_EQ(properties.GetPerspY(), 1.f);
-    Vector2f vec(1.f, 1.f);
+    Vector4f vec(1.f, 1.f, 0.f, 1.f);
     EXPECT_EQ(properties.GetPersp(), vec);
     Color color1;
     properties.SetForegroundColor(color1);
@@ -1076,14 +1076,17 @@ HWTEST_F(RSPropertiesTest, SetGet002, TestSize.Level1)
 
     properties.SetSkewX(1.0);
     properties.SetSkewY(1.0);
-    Vector2f skew2 = { 1.0, 1.0 };
-    properties.SetSkew(skew2);
+    properties.SetSkewZ(1.0);
+    Vector3f skew3 = { 1.0, 1.0, 1.0};
+    properties.SetSkew(skew3);
     auto skew = properties.GetSkew();
     ASSERT_NE(0, skew.GetLength());
     auto skewX = properties.GetSkewX();
     auto skewY = properties.GetSkewY();
+    auto skewZ = properties.GetSkewZ();
     ASSERT_NE(0, skewX);
     ASSERT_NE(0, skewY);
+    ASSERT_NE(0, skewZ);
 
     properties.SetAlpha(0.f);
     float alpha = properties.GetAlpha();
@@ -3275,6 +3278,31 @@ HWTEST_F(RSPropertiesTest, SetNGetWaterRippleProgress001, TestSize.Level1)
 
     auto valueGet = properties.GetWaterRippleProgress();
     EXPECT_EQ(valueGet, 0.5f);
+}
+
+/**
+ * @tc.name: setandgetproperties
+ * @tc.desc: test results of setscale 、skew、persp
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSPropertiesTest, SetAndGetProperties001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetScaleZ(1.0f);
+    EXPECT_EQ(properties.GetScaleZ(), 1.0f);
+
+    properties.SetSkewZ(1.0f);
+    EXPECT_EQ(properties.GetSkewZ(), 1.0f);
+    properties.SetSkew(Vector3f(2.0f, 2.0f, 2.0f));
+    EXPECT_EQ(properties.GetSkew(), Vector3f(2.0f, 2.0f, 2.0f));
+
+    properties.SetPerspZ(1.0f);
+    EXPECT_EQ(properties.GetPerspZ(), 1.0f);
+    properties.SetPerspW(2.0f);
+    EXPECT_EQ(properties.GetPerspW(), 2.0f);
+    properties.SetPersp(Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
+    EXPECT_EQ(properties.GetPersp(), Vector4f(2.0f, 2.0f, 2.0f, 2.0f));
 }
 } // namespace Rosen
 } // namespace OHOS

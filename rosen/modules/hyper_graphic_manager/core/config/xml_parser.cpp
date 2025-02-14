@@ -347,9 +347,11 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
     if (name == "LTPO_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.ltpoConfig);
     } else if (name == "property_animation_dynamic_settings") {
-        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
+        setResult = ParseDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
     } else if (name == "ace_scene_dynamic_settings") {
-        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+        setResult = ParseDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+    } else if (name == "small_size_property_animation_dynamic_settings") {
+        setResult = ParseSmallSizeDynamicSetting(*thresholdNode, screenSetting);
     } else if (name == "scene_list") {
         setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
     } else if (name == "game_scene_list") {
@@ -377,7 +379,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
 }
 
 int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string &valueName, const std::string &keyName)
+                                const std::string &valueName, const std::string &keyName,
+                                const bool &canBeEmpty)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -396,9 +399,18 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
 
         auto key = ExtractPropertyValue(keyName, *currNode);
         auto value = ExtractPropertyValue(valueName, *currNode);
-        if (key.empty() || value.empty()) {
+        if (key.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }
+
+        if (value.empty()) {
+            if (canBeEmpty) {
+                continue;
+            } else {
+                return XML_PARSE_INTERNAL_FAIL;
+            }
+        }
+
         config[key] = value;
 
         HGM_LOGI("HgmXMLParser ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
@@ -426,7 +438,19 @@ int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::str
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)
+int32_t XMLParser::ParseSmallSizeDynamicSetting(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
+{
+    auto area = ExtractPropertyValue("area", node);
+    auto length = ExtractPropertyValue("length", node);
+    if (!IsNumber(area) || !IsNumber(length)) {
+        return HGM_ERROR;
+    }
+    screenSetting.smallSizeArea = std::stoi(area);
+    screenSetting.smallSizeLength = std::stoi(length);
+    return ParseDynamicSetting(node, screenSetting.smallSizeAnimationDynamicSettings);
+}
+
+int32_t XMLParser::ParseDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)
 {
     HGM_LOGD("XMLParser parsing dynamicSetting");
     xmlNode *currNode = &node;
@@ -460,7 +484,7 @@ int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::Dynamic
             dynamicConfig.preferred_fps = std::stoi(preferred_fps);
             dynamicSettingMap[dynamicSettingType][name] = dynamicConfig;
 
-            HGM_LOGI("HgmXMLParser ParserDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
+            HGM_LOGI("HgmXMLParser ParseDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
                      dynamicSettingType.c_str(), name.c_str(), dynamicSettingMap[dynamicSettingType][name].min);
         }
     }
@@ -540,6 +564,7 @@ int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::Screen
     } else {
         screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
     }
+    ParseSimplex(node, screenSetting.gameAppNodeList, "nodeName", "name", true);
     return ParseSimplex(node, screenSetting.appList, "strategy");
 }
 

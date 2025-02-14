@@ -61,13 +61,16 @@ public:
     virtual float GetSamplingTranslateY() const = 0;
     virtual float GetSamplingScale() const = 0;
     virtual RectI GetActiveRect() const = 0;
+    virtual RectI GetMaskRect() const = 0;
+    virtual RectI GetReviseRect() const = 0;
+    virtual bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
-    virtual int32_t SetActiveMode(uint32_t modeId) = 0;
+    virtual uint32_t SetActiveMode(uint32_t modeId) = 0;
     virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
     virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
-    virtual void SetPowerStatus(uint32_t powerStatus) = 0;
+    virtual int32_t SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
     virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
     virtual const GraphicDisplayCapability& GetCapability() const = 0;
@@ -170,13 +173,16 @@ public:
     float GetSamplingTranslateY() const override;
     float GetSamplingScale() const override;
     RectI GetActiveRect() const override;
+    RectI GetMaskRect() const override;
+    RectI GetReviseRect() const override;
+    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
-    int32_t SetActiveMode(uint32_t modeId) override;
+    uint32_t SetActiveMode(uint32_t modeId) override;
     uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
     int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
-    void SetPowerStatus(uint32_t powerStatus) override;
+    int32_t SetPowerStatus(uint32_t powerStatus) override;
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
     const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
     const GraphicDisplayCapability& GetCapability() const override;
@@ -280,7 +286,9 @@ private:
     float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
-    RectI activeRect_;
+    RectI activeRect_ = {};
+    RectI maskRect_ = {};
+    RectI reviseRect_ = {};
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;

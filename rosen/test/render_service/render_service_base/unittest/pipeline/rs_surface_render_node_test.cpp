@@ -438,6 +438,87 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsCloneNode
+ * @tc.desc: function test IsCloneNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.isCloneNode_ = true;
+    ASSERT_TRUE(surfaceRenderNode.IsCloneNode());
+}
+
+/**
+ * @tc.name: SetClonedNodeId
+ * @tc.desc: function test SetClonedNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeId, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.SetClonedNodeId(id + 1);
+    bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetClonedNodeRenderDrawable
+ * @tc.desc: function test SetClonedNodeRenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeRenderDrawable, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable;
+    surfaceRenderNode.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
+
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: SetIsCloned
+ * @tc.desc: function test SetIsCloned
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsCloned, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    surfaceRenderNode.SetIsCloned(true);
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetIsCloned(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->clonedSourceNode_);
+}
+
+/**
+ * @tc.name: UpdateInfoForClonedNode
+ * @tc.desc: function test UpdateInfoForClonedNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateInfoForClonedNode, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.clonedSourceNodeId_ = surfaceRenderNode.GetId();
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+
+    surfaceRenderNode.UpdateInfoForClonedNode(surfaceRenderNode.clonedSourceNodeId_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
+}
+
+/**
  * @tc.name: ShouldPrepareSubnodesTest
  * @tc.desc: function test
  * @tc.type:FUNC

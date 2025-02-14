@@ -49,6 +49,7 @@ namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 constexpr uint32_t API14 = 14;
+constexpr uint32_t API16 = 16;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 inline int64_t GenerateCurrentTimeStamp()
@@ -1349,7 +1350,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
-    if (nodeParams != nullptr && nodeParams->GetApiCompatibleVersion() > API14) {
+    if (nodeParams != nullptr && nodeParams->GetApiCompatibleVersion() >= API16) {
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(
@@ -1733,7 +1734,7 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
     param.width = static_cast<uint32_t>(pixelMap.GetWidth());
     param.height = static_cast<uint32_t>(pixelMap.GetHeight());
     param.data = pixelMap.GetPixels();
-    param.stride = static_cast<uint32_t>(pixelMap.GetRowBytes());
+    param.stride = static_cast<uint32_t>(pixelMap.GetRowStride());
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);

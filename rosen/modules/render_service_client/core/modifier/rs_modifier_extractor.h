@@ -43,8 +43,9 @@ public:
     Vector2f GetTranslate() const;
     float GetTranslateZ() const;
     Vector2f GetScale() const;
-    Vector2f GetSkew() const;
-    Vector2f GetPersp() const;
+    float GetScaleZ() const;
+    Vector3f GetSkew() const;
+    Vector4f GetPersp() const;
 
     float GetAlpha() const;
     bool GetAlphaOffscreen() const;

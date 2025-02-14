@@ -19,10 +19,6 @@
 #include "hap_module_info.h"
 #include "txt/text_bundle_config_parser.h"
 
-#ifndef OHOS_TEXT_ENABLE
-#define OHOS_TEXT_ENABLE
-#endif
-
 using namespace testing;
 using namespace testing::ext;
 

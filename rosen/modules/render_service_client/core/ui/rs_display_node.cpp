@@ -77,7 +77,11 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
 
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
 {
-    return parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirroredDisplay_);
+    bool success = parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirroredDisplay_);
+    if (!success) {
+        ROSEN_LOGE("RSDisplayNode::Marshalling failed");
+    }
+    return success;
 }
 
 RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)

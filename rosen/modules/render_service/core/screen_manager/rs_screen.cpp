@@ -87,7 +87,7 @@ RSScreen::RSScreen(ScreenId id,
         hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
-        RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u],"
+        RS_LOGW("RSScreen init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u],"
             "screenType: %{public}u}", id_, width_, height_, screenType_);
     }
     capability_.props.clear();
@@ -106,8 +106,8 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
-    RS_LOGD_IF(DEBUG_SCREEN, "RSSCreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64 ", "
-        "w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
+    RS_LOGW("RSScreen init virtual: {id: %{public}" PRIu64 ", mirrorId: %{public}" PRIu64
+        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
         id_, mirrorId_, width_, height_, name_.c_str(), screenType_);
 }
 
@@ -198,13 +198,9 @@ void RSScreen::ScreenCapabilityInit() noexcept
         RS_LOGE("RSScreen %{public}s failed, hdiScreen_ is nullptr",  __func__);
         return;
     }
-    if (IsVirtual()) {
-        RS_LOGW("RSScreen %{public}s: this is virtual screen, use the default display capability.",  __func__);
-        return;
-    }
     int32_t ret = hdiScreen_->GetScreenCapability(capability_);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        RS_LOGW("RSScreen %{public}s: get display capability failed, ret is %{public}d, use the default"
+        RS_LOGE("RSScreen %{public}s: get display capability failed, ret is %{public}d, use the default"
             " display capability.", __func__, ret);
         capability_ = {
             .name = "test1",
@@ -284,6 +280,16 @@ RectI RSScreen::GetActiveRect() const
     return activeRect_;
 }
 
+RectI RSScreen::GetMaskRect() const
+{
+    return maskRect_;
+}
+
+RectI RSScreen::GetReviseRect() const
+{
+    return reviseRect_;
+}
+
 bool RSScreen::IsEnable() const
 {
     if (id_ == INVALID_SCREEN_ID) {
@@ -307,7 +313,7 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr && frameRateMgr->IsLtpo()) {
-        RS_LOGD_IF(DEBUG_SCREEN, "RSScreen LTPO mode");
+        RS_LOGW_IF(DEBUG_SCREEN, "RSScreen LTPO mode");
         return;
     }
     static GraphicDisplayModeInfo modeInfo;
@@ -320,7 +326,7 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
     }
 }
 
-int32_t RSScreen::SetActiveMode(uint32_t modeId)
+uint32_t RSScreen::SetActiveMode(uint32_t modeId)
 {
     if (IsVirtual()) {
         RS_LOGW("RSScreen %{public}s: virtual screen not support SetActiveMode.", __func__);
@@ -335,7 +341,7 @@ int32_t RSScreen::SetActiveMode(uint32_t modeId)
         RS_LOGE("RSScreen %{public}s: set fails because the index is out of bounds.", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
-    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
+    RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
         RS_LOGE("RSScreen %{public}s: Hdi SetScreenMode fails.", __func__);
@@ -360,18 +366,51 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    
-    if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
-        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, "
-            "activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+    if (activeRect.w <= 0 || activeRect.w > width_ || activeRect.h <= 0 || activeRect.h > height_ ||
+        activeRect.x < 0 || activeRect.x > width_ || activeRect.y < 0 || activeRect.y > height_) {
+        RS_LOGW("RSScreen %{public}s failed:, for activeRect: "
+            "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
             __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-        return StatusCode::HDI_ERROR;
+        return StatusCode::INVALID_ARGUMENTS;
     }
-
     activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     RS_LOGI("RSScreen %{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    GraphicIRect reviseRect = activeRect;
+    if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect)) {
+        RS_LOGW("RSScreen CalculateMaskRect failed or not need");
+    }
+    reviseRect_ = RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+    if (hdiScreen_->SetScreenActiveRect(reviseRect) < 0) {
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, activeRect with revise:"
+            "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+            __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+        return StatusCode::HDI_ERROR;
+    }
+    RS_LOGI("RSScreen %{public}s success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
     return StatusCode::SUCCESS;
+}
+
+bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
+{
+    if (!RSSystemProperties::IsSuperFoldDisplay()) {
+        RS_LOGE("RSScreen device is not super fold display");
+        return false;
+    }
+    if (activeRect.w > 0 && activeRect.h > 0) {
+        // neet tobe configuration item
+        static RectI rect[2] = {{0, 0, 0, 0}, {0, 1008, 2232, 128}};
+        maskRect_ = (activeRect.h == height_) ? rect[0] : rect[1];
+        // Take the minimum rectangular area containing two rectangles
+        reviseRect.x = std::clamp(activeRect.x, 0, std::min(activeRect.x, maskRect_.left_));
+        reviseRect.y = std::clamp(activeRect.y, 0, std::min(activeRect.y, maskRect_.top_));
+        reviseRect.w = std::max(activeRect.x + activeRect.w, maskRect_.left_ + maskRect_.width_) - reviseRect.x;
+        reviseRect.h = std::max(activeRect.y + activeRect.h, maskRect_.top_ + maskRect_.height_) - reviseRect.y;
+        RS_LOGI("RSScreen %{public}s success, maskRect: %{public}s", __func__, maskRect_.ToString().c_str());
+        return true;
+    }
+    return false;
 }
 
 void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
@@ -387,7 +426,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
         return;
     }
     if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
-        RS_LOGD("RSScreen:%{public}s: hdi set screen rog resolution failed.", __func__);
+        RS_LOGE("RSScreen:%{public}s: hdi set screen rog resolution failed.", __func__);
     }
     width_ = width;
     height_ = height;
@@ -433,22 +472,19 @@ int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
     return -1;
 }
 
-void RSScreen::SetPowerStatus(uint32_t powerStatus)
+int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
 {
     if (!hdiScreen_) {
-        RS_LOGE("RSScreen %{public}s failed, hdiScreen_ is nullptr",  __func__);
-        return;
-    }
-    if (IsVirtual()) {
-        RS_LOGW("[UL_POWER]RSScreen %{public}s: virtual screen not support SetPowerStatus.", __func__);
-        return;
+        RS_LOGE("[UL_POWER]RSScreen %{public}s failed, hdiScreen_ is nullptr",  __func__);
+        return StatusCode::HDI_ERROR;
     }
 
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
+        RS_LOGW("[UL_POWER]RSScreen %{public}s failed to set power status", __func__);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
-        return;
+        return StatusCode::HDI_ERROR;
     }
 
     powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
@@ -456,12 +492,13 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
     if ((powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
         powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) &&
         !RSSystemProperties::IsPcType() && !RSSystemProperties::IsTabletType()) {
-        RS_LOGD("RSScreen %{public}s Enable hardware vsync", __func__);
+        RS_LOGW("[UL_POWER]RSScreen %{public}s Enable hardware vsync", __func__);
         if (hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS) {
-            RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
+            RS_LOGE("[UL_POWER]RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus_);
+    return StatusCode::SUCCESS;
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
@@ -852,6 +889,7 @@ int32_t RSScreen::GetScreenColorGamut(ScreenColorGamut &mode) const
         return StatusCode::SUCCESS;
     } else {
         if (supportedPhysicalColorGamuts_.size() == 0) {
+            RS_LOGE("RSScreen %{public}s failed",  __func__);
             return StatusCode::HDI_ERROR;
         }
         mode = supportedPhysicalColorGamuts_[currentPhysicalColorGamutIdx_];
@@ -910,7 +948,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
-    RS_LOGD("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.",
+    RS_LOGI("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.",
             __func__, id_, static_cast<uint32_t>(screenRotation));
     screenRotation_ = screenRotation;
 }

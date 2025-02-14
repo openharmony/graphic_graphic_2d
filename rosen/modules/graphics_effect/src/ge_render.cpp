@@ -77,7 +77,8 @@ std::shared_ptr<GEShaderFilter> GERender::GenerateExtShaderFilter(
         case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
             const auto& mesaParams = ve->GetMESAParams();
             auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
-                (uint32_t)type, sizeof(Drawing::GEMESABlurShaderFilterParams), (void*)(mesaParams.get()));
+                static_cast<uint32_t>(type), sizeof(Drawing::GEMESABlurShaderFilterParams),
+                static_cast<void*>(mesaParams.get()));
             if (!object) {
                 return std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
             }

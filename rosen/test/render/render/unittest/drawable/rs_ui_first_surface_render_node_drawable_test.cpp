@@ -327,7 +327,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawUIFirstCacheWithStartingTes
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas_.get());
     NodeId id = 0;
     auto result = surfaceDrawable_->DrawUIFirstCacheWithStarting(*rscanvas, id);
-    ASSERT_FALSE(result);
+    ASSERT_TRUE(result);
 
     id = 65535; // for test
     surfaceDrawable_->isTextureValid_.store(true);

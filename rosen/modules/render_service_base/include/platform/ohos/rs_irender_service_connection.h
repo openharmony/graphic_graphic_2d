@@ -294,6 +294,9 @@ public:
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
+    virtual void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) = 0;
+
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
     virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
@@ -343,13 +346,18 @@ public:
 
     virtual void SetVmaCacheStatus(bool flag) = 0;
 
-    virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
+    virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
+        bool unobscured = false) = 0;
 
     virtual bool SetAncoForceDoDirect(bool direct) = 0;
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    virtual int32_t SetOverlayDisplayMode(int32_t mode) = 0;
+#endif
 
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE

@@ -268,6 +268,9 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) override;
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
     void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
@@ -311,7 +314,8 @@ public:
 
     void SetVmaCacheStatus(bool flag) override;
 
-    int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
+    int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
+        bool unobscured = false) override;
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config,
@@ -350,6 +354,10 @@ private:
     bool SetAncoForceDoDirect(bool direct) override;
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode) override;
+#endif
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

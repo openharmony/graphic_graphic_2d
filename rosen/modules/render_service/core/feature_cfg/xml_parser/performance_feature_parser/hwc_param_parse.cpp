@@ -44,7 +44,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(featureModules[HWC]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[HWC]);
     if (iter != featureMap.end()) {
         hwcParam_ = std::static_pointer_cast<HWCParam>(iter->second);
     } else {

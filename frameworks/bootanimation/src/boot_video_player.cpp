@@ -22,6 +22,15 @@
 
 using namespace OHOS;
 
+const std::vector<std::string> NORMAL_REBOOT_REASON_ARR = {"AP_S_COLDBOOT", "bootloader", "recovery", "fastbootd",
+    "resetfactory", "at2resetfactory", "atfactoryreset0", "resetuser", "sdupdate", "chargereboot", "resize",
+    "erecovery", "usbupdate", "cust", "oem_rtc", "UNKNOWN", "mountfail", "hungdetect", "COLDBOOT", "updatedataimg",
+    "AP_S_FASTBOOTFLASH", "gpscoldboot", "AP_S_COMBINATIONKEY", "CP_S_NORMALRESET", "IOM3_S_USER_EXCEPTION",
+    "BR_UPDATE_USB", "BR_UPDATA_SD_FORCE", "BR_KEY_VOLUMN_UP", "BR_PRESS_1S", "BR_CHECK_RECOVERY",
+    "BR_CHECK_ERECOVERY", "BR_CHECK_SDUPDATE", "BR_CHECK_USBUPDATE", "BR_CHECK_RESETFACTORY", "BR_CHECK_HOTAUPDATE",
+    "BR_POWERONNOBAT", "BR_NOGUI", "BR_FACTORY_VERSION", "BR_RESET_HAPPEN", "BR_POWEROFF_ALARM", "BR_POWEROFF_CHARGE",
+    "BR_POWERON_BY_SMPL", "BR_CHECK_UPDATEDATAIMG", "BR_POWERON_CHARGE", "AP_S_PRESS6S", "BR_PRESS_10S"};
+
 BootVideoPlayer::BootVideoPlayer(const PlayerParams& params)
 {
     screenId_ = params.screenId;
@@ -105,7 +114,7 @@ bool BootVideoPlayer::SetVideoSound()
     }
 
     bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
-    if (!bootSoundEnabled) {
+    if (!bootSoundEnabled || !IsNormalBoot()) {
         if (!SetCustomizedVolume(0)) {
             return false;
         }
@@ -135,6 +144,18 @@ std::shared_ptr<Media::Player> BootVideoPlayer::GetMediaPlayer() const
 void BootVideoPlayer::StopVideo()
 {
     vSyncCallback_(userData_);
+}
+
+bool BootVideoPlayer::IsNormalBoot()
+{
+    std::string bootReason = system::GetParameter("ohos.boot.reboot_reason", "");
+    LOGI("bootReason: %{public}s", bootReason.c_str());
+    if (std::find(NORMAL_REBOOT_REASON_ARR.begin(), NORMAL_REBOOT_REASON_ARR.end(), bootReason)
+        != NORMAL_REBOOT_REASON_ARR.end()) {
+        LOGI("normal boot");
+        return true;
+    }
+    return false;
 }
 
 #ifdef PLAYER_FRAMEWORK_ENABLE

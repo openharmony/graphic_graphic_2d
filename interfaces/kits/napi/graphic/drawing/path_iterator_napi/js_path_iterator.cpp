@@ -134,21 +134,20 @@ void JsPathIterator::Destructor(napi_env env, void *nativeObject, void *finalize
 napi_value JsPathIterator::CreateJsPathIterator(napi_env env, PathIterator* iter)
 {
     napi_value constructor = nullptr;
-    napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
         delete iter;
         ROSEN_LOGE("JsPathIterator::CreateJsPathIterator Failed to napi_get_reference_value!");
         return nullptr;
     }
-
-    auto jsPathIterator = new JsPathIterator(iter);
+    napi_value result = nullptr;
     napi_create_object(env, &result);
     if (result == nullptr) {
-        delete jsPathIterator;
+        delete iter;
         ROSEN_LOGE("JsPathIterator::CreateJsPath Create pathiterator object failed!");
         return nullptr;
     }
+    JsPathIterator* jsPathIterator = new JsPathIterator(iter);
     status = napi_wrap(env, result, jsPathIterator, JsPathIterator::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPathIterator;

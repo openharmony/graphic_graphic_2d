@@ -337,6 +337,7 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
+    bool IsRotationFinished() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
     }
@@ -382,6 +383,16 @@ public:
     bool GetHasUniRenderHdrSurface() const
     {
         return hasUniRenderHdrSurface_;
+    }
+
+    void SetIsLuminanceStatusChange(bool isLuminanceStatusChange)
+    {
+        isLuminanceStatusChange_ = isLuminanceStatusChange;
+    }
+
+    bool GetIsLuminanceStatusChange() const
+    {
+        return isLuminanceStatusChange_;
     }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
@@ -545,6 +556,7 @@ private:
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
+    bool isLuminanceStatusChange_ = false;
     bool preRotationStatus_ = false;
     bool curRotationStatus_ = false;
     bool lastRotationChanged_ = false;

@@ -55,9 +55,11 @@ private:
     int32_t ParseScreenConfig(xmlNode &node);
     int32_t ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting);
     int32_t ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                         const std::string &valueName = "value", const std::string &keyName = "name");
+                         const std::string &valueName = "value", const std::string &keyName = "name",
+                         const bool &canBeEmpty = false);
     int32_t ParsePowerStrategy(xmlNode &node, std::unordered_map<std::string, int32_t> &powerConfig);
-    int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
+    int32_t ParseDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
+    int32_t ParseSmallSizeDynamicSetting(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting);
     int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
     int32_t ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::SupportedModeConfig &supportedModeConfig);
     int32_t ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting);

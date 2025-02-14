@@ -318,6 +318,7 @@ void MemoryManager::CountMemory(
 
 static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
 {
+    constexpr int maxTreeDepth = 256;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     uint64_t windowId = nodeId;
@@ -331,7 +332,8 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
     bool windowsNameFlag = false;
-    while (parent) {
+    int seekDepth = 0;
+    while (parent && seekDepth < maxTreeDepth) {
         if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
@@ -340,6 +342,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
             break;
         }
         parent = parent->GetParent().lock();
+        seekDepth++;
     }
     if (!windowsNameFlag) {
         windowName = "EXISTS-BUT-NO-SURFACE";
@@ -573,13 +576,14 @@ void MemoryManager::DumpMallocStat(std::string& log)
 
 void MemoryManager::DumpMemorySnapshot(DfxString& log)
 {
-    log.AppendFormat("\n---------------\nmemorySnapshots:\n");
+    size_t totalMemory = MemorySnapshot::Instance().GetTotalMemory();
+    log.AppendFormat("\n---------------\nmemorySnapshots, totalMemory %zuKB\n", totalMemory / MEMUNIT_RATE);
     std::unordered_map<pid_t, MemorySnapshotInfo> memorySnapshotInfo;
     MemorySnapshot::Instance().GetMemorySnapshot(memorySnapshotInfo);
     for (auto& [pid, snapshotInfo] : memorySnapshotInfo) {
         std::string infoStr = "pid: " + std::to_string(pid) +
-            ", cpu: " + std::to_string(snapshotInfo.cpuMemory) +
-            ", gpu: " + std::to_string(snapshotInfo.gpuMemory);
+            ", cpu: " + std::to_string(snapshotInfo.cpuMemory / MEMUNIT_RATE) +
+            "KB, gpu: " + std::to_string(snapshotInfo.gpuMemory / MEMUNIT_RATE) + "KB";
         log.AppendFormat("%s\n", infoStr.c_str());
     }
 }
@@ -764,12 +768,16 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 void MemoryManager::CheckIsClearApp()
 {
     // Clear two Applications in one second, post task to reclaim.
-    if (!RSUniRenderThread::Instance().IsTimeToReclaim()) {
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (!unirenderThread.IsTimeToReclaim()) {
         static std::chrono::steady_clock::time_point lastClearAppTime = std::chrono::steady_clock::now();
         auto currentTime = std::chrono::steady_clock::now();
         bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
             currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
-        RSUniRenderThread::Instance().SetTimeToReclaim(isTimeToReclaim);
+        if (isTimeToReclaim) {
+            unirenderThread.ReclaimMemory();
+            unirenderThread.SetTimeToReclaim(true);
+        }
         lastClearAppTime = currentTime;
     }
 }

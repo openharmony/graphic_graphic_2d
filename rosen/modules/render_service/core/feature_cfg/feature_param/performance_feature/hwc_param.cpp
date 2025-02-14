@@ -15,6 +15,8 @@
 
 #include "hwc_param.h"
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
 
 bool HWCParam::IsHwcEnable() const

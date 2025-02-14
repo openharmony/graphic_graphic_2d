@@ -613,6 +613,11 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
 {
 }
 
+void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+}
+
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
@@ -681,7 +686,8 @@ void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
 {
 }
 
-int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback,
+    bool unobscured)
 {
     return {};
 }
@@ -723,5 +729,12 @@ void RSRenderServiceClient::NotifyScreenSwitched()
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t SetOverlayDisplayMode(int32_t mode)
+{
+    return {};
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

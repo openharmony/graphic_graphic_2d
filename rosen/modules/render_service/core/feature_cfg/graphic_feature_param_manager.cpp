@@ -14,6 +14,7 @@
  */
 
 #include "graphic_feature_param_manager.h"
+
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
@@ -34,18 +35,13 @@ GraphicFeatureParamManager::~GraphicFeatureParamManager() noexcept
 void GraphicFeatureParamManager::Init()
 {
     RS_LOGI("GraphicFeatureParamManager %{public}s : Init feature map", __func__);
-    // parse map init
-    featureParseMap_[featureModules[HDR]] = std::make_unique<HDRParamParse>();
-    featureParseMap_[featureModules[DRM]] = std::make_unique<DRMParamParse>();
-    featureParseMap_[featureModules[HWC]] = std::make_unique<HWCParamParse>();
-    featureParseMap_[featureModules[HFBC]] = std::make_unique<HfbcParamParse>();
+    // Init feature configs
+    for (const auto& module : FEATURE_MODULES) {
+        featureParseMap_.emplace(module.name, module.xmlParser());
+        featureParamMap_.emplace(module.name, module.featureParam());
+    }
 
-    // param map init
-    featureParamMap_[featureModules[HDR]] = std::make_unique<HDRParam>();
-    featureParamMap_[featureModules[DRM]] = std::make_unique<DRMParam>();
-    featureParamMap_[featureModules[HWC]] = std::make_unique<HWCParam>();
-    featureParamMap_[featureModules[HFBC]] = std::make_unique<HfbcParam>();
-
+    // Start parse feature
     FeatureParamParseEntry();
 }
 

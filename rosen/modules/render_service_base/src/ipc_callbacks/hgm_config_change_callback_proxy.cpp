@@ -34,11 +34,15 @@ void RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged(std::shared_ptr<RSHgmCon
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteParcelable(configData.get());
+    if (!data.WriteParcelable(configData.get())) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged WriteParcelable failed");
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED);
     auto remote = Remote();
     if (remote == nullptr) {
@@ -59,11 +63,15 @@ void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged(int32_t refresh
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteInt32(refreshRateMode);
+    if (!data.WriteInt32(refreshRateMode)) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged WriteInt32 failed");
+        return;
+    }
     uint32_t code =
         static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_MODE_CHANGED);
     auto remote = Remote();
@@ -85,11 +93,15 @@ void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate(int32_t refreshRate)
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteInt32(refreshRate);
+    if (!data.WriteInt32(refreshRate)) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate WriteInt32 failed");
+        return;
+    }
     uint32_t code =
         static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_CHANGED);
     auto remote = Remote();

@@ -44,15 +44,6 @@ constexpr int32_t DEGREE_NINETY = 90;
 RSImage::~RSImage()
 {}
 
-inline void ReMapPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
-{
-#ifdef ROSEN_OHOS
-    if (pixelMap && pixelMap->IsUnMap()) {
-        pixelMap->ReMap();
-    }
-#endif
-}
-
 bool RSImage::IsEqual(const RSImage& other) const
 {
     bool radiusEq = true;
@@ -153,6 +144,8 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     }
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                                 fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
+    // Temporary value to avoid pixelMap_ being Unmapped during using it.
+    auto pixelMap = DePurge();
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
@@ -183,7 +176,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         if (isFitMatrixValid_) {
             canvas.ConcatMatrix(fitMatrix_.value());
         }
-        ReMapPixelMap(pixelMap_);
         if (image_) {
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
@@ -511,7 +503,6 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
-    ReMapPixelMap(pixelMap_);
     int minX = 0;
     int minY = 0;
     int maxX = 0;
@@ -777,6 +768,9 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, rotateDegree_) &&
                    parcel.WriteBool(fitMatrix_.has_value()) &&
                    fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
+    if (!success) {
+        ROSEN_LOGE("RSImage::Marshalling failed");
+    }
     return success;
 }
 

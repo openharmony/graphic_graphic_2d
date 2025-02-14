@@ -30,7 +30,8 @@
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
-constexpr uint32_t SLEEP_TIME = 20;
+constexpr uint32_t SLEEP_TIME = 3;
+constexpr uint32_t LIMIT = 100;
 constexpr uint32_t POINTER_WIDTH = 100;
 constexpr uint32_t POINTER_HEIGHT = 200;
 constexpr uint32_t POINTER_WINDOW_INIT_SIZE = 64;
@@ -81,12 +82,12 @@ bool InitSurface()
     RSSurfaceNodeConfig config;
     surfaceNodeConfig.SurfaceNodeName = "UIExtension";
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
-    std::shared_ptr<RSSurfaceNode> subUIExtension = RSSurfaceNode::Create(surfaceNodeConfig, nodeType, true, true);
+    std::shared_ptr<RSSurfaceNode> uiExtension = RSSurfaceNode::Create(surfaceNodeConfig, nodeType, true, true);
     int width1 = (POINTER_WIDTH / POINTER_WINDOW_INIT_SIZE + 1) * POINTER_WINDOW_INIT_SIZE * 2;
     int height1 = (POINTER_HEIGHT / POINTER_WINDOW_INIT_SIZE + 1) * POINTER_WINDOW_INIT_SIZE * 2;
-    uiextension->SetBounds(NODE_POSITION_X, NODE_POSITION_Y, width1, height1);
-    uiextension->SetBackgroundColor(SK_ColorBLUE);
-    node4->AddChild(uiextension);
+    uiExtension->SetBounds(NODE_POSITION_X, NODE_POSITION_Y, width1, height1);
+    uiExtension->SetBackgroundColor(SK_ColorBLUE);
+    node4->AddChild(uiExtension);
 
     surfaceNodeConfig.SurfaceNodeName = "SubUIExtension";
     std::shared_ptr<RSSurfaceNode> subUIExtension = RSSurfaceNode::Create(surfaceNodeConfig, nodeType, true, true);
@@ -95,7 +96,7 @@ bool InitSurface()
     subUIExtension->SetBounds(UIEXTENSION_POSITION_X, UIEXTENSION_POSITION_Y, width2, height2);
     subUIExtension->SetBackgroundColor(SK_ColorRED);
     auto node5 = RSCanvasNode::Create();
-    uiextension->AddChild(node5, -1);
+    uiExtension->AddChild(node5, -1);
     node5->AddChild(subUIExtension);
 
     std::cout << "ScreenId: " << screenId << std::endl;
@@ -104,9 +105,19 @@ bool InitSurface()
     std::cout << "RSTranscation::FlushImplicitTransaction" << std::endl;
     sleep(SLEEP_TIME);
 
-    node4->RemoveChild(uiextension);
+    node4->RemoveChild(uiExtension);
     RSTransaction::FlushImplicitTransaction();
     std::cout << "RSTranscation::removechild" << std::endl;
+    sleep(SLEEP_TIME);
+
+    for (int i = 0; i < LIMIT; i++) {
+        node4->AddChild(uiExtension);
+        RSTransaction::FlushImplicitTransaction();
+        sleep(SLEEP_TIME);
+        node4->RemoveChild(uiExtension);
+        RSTransaction::FlushImplicitTransaction();
+        sleep(SLEEP_TIME);
+    }
     return true;
 }
 }

@@ -356,6 +356,9 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
@@ -394,11 +397,16 @@ public:
 
     void SetVmaCacheStatus(bool flag);
 
-    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     bool SetAncoForceDoDirect(bool direct);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode);
+#endif
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config,
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);

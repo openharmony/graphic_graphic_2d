@@ -105,6 +105,11 @@ ohos_unittest("2d_graphics_ndk_test") {
     "image_framework:pixelmap",
     "openssl:libcrypto_shared",
   ]
+
+  platform = current_os
+  if (platform == "ohos" || platform == "ohos_ng") {
+    defines += [ "OHOS_TEXT_ENABLE" ]
+  }
 }
 
 group("unittest") {

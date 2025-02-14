@@ -69,7 +69,7 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE;
 
-    ASSERT_TRUE(sharedTransitionParam->UpdateHierarchyAndReturnIsLower(childOne->GetId()));
+    ASSERT_TRUE(sharedTransitionParam->IsLower(childOne->GetId()));
     childOne->SetSharedTransitionParam(sharedTransitionParam);
     ASSERT_TRUE(LIKELY(!node.GetRenderProperties().GetUseShadowBatching()));
     node.AddChild(childOne, -1);

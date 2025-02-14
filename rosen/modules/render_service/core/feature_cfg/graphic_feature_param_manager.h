@@ -33,6 +33,22 @@
 #include "hfbc_param.h"
 
 namespace OHOS::Rosen {
+#define DEFINE_MOD(x) {FEATURE_CONFIGS[x], [] {return std::make_unique<x##ParamParse>(); }, \
+    [] {return std::make_unique<x##Param>(); }}
+
+struct ModuleConfig {
+    std::string name;
+    std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
+    std::function<std::unique_ptr<FeatureParam>()> featureParam;
+};
+
+// add new module here
+const std::vector<ModuleConfig> FEATURE_MODULES = {
+    DEFINE_MOD(HDR),
+    DEFINE_MOD(DRM),
+    DEFINE_MOD(HWC),
+};
+
 class GraphicFeatureParamManager : public RefBase {
 public:
     static GraphicFeatureParamManager& GetInstance();

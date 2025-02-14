@@ -481,12 +481,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeSubSurfaceNodesDirtyRegionForMain
 }
 
 /**
- * @tc.name: CrossDisplaySurfaceDirtyRegionOffset
- * @tc.desc: Test CrossDisplaySurfaceDirtyRegionOffset, if node is cross-display, the surface dirty will be offset.
+ * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
+ * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC
  * @tc.require: issueIB670G
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionOffset_001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionConversion_001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     ASSERT_NE(surfaceDrawable_->GetRenderParams(), nullptr);
@@ -496,20 +496,20 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionOffset_0
     ASSERT_NE(uniParams, nullptr);
 
     NodeId curDisplayId = 1;
-    int32_t displayOffset = 10;
-    surfaceParams->preparedDisplayOffset_ = { 0, 0 };
-    surfaceParams->crossNodeSkippedDisplayOffsets_.insert({curDisplayId, {displayOffset, displayOffset}});
+    Drawing::Matrix matrix;
+    matrix.PreTranslate(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    surfaceParams->crossNodeSkipDisplayConversionMatrices_.insert({curDisplayId, matrix});
     uniParams->SetCurrentVisitDisplayDrawableId(curDisplayId);
     RectI surfaceDirtyRect = { DEFAULT_RECT.left_, DEFAULT_RECT.top_,
         DEFAULT_RECT.right_ - DEFAULT_RECT.left_, DEFAULT_RECT.bottom_ - DEFAULT_RECT.top_ };;
 
     // if surface node is not cross-display node, nothing will happen.
     surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(false);
-    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_EQ(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
     // if surface node is not cross-display node, the surface dirty region will be offset.
     surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(true);
-    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_NE(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
 }
 
@@ -1308,7 +1308,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
 
 /**
  * @tc.name: DrawCloneNode
- * @tc.desc: Test DrawCloneNode
+ * @tc.desc: Test DrawCloneNode while node is not clone
  * @tc.type: FUNC
  * @tc.require: issueIBH7WD
  */
@@ -1322,6 +1322,36 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode, TestSize.Level1)
     surfaceParams->isCloneNode_ = false;
     RSRenderThreadParams uniParams;
     auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: DrawCloneNode
+ * @tc.desc: Test DrawCloneNode001 while node is clone
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isCloneNode_ = true;
+    surfaceParams->isClonedNodeOnTheTree_ = false;
+    RSRenderThreadParams uniParams;
+
+    auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+
+    surfaceParams->isClonedNodeOnTheTree_ = true;
+    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_FALSE(result);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(drawable_);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable(clonedNodeRenderDrawableSharedPtr);
+    surfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable;
+    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, true);
     ASSERT_TRUE(result);
 }
 
@@ -1352,7 +1382,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     uniParams->SetIsFirstVisitCrossNodeDisplay(true);
-    ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     RSUniRenderThread::captureParam_.isSnapshot_ = true;
     ASSERT_FALSE(RSUniRenderThread::IsExpandScreenMode());

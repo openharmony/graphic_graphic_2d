@@ -29,6 +29,9 @@ OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapNine(Drawing::Canvas* canva
     const Drawing::FilterMode mode)
 {
 #ifdef OHOS_PLATFORM
+    if (!canvas || !pixelMap || !dst) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
     Drawing::RectI centerRectI;
     if (center) {
         centerRectI = Drawing::RectI(Drawing::DrawingFloatSaturate2Int(center->GetLeft()),

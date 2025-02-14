@@ -45,7 +45,7 @@ int32_t HDRParamParse::ParseHdrInternal(FeatureParamMapType &featureMap, xmlNode
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(featureModules[HDR]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[HDR]);
     if (iter != featureMap.end()) {
         hdrParam_ = std::static_pointer_cast<HDRParam>(iter->second);
     } else {

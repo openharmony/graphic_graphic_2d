@@ -361,6 +361,7 @@ void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
+    SetDrawNode();
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
@@ -622,6 +623,9 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
 void RSNode::SetAlpha(float alpha)
 {
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
+    if (alpha < 1) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
@@ -634,6 +638,9 @@ void RSNode::SetBounds(const Vector4f& bounds)
 {
     SetProperty<RSBoundsModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BOUNDS, bounds);
     OnBoundsSizeChanged();
+    if (GetStagingProperties().GetBounds().x_ != 0 || GetStagingProperties().GetBounds().y_ != 0) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetBounds(float positionX, float positionY, float width, float height)
@@ -689,6 +696,10 @@ void RSNode::SetBoundsHeight(float height)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetProperty<RSFrameModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::FRAME, bounds);
+    if (GetStagingProperties().GetFrame().x_ != GetStagingProperties().GetBounds().x_
+        || GetStagingProperties().GetFrame().y_ != GetStagingProperties().GetBounds().y_) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetFrame(float positionX, float positionY, float width, float height)
@@ -715,6 +726,7 @@ void RSNode::SetFramePositionX(float positionX)
     auto frame = property->Get();
     frame.x_ = positionX;
     property->Set(frame);
+    SetDrawNode();
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -736,6 +748,7 @@ void RSNode::SetFramePositionY(float positionY)
     auto frame = property->Get();
     frame.y_ = positionY;
     property->Set(frame);
+    SetDrawNode();
 }
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
@@ -754,6 +767,9 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
 
 void RSNode::SetPositionZ(float positionZ)
 {
+    if (drawNodeChangeCallback_) {
+        drawNodeChangeCallback_(shared_from_this(), true);
+    }
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
 }
 
@@ -979,19 +995,29 @@ void RSNode::SetScaleY(float scaleY)
     property->Set(scale);
 }
 
+void RSNode::SetScaleZ(const float& scaleZ)
+{
+    SetProperty<RSScaleZModifier, RSAnimatableProperty<float>>(RSModifierType::SCALE_Z, scaleZ);
+}
+
 void RSNode::SetSkew(float skew)
 {
-    SetSkew({ skew, skew });
+    SetSkew({ skew, skew, skew });
 }
 
 void RSNode::SetSkew(float skewX, float skewY)
 {
-    SetSkew({ skewX, skewY });
+    SetSkew({ skewX, skewY, 0.f });
 }
 
-void RSNode::SetSkew(const Vector2f& skew)
+void RSNode::SetSkew(float skewX, float skewY, float skewZ)
 {
-    SetProperty<RSSkewModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SKEW, skew);
+    SetSkew({ skewX, skewY, skewZ });
+}
+
+void RSNode::SetSkew(const Vector3f& skew)
+{
+    SetProperty<RSSkewModifier, RSAnimatableProperty<Vector3f>>(RSModifierType::SKEW, skew);
 }
 
 void RSNode::SetSkewX(float skewX)
@@ -1003,7 +1029,7 @@ void RSNode::SetSkewX(float skewX)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1021,7 +1047,7 @@ void RSNode::SetSkewY(float skewY)
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1030,19 +1056,42 @@ void RSNode::SetSkewY(float skewY)
     property->Set(skew);
 }
 
+void RSNode::SetSkewZ(float skewZ)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::SKEW);
+    if (iter == propertyModifiers_.end()) {
+        SetSkew(0.f, 0.f, skewZ);
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector3f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto skew = property->Get();
+    skew.z_ = skewZ;
+    property->Set(skew);
+}
+
 void RSNode::SetPersp(float persp)
 {
-    SetPersp({ persp, persp });
+    SetPersp({ persp, persp, 0.f, 1.f });
 }
 
 void RSNode::SetPersp(float perspX, float perspY)
 {
-    SetPersp({ perspX, perspY });
+    SetPersp({ perspX, perspY, 0.f, 1.f });
 }
 
-void RSNode::SetPersp(const Vector2f& persp)
+void RSNode::SetPersp(float perspX, float perspY, float perspZ, float perspW)
 {
-    SetProperty<RSPerspModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PERSP, persp);
+    SetPersp({ perspX, perspY, perspZ, perspW });
+}
+
+void RSNode::SetPersp(const Vector4f& persp)
+{
+    SetProperty<RSPerspModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PERSP, persp);
 }
 
 void RSNode::SetPerspX(float perspX)
@@ -1050,11 +1099,11 @@ void RSNode::SetPerspX(float perspX)
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::PERSP);
     if (iter == propertyModifiers_.end()) {
-        SetPersp(perspX, 0.f);
+        SetPersp({perspX, 0.f, 0.0f, 1.0f});
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
@@ -1068,16 +1117,52 @@ void RSNode::SetPerspY(float perspY)
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     auto iter = propertyModifiers_.find(RSModifierType::PERSP);
     if (iter == propertyModifiers_.end()) {
-        SetPersp(0.f, perspY);
+        SetPersp({0.f, perspY, 0.f, 1.f});
         return;
     }
 
-    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
     if (property == nullptr) {
         return;
     }
     auto persp = property->Get();
     persp.y_ = perspY;
+    property->Set(persp);
+}
+
+void RSNode::SetPerspZ(float perspZ)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp({0.f, 0.f, perspZ, 1.f});
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.z_ = perspZ;
+    property->Set(persp);
+}
+
+void RSNode::SetPerspW(float perspW)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto iter = propertyModifiers_.find(RSModifierType::PERSP);
+    if (iter == propertyModifiers_.end()) {
+        SetPersp({0.f, 0.f, 0.f, perspW});
+        return;
+    }
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    if (property == nullptr) {
+        return;
+    }
+    auto persp = property->Get();
+    persp.w_ = perspW;
     property->Set(persp);
 }
 
@@ -1204,6 +1289,9 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
+    if (color.GetAlpha() > 0) {
+        SetDrawNode();
+    }
 }
 
 void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
@@ -2158,6 +2246,13 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
+    if (modifier->GetModifierType() > RSModifierType::FRAME &&
+        modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
+        modifier->GetModifierType() != RSModifierType::ALPHA &&
+        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
+        SetDrawNode();
+    }
+    ROSEN_LOGD("RSNode:Id: %{public}" PRIu64 ", AddModifier:%{public}d", id_, (int16_t)modifier->GetModifierType());
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -2363,6 +2458,12 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+    if (isNodeGroup_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
+    }
 }
 
 void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
@@ -2389,6 +2490,12 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+    if (isSuggestOpincNode_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
     }
 }
 
@@ -2417,6 +2524,22 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
+}
+
+void RSNode::SetDrawNode()
+{
+    if (isDrawNode_) {
+        return;
+    }
+    isDrawNode_ = true;
+    if (drawNodeChangeCallback_) {
+        drawNodeChangeCallback_(shared_from_this(), false);
+    }
+}
+
+bool RSNode::GetIsDrawn()
+{
+    return isDrawNode_;
 }
 
 void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
@@ -2594,6 +2717,9 @@ void RSNode::AddChild(SharedPtr child, int index)
     if (child->GetType() == RSUINodeType::DISPLAY_NODE) {
         // Disallow to add display node as child.
         return;
+    }
+    if (frameNodeId_ < 0) {
+        child->SetDrawNode();
     }
     NodeId childId = child->GetId();
     if (child->parent_ != 0) {
@@ -3048,6 +3174,15 @@ void RSNode::SetInstanceId(int32_t instanceId)
 {
     instanceId_ = instanceId;
     RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
+}
+
+DrawNodeChangeCallback RSNode::drawNodeChangeCallback_ = nullptr;
+void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
+{
+    if (drawNodeChangeCallback_) {
+        return;
+    }
+    drawNodeChangeCallback_ = callback;
 }
 
 } // namespace Rosen

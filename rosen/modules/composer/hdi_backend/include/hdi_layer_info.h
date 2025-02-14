@@ -499,6 +499,7 @@ public:
         pbuffer_= layerInfo->GetPreBuffer();
         acquireFence_ = layerInfo->GetAcquireFence();
         preMulti_ = layerInfo->IsPreMulti();
+        sdrNit_ = layerInfo->GetSdrNit();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
         layerSource_ = layerInfo->GetLayerSourceTuning();

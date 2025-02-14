@@ -180,7 +180,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty001, TestSize.Level1)
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (surfaceDrawable->GetSyncDirtyManager()) {
-        ASSERT_FALSE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
+        ASSERT_TRUE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
 }
 
@@ -211,7 +211,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty002, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (childDrawable->GetSyncDirtyManager()) {
-        ASSERT_FALSE(childDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
+        ASSERT_TRUE(childDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
 }
 
@@ -344,6 +344,26 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(++id, renderNodeDrawable));
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
+}
+
+/**
+ * @tc.name: CurSurfaceHasVisibleDirtyRegion
+ * @tc.desc: Test CurSurfaceHasVisibleDirtyRegion, node has no child
+ * @tc.type: FUNC
+ * @tc.require: issueIBJQV8
+ */
+HWTEST_F(RSUifirstManagerTest, CurSurfaceHasVisibleDirtyRegion, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(uifirstManager_.CurSurfaceHasVisibleDirtyRegion(surfaceNode));
+    Occlusion::Region region({50, 50, 100, 100});
+    surfaceNode->SetVisibleRegion(region);
+    ASSERT_FALSE(uifirstManager_.CurSurfaceHasVisibleDirtyRegion(surfaceNode));
+
+    auto surfaceDrawable = surfaceNode->GetRenderDrawable();
+    surfaceDrawable->GetSyncDirtyManager()->SetCurrentFrameDirtyRect(RectI{0, 0, 100, 100});
+    ASSERT_TRUE(uifirstManager_.CurSurfaceHasVisibleDirtyRegion(surfaceNode));
 }
 
 /**
@@ -686,14 +706,17 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes, TestSize.Level1)
  * @tc.name: ResetUifirstNode
  * @tc.desc: Test ResetUifirstNode
  * @tc.type: FUNC
- * @tc.require: issueIADDL3
+ * @tc.require: issueIBJQV8
  */
 HWTEST_F(RSUifirstManagerTest, ResetUifirstNode, TestSize.Level1)
 {
-    auto nodePtr = std::make_shared<RSSurfaceRenderNode>(1);
-    nodePtr->stagingRenderParams_ = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> nodePtr = nullptr;
     uifirstManager_.ResetUifirstNode(nodePtr);
-    EXPECT_TRUE(nodePtr);
+    nodePtr = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(nodePtr, nullptr);
+    uifirstManager_.ResetUifirstNode(nodePtr);
+    nodePtr->isOnTheTree_ = true;
+    uifirstManager_.ResetUifirstNode(nodePtr);
 }
 
 /**
@@ -1593,5 +1616,42 @@ HWTEST_F(RSUifirstManagerTest, CheckAndWaitPreFirstLevelDrawableNotify, TestSize
     renderParams->SetUiFirstRootNode(leashSurfaceNode->GetId());
     res = RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(*renderParams);
     ASSERT_TRUE(res);
+}
+
+/**
+@tc.name: IsCurFirstLevelMatch
+@tc.desc: Test IsCurFirstLevelMatch
+@tc.type: FUNC
+@tc.require: #IBJQV8
+*/
+HWTEST_F(RSUifirstManagerTest, IsCurFirstLevelMatch, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto renderParams = surfaceNode->GetRenderParams().get();
+    bool res = RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(*renderParams);
+    ASSERT_EQ(res, true);
+}
+
+/**
+@tc.name: IsCurFirstLevelMatch
+@tc.desc: Test IsCurFirstLevelMatch
+@tc.type: FUNC
+@tc.require: #IBJQV8
+*/
+HWTEST_F(RSUifirstManagerTest, CheckHwcChildrenType, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    SurfaceHwcNodeType enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(surfaceNode->childHardwareEnabledNodes_.size(), 0);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
 }
 }

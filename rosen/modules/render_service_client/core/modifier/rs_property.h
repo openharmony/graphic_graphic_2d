@@ -329,7 +329,8 @@ protected:
 template<typename T>
 class RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
-                  std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> || std::is_same_v<Vector4f, T> ||
+                  std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> ||
+                  std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
                   std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
                   supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T>);
@@ -735,6 +736,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<Vector3f>::UpdateToRender(const Vector3f& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
     const Vector4<uint32_t>& value, PropertyUpdateType type) const;
 template<>
@@ -760,6 +763,8 @@ template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const;
 template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const;
+template<>
+RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const;
 template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const;
 template<>

@@ -1097,6 +1097,22 @@ bool DONotifyPackageEvent()
     return true;
 }
 
+
+bool DONotifyAppStrategyConfigChangeEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    std::string configKey = GetData<std::string>();
+    std::string configValue = GetData<std::string>();
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(make_pair(configKey, configValue));
+    rsConn_->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    return true;
+}
+
 bool DONotifyRefreshRateEvent()
 {
     if (rsConn_ == nullptr) {
@@ -1262,6 +1278,18 @@ bool DoCreatePixelMapFromSurface()
     return true;
 }
 
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+bool DoSetOverlayDisplayMode()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t mode = GetData<int32_t>();
+    rsConn_->SetOverlayDisplayMode(mode);
+    return true;
+}
+#endif
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1347,6 +1375,7 @@ void DoFuzzerTest2()
     DOSetHidePrivacyContent();
     DONotifyLightFactorStatus();
     DONotifyPackageEvent();
+    DONotifyAppStrategyConfigChangeEvent();
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
@@ -1367,6 +1396,9 @@ void DoFuzzerTest3()
 {
     DoNotifySoftVsyncEvent();
     DoCreatePixelMapFromSurface();
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    DoSetOverlayDisplayMode();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

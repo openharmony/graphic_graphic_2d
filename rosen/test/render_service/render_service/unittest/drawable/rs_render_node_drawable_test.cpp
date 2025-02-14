@@ -513,8 +513,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest, TestSize.Level1)
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_FALSE(!params.ChildHasVisibleEffect());
 
-    auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::DISABLED);
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_FALSE(drawable->HasFilterOrEffect());
     drawable->drawCmdIndex_.shadowIndex_ = 1;

@@ -16,7 +16,11 @@
 #include "transaction/rs_transaction_proxy.h"
 #include <stdlib.h>
 
+#ifdef ROSEN_OHOS
+#include "mem_mgr_client.h"
+#endif
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -78,6 +82,16 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
     if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+        #ifdef ROSEN_OHOS
+        int appPid = ExtractPid(nodeId);
+        if (isRenderServiceCommand && command->GetSubType() == RSCommandType::ANIMATION &&
+            RSSystemProperties::GetDmaReclaimParam()) {
+            RS_TRACE_NAME_FMT("MemoryStatusChanged from proxy pid[%d]", appPid);
+            Memory::MemMgrClient::GetInstance().MemoryStatusChanged(appPid,
+                static_cast<int32_t>(Memory::MemoryTypeCode::DMABUF),
+                static_cast<int32_t>(Memory::MemoryStatusCode::USED));
+        }
+        #endif
         AddRemoteCommand(command, nodeId, followType);
         return;
     }

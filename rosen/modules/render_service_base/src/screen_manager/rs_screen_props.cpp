@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_screen_props.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,12 +56,15 @@ uint64_t RSScreenProps::GetValue() const
 bool RSScreenProps::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(propName_)) {
+        ROSEN_LOGE("RSScreenProps::Marshalling WriteString failed");
         return false;
     }
     if (!parcel.WriteUint32(propId_)) {
+        ROSEN_LOGE("RSScreenProps::Marshalling WriteUint32 failed");
         return false;
     }
     if (!parcel.WriteUint64(value_)) {
+        ROSEN_LOGE("RSScreenProps::Marshalling WriteUint64 failed");
         return false;
     }
     return true;
@@ -72,12 +76,15 @@ RSScreenProps* RSScreenProps::Unmarshalling(Parcel &parcel)
     uint32_t propId;
     uint64_t value;
     if (!parcel.ReadString(propName)) {
+        ROSEN_LOGE("RSScreenProps::Unmarshalling ReadString failed");
         return nullptr;
     }
     if (!parcel.ReadUint32(propId)) {
+        ROSEN_LOGE("RSScreenProps::Unmarshalling ReadUint32 failed");
         return nullptr;
     }
     if (!parcel.ReadUint64(value)) {
+        ROSEN_LOGE("RSScreenProps::Unmarshalling ReadUint64 failed");
         return nullptr;
     }
     RSScreenProps* screenProps = new RSScreenProps(propName, propId, value);

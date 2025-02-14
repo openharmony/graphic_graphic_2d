@@ -51,6 +51,7 @@ using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
+using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -238,18 +239,24 @@ public:
     void SetScale(const Vector2f& scale);
     void SetScaleX(float scaleX);
     void SetScaleY(float scaleY);
+    void SetScaleZ(const float& scaleZ);
 
     void SetSkew(float skew);
     void SetSkew(float skewX, float skewY);
-    void SetSkew(const Vector2f& skew);
+    void SetSkew(float skewX, float skewY, float skewZ);
+    void SetSkew(const Vector3f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
+    void SetSkewZ(float skewZ);
 
     void SetPersp(float persp);
     void SetPersp(float perspX, float perspY);
-    void SetPersp(const Vector2f& persp);
+    void SetPersp(float perspX, float perspY, float perspZ, float perspW);
+    void SetPersp(const Vector4f& persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
+    void SetPerspZ(float perspZ);
+    void SetPerspW(float perspW);
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
@@ -506,6 +513,12 @@ public:
     {
         return nodeName_;
     }
+
+    static DrawNodeChangeCallback drawNodeChangeCallback_;
+    static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    bool GetIsDrawn();
+    void SetDrawNode();
+
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -604,6 +617,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isDrawNode_ = false;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

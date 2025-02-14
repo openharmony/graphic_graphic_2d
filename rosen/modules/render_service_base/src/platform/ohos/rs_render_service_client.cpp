@@ -1585,6 +1585,15 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
     }
 }
 
+void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    }
+}
+
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1732,7 +1741,8 @@ private:
     UIExtensionCallback cb_;
 };
 
-int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback,
+    bool unobscured)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -1740,7 +1750,7 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
         return RENDER_SERVICE_NULL;
     }
     sptr<CustomUIExtensionCallback> cb = new CustomUIExtensionCallback(callback);
-    return renderService->RegisterUIExtensionCallback(userId, cb);
+    return renderService->RegisterUIExtensionCallback(userId, cb, unobscured);
 }
 
 bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
@@ -1892,5 +1902,16 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
         renderService->SetWindowContainer(nodeId, value);
     }
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetOverlayDisplayMode(mode);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

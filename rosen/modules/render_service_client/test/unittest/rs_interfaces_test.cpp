@@ -1317,6 +1317,23 @@ HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: NotifyAppStrategyConfigChangeEvent001
+ * @tc.desc: Notify current package list to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyAppStrategyConfigChangeEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string pkgName = "test";
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(std::make_pair("min", "60"));
+    uint32_t listSize = newConfig.size();
+    rsInterfaces->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: NotifyRefreshRateEvent001
  * @tc.desc: Notify refreshRate event to hgm to modify screen refreshRate
  * @tc.type: FUNC

@@ -198,6 +198,18 @@ public:
         return whiteList_;
     }
 
+    void SetVisibleRect(const Drawing::RectI& visibleRect)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        visibleRect_ = visibleRect;
+    }
+
+    const Drawing::RectI& GetVisibleRect() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return visibleRect_;
+    }
+
     void SetWallpaperTranslate(int32_t translateX, int32_t translateY)
     {
         std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
@@ -208,6 +220,16 @@ public:
     {
         std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
         return wallpaperTranslate_;
+    }
+
+    void SetEnableVisiableRect(bool enableVisiableRect)
+    {
+        enableVisiableRect_.store(enableVisiableRect);
+    }
+
+    bool GetEnableVisiableRect() const
+    {
+        return enableVisiableRect_.load();
     }
 
 private:
@@ -232,6 +254,7 @@ private:
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
     int imageReleaseCount_ = 0;
@@ -266,6 +289,7 @@ private:
     mutable std::mutex nodeListMutex_;
     std::unordered_set<NodeId> blackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
+    Drawing::RectI visibleRect_;
 
     std::mutex vmaCacheCountMutex_;
 

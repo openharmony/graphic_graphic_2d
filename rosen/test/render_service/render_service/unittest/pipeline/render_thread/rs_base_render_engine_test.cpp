@@ -335,4 +335,52 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
     EXPECT_EQ(renderEngine->CreateImageFromBuffer(paintCanvase, params, videoInfo), nullptr);
 }
 #endif
+
+/**
+ * @tc.name: NeedBilinearInterpolation
+ * @tc.desc: Test NeedBilinearInterpolation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
+{
+    BufferDrawParam params;
+    params.useBilinearInterpolation = false;
+    Drawing::Matrix matrix;
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    params.useBilinearInterpolation = true;
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 15, 20);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 10, 25);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    params.srcRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    params.dstRect = Drawing::Rect(0.0f, 0.0f, 10, 20);
+    matrix.Set(Drawing::Matrix::SCALE_X, 1);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1);
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SCALE_X, 1);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 0);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SCALE_X, 0);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SCALE_X, 0);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 0);
+    matrix.Set(Drawing::Matrix::SKEW_X, 1);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 1);
+    ASSERT_FALSE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SKEW_X, 1);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 0);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SKEW_X, 0);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 1);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+    matrix.Set(Drawing::Matrix::SKEW_X, 0);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 1);
+    matrix.Set(Drawing::Matrix::SCALE_X, 0);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1);
+    ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
 }

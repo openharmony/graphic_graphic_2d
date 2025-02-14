@@ -69,7 +69,7 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, UIExtensionFindAndTraverseAncestor_0
 
 /*
  * @tc.name: UIExtensionFindAndTraverseAncestor_002
- * @tc.desc: test when host node is surface node and one uiextension child, callback data is not empty
+ * @tc.desc: test when host node is surface node and one uiExtension child, callback data is not empty
  * @tc.type: FUNC
  * @tc.require: issueI9SDDH
  */

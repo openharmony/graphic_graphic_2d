@@ -82,11 +82,6 @@ void RSDotMatrixShader::SetRippleEffect(const RippleEffectParams& rippleParams)
 
 bool RSDotMatrixShader::Marshalling(Parcel& parcel)
 {
-    if (!parcel.WriteUint32((uint32_t)type_)) {
-        ROSEN_LOGE("unirender: RSDotMatrixShader::Marshalling write ge effect type failed");
-        return false;
-    }
-
     if (!params_) {
         return false;
     }
@@ -94,8 +89,9 @@ bool RSDotMatrixShader::Marshalling(Parcel& parcel)
     return params_->Marshalling(parcel);
 }
 
-bool RSDotMatrixShader::Unmarshalling(Parcel& parcel)
+bool RSDotMatrixShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
+    needReset = false;
     params_ = std::make_shared<DotMatrixShaderParams>();
     if (!params_) {
         return false;

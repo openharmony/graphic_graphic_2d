@@ -62,9 +62,10 @@ static std::mutex g_mutexCommandOffsets;
 static std::map<uint32_t, std::vector<uint32_t>> g_parcelNumber2Offset;
 
 static uint64_t g_pauseAfterTime = 0;
-static uint64_t g_pauseCumulativeTime = 0;
+static int64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
 static int64_t g_replayStartTimeNano = 0.0;
+static double g_replaySpeed = 1.0f;
 
 static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 
@@ -228,6 +229,7 @@ void RSProfiler::SetMode(Mode mode)
     if (IsNoneMode()) {
         g_pauseAfterTime = 0;
         g_pauseCumulativeTime = 0;
+        g_replayStartTimeNano = 0;
     }
 }
 
@@ -270,9 +272,11 @@ uint64_t RSProfiler::PatchTime(uint64_t time)
         return 0.0;
     }
     if (time >= g_pauseAfterTime && g_pauseAfterTime > 0) {
-        return g_pauseAfterTime - g_pauseCumulativeTime;
+        return (static_cast<int64_t>(g_pauseAfterTime) - g_pauseCumulativeTime - g_replayStartTimeNano) *
+            BaseGetPlaybackSpeed() + g_replayStartTimeNano;
     }
-    return time - g_pauseCumulativeTime;
+    return (static_cast<int64_t>(time) - g_pauseCumulativeTime - g_replayStartTimeNano) *
+        BaseGetPlaybackSpeed() + g_replayStartTimeNano;
 }
 
 uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
@@ -294,14 +298,19 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
     return PatchTime(time + g_transactionTimeCorrection);
 }
 
-void RSProfiler::TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime)
+void RSProfiler::TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool immediate)
 {
     if (g_pauseAfterTime > 0) {
+        // second time pause
         if (curTime > g_pauseAfterTime) {
             g_pauseCumulativeTime += curTime - g_pauseAfterTime;
         }
     }
     g_pauseAfterTime = newPauseAfterTime;
+    if (immediate) {
+        g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+        g_pauseAfterTime = curTime;
+    }
 }
 
 void RSProfiler::TimePauseResume(uint64_t curTime)
@@ -623,6 +632,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             if (auto commandList = reinterpret_cast<Drawing::DrawCmdList*>(modifier->GetDrawCmdListId())) {
                 std::string allocData = commandList->ProfilerPushAllocators();
                 commandList->MarshallingDrawOps();
+                commandList->PatchTypefaceIds(true);
                 MarshalRenderModifier(*modifier, data);
                 commandList->ProfilerPopAllocators(allocData);
             } else {
@@ -1327,5 +1337,36 @@ bool RSProfiler::IsRecordAbortRequested()
 {
     return recordAbortRequested_;
 }
+
+bool RSProfiler::BaseSetPlaybackSpeed(double speed)
+{
+    float invSpeed = 1.0f;
+    if (speed <= .0f) {
+        return false;
+    } else {
+        invSpeed /= speed > 0.0f ? speed : 1.0f;
+    }
+
+    if (IsReadMode()) {
+        if (Utils::Now() >= g_pauseAfterTime && g_pauseAfterTime > 0) {
+            // paused can change speed but need adjust start time then
+            int64_t curTime = static_cast<int64_t>(g_pauseAfterTime) - g_pauseCumulativeTime - g_replayStartTimeNano;
+            g_pauseCumulativeTime = static_cast<int64_t>(g_pauseAfterTime) - g_replayStartTimeNano -
+                    curTime * g_replaySpeed * invSpeed;
+            g_replaySpeed = speed;
+            return true;
+        }
+        // change of speed when replay in progress is not possible
+        return false;
+    }
+    g_replaySpeed = speed;
+    return true;
+}
+
+double RSProfiler::BaseGetPlaybackSpeed()
+{
+    return g_replaySpeed;
+}
+
 
 } // namespace OHOS::Rosen

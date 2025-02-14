@@ -102,7 +102,7 @@ public:
     }
 
     void MergeOldDirty(NodeId id);
-    void MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node);
+    void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
 
     void SetRotationChanged(bool rotationChanged)
     {

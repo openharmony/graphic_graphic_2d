@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -142,7 +142,9 @@ HWTEST_F(RSDotMatrixShaderTest, MarshallingAndUnmarshalling001, TestSize.Level1)
     testShader.SetRippleEffect(params);
     Parcel parcel;
     EXPECT_TRUE(testShader.Marshalling(parcel));
-    EXPECT_TRUE(testShader.Unmarshalling(parcel));
+    bool needReset = true;
+    EXPECT_TRUE(testShader.Unmarshalling(parcel, needReset));
+    EXPECT_FALSE(needReset);
 }
 
 } // namespace OHOS::Rosen

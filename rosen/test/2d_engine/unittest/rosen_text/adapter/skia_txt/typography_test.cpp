@@ -19,9 +19,6 @@
 #include "typography_create.h"
 #include "font_collection.h"
 #include "txt/text_bundle_config_parser.h"
-#ifndef OHOS_TEXT_ENABLE
-#define OHOS_TEXT_ENABLE
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -365,7 +362,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
     // The value of longestlineWithIndent will Close to 16 if the truncation of emoji fails.
     ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE / 2));
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyTest012
  * @tc.desc: test for truncated surrogate pair reverse emoji text building and layouting

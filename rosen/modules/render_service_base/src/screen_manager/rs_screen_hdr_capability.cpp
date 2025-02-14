@@ -67,10 +67,12 @@ void RSScreenHDRCapability::SetHdrFormats(const std::vector<ScreenHDRFormat>& fo
 bool RSScreenHDRCapability::WriteVector(const std::vector<ScreenHDRFormat>& formats, Parcel &parcel) const
 {
     if (!parcel.WriteUint32(static_cast<uint32_t>(formats.size()))) {
+        ROSEN_LOGE("RSScreenHDRCapability::WriteVector WriteUint32 1 failed");
         return false;
     }
     for (ScreenHDRFormat format : formats) {
         if (!parcel.WriteUint32(static_cast<uint32_t>(format))) {
+            ROSEN_LOGE("RSScreenHDRCapability::WriteVector WriteUint32 2 failed");
             return false;
         }
     }
@@ -81,6 +83,7 @@ bool RSScreenHDRCapability::ReadVector(std::vector<ScreenHDRFormat>& unmarFormat
 {
     uint32_t size;
     if (!parcel.ReadUint32(size)) {
+        ROSEN_LOGE("RSScreenHDRCapability::ReadVector ReadUint32 1 failed");
         return false;
     }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(ScreenHDRFormat);
@@ -93,6 +96,7 @@ bool RSScreenHDRCapability::ReadVector(std::vector<ScreenHDRFormat>& unmarFormat
     for (uint32_t index = 0; index < size; index++) {
         uint32_t format;
         if (!parcel.ReadUint32(format)) {
+            ROSEN_LOGE("RSScreenHDRCapability::ReadVector ReadUint32 2 failed");
             return false;
         }
         unmarFormats.push_back(static_cast<ScreenHDRFormat>(format));
@@ -103,15 +107,19 @@ bool RSScreenHDRCapability::ReadVector(std::vector<ScreenHDRFormat>& unmarFormat
 bool RSScreenHDRCapability::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteFloat(maxLum_)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Marshalling WriteFloat 1 failed");
         return false;
     }
     if (!parcel.WriteFloat(minLum_)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Marshalling WriteFloat 2 failed");
         return false;
     }
     if (!parcel.WriteFloat(maxAverageLum_)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Marshalling WriteFloat 3 failed");
         return false;
     }
     if (!WriteVector(hdrFormats_, parcel)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Marshalling WriteVector failed");
         return false;
     }
     return true;
@@ -124,15 +132,19 @@ RSScreenHDRCapability* RSScreenHDRCapability::Unmarshalling(Parcel &parcel)
     float maxAverageLum;
     std::vector<ScreenHDRFormat> formats;
     if (!parcel.ReadFloat(maxLum)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Unmarshalling ReadFloat 1 failed");
         return nullptr;
     }
     if (!parcel.ReadFloat(minLum)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Unmarshalling ReadFloat 2 failed");
         return nullptr;
     }
     if (!parcel.ReadFloat(maxAverageLum)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Unmarshalling ReadFloat 3 failed");
         return nullptr;
     }
     if (!ReadVector(formats, parcel)) {
+        ROSEN_LOGE("RSScreenHDRCapability::Unmarshalling ReadVector failed");
         return nullptr;
     }
     RSScreenHDRCapability* screenHdrCapability = new RSScreenHDRCapability(maxLum, minLum, maxAverageLum, formats);

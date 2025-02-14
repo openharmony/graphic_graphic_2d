@@ -23,7 +23,7 @@ constexpr uint32_t MEM_MAX_SIZE = 2;
 constexpr uint32_t MEM_SIZE_STRING_LEN = 10;
 constexpr uint32_t MEM_ADDR_STRING_LEN = 16;
 constexpr uint32_t MEM_TYPE_STRING_LEN = 16;
-constexpr uint32_t PIXELMAP_INFO_STRING_LEN = 32;
+constexpr uint32_t PIXELMAP_INFO_STRING_LEN = 36;
 constexpr uint32_t MEM_PID_STRING_LEN = 8;
 constexpr uint32_t MEM_WID_STRING_LEN = 20;
 constexpr uint32_t MEM_UID_STRING_LEN = 8;
@@ -228,17 +228,68 @@ const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
     std::string use_cnt_str = "-1";
     std::string is_un_map_str = "-1";
     std::string un_map_cnt_str = "-1";
+    std::string pixelformat_str = "-1";
 
 #ifdef ROSEN_OHOS
-    auto pixelMap = info.pixelMap.lock();
-    if (pixelMap) {
-        use_cnt_str = std::to_string(pixelMap->GetUseCount());
+    if (auto pixelMap = info.pixelMap.lock()) {
+        use_cnt_str = std::to_string(pixelMap.use_count());
         is_un_map_str = std::to_string(pixelMap->IsUnMap());
         un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
+        OHOS::Media::ImageInfo imageInfo;
+        pixelMap->GetImageInfo(imageInfo);
+        pixelformat_str = PixelFormat2String(imageInfo.pixelFormat);
     }
 #endif
-    return alloc_type_str + "," + use_cnt_str + "," + is_un_map_str + "," + un_map_cnt_str;
+    return alloc_type_str + "," + use_cnt_str + "," + is_un_map_str + "," + un_map_cnt_str + "," + pixelformat_str;
 }
+
+#ifdef ROSEN_OHOS
+const std::string MemoryTrack::PixelFormat2String(OHOS::Media::PixelFormat type)
+{
+    // sync with foundation/multimedia/image_framework/interfaces/innerkits/include/image_type.h
+    switch (type) {
+        case OHOS::Media::PixelFormat::ARGB_8888:
+            return "ARGB_8888";
+        case OHOS::Media::PixelFormat::RGB_565:
+            return "RGB_565";
+        case OHOS::Media::PixelFormat::RGBA_8888:
+            return "RGBA_8888";
+        case OHOS::Media::PixelFormat::BGRA_8888:
+            return "BGRA_8888";
+        case OHOS::Media::PixelFormat::RGB_888:
+            return "RGB_888";
+        case OHOS::Media::PixelFormat::ALPHA_8:
+            return "ALPHA_8";
+        case OHOS::Media::PixelFormat::RGBA_F16:
+            return "RGBA_F16";
+        case OHOS::Media::PixelFormat::NV21:
+            return "NV21";
+        case OHOS::Media::PixelFormat::NV12:
+            return "NV12";
+        case OHOS::Media::PixelFormat::RGBA_1010102:
+            return "RGBA_1010102";
+        case OHOS::Media::PixelFormat::YCBCR_P010:
+            return "YCBCR_P010";
+        case OHOS::Media::PixelFormat::YCRCB_P010:
+            return "YCRCB_P010";
+        case OHOS::Media::PixelFormat::RGBA_U16:
+            return "RGBA_U16";
+        case OHOS::Media::PixelFormat::YUV_400:
+            return "YUV_400";
+        case OHOS::Media::PixelFormat::CMYK:
+            return "CMYK";
+        case OHOS::Media::PixelFormat::ASTC_4x4:
+            return "ASTC_4x4";
+        case OHOS::Media::PixelFormat::ASTC_6x6:
+            return "ASTC_6x6";
+        case OHOS::Media::PixelFormat::ASTC_8x8:
+            return "ASTC_8x8";
+        default :
+            return std::to_string(static_cast<int32_t>(type));
+    }
+    return "UNKNOW";
+}
+#endif
 
 const std::string MemoryTrack::AllocatorType2String(OHOS::Media::AllocatorType type)
 {
@@ -272,7 +323,7 @@ std::string MemoryTrack::GenerateDumpTitle()
 {
     std::string size_title = Data2String("Size", MEM_SIZE_STRING_LEN);
     std::string type_title = Data2String("Type", MEM_TYPE_STRING_LEN);
-    std::string pixelmap_info_title = Data2String("Type,UseCnt,IsUnMap,UnMapCnt", PIXELMAP_INFO_STRING_LEN);
+    std::string pixelmap_info_title = Data2String("Type,UseCnt,IsUnMap,UnMapCnt,Format", PIXELMAP_INFO_STRING_LEN);
     std::string pid_title = Data2String("Pid", MEM_PID_STRING_LEN);
     std::string wid_title = Data2String("Wid", MEM_WID_STRING_LEN);
     std::string uid_title = Data2String("Uid", MEM_UID_STRING_LEN);

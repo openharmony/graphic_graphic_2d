@@ -49,7 +49,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_1)
         testNode->SetPivot(Vector2f(0.0, 0.0));
         // try to cover all SetSkew funcitons
         if (i < 2) {
-            testNode->SetSkew({ skewValues[i][0], skewValues[i][1] });
+            testNode->SetSkew({ skewValues[i][0], skewValues[i][1], 0.0});
         } else if (i < 4) {
             testNode->SetSkew(skewValues[i][0], skewValues[i][1]);
         } else if (i < 6) {
@@ -58,6 +58,61 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_1)
         } else {
             testNode->SetSkew(skewValues[i][0]);
         }
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_2)
+{
+    std::vector<std::vector<float> >  skewValues= {
+        { 0.5, 0},
+        { 0, 0.5},
+        { 0.5, 0.5},
+    };
+    for (int i = 0; i < skewValues.size(); ++i) {
+        auto testNode =
+            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 110, i * 420 + 110, 200, 200 });
+        testNode->SetPivot(Vector2f(0.0, 0.0));
+        testNode->SetSkew(skewValues[i][0], skewValues[i][1], 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_3)
+{
+    std::array<float, 3> skewData = { 0.f, 0.5f, -0.5f};
+    for (int i = 0; i < skewData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_4)
+{
+    std::array<float, 3> skewData = { 0.f, 0.5f, -0.5f};
+    for (int i = 0; i < skewData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(0.0, 0, 45.0);
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_5)
+{
+    std::array<float, 3> skewData = { 0.f, 0.5f, -0.5f};
+    for (int i = 0; i < skewData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(45.0, 0, 0.0);
+        testNode->SetSkew(skewData[i], 0.5, 0.0);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }

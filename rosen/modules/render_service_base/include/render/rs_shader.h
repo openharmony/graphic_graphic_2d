@@ -25,10 +25,16 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSShader {
 public:
+    enum class ShaderType{
+        DRAWING = 0,
+        DOT_MATRIX,
+        FLOW_LIGHT_SWEEP,
+    };
+
     RSShader() = default;
     virtual ~RSShader() = default;
     static std::shared_ptr<RSShader> CreateRSShader();
-    static std::shared_ptr<RSShader> CreateRSShader(Parcel& parcel);
+    static std::shared_ptr<RSShader> CreateRSShader(const ShaderType& type);
     static std::shared_ptr<RSShader> CreateRSShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
 
     void SetDrawingShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
@@ -36,13 +42,7 @@ public:
     virtual const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const;
 
     virtual bool Marshalling(Parcel& parcel);
-    virtual bool Unmarshalling(Parcel& parcel);
-
-    enum class ShaderType{
-        DRAWING = 0,
-        DOT_MATRIX,
-        FLOW_LIGHT_SWEEP,
-    };
+    virtual bool Unmarshalling(Parcel& parcel, bool& needReset);
 
     inline const ShaderType& GetShaderType() const { return type_; } ;
 

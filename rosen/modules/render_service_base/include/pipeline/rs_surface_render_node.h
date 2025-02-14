@@ -198,10 +198,7 @@ public:
 
     bool NeedBilinearInterpolation() const
     {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface" || name_.find("oh_flutter") != std::string::npos ||
-                name_.find("HwStylusFeature") != std::string::npos);
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_;
     }
 
     void SetSubNodeShouldPaint()
@@ -562,6 +559,7 @@ public:
     bool IsCloneNode() const;
     void SetClonedNodeId(NodeId id);
     void SetIsCloned(bool isCloned);
+    void SetIsClonedNodeOnTheTree(bool isOnTheTree);
 
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
@@ -789,7 +787,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode();
+    void UpdateInfoForClonedNode(NodeId nodeId);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -1334,7 +1332,7 @@ public:
 
     void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
     {
-        if (!IsLeashWindow()) {
+        if (!IsLeashOrMainWindow()) {
             return;
         }
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
@@ -1388,13 +1386,17 @@ public:
     void CalDrawBehindWindowRegion() override;
     RectI GetFilterRect() const override;
     RectI GetBehindWindowRegion() const override;
-    void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
+    void UpdateCrossNodeSkipDisplayConversionMatrices(NodeId displayId, const Drawing::Matrix& matrix)
     {
-        crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };
+        crossNodeSkipDisplayConversionMatrices_[displayId] = matrix;
     }
-    void ClearCrossNodeSkippedDisplayOffset()
+    const Drawing::Matrix& GetCrossNodeSkipDisplayConversionMatrix(NodeId displayId)
     {
-        crossNodeSkippedDisplayOffsets_.clear();
+        return crossNodeSkipDisplayConversionMatrices_[displayId];
+    }
+    void ClearCrossNodeSkipDisplayConversionMatrices()
+    {
+        crossNodeSkipDisplayConversionMatrices_.clear();
     }
     HdrStatus GetVideoHdrStatus() const
     {
@@ -1429,6 +1431,11 @@ public:
     bool IsUIBufferAvailable();
 
     bool GetUIExtensionUnobscured() const;
+
+    std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
+    {
+        return dirtyManager_;
+    }
 
 protected:
     void OnSync() override;
@@ -1733,11 +1740,12 @@ private:
     // [Attention] The variable only used for unlocking screen for PC currently
     bool isCloneNode_ = false;
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
+    bool isClonedNodeOnTheTree_ = false;
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
-    std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
+    std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

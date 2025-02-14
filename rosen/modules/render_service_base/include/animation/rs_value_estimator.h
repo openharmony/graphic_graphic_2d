@@ -309,6 +309,7 @@ public:
     virtual ~RSSpringValueEstimatorBase() = default;
 
     virtual void SetResponse(const float response) {}
+    virtual void SetMinimumAmplitudeRatio(const float minimumAmplitudeRatio) {}
     virtual void SetDampingRatio(const float dampingRatio) {}
     virtual float GetResponse() const
     {
@@ -363,6 +364,13 @@ public:
     {
         if (springModel_) {
             springModel_->response_ = response;
+        }
+    }
+
+    void SetMinimumAmplitudeRatio(const float minimumAmplitudeRatio) override
+    {
+        if (springModel_) {
+            springModel_->minimumAmplitudeRatio_ = minimumAmplitudeRatio;
         }
     }
 

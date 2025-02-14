@@ -287,6 +287,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_PACKAGE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_REFRESH_RATE_EVENT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
             break;
@@ -473,6 +477,12 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXELMAP_BY_PROCESSID");
             break;
         }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OVERLAY_DISPLAY_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OVERLAY_DISPLAY_MODE");
+            break;
+        }
+#endif
         default: {
             break;
         }

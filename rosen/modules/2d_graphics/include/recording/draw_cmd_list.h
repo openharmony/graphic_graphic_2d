@@ -136,7 +136,7 @@ public:
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
      */
-    void PatchTypefaceIds();
+    void PatchTypefaceIds(bool takeIdFromList = false);
 
     /**
      * @brief   Draw cmd is empty or not.
@@ -222,6 +222,8 @@ private:
     void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
+
+    void ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList);
 
     int32_t width_;
     int32_t height_;

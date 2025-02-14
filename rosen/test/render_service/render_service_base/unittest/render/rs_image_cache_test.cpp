@@ -198,7 +198,6 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest, TestSize.Level1)
     RSImageCache& imageCache = RSImageCache::Instance();
     auto pixelMap = std::make_shared<Media::PixelMap>();
     imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
-    EXPECT_TRUE(true);
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheDrawingImage(1, img);
     imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);

@@ -134,9 +134,9 @@ public:
     static SecSurfaceInfo GenerateSecSurfaceInfoFromNode(
         NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo);
     static void UIExtensionFindAndTraverseAncestor(
-        const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData);
+        const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData, bool isUnobscured = false);
     static void TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
-        Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
+        Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData, bool isUnobscured = false);
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
     static void ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
         const Drawing::Rect& src, const Drawing::Rect& dst);

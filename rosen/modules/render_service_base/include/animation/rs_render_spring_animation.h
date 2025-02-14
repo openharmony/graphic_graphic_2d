@@ -30,7 +30,8 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
     void DumpAnimationInfo(std::string& out) const override;
-    void SetSpringParameters(float response, float dampingRatio, float blendDuration = 0.0f);
+    void SetSpringParameters(float response, float dampingRatio, float blendDuration = 0.0f,
+        float minimumAmplitudeRatio = SPRING_MIN_AMPLITUDE_RATIO);
     void SetZeroThreshold(float zeroThreshold);
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity);
     void InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation);
@@ -68,6 +69,7 @@ private:
     // spring model related
     float response_ = 0.0f;
     float dampingRatio_ = 0.0f;
+    float minimumAmplitudeRatio_ = SPRING_MIN_AMPLITUDE_RATIO;
 
     // blend related
     uint64_t blendDuration_ = 0;

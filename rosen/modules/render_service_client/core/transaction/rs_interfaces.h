@@ -83,11 +83,11 @@ public:
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
- 
+
     int32_t SetPointerColorInversionEnabled(bool enable);
- 
+
     int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
- 
+
     int32_t UnRegisterPointerLuminanceChangeCallback();
 #endif
 
@@ -133,7 +133,7 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
-    // width and height should be greater then physical width and height
+    // width and height should be greater than physical width and height
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -284,6 +284,9 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
@@ -330,7 +333,7 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
-    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
@@ -351,6 +354,10 @@ public:
     void ForceRefreshOneFrameWithNextVSync();
 
     void SetWindowContainer(NodeId nodeId, bool value);
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode);
+#endif
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

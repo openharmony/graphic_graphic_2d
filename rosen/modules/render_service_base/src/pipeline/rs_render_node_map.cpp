@@ -308,6 +308,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         return ExtractPid(pair.first) == pid;
     });
 
+    EraseIf(selfDrawingNodeInProcess_, [pid](const auto& pair) -> bool {
+        return pair.first == pid;
+    });
+
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
@@ -355,6 +359,16 @@ void RSRenderNodeMap::TraverseSurfaceNodes(std::function<void (const std::shared
 {
     for (const auto& [_, node] : surfaceNodeMap_) {
         func(node);
+    }
+}
+
+void RSRenderNodeMap::TraverseSurfaceNodesBreakOnCondition(
+    std::function<bool (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : surfaceNodeMap_) {
+        if (func(node)) {
+            break;
+        }
     }
 }
 

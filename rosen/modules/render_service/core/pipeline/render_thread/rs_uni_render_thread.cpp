@@ -893,15 +893,12 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 
 void RSUniRenderThread::ReclaimMemory()
 {
-    if (!RSSystemProperties::GetReleaseResourceEnabled()) {
+    if (!RSSystemProperties::GetReclaimMemoryEnabled()) {
         return;
     }
 
-    // When exited two apps in one second, post reclaim task.
-    if (isTimeToReclaim_.load()) {
-        // Reclaim memory when no render in 12s.
-        PostReclaimMemoryTask(ClearMemoryMoment::RECLAIM_CLEAN, true);
-    }
+    // Reclaim memory when no render in 12s.
+    PostReclaimMemoryTask(ClearMemoryMoment::RECLAIM_CLEAN, true);
 }
 
 void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim)
@@ -936,7 +933,6 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
                 }
             });
 #endif
-            this->isReclaimMemoryFinished_ = true;
             this->isTimeToReclaim_.store(false);
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         }
@@ -966,22 +962,12 @@ void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bo
             DefaultClearMemoryCache();
         }
     }
-    if (!isReclaimMemoryFinished_) {
+    if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
         if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }
-}
-
-void RSUniRenderThread::SetReclaimMemoryFinished(bool isFinished)
-{
-    isReclaimMemoryFinished_ = isFinished;
-}
-
-bool RSUniRenderThread::IsReclaimMemoryFinished()
-{
-    return isReclaimMemoryFinished_;
 }
 
 void RSUniRenderThread::SetTimeToReclaim(bool isTimeToReclaim)

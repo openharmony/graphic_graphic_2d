@@ -37,6 +37,9 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
 #include "include/gpu/GrDirectContext.h"
 #include "info_collection/rs_hdr_collection.h"
 #ifdef RS_ENABLE_GPU
@@ -2050,14 +2053,22 @@ uint32_t RSRenderServiceConnection::SetScreenActiveRect(
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    auto result = screenManager_->SetScreenActiveRect(id, dstActiveRect);
-    if (result != StatusCode::SUCCESS) {
-        RS_LOGE("SetScreenActiveRect Fail with result: %{public}d", result);
+    if (!mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
     }
+    auto task = [weakScreenManager = wptr<RSScreenManager>(screenManager_), id, dstActiveRect]() -> void {
+        sptr<RSScreenManager> screenManager = weakScreenManager.promote();
+        if (!screenManager) {
+            return;
+        }
+        screenManager->SetScreenActiveRect(id, dstActiveRect);
+    };
+    mainThread_->ScheduleTask(task).wait();
+
     HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
             OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
     });
-    return result;
+    return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -2260,6 +2271,17 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
             frameRateMgr->HandlePackageEvent(pid, packageList);
+        }
+    });
+}
+
+void RSRenderServiceConnection::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, listSize, pkgName, newConfig] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandleAppStrategyConfigEvent(pid, pkgName, newConfig);
         }
     });
 }
@@ -2549,7 +2571,8 @@ void RSRenderServiceConnection::DropFrameByPid(const std::vector<int32_t> pidLis
     );
 }
 
-int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback)
+int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
+    bool unobscured)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!mainThread_) {
@@ -2559,7 +2582,7 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
         RS_LOGE("RSRenderServiceConnection::RegisterUIExtensionCallback register null callback, failed.");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
+    mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback, unobscured);
     return StatusCode::SUCCESS;
 }
 
@@ -2673,5 +2696,13 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
     };
     mainThread_->PostTask(task);
 }
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+int32_t RSRenderServiceConnection::SetOverlayDisplayMode(int32_t mode)
+{
+    RS_LOGI("RSRenderServiceConnection::SetOverlayDisplayMode: mode: [%{public}d]", mode);
+    return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

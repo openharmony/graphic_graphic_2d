@@ -33,11 +33,10 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const std::shared_ptr<Drawing
     return rsShader;
 }
 
-std::shared_ptr<RSShader> RSShader::CreateRSShader(Parcel& parcel)
+std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
 {
     std::shared_ptr<RSShader> shader = nullptr;
-    auto effectType = static_cast<ShaderType>(parcel.ReadUint32());
-    switch (effectType) {
+    switch (type) {
         case ShaderType::DOT_MATRIX: {
             shader = std::make_shared<RSDotMatrixShader>();
             break;
@@ -58,10 +57,6 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(Parcel& parcel)
         return nullptr;
     }
 
-    if (!shader->Unmarshalling(parcel)) {
-        return nullptr;
-    }
-
     return shader;
 }
 
@@ -77,35 +72,36 @@ const std::shared_ptr<Drawing::ShaderEffect>& RSShader::GetDrawingShader() const
 
 bool RSShader::Marshalling(Parcel& parcel)
 {
-    if (!parcel.WriteUint32((uint32_t)type_)) {
-        ROSEN_LOGE("unirender: RSShader::Marshalling write ge effect type failed");
-        return false;
-    }
-
     auto& shaderEffect = GetDrawingShader();
     if (!shaderEffect) {
-        ROSEN_LOGD("unirender: RSShader::Marshalling Drawing Shader is nullptr");
-        return false;
+        ROSEN_LOGD("RSShader::Marshalling Drawing Shader is nullptr");
+        return parcel.WriteInt32(-1);
     }
 
     int32_t type = static_cast<int32_t>(shaderEffect->GetType());
     std::shared_ptr<Drawing::Data> data = shaderEffect->Serialize();
     if (!data) {
-        ROSEN_LOGE("unirender: RSShader::Marshalling, data is nullptr");
-        return false;
+        ROSEN_LOGE("RSShader::Marshalling, data is nullptr");
+        return parcel.WriteInt32(-1);
     }
-    return parcel.WriteInt32(type) && RSMarshallingHelper::Marshalling(parcel, data);
+    bool flag = parcel.WriteInt32(type) && RSMarshallingHelper::Marshalling(parcel, data);
+    if (!flag) {
+        ROSEN_LOGE("unirender: RSShader::Marshalling WriteInt32 or RSMarshallingHelper::Marshalling failed");
+    }
+    return flag;
 }
 
-bool RSShader::Unmarshalling(Parcel& parcel)
+bool RSShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
+    needReset = false;
     int32_t type = parcel.ReadInt32();
     if (type == -1) {
-        return false;
+        needReset = true;
+        return true;
     }
     std::shared_ptr<Drawing::Data> data;
     if (!RSMarshallingHelper::Unmarshalling(parcel, data) || !data) {
-        ROSEN_LOGE("unirender: RSShader::Unmarshalling RSShader, data is nullptr");
+        ROSEN_LOGE("RSShader::Unmarshalling, data is nullptr");
         return false;
     }
     Drawing::ShaderEffect::ShaderEffectType shaderEffectType = Drawing::ShaderEffect::ShaderEffectType::NO_TYPE;

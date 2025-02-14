@@ -32,9 +32,7 @@
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "txt/text_bundle_config_parser.h"
-#ifndef OHOS_TEXT_ENABLE
-#define OHOS_TEXT_ENABLE
-#endif
+
 using namespace OHOS::Rosen;
 using namespace testing;
 using namespace testing::ext;
@@ -2720,7 +2718,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest112, TestSize.Level
 
     float longestLineWidth = OH_Drawing_TypographyGetLongestLine(typography);
     ASSERT_TRUE(skia::textlayout::nearlyEqual(longestLineWidth, ARC_FONT_SIZE));
- 
+
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);

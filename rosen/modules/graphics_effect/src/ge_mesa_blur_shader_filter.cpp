@@ -91,6 +91,12 @@ static bool GetKawaseOriginalEnabled()
 #endif
 }
 
+inline bool GE_GNE(float left, float right) // great not equal
+{
+    constexpr float epsilon = 0.001f;
+    return (left - right) > epsilon;
+}
+
 GEMESABlurShaderFilter::GEMESABlurShaderFilter(const Drawing::GEMESABlurShaderFilterParams& params)
     : radius_(params.radius), greyCoef1_(params.greyCoef1), greyCoef2_(params.greyCoef2),
       stretchOffsetX_(params.offsetX), stretchOffsetY_(params.offsetY),
@@ -133,7 +139,7 @@ bool GEMESABlurShaderFilter::SetBlurParamsHelper(NewBlurParams& bParam,
         return false;
     }
     int stride = 2;     // 2: stride
-    int index;
+    size_t index;
     float scale = 1.f;
     float w1;
     if (blurRadius_ < st) {
@@ -151,6 +157,7 @@ bool GEMESABlurShaderFilter::SetBlurParamsHelper(NewBlurParams& bParam,
         index = floor(findex);
         w1 = findex - index;
     }
+    // Using interpolation to get the blur params.
     if (fabs(w1) < 1e-6) {
         for (int i = 0; i < bParam.numberOfPasses; i++) {
             bParam.offsets[stride * i] = scale * offsetTable[index][stride * i];
@@ -195,6 +202,7 @@ bool GEMESABlurShaderFilter::SetGeneralBlurParams(NewBlurParams& bParam)
     blurRadius_ = static_cast<float>(radius_);
     int stride = 2;     // 2: stride
     if (blurRadius_ < BLUR_RADIUS[0]) {     // 0: BLUR_RADIUS_1 = 8
+        // Case1. numberOfPasses = 2, 3, or 4; blur scale = 0.5; offsets interpolated from offsetTableFourPasses.
         // 2: min number of pass, 4: fixed four passes
         bParam.numberOfPasses = std::clamp(static_cast<int>(blurRadius_), 2, 4);
         blurScale_ = BASE_BLUR_SCALE;
@@ -213,6 +221,7 @@ bool GEMESABlurShaderFilter::SetGeneralBlurParams(NewBlurParams& bParam)
         return isSetParamSuccess;
     }
     if (blurRadius_ < BLUR_RADIUS[1]) {     // 1: BLUR_RADIUS_1P5 = 20
+        // Case2. numberOfPasses = 4; blur scale = 0.25; offsets interpolated from offsetTableFourPasses.
         // 4: four passes
         int numberOfPasses = 4;
         blurScale_ = BLUR_SCALE_1;
@@ -236,11 +245,13 @@ bool GEMESABlurShaderFilter::SetGeneralBlurParams(NewBlurParams& bParam)
         return true;
     }
     if (blurRadius_ < BLUR_RADIUS[4]) {     // 4: BLUR_RADIUS_2 = 100
+        // Case3. numberOfPasses = 5; blur scale = 0.125; offsets interpolated from offsetTableFivePasses.
         bParam.numberOfPasses = 5;  // 5: five passes
         blurScale_ = BLUR_SCALE_2;
         // 3: BLUR_RADIUS_21 = 80; 2: BLUR_RADIUS_20 = 24
         return SetBlurParamsHelper(bParam, offsetTableFivePasses, BLUR_RADIUS[2], BLUR_RADIUS[3]);
     }
+    // Case4. numberOfPasses = 5; blur scale < 0.125; offsets interpolated from offsetTableFivePasses.
     return SetBlurParamsFivePassLarge(bParam);
 }
 
@@ -412,11 +423,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingFuzedBlur(Dr
     auto originImageInfo = input->GetImageInfo();
     auto middleInfo = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_1), std::ceil(height * BLUR_SCALE_1),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
-    if (blurScale_ > BLUR_SCALE_1 + 1e-4) {
+    if (GE_GNE(blurScale_, BLUR_SCALE_1)) {
         tmpShader = DownSampling2X(canvas, blurBuilder, input, src, scaledInfo, linear);
-    } else if (blurScale_ > BLUR_SCALE_2 + 1e-4) {
+    } else if (GE_GNE(blurScale_, BLUR_SCALE_2)) {
         tmpShader = DownSampling4X(canvas, blurBuilder, input, src, scaledInfo, linear);
-    } else if (blurScale_ > BLUR_SCALE_3 + 1e-4) {
+    } else if (GE_GNE(blurScale_, BLUR_SCALE_3)) {
         tmpShader = DownSampling8X(canvas, blurBuilder, input, src, scaledInfo, middleInfo, linear);
     } else {
         auto middleInfo2 = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_3), std::ceil(height * BLUR_SCALE_3),
@@ -459,6 +470,7 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
     auto input = image;
     CheckInputImage(canvas, image, input, src);
     NewBlurParams blur;
+    // Step1. Set blur params according to our algorithm.
     if (!SetBlurParams(blur)) {
         LOGE("GEMESABlurShaderFilter:: The blur params are not correctly set.");
         return image;
@@ -470,12 +482,14 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
     Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
+    // Step2. Apply downsampling and fuzed effect such as grey adjustment and pixel stretch
     auto tmpBlur = DownSamplingFuzedBlur(canvas, blurBuilder, input, src, scaledInfo, width, height, linear, blur);
     if (!tmpBlur) {
         LOGE("GEMESABlurShaderFilter::ProcessImage make image error when downsampling");
         return image;
     }
 
+    // Step3. Blur iteration.
     int stride = 2;     // 2: stride
     for (auto i = 1; i < blur.numberOfPasses; i++) {
         blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
@@ -488,6 +502,7 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
 #endif
     }
 
+    // Step4. Upsampling and adding random noise.
     auto output = ScaleAndAddRandomColor(canvas, input, tmpBlur, src, dst, width, height);
     return output;
 }

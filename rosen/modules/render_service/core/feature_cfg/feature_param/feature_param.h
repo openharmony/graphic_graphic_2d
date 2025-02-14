@@ -22,10 +22,8 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include "platform/common/rs_log.h"
-
 namespace OHOS::Rosen {
-const std::vector<std::string> featureModules = {
+const std::vector<std::string> FEATURE_CONFIGS = {
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",

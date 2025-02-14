@@ -304,7 +304,19 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
         !surfaceNode_->GetVisibleRegion().IsEmpty());
-    return Media::PixelMap::Create(opts);
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    if (pixelMap) {
+        GraphicColorGamut windowColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+        if (node->IsLeashWindow()) {
+            windowColorGamut = node->GetFirstLevelNodeColorGamut();
+        } else {
+            windowColorGamut = node->GetColorSpace();
+        }
+        pixelMap->InnerSetColorSpace(windowColorGamut == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB ?
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB) :
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+    }
+    return pixelMap;
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode(
@@ -345,7 +357,14 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
         captureConfig_.useDma, screenRotation_, screenCorrection_);
-    return Media::PixelMap::Create(opts);
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    if (pixelMap) {
+        GraphicColorGamut windowColorGamut = node->GetColorSpace();
+        pixelMap->InnerSetColorSpace(windowColorGamut == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB ?
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB) :
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+    }
+    return pixelMap;
 }
 
 std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
@@ -360,13 +379,8 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: address == nullptr");
         return nullptr;
     }
-    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    RSDisplayRenderParams* curNodeParams = nullptr;
-    if (displayNodeDrawable_) {
-        curNodeParams = static_cast<RSDisplayRenderParams*>(displayNodeDrawable_->GetRenderParams().get());
-        colorGamut = curNodeParams->GetNewColorSpace();
-    }
-    colorSpace_ = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
+    OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+    colorSpace_ = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace_};
 
@@ -515,11 +529,6 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
             }
             auto tmpImg = std::make_shared<Drawing::Image>();
             DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
-            if (colorSpace != nullptr) {
-                pixelmap->InnerSetColorSpace(colorSpace->IsSRGB() ?
-                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB) :
-                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
-            }
         } else {
 #else
         {

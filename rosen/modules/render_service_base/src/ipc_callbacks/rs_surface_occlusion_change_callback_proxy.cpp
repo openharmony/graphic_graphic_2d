@@ -34,11 +34,16 @@ void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(flo
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSISurfaceOcclusionChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged "
+                   "WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteFloat(visibleAreaRatio);
+    if (!data.WriteFloat(visibleAreaRatio)) {
+        ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged WriteFloat failed");
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(
         RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

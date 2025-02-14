@@ -35,6 +35,7 @@ public:
     const Vector2f INITIAL_VALUE_PIVOT_2F = Vector2f(70.f, 80.f);
     const Vector2f INITIAL_VALUE_SCALE_2F = Vector2f(2.f, 2.f);
     const Vector2f INITIAL_VALUE_SKEW_2F = Vector2f(30.f, 30.f);
+    const Vector3f INITIAL_VALUE_SKEW_3F = Vector3f(30.f, 30.f, 30.f);
     const Vector4f INITIAL_VALUE_RECT_4F = Vector4f(10.f, 10.f, 10.f, 10.f);
 };
 
@@ -319,13 +320,21 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     EXPECT_EQ(geometry->trans_->scaleX_, 2);
     EXPECT_EQ(geometry->trans_->scaleY_, 2);
 
-    auto property03 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SKEW_2F);
+    auto property03 = std::make_shared<RSProperty<Vector3f>>(INITIAL_VALUE_SKEW_3F);
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSSkewModifier> skewModifier = std::make_shared<RSSkewModifier>(property03);
     ASSERT_NE(skewModifier, nullptr);
     skewModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->skewX_, 30);
     EXPECT_EQ(geometry->trans_->skewY_, 30);
+    EXPECT_EQ(geometry->trans_->skewZ_, 30);
+
+    auto property04 = std::make_shared<RSProperty<float>>(1.f);
+    ASSERT_NE(property04, nullptr);
+    std::shared_ptr<RSScaleZModifier> scalezModifier = std::make_shared<RSScaleZModifier>(property04);
+    ASSERT_NE(scalezModifier, nullptr);
+    scalezModifier->Apply(geometry);
+    EXPECT_EQ(geometry->trans_->scaleZ_, 1.f);
 }
 
 /**
@@ -338,20 +347,24 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(geometry, nullptr);
 
-    auto property = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SIZE_2F);
+    auto property = std::make_shared<RSProperty<Vector4f>>(INITIAL_VALUE_RECT_4F);
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSPerspModifier> perspModifier = std::make_shared<RSPerspModifier>(property);
     ASSERT_NE(perspModifier, nullptr);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 60);
-    EXPECT_EQ(geometry->trans_->perspY_, 30);
+    EXPECT_EQ(geometry->trans_->perspX_, 0);
+    EXPECT_EQ(geometry->trans_->perspY_, 0);
+    EXPECT_EQ(geometry->trans_->perspZ_, 0);
+    EXPECT_EQ(geometry->trans_->perspW_, 1);
 
-    auto property02 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_POSITION_2F);
+    auto property02 = std::make_shared<RSProperty<Vector4f>>(INITIAL_VALUE_RECT_4F);
     ASSERT_NE(property02, nullptr);
     perspModifier = std::make_shared<RSPerspModifier>(property02);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 110);
-    EXPECT_EQ(geometry->trans_->perspY_, 80);
+    EXPECT_EQ(geometry->trans_->perspX_, 0);
+    EXPECT_EQ(geometry->trans_->perspY_, 0);
+    EXPECT_EQ(geometry->trans_->perspZ_, 0);
+    EXPECT_EQ(geometry->trans_->perspW_, 1);
 
     auto property03 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SIZE_2F);
     ASSERT_NE(property03, nullptr);

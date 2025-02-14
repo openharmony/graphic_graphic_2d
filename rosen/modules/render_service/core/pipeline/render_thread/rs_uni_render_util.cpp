@@ -29,6 +29,9 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -100,6 +103,10 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    // overlay display expand dirty region
+    RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
+#endif
     Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
         Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
@@ -165,7 +172,19 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
     if (!rect.IsEmpty()) {
         rects.emplace_back(rect);
     }
-
+    if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        std::vector<RectI> dstDamageRegionrects;
+        for (const auto& rect : rects) {
+            Drawing::Matrix scaleMatrix;
+            scaleMatrix.SetScaleTranslate(screenInfo.samplingScale, screenInfo.samplingScale,
+                screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
+            RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
+            const Vector4<int> expandSize{screenInfo.samplingDistance, screenInfo.samplingDistance,
+                screenInfo.samplingDistance, screenInfo.samplingDistance};
+            dstDamageRegionrects.emplace_back(mappedRect.MakeOutset(expandSize));
+        }
+        return dstDamageRegionrects;
+    }
     return rects;
 }
 
@@ -556,7 +575,13 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
     auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer);
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
+    auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        node.GetRenderDrawable());
+    auto surfaceParams = surfaceNodeDrawable == nullptr
+                            ? nullptr
+                            : static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params,
+        surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     return params.matrix;
 }
@@ -2110,7 +2135,7 @@ SecSurfaceInfo RSUniRenderUtil::GenerateSecSurfaceInfoFromNode(
 }
 
 void RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(
-    const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData)
+    const RSRenderNodeMap& nodeMap, UIExtensionCallbackData& callbackData, bool isUnobscured)
 {
     const auto& secUIExtensionNodes = RSSurfaceRenderNode::GetSecUIExtensionNodes();
     for (auto it = secUIExtensionNodes.begin(); it != secUIExtensionNodes.end(); ++it) {
@@ -2125,13 +2150,13 @@ void RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(
             return;
         }
         for (const auto& child : *hostNode->GetSortedChildren()) {
-            TraverseAndCollectUIExtensionInfo(child, Drawing::Matrix(), hostNode->GetId(), callbackData);
+            TraverseAndCollectUIExtensionInfo(child, Drawing::Matrix(), hostNode->GetId(), callbackData, isUnobscured);
         }
     }
 }
 
 void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
-    Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData)
+    Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData, bool isUnobscured)
 {
     if (!node) {
         return;
@@ -2150,7 +2175,8 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     auto rect = boundsGeo.MapAbsRect(node->GetSelfDrawRect().JoinRect(node->GetChildrenRect().ConvertTo<float>()));
     // if node is UIExtension type, update its own info, and skip its children.
     if (auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node)) {
-        if (surfaceNode->IsSecureUIExtension() || surfaceNode->IsUnobscuredUIExtensionNode()) {
+        if ((surfaceNode->IsSecureUIExtension() && !isUnobscured) ||
+            (surfaceNode->IsUnobscuredUIExtensionNode() && isUnobscured)) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
             auto [iter, inserted] = callbackData.insert(std::pair(hostId, std::vector<SecSurfaceInfo>{}));

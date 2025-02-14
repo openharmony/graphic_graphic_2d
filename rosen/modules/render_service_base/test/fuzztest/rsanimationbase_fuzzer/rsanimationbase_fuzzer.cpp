@@ -132,6 +132,8 @@ namespace OHOS {
         const FrameRateGetFunc func;
         float width = GetData<float>();
         float height = GetData<float>();
+        float scaleX = GetData<float>();
+        float scaleY = GetData<float>();
 
         PropertyId propertyId = GetData<PropertyId>();
         AnimationId animId = GetData<AnimationId>();
@@ -158,7 +160,8 @@ namespace OHOS {
         animationManager->GetFrameRateRange();
         animationManager->GetDecideFrameRateRange();
         animationManager->SetRateDeciderEnable(isEnable, func);
-        animationManager->SetRateDeciderScaleSize(width, height);
+        animationManager->SetRateDeciderSize(width, height);
+        animationManager->SetRateDeciderScale(scaleX, scaleY);
     }
 
     void RSAnimationTimingProtocolFuzzerTest()
@@ -810,6 +813,7 @@ namespace OHOS {
         float response = GetData<float>();
         float dampingRatio = GetData<float>();
         float blendDuration = GetData<float>();
+        float minimumAmplitudeRatio = GetData<float>();
         float zeroThreshold = GetData<float>();
         AnimationId animationId = GetData<AnimationId>();
         PropertyId propertyId = GetData<PropertyId>();
@@ -825,7 +829,7 @@ namespace OHOS {
         auto springAnimation =
             std::make_shared<RSRenderSpringAnimation>(animationId, propertyId, originValue, startValue, endValue);
         springAnimation->DumpAnimationInfo(str);
-        springAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+        springAnimation->SetSpringParameters(response, dampingRatio, blendDuration, minimumAmplitudeRatio);
         springAnimation->SetZeroThreshold(zeroThreshold);
         springAnimation->SetInitialVelocity(velocity);
         springAnimation->InheritSpringAnimation(animation);

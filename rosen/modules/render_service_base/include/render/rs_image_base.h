@@ -63,7 +63,7 @@ public:
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
-    std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+    std::shared_ptr<Media::PixelMap> GetPixelMap();
     void DumpPicture(DfxString& info) const;
     uint64_t GetUniqueId() const;
 #ifdef ROSEN_OHOS
@@ -73,16 +73,21 @@ public:
 
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
 
+    /*
+     * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
+     * Only the pixelMap_ held by at most one RSImage and one Image can be purged.
+     * More information can be found in RSImageCahe::CheckRefCntAndReleaseImageCache.
+    */
     void Purge();
-    enum class CanPurgeFlag : int8_t {
-        UNINITED = -1,
-        DISABLED = 0,
-        ENABLED = 1,
-    };
-    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 
 protected:
     void GenUniqueId(uint32_t id);
+    /*
+     * This is the reverse process of Purge, which will call ReMap() of pixelMap_. To avoid Upmap() being called
+     * after ReMap() and before pixelMap_ is used, use_count of pixelMap_ will be increased by return value.
+     * Use the return temporary and do not store it to avoid memory leak.
+    */
+    std::shared_ptr<Media::PixelMap> DePurge();
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
@@ -116,6 +121,13 @@ protected:
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
+
+    enum class CanPurgeFlag : int8_t {
+        UNINITED = -1,
+        DISABLED = 0,
+        ENABLED = 1,
+    };
+    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 };
 } // namespace Rosen
 } // namespace OHOS

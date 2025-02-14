@@ -76,8 +76,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             screenRotation_ = mirroredParams->GetScreenRotation();
             screenCorrection_ = screenManager->GetScreenCorrection(mirroredParams->GetScreenId());
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
-            mirroredScreenWidth_ = static_cast<float>(mainScreenInfo.width);
-            mirroredScreenHeight_ = static_cast<float>(mainScreenInfo.height);
+            mirroredScreenWidth_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyWidth) :
+                static_cast<float>(mainScreenInfo.width);
+            mirroredScreenHeight_ = mainScreenInfo.isSamplingOn ? static_cast<float>(mainScreenInfo.phyHeight) :
+                static_cast<float>(mainScreenInfo.height);
             auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
             auto mirroredDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
             if (displayParams && mirroredDisplayParams &&
@@ -86,6 +88,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
                 renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
                 RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
             }
+        }
+    } else if (isExpand_) {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+        if (displayParams && displayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+            renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         }
     }
 
@@ -129,7 +136,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
 
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
-
+    uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
+    auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
+    if (rsSurface != nullptr && SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
+    }
     canvas_ = renderFrame_->GetCanvas();
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): Canvas is null!",
@@ -213,6 +224,41 @@ int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
         return 0;
     }
     return renderFrame_->GetBufferAge();
+}
+
+GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut colorSpace)
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata renderFrame is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto& rsSurface = renderFrame_->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata surface is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata buffer is null, not support get surfacebuffer.");
+        return GSERROR_NO_BUFFER;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto iter = COLORSPACE_TYPE.find(colorSpace);
+    if (iter == COLORSPACE_TYPE.end()) {
+        return GSERROR_OK;
+    }
+    CM_ColorSpaceInfo colorSpaceInfo;
+    GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(iter->second, colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertColorSpaceTypeToInfo failed.");
+        return ret;
+    }
+    std::vector<uint8_t> colorSpaceVec;
+    if (MetadataHelper::ConvertMetadataToVec(colorSpaceInfo, colorSpaceVec) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertMetadataToVec failed.");
+        return GSERROR_API_FAILED;
+    }
+    return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
 void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
@@ -317,6 +363,20 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     if (EnableVisibleRect()) {
         mirroredScreenWidth = visibleRect_.GetWidth();
         mirroredScreenHeight = visibleRect_.GetHeight();
+        if (mirroredScreenWidth < EPSILON || mirroredScreenHeight < EPSILON) {
+            RS_LOGE("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, input is illegal.");
+            return;
+        }
+        if (!drawMirrorCopy_) {
+            float top = visibleRect_.GetTop();
+            float left = visibleRect_.GetLeft();
+            float startRectX = virtualScreenWidth_ * (left / mirroredScreenWidth);
+            float startRectY = virtualScreenHeight_ * (top / mirroredScreenHeight);
+            canvas.Translate(-startRectX, -startRectY);
+            RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, top:%{public}f, left:%{public}f, width:%{public}f,"
+                "height:%{public}f, X:%{public}f, Y:%{public}f", top, left, mirroredScreenWidth,
+                mirroredScreenHeight, startRectX, startRectY);
+        }
     }
 
     if (mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
@@ -444,7 +504,7 @@ bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
     if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
-        (slrScale < SLR_SCALE_THR_HIGH)) {
+        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect() && drawMirrorCopy_) {
         return true;
     }
     return false;

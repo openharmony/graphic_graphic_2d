@@ -31,7 +31,6 @@ static const float FLYIN_DEFORM_PERCENTAGE_ONE = 0.07f;
 static const float FLYIN_DEFORM_PERCENTAGE_HEIGHT = 0.04f;
 // 0.21 means the ratio of deformation distance of the points e, e2, f, f2 to width when fly in
 static const float FLYIN_DEFORM_PERCENTAGE_TWO = 0.21f;
-static const size_t POINT_NUM = 12; // 12 anchor points of a patch
 static const uint32_t FLY_OUT_MODE = 0;
 static const uint32_t FLY_IN_MODE = 1;
 
@@ -79,7 +78,8 @@ Drawing::Brush RSFlyOutShaderFilter::GetBrush(const std::shared_ptr<Drawing::Ima
 }
 
 void RSFlyOutShaderFilter::SetPathTo(Drawing::Path &path, const float width,
-    const std::array<Drawing::Point, POINT_NUM>& flyUp, const std::array<Drawing::Point, POINT_NUM>& flyDown) const
+    const std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+    const std::array<Drawing::Point, FLY_POINT_NUM>& flyDown) const
 {
     // The 0th point is the starting point of drawing.
     path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
@@ -108,8 +108,8 @@ Drawing::Point RSFlyOutShaderFilter::CloserToHalf(const Drawing::Point &pointOfP
     return newBounds;
 }
 
-void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, POINT_NUM>& flyUp,
-    std::array<Drawing::Point, POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const
+void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+    std::array<Drawing::Point, FLY_POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const
 {
     float flyOutOffsetOne = FLYOUT_DEFORM_PERCENTAGE_ONE * deformWidth * degree_;
     float flyOutOffsetTwo = FLYOUT_DEFORM_PERCENTAGE_TWO * deformWidth * degree_;
@@ -170,7 +170,7 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
     float segmentWidthTwo = width / 3.0 * 2.0; // Anchor point 2 is located at two-thirds of the width.
     float segmentHeightOne = height / 3.0; // Anchor point 1 is located at one-third of the height.
     float segmentHeightTwo = height / 3.0 * 2.0; // Anchor point 2 is located at two-thirds of the height.
-    std::array<Drawing::Point, POINT_NUM> flyUp = {
+    std::array<Drawing::Point, FLY_POINT_NUM> flyUp = {
         // top edge control points of upper part
         Drawing::Point{0.0f, 0.0f}, Drawing::Point{segmentWidthOne, 0.0f},
         Drawing::Point{segmentWidthTwo, 0.0f}, Drawing::Point{width, 0.0f},
@@ -182,7 +182,7 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
         // left edge control points of upper part
         Drawing::Point{0.0f, segmentHeightTwo}, Drawing::Point{0.0f, segmentHeightOne}
     };
-    std::array<Drawing::Point, POINT_NUM> flyDown = {
+    std::array<Drawing::Point, FLY_POINT_NUM> flyDown = {
         // top edge control points of lower part
         Drawing::Point{0.0f, height}, Drawing::Point{segmentWidthOne, height},
         Drawing::Point{segmentWidthTwo, height}, Drawing::Point{width, height},

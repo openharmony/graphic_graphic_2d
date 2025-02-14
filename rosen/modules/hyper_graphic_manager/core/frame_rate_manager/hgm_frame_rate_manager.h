@@ -60,6 +60,7 @@ enum CleanPidCallbackType : uint32_t {
     PACKAGE_EVENT,
     TOUCH_EVENT,
     GAMES,
+    APP_STRATEGY_CONFIG_EVENT,
 };
 
 enum LightFactorStatus : int32_t {
@@ -158,10 +159,23 @@ public:
     void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
+    // called by RSMainThread
+    bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
+    // called by RSMainThread
+    void SetGameNodeOnTree(bool isOnTree)
+    {
+        isGameNodeOnTree_.store(isOnTree);
+    }
+    // called by RSMainThread
+    std::string GetGameNodeName() const
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        return curGameNodeName_;
+    }
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
-    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
     {
         forceUpdateCallback_ = forceUpdateCallback;
@@ -194,6 +208,8 @@ public:
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -207,8 +223,11 @@ private:
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
-    int32_t GetPreferredFps(const std::string& type, float velocity) const;
-    static float PixelToMM(float velocity);
+    int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaMM, float lengthMM) const;
+    template<typename T>
+    static float PixelToMM(T pixel);
+    template<typename T>
+    static float SqrPixelToSqrMM(T sqrPixel);
 
     void HandleIdleEvent(bool isIdle);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
@@ -243,18 +262,27 @@ private:
     void InitPowerTouchManager();
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    void SetGameNodeName(std::string nodeName)
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        curGameNodeName_ = nodeName;
+    }
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
 
     // concurrency protection >>>
-    std::mutex pendingMutex_;
+    mutable std::mutex pendingMutex_;
     std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t lastPendingConstraintRelativeTime_ = 0;
     uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
+    // current game app's self drawing node name
+    std::string curGameNodeName_;
+    // if current game's self drawing node is on tree,default false
+    std::atomic<bool> isGameNodeOnTree_ = false;
     // concurrency protection <<<
 
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;

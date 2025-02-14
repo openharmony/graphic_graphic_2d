@@ -32,6 +32,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
+#include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
@@ -144,6 +145,24 @@ public:
     void SurfaceOcclusionCallbackToWMS();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
+
+    bool GetDumpRsTreeDetailEnabled()
+    {
+        return isDumpRsTreeDetailEnabled_;
+    }
+
+    inline uint32_t IncreasePrepareSeq()
+    {
+        return ++nodePreparedSeqNum_;
+    }
+
+    inline uint32_t IncreasePostPrepareSeq()
+    {
+        return ++nodePostPreparedSeqNum_;
+    }
+
+    void SetCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
+
 private:
     const std::unordered_set<NodeId> GetCurrentBlackList() const;
     /* Prepare relevant calculation */
@@ -202,9 +221,11 @@ private:
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
         RSSurfaceRenderNode& hwcNodePtr);
     void UpdateHwcNodeEnableByFilterRect(
-        std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect, bool isReverseOrder = false);
+        std::shared_ptr<RSSurfaceRenderNode>& node,
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
     void CalcHwcNodeEnableByFilterRect(
-        std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect, bool isReverseOrder = false);
+        std::shared_ptr<RSSurfaceRenderNode>& node,
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
     // This function is used for solving display problems caused by dirty blurfilter node half-obscured.
     void UpdateDisplayDirtyAndExtendVisibleRegion();
     // This function is used to update global dirty and visibleRegion
@@ -222,8 +243,6 @@ private:
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
-    void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
-        std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -449,6 +468,12 @@ private:
     uint32_t layerNum_ = 0;
 
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
+
+    bool isDumpRsTreeDetailEnabled_ = false;
+
+    uint32_t nodePreparedSeqNum_ = 0;
+
+    uint32_t nodePostPreparedSeqNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

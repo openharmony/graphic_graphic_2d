@@ -181,6 +181,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
+#endif
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -2276,6 +2279,36 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NotifyPackageEvent(listSize, packageList);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT) : {
+            std::string pkgName;
+            uint32_t listSize{0};
+            if (!data.ReadString(pkgName) || !data.ReadUint32(listSize)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            const uint32_t MAX_LIST_SIZE = 50;
+            if (listSize > MAX_LIST_SIZE) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+
+            std::vector<std::pair<std::string, std::string>> newConfig;
+            bool errFlag{false};
+            for (uint32_t i = 0; i < listSize; i++) {
+                std::string key;
+                std::string value;
+                if (!data.ReadString(key) || !data.ReadString(value)) {
+                    errFlag = true;
+                    break;
+                }
+                newConfig.push_back(make_pair(key, value));
+            }
+            if (errFlag) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
             std::string eventName;
             bool eventStatus{false};
@@ -2541,7 +2574,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = RegisterUIExtensionCallback(userId, callback);
+            bool unobscured{false};
+            if (!data.ReadBool(unobscured)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = RegisterUIExtensionCallback(userId, callback, unobscured);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }
@@ -2690,6 +2728,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetWindowContainer(nodeId, isEnabled);
             break;
         }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE) : {
+            RS_LOGI("RSRenderServicrConnectionStub::OnRemoteRequest SET_OVERLAY_DISPLAY_MODE");
+            int32_t mode{0};
+            if (!data.ReadInt32(mode)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t result = SetOverlayDisplayMode(mode);
+            reply.WriteInt32(result);
+            break;
+        }
+#endif
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

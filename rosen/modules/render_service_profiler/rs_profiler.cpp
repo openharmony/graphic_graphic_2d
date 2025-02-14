@@ -95,6 +95,7 @@ static int g_nodeListPerfCalcIndex = -1;
 static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
+static bool g_playbackImmediate = false;
 
 #pragma pack(push, 1)
 struct AlignedMessageParcel {
@@ -166,15 +167,14 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (!displayNode) {
         return;
     }
+    // the following logic calcuate the percentage of dirtyRegion
     auto params = static_cast<RSDisplayRenderParams*>(displayNode->GetRenderParams().get());
     if (!params) {
         return;
     }
 
     auto screenInfo = params->GetScreenInfo();
-    const uint64_t displayWidth = screenInfo.width;
-    const uint64_t displayHeight = screenInfo.height;
-    const uint64_t displayArea = displayWidth * displayHeight;
+    const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
@@ -586,7 +586,7 @@ void RSProfiler::ProcessPauseMessage()
         if (deltaTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
             }
             g_replayLastPauseTimeReported = deltaTime;
         }
@@ -986,7 +986,7 @@ std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_
         std::vector<uint8_t> fontData;
         std::stringstream fontStream;
         size_t fontStreamSize;
-        constexpr size_t fontStreamSizeMax = 10'000'000;
+        constexpr size_t fontStreamSizeMax = 100'000'000;
         
         stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
         if (fontStreamSize > fontStreamSizeMax) {
@@ -1063,10 +1063,8 @@ void RSProfiler::RecordUpdate()
     const double currentTime = Utils::ToSeconds(g_frameBeginTimestamp);
     const double timeSinceRecordStart = currentTime - g_recordStartTime;
     const uint64_t recordStartTimeNano = Utils::ToNanoseconds(g_recordStartTime);
-    double timeSinceRecordStartToSync;
-    if (g_frameSyncTimestamp > recordStartTimeNano) {
-        timeSinceRecordStartToSync = Utils::ToSeconds(g_frameSyncTimestamp - recordStartTimeNano);
-    } else {
+    double timeSinceRecordStartToSync = Utils::ToSeconds(g_frameSyncTimestamp - recordStartTimeNano);
+    if (g_frameSyncTimestamp < recordStartTimeNano) {
         timeSinceRecordStartToSync = -Utils::ToSeconds(recordStartTimeNano - g_frameSyncTimestamp);
     }
 
@@ -1245,12 +1243,28 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
         return;
     }
     const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
-    for (const auto& [_, submap] : map.renderNodeMap_) {
-        for (const auto& [_, node] : submap) {
+    for (const auto& [_, subMap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : subMap) {
             if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
                 Respond("CANVAS_DRAWING_NODE: " + std::to_string(node->GetId()));
             }
         }
+    }
+}
+
+void RSProfiler::PlaybackSetImmediate(const ArgList& args)
+{
+    g_playbackImmediate = args.Int64(0) ? true : false;
+    Respond("Playback immediate mode: " + std::to_string(g_playbackImmediate));
+}
+
+void RSProfiler::PlaybackSetSpeed(const ArgList& args)
+{
+    const auto speed = args.Fp64();
+    if (BaseSetPlaybackSpeed(speed)) {
+        Respond("Playback speed: " + std::to_string(speed));
+    } else {
+        Respond("Playback speed: change rejected");
     }
 }
 
@@ -1835,7 +1849,7 @@ void RSProfiler::RecordStop(const ArgList& args)
         ImageCache::Reset();
 
         SendMessage("Record: Stopped");
-        SendMessage("Network: record_vsync_range %lu %lu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+        SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 
         SetMode(Mode::NONE);
     });
@@ -1947,8 +1961,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
     const double pauseTime = g_playbackPauseTime;
     if (pauseTime > 0.0) {
         const uint64_t currentTime = RawNowNano();
-        const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime);
-        TimePauseAt(currentTime, pauseTimeStart);
+        const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime) / BaseGetPlaybackSpeed();
+        TimePauseAt(currentTime, pauseTimeStart, g_playbackImmediate);
     }
 
     AwakeRenderServiceThread();
@@ -2094,12 +2108,12 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     const uint64_t currentTime = RawNowNano();
     const double recordPlayTime = Utils::ToSeconds(PatchTime(currentTime)) - g_playbackStartTime;
-    TimePauseAt(g_frameBeginTimestamp, currentTime);
+    TimePauseAt(g_frameBeginTimestamp, currentTime, g_playbackImmediate);
     Respond("OK: " + std::to_string(recordPlayTime));
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
+        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }
@@ -2111,23 +2125,25 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
         return;
     }
 
-    double pauseTime;
+    double pauseAtTimeSec;
     if (args.String(0) == "VSYNC") {
         int64_t vsyncId = args.Int64(1);
-        pauseTime = g_playbackFile.ConvertVsyncId2Time(vsyncId);
+        pauseAtTimeSec = g_playbackFile.ConvertVsyncId2Time(vsyncId);
     } else {
-        pauseTime = args.Fp64();
+        pauseAtTimeSec = args.Fp64();
     }
 
-    const uint64_t currentTime = RawNowNano();
-    const double recordPlayTime = Utils::ToSeconds(PatchTime(currentTime)) - g_playbackStartTime;
-    if (recordPlayTime > pauseTime) {
+    const uint64_t currentTimeNano = RawNowNano();
+    const double alreadyPlayedTimeSec = Utils::ToSeconds(PatchTime(currentTimeNano)) - g_playbackStartTime;
+    if (alreadyPlayedTimeSec > pauseAtTimeSec) {
         return;
     }
 
-    const uint64_t pauseTimeStart = currentTime + Utils::ToNanoseconds(pauseTime - recordPlayTime);
+    // set 2nd pause
+    const uint64_t pauseAfterTimeNano = currentTimeNano + Utils::ToNanoseconds(pauseAtTimeSec - alreadyPlayedTimeSec)
+         / BaseGetPlaybackSpeed();
 
-    TimePauseAt(currentTime, pauseTimeStart);
+    TimePauseAt(currentTimeNano, pauseAfterTimeNano, g_playbackImmediate);
     ResetAnimationStamp();
     Respond("OK");
 }

@@ -1077,6 +1077,13 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
 
     // save layer mode
     Drawing::Brush blendBrush_;
+
+    // The savelayer in the RSPaintFilterCanvas will automatically apply alpha to the brush.
+    // If the alpha of the canvas is set to the brush here, the final transparency will be
+    // alpha * alpha, not alpha.
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA)) {
+        blendBrush_.SetAlphaF(canvas.GetAlpha());
+    }
     blendBrush_.SetBlender(blender);
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);

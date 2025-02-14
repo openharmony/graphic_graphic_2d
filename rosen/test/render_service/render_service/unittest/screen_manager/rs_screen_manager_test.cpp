@@ -2085,7 +2085,7 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-        
+
     ScreenId id = 1;
     screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     ASSERT_FALSE(screenManager->IsScreenPowerOff(id));

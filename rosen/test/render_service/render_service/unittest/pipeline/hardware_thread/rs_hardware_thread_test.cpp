@@ -198,6 +198,10 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
+    auto &hgmCore = HgmCore::Instance();
+    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
+    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    ASSERT_EQ(curScreenId, lastCurScreenId);
 }
 
 /**
@@ -617,4 +621,18 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
     EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
 }
 #endif
+
+/*
+ * @tc.name: ChangeLayersForActiveRectOutside001
+ * @tc.desc: Test RSHardwareThreadTest.ChangeLayersForActiveRectOutside
+ * @tc.type: FUNC
+ * @tc.require: issuesIBLTM5
+ */
+HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    std::vector<LayerInfoPtr> layers;
+    hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
+    EXPECT_EQ(layers.size(), 0);
+}
 } // namespace OHOS::Rosen

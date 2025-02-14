@@ -3091,22 +3091,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByRotateAndAlpha001, TestSiz
 }
 
 /**
- * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001
- * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp with empty Rect
- * @tc.type: FUNC
- * @tc.require: issueIB9EZC
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    std::vector<RectI> hwcRects;
-    hwcRects.emplace_back(0, 0, 0, 0);
-    rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, node);
-    ASSERT_FALSE(node->isHardwareForcedDisabled_);
-}
-
-/**
  * @tc.name: UpdateHwcNodeEnableBySrcRect001
  * @tc.desc: Test UpdateHwcNodeEnableBySrcRect with empty node
  * @tc.type: FUNC
@@ -3162,106 +3146,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableBySrcRect003, TestSize.Level
     ASSERT_TRUE(surfaceNode->IsHardwareDisabledBySrcRect());
 
     rsUniRenderVisitor->UpdateHwcNodeEnableBySrcRect(*surfaceNode);
-}
-
-/*
- * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001
- * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when hwcNode is hardware forced disabled.
- * @tc.type: FUNC
- * @tc.require: issueIBD45W
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
-
-    std::vector<RectI> hwcRects;
-    rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
-    EXPECT_EQ(hwcRects.size(), 0);
-}
-
-/*
- * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp002
- * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when hwcNode is anco force do direct.
- * @tc.type: FUNC
- * @tc.require: issueIBD45W
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp002, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    surfaceNode->isProtectedLayer_ = true;
-    surfaceNode->isOnTheTree_ = true;
-    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
-    surfaceNode->SetAncoForceDoDirect(true);
-    surfaceNode->SetAncoFlags(static_cast<uint32_t>(0x1));
-    ASSERT_TRUE(surfaceNode->GetAncoForceDoDirect());
-    
-    std::vector<RectI> hwcRects;
-    rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
-    EXPECT_EQ(hwcRects.size(), 1);
-}
-
-/*
- * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp003
- * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when dst.Intersect(rect) equals true.
- * @tc.type: FUNC
- * @tc.require: issueIBD45W
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp003, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    surfaceNode->isProtectedLayer_ = true;
-    surfaceNode->isOnTheTree_ = true;
-    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
-    surfaceNode->SetAncoForceDoDirect(false);
-    ASSERT_FALSE(surfaceNode->GetAncoForceDoDirect());
-
-    surfaceNode->SetDstRect(RectI(0, 0, 1, 1));
-    std::vector<RectI> hwcRects;
-    hwcRects.emplace_back(RectI(0, 0, 1, 1));
-    ASSERT_TRUE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
-
-    rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
-    EXPECT_EQ(hwcRects.size(), 1);
-}
-
-/*
- * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp004
- * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when dst.Intersect(rect) equals false.
- * @tc.type: FUNC
- * @tc.require: issueIBD45W
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp004, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    surfaceNode->isProtectedLayer_ = true;
-    surfaceNode->isOnTheTree_ = true;
-    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
-    surfaceNode->SetAncoForceDoDirect(false);
-    ASSERT_FALSE(surfaceNode->GetAncoForceDoDirect());
-
-    surfaceNode->SetDstRect(RectI());
-    std::vector<RectI> hwcRects;
-    hwcRects.emplace_back(RectI(50, 50, 100, 100));
-    ASSERT_FALSE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
-
-    rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
-    EXPECT_EQ(hwcRects.size(), 2);
 }
 
 /*
@@ -4027,7 +3911,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Le
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, rect);
+    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, rect, 1);
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
 }
 
@@ -4077,7 +3961,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByFilterRect002, TestSize.Le
     RectI rect{left, top, width, height};
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, rect);
+    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, rect, 1);
 }
 
 /*
@@ -4100,7 +3984,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Le
     RectI rect{left, top, width, height};
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, rect);
+    rsUniRenderVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, rect, 1);
 }
 
 /*

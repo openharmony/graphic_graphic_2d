@@ -445,6 +445,7 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
     return drawFuncObjVec_[id];
 }
 
+// ATTENTION: WHEN NEW ALLOCATOR OR OBJECT ADDED IT MUST BE ADDED IN SIMILAR WAY TO PUSH/POP FUNCTIONS
 std::string CmdList::ProfilerPushAllocators()
 {
     std::stringstream stream;
@@ -469,33 +470,30 @@ std::string CmdList::ProfilerPushAllocators()
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
-    {
-        std::lock_guard<std::mutex> lock(imageObjectMutex_);
-        size = imageObjectVec_.size();
+    ProfilerPushObjects(stream, size);
+
+    bool hasOpItemOffset = lastOpItemOffset_.has_value();
+    stream.write(reinterpret_cast<const char*>(&hasOpItemOffset), sizeof(hasOpItemOffset));
+    if (hasOpItemOffset) {
+        size = lastOpItemOffset_.value();
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
     {
-        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
-        size = imageBaseObjVec_.size();
+#ifdef ROSEN_OHOS
+        std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+        size = surfaceBufferEntryVec_.size();
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(extendObjectMutex_);
-        size = extendObjectVec_.size();
+#else
+        size = 0;
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
-        size = drawFuncObjVec_.size();
-        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+#endif
     }
 
     return stream.str();
 }
 
+// ATTENTION: WHEN NEW ALLOCATOR OR OBJECT ADDED IT MUST BE ADDED IN SIMILAR WAY TO PUSH/POP FUNCTIONS
 void CmdList::ProfilerPopAllocators(const std::string& data)
 {
     std::vector<uint8_t> buffer;
@@ -525,6 +523,69 @@ void CmdList::ProfilerPopAllocators(const std::string& data)
         imageHandleVec_.resize(size);
     }
 
+    ProfilerPopObjects(stream, size);
+
+    bool hasOpItemOffset;
+    stream.read(reinterpret_cast<char*>(&hasOpItemOffset), sizeof(hasOpItemOffset));
+    if (hasOpItemOffset) {
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        lastOpItemOffset_ = size;
+    } else {
+        lastOpItemOffset_ = std::nullopt;
+    }
+
+    {
+#ifdef ROSEN_OHOS
+        std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        surfaceBufferEntryVec_.resize(size);
+#else
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+#endif
+    }
+}
+
+void CmdList::ProfilerPushObjects(std::stringstream& stream, size_t size)
+{
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        size = imageObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        size = imageBaseObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(extendObjectMutex_);
+        size = extendObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+        size = drawFuncObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        size = imageNineObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        size = imageLatticeObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+}
+
+void CmdList::ProfilerPopObjects(std::stringstream& stream, size_t size)
+{
     {
         std::lock_guard<std::mutex> lock(imageObjectMutex_);
         stream.read(reinterpret_cast<char*>(&size), sizeof(size));
@@ -547,6 +608,18 @@ void CmdList::ProfilerPopAllocators(const std::string& data)
         std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
         stream.read(reinterpret_cast<char*>(&size), sizeof(size));
         drawFuncObjVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageNineObjectVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageLatticeObjectVec_.resize(size);
     }
 }
 

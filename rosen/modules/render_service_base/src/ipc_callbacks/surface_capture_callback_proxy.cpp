@@ -31,11 +31,17 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor())) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: data.WriteInterfaceToken error");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteInterfaceToken failed");
         return;
     }
-    data.WriteUint64(id);
-    data.WriteParcelable(pixelmap);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteUint64 failed");
+        return;
+    }
+    if (!data.WriteParcelable(pixelmap)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteParcelable failed");
+        return;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

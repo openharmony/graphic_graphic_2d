@@ -89,8 +89,6 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
 {
     auto nodeId = node->GetId();
     const auto& sharedTransitionParam = node->GetSharedTransitionParam();
-    // Test if this node is lower in the hierarchy
-    bool isLower = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(nodeId);
 
     auto pairedNode = sharedTransitionParam->GetPairedNode(nodeId);
     if (!pairedNode || !pairedNode->IsOnTheTree()) {
@@ -99,21 +97,19 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
     }
 
     childrenHasSharedTransition_ = true;
-    auto& unpairedShareTransitions = SharedTransitionParam::unpairedShareTransitions_;
-    if (auto it = unpairedShareTransitions.find(sharedTransitionParam->inNodeId_);
-        it != unpairedShareTransitions.end()) {
-        // remove successfully paired share transition
-        unpairedShareTransitions.erase(it);
-        sharedTransitionParam->paired_ = true;
-    } else {
-        // add unpaired share transition
-        unpairedShareTransitions.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
-    }
     // Skip if the shared transition is not paired (Note: this may cause the lower node to be drawn twice)
     if (!sharedTransitionParam->paired_) {
         return false;
     }
 
+    // Relation will be set in QuickPrepare
+    if (!sharedTransitionParam->HasRelation()) {
+        sharedTransitionParam->SetNeedGenerateDrawable(true);
+        return true;
+    }
+
+    // Test if this node is lower in the hierarchy
+    bool isLower = sharedTransitionParam->IsLower(nodeId);
     if (isLower) {
         // for lower hierarchy node, we skip it here
         return true;
@@ -122,6 +118,7 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
+        sharedTransitionParam->SetNeedGenerateDrawable(false);
         return false;
     }
 }

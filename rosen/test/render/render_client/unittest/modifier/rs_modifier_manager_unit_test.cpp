@@ -45,8 +45,9 @@ void RSModifierManagerUnitTest::TearDown() {}
  */
 HWTEST_F(RSModifierManagerUnitTest, CreateDrawingContextTest001, TestSize.Level1)
 {
-    RSModifierManager rsModifierManager;
-    rsModifierManager.Draw();
+    auto manager = std::make_shared<RSModifierManager>();
+    manager->Draw();
+    EXPECT_TRUE(manager);
 }
 
 /**
@@ -83,8 +84,8 @@ HWTEST_F(RSModifierManagerUnitTest, RemoveAnimationTest001, TestSize.Level1)
     AnimationId key = renderCurveAnimation->GetAnimationId();
 
     RSModifierManager rsModifierManager;
-    rsModifierManager.SetFrameRateGetFunc(
-        [PREFERRED](const RSPropertyUnit unit, float velocity) -> int32_t {return PREFERRED;});
+    rsModifierManager.SetFrameRateGetFunc([PREFERRED](const RSPropertyUnit unit,
+        float velocity, int32_t area, int32_t length) -> int32_t { return PREFERRED; });
     rsModifierManager.AddAnimation(renderCurveAnimation);
     ASSERT_TRUE(rsModifierManager.GetAndResetFirstFrameAnimationState());
     ASSERT_FALSE(rsModifierManager.GetAndResetFirstFrameAnimationState());
