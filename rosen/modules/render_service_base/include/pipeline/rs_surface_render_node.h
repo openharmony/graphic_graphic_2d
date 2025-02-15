@@ -1290,6 +1290,7 @@ public:
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {

@@ -22,19 +22,29 @@
 
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include <v1_0/cm_color_space.h>
+#endif
+
 
 namespace OHOS {
 namespace Rosen {
+#ifndef ROSEN_CROSS_PLATFORM
+using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+#endif
 
 class RSCctInterface {
 public:
+    virtual ~RSCctInterface() = default;
     virtual void RegisterRefresh(std::function<void()>) = 0;
     virtual void UpdateScreenStatus(ScreenId, ScreenPowerStatus) = 0;
     virtual bool IsDimmingOn(ScreenId) = 0;
     virtual void DimmingIncrease(ScreenId) = 0;
-    virtual bool IsNeedUpdateLinearCct(ScreenId) = 0;
     virtual std::vector<float> GetNewLinearCct(ScreenId) = 0;
-    virtual std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>&) = 0;
+#ifndef ROSEN_CROSS_PLATFORM
+    virtual std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>&,
+        const CM_Matrix targetMatrix) = 0;
+#endif
 };
 
 class RSB_EXPORT RSColorTemp {
@@ -44,16 +54,18 @@ public:
     RSColorTemp(RSColorTemp&) = delete;
     RSColorTemp& operator=(RSColorTemp&&) = delete;
 
-    RSB_EXPORT static RSColorTemp& Instance();
+    RSB_EXPORT static RSColorTemp& Get();
     RSB_EXPORT void Init();
 
-    RSB_EXPORT void RegisterRefresh(std::function<void()>);
-    RSB_EXPORT void UpdateScreenStatus(ScreenId, ScreenPowerStatus);
-    RSB_EXPORT bool IsDimmingOn(ScreenId);
-    RSB_EXPORT void DimmingIncrease(ScreenId);
-    RSB_EXPORT bool IsNeedUpdateLinearCct(ScreenId);
-    RSB_EXPORT std::vector<float> GetNewLinearCct(ScreenId);
-    RSB_EXPORT std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>&);
+    RSB_EXPORT void RegisterRefresh(std::function<void()> refreshFunc);
+    RSB_EXPORT void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status);
+    RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
+    RSB_EXPORT void DimmingIncrease(ScreenId screenId);
+    RSB_EXPORT std::vector<float> GetNewLinearCct(ScreenId screenId);
+#ifndef ROSEN_CROSS_PLATFORM
+    RSB_EXPORT std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>& metadata,
+        const CM_Matrix targetMatrix = CM_Matrix::MATRIX_P3);
+#endif
 
 private:
     RSColorTemp() = default;

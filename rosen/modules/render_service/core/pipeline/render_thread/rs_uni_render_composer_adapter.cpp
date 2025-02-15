@@ -265,6 +265,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetSdrNit(info.sdrNit);
     layer->SetDisplayNit(info.displayNit);
     layer->SetBrightnessRatio(info.brightnessRatio);
+    layer->SetLayerLinearMatrix(info.layerLinearMatrix);
 }
 
 void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
@@ -808,6 +809,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.sdrNit = renderParam->GetSdrNit();
     info.displayNit = renderParam->GetDisplayNit();
     info.brightnessRatio = renderParam->GetBrightnessRatio();
+    info.layerLinearMatrix = renderParam->GetLayerLinearMatrix();
     RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
         info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
@@ -877,6 +879,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
     info.sdrNit = curRenderParam->GetSdrNit();
     info.displayNit = curRenderParam->GetDisplayNit();
     info.brightnessRatio = curRenderParam->GetBrightnessRatio();
+    info.layerLinearMatrix = curRenderParam->GetLayerLinearMatrix();
     RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
         info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64

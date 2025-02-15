@@ -1363,6 +1363,28 @@ int32_t RSScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uin
     RS_LOGD("RSScreen::GetDisplayIdentificationData: EdidSize: %{public}zu", edidData.size());
     return SUCCESS;
 }
+
+int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
+{
+    if (IsVirtual()) {
+        RS_LOGW("RSScreen %{public}s: virtual screen not support SetScreenLinearMatrix.", __func__);
+        return StatusCode::VIRTUAL_SCREEN;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("RSScreen %{public}s failed, hdiScreen_ is nullptr", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    if (linearMatrix_ == matrix) {
+        return StatusCode::SUCCESS;
+    }
+    if (hdiScreen_->SetScreenLinearMatrix(matrix) < 0) {
+        RS_LOGI("RSScreen %{public}s failed, matrix is invalid", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+
+    linearMatrix_ = matrix;
+    return StatusCode::SUCCESS;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

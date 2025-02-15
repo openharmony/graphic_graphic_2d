@@ -44,6 +44,7 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "color_temp/rs_color_temp.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
@@ -686,6 +687,7 @@ void RSMainThread::Init()
     PrintCurrentStatus();
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
+    RSColorTemp::Get().Init();
 #ifdef RS_ENABLE_GPU
     if (deviceType_ == DeviceType::PHONE || deviceType_ == DeviceType::TABLET) {
         MemoryManager::InitMemoryLimit();
@@ -2526,7 +2528,7 @@ void RSMainThread::Render()
     }
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
-    UpdateLuminance();
+    UpdateLuminanceAndColorTemp();
 }
 
 void RSMainThread::OnUniRenderDraw()
@@ -4670,7 +4672,7 @@ float RSMainThread::GetCurrentSteadyTimeMsFloat() const
     return curSteadyTime;
 }
 
-void RSMainThread::UpdateLuminance()
+void RSMainThread::UpdateLuminanceAndColorTemp()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
@@ -4679,6 +4681,7 @@ void RSMainThread::UpdateLuminance()
     bool isNeedRefreshAll{false};
     if (auto screenManager = CreateOrGetScreenManager()) {
         auto& rsLuminance = RSLuminanceControl::Get();
+        auto& rsColorTemp = RSColorTemp::Get();
         for (const auto& child : *rootNode->GetSortedChildren()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
             if (displayNode == nullptr) {
@@ -4695,6 +4698,12 @@ void RSMainThread::UpdateLuminance()
                 rsLuminance.DimmingIncrease(screenId);
                 isNeedRefreshAll = true;
                 SetLuminanceChangingStatus(screenId, true);
+            }
+            if (rsColorTemp.IsDimmingOn(screenId)) {
+                std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
+                screenManager->SetScreenLinearMatrix(screenId, matrix);
+                rsColorTemp.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
             }
         }
     }

@@ -16,15 +16,19 @@
 #include "hdi_layer.h"
 #include "hdi_log.h"
 #include <algorithm>
+#include <cstring>
+#include <securec.h>
 namespace OHOS {
 namespace Rosen {
 constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
 constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
+constexpr size_t MATRIX_SIZE = 9;
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 
 template<typename T>
@@ -786,6 +790,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
             ret = SetPerFrameParameterBrightnessRatio();
             CheckRet(ret, "SetPerFrameParameterBrightnessRatio");
+        } else if (key == GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX) {
+            ret = SetPerFrameLayerLinearMatrix();
+            CheckRet(ret, "SetLayerLinearMatrix");
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
@@ -834,6 +841,23 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
+    if (memcpy_s(valueBlob.data(), valueBlob.size(), layerInfo_->GetLayerLinearMatrix().data(),
+        MATRIX_SIZE * sizeof(float)) != EOK) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()

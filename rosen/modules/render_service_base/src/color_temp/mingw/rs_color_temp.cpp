@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-RSColorTemp& RSColorTemp::Instance()
+RSColorTemp& RSColorTemp::Get()
 {
     static RSColorTemp instance;
     return instance;
@@ -37,9 +37,5 @@ void RSColorTemp::DimmingIncrease(ScreenId screenId) {}
 
 std::vector<float> RSColorTemp::GetNewLinearCct(ScreenId screenId) { return {}; }
 
-std::vector<float> RSColorTemp::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata)
-{
-    return {};
-}
 } // namespace Rosen
 } // namespace OHOS

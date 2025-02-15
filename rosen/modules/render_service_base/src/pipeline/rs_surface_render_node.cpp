@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
+#include "color_temp/rs_color_temp.h"
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
@@ -3215,6 +3216,19 @@ void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
 #endif
 }
 
+void RSSurfaceRenderNode::SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetLayerLinearMatrix(layerLinearMatrix);
+    }
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+#endif
+}
+
 void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
     if (isEnabled) {
@@ -3473,6 +3487,9 @@ void RSSurfaceRenderNode::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode,
     } else {
         surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
     }
+    std::vector<float> layerLinearMatrix = RSColorTemp::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK ?
+        hdrDynamicMetadataVec : std::vector<uint8_t>());
+    surfaceNode.SetLayerLinearMatrix(layerLinearMatrix);
     RS_LOGD("RSSurfaceRenderNode::UpdateSurfaceNodeNit layerNits: %{public}.2f, displayNits: %{public}.2f,"
         " sdrNits: %{public}.2f, scaler: %{public}.2f, HDRBrightness: %{public}f", layerNits, displayNits, sdrNits,
         scaler, surfaceNode.GetHDRBrightness());

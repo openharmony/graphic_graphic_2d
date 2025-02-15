@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include "color_temp/rs_color_temp.h"
 #include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
@@ -1508,6 +1509,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 
         RS_LOGI("[UL_POWER]RSScreenManager %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
+    RSColorTemp::Get().UpdateScreenStatus(id, status);
     screenPowerStatus_[id] = status;
 }
 
@@ -2463,6 +2465,17 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId scree
         return nullptr;
     }
     return screenIt->second;
+}
+
+int32_t RSScreenManager::SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screensIt->second->SetScreenLinearMatrix(matrix);
 }
 } // namespace impl
 

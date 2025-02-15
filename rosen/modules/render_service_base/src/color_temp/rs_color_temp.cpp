@@ -27,7 +27,7 @@ constexpr std::string_view EXT_LIB_PATH = "system/lib64/libcct_ext.z.so";
 
 namespace OHOS {
 namespace Rosen {
-RSColorTemp& RSColorTemp::Instance()
+RSColorTemp& RSColorTemp::Get()
 {
     static RSColorTemp instance;
     return instance;
@@ -67,20 +67,20 @@ bool RSColorTemp::LoadLibrary()
     bool loadResult{true};
     extLibHandle_ = dlopen(EXT_LIB_PATH.data(), RTLD_NOW);
     if (extLibHandle_ == nullptr) {
-        RS_LOGI("LumCtr link create error:%{public}s", dlerror());
+        RS_LOGI("ColorTemp dlopen error:%{public}s", dlerror());
         loadResult = false;
     }
     create_ = reinterpret_cast<CreatFunc>(dlsym(extLibHandle_, "Create"));
     if (create_ == nullptr) {
-        RS_LOGE("LumCtr link create error!");
+        RS_LOGE("ColorTemp link create error!");
         loadResult = false;
     }
-    destroy_ = reinterpret_cast<DestroyFunc>(dlsym(extLibHandle_, "Destory"));
+    destroy_ = reinterpret_cast<DestroyFunc>(dlsym(extLibHandle_, "Destroy"));
     if (destroy_ == nullptr) {
-        RS_LOGE("LumCtr link destory error!");
+        RS_LOGE("ColorTemp link destroy error!");
         loadResult = false;
     }
-    RS_LOGI("LumCtr init status:%{public}d", loadResult);
+    RS_LOGI("ColorTemp init status:%{public}d", loadResult);
     return loadResult;
 }
 
@@ -110,19 +110,17 @@ void RSColorTemp::DimmingIncrease(ScreenId screenId)
     }
 }
 
-bool RSColorTemp::IsNeedUpdateLinearCct(ScreenId screenId)
-{
-    return (rSCctInterface_ != nullptr) ? rSCctInterface_->IsNeedUpdateLinearCct(screenId) : false;
-}
-
 std::vector<float> RSColorTemp::GetNewLinearCct(ScreenId screenId)
 {
-    return (rSCctInterface_ != nullptr) ? rSCctInterface_->GetNewLinearCct(screenId) : std::vector<float>();
+    return (rSCctInterface_ != nullptr) ?
+        rSCctInterface_->GetNewLinearCct(screenId) : std::vector<float>();
 }
 
-std::vector<float> RSColorTemp::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata)
+std::vector<float> RSColorTemp::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata,
+    const CM_Matrix targetMatrix)
 {
-    return (rSCctInterface_ != nullptr) ? rSCctInterface_->GetLayerLinearCct(screenId, metadata) : std::vector<float>();
+    return (rSCctInterface_ != nullptr) ?
+        rSCctInterface_->GetLayerLinearCct(screenId, metadata, targetMatrix) : std::vector<float>();
 }
 } // Rosen
 } // OHOS

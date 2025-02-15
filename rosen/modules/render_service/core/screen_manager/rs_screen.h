@@ -143,6 +143,7 @@ public:
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
     virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
+    virtual int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
 };
 
 namespace impl {
@@ -256,6 +257,7 @@ public:
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
+    int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -340,6 +342,7 @@ private:
     mutable std::mutex skipFrameMutex_;
     bool isSupportRotation_ = false;
     bool hasProtectedLayer_ = false;
+    std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 };
 } // namespace impl
 } // namespace Rosen

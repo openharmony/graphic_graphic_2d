@@ -345,4 +345,31 @@ HWTEST_F(RSSurfaceRenderParamsUnitTest, TestSetLayerTop_02, TestSize.Level2)
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.isLayerTop_, isLayerTop);
 }
+
+/**
+ * @tc.name: TestSdrNit
+ * @tc.desc: Test function SetSdrNit and GetSdrNit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsUnitTest, TestSdrNit, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(116);
+    params.SetSdrNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetSdrNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: TestSdrNit
+ * @tc.desc: Test function SetLayerLinearMatrix and GetLayerLinearMatrix
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsUnitTest, TestLayerLinearMatrix, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(117);
+    std::vector<float> matrix = {1.0f, 2.0f, 3.0f};
+    params.SetLayerLinearMatrix(matrix);
+    EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
+}
 } // namespace OHOS::Rosen

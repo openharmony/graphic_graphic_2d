@@ -578,6 +578,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.tmoNits = params.tmoNits;
     parameter.currentDisplayNits = params.displayNits;
     parameter.sdrNits = params.sdrNits;
+    parameter.layerLinearMatrix = params.layerLinearMatrix;
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
             "outPrimaries = %{public}u, outMetadataType = %{public}u, "
@@ -608,6 +609,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isHdrToSdr) {
         parameter.tmoNits = parameter.sdrNits;
+        parameter.layerLinearMatrix.clear();
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;

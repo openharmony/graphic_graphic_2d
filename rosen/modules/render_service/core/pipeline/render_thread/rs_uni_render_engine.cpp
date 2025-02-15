@@ -110,6 +110,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.sdrNits = layer->GetSdrNit();
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
+            params.layerLinearMatrix = layer->GetLayerLinearMatrix();
         }
         if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
             params.brightnessRatio = layer->GetBrightnessRatio();
