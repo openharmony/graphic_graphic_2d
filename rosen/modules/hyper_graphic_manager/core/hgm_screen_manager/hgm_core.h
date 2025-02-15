@@ -243,6 +243,12 @@ public:
         doDirectComposition_.store(doDirectComposition);
     }
 
+    // called by RSMainThread
+    void SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
+    {
+        mPolicyConfigData_->hfbcConfig_ = hfbcConfig;
+    }
+
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
