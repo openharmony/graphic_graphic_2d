@@ -24,6 +24,16 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniUiCaptureTest",
   ]
+  if (graphic_2d_feature_enable_rspipeline) {
+    deps += [ ":RSUifirstManagerTest" ]
+  }
+  if (rs_enable_parallel_render && rs_enable_gpu) {
+    deps += [
+      ":RSSubThreadManagerTest",
+      ":RSSubThreadTest",
+      ":RSUIFirstRenderListenerTest",
+    ]
+  }
 }
 
 ###############################################################################
@@ -194,7 +204,6 @@ ohos_unittest("RSSubThreadManagerTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
@@ -223,7 +232,6 @@ ohos_unittest("RSSubThreadTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
@@ -249,21 +257,9 @@ ohos_unittest("RSUIFirstRenderListenerTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
-}
-
-if (graphic_2d_feature_enable_rspipeline) {
-  deps += [ ":RSUifirstManagerTest" ]
-}
-if (rs_enable_parallel_render && rs_enable_gpu) {
-  deps += [
-    ":RSSubThreadManagerTest",
-    ":RSSubThreadTest",
-    ":RSUIFirstRenderListenerTest",
-  ]
 }
 
 ## Build rs_test_common.a {{{
