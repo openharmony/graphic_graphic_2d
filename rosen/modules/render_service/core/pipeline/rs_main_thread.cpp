@@ -184,6 +184,7 @@ constexpr uint32_t WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT = 4000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 constexpr uint32_t WATCHDOG_TIMEVAL_FOR_PC = 10000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t NODE_DUMP_STRING_LEN = 8;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
@@ -3583,37 +3584,61 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     }
 }
 
+static std::string Data2String(std::string data, uint32_t tagetNumber)
+{
+    if (data.length() < tagetNumber) {
+        return std::string(tagetNumber - data.length(), ' ') + data;
+    } else {
+        return data;
+    }
+}
+
 void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
 {
-    // dump all node info
-    std::string node_str = "";
-    std::string type_str = "";
-    int count = 0;
+    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
+    std::unordered_map<int, int> nullnode_info; // [pid, count]
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
+        int pid = info.pid;
         if (node) {
-            RSRenderNode::DumpNodeType(node->GetType(), type_str);
-            node_str = "nodeId: " + std::to_string(nodeId) +
-                ", [info] pid: " + std::to_string(info.pid) + ", type: "+ type_str +
-                ", width: " + std::to_string(node->GetOptionalBufferSize().x_) +
-                ", height: " + std::to_string(node->GetOptionalBufferSize().y_) +
-                (node->IsOnTheTree() ? ", ontree;" : ", offtree;");
-            log.AppendFormat("%s\n", node_str.c_str());
-            count++;
-            type_str = "";
+            if (node_info.count(pid)) {
+                node_info[pid].first++;
+                node_info[pid].second += node->IsOnTheTree() ? 1 : 0;
+            } else {
+                node_info[pid].first = 1;
+                node_info[pid].second = node->IsOnTheTree() ? 1 : 0;
+            }
         } else {
-            node_str = "nodeId: " + std::to_string(nodeId) +
-                ", [info] pid: " + std::to_string(info.pid) + ", node is nullptr;";
-            log.AppendFormat("%s\n", node_str.c_str());
-        }
-        node_str = "";
-        if (count > 2500) { // 2500 is the max dump size.
-            log.AppendFormat("Total node size > 2500, only record the first 2500.\n");
-            node_str = "Total Node Map Size = " + std::to_string(context_->GetMutableNodeMap().GetSize());
-            log.AppendFormat("%s\n", node_str.c_str());
-            break;
+            if (nullnode_info.count(pid)) {
+                nullnode_info[pid]++;
+            } else {
+                nullnode_info[pid] = 1;
+            }
         }
     }
+    std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("OnTree", NODE_DUMP_STRING_LEN);
+    log.AppendFormat("%s\n", log_str.c_str());
+    for (auto& [pid, info]: node_info) {
+        log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
+            Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
+            Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN);
+        log.AppendFormat("%s\n", log_str.c_str());
+    }
+    if (!nullnode_info.empty()) {
+        log_str = "Purgeable node: \n" +
+            Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
+            Data2String("Count", NODE_DUMP_STRING_LEN);
+        log.AppendFormat("%s\n", log_str.c_str());
+        for (auto& [pid, info]: nullnode_info) {
+            log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
+                Data2String(std::to_string(info), NODE_DUMP_STRING_LEN);
+            log.AppendFormat("%s\n", log_str.c_str());
+        }
+    }
+    node_info.clear();
+    nullnode_info.clear();
 }
 
 void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
