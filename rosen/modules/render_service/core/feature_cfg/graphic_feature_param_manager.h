@@ -47,7 +47,7 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
     DEFINE_MOD(HDR),
     DEFINE_MOD(DRM),
     DEFINE_MOD(HWC),
-    DEFINE_MOD(HFBC),
+    DEFINE_MOD(Hfbc),
 };
 
 class GraphicFeatureParamManager : public RefBase {

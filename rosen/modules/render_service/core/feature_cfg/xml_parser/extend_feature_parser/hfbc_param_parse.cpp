@@ -48,7 +48,7 @@ int32_t HfbcParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNo
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(featureModules[HFBC]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[Hfbc]);
     if (iter != featureMap.end()) {
         hfbcParam_ = std::static_pointer_cast<HfbcParam>(iter->second);
     } else {
