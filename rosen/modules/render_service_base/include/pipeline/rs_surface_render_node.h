@@ -1285,6 +1285,9 @@ public:
     {
         subThreadAssignable_ = subThreadAssignable;
     }
+
+    bool IsUIBufferAvailable();
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
