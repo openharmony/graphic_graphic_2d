@@ -34,7 +34,7 @@ enum FeatureModule {
     HDR = 0,
     DRM,
     HWC,
-    Hfbc,
+    HFBC,
 };
 
 enum ParseErrCode {

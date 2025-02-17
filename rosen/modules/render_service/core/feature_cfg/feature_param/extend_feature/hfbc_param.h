@@ -19,10 +19,10 @@
 #include "feature_param.h"
 
 namespace OHOS::Rosen {
-class HfbcParam : public FeatureParam {
+class HFBCParam : public FeatureParam {
 public:
-    HfbcParam() = default;
-    ~HfbcParam() = default;
+    HFBCParam() = default;
+    ~HFBCParam() = default;
 
     const std::unordered_map<std::string, std::string>& GetHfbcConfigMap() const;
 
@@ -33,7 +33,7 @@ private:
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;
 
-    friend class HfbcParamParse;
+    friend class HFBCParamParse;
 };
 } // namespace OHOS::Rosen
 #endif // HFBC_PARAM_H

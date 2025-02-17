@@ -20,17 +20,17 @@
 #include "hfbc_param.h"
 
 namespace OHOS::Rosen {
-class HfbcParamParse : public XMLParserBase {
+class HFBCParamParse : public XMLParserBase {
 public:
-    HfbcParamParse() = default;
-    ~HfbcParamParse() = default;
+    HFBCParamParse() = default;
+    ~HFBCParamParse() = default;
 
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
     int32_t ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node);
     int32_t ParseFeatureMultiParamForApp(xmlNode &node, std::string &name);
-    std::shared_ptr<HfbcParam> hfbcParam_;
+    std::shared_ptr<HFBCParam> hfbcParam_;
 };
 } // namespace OHOS::Rosen
 #endif // HFBC_PARAM_PARSE_H

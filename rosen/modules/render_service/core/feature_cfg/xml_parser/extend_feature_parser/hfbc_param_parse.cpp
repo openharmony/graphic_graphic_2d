@@ -20,12 +20,12 @@
 
 namespace OHOS::Rosen {
 
-int32_t HfbcParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HFBCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
-    RS_LOGI("HfbcParamParse start");
+    RS_LOGI("HFBCParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("HfbcParamParse stop parsing, no children nodes");
+        RS_LOGE("HFBCParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -36,7 +36,7 @@ int32_t HfbcParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNo
         }
 
         if (ParseHfbcInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGE("HfbcParamParse stop parsing, parse internal fail");
+            RS_LOGE("HFBCParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
@@ -44,15 +44,15 @@ int32_t HfbcParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNo
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HfbcParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HFBCParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[Hfbc]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[HFBC]);
     if (iter != featureMap.end()) {
-        hfbcParam_ = std::static_pointer_cast<HfbcParam>(iter->second);
+        hfbcParam_ = std::static_pointer_cast<HFBCParam>(iter->second);
     } else {
-        RS_LOGE("HfbcParamParse stop parsing, no initializing param map");
+        RS_LOGE("HFBCParamParse stop parsing, no initializing param map");
         return PARSE_NO_PARAM;
     }
 
@@ -62,7 +62,7 @@ int32_t HfbcParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNo
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
-            RS_LOGE("HfbcParamParse parse MultiParam fail");
+            RS_LOGE("HFBCParamParse parse MultiParam fail");
         }
         if (name == "HfbcDisable") {
             HgmCore::Instance().SetHfbcConfigMap(hfbcParam_->GetHfbcConfigMap());
@@ -71,11 +71,11 @@ int32_t HfbcParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNo
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HfbcParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &name)
+int32_t HFBCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &name)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("HfbcParamParse stop parsing, no children nodes");
+        RS_LOGE("HFBCParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
     currNode = currNode->xmlChildrenNode;
@@ -88,12 +88,12 @@ int32_t HfbcParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string 
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        RS_LOGI("HfbcParamParse %{public}s: appName:%{public}s, value:%{public}s",
+        RS_LOGI("HFBCParamParse %{public}s: appName:%{public}s, value:%{public}s",
             __func__, appName.c_str(), val.c_str());
         if (name == "HfbcDisable") {
             hfbcParam_->SetHfbcConfigForApp(appName, val);
         } else {
-            RS_LOGE("HfbcParamParse ParseFeatureMultiParam cannot find name:%s", name.c_str());
+            RS_LOGE("HFBCParamParse ParseFeatureMultiParam cannot find name:%s", name.c_str());
             return PARSE_NO_PARAM;
         }
     }
