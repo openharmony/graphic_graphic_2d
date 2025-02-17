@@ -3262,29 +3262,18 @@ bool RSUniRenderVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& 
 void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
     const RSRenderNode& rootNode)
 {
-    const auto& property = hwcNodePtr->GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
-    if (geoPtr == nullptr) {
-        return;
-    }
-    auto childRect = hwcNodePtr->GetSelfDrawRect();
-    Drawing::Rect childRectMapped;
-    geoPtr->GetMatrix().MapRect(childRectMapped,
-        {childRect.left_, childRect.top_,
-            childRect.left_ + childRect.width_,
-            childRect.top_ + childRect.height_});
-    auto hwcNodeParent = hwcNodePtr->GetParent().lock();
-    bool myFindInRoot = hwcNodeParent ? hwcNodeParent->GetId() == rootNode.GetId() : false;
+    constexpr float MAX_FLOAT = std::numeric_limit<float>::max();
+    Drawing::Rect childRectMapped(0.0f, 0.0f, MAX_FLOAT, MAX_FLOAT);
+    RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
     while ((hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE) &&
-        !myFindInRoot) {
+        !(hwcNodeParent->GetId() == rootNode.GetId())) {
         const auto& parentProperties = hwcNodeParent->GetRenderProperties();
         const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
-        auto tempRectMapped = childRectMapped;
         parentGeoPtr->GetMatrix().MapRect(childRectMapped, tempRectMapped);
         if (parentProperties.GetClipToBounds()) {
             auto parentDrawRectF = hwcNodeParent->GetSelfDrawRect();
             Drawing::Rect parentDrawRect(parentDrawRectF.left_, parentDrawRectF.top_,
-            parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
+                parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
             Drawing::Rect parentDrawClipRect;
             parentGeoPtr->GetMatrix().MapRect(parentDrawClipRect, parentDrawRect);
             childRectMapped.Intersect(parentDrawClipRect);
@@ -3298,11 +3287,14 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
             parentGeoPtr->GetMatrix().MapRect(frameClipRect, frameRect);
             childRectMapped.Intersect(frameClipRect);
         }
-        hwcNodeParent = hwcNodeParent->GetParent().lock();
-        if (!hwcNodeParent) {
-            break;
+        if (parentProperties.GetClipToRRect()) {
+            RectF rect = parentProperties.GetClipRRect().rect_;
+            Drawing::Rect frameRect(rect.left_, rect.top_, rect.GetWidth(), rect.GetHeight());
+            Drawing::Rect frameClipRRect;
+            parentGeoPtr->GetMatrix().MapRect(frameClipRRect, frameRect);
+            childRectMapped.Intersect(frameClipRRect);
         }
-        myFindInRoot = hwcNodeParent->GetId() == rootNode.GetId() ? true : myFindInRoot;
+        hwcNodeParent = hwcNodeParent->GetParent().lock();
     }
     Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     Drawing::Rect absClipRect;
