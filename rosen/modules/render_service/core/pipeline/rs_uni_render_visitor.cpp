@@ -3266,33 +3266,33 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     Drawing::Rect childRectMapped(0.0f, 0.0f, MAX_FLOAT, MAX_FLOAT);
     RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
     while ((hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE) &&
-        !(hwcNodeParent->GetId() == rootNode.GetId())) {
+        hwcNodeParent->GetId() != rootNode.GetId()) {
         const auto& parentProperties = hwcNodeParent->GetRenderProperties();
         const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
         parentGeoPtr->GetMatrix().MapRect(childRectMapped, childRectMapped);
         if (parentProperties.GetClipToBounds()) {
-            auto parentDrawRectF = hwcNodeParent->GetSelfDrawRect();
-            Drawing::Rect parentDrawRect(parentDrawRectF.left_, parentDrawRectF.top_,
-                parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
-            Drawing::Rect parentDrawClipRect;
-            parentGeoPtr->GetMatrix().MapRect(parentDrawClipRect, parentDrawRect);
-            childRectMapped.Intersect(parentDrawClipRect);
+            auto selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
+            Drawing::Rect clipSelfDrawRect(selfDrawRectF.left_, selfDrawRectF.top_,
+                selfDrawRectF.GetRight(), selfDrawRectF.GetBottom());
+            Drawing::Rect clipBoundRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipBoundRectMapped, clipSelfDrawRect);
+            childRectMapped.Intersect(clipBoundRectMapped);
         }
         if (parentProperties.GetClipToFrame()) {
             auto left = parentProperties.GetFrameOffsetX() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_X);
             auto top = parentProperties.GetFrameOffsetY() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_Y);
-            Drawing::Rect frameRect(
+            Drawing::Rect clipFrameRect(
                 left, top, left + parentProperties.GetFrameWidth(), top + parentProperties.GetFrameHeight());
-            Drawing::Rect frameClipRect;
-            parentGeoPtr->GetMatrix().MapRect(frameClipRect, frameRect);
-            childRectMapped.Intersect(frameClipRect);
+            Drawing::Rect clipFrameRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipFrameRectMapped, clipFrameRect);
+            childRectMapped.Intersect(clipFrameRectMapped);
         }
         if (parentProperties.GetClipToRRect()) {
-            RectF rect = parentProperties.GetClipRRect().rect_;
-            Drawing::Rect frameRect(rect.left_, rect.top_, rect.GetWidth(), rect.GetHeight());
-            Drawing::Rect frameClipRRect;
-            parentGeoPtr->GetMatrix().MapRect(frameClipRRect, frameRect);
-            childRectMapped.Intersect(frameClipRRect);
+            RectF rrectF = parentProperties.GetClipRRect().rect_;
+            Drawing::Rect clipRRect(rrectF.left_, rrectF.top_, rrectF.GetWidth(), rrectF.GetHeight());
+            Drawing::Rect clipRRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipRRectMapped, clipRRect);
+            childRectMapped.Intersect(clipRRectMapped);
         }
         hwcNodeParent = hwcNodeParent->GetParent().lock();
     }
