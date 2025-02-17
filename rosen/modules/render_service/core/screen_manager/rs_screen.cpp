@@ -1346,6 +1346,23 @@ void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
 {
     isSupportRotation_ = supportRotation;
 }
+
+int32_t RSScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const
+{
+    if (hdiScreen_ == nullptr) {
+        RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") is not physical display", __func__, id_);
+        return HDI_ERROR;
+    }
+
+    int32_t ret = hdiScreen_->GetDisplayIdentificationData(outPort, edidData);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") call hid interface failed(%{public}d)",
+            __func__, id_, ret);
+        return HDI_ERROR;
+    }
+    RS_LOGD("RSScreen::GetDisplayIdentificationData: EdidSize: %{public}zu", edidData.size());
+    return SUCCESS;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

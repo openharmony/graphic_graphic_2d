@@ -163,14 +163,22 @@ void RSUifirstManager::MergeOldDirty(NodeId id)
         }
         return;
     }
+    bool hasAppWindow = false;
     for (auto& child : * node-> GetSortedChildren()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         auto& curDirtyManager = node->GetDirtyManagerForUifirst();
         if (surfaceNode && surfaceNode->IsAppWindow()) {
+            hasAppWindow = true;
             if (curDirtyManager) {
                 curDirtyManager->SetUifirstFrameDirtyRect(surfaceNode->GetOldDirty());
             }
             break;
+        }
+    }
+    if (!hasAppWindow) {
+        auto& curDirtyManager = node->GetDirtyManagerForUifirst();
+        if (curDirtyManager) {
+            curDirtyManager->SetUifirstFrameDirtyRect(node->GetOldDirty());
         }
     }
 }

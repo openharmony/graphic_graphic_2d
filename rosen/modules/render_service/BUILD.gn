@@ -121,11 +121,13 @@ ohos_shared_library("librender_service") {
   sources += [
     "core/feature_cfg/feature_param/extend_feature/drm_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/hdr_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/hfbc_param.cpp",
     "core/feature_cfg/feature_param/feature_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hwc_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/drm_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/hdr_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/hfbc_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hwc_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
@@ -273,6 +275,7 @@ ohos_shared_library("librender_service") {
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]
+    defines += [ "RS_PROFILER_BETA_ENABLED" ]
     sources += [
       "$rosen_root/modules/render_service_profiler/rs_profiler.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_beta_recorder.cpp",

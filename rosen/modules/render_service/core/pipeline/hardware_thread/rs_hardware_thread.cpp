@@ -379,13 +379,15 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
         std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     for (auto& layer : layers) {
-        if (layer == nullptr ||
-            layer->GetUniRenderFlag()) {
-                continue;
-            }
-            uint64_t id = layer->GetNodeId();
-            auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-            surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
+        if (layer == nullptr) {
+            continue;
+        }
+        uint64_t id = layer->GetNodeId();
+        auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+        if (layer->GetBuffer() == nullptr) {
+            continue;
+        }
+        surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }
 
@@ -748,15 +750,28 @@ GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
     if (uniRenderEngine_ != nullptr) {
         uniRenderEngine_->ResetCurrentContext();
     }
+    auto surface = output->GetFrameBufferSurface();
+    auto surfaceId = surface->GetUniqueId();
+    std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
+    std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos;
+    {
+        std::lock_guard<std::mutex> lock(frameBufferSurfaceOhosMapMutex_);
+        if (frameBufferSurfaceOhosMap_.count(surfaceId)) {
+            frameBufferSurfaceOhos = frameBufferSurfaceOhosMap_[surfaceId];
+        }
+        if (frameBufferSurfaceOhos != nullptr) {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos_);
-        if (frameBufferSurface) {
-            frameBufferSurface->WaitSurfaceClear();
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                auto frameBufferSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhos);
+                if (frameBufferSurface) {
+                    frameBufferSurface->WaitSurfaceClear();
+                }
+            }
+#endif
+            frameBufferSurfaceOhosMap_.erase(surfaceId);
         }
     }
-#endif
     return output->ClearFrameBuffer();
 }
 
@@ -862,16 +877,24 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     // override redraw frame buffer with physical screen resolution.
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);
     renderFrameConfig.height = static_cast<int32_t>(screenInfo.phyHeight);
-    std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
-    if (frameBufferSurfaceOhos_ == nullptr) {
-        RS_LOGE("RSHardwareThread::Redraw fail, frameBufferSurfaceOhos_ is nullptr");
-        frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
+
+    std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos;
+    auto surfaceId = surface->GetUniqueId();
+    {
+        std::lock_guard<std::mutex> lock(frameBufferSurfaceOhosMapMutex_);
+        if (frameBufferSurfaceOhosMap_.count(surfaceId)) {
+            frameBufferSurfaceOhos = frameBufferSurfaceOhosMap_[surfaceId];
+        } else {
+            frameBufferSurfaceOhos = CreateFrameBufferSurfaceOhos(surface);
+            frameBufferSurfaceOhosMap_[surfaceId] = frameBufferSurfaceOhos;
+        }
     }
     FrameContextConfig frameContextConfig = {isProtected, false};
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
     frameContextConfig.independentContext = RSSystemProperties::GetVkQueuePriorityEnable();
 #endif
-    auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos_, renderFrameConfig,
+    std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
+    auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
         forceCPU, true, frameContextConfig);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");

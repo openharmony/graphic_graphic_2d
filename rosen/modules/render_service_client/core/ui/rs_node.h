@@ -51,6 +51,7 @@ using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 using ExportTypeChangedCallback = std::function<void(bool)>;
+using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -512,6 +513,12 @@ public:
     {
         return nodeName_;
     }
+
+    static DrawNodeChangeCallback drawNodeChangeCallback_;
+    static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    bool GetIsDrawn();
+    void SetDrawNode();
+
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -610,6 +617,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isDrawNode_ = false;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

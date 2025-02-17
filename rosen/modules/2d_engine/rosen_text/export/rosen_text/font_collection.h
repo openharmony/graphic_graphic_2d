@@ -21,6 +21,7 @@
 #include <string>
 
 #include "common/rs_macros.h"
+#include "symbol_constants.h"
 #include "text/font_mgr.h"
 
 namespace txt {
@@ -43,6 +44,10 @@ public:
         const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
     virtual std::shared_ptr<Drawing::FontMgr> GetFontMgr() = 0;
     virtual bool RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface) = 0;
+    virtual LoadSymbolErrorCode LoadSymbolFont(const std::string &familyName,
+        const uint8_t *data, size_t datalen) = 0;
+    virtual LoadSymbolErrorCode LoadSymbolJson(const std::string &familyName,
+        const uint8_t *data, size_t datalen) = 0;
 
     virtual void ClearCaches() = 0;
 };

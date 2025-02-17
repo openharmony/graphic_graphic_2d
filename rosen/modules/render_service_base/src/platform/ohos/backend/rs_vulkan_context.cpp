@@ -669,6 +669,7 @@ void RsVulkanContext::SetIsProtected(bool isProtected)
 
 void RsVulkanContext::ClearGrContext(bool isProtected)
 {
+    RS_TRACE_NAME("RsVulkanContext ClearGrContext");
     GetDrawingContext()->PurgeUnlockedResources(true);
     isProtected_ = isProtected;
     GetDrawingContext()->ResetContext();

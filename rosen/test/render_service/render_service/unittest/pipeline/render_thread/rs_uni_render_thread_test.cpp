@@ -105,6 +105,41 @@ HWTEST_F(RSUniRenderThreadTest, PostTask001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetVisibleRect001
+ * @tc.desc: Test GetVisibleRect with default
+ * @tc.type: FUNC
+ * @tc.require: issueIBM5U5
+ */
+HWTEST_F(RSUniRenderThreadTest, GetVisibleRect001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    const auto &visibleRectGet = instance.GetVisibleRect();
+    EXPECT_EQ(visibleRectGet.GetLeft(), 0);
+    EXPECT_EQ(visibleRectGet.GetTop(), 0);
+    EXPECT_EQ(visibleRectGet.GetRight(), 0);
+    EXPECT_EQ(visibleRectGet.GetBottom(), 0);
+}
+
+/**
+ * @tc.name: SetVisibleRect001
+ * @tc.desc: Test SetVisibleRect and GetVisibleRect
+ * @tc.type: FUNC
+ * @tc.require: issueIBM5U5
+ */
+HWTEST_F(RSUniRenderThreadTest, SetVisibleRect001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    // 100 test value for Rect right and bottom
+    Drawing::RectI visibleRectSet = Drawing::RectI(0, 0, 100, 100);
+    RSUniRenderThread::Instance().SetVisibleRect(visibleRectSet);
+    const auto &visibleRectGet = instance.GetVisibleRect();
+    EXPECT_EQ(visibleRectGet.GetLeft(), visibleRectSet.GetLeft());
+    EXPECT_EQ(visibleRectGet.GetTop(), visibleRectSet.GetTop());
+    EXPECT_EQ(visibleRectGet.GetRight(), visibleRectSet.GetRight());
+    EXPECT_EQ(visibleRectGet.GetBottom(), visibleRectSet.GetBottom());
+}
+
+/**
  * @tc.name: SetWallpaperTranslate
  * @tc.desc: Test SetWallpaperTranslate
  * @tc.type: FUNC

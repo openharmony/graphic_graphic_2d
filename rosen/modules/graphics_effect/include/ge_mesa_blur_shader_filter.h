@@ -45,11 +45,22 @@ protected:
         float offsets[12] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};    // 0: initial offsets
     };
 
+    enum PixelStretchFuzedMode {
+        AFTER_BLUR = 0,
+        BEFORE_BLUR,
+        Custom,
+        DEFAULT = AFTER_BLUR,
+    };
+
     virtual std::shared_ptr<Drawing::Image> DownSamplingFuzedBlur(Drawing::Canvas& canvas,
         Drawing::RuntimeShaderBuilder& blurBuilder,
         const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
         const Drawing::ImageInfo& scaledInfo, int& width, int& height,
         const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const;
+    virtual std::shared_ptr<Drawing::Image> PingPongBlur(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder, Drawing::RuntimeShaderBuilder& simpleBuilder,
+        const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& input,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const;
     std::shared_ptr<Drawing::ShaderEffect> DownSampling2X(Drawing::Canvas& canvas,
         Drawing::RuntimeShaderBuilder& blurBuilder,
         const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
@@ -75,12 +86,14 @@ protected:
         const std::vector<std::vector<float>>& offsetTable, float st, float ed);
 
     virtual Drawing::ImageInfo ComputeImageInfo(const Drawing::ImageInfo& originalInfo, int& width, int& height) const;
+    Drawing::Matrix BuildStretchMatrix(const Drawing::ImageInfo& scaledInfo,
+        const std::shared_ptr<Drawing::Image>& input) const;
 
     int radius_ = 0;
     float blurRadius_ = 0.0f;
     float blurScale_ = 0.25f;
     bool isGreyX_ = false;
-    bool isStretchX_ = false;
+    PixelStretchFuzedMode isStretchX_ = PixelStretchFuzedMode::DEFAULT;
     float greyCoef1_ = 0.0f;
     float greyCoef2_ = 0.0f;
     float stretchOffsetX_ = 0.0f;
@@ -129,8 +142,6 @@ private:
         const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo) const;
     Drawing::Matrix BuildStretchMatrixFull(const Drawing::Rect& src,
         const Drawing::Rect& dst, int inputWidth, int inputHeight) const;
-    Drawing::Matrix BuildStretchMatrix(const Drawing::ImageInfo& scaledInfo,
-        const std::shared_ptr<Drawing::Image>& input) const;
     void CalculatePixelStretch(int width, int height);
 };
 

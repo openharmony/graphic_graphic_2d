@@ -22,7 +22,8 @@ import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, Canvas
   CanvasDrawShadow, CanvasCreateLattice, CanvasSetColor, CanvasQuickRejectPath, CanvasQuickRejectRect,
   CanvasDrawArcWithCenter, CanvasDrawImageNine, CanvasDrawImageLattice, CanvasClear } from '../testcase/interface/canvastest';
 import { PathEffectCreateComposePathEffect, PathEffectCreateDiscretePathEffect, PathEffectCreatePathDashEffect, PathEffectCreateSumPathEffect } from '../testcase/interface/patheffecttest';
-import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
+import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor, PathGetPathIterator } from '../testcase/interface/pathtest';
+import { PathIteratorConstructor, PathIteratorNext, PathIteratorHasNext, PathIteratorPeek } from '../testcase/interface/pathiteratortest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
 import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanvasDrawLine, PerformanceCanvasDrawTextBlob, PerformanceCanvasDrawPath,
@@ -181,6 +182,12 @@ export class CaseFactory {
       ['pathgetmatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathbuildfromsvgstring', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathconstructor', () => { return new PathConstructor(); }],
+      ['path_getPathIterator', () => { return new PathGetPathIterator(); }],
+      // pathiterator
+      ['path_iterator_constructor', () => { return new PathIteratorConstructor(); }],
+      ['path_iterator_next', () => { return new PathIteratorNext(); }],
+      ['path_iterator_hasnext', () => { return new PathIteratorHasNext(); }],
+      ['path_iterator_peek', () => { return new PathIteratorPeek(); }],
 
       ['matrixgetvalue', () => { return new MatrixGetValue(); }],
       ['matrixgetall', () => { return new MatrixGetAll(); }],
@@ -266,6 +273,12 @@ export class CaseFactory {
       ['path_getMatrix', () => { return new PathGetMatrix(StyleType.DRAW_STYLE_COMPLEX); }],
       ['path_buildFromSVGString', () => { return new PathBuildFromSvgString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['path_constructor', () => { return new PathConstructor(); }],
+      ['path_getPathIterator', () => { return new PathGetPathIterator(); }],
+      // pathiterator
+      ['path_iterator_constructor', () => { return new PathIteratorConstructor(); }],
+      ['path_iterator_next', () => { return new PathIteratorNext(); }],
+      ['path_iterator_hasnext', () => { return new PathIteratorHasNext(); }],
+      ['path_iterator_peek', () => { return new PathIteratorPeek(); }],
       ['textblob_createbuilder', () => { return new MakeFromRunBuffer(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时339ms
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时261ms
       ['textblob_getbounds', () => { return new TextBlobBounds(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时365ms

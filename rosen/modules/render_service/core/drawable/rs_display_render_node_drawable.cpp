@@ -139,6 +139,14 @@ RSDisplayRenderNodeDrawable::RSDisplayRenderNodeDrawable(std::shared_ptr<const R
       syncDirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {}
 
+RSDisplayRenderNodeDrawable::~RSDisplayRenderNodeDrawable()
+{
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (renderEngine) {
+        renderEngine->ClearVirtualScreenCacheSet();
+    }
+}
+
 RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
     return new RSDisplayRenderNodeDrawable(std::move(node));
@@ -629,10 +637,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (mirroredParams) {
             enableVisibleRect_ = screenInfo.enableVisibleRect;
-            if (enableVisibleRect_) {
-                const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
-                curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
-            }
+            const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
+            curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+            RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect_);
+            RSUniRenderThread::Instance().SetEnableVisiableRect(enableVisibleRect_);
             currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
             if (params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
@@ -649,6 +657,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             lastBlackList_ = currentBlackList_;
             lastSecExemption_ = curSecExemption_;
             lastVisibleRect_ = curVisibleRect_;
+            RSUniRenderThread::Instance().SetEnableVisiableRect(false);
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
             uniParam->SetOpDropped(false);
@@ -942,15 +951,19 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
         return;
     }
 
+    const auto screenInfo = uniParam->GetScreenInfo(); // record screenInfo
+    uniParam->SetScreenInfo(params.GetScreenInfo());
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     //if specialLayer is visible and no CacheImg
     if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ == HAS_SPECIAL_LAYER && (!enableVisibleRect_ || params.HasSecLayerInVisibleRect())) ||
-        !mirroredDrawable->GetCacheImgForCapture()) {
+        specialLayerType_ == HAS_SPECIAL_LAYER) || !mirroredDrawable->GetCacheImgForCapture()) {
+        virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
+        virtualProcesser->SetDrawVirtualMirrorCopy(true);
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
+    uniParam->SetScreenInfo(screenInfo); // reset screenInfo
 }
 
 void RSDisplayRenderNodeDrawable::SetScreenRotationForPointLight(RSDisplayRenderParams &params)
@@ -1089,7 +1102,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->SetDisableFilterCache(true);
     auto hasSecSurface = static_cast<RSDisplayRenderParams*>
         (mirroredParams.get())->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    if (hasSecSurface && !uniParam.GetSecExemption()) {
+    if (((!enableVisibleRect_ && hasSecSurface) || (enableVisibleRect_ && params.HasSecLayerInVisibleRect())) &&
+        !uniParam.GetSecExemption()) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         auto screenManager = CreateOrGetScreenManager();
@@ -1109,7 +1123,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     ScaleCanvasIfNeeded(mirroredScreenInfo);
 
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
-    if (uniParam.IsVirtualDirtyEnabled()) {
+    if (uniParam.IsVirtualDirtyEnabled() && !enableVisibleRect_) {
         Drawing::Matrix matrix = curCanvas_->GetTotalMatrix();
         std::vector<RectI> dirtyRects = CalculateVirtualDirty(virtualProcesser, params, matrix);
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, params.GetScreenInfo());
@@ -1880,6 +1894,9 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
+        // Use for mirror screen visible rect projection
+        const auto &visibleRect = RSUniRenderThread::Instance().GetVisibleRect();
+        matrix.PostTranslate(-visibleRect.GetLeft(), -visibleRect.GetTop());
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);
@@ -2172,7 +2189,7 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
     } else if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
         if (isUseCustomShader) {
             Drawing::Rect imageRect { 0., 0., image->GetImageInfo().GetWidth(), image->GetImageInfo().GetHeight() };
-            imageRect.Offset(-offscreenTranslateX_, -offscreenTranslateY_);
+            canvasBackup_->Translate(-offscreenTranslateX_, -offscreenTranslateY_);
             canvasBackup_->DrawRect(imageRect);
         } else {
             canvasBackup_->DrawImage(*image, -offscreenTranslateX_, -offscreenTranslateY_, sampling);

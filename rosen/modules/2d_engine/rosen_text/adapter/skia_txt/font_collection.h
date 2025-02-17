@@ -16,12 +16,12 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 #define ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 
-#include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 
 #include "rosen_text/font_collection.h"
-
+#include "rosen_text/symbol_constants.h"
 #include "txt/font_collection.h"
 #include "txt/asset_font_manager.h"
 
@@ -44,6 +44,8 @@ public:
         const std::string &familyName, const uint8_t *data, size_t datalen) override;
     std::shared_ptr<Drawing::FontMgr> GetFontMgr() override;
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface) override;
+    LoadSymbolErrorCode LoadSymbolFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    LoadSymbolErrorCode LoadSymbolJson(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
     void ClearCaches() override;
 private:
@@ -51,7 +53,7 @@ private:
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
     std::unordered_map<uint32_t, std::shared_ptr<Drawing::Typeface>> typefaces_;
     std::unordered_map<uint32_t, std::string> familyNames_;
-    std::mutex mutex_;
+    std::shared_mutex mutex_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

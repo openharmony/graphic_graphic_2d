@@ -320,6 +320,8 @@ public:
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
+
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);

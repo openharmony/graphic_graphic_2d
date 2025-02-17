@@ -417,7 +417,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RS_LOGD("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%{public}" PRIu64 "]", name_.c_str(),
         surfaceParams->GetId());
-    
+
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
@@ -492,16 +492,21 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams, *uniParam)) {
-        SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
-        return;
-    }
-    if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
-        if (GetDrawSkipType() == DrawSkipType::NONE) {
-            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+    // Regional screen recording does not enable uifirst.
+    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
+    if (!enableVisiableRect) {
+        if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams, *uniParam)) {
+            SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
+            return;
         }
-        return;
+        if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
+            if (GetDrawSkipType() == DrawSkipType::NONE) {
+                SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+            }
+            return;
+        }
     }
+    
     auto cacheState = GetCacheSurfaceProcessedStatus();
     auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
@@ -900,7 +905,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
-    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent)) {
+    bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
+    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
+        enableVisiableRect)) {
         if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
             surfaceParams.SetHardwareEnabled(hwcEnable);
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
@@ -1019,6 +1026,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
+    if (threadId == RSUniRenderThread::Instance().GetTid()) {
+        params.screenId = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetScreenInfo().id;
+    }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();

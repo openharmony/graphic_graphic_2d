@@ -86,6 +86,10 @@ public:
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasClipRegionForUniscaleMode();
     void ProcessCacheImage(Drawing::Image& cacheImage);
+    void SetDrawVirtualMirrorCopy(bool drawMirrorCopy)
+    {
+        drawMirrorCopy_ = drawMirrorCopy;
+    }
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
@@ -126,6 +130,7 @@ private:
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
+    bool drawMirrorCopy_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -57,6 +57,8 @@ public:
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraversalNodesByPid(int pid, std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
+    void TraverseSurfaceNodesBreakOnCondition(
+        std::function<bool (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const;
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
     const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;

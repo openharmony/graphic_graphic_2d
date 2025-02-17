@@ -63,6 +63,7 @@ public:
     int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) override;
     int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush,
         std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) override;
+    int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

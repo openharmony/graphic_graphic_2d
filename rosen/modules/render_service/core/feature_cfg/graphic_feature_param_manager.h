@@ -29,6 +29,8 @@
 #include "hdr_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
+#include "hfbc_param_parse.h"
+#include "hfbc_param.h"
 
 namespace OHOS::Rosen {
 #define DEFINE_MOD(x) {FEATURE_CONFIGS[x], [] {return std::make_unique<x##ParamParse>(); }, \
@@ -45,6 +47,7 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
     DEFINE_MOD(HDR),
     DEFINE_MOD(DRM),
     DEFINE_MOD(HWC),
+    DEFINE_MOD(Hfbc),
 };
 
 class GraphicFeatureParamManager : public RefBase {

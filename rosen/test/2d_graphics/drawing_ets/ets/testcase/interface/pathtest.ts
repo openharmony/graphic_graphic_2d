@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -331,5 +331,44 @@ export class PathConstructor extends TestBase {
     font.setSize(50);
     let blob : drawing.TextBlob = drawing.TextBlob.makeFromString(testResult, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
     canvas.drawTextBlob(blob, 10, 100);
+  }
+}
+
+export class PathGetPathIterator extends TestBase {
+  public constructor() {
+    super();
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    let pen = new drawing.Pen();
+    pen.setAntiAlias(true);
+    pen.setColor({ alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0x00 });
+    pen.setStrokeWidth(5.0);
+    canvas.attachPen(pen);
+    let path: drawing.Path = new drawing.Path();
+    path.moveTo(0, 0);
+    path.lineTo(100, 100);
+    let iter = path.getPathIterator();
+    let verb = iter.peek();
+    console.log("PathGetPathIterator: verb = ", verb);
+    canvas.drawPath(path);
+  }
+
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let pen = new drawing.Pen();
+    pen.setAntiAlias(true);
+    pen.setColor({ alpha: 0xFF, red: 0xFF, green: 0x00, blue: 0x00 });
+    pen.setStrokeWidth(5.0);
+    canvas.attachPen(pen);
+    let path: drawing.Path = new drawing.Path();
+    path.moveTo(0, 0);
+    path.lineTo(100, 100);
+    for (let i = 0; i < this.testCount_; i++) {
+      path.getPathIterator();
+    }
+    let iter = path.getPathIterator();
+    let verb = iter.peek();
+    console.log("PathGetPathIterator: verb = ", verb);
+    canvas.drawPath(path);
   }
 }

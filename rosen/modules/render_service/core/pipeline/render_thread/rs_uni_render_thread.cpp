@@ -788,10 +788,10 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache)
+void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
 {
     if (uniRenderEngine_) {
-        uniRenderEngine_->ClearCacheSet(unmappedCache);
+        uniRenderEngine_->ClearCacheSet(unmappedCache, isMatchVirtualScreen);
     }
 }
 
