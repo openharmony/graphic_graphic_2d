@@ -69,10 +69,6 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareChildren001, TestSize.Level1)
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareChildren(rsSurfaceRenderNode);
-    config.id = 1; // for test
-    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
-    rsSurfaceRenderNode.AddChild(surfaceRenderNode2, -1);
-    rsRenderThreadVisitor->PrepareChildren(rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 

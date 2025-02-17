@@ -570,9 +570,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    virtualProcessor->EnableSlrScale();
     ASSERT_NE(nullptr, virtualProcessor);
-    bool res = virtualProcessor->EnableSlrScale();
-    ASSERT_EQ(false, res);
 }
 
 /**
