@@ -29,6 +29,7 @@ ohos_unittest("feature_cfg_test") {
     "drm_param_test.cpp",
     "graphic_feature_param_manager_test.cpp",
     "hdr_param_test.cpp",
+    "hfbc_param_test.cpp",
     "hwc_param_test.cpp",
     "xml_parser_base_test.cpp",
   ]

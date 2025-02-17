@@ -13,50 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef FEATURE_PARAM_H
-#define FEATURE_PARAM_H
+#ifndef HFBC_PARAM_PARSE_H
+#define HFBC_PARAM_PARSE_H
 
-#include <string>
-#include <unordered_map>
-
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#include "xml_parser_base.h"
+#include "hfbc_param.h"
 
 namespace OHOS::Rosen {
-const std::vector<std::string> FEATURE_CONFIGS = {
-    "HdrConfig",
-    "DrmConfig",
-    "HwcConfig",
-    "HfbcConfig"
-};
-
-enum FeatureModule {
-    HDR = 0,
-    DRM,
-    HWC,
-    Hfbc,
-};
-
-enum ParseErrCode {
-    PARSE_ERROR = -1,
-
-    PARSE_EXEC_SUCCESS = 0,
-
-    PARSE_NO_PARAM = 100,
-
-    PARSE_FILE_LOAD_FAIL = 200,
-    PARSE_GET_ROOT_FAIL,
-    PARSE_GET_CHILD_FAIL,
-    PARSE_INTERNAL_FAIL,
-};
-
-class FeatureParam {
+class HfbcParamParse : public XMLParserBase {
 public:
-    FeatureParam() = default;
-    ~FeatureParam() = default;
+    HfbcParamParse() = default;
+    ~HfbcParamParse() = default;
+
+    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    void Init();
+    int32_t ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseFeatureMultiParamForApp(xmlNode &node, std::string &name);
+    std::shared_ptr<HfbcParam> hfbcParam_;
 };
 } // namespace OHOS::Rosen
-#endif // FEATURE_PARAM_H
+#endif // HFBC_PARAM_PARSE_H

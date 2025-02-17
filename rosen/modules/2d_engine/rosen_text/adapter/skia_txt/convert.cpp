@@ -117,6 +117,7 @@ static std::string RemoveQuotes(const std::string& str)
 
 void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
 {
+    textStyle.symbol.SetSymbolType(style.symbol.GetSymbolType());
     textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
     textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
