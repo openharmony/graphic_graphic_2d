@@ -117,6 +117,7 @@ template("skia_libtxt") {
     if (is_arkui_x) {
       deps += [
         "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
       ]
     } else {
