@@ -54,7 +54,7 @@ void EglWrapperSurface::Disconnect(OHNativeWindow *window)
     }
 }
 
-EGLBoolean EglWrapperSurface::getColorSpaceAttribute(EGLint attribute, EGLint* value) const
+EGLBoolean EglWrapperSurface::GetColorSpaceAttribute(EGLint attribute, EGLint* value) const
 {
     if (attribute == EGL_GL_COLORSPACE_KHR) {
         *value = colorSpace_;
