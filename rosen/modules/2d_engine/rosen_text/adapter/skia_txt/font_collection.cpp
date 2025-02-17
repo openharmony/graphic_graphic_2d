@@ -16,6 +16,7 @@
 #include "font_collection.h"
 
 #include "convert.h"
+#include "custom_symbol_config.h"
 #include "texgine/src/font_descriptor_mgr.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
@@ -57,7 +58,7 @@ FontCollection::~FontCollection()
         return;
     }
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     for (const auto& [id, typeface] : typefaces_) {
         Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
         auto it = familyNames_.find(id);
@@ -91,7 +92,7 @@ bool FontCollection::RegisterTypeface(std::shared_ptr<Drawing::Typeface> typefac
         return false;
     }
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     if (typefaces_.find(typeface->GetUniqueID()) != typefaces_.end()) {
         TEXT_LOGI("Find same typeface:family name:%{public}s, uniqueid:%{public}u",
             typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
@@ -120,6 +121,28 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     return typeface;
 }
 
+LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
+    if (typeface == nullptr) {
+        return LoadSymbolErrorCode::LOAD_FAILED;
+    }
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    uint32_t faceHash = typeface->GetHash();
+    for (const auto& item : typefaces_) {
+        if (faceHash == item.second->GetHash()) {
+            return LoadSymbolErrorCode::SUCCESS;
+        }
+    }
+    typefaces_.emplace(typeface->GetUniqueID(), typeface);
+    return LoadSymbolErrorCode::SUCCESS;
+}
+
+LoadSymbolErrorCode FontCollection::LoadSymbolJson(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    return CustomSymbolConfig::GetInstance()->ParseConfig(familyName, data, datalen);
+}
+
 static std::shared_ptr<Drawing::Typeface> CreateTypeFace(const uint8_t *data, size_t datalen)
 {
     if (datalen != 0 && data != nullptr) {
@@ -136,6 +159,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     if (face != nullptr) {
         std::string name = face->GetFamilyName();
         uint32_t faceHash = face->GetHash();
+        std::shared_lock<std::shared_mutex> lock(mutex_);
         for (auto item : typefaces_) {
             if (faceHash == item.second->GetHash()) {
                 TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",

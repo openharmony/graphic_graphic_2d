@@ -26,12 +26,12 @@ enum class LoadSymbolErrorCode {
     SUCCESS = 0,
     JSON_ERROR,
     LOAD_FAILED,
-}
+};
 
 enum class SymbolType {
     SYSTEM = 0,
     CUSTOM,
-}
+};
 
 } // namespace Rosen
 } // namespace OHOS
