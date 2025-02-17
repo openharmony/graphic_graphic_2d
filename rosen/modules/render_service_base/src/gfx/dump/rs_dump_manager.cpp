@@ -120,8 +120,8 @@ void RSDumpManager::DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::un
     auto it = rsDumpHanderMap_.find(rsDumpId);
     if (it != rsDumpHanderMap_.end()) {
         RSDumpHander hander = it->second;
-        if (!hander.threadName.empty() && hander.threadName.size() > 0) {
-            out.append("\n\n-- ").append(hander.threadName).append("\n");
+        if (!hander.tag.empty() && hander.tag.size() > 0) {
+            out.append("\n\n-- ").append(hander.tag).append("\n");
         }
         hander.func(cmd, argSets, out);
     } else {

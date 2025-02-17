@@ -169,7 +169,7 @@ bool RSRenderService::Init()
     RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);
-    
+
     return true;
 }
 
@@ -848,10 +848,10 @@ void RSRenderService::RegisterRSTreeFuncs()
 
     std::vector<RSDumpHander> handers = {
         { RSDumpID::RS_NOT_ON_TREE_INFO, rsNotOnTreeFunc },
-        { RSDumpID::RSTREE_INFO, rsTreeFunc, RS_MAIN_THREAD_NAME },
-        { RSDumpID::SURFACENODE_INFO, surfaceNodeFunc, RS_MAIN_THREAD_NAME },
-        { RSDumpID::MULTI_RSTREES_INFO, multiRSTreesFunc, RS_MAIN_THREAD_NAME },
-        { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_NAME },
+        { RSDumpID::RENDER_NODE_INFO, rsTreeFunc, RS_MAIN_THREAD_TAG },
+        { RSDumpID::SURFACENODE_INFO, surfaceNodeFunc },
+        { RSDumpID::MULTI_RSTREES_INFO, multiRSTreesFunc },
+        { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_TAG },
         { RSDumpID::RS_RENDER_NODE_INFO, dumpNodeFunc },
     };
 
@@ -893,7 +893,7 @@ void RSRenderService::RegisterMemFuncs()
     };
 
     std::vector<RSDumpHander> handers = {
-        { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_NAME },
+        { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::TRIM_MEM_INFO, trimMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },

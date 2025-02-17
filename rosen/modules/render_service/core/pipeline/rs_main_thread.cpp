@@ -3570,11 +3570,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             return;
         }
         rootNode->DumpTree(0, dumpString);
-#ifdef RS_ENABLE_GPU
-        dumpString += "\n====================================\n";
-        dumpString += "\n-- RenderServiceUniThread\n";
-        RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
-#endif
+        
         if (needUpdateJankStats) {
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);

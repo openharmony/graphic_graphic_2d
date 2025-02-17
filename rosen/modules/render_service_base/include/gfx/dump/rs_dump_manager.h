@@ -23,11 +23,11 @@
 #include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
-// Define static constant strings for different threads
-static const std::string RS_CLIENT_NAME = "RenderServiceClient";
-static const std::string RS_MAIN_THREAD_NAME = "RenderServiceMainThread";
-static const std::string RS_UNI_THREAD_NAME = "RenderServiceUniThread";
-static const std::string RS_HW_THREAD_NAME = "RenderServiceHwThread";
+// Define static constant strings for different tags
+static const std::string RS_CLIENT_TAG = "RenderServiceClient";
+static const std::string RS_MAIN_THREAD_TAG = "RenderServiceMainThread";
+static const std::string RS_UNI_THREAD_TAG = "RenderServiceUniThread";
+static const std::string RS_HW_THREAD_TAG = "RenderServiceHwcThread";
 
 // Define different dump points
 enum class RSDumpID : uint8_t {
@@ -37,7 +37,7 @@ enum class RSDumpID : uint8_t {
     FPS_INFO,
     RS_NOT_ON_TREE_INFO,
     SURFACE_MEM_INFO,
-    RSTREE_INFO,
+    RENDER_NODE_INFO,
     MULTI_RSTREES_INFO,
     EVENT_PARAM_LIST,
     TRIM_MEM_INFO,
@@ -55,6 +55,7 @@ enum class RSDumpID : uint8_t {
 #endif
     GPU_INFO,
     EXIST_PID_MEM_INFO,
+    DRAWABLE_INFO,
     RS_RENDER_NODE_INFO
 };
 
@@ -65,7 +66,7 @@ using RSDumpFunc = std::function<void(const std::u16string &, std::unordered_set
 struct RSDumpHander {
     RSDumpID rsDumpId;
     RSDumpFunc func;
-    std::string threadName;
+    std::string tag;
 };
 
 // Define the cmd structure
@@ -82,7 +83,7 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"fps", { { RSDumpID::FPS_INFO }, "[windowname] fps, dump the fps info of window" } },
     { u"nodeNotOnTree", { { RSDumpID::RS_NOT_ON_TREE_INFO }, "dump nodeNotOnTree info" } },
     { u"allSurfacesMem", { { RSDumpID::SURFACE_MEM_INFO }, "dump surface mem info" } },
-    { u"RSTree", { { RSDumpID::RSTREE_INFO }, "dump RS Tree info" } },
+    { u"RSTree", { { RSDumpID::RENDER_NODE_INFO, RSDumpID::DRAWABLE_INFO }, "dump RS Tree info" } },
     { u"MultiRSTrees", { { RSDumpID::MULTI_RSTREES_INFO }, "dump multi RS Trees info" } },
     { u"EventParamList", { { RSDumpID::EVENT_PARAM_LIST }, "dump EventParamList info" } },
     { u"trimMem", { { RSDumpID::TRIM_MEM_INFO }, "dump trim Mem info" } },
@@ -96,10 +97,20 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"flushJankStatsRs", { { RSDumpID::RS_FLUSH_JANK_STATS }, "flush rs jank stats hisysevent" } },
     { u"client", { { RSDumpID::CLIENT_INFO }, "dump client ui node trees" } },
     { u"allInfo",
-      { { RSDumpID::SCREEN_INFO, RSDumpID::SURFACE_INFO, RSDumpID::RS_NOT_ON_TREE_INFO, RSDumpID::SURFACE_MEM_INFO,
-          RSDumpID::RSTREE_INFO, RSDumpID::EVENT_PARAM_LIST, RSDumpID::FPS_COUNT,
+      { { RSDumpID::SCREEN_INFO,
+          // hwc thread
+          RSDumpID::SURFACE_INFO,
+          RSDumpID::SURFACE_MEM_INFO,
+          // main thread
+          RSDumpID::RENDER_NODE_INFO,
+          RSDumpID::RS_NOT_ON_TREE_INFO,
+          // uni thread
+          RSDumpID::DRAWABLE_INFO,
+          RSDumpID::EVENT_PARAM_LIST,
+          RSDumpID::FPS_COUNT,
+          // client
           RSDumpID::CLIENT_INFO },
-        "dump all info" } },
+          "dump all info" } },
 #ifdef RS_ENABLE_VK
     { u"vktextureLimit", { { RSDumpID::VK_TEXTURE_LIMIT }, "dump vk texture limit info" } },
 #endif
