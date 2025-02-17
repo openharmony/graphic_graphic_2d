@@ -432,7 +432,29 @@ void RSRenderThread::ProcessCommands()
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %{public}lu\n", (unsigned long)cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
+#ifdef CROSS_PLATFORM
+    if (!cmds_.empty()) {
+        int index = 0;
+        while (index < cmds_.size()) {
+            RS_TRACE_NAME("RSRenderThread ProcessCommands index: " + std::to_string(index) + " cmdstamp:" +
+                              std::to_string(cmds_[index]->GetTimestamp()) + " curstamp:" + std::to_string(timestamp_));
+            if (cmds_[index]->GetTimestamp() < timestamp_) {
+                index++;
+            } else {
+                break;
+            }
+        }
+        for (int i = 0; i < index; i++) {
+            cmds.emplace_back(std::move(cmds_[i]));
+        }
+        cmds_.erase(cmds_.begin(), cmds_.begin() + index);
+        if (!cmds_.empty()) {
+            RequestNextVSync();
+        }
+    }
+#else
     std::swap(cmds, cmds_);
+#endif
     cmdLock.unlock();
 
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
