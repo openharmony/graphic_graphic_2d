@@ -379,13 +379,15 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
         std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     for (auto& layer : layers) {
-        if (layer == nullptr ||
-            layer->GetUniRenderFlag()) {
-                continue;
-            }
-            uint64_t id = layer->GetNodeId();
-            auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-            surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
+        if (layer == nullptr) {
+            continue;
+        }
+        uint64_t id = layer->GetNodeId();
+        auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+        if (layer->GetBuffer() == nullptr) {
+            continue;
+        }
+        surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }
 

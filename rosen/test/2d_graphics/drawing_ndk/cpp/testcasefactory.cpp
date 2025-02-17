@@ -47,7 +47,15 @@
 #include "dm/skbug_8955.h"
 #include "dm/stroke_rect_shader.h"
 #include "dm/strokes.h"
+#include "function/brush_null_test.h"
 #include "function/canvas_test.h"
+#include "function/filter_test.h"
+#include "function/font_measure_text_test.h"
+#include "function/function_path_test.h"
+#include "function/function_pen_test.h"
+#include "function/path_test.h"
+#include "function/rect_test.h"
+#include "function/round_rect_test.h"
 #include "function/path_effect_test.h"
 #include "interface/bitmap_test.h"
 #include "interface/brush_test.h"
@@ -64,13 +72,119 @@
 #include "interface/surface_test.h"
 #include "interface/text_blob_test.h"
 #include "interface/typeface_test.h"
+#include "performance/canvas_clip_path_test.h"
+#include "performance/canvas_draw_image_rect.h"
+#include "performance/canvas_draw_image_rect_with_src.h"
 #include "performance/canvas_draw_performance.h"
+#include "performance/canvas_draw_performance_c_operation_switch.h"
+#include "performance/canvas_draw_performance_c_property.h"
+#include "performance/canvas_draw_shadow_test.h"
+#include "performance/canvas_draw_text_blob_text.h"
+#include "performance/performance.h"
+#include "reliability/bitmap_test.h"
+#include "reliability/pen_exception_test.h"
+#include "reliability/reliability_brush_test.h"
+#include "stability/bitmap_test.h"
+#include "stability/brush_test.h"
+#include "stability/canvas_test.h"
+#include "stability/color_test.h"
+#include "stability/filter_test.h"
+#include "stability/mask_filter_test.h"
+#include "stability/matrix_test.h"
+#include "stability/memory_stream_test.h"
+#include "stability/path_effect_test.h"
+#include "stability/path_test.h"
+#include "stability/pen_test.h"
+#include "stability/point_test.h"
+#include "stability/rect_test.h"
+#include "stability/region_test.h"
+#include "stability/round_rect_test.h"
+#include "stability/sampling_options_test.h"
+#include "stability/shader_effect_test.h"
+#include "stability/shadow_layer_test.h"
+#include "stability/surface_test.h"
+#include "stability/text_blob_test.h"
+#include "stability/typeface_test.h"
 #include "performance/path_effect_performance.h"
-
 #include "common/log_common.h"
 
 namespace {
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> FunctionalCpuMap = {
+    // Reliability
+    { "reliabilityDeleteBitmap",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDeleteBitmap>(false); } },
+    { "reliabilityDeletePixel",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDeletePixel>(false); } },
+    { "reliabilityDeleteBitmapJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDeleteBitmapJoinThread>(false); } },
+    { "reliabilityDeletePixelJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDeletePixelJoinThread>(false); } },
+    { "reliabilityDetachPen", []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDetachPen>(); } },
+    { "reliabilityDestroyPen",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDestroyPen>(); } },
+    { "reliabilitySetShaderEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilitySetShaderEffect>(); } },
+    { "reliabilitySetShadowLayer",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilitySetShadowLayer>(); } },
+    { "reliabilitySetPathEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilitySetPathEffect>(); } },
+    { "reliabilitySetFilter", []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilitySetFilter>(); } },
+    { "reliabilityImageFilterDestroy",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityImageFilterDestroy>(); } },
+    { "reliabilityMaskFilterDestroy",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityMaskFilterDestroy>(); } },
+    { "reliabilityColorFilterDestroy",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityColorFilterDestroy>(); } },
+    { "reliabilityThreadDetachPen",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDetachPen>(); } },
+    { "reliabilityThreadDestroyPen",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyPen>(); } },
+    { "reliabilityThreadDestroyShaderEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyShaderEffect>(); } },
+    { "reliabilityThreadDestroyShadowLayer",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyShadowLayer>(); } },
+    { "reliabilityThreadDestroyPathEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyPathEffect>(); } },
+    { "reliabilityThreadDestroyFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyFilter>(); } },
+    { "reliabilityThreadDestroyImageFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyImageFilter>(); } },
+    { "reliabilityThreadDestroyMaskFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyMaskFilter>(); } },
+    { "reliabilityThreadDestroyColorFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityThreadDestroyColorFilter>(); } },
+    { "reliabilityDetachBrush",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDetachBrush>(); } },
+    { "reliabilityAttachBrush",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityAttachBrush>(); } },
+    { "reliabilityBrushSetShaderEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetShaderEffect>(); } },
+    { "reliabilityBrushSetShadowLayer",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetShadowLayer>(); } },
+    { "reliabilityBrushSetFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetFilter>(); } },
+    { "reliabilityBrushSetImageFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetImageFilter>(); } },
+    { "reliabilityBrushSetMaskFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetMaskFilter>(); } },
+    { "reliabilityBrushSetColorFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetColorFilter>(); } },
+    { "reliabilityDetachBrushJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityDetachBrushJoinThread>(); } },
+    { "reliabilityAttachBrushJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityAttachBrushJoinThread>(); } },
+    { "reliabilityBrushSetShaderEffectJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetShaderEffectJoinThread>(); } },
+    { "reliabilityBrushSetShadowLayerJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetShadowLayerJoinThread>(); } },
+    { "reliabilityBrushSetFilterJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetFilterJoinThread>(); } },
+    { "reliabilityBrushSetImageFilterJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetImageFilterJoinThread>(); } },
+    { "reliabilityBrushSetMaskFilterJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetMaskFilterJoinThread>(); } },
+    { "reliabilityBrushSetColorFilterJoinThread",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<ReliabilityBrushSetColorFilterJoinThread>(); } },
     // DM
     { "aarectmodes", []() -> std::shared_ptr<TestBase> { return std::make_shared<AARectModes>(); } },
     { "blurcircles", []() -> std::shared_ptr<TestBase> { return std::make_shared<BlurCircles>(); } },
@@ -153,6 +267,231 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<Anisotropic>();
         } }, // 该用例OH_Drawing_SamplingOptionsCreate接口mode对应内容未开放,无法实现
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_RECT_0201
+    { "functionRectCopy", []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRectCopy>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_RECT_0201
+    { "functionRectSetAndGet",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRectSetAndGet>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_RECT_0201
+    { "functionRectIntersect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRectIntersect>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_REGION_0401
+    { "functionRegionSetRect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRegionSetRect>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_ROUND_RECT_0201
+    { "functionRoundRectOffset",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRoundRectOffset>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_ROUND_RECT_0301
+    { "functionRoundRectCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionRoundRectCreate>(); } },
+    // Function_null
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_BRUSH_1001
+    { "functionBrushSetColor",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushSetColor>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_BRUSH_1301
+    { "functionBrushSetShaderEffect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushSetShaderEffect>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_3601
+    { "functionCanvasDrawLine",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawLine>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_3801
+    { "functionCanvasDrawRegion",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawRegion>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_3901
+    { "functionCanvasDrawPoint",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawPoint>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4001
+    { "functionCanvasDrawPoints",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawPoints>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4101
+    { "functionCanvasDrawOval",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawOval>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4201
+    { "functionCanvasClipRoundRect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasClipRoundRect>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4202
+    { "functionCanvasClipRoundRect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasClipRoundRect>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4202
+    { "functionCanvasClipRoundRect2",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasClipRoundRect2>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4301
+    { "functionCanvasSkew", []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasSkew>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4501
+    { "functionCanvasDrawImageRectWithSrc",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawImageRectWithSrc>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_4701
+    { "functionCanvasDrawVertices",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SRC);
+        } },
+    { "functionCanvasDrawVertices2",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DST);
+        } },
+    { "functionCanvasDrawVertices3",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SRC_OVER);
+        } },
+    { "functionCanvasDrawVertices4",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DST_OVER);
+        } },
+    { "functionCanvasDrawVertices5",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SRC_IN);
+        } },
+    { "functionCanvasDrawVertices6",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DST_IN);
+        } },
+    { "functionCanvasDrawVertices7",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SRC_OUT);
+        } },
+    { "functionCanvasDrawVertices8",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DST_OUT);
+        } },
+    { "functionCanvasDrawVertices9",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SRC_ATOP);
+        } },
+    { "functionCanvasDrawVertices10",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DST_ATOP);
+        } },
+    { "functionCanvasDrawVertices11",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_XOR);
+        } },
+    { "functionCanvasDrawVertices12",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_PLUS);
+        } },
+    { "functionCanvasDrawVertices13",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_MODULATE);
+        } },
+    { "functionCanvasDrawVertices14",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SCREEN);
+        } },
+    { "functionCanvasDrawVertices15",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_OVERLAY);
+        } },
+    { "functionCanvasDrawVertices16",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DARKEN);
+        } },
+    { "functionCanvasDrawVertices17",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_LIGHTEN);
+        } },
+    { "functionCanvasDrawVertices18",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_COLOR_DODGE);
+        } },
+    { "functionCanvasDrawVertices19",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_COLOR_BURN);
+        } },
+    { "functionCanvasDrawVertices20",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_HARD_LIGHT);
+        } },
+    { "functionCanvasDrawVertices21",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SOFT_LIGHT);
+        } },
+    { "functionCanvasDrawVertices22",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_DIFFERENCE);
+        } },
+    { "functionCanvasDrawVertices23",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_EXCLUSION);
+        } },
+    { "functionCanvasDrawVertices24",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_MULTIPLY);
+        } },
+    { "functionCanvasDrawVertices25",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_HUE);
+        } },
+    { "functionCanvasDrawVertices26",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_SATURATION);
+        } },
+    { "functionCanvasDrawVertices27",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_COLOR);
+        } },
+    { "functionCanvasDrawVertices28",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionCanvasDrawVertices>(OH_Drawing_BlendMode::BLEND_MODE_LUMINOSITY);
+        } },
+    { "functionCanvasIsClipEmpty",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasIsClipEmpty>(); } },
+    { "functionCanvasClipRegion",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasClipRegion>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_FILTER_0301
+    { "functionFilterSetMaskFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionFilterSetMaskFilter>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_FILTER_0401
+    { "functionFilterSetColorFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionFilterSetColorFilter>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_FONT_2901
+    { "functionFontMeasureText",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionFontMeasureText>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_2601
+    { "functionPathReset", []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathReset>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_2701
+    { "functionPathAddOval", []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddOval>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_2801
+    { "functionPathTransformWithPerspectiveClip",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathTransformWithPerspectiveClip>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_2901
+    { "functionPathAddPathWithOffsetAndMode",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddPathWithOffsetAndMode>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3001
+    { "functionPathAddPathWithMode",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddPathWithMode>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3101
+    { "functionPathAddPathWithMatrixAndMode",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddPathWithMatrixAndMode>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3201
+    { "functionPathAddOvalWithInitialPoint",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddOvalWithInitialPoint>(); } },
+    /// SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3301
+    { "functionPathAddRectWithInitialCornerTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathAddRectWithInitialCornerTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3401
+    { "functionPathRCubicToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathRCubicToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3501
+    { "functionPathRConicToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathRConicToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3601
+    { "functionPathRQuadToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathRQuadToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3701
+    { "functionPathRLineToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathRLineToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3801
+    { "functionPathRMoveToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathRMoveToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_3901
+    { "functionPathConicToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathConicToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PATH_4001
+    { "functionPathArcToTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPathArcToTest>(); } },
+    // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PEN_2001
+    { "functionPenSetShaderEffectNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenSetShaderEffectNullTest>(); } },
 
     // path effect
     { "patheffectcreatecornerpatheffect",
@@ -505,7 +844,6 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<MaskFilterCreateBlur>(TestBase::DRAW_STYLE_COMPLEX);
         } },
-
     // color
     { "color_filtercreateblendmode",
         []() -> std::shared_ptr<TestBase> {
@@ -539,7 +877,6 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<ColorSpaceCreateSrgbLinear>(TestBase::DRAW_STYLE_COMPLEX);
         } },
-
     // bitmap and image
     { "bitmap_readpixels",
         []() -> std::shared_ptr<TestBase> {
@@ -589,12 +926,546 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> { return std::make_shared<FontCountText>(TestBase::DRAW_STYLE_COMPLEX); } },
 
     // brush
-    { "brushrest",
+    { "brushreset",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<BrushReset>(TestBase::DRAW_STYLE_COMPLEX); } },
+    // todo: test count is 10,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0200
+    { "opsWitchTest",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawOpsWitch>((DRAWING_TYPE_ATTACH_BOTH));
+        } },
+    // todo: test count is 10,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0200
+    { "opsWitchTestPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawOpsWitch>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // todo: test count is 10,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0200
+    { "opsWitchTestBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawOpsWitch>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // todo: test count is 100,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0100
+    { "opsWitchLineAndPath",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawLineAndPath>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // todo: test count is 100,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0100
+    { "opsWitchLineAndPathPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawLineAndPath>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // todo: test count is 100,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0100
+    { "opsWitchLineAndPathBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawLineAndPath>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // todo: test count is 10,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1700
+    { "opsWitchDrawVerticesBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasDrawVerticesBrush>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1800
+    { "opsWitchReadPixels",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixels>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1800
+    { "opsWitchReadPixelsPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixels>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1800
+    { "opsWitchReadPixelsBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixels>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1900
+    { "opsWitchReadPixelsToBitmap",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixelsToBitmap>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1900
+    { "opsWitchReadPixelsToBitmapPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixelsToBitmap>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1900
+    { "opsWitchReadPixelsToBitmapBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasReadPixelsToBitmap>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRectWithSrc",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BOTH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT_WITH_SRC);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRectWithSrcPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_PEN, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT_WITH_SRC);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRectWithSrcBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BRUSH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT_WITH_SRC);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BOTH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRectPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_PEN, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadDrawImageRectBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BRUSH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_DRAW_IMAGE_RECT);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadReadPixels",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BOTH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_READ_PIXELS);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadReadPixelsPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_PEN, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_READ_PIXELS);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_2000
+    { "opsWitchLargeImageLoadReadPixelsBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCCanvasLargeImageLoad>(
+                DRAWING_TYPE_ATTACH_BRUSH, LARGE_IMAGE_LOAD_FUNCTION_CANVAS_READ_PIXELS);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1300
+    { "canvas_drawshadowline",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowLine>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1300
+    { "canvas_drawshadowlinepen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowLine>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1300
+    { "canvas_drawshadowlinebrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowLine>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1400
+    { "canvas_drawshadowcurve",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowCurve>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1400
+    { "canvas_drawshadowcurvepen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowCurve>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1400
+    { "canvas_drawshadowcurvebrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawShadowCurve>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1100
+    { "canvas_drawclippathline",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathLine>(DRAWING_TYPE_ATTACH_BOTH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1100
+    { "canvas_drawclippathlinepen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathLine>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1100
+    { "canvas_drawclippathlinebrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathLine>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1200
+    { "canvas_drawclippathcurve",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathCurve>(DRAWING_TYPE_ATTACH_BOTH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1200
+    { "canvas_drawclippathcurvepen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathCurve>(DRAWING_TYPE_ATTACH_PEN); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1200
+    { "canvas_drawclippathcurvebrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasClipPathCurve>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    //SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1500
+    { "canvas_drawImageRectWithSrc",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRectWithSrc>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_drawImageRectWithSrcpen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRectWithSrc>(DRAWING_TYPE_ATTACH_PEN); } },
+    { "canvas_drawImageRectWithSrcbrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRectWithSrc>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1600
+    { "canvas_ohdrawImageRect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRect>(DRAWING_TYPE_ATTACH_BOTH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1600
+    { "canvas_ohdrawImageRectpen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRect>(DRAWING_TYPE_ATTACH_PEN); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1600
+    { "canvas_ohdrawImageRectbrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawImageRect>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0900
+    { "canvas_drawTextBlobLong",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobLong>(DRAWING_TYPE_ATTACH_BOTH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0900
+    { "canvas_drawTextBlobLongPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobLong>(DRAWING_TYPE_ATTACH_PEN); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0900
+    { "canvas_drawTextBlobLongBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobLong>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1000
+    { "canvas_drawTextBlobMax",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobMax>(DRAWING_TYPE_ATTACH_BOTH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1000
+    { "canvas_drawTextBlobMaxPen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobMax>(DRAWING_TYPE_ATTACH_PEN); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_1000
+    { "canvas_drawTextBlobMaxBrush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceCanvasDrawTextBlobMax>(DRAWING_TYPE_ATTACH_BRUSH); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0100
+    { "canvas_draw_points_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPoints>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_points_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPoints>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_points_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPoints>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0200
+    { "canvas_draw_broken_line_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBrokenLine>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_broken_line_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBrokenLine>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_broken_line_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBrokenLine>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0300
+    { "canvas_draw_curve_line_performance",
+        []() -> std::shared_ptr<
+                 TestBase> { return std::make_shared<PerformanceDrawCurveLine>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_curve_line_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawCurveLine>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_curve_line_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawCurveLine>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0400
+    { "canvas_draw_region_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawRegion>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_region_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawRegion>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_region_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawRegion>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0500
+    { "canvas_draw_bit_map_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMap>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_bit_map_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMap>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_bit_map_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMap>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0600
+    { "canvas_draw_bit_map_rect_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMapRect>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_bit_map_rect_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMapRect>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_bit_map_rect_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawBitMapRect>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0700
+    { "canvas_draw_image_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawImage>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_image_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawImage>(DRAWING_TYPE_ATTACH_PEN); } },
+    { "canvas_draw_image_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawImage>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_PROPERTY_0800
+    { "canvas_draw_piexl_map_performance",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPixelMap>(DRAWING_TYPE_ATTACH_BOTH); } },
+    { "canvas_draw_piexl_map_performance_pen",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPixelMap>(DRAWING_TYPE_ATTACH_PEN);
+        } },
+    { "canvas_draw_piexl_map_performance_brush",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformanceDrawPixelMap>(DRAWING_TYPE_ATTACH_BRUSH);
+        } },
 };
 
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> StabilityCpuMap = {
     { "aarectmodes", []() -> std::shared_ptr<TestBase> { return std::make_shared<AARectModes>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TYPEFACE_0100
+    { "typefaceCreateDefaultStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTypefaceCreateDefault>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TYPEFACE_0200
+    { "typefaceCreateFromFileStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTypefaceCreateFromFile>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TYPEFACE_0300
+    { "typefaceCreateFromStreamStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTypefaceCreateFromStream>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0100
+    { "stabilityTextBlobBuilderCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobBuilderCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0200
+    { "stabilityTextBlobCreateFromText",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobCreateFromText>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0400
+    { "stabilityTextBlobCreateFromString",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobCreateFromString>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0300
+    { "stabilityTextBlobCreateFromPosText",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobCreateFromPosText>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0500
+    { "stabilityTextBlobBuilderAllocRunPos",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobBuilderAllocRunPos>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_TEXT_BLOB_0600
+    { "stabilityTextBlobRandomFunc",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityTextBlobRandomFunc>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SURFACE_0100
+    { "stabilitySurfaceCreateFromGpuContext",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilitySurfaceCreateFromGpuContext>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SURFACE_0200
+    { "stabilitySurfaceFuncAll",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilitySurfaceFuncAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADOW_LAYER_0100
+    { "stabilityShadowLayerCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShadowLayerCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0100
+    { "stabilityShaderEffectCreateColorShader",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShaderEffectCreateColorShader>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0200
+    { "stabilityShaderEffectCreateLinearGradient",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShaderEffectCreateLinearGradient>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0300
+    { "stabilityShaderEffectCreateLinearGradientWithLocalMatrix",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<StabilityShaderEffectCreateLinearGradientWithLocalMatrix>();
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0400
+    { "stabilityShaderEffectCreateRadialGradient",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShaderEffectCreateRadialGradient>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0500
+    { "stabilityShaderEffectCreateRadialGradientWithLocalMatrix",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<StabilityShaderEffectCreateRadialGradientWithLocalMatrix>();
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0600
+    { "stabilityShaderEffectCreateSweepGradient",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShaderEffectCreateSweepGradient>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0700
+    { "stabilityShaderEffectCreateImageShader",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityShaderEffectCreateImageShader>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SHADER_EFFECT_0800
+    { "stabilityShaderEffectCreateTwoPointConicalGradient",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<StabilityShaderEffectCreateTwoPointConicalGradient>();
+        } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_SAMPLING_OPTIONS_0100
+    { "samplingOptionsCreateStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilitySamplingOptionsCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_ROUND_RECT_0100
+    { "roundRectCreateStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRoundRectCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_ROUND_RECT_0200
+    { "roundRectAllStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRoundRectAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_ROUND_RECT_0300
+    { "roundRectRandomFuncStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRoundRectRandomFunc>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_REGION_0100
+    { "regionCreateStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRegionCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_REGION_0200
+    { "regionAllStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRegionAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_REGION_0300
+    { "regionRandomFuncStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRegionRandomFunc>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PEN_0100
+    { "penCreateStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPenCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PEN_0200
+    { "penCopyStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPenCopy>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PEN_0300
+    { "penAllFunc", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPenAllFunc>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PEN_0400
+    { "penRandomFunc", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPenRandomFunc>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MASK_FILTER_0100
+    { "maskFilterCreateBlurStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMaskFilterCreateBlur>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0100
+    { "matrixCreateStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0200
+    { "matrixCreateRotationStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixCreateRotation>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0300
+    { "matrixCreateScaleStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixCreateScale>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0400
+    { "matrixCreateTranslationStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixCreateTranslation>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0500
+    { "matrixAllStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MATRIX_0600
+    { "matrixRandomStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMatrixRandom>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_MEMORY_STREAM_0100
+    { "memoryStreamCreateStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityMemoryStreamCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PATH_EFFECT_0100
+    { "createDashPathEffectStability",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCreateDashPathEffect>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PATH_0100
+    { "pathCreateStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPathCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PATH_0200
+    { "pathCopyStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPathCopy>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PATH_0300
+    { "pathAllStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPathAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_PATH_0400
+    { "pathRandomStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPathRandom>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_POINT_0100
+    { "pointCreateStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityPointCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_RECT_0100
+    { "rectCreateStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRectCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_RECT_0200
+    { "rectCopyStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRectCopy>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_RECT_0300
+    { "rectAllStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRectAll>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_RECT_0400
+    { "rectRandomStability", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityRectRandom>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BITMAP_0100
+    { "stabilityBitmapCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBitmapCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BITMAP_0200
+    { "stabilityBitmapCreateFromPixels",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBitmapCreateFromPixels>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BITMAP_0300
+    { "stabilityBitmapInit", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBitmapInit>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BITMAP_0400
+    { "stabilityBitmapRandInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBitmapRandInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_IMAGE_0100
+    { "stabilityImageCreate", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityImageCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_IMAGE_0200
+    { "stabilityImageInvoke", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityImageInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_IMAGE_0300
+    { "stabilityImageRandInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityImageRandInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BRUSH_0100
+    { "stabilityBrushCreate", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBrushCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BRUSH_0200
+    { "stabilityBrushCopy", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBrushCopy>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_BRUSH_0300
+    { "stabilityBrushRandInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityBrushRandInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_CANVAS_0100
+    { "stabilityCanvasCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCanvasCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_CANVAS_0200
+    { "stabilityCanvasInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCanvasInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_CANVAS_0300
+    { "stabilityCanvasSave", []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCanvasSave>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_CANVAS_0400
+    { "stabilityCanvasAttach",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCanvasAttach>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_CANVAS_0500
+    { "stabilityCanvasRandInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityCanvasRandInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORFILTER_0100
+    { "stabilityColorFilterCreateBlendMode",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateBlendMode>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORFILTER_0200
+    { "stabilityColorFilterCreateCompose",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateCompose>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORFILTER_0300
+    { "stabilityColorFilterCreateMatrix",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateMatrix>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORFILTER_0400
+    { "stabilityColorFilterCreateLinearToSrgbGamma",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateLinearToSrgbGamma>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORFILTER_0500
+    { "StabilityColorFilterCreateSrgbGammaToLinear",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateSrgbGammaToLinear>(); } },
+    { "stabilityColorFilterCreateLuma",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorFilterCreateLuma>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORSPACE_0100
+    { "stabilityColorSpaceCreateSrgb",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorSpaceCreateSrgb>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_STABLE_NDK_DRAWING_COLORSPACE_0200
+    { "StabilityColorSpaceCreateSrgbLinear",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityColorSpaceCreateSrgbLinear>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_FILTEER_0100
+    { "stabilityFilterCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityFilterCreate>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_FILTEER_0200
+    { "stabilityFilterInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityFilterInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_FILTEER_0300
+    { "stabilityFilterRandInvoke",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityFilterRandInvoke>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_IMAGE_FILTER_0100
+    { "stabilityImageFilterCreateBlur",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityImageFilterCreateBlur>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_IMAGE_FILTER_0200
+    { "stabilityImageFilterCreateFromColorFilter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityImageFilterCreateFromColorFilter>(); } },
+    // SUB_BASIC_GRAPHICS_SPECIAL_MEMORY_NDK_DRAWING_GPU_CONTEXT_0100
+    { "stabilityGpuContextCreate",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<StabilityGpuContextCreate>(); } },
 };
 } // namespace
 

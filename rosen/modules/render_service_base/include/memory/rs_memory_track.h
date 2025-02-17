@@ -42,7 +42,7 @@ struct MemoryInfo {
     uint64_t uid = 0;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
     OHOS::Media::AllocatorType allocType;
-    std::weak_ptr<OHOS::Media::PixelMap> pixelMap;
+    OHOS::Media::PixelFormat pixelMapFormat;
 };
 
 class MemoryNodeOfPid {

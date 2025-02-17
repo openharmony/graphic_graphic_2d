@@ -116,6 +116,16 @@ Drawing::DrawingCommonSubType HMSymbolTxt::GetCommonSubType() const
 {
     return commonSubType_;
 }
+
+void HMSymbolTxt::SetSymbolType(SymbolType symbolType)
+{
+    symbolType_ = symbolType;
+}
+
+SymbolType HMSymbolTxt::GetSymbolType() const
+{
+    return symbolType_;
+}
 } // SPText
 } // Rosen
 } // OHOS

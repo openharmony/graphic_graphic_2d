@@ -4955,14 +4955,20 @@ void SharedTransitionParam::ResetRelation()
 
 void SharedTransitionParam::InternalUnregisterSelf()
 {
-    if (auto inNode = inNode_.lock()) {
+    auto inNode = inNode_.lock();
+    if (inNode) {
         inNode->SetSharedTransitionParam(nullptr);
+    }
+    auto outNode = outNode_.lock();
+    if (outNode) {
+        outNode->SetSharedTransitionParam(nullptr);
+    }
+    if (inNode) {
         if (auto parent = inNode->GetParent().lock()) {
             parent->ApplyModifiers();
         }
     }
-    if (auto outNode = outNode_.lock()) {
-        outNode->SetSharedTransitionParam(nullptr);
+    if (outNode) {
         if (auto parent = outNode->GetParent().lock()) {
             parent->ApplyModifiers();
         }

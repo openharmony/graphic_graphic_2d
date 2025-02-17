@@ -227,6 +227,8 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
+
     /* skipFrameInterval : decide how many frames apart to refresh a frame,
        DEFAULT_SKIP_FRAME_INTERVAL means refresh each frame,
        change screen refresh rate finally */

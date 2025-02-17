@@ -129,7 +129,7 @@ HWTEST_F(RSUniRenderThreadTest, GetVisibleRect001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, SetVisibleRect001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    // 100 test value for Rect reight and bottom
+    // 100 test value for Rect right and bottom
     Drawing::RectI visibleRectSet = Drawing::RectI(0, 0, 100, 100);
     RSUniRenderThread::Instance().SetVisibleRect(visibleRectSet);
     const auto &visibleRectGet = instance.GetVisibleRect();

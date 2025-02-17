@@ -2010,6 +2010,16 @@ bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
     return true;
 }
 
+int32_t RSRenderServiceConnection::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
+    std::vector<uint8_t>& edidData)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->GetDisplayIdentificationData(id, outPort, edidData);
+}
+
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     if (!screenManager_) {

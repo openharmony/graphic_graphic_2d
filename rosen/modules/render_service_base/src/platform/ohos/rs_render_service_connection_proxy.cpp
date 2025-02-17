@@ -33,6 +33,7 @@ static constexpr size_t ASHMEM_SIZE_THRESHOLD = 200 * 1024; // cannot > 500K in 
 static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
+static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -2772,6 +2773,49 @@ bool RSRenderServiceConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueId)
     }
 
     return true;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
+    std::vector<uint8_t>& edidData)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result != SUCCESS) {
+        RS_LOGE("RSRenderServiceConnectionProxy::GetDisplayIdentificationData: failed");
+        return result;
+    }
+    if (!reply.ReadUint8(outPort)) {
+        return READ_PARCEL_ERR;
+    }
+    uint32_t edidSize = reply.ReadUint32();
+    if (edidSize == 0 || edidSize > EDID_DATA_MAX_SIZE) {
+        RS_LOGE("RSRenderServiceConnectionProxy::GetDisplayIdentificationData: EdidSize failed");
+        return READ_PARCEL_ERR;
+    }
+    edidData.resize(edidSize);
+    const uint8_t *editpnt = reply.ReadBuffer(edidSize);
+    if (editpnt == nullptr) {
+        RS_LOGE("RSRenderServiceConnectionProxy::GetDisplayIdentificationData: ReadBuffer failed");
+        return READ_PARCEL_ERR;
+    }
+    RS_LOGD("RSRenderServiceConnectionProxy::GetDisplayIdentificationData: EdidSize: %{public}u", edidSize);
+    edidData.assign(editpnt, editpnt + edidSize);
+
+    return result;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)

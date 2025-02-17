@@ -67,6 +67,7 @@ template("skia_libtxt") {
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
       "$txt_root/symbol_engine/hm_symbol_run.cpp",
       "$txt_root/symbol_engine/hm_symbol_txt.cpp",
+      "$txt_root/symbol_resource/symbol_config_parser.cpp",
       "$txt_root/txt/asset_font_manager.cpp",
       "$txt_root/txt/font_asset_provider.cpp",
       "$txt_root/txt/font_collection.cpp",
@@ -79,7 +80,7 @@ template("skia_libtxt") {
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
 
-    external_deps = []
+    external_deps = [ "jsoncpp:jsoncpp" ]
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [
         "bundle_framework:appexecfwk_base",
@@ -117,6 +118,7 @@ template("skia_libtxt") {
     if (is_arkui_x) {
       deps += [
         "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
       ]
     } else {

@@ -35,7 +35,7 @@ public:
     bool RecordPresentTime(uint64_t timestamp, uint32_t seqNum);
     void Dump(std::string& result);
     void ClearDump();
-    std::string GetName() const {
+    const std::string& GetName() const {
         return name_;
     }
 
