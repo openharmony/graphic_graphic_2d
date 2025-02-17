@@ -548,7 +548,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
-        g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
+        g_recordFile.WriteRenderMetrics(0, timeSinceRecordStart, out.data(), out.size());
     }
 }
 

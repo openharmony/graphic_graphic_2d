@@ -344,6 +344,7 @@ ohos_shared_library("librender_service") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "libpng:libpng",
+    "lz4:liblz4_shared",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

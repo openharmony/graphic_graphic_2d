@@ -175,7 +175,7 @@ void RSProfiler::SaveBetaRecord()
         // doesn't start beta record during animations
         return;
     }
-    constexpr double inactivityThreshold = 0.0;
+    constexpr double inactivityThreshold = 0.5;
     if (g_lastParcelTime + Utils::ToNanoseconds(inactivityThreshold) > Utils::Now()) {
         // doesn't start beta record if parcels were sent less then 0.5 second ago
         return;
