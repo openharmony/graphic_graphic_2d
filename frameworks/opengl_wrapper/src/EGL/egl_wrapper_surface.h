@@ -43,12 +43,12 @@ public:
 
     static void Disconnect(OHNativeWindow *window);
 
-    EGLint getColorSpace() const
+    EGLint GetColorSpace() const
     {
         return colorSpace_;
     }
 
-    EGLBoolean getColorSpaceAttribute(EGLint attribute, EGLint* value) const;
+    EGLBoolean GetColorSpaceAttribute(EGLint attribute, EGLint* value) const;
 
 protected:
     ~EglWrapperSurface() override;
