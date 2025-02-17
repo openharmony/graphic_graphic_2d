@@ -54,7 +54,6 @@ public:
     virtual ~SKImageChain();
     DrawError Render(const std::vector<sk_sp<SkImageFilter>> &skFilters, const bool &forceCPU,
         std::shared_ptr<Media::PixelMap> &dstPixelMap);
-public:
     DrawError Draw();
     void ForceCPU(bool forceCPU);
     void SetFilters(sk_sp<SkImageFilter> filter);

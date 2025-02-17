@@ -28,6 +28,8 @@ DECLARE_ANIMATABLE_MODIFIER(SandBox, Vector2f, SANDBOX, Replace, Geometry, LAYOU
 
 DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry, LAYOUT)
 
+DECLARE_NOANIMATABLE_MODIFIER(PositionZApplicableCamera3D, bool, POSITION_Z_APPLICABLE_CAMERA3D, Geometry)
+
 DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry, FINE)
 
 DECLARE_ANIMATABLE_MODIFIER(PivotZ, float, PIVOT_Z, Replace, Geometry, FINE)
@@ -65,6 +67,8 @@ DECLARE_ANIMATABLE_MODIFIER(ForegroundColor, Color, FOREGROUND_COLOR, Add, Foreg
 DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, Add, Background, COLOR)
 
 DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKGROUND_SHADER, Background)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundShaderProgress, float, BACKGROUND_SHADER_PROGRESS, Add, Background, FINE)
 
 DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE, Background)
 

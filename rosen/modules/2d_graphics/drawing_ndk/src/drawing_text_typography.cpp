@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +26,7 @@
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
+#include "txt/text_bundle_config_parser.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -291,10 +291,6 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             rosenDecoration = TextDecoration::LINE_THROUGH;
             break;
         }
-        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
-            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-            break;
-        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
@@ -441,13 +437,20 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
     if (!text || !handler) {
         LOGE("null text");
         return;
-    } else if (!IsUtf8(text, strlen(text))) {
-        LOGE("text is not utf-8");
-        return;
     }
 
-    const std::u16string wideText =
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    std::u16string wideText;
+    if (OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance()
+        .IsTargetApiVersion(OHOS::Rosen::SPText::SINCE_API16_VERSION)) {
+        wideText = Str8ToStr16ByIcu(text);
+    } else {
+        if (!IsUtf8(text, strlen(text))) {
+            LOGE("text is not utf-8");
+            return;
+        }
+        wideText = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    }
+
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
 }
 
@@ -602,8 +605,8 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     }
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsByBoundary(start, end,
-        *originalRectHeightStyle, *originalRectWidthStyle);
+    *originalVector = ConvertToOriginalText<Typography>(typography)
+                          ->GetTextRectsByBoundary(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
     return (OH_Drawing_TextBox*)originalVector;
 }
 
@@ -946,6 +949,10 @@ void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle* style
             rosenWordBreakType = WordBreakType::BREAK_WORD;
             break;
         }
+        case WORD_BREAK_TYPE_BREAK_HYPHEN: {
+            rosenWordBreakType = WordBreakType::BREAK_HYPHEN;
+            break;
+        }
         default: {
             rosenWordBreakType = WordBreakType::BREAK_WORD;
         }
@@ -1157,7 +1164,14 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    delete descriptor;
+    if (descriptor != nullptr) {
+        free(descriptor->path);
+        free(descriptor->postScriptName);
+        free(descriptor->fullName);
+        free(descriptor->fontFamily);
+        free(descriptor->fontSubfamily);
+        delete descriptor;
+    }
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
@@ -1892,7 +1906,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
         if ((fontFeature + i)->tag == nullptr) {
             continue;
         }
-        delete[](fontFeature + i)->tag;
+        delete[] (fontFeature + i)->tag;
         (fontFeature + i)->tag = nullptr;
     }
     delete[] fontFeature;
@@ -1922,10 +1936,12 @@ double OH_Drawing_TextStyleGetBaselineShift(OH_Drawing_TextStyle* style)
 uint32_t OH_Drawing_TextStyleGetColor(OH_Drawing_TextStyle* style)
 {
     if (style == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
     if (textStyle == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     return textStyle->color.CastToColorQuad();
@@ -2387,7 +2403,7 @@ static void ResetString(char** ptr)
     if (!ptr || !(*ptr)) {
         return;
     }
-    delete[](*ptr);
+    delete[] (*ptr);
     (*ptr) = nullptr;
 }
 
@@ -2401,7 +2417,7 @@ static void ResetDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** aliasInfoArray, 
         ResetString(&((*aliasInfoArray)[i].familyName));
     }
 
-    delete[](*aliasInfoArray);
+    delete[] (*aliasInfoArray);
     (*aliasInfoArray) = nullptr;
     aliasInfoSize = 0;
 }
@@ -2437,7 +2453,7 @@ static void ResetDrawingAdjustInfo(OH_Drawing_FontAdjustInfo** adjustInfoArray, 
     if (adjustInfoArray == nullptr || *adjustInfoArray == nullptr) {
         return;
     }
-    delete[](*adjustInfoArray);
+    delete[] (*adjustInfoArray);
     (*adjustInfoArray) = nullptr;
     adjustInfoSize = 0;
 }
@@ -2491,7 +2507,7 @@ static void ResetDrawingFontGenericInfoSet(
         ResetDrawingFontGenericInfo((*fontGenericInfoArray)[i]);
     }
 
-    delete[](*fontGenericInfoArray);
+    delete[] (*fontGenericInfoArray);
     (*fontGenericInfoArray) = nullptr;
     fontGenericInfoSize = 0;
 }
@@ -2537,7 +2553,7 @@ static void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackIn
     for (size_t i = 0; i < fallbackInfoSize; i++) {
         ResetDrawingFallbackInfo((*fallbackInfoArray)[i]);
     }
-    delete[](*fallbackInfoArray);
+    delete[] (*fallbackInfoArray);
     (*fallbackInfoArray) = nullptr;
     fallbackInfoSize = 0;
 }
@@ -2585,7 +2601,7 @@ static void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallback
     for (size_t i = 0; i < fallbackGroupSize; i++) {
         ResetDrawingFallbackGroup((*fallbackGroupArray)[i]);
     }
-    delete[](*fallbackGroupArray);
+    delete[] (*fallbackGroupArray);
     (*fallbackGroupArray) = nullptr;
     fallbackGroupSize = 0;
 }
@@ -2633,10 +2649,10 @@ static void ResetStringArray(char*** ptr, size_t& charArraySize)
         if (!((*ptr)[i])) {
             continue;
         }
-        delete[]((*ptr)[i]);
+        delete[] ((*ptr)[i]);
         ((*ptr)[i]) = nullptr;
     }
-    delete[](*ptr);
+    delete[] (*ptr);
     (*ptr) = nullptr;
     charArraySize = 0;
 }
@@ -3408,20 +3424,6 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     }
 }
 
-size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
-{
-    if (drawingArray == nullptr) {
-        return 0;
-    }
-
-    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
-    if (array == nullptr) {
-        return 0;
-    }
-
-    return array->num;
-}
-
 OH_Drawing_TextTab* OH_Drawing_CreateTextTab(OH_Drawing_TextAlign alignment, float location)
 {
     TextAlign textAlign;
@@ -3474,4 +3476,18 @@ float OH_Drawing_GetTextTabLocation(OH_Drawing_TextTab* tab)
         return 0.0;
     }
     return ConvertToOriginalText<TextTab>(tab)->location;
+}
+
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
+{
+    if (drawingArray == nullptr) {
+        return 0;
+    }
+
+    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
+    if (array == nullptr) {
+        return 0;
+    }
+
+    return array->num;
 }

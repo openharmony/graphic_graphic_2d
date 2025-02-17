@@ -166,7 +166,10 @@ void BootAnimationOperation::PlayPicture(const std::string& path)
         LOGI("set boot animation started true");
     }
 
-    InitRsSurface();
+    if (!InitRsSurface()) {
+        runner_->Stop();
+        return;
+    }
     PlayerParams params;
     params.screenId = currentScreenId_;
     params.rsSurface = rsSurface_;

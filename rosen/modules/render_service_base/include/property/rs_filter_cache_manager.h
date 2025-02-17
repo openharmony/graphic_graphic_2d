@@ -83,7 +83,6 @@ public:
     // cache.
     void ReleaseCacheOffTree();
     void StopFilterPartialRender();
-
     void InvalidateFilterCache(FilterCacheType clearType = FilterCacheType::BOTH);
 
     // To reduce memory usage, clear one of the cached images.

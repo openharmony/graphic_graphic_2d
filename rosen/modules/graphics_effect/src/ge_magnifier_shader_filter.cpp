@@ -71,7 +71,11 @@ std::shared_ptr<Drawing::Image> GEMagnifierShaderFilter::ProcessImage(Drawing::C
     Drawing::Matrix invMatrix;
     invMatrix.Rotate(-magnifierPara_->rotateDegree_, src.GetLeft() + src.GetWidth() / 2.0f,
         src.GetTop() + src.GetHeight() / 2.0f); // 2.0 center of rect
+#ifdef RS_ENABLE_GPU
     auto resultImage = builder->MakeImage(canvas.GetGPUContext().get(), &invMatrix, image->GetImageInfo(), false);
+#else
+    auto resultImage = builder->MakeImage(nullptr, &invMatrix, image->GetImageInfo(), false);
+#endif
     if (resultImage == nullptr) {
         LOGE("GEMagnifierShaderFilter::ProcessImage resultImage is null");
         return image;

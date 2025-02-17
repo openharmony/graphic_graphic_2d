@@ -107,28 +107,21 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump002, TestSize.Level1)
     ASSERT_NE(dumpResult.size(), 0);
 }
 
-/**
- * @tc.name: DoDump003
- * @tc.desc: test DoDump, with different single arg.
- * @tc.type: FUNC
- * @tc.require: issueIAJCOS
- */
-HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
+// resolve the problem of super-large function.
+void DoDumpSingleArg(sptr<RSRenderService> renderService)
 {
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-    ASSERT_NE(renderService->mainThread_, nullptr);
-    ASSERT_NE(renderService->screenManager_, nullptr);
-
     std::string dumpResult = "";
-
+    
     dumpResult = GetDumpResult(renderService, u"screen");
     ASSERT_TRUE(dumpResult.find("screen") != std::string::npos);
 
     dumpResult = GetDumpResult(renderService, u"surface");
     ASSERT_TRUE(dumpResult.find("surface") != std::string::npos);
 
-    dumpResult = GetDumpResult(renderService, u"fps");
+    dumpResult = GetDumpResult(renderService, u"fps Surface");
+    ASSERT_TRUE(dumpResult.find("fps") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"fps DisplayNode");
     ASSERT_TRUE(dumpResult.find("fps") != std::string::npos);
 
     dumpResult = GetDumpResult(renderService, u"nodeNotOnTree");
@@ -158,7 +151,10 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
     dumpResult = GetDumpResult(renderService, u"surfacenode");
     ASSERT_TRUE(dumpResult.find("surfacenode") != std::string::npos);
 
-    dumpResult = GetDumpResult(renderService, u"fpsClear");
+    dumpResult = GetDumpResult(renderService, u"fpsClear Surface");
+    ASSERT_TRUE(dumpResult.find("fpsClear") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"fpsClear DisplayNode");
     ASSERT_TRUE(dumpResult.find("fpsClear") != std::string::npos);
 
     dumpResult = GetDumpResult(renderService, u"dumpNode");
@@ -178,5 +174,27 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 
     dumpResult = GetDumpResult(renderService, u"flushJankStatsRs");
     ASSERT_TRUE(dumpResult.find("flushJankStatsRs") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"client");
+    ASSERT_TRUE(dumpResult.find("ClientNodeTreeDump") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"gles");
+    ASSERT_TRUE(dumpResult.find("DumpGpuInfo") != std::string::npos);
+}
+
+/**
+ * @tc.name: DoDump003
+ * @tc.desc: test DoDump, with different single arg.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJCOS
+ */
+HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
+{
+    auto renderService = GetAndInitRenderService();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_NE(renderService->mainThread_, nullptr);
+    ASSERT_NE(renderService->screenManager_, nullptr);
+
+    DoDumpSingleArg(renderService);
 }
 } // namespace OHOS::Rosen

@@ -19,6 +19,7 @@
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hgm_multi_app_strategy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -74,6 +75,7 @@ void HgmMultiAppStrategyTest::SetUp()
     // set app config
     auto strategyConfigs = multiAppStrategy_->GetStrategyConfigs();
     auto screenSetting = multiAppStrategy_->GetScreenSetting();
+    multiAppStrategy_->appBufferListCache_ = {"test1", "test2", "test3", "test4"};
     auto &appTypes = screenSetting.appTypes;
 
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
@@ -81,7 +83,10 @@ void HgmMultiAppStrategyTest::SetUp()
     screenSetting.strategy = settingStrategyName;
 
     strategyConfigs[strategyName0] = { .min = fps0, .max = fps0, .dynamicMode = DynamicModeType::TOUCH_ENABLED,
-        .drawMin = OLED_NULL_HZ, .drawMax = OLED_NULL_HZ, .down = downFps0 };
+        .drawMin = OLED_NULL_HZ, .drawMax = OLED_NULL_HZ, .down = downFps0,
+        .bufferFpsMap = {{"test2", OLED_NULL_HZ}, {"test4", OLED_NULL_HZ},
+            {"test3", OLED_120_HZ}, {"test1", OLED_90_HZ}},
+        };
     screenSetting.appList[pkgName0] = strategyName0;
     pkgParams_.push_back({ .pkgName = pkgName0, .fps = fps0, .pid = pid0,
         .linker = std::make_shared<RSRenderFrameRateLinker>(((NodeId)pid0) << nodeIdOffset) });
@@ -527,16 +532,70 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
         ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+    
+        STEP("1. normal strategy") {
+            multiAppStrategy_->isLtpo_ = true;
+            multiAppStrategy_->lowAmbientStatus_ = false;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_LOW);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
 
-        multiAppStrategy_->HandleLightFactorStatus(true);
-        multiAppStrategy_->GetVoteRes(strategyConfig);
-        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
-        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_HIGH);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
 
-        multiAppStrategy_->HandleLightFactorStatus(false);
-        multiAppStrategy_->GetVoteRes(strategyConfig);
-        ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
-        ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+            multiAppStrategy_->lowAmbientStatus_ = true;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_LOW);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::NORMAL_HIGH);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+        }
+        STEP("2. brightness level strategy") {
+            multiAppStrategy_->isLtpo_ = false;
+            multiAppStrategy_->lowAmbientStatus_ = true;
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::LOW_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::MIDDLE_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+
+            multiAppStrategy_->HandleLightFactorStatus(LightFactorStatus::HIGH_LEVEL);
+            multiAppStrategy_->GetVoteRes(strategyConfig);
+            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
+            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+        }
+    }
+}
+
+/**
+ * @tc.name: HandleLowAmbientStatus
+ * @tc.desc: Verify the result of HandleLowAmbientStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level1)
+{
+    for (bool status : {false, true}) {
+        multiAppStrategy_->lowAmbientStatus_ = status;
+        multiAppStrategy_->HandleLowAmbientStatus(true);
+        ASSERT_EQ(multiAppStrategy_->lowAmbientStatus_, true);
+    }
+
+    for (bool status : {false, true}) {
+        multiAppStrategy_->lowAmbientStatus_ = status;
+        multiAppStrategy_->HandleLowAmbientStatus(false);
+        ASSERT_EQ(multiAppStrategy_->lowAmbientStatus_, false);
     }
 }
 
@@ -616,6 +675,95 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
         multiAppStrategy->RegisterStrategyChangeCallback(nullptr);
         multiAppStrategy->OnStrategyChange();
     }
+}
+
+/**
+ * @tc.name: SetHgmAppStrategyConfig1
+ * @tc.desc: Verify the result of SetHgmAppStrategyConfig
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig1, Function | SmallTest | Level1)
+{
+    std::string pkg1 = "com.app10";
+    PolicyConfigData::StrategyConfig appStrategyConfig;
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.min, fps0);
+    ASSERT_EQ(appStrategyConfig.max, fps0);
+    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
+    ASSERT_EQ(appStrategyConfig.isFactor, false);
+    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
+    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
+
+    std::vector<std::pair<std::string, std::string>> newConfig = {
+        {"min", "60"},
+        {"max", "120"},
+        {"dynamicMode", "0"},
+        {"isFactor", "1"},
+        {"drawMin", "60"},
+        {"drawMax", "120"},
+        {"test4", "60"},
+        {"test1", "0"},
+        {"errorKey", "1"},
+    };
+
+    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
+    multiAppStrategy_->UpdateAppStrategyConfigCache();
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.min, OLED_60_HZ);
+    ASSERT_EQ(appStrategyConfig.max, OLED_120_HZ);
+    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_DISENABLED);
+    ASSERT_EQ(appStrategyConfig.isFactor, true);
+    ASSERT_EQ(appStrategyConfig.drawMin, OLED_60_HZ);
+    ASSERT_EQ(appStrategyConfig.drawMax, OLED_120_HZ);
+
+    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
+    multiAppStrategy_->SetAppStrategyConfig(pkg1, emptyConfig);
+    multiAppStrategy_->UpdateAppStrategyConfigCache();
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.min, fps0);
+    ASSERT_EQ(appStrategyConfig.max, fps0);
+    ASSERT_EQ(appStrategyConfig.dynamicMode, DynamicModeType::TOUCH_ENABLED);
+    ASSERT_EQ(appStrategyConfig.isFactor, false);
+    ASSERT_EQ(appStrategyConfig.drawMin, OLED_NULL_HZ);
+    ASSERT_EQ(appStrategyConfig.drawMax, OLED_NULL_HZ);
+}
+
+/**
+ * @tc.name: SetHgmAppStrategyConfig2
+ * @tc.desc: Verify the result of SetHgmAppStrategyConfig
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(HgmMultiAppStrategyTest, SetHgmAppStrategyConfig2, Function | SmallTest | Level1)
+{
+    std::string pkg1 = "com.app10";
+    PolicyConfigData::StrategyConfig appStrategyConfig;
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
+    std::vector<std::pair<std::string, std::string>> newConfig = {
+        {"test4", "60"},
+        {"test1", "0"},
+        {"test3", "120"}
+    };
+    multiAppStrategy_->SetAppStrategyConfig(pkg1, newConfig);
+    multiAppStrategy_->UpdateAppStrategyConfigCache();
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_60_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_NULL_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
+    std::vector<std::pair<std::string, std::string>> emptyConfig = {};
+    multiAppStrategy_->SetAppStrategyConfig("", emptyConfig);
+    multiAppStrategy_->UpdateAppStrategyConfigCache();
+    multiAppStrategy_->GetAppStrategyConfig(pkg1, appStrategyConfig);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test4"], OLED_NULL_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test1"], OLED_90_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test3"], OLED_120_HZ);
+    ASSERT_EQ(appStrategyConfig.bufferFpsMap["test2"], OLED_NULL_HZ);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -29,7 +29,7 @@ namespace HdrCapability {
 #define TITLE __func__
 #endif
 
-constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001410, "JsHdrCapability"};
+constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0xD001400, "JsHdrCapability"};
 #define HCLOGE(fmt, args...) \
     (void)OHOS::HiviewDFX::HiLog::Error(LOG_LABEL, "%{public}s: " fmt, TITLE, ##args)
 #define HCLOGI(fmt, args...) \

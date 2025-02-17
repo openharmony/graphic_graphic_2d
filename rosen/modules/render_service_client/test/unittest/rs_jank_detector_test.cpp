@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 
-#include "jank_detector/rs_jank_detector.h"
+#include "render_thread/jank_detector/rs_jank_detector.h"
 
 using namespace testing::ext;
 
@@ -89,10 +89,25 @@ HWTEST_F(RSJankDetectorTest, GetSysTimeNsTest, Function | SmallTest | Level1)
  */
 HWTEST_F(RSJankDetectorTest, CalculateSkippedFrameTest, Function | SmallTest | Level1)
 {
-    // start GetSysTimeNsTest test
-    jankDetector->refreshPeriod_ = 0;
-    jankDetector->CalculateSkippedFrame(0, 0);
-    jankDetector->refreshPeriod_ = 16666667;
-    jankDetector->CalculateSkippedFrame(0, 0);
+    // start CalculateSkippedFrameTest test
+    uint64_t startTimeStamp = 1;
+    uint64_t endTimeStamp = 10;
+    uint64_t refreshPeriod = 16666667;
+    int jankSkippedThreshold = 5;
+    uint64_t noDrawThreshold = 5000000000;
+    std::string abilityName = "ABILITY_NAME";
+    RSJankDetector rsJankDetector;
+    rsJankDetector.UpdateUiDrawFrameMsg(startTimeStamp, endTimeStamp, abilityName);
+    uint64_t renderStartTimeStamp = 1;
+    uint64_t renderEndTimeStamp = 83333336;
+    uint64_t renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
+    int skippedFrame = static_cast<int>(renderDrawTime / refreshPeriod);
+    rsJankDetector.CalculateSkippedFrame(renderStartTimeStamp, renderEndTimeStamp);
+    ASSERT_TRUE(skippedFrame >= jankSkippedThreshold);
+    uint64_t renderStartTimeStamp_ = 1;
+    uint64_t renderEndTimeStamp_ = 5000000001;
+    uint64_t renderDrawTime_ = renderEndTimeStamp_ - renderStartTimeStamp_;
+    rsJankDetector.CalculateSkippedFrame(renderStartTimeStamp_, renderEndTimeStamp_);
+    ASSERT_TRUE(renderDrawTime_ >= noDrawThreshold);
 }
 } // namespace OHOS::Rosen

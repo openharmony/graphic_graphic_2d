@@ -17,9 +17,9 @@
 #define RS_TEST_UTIL_H
 
 #include "iconsumer_surface.h"
-#include "surface.h"
-#include "pipeline/rs_base_render_util.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "surface.h"
 
 namespace OHOS {
 namespace Rosen {

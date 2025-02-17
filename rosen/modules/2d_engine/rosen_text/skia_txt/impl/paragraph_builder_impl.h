@@ -43,6 +43,7 @@ public:
 private:
     void RecordDifferentPthreadCall(const char* caller) const;
     skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
+    void TextStyleToSKStrutStyle(skia::textlayout::StrutStyle& strutStyle, const ParagraphStyle& txt);
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
     skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
     void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);

@@ -50,6 +50,8 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
+using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -95,6 +97,11 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void SetIsCrossNode(bool isCrossNode);
+
+    // PC extend screen use this
+    void AddCrossScreenChild(SharedPtr child, int index);
+    void RemoveCrossScreenChild(SharedPtr child);
 
     NodeId GetId() const
     {
@@ -203,6 +210,7 @@ public:
     void SetSandBox(std::optional<Vector2f> parentPosition);
 
     void SetPositionZ(float positionZ);
+    void SetPositionZApplicableCamera3D(bool isApplicable);
 
     void SetPivot(const Vector2f& pivot);
     void SetPivot(float pivotX, float pivotY);
@@ -262,6 +270,7 @@ public:
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
+    void SetBackgroundShaderProgress(const float& process);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     void SetBgImageInnerRect(const Vector4f& innerRect);
@@ -345,6 +354,7 @@ public:
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
     void SetCustomClipToFrame(const Vector4f& clipRect);
+    void SetHDRBrightness(const float& hdrBrightness);
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
@@ -405,9 +415,12 @@ public:
 
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
-
-    // Mark uifirst node
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -465,6 +478,12 @@ public:
         return isTextureExportNode_;
     }
 
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
+    }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
+
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
@@ -479,12 +498,10 @@ public:
 
     std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
-    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap_;
 
-    // key: status : 1 appear, -1 invalid, value:symbol node animation config
-    std::unordered_map<int,
-        std::unordered_map<NodeId,
-            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
+    // key: status : 0 invalid, 1 appear, value:symbol node animation config
+    std::array<std::vector<OHOS::Rosen::AnimationNodeConfig>, 2> replaceNodesSwapArr_;
 
     void SetInstanceId(int32_t instanceId);
     int32_t GetInstanceId() const
@@ -496,6 +513,12 @@ public:
     {
         return nodeName_;
     }
+
+    static DrawNodeChangeCallback drawNodeChangeCallback_;
+    static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    bool GetIsDrawn();
+    void SetDrawNode();
+
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -503,6 +526,11 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
+
+    // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
 
@@ -536,7 +564,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateTextureExportRenderNodeInRT() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -589,8 +617,12 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isDrawNode_ = false;
 
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

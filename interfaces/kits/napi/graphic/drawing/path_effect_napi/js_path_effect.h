@@ -34,6 +34,10 @@ public:
 
     static napi_value CreateDashPathEffect(napi_env env, napi_callback_info info);
     static napi_value CreateCornerPathEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateDiscretePathEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateComposePathEffect(napi_env env, napi_callback_info info);
+    static napi_value CreatePathDashEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateSumPathEffect(napi_env env, napi_callback_info info);
     std::shared_ptr<PathEffect> GetPathEffect();
 
 private:

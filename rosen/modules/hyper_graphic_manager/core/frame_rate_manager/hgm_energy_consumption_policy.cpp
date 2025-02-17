@@ -29,7 +29,7 @@
 namespace OHOS::Rosen {
 
 const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
-static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
+static const std::unordered_map<std::string, uint32_t> UI_RATE_TYPE_NAME_MAP = {
     {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
     {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
     {"ace_component", ACE_COMPONENT_FRAME_RATE_TYPE },
@@ -42,8 +42,10 @@ constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string &componentName) {
-        HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string& componentName) {
+        if (isAnimationEnergyConsumptionAssuranceMode_) {
+            HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+        }
     });
     RsCommonHook::Instance().SetComponentPowerFpsFunc(
         std::bind(&HgmEnergyConsumptionPolicy::GetComponentFps, this, std::placeholders::_1));
@@ -125,7 +127,7 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
     }
     isAnimationEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
     firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
-    lastAnimationTimestamp_ = firstAnimationTimestamp_;
+    lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
 }
 
 void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
@@ -146,7 +148,7 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::string &componentN
         return;
     }
     firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
-    lastAnimationTimestamp_ = firstAnimationTimestamp_;
+    lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
 }
 
 void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)
@@ -192,21 +194,22 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
     SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
 }
 
-void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
+bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
     if (!isTouchIdle_) {
-        return;
+        return false;
     }
-    auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
+    auto it = uiEnergyAssuranceMap_.find(rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME);
     if (it == uiEnergyAssuranceMap_.end()) {
         HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
-        return;
+        return false;
     }
     bool isEnergyAssuranceEnable = it->second.first;
     int idleFps = it->second.second;
     if (isEnergyAssuranceEnable) {
         SetEnergyConsumptionRateRange(rsRange, idleFps);
     }
+    return true;
 }
 
 void HgmEnergyConsumptionPolicy::SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId)
@@ -234,7 +237,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
         }
         lastAssuranceLog_ = lastAssuranceLog;
         RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+        HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
@@ -245,7 +248,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
         }
         lastAssuranceLog_ = lastAssuranceLog;
         RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+        HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
@@ -255,7 +258,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     }
     lastAssuranceLog_ = lastAssuranceLog;
     RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-    HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+    HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
 int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string &componentName)

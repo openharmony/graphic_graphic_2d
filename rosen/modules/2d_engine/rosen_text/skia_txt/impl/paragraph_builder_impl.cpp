@@ -14,12 +14,15 @@
  */
 
 #include "paragraph_builder_impl.h"
+#include <string>
 
-#include "modules/skparagraph/include/ParagraphStyle.h"
-#include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "paragraph_line_fetcher_impl.h"
+#include "common_utils/string_util.h"
+#include "modules/skparagraph/include/ParagraphStyle.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "txt/paragraph_style.h"
+#include "txt/text_bundle_config_parser.h"
 #include "utils/text_log.h"
 
 namespace skt = skia::textlayout;
@@ -28,6 +31,7 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace {
+
 int ConvertToSkFontWeight(FontWeight fontWeight)
 {
     constexpr int weightBase = 100;
@@ -96,8 +100,8 @@ skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
 
 const char* DefaultLocale()
 {
-    static const char* localeZh = "zh-Hans";
-    return localeZh;
+    static const char* LOCALE_ZH = "zh-Hans";
+    return LOCALE_ZH;
 }
 } // anonymous namespace
 
@@ -126,7 +130,13 @@ void ParagraphBuilderImpl::Pop()
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    builder_->addText(text);
+    if (TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API16_VERSION)) {
+        std::u16string wideText = text;
+        Utf16Utils::HandleIncompleteSurrogatePairs(wideText);
+        builder_->addText(wideText);
+    } else {
+        builder_->addText(text);
+    }
 }
 
 void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
@@ -178,6 +188,25 @@ skt::TextTabs ConvertToSkTextTab(const TextTab& tab)
     };
 }
 
+void ParagraphBuilderImpl::TextStyleToSKStrutStyle(skt::StrutStyle& strutStyle, const ParagraphStyle& txt)
+{
+    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
+    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
+    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
+    strutStyle.setHeightOverride(txt.strutHeightOverride);
+
+    std::vector<SkString> strutFonts;
+    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
+        [](const std::string& f) { return SkString(f.c_str()); });
+    strutStyle.setHalfLeading(txt.strutHalfLeading);
+    strutStyle.setFontFamilies(strutFonts);
+    strutStyle.setLeading(txt.strutLeading);
+    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
+    strutStyle.setStrutEnabled(txt.strutEnabled);
+    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
+    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+}
+
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
 {
     skt::ParagraphStyle skStyle;
@@ -200,20 +229,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextStyle(textStyle);
     skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
-    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
-    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
-    strutStyle.setHeightOverride(txt.strutHeightOverride);
-
-    std::vector<SkString> strutFonts;
-    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
-        [](const std::string& f) { return SkString(f.c_str()); });
-    strutStyle.setFontFamilies(strutFonts);
-    strutStyle.setLeading(txt.strutLeading);
-    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
-    strutStyle.setStrutEnabled(txt.strutEnabled);
-    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
-    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+    TextStyleToSKStrutStyle(strutStyle, txt);
     skStyle.setStrutStyle(strutStyle);
 
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));

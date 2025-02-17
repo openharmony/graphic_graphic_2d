@@ -16,11 +16,11 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "drawable/rs_display_render_node_drawable.h"
-#include "pipeline/rs_composer_adapter.h"
+#include "pipeline/render_thread/rs_composer_adapter.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_test_util.h"
 #include "transaction/rs_interfaces.h"
-#include "pipeline/rs_hardware_thread.h"
 #include "mock/mock_hdi_device.h"
 #include "surface_buffer_impl.h"
 

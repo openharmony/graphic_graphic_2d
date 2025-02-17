@@ -23,8 +23,18 @@ namespace Rosen {
 namespace Drawing {
 Color::Color() noexcept : alpha_(RGB_MAX), red_(0), green_(0), blue_(0) {}
 
-Color::Color(const Color& c) noexcept : alpha_(c.GetAlpha()), red_(c.GetRed()), green_(c.GetGreen()), blue_(c.GetBlue())
-{}
+Color::Color(const Color& c) noexcept
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    uint32_t alpha = c.GetAlpha();
+    uint32_t red = c.GetRed();
+    uint32_t green = c.GetGreen();
+    uint32_t blue = c.GetBlue();
+    alpha_ = alpha;
+    red_ = red;
+    green_ = green;
+    blue_ = blue;
+}
 
 Color::Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept : alpha_(a), red_(r), green_(g), blue_(b) {}
 

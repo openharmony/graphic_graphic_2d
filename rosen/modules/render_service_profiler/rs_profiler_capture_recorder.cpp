@@ -19,19 +19,9 @@
 #include <cstring>
 #include <filesystem>
 
-#include "benchmarks/file_utils.h"
-#include "include/core/SkDocument.h"
-#include "include/core/SkPicture.h"
-#include "include/core/SkPictureRecorder.h"
-#include "include/core/SkSerialProcs.h"
-#include "include/core/SkStream.h"
-#include "include/utils/SkNWayCanvas.h"
-#include "src/utils/SkMultiPictureDocument.h"
-#include "tools/SkSharingProc.h"
 
 #include "common/rs_common_def.h"
 #include "draw/canvas.h"
-#include "drawing/engine_adapter/skia_adapter/skia_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -50,15 +40,20 @@ static const BoolParameter IS_MSKP("mskp.isMskp");
 
 RSCaptureRecorder::RSCaptureRecorder()
 {
+    profilerEnabled_ = RSSystemProperties::GetProfilerEnabled();
     InvalidateDrawingCanvasNodeId();
 }
 
 RSCaptureRecorder::~RSCaptureRecorder() = default;
 
+void RSCaptureRecorder::SetProfilerEnabled(bool val)
+{
+    profilerEnabled_ = val;
+}
+
 bool RSCaptureRecorder::IsRecordingEnabled()
 {
-    static const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
-    return profilerEnabled && RSSystemProperties::GetInstantRecording();
+    return profilerEnabled_ && RSSystemProperties::GetInstantRecording();
 }
 
 void RSCaptureRecorder::InvalidateDrawingCanvasNodeId()
@@ -173,24 +168,16 @@ bool RSCaptureRecorder::PullAndSendRdc()
 
 void RSCaptureRecorder::InitMSKP()
 {
-    auto stream = std::make_unique<SkFILEWStream>((*MSKP_PATH).data());
-    if (!stream->isValid()) {
+    auto stream = std::make_unique<Drawing::FileWStream>((*MSKP_PATH).data());
+    if (!stream->IsValid()) {
         std::cout << "Could not open " << *MSKP_PATH << " for writing." << std::endl;
         return;
     }
     openMultiPicStream_ = std::move(stream);
 
-    SkSerialProcs procs;
-    serialContext_ = std::make_unique<SkSharingSerialContext>();
-    procs.fImageProc = SkSharingSerialContext::serializeImage;
-    procs.fImageCtx = serialContext_.get();
-    procs.fTypefaceProc = [](SkTypeface* tf, void* ctx) {
-        return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
-    };
-    multiPic_ = SkMakeMultiPictureDocument(
-        openMultiPicStream_.get(), &procs, [sharingCtx = serialContext_.get()](const SkPicture* pic) {
-            SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
-        });
+    serialContext_ = std::make_unique<Drawing::SharingSerialContext>();
+    Drawing::SerialProcs procs;
+    multiPic_ = Drawing::Document::MakeMultiPictureDocument(openMultiPicStream_.get(), &procs, serialContext_);
     isMskpActive_ = true;
 }
 
@@ -238,41 +225,39 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCaptureSKP(float width, float heig
 {
     Network::SendMessage("Starting .skp capturing.");
     recordingSkpCanvas_ = std::make_shared<Drawing::Canvas>(width, height);
-    skRecorder_ = std::make_unique<SkPictureRecorder>();
-    SkCanvas* skiaCanvas = skRecorder_->beginRecording(width, height);
-    if (skiaCanvas == nullptr) {
+    recorder_ = std::make_unique<Drawing::PictureRecorder>();
+    auto canvas = recorder_->BeginRecording(width, height);
+    if (canvas == nullptr) {
         return nullptr;
     }
-    recordingSkpCanvas_->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas);
+    recordingSkpCanvas_ = canvas;
     return recordingSkpCanvas_.get();
 }
 
 void RSCaptureRecorder::EndInstantCaptureSKP()
 {
-    if (skRecorder_ == nullptr) {
+    if (recorder_ == nullptr) {
         RSSystemProperties::SetInstantRecording(false);
         return;
     }
     InvalidateDrawingCanvasNodeId();
-    picture_ = skRecorder_->finishRecordingAsPicture();
+    picture_ = recorder_->FinishRecordingAsPicture();
     Network::SendMessage("Finishing .skp capturing.");
     if (picture_ != nullptr) {
-        if (picture_->approximateOpCount() > 0) {
-            Network::SendMessage("OpCount: " + std::to_string(picture_->approximateOpCount()));
-            SkSerialProcs procs;
-            procs.fTypefaceProc = [](SkTypeface* tf, void* ctx) {
-                return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
-            };
-            auto data = picture_->serialize(&procs);
-            if (data && (data->size() > 0)) {
-                Network::SendSkp(data->data(), data->size());
-            }
+        if (picture_->ApproximateOpCount() > 0) {
+            Network::SendMessage("OpCount: " + std::to_string(picture_->ApproximateOpCount()));
+            Drawing::SerialProcs procs;
+            procs.SetHasTypefaceProc(true);
+            auto data = picture_->Serialize(&procs);
+            if (data && (data->GetSize() > 0)) {
+                    Network::SendSkp(data->GetData(), data->GetSize());
+                }
         }
     } else {
         Network::SendMessage("Empty, nothing to record to .skp");
     }
     recordingSkpCanvas_.reset();
-    skRecorder_.reset();
+    recorder_.reset();
 
     RSSystemProperties::SetInstantRecording(false);
 }
@@ -285,12 +270,12 @@ Drawing::Canvas* RSCaptureRecorder::TryCaptureMSKP(float width, float height)
     }
     mskpIdxCurrent_ = mskpIdxNext_;
     recordingSkpCanvas_ = std::make_shared<Drawing::Canvas>(width, height);
-    SkCanvas* skiaCanvas = multiPic_->beginPage(width, height);
+    std::shared_ptr<Drawing::Canvas> canvas = multiPic_->BeginPage(width, height);
     Network::SendMessage("Begin .mskp page: " + std::to_string(mskpIdxCurrent_));
-    if (skiaCanvas == nullptr) {
+    if (canvas == nullptr) {
         return nullptr;
     }
-    recordingSkpCanvas_->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas);
+    recordingSkpCanvas_ = canvas;
     isPageActive_ = true;
     return recordingSkpCanvas_.get();
 }
@@ -299,7 +284,7 @@ void RSCaptureRecorder::EndCaptureMSKP()
 {
     if (isPageActive_) {
         Network::SendMessage("Close .mskp page: " + std::to_string(mskpIdxCurrent_));
-        multiPic_->endPage();
+        multiPic_->EndPage();
     }
     isPageActive_ = false;
 
@@ -313,9 +298,9 @@ void RSCaptureRecorder::EndCaptureMSKP()
         isMskpActive_ = false;
 
         std::thread thread([this]() mutable {
-            SkFILEWStream* stream = this->openMultiPicStream_.release();
+            Drawing::FileWStream* stream = this->openMultiPicStream_.release();
             Network::SendMessage("MSKP serialization started.");
-            this->multiPic_->close();
+            this->multiPic_->Close();
             Network::SendMessage("MSKP Serialization done.");
             delete stream;
             Network::SendMskpPath(*MSKP_PATH);

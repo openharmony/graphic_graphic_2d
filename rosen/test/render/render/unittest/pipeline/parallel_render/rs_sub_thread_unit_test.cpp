@@ -16,9 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/parallel_render/rs_sub_thread.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_base_render_engine.h"
-#include "pipeline/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

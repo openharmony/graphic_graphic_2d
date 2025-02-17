@@ -15,6 +15,7 @@
 
 #include <vsync_receiver.h>
 #include "transaction/rs_interfaces.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "vsync_log.h"
 #include "native_vsync.h"
 
@@ -23,6 +24,7 @@ using namespace OHOS;
 namespace {
 struct NativeVSync {
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
+    std::shared_ptr<OHOS::Rosen::RSFrameRateLinker> frameRateLinker_;
 };
 }
 static NativeVSync* OH_NativeVSync_OHNativeVSyncToNativeVSync(OH_NativeVSync* ohNativeVSync)
@@ -35,15 +37,21 @@ static OH_NativeVSync* OH_NativeVSync_NativeVSyncToOHNativeVSync(NativeVSync* na
     return reinterpret_cast<OH_NativeVSync*>(nativeVSync);
 }
 
-OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
+std::shared_ptr<OHOS::Rosen::VSyncReceiver> CreateAndInitVSyncReceiver(
+    const std::string& vsyncName,
+    uint64_t windowID = 0,
+    bool isAssociatedWindow = false,
+    NativeVSync* nativeVSync = nullptr)
 {
-    if (name == nullptr) {
-        VLOGE("name is nullptr, please check");
-        return nullptr;
-    }
-    std::string vsyncName(name, length);
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
-    std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver = rsClient.CreateVSyncReceiver(vsyncName);
+    std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver;
+    if (isAssociatedWindow) {
+        nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+        receiver = rsClient.CreateVSyncReceiver(
+            vsyncName, nativeVSync->frameRateLinker_->GetId(), nullptr, windowID, true);
+    } else {
+        receiver = rsClient.CreateVSyncReceiver(vsyncName);
+    }
     if (receiver == nullptr) {
         VLOGE("Create VSyncReceiver failed");
         return nullptr;
@@ -53,7 +61,39 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
         VLOGE("VSyncReceiver Init failed, ret:%{public}d", ret);
         return nullptr;
     }
+    return receiver;
+}
+
+OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
+{
+    if (name == nullptr) {
+        VLOGE("name is nullptr, please check");
+        return nullptr;
+    }
+    std::string vsyncName(name, length);
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName);
+    if (receiver == nullptr) {
+        return nullptr;
+    }
     NativeVSync* nativeVSync = new NativeVSync;
+    nativeVSync->receiver_ = receiver;
+    return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
+}
+
+OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, const char* name, unsigned int length)
+{
+    if (name == nullptr) {
+        VLOGE("name is nullptr, please check");
+        return nullptr;
+    }
+    std::string vsyncName(name, length);
+    NativeVSync* nativeVSync = new NativeVSync;
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName, windowID, true, nativeVSync);
+    if (receiver == nullptr) {
+        VLOGE("receiver is nullptr, please check");
+        delete nativeVSync;
+        return nullptr;
+    }
     nativeVSync->receiver_ = receiver;
     return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
 }

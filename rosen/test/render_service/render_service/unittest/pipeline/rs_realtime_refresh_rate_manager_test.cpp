@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "test_header.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;
@@ -40,21 +40,53 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus001, TestSize.Level1)
 {
     auto& instance = RSRealtimeRefreshRateManager::Instance();
 
-    instance.SetShowRefreshRateEnabled(true);
+    instance.SetShowRefreshRateEnabled(true, 1);
     bool ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, true);
+    ASSERT_EQ(instance.collectEnabled_, false);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, true);
 
-    instance.SetShowRefreshRateEnabled(true);
+    instance.SetShowRefreshRateEnabled(true, 0);
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, true);
+    ASSERT_EQ(instance.collectEnabled_, true);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, true);
 
-    instance.SetShowRefreshRateEnabled(false);
+    instance.SetShowRefreshRateEnabled(true, 1);
+    ret = instance.GetShowRefreshRateEnabled();
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(instance.collectEnabled_, true);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, true);
+
+    instance.SetShowRefreshRateEnabled(true, 0);
+    ret = instance.GetShowRefreshRateEnabled();
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(instance.collectEnabled_, true);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, true);
+
+    instance.SetShowRefreshRateEnabled(false, 1);
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, false);
+    ASSERT_EQ(instance.collectEnabled_, true);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, true);
 
-    instance.SetShowRefreshRateEnabled(false);
+    instance.SetShowRefreshRateEnabled(false, 0);
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, false);
+    ASSERT_EQ(instance.collectEnabled_, false);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, false);
+
+    instance.SetShowRefreshRateEnabled(false, 1);
+    ret = instance.GetShowRefreshRateEnabled();
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(instance.collectEnabled_, false);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, false);
+
+    instance.SetShowRefreshRateEnabled(false, 0);
+    ret = instance.GetShowRefreshRateEnabled();
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(instance.collectEnabled_, false);
+    ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, false);
 }
 
 /**
@@ -69,8 +101,10 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus002, TestSize.Level1)
     uint32_t threadNums = 100;
     std::vector<std::thread> thds;
     for (int i = 0; i < threadNums; i++) {
-        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(true); }));
-        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(false); }));
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(true, 1); }));
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(true, 0); }));
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(false, 1); }));
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(false, 0); }));
     }
     for (auto &thd : thds) {
         if (thd.joinable()) {

@@ -39,79 +39,63 @@ public:
     std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
-private:
+protected:
     struct NewBlurParams {
         int numberOfPasses = 1;     // 1: initial number of passes
         float offsets[12] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};    // 0: initial offsets
     };
-    bool InitBlurEffect();
-    bool InitMixEffect();
-    bool InitSimpleFilter();
-    bool InitGreyAdjustmentEffect();
 
-    void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-        std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const;
-    std::shared_ptr<Drawing::Image> OutputImageWithoutBlur(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& image,
-        const Drawing::Rect& src, const Drawing::Rect& dst) const;
+    enum PixelStretchFuzedMode {
+        AFTER_BLUR = 0,
+        BEFORE_BLUR,
+        Custom,
+        DEFAULT = AFTER_BLUR,
+    };
 
-    std::shared_ptr<Drawing::ShaderEffect> ApplyGreyAdjustmentFilter(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& input, const std::shared_ptr<Drawing::ShaderEffect>& prevShader,
-        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const;
-    std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(const std::shared_ptr<Drawing::Image>& image,
-        const Drawing::SamplingOptions& linear, const Drawing::Matrix& matrix) const;
-
-    std::shared_ptr<Drawing::Image> DownSampling2X(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear,
-        const NewBlurParams& blur) const;
-    std::shared_ptr<Drawing::Image> DownSampling4X(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear,
-        const NewBlurParams& blur) const;
-    std::shared_ptr<Drawing::Image> DownSampling8X(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-        const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo,
-        const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const;
-    std::shared_ptr<Drawing::Image> DownSamplingMoreX(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-        const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo,
-        const Drawing::ImageInfo& middleInfo2, const Drawing::SamplingOptions& linear,
-        const NewBlurParams& blur) const;
-    std::shared_ptr<Drawing::Image> DownSampling(Drawing::Canvas& canvas,
+    virtual std::shared_ptr<Drawing::Image> DownSamplingFuzedBlur(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder,
         const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
         const Drawing::ImageInfo& scaledInfo, int& width, int& height,
         const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const;
-    std::shared_ptr<Drawing::Image> ScaleAndAddRandomColor(Drawing::Canvas& canvas,
-        const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& blurImage,
-        const Drawing::Rect& src, const Drawing::Rect& dst, int& width, int& height) const;
+    virtual std::shared_ptr<Drawing::Image> PingPongBlur(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder, Drawing::RuntimeShaderBuilder& simpleBuilder,
+        const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& input,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const;
+    std::shared_ptr<Drawing::ShaderEffect> DownSampling2X(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder,
+        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const;
+    std::shared_ptr<Drawing::ShaderEffect> DownSampling4X(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+        const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
+        const Drawing::SamplingOptions& linear, bool isEasySampling = false) const;
+    std::shared_ptr<Drawing::ShaderEffect> DownSampling8X(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder,
+        const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo,
+        const Drawing::SamplingOptions& linear, bool isEasySampling = false) const;
+    std::shared_ptr<Drawing::ShaderEffect> DownSamplingMoreX(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+        const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
+        const Drawing::ImageInfo& middleInfo, const Drawing::ImageInfo& middleInfo2,
+        const Drawing::SamplingOptions& linear, bool isEasySampling = false) const;
 
-    void ComputeRadiusAndScale(int radius);
-    void AdjustRadiusAndScale();
-    std::string GetDescription() const;
-    bool IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
-        const Drawing::Rect& dst);
+    virtual bool SetBlurParams(NewBlurParams& bParam);
+    bool SetGeneralBlurParams(NewBlurParams& bParam);
+    bool SetBlurParamsHelper(NewBlurParams& bParam,
+        const std::vector<std::vector<float>>& offsetTable, float st, float ed);
 
-    void SetBlurParams(NewBlurParams& bParam);
-    void SetBlurParamsFivePassSmall(NewBlurParams& bParam);
-    void SetBlurParamsFivePassLarge(NewBlurParams& bParam);
-
-    Drawing::Matrix BuildMatrix(const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
+    virtual Drawing::ImageInfo ComputeImageInfo(const Drawing::ImageInfo& originalInfo, int& width, int& height) const;
+    Drawing::Matrix BuildStretchMatrix(const Drawing::ImageInfo& scaledInfo,
         const std::shared_ptr<Drawing::Image>& input) const;
-    Drawing::Matrix BuildMiddleMatrix(
-        const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo) const;
-    Drawing::Matrix BuildStretchMatrixFull(const Drawing::Rect& src,
-        const Drawing::Rect& dst, int inputWidth, int inputHeight) const;
-    Drawing::Matrix BuildStretchMatrix(const Drawing::Rect& src, int inputWidth, int inputHeight) const;
-    void CalculatePixelStretch(int width, int height);
 
     int radius_ = 0;
     float blurRadius_ = 0.0f;
     float blurScale_ = 0.25f;
-
+    bool isGreyX_ = false;
+    PixelStretchFuzedMode isStretchX_ = PixelStretchFuzedMode::DEFAULT;
     float greyCoef1_ = 0.0f;
     float greyCoef2_ = 0.0f;
-    bool isGreyX_ = false;
     float stretchOffsetX_ = 0.0f;
     float stretchOffsetY_ = 0.0f;
     float stretchOffsetZ_ = 0.0f;
@@ -123,6 +107,42 @@ private:
     Drawing::TileMode tileMode_ = Drawing::TileMode::CLAMP;
     float width_ = 0.0f;
     float height_ = 0.0f;
+
+private:
+    bool InitBlurEffect();
+    bool InitMixEffect();
+    bool InitSimpleFilter();
+    bool InitGreyAdjustmentEffect();
+
+    void CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const;
+    std::shared_ptr<Drawing::Image> OutputImageWithoutBlur(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image,
+        const Drawing::Rect& src, const Drawing::Rect& dst) const;
+
+    std::shared_ptr<Drawing::ShaderEffect> ApplyFuzedFilter(Drawing::Canvas& canvas,
+        Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+        const std::shared_ptr<Drawing::ShaderEffect>& prevShader, const Drawing::ImageInfo& middleInfo,
+        const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear,
+        const Drawing::Matrix& matrix = Drawing::Matrix()) const;
+
+    std::shared_ptr<Drawing::Image> ScaleAndAddRandomColor(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& blurImage,
+        const Drawing::Rect& src, const Drawing::Rect& dst, int& width, int& height) const;
+
+    std::string GetDescription() const;
+    bool IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
+        const Drawing::Rect& dst);
+
+    bool SetBlurParamsFivePassLarge(NewBlurParams& bParam);
+
+    Drawing::Matrix BuildMatrix(const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
+        const std::shared_ptr<Drawing::Image>& input) const;
+    Drawing::Matrix BuildMiddleMatrix(
+        const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo) const;
+    Drawing::Matrix BuildStretchMatrixFull(const Drawing::Rect& src,
+        const Drawing::Rect& dst, int inputWidth, int inputHeight) const;
+    void CalculatePixelStretch(int width, int height);
 };
 
 } // namespace Rosen

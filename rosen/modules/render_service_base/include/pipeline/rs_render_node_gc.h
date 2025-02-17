@@ -41,7 +41,17 @@ namespace {
     const uint32_t DRAWABLE_BUCKET_THR_HIGH = 100;
     const uint32_t OFFTREE_BUCKET_THR_LOW = 4;
     const uint32_t OFFTREE_BUCKET_THR_HIGH = 20;
+    const uint32_t GC_LEVEL_THR_IMMEDIATE = 1000;
+    const uint32_t GC_LEVEL_THR_HIGH = 500;
+    const uint32_t GC_LEVEL_THR_LOW = 50;
 }
+
+enum class GCLevel : uint32_t {
+    IMMEDIATE = 0,
+    HIGH,
+    LOW,
+    IDLE,
+};
 class RSB_EXPORT RSRenderNodeGC {
 public:
     typedef void (*gcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
@@ -76,10 +86,14 @@ public:
     }
 
 private:
+    GCLevel JudgeGCLevel(uint32_t remainBucketSize);
+
+    std::atomic<bool> isEnable_ = true;
+    GCLevel nodeGCLevel_ = GCLevel::IDLE;
+    GCLevel drawableGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 
-    std::atomic<bool> isEnable_ = true;
     std::queue<std::vector<std::shared_ptr<RSBaseRenderNode>>> offTreeBucket_;
     RSThresholdDetector<uint32_t> offTreeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
         OFFTREE_BUCKET_THR_LOW, OFFTREE_BUCKET_THR_HIGH);

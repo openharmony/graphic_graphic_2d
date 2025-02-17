@@ -266,7 +266,8 @@ HWTEST_F(VSyncSamplerTest, GetHardwarePeriod003, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncSamplerTest, AddPresentFenceTime001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(6), true);
+    VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, 6), true);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 
@@ -284,7 +285,8 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3
         ret = VSyncSamplerTest::vsyncSampler->AddSample(i);
     }
     ASSERT_EQ(ret, false);
-    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(SAMPLER_NUMBER + 1), false);
+    VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, SAMPLER_NUMBER + 1), false);
     VSyncSamplerTest::vsyncSampler->Reset();
 }
 

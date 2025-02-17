@@ -64,7 +64,8 @@ public:
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
 
     // This interface is only available for WMS
-    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true);
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true,
+        bool unobscured = false);
 
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
@@ -133,6 +134,7 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+    // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);
     void MarkUiFrameAvailable(bool available);
@@ -141,6 +143,8 @@ public:
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetClonedNodeId(NodeId nodeId);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
@@ -153,6 +157,14 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    void SetHardwareEnableHint(bool enable);
+    void SetApiCompatibleVersion(uint32_t version);
+
+    void AttachToWindowContainer(ScreenId screenId);
+    void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -167,11 +179,12 @@ private:
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
 #endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0);
+    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0,
+        bool unobscured = false);
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
     std::shared_ptr<RSSurface> surface_;
@@ -198,6 +211,8 @@ private:
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
 #endif
+
+    std::mutex apiInitMutex_;
 
     friend class RSUIDirector;
     friend class RSAnimation;

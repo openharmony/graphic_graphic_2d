@@ -47,6 +47,7 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand001, TestSize.Level1)
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = nullptr;
     RSModifierType type = RSModifierType::INVALID;
     RSCanvasNodeCommandHelper::UpdateRecording(context, nodeId, drawCmds, static_cast<uint16_t>(type));
+    ASSERT_EQ(nodeId, static_cast<NodeId>(-1));
 }
 
 /**
@@ -72,6 +73,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
+    ASSERT_EQ(targetId, static_cast<NodeId>(-1));
 }
 
 /**
@@ -85,6 +87,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create002, TestSize.Level1)
     RSContext context;
     NodeId targetId = 0;
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
+    ASSERT_EQ(targetId, static_cast<NodeId>(0));
 }
 
 /**

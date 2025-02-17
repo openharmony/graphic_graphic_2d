@@ -86,6 +86,7 @@ bool MemAllocatorFuzzTest002(const uint8_t* data, size_t size)
     }
     return true;
 }
+
 bool MemAllocatorFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

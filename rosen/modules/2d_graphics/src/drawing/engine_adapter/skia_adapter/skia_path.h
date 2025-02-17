@@ -83,6 +83,7 @@ public:
 
     Rect GetBounds() const override;
     void SetFillStyle(PathFillType fillstyle) override;
+    PathFillType GetFillStyle() const override;
 
     bool Interpolate(const Path& ending, scalar weight, Path& out) override;
     void Transform(const Matrix& matrix) override;

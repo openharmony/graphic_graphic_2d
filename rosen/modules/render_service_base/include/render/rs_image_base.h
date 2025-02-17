@@ -27,8 +27,8 @@
 #include "transaction/rs_marshalling_helper.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "surface_buffer.h"
 #include "external_window.h"
+#include "surface_buffer.h"
 #endif
 
 namespace OHOS {
@@ -48,6 +48,10 @@ public:
 
     virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    virtual void DrawImageNine(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
+    virtual void DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
@@ -59,7 +63,7 @@ public:
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
-    std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+    std::shared_ptr<Media::PixelMap> GetPixelMap();
     void DumpPicture(DfxString& info) const;
     uint64_t GetUniqueId() const;
 #ifdef ROSEN_OHOS
@@ -69,20 +73,25 @@ public:
 
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
 
+    /*
+     * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
+     * Only the pixelMap_ held by at most one RSImage and one Image can be purged.
+     * More information can be found in RSImageCahe::CheckRefCntAndReleaseImageCache.
+    */
     void Purge();
-    enum class CanPurgeFlag : int8_t {
-        UNINITED = -1,
-        DISABLED = 0,
-        ENABLED = 1,
-    };
-    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 
 protected:
     void GenUniqueId(uint32_t id);
+    /*
+     * This is the reverse process of Purge, which will call ReMap() of pixelMap_. To avoid Upmap() being called
+     * after ReMap() and before pixelMap_ is used, use_count of pixelMap_ will be increased by return value.
+     * Use the return temporary and do not store it to avoid memory leak.
+    */
+    std::shared_ptr<Media::PixelMap> DePurge();
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
-    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #endif
@@ -112,6 +121,13 @@ protected:
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
+
+    enum class CanPurgeFlag : int8_t {
+        UNINITED = -1,
+        DISABLED = 0,
+        ENABLED = 1,
+    };
+    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 };
 } // namespace Rosen
 } // namespace OHOS

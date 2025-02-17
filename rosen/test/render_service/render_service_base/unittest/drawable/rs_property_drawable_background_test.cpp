@@ -422,8 +422,11 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     ASSERT_NE(filterDrawable->stagingFilter_, nullptr);
     ASSERT_TRUE(filterDrawable->needSync_);
     ASSERT_TRUE(filterDrawable->stagingNeedDrawBehindWindow_);
+    RectI region(0, 0, 1, 1);
+    filterDrawable->stagingDrawBehindWindowRegion_ = region;
     filterDrawable->OnSync();
     ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
+    ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
 }
 
 /**
@@ -435,8 +438,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
 HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawable, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    int width = 1270;
+    int height = 2560;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    Drawing::Surface* surfacePtr = surface.get();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(surfacePtr);
     auto rect = std::make_shared<Drawing::Rect>();
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());

@@ -89,6 +89,8 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
+    { DrawOpItem::PIXELMAP_NINE_OPITEM,     "PIXELMAP_NINE_OPITEM" },
+    { DrawOpItem::PIXELMAP_LATTICE_OPITEM,  "PIXELMAP_LATTICE_OPITEM" },
     { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
     { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },
     { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
@@ -152,6 +154,11 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
         brush.SetShaderEffect(shaderEffect);
     }
 
+    if (brushHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, brushHandle.blenderHandle);
+        brush.SetBlender(blender);
+    }
+
     Filter filter;
     bool hasFilter = false;
     if (brushHandle.colorFilterHandle.size) {
@@ -210,6 +217,11 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
     if (paintHandle.shaderEffectHandle.size) {
         auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, paintHandle.shaderEffectHandle);
         paint.SetShaderEffect(shaderEffect);
+    }
+
+    if (paintHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, paintHandle.blenderHandle);
+        paint.SetBlender(blender);
     }
 
     Filter filter;
@@ -279,6 +291,10 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
         paintHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, paint.GetShaderEffect());
     }
 
+    if (paint.GetBlender()) {
+        paintHandle.blenderHandle = CmdListHelper::AddBlenderToCmdList(cmdList, paint.GetBlender());
+    }
+
     if (paint.GetLooper()) {
         paintHandle.blurDrawLooperHandle = CmdListHelper::AddBlurDrawLooperToCmdList(cmdList,
             paint.GetLooper());
@@ -305,6 +321,14 @@ std::string DrawOpItem::GetOpDesc() const
 void DrawOpItem::Dump(std::string& out) const
 {
     out += typeOpDes[GetType()];
+}
+
+size_t DrawOpItem::GetOpSize()
+{
+    size_t totoalSize = sizeof(*this);
+    const auto unmarshallingPair = UnmarshallingHelper::Instance().GetFuncAndSize(GetType());
+    totoalSize += unmarshallingPair.second;
+    return totoalSize;
 }
 
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
@@ -1542,6 +1566,7 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
+    globalUniqueId_ = handle->globalUniqueId;
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
 }
 
@@ -1564,6 +1589,11 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
     }
 
     cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, x_, y_, paintHandle);
+}
+
+uint64_t DrawTextBlobOpItem::GetTypefaceId()
+{
+    return globalUniqueId_;
 }
 
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -1671,6 +1701,7 @@ void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
     canvas->DetachPen();
     canvas->AttachBrush(innerBrush);
     offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    canvas->DetachBrush();
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
@@ -1845,16 +1876,16 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
 void DrawTextBlobOpItem::DumpItems(std::string& out) const
 {
     out += " scalarX:" + std::to_string(x_) + " scalarY:" + std::to_string(y_);
-    if (textBlob_) {
+    if (textBlob_ != nullptr) {
         out += " TextBlob[";
         out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
         auto bounds = textBlob_->Bounds();
-        if (bounds) {
+        if (bounds != nullptr) {
             out += " Bounds";
             bounds->Dump(out);
         }
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
-        out += "]";
+        out += ']';
     }
 }
 

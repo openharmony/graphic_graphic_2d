@@ -21,7 +21,6 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "graphic_error.h"
-#include "hdi_log.h"
 #include "hdi_display_type.h"
 
 namespace OHOS {
@@ -403,12 +402,12 @@ public:
         presentTimestamp_ = timestamp;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -418,12 +417,12 @@ public:
         return brightnessRatio_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         sdrNit_ = sdrNit;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         displayNit_ = displayNit;
     }
@@ -433,15 +432,6 @@ public:
         brightnessRatio_ = brightnessRatio;
     }
 
-    void SetScalingMode(ScalingMode scalingMode)
-    {
-        scalingMode_ = scalingMode;
-    }
-
-    ScalingMode GetScalingMode() const
-    {
-        return scalingMode_;
-    }
     // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
@@ -473,6 +463,16 @@ public:
         return arsrTag_;
     }
 
+    void SetNeedBilinearInterpolation(bool need)
+    {
+        needBilinearInterpolation_ = need;
+    }
+
+    bool GetNeedBilinearInterpolation() const
+    {
+        return needBilinearInterpolation_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -499,12 +499,13 @@ public:
         pbuffer_= layerInfo->GetPreBuffer();
         acquireFence_ = layerInfo->GetAcquireFence();
         preMulti_ = layerInfo->IsPreMulti();
+        sdrNit_ = layerInfo->GetSdrNit();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
-        scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
+        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
     }
 
     void Dump(std::string &result) const
@@ -564,7 +565,6 @@ public:
             case LayerMask::LAYER_MASK_HBM_SYNC:
                 break;
             default:
-                HLOGE("Invalid argument [mask:%{public}d]", static_cast<int32_t>(mask));
                 return ROSEN_ERROR_INVALID_ARGUMENTS;
         }
 
@@ -620,13 +620,13 @@ private:
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
+    bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
     int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     uint64_t nodeId_ = 0;
-    ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;

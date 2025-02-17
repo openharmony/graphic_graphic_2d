@@ -47,11 +47,17 @@ bool Vertices::MakeCopy(VertexMode mode,
 
 std::shared_ptr<Data> Vertices::Serialize() const
 {
+    if (verticesImplPtr_ == nullptr) {
+        return nullptr;
+    }
     return verticesImplPtr_->Serialize();
 }
 
 bool Vertices::Deserialize(std::shared_ptr<Data> data)
 {
+    if (verticesImplPtr_ == nullptr) {
+        return false;
+    }
     return verticesImplPtr_->Deserialize(data);
 }
 

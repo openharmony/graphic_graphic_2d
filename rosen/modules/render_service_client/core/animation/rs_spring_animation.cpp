@@ -76,7 +76,10 @@ void RSSpringAnimation::OnStart()
     // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.blendDuration_);
+    if (const auto& springParams = timingCurve_.springParams_) {
+        animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
+            springParams->blendDuration_, springParams->minimumAmplitudeRatio_);
+    }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
         animation->SetZeroThreshold(zeroThreshold_);
@@ -96,11 +99,12 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
 {
     auto target = GetTarget().lock();
     if (target == nullptr) {
-        ROSEN_LOGD("Failed to start spring animation, target is null!");
+        ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start spring animation, transaction proxy is null!");
         return;
     }
 

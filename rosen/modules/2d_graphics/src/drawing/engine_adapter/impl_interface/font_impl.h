@@ -25,7 +25,6 @@
 #include "text/typeface.h"
 #include "utils/rect.h"
 #include "utils/scalar.h"
-#include "draw/path.h"
 
 namespace OHOS {
 namespace Rosen {

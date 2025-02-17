@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+constexpr size_t MAX_VECTORSIZE = 170000;
 class DrawOpItem;
 class DRAWING_API CmdListHelper {
 public:
@@ -55,6 +56,14 @@ public:
     static OpDataHandle DRAWING_API AddImageBaseObjToCmdList(
         CmdList& cmdList, const std::shared_ptr<ExtendImageBaseObj>& object);
     static std::shared_ptr<ExtendImageBaseObj> GetImageBaseObjFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle DRAWING_API AddImageNineObjecToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageNineObject>& object);
+    static std::shared_ptr<ExtendImageNineObject> GetImageNineObjecFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle DRAWING_API AddImageLatticeObjecToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageLatticeObject>& object);
+    static std::shared_ptr<ExtendImageLatticeObject> GetImageLatticeObjecFromCmdList(
         const CmdList& cmdList, const OpDataHandle& objectHandle);
     static OpDataHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const OpDataHandle& pictureHandle);
@@ -148,6 +157,10 @@ public:
         std::vector<Type> ret;
         const auto* values = static_cast<const Type*>(cmdList.GetCmdListData(info.first, info.second));
         auto size = info.second / sizeof(Type);
+        if (size > MAX_VECTORSIZE) {
+            LOGE("GetVectorFromCmdList size is too large, an empty vector is returned!");
+            return ret;
+        }
         if (values != nullptr && size > 0) {
             for (size_t i = 0; i < size; i++) {
                 ret.push_back(*values);
@@ -206,6 +219,10 @@ public:
     static FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect);
     static std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& shaderEffectHandle);
+
+    static FlattenableHandle AddBlenderToCmdList(CmdList& cmdList, std::shared_ptr<Blender> pathEffect);
+    static std::shared_ptr<Blender> GetBlenderFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& blenderHandle);
 
     static FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect);
     static std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,

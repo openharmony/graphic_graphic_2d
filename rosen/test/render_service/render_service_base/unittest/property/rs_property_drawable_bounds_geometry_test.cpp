@@ -1355,11 +1355,7 @@ HWTEST_F(RSForegroundFilterDrawableTest, Draw001, TestSize.Level1)
     RSPaintFilterCanvas filterCanvas(&canvas);
     drawable.Draw(content, filterCanvas);
     EXPECT_EQ(filterCanvas.GetSurface(), nullptr);
-    std::shared_ptr<Drawing::SkiaSurface> skiaSurface = std::make_shared<Drawing::SkiaSurface>();
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(1, 1);
-    auto surface = std::make_shared<Drawing::Surface>();
-    skiaSurface->skSurface_ = skSurface;
-    surface->impl_ = skiaSurface;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(1, 1);
     filterCanvas.surface_ = surface.get();
     drawable.Draw(content, filterCanvas);
     EXPECT_NE(filterCanvas.GetSurface(), nullptr);
@@ -1902,7 +1898,9 @@ HWTEST_F(RSBlendSaveLayerDrawableTest, Draw001, TestSize.Level1)
     RSRenderContent content;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto drawable = std::make_shared<RSBlendSaveLayerDrawable>(2);
+    auto drawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 1);
+    drawable->Draw(content, filterCanvas);
+    drawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 2);
     drawable->Draw(content, filterCanvas);
     EXPECT_NE(drawable, nullptr);
 }
@@ -1981,6 +1979,9 @@ HWTEST_F(BlendRestoreDrawableTest, BlendRestoreDrawableGenerate001, TestSize.Lev
     EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
     EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
+    content.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
+    EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
 }
 
 /**
@@ -1998,6 +1999,9 @@ HWTEST_F(BlendSaveDrawableTest, BlendSaveDrawableGenerate001, TestSize.Level1)
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::FAST));
     EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
+    EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
+    content.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
     EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
 }
 

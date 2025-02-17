@@ -41,12 +41,12 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 
-
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 500;
+constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -86,13 +86,13 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     if (!image) {
         return false;
     }
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::TextureOrigin origin = RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL
+        ? Drawing::TextureOrigin::BOTTOM_LEFT : Drawing::TextureOrigin::TOP_LEFT;
     auto sharedBackendTexture = image->GetBackendTexture(false, &origin);
     if (!sharedBackendTexture.IsValid()) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedBackendTexture is nullptr");
         return false;
     }
-
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
     auto context = canvas.GetGPUContext();
@@ -208,32 +208,59 @@ bool RSCanvasDrawingRenderNode::IsNeedProcess() const
 
 void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
 {
-    //update content_style when node not on tree, need check (waitSync_ false, not on tree, surface not changed)
+    // update content_style when node not on tree, need check (waitSync_ false, not on tree, never on tree
+    // not texture exportnode, unirender mode)
+    // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
+#ifdef RS_ENABLE_GPU
     if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
-        stagingRenderParams_->GetCanvasDrawingSurfaceChanged() || RSUniRenderJudgement::IsUniRender()) {
+        !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
+#else
+    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
+        !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
+        return;
+    }
+#endif
 
     if (!dirtyTypes_.test(static_cast<size_t>(RSModifierType::CONTENT_STYLE))) {
         return;
     }
-
+#ifdef RS_ENABLE_GPU
     auto surfaceParams = GetStagingRenderParams()->GetCanvasDrawingSurfaceParams();
     if (surfaceParams.width == 0 || surfaceParams.height == 0) {
         RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
             "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
         return;
     }
+#endif
 
-    playbackNotOnTreeCmdSize_ += drawCmdLists_[RSModifierType::CONTENT_STYLE].size();
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu], NotOnTreeDraw Cmdlist Size[%lu]", GetId(), playbackNotOnTreeCmdSize_);
+    //only update content_style dirtyType
+    auto savedirtyTypes = dirtyTypes_;
+    dirtyTypes_.reset();
+    dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+    isPostPlaybacked_ = true;
 
     UpdateDrawableVecV2();
 
-    // Clear node some resource
-    ClearResource();
-    // update state
-    dirtyTypes_.reset();
+    if (!IsWaitSync()) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate NodeId[%{public}" PRIu64
+                "] UpdateDrawableVecV2 failed, dirtySlots empty", GetId());
+        return;
+    }
+
+    RS_LOGI("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate NodeId[%{public}" PRIu64 "]", GetId());
+    RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node[%llu] ContentStyleSlotUpdate", GetId());
+
+    // clear content_style drawcmdlist
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    auto contentCmdList = drawCmdLists_.find(RSModifierType::CONTENT_STYLE);
+    if (contentCmdList != drawCmdLists_.end()) {
+        contentCmdList->second.clear();
+    }
+    savedirtyTypes.set(static_cast<int>(RSModifierType::CONTENT_STYLE), false);
+    dirtyTypes_ = savedirtyTypes;
+
     AddToPendingSyncList();
 }
 
@@ -242,9 +269,12 @@ void RSCanvasDrawingRenderNode::SetNeedProcess(bool needProcess)
     if (!stagingRenderParams_) {
         return;
     }
-
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetNeedSync(needProcess);
     isNeedProcess_ = needProcess;
+#else
+    isNeedProcess_ = false;
+#endif
 }
 
 void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
@@ -273,6 +303,9 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(ROSEN_IOS))
+    surface_ = Drawing::Surface::MakeRaster(info);
+#else
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
@@ -295,6 +328,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
             return true;
         }
     }
+#endif
 #else
     surface_ = Drawing::Surface::MakeRaster(info);
 #endif
@@ -479,22 +513,26 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface() const
 
 void RSCanvasDrawingRenderNode::InitRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
         return;
     }
+#endif
 }
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
 {
     bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
     if (overflow) {
+        RS_OPTIONAL_TRACE_NAME_FMT("AddDitryType id:[%llu] StateOnTheTree[%d] ModifierType[%d] ModifierCmdSize[%d]",
+            GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
         if (overflow != lastOverflowStatus_) {
             RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                    " have drawcmdlist:%{public}zu",
-                    GetId(), type, drawCmdLists_[type].size());
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d]",
+                    GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
@@ -504,8 +542,8 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
         }
         if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGE("AddDirtyType Cmdlist Protect Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                    " have drawcmdlist:%{public}zu",
-                    GetId(), type, drawCmdLists_[type].size());
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d]",
+                    GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
         }
     }
     lastOverflowStatus_ = overflow;
@@ -514,32 +552,39 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
     dirtyTypes_.set(static_cast<int>(modifierType), true);
+    if (modifierType != RSModifierType::CONTENT_STYLE) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    for (auto& [type, list]: GetDrawCmdModifiers()) {
-        if (modifierType != type || list.empty()) {
+    const auto itr = GetDrawCmdModifiers().find(modifierType);
+    if (itr == GetDrawCmdModifiers().end()) {
+        return;
+    }
+
+    for (const auto& modifier : itr->second) {
+        if (modifier == nullptr) {
             continue;
         }
-        for (const auto& modifier : list) {
-            if (modifier == nullptr) {
-                continue;
-            }
-            auto prop = modifier->GetProperty();
-            if (prop == nullptr) {
-                continue;
-            }
-            auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
-            if (cmd == nullptr) {
-                continue;
-            }
-            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
-            if (type != RSModifierType::CONTENT_STYLE) {
-                drawCmdLists_[type].clear();
-            }
-            drawCmdLists_[type].emplace_back(cmd);
-            SetNeedProcess(true);
+        auto prop = modifier->GetProperty();
+        if (prop == nullptr) {
+            continue;
         }
-        CheckDrawCmdListSize(type);
+        auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
+        if (cmd == nullptr) {
+            continue;
+        }
+        
+        if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+            RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
+                    " Add DrawOpSize [%{public}zu]",
+                GetId(), cmd->GetOpItemSize());
+            continue;
+        }
+
+        drawCmdLists_[modifierType].emplace_back(cmd);
+        SetNeedProcess(true);
     }
+    CheckDrawCmdListSize(modifierType);
 }
 
 void RSCanvasDrawingRenderNode::ClearOp()
@@ -556,8 +601,10 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
     }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
     stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height);
+#endif
 }
 
 const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDrawingRenderNode::GetDrawCmdLists() const
@@ -567,7 +614,7 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 
 void RSCanvasDrawingRenderNode::ClearResource()
 {
-    if (RSUniRenderJudgement::IsUniRender()) {
+    if (RSUniRenderJudgement::IsUniRender() && !GetIsTextureExportNode()) {
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdLists_.clear();
     }
@@ -576,6 +623,26 @@ void RSCanvasDrawingRenderNode::ClearResource()
 void RSCanvasDrawingRenderNode::ClearNeverOnTree()
 {
     isNeverOnTree_ = false;
+}
+
+void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
+{
+    if (isPostPlaybacked_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node [%" PRIu64 "] CheckCanvasDrawingPostPlaybacked", GetId());
+        // add empty drawop, only used in unirender mode
+        dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+        auto contentCmdList = drawCmdLists_.find(RSModifierType::CONTENT_STYLE);
+        if (contentCmdList != drawCmdLists_.end()) {
+            auto cmd = std::make_shared<Drawing::DrawCmdList>();
+            contentCmdList->second.emplace_back(cmd);
+        }
+        isPostPlaybacked_ = false;
+    }
+}
+
+bool RSCanvasDrawingRenderNode::GetIsPostPlaybacked()
+{
+    return isPostPlaybacked_;
 }
 
 } // namespace Rosen

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 #include <algorithm>
@@ -30,7 +29,7 @@ using namespace Drawing;
 RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
     : Canvas(canvas ? canvas->GetWidth() : 0, canvas ? canvas->GetHeight() : 0), canvas_(canvas)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     this->AddCanvas(canvas);
 #endif
 }
@@ -69,7 +68,7 @@ std::shared_ptr<Drawing::GPUContext> RSPaintFilterCanvasBase::GetGPUContext()
 
 void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPoint(point);
@@ -84,7 +83,7 @@ void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
 
 void RSPaintFilterCanvasBase::DrawSdf(const SDFShapeBase& shape)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawSdf(shape);
@@ -99,7 +98,7 @@ void RSPaintFilterCanvasBase::DrawSdf(const SDFShapeBase& shape)
 
 void RSPaintFilterCanvasBase::DrawPoints(PointMode mode, size_t count, const Point pts[])
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPoints(mode, count, pts);
@@ -114,7 +113,7 @@ void RSPaintFilterCanvasBase::DrawPoints(PointMode mode, size_t count, const Poi
 
 void RSPaintFilterCanvasBase::DrawLine(const Point& startPt, const Point& endPt)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawLine(startPt, endPt);
@@ -129,7 +128,7 @@ void RSPaintFilterCanvasBase::DrawLine(const Point& startPt, const Point& endPt)
 
 void RSPaintFilterCanvasBase::DrawRect(const Rect& rect)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawRect(rect);
@@ -144,7 +143,7 @@ void RSPaintFilterCanvasBase::DrawRect(const Rect& rect)
 
 void RSPaintFilterCanvasBase::DrawRoundRect(const RoundRect& roundRect)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawRoundRect(roundRect);
@@ -159,7 +158,7 @@ void RSPaintFilterCanvasBase::DrawRoundRect(const RoundRect& roundRect)
 
 void RSPaintFilterCanvasBase::DrawNestedRoundRect(const RoundRect& outer, const RoundRect& inner)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawNestedRoundRect(outer, inner);
@@ -174,7 +173,7 @@ void RSPaintFilterCanvasBase::DrawNestedRoundRect(const RoundRect& outer, const 
 
 void RSPaintFilterCanvasBase::DrawArc(const Rect& oval, scalar startAngle, scalar sweepAngle)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawArc(oval, startAngle, sweepAngle);
@@ -189,7 +188,7 @@ void RSPaintFilterCanvasBase::DrawArc(const Rect& oval, scalar startAngle, scala
 
 void RSPaintFilterCanvasBase::DrawPie(const Rect& oval, scalar startAngle, scalar sweepAngle)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPie(oval, startAngle, sweepAngle);
@@ -204,7 +203,7 @@ void RSPaintFilterCanvasBase::DrawPie(const Rect& oval, scalar startAngle, scala
 
 void RSPaintFilterCanvasBase::DrawOval(const Rect& oval)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawOval(oval);
@@ -219,7 +218,7 @@ void RSPaintFilterCanvasBase::DrawOval(const Rect& oval)
 
 void RSPaintFilterCanvasBase::DrawCircle(const Point& centerPt, scalar radius)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawCircle(centerPt, radius);
@@ -234,7 +233,7 @@ void RSPaintFilterCanvasBase::DrawCircle(const Point& centerPt, scalar radius)
 
 void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPath(path);
@@ -250,7 +249,7 @@ void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
     Brush b(brush);
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilterWithBrush(b)) {
             (*iter)->DrawBackground(b);
@@ -266,7 +265,7 @@ void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
@@ -282,7 +281,7 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawShadowStyle(
@@ -299,7 +298,7 @@ void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& pl
 
 void RSPaintFilterCanvasBase::DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawColor(color, mode);
@@ -314,7 +313,7 @@ void RSPaintFilterCanvasBase::DrawColor(Drawing::ColorQuad color, Drawing::Blend
 
 void RSPaintFilterCanvasBase::DrawRegion(const Drawing::Region& region)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawRegion(region);
@@ -330,7 +329,7 @@ void RSPaintFilterCanvasBase::DrawRegion(const Drawing::Region& region)
 void RSPaintFilterCanvasBase::DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
     const Drawing::Point texCoords[4], Drawing::BlendMode mode)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPatch(cubics, colors, texCoords, mode);
@@ -345,7 +344,7 @@ void RSPaintFilterCanvasBase::DrawPatch(const Drawing::Point cubics[12], const D
 
 void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Drawing::BlendMode mode)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawVertices(vertices, mode);
@@ -366,7 +365,7 @@ bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
     return false;
 }
 
-std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Rect& bound)
+std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Drawing::Rect& bound)
 {
     if (canvas_ != nullptr && OnFilter()) {
         return canvas_->OpCalculateAfter(bound);
@@ -378,7 +377,7 @@ void RSPaintFilterCanvasBase::DrawAtlas(const Drawing::Image* atlas, const Drawi
     const Drawing::Rect tex[], const Drawing::ColorQuad colors[], int count, Drawing::BlendMode mode,
     const Drawing::SamplingOptions& sampling, const Drawing::Rect* cullRect)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawAtlas(atlas, xform, tex, colors, count, mode, sampling, cullRect);
@@ -393,7 +392,7 @@ void RSPaintFilterCanvasBase::DrawAtlas(const Drawing::Image* atlas, const Drawi
 
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawBitmap(bitmap, px, py);
@@ -409,7 +408,7 @@ void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, 
 void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center,
     const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             if (brush) {
@@ -437,7 +436,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
 void RSPaintFilterCanvasBase::DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice,
     const Drawing::Rect& dst, Drawing::FilterMode filter)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawImageLattice(image, lattice, dst, filter);
@@ -453,7 +452,7 @@ void RSPaintFilterCanvasBase::DrawImageLattice(const Drawing::Image* image, cons
 void RSPaintFilterCanvasBase::DrawImage(
     const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawImage(image, px, py, sampling);
@@ -469,7 +468,7 @@ void RSPaintFilterCanvasBase::DrawImage(
 void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawImageRect(image, src, dst, sampling, constraint);
@@ -484,7 +483,7 @@ void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src,
 
 void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawImageRect(image, dst, sampling);
@@ -499,7 +498,7 @@ void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& dst,
 
 void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawPicture(picture);
@@ -515,7 +514,7 @@ void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
 void RSPaintFilterCanvasBase::DrawTextBlob(
     const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
             (*iter)->DrawTextBlob(blob, x, y);
@@ -530,7 +529,7 @@ void RSPaintFilterCanvasBase::DrawTextBlob(
 
 void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipRect(rect, op, doAntiAlias);
@@ -545,7 +544,7 @@ void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipO
 
 void RSPaintFilterCanvasBase::ClipIRect(const Drawing::RectI& rect, Drawing::ClipOp op)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipIRect(rect, op);
@@ -560,7 +559,7 @@ void RSPaintFilterCanvasBase::ClipIRect(const Drawing::RectI& rect, Drawing::Cli
 
 void RSPaintFilterCanvasBase::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipRoundRect(roundRect, op, doAntiAlias);
@@ -576,7 +575,7 @@ void RSPaintFilterCanvasBase::ClipRoundRect(const RoundRect& roundRect, ClipOp o
 void RSPaintFilterCanvasBase::ClipRoundRect(const Drawing::Rect& rect,
     std::vector<Drawing::Point>& pts, bool doAntiAlias)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipRoundRect(rect, pts, doAntiAlias);
@@ -591,7 +590,7 @@ void RSPaintFilterCanvasBase::ClipRoundRect(const Drawing::Rect& rect,
 
 void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipPath(path, op, doAntiAlias);
@@ -606,7 +605,7 @@ void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiA
 
 void RSPaintFilterCanvasBase::ClipRegion(const Region& region, ClipOp op)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ClipRegion(region, op);
@@ -619,9 +618,24 @@ void RSPaintFilterCanvasBase::ClipRegion(const Region& region, ClipOp op)
 #endif
 }
 
+void RSPaintFilterCanvasBase::ResetClip()
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            (*iter)->ResetClip();
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        canvas_->ResetClip();
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->SetMatrix(matrix);
@@ -636,7 +650,7 @@ void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 
 void RSPaintFilterCanvasBase::ResetMatrix()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ResetMatrix();
@@ -651,7 +665,7 @@ void RSPaintFilterCanvasBase::ResetMatrix()
 
 void RSPaintFilterCanvasBase::ConcatMatrix(const Matrix& matrix)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->ConcatMatrix(matrix);
@@ -666,7 +680,7 @@ void RSPaintFilterCanvasBase::ConcatMatrix(const Matrix& matrix)
 
 void RSPaintFilterCanvasBase::Translate(scalar dx, scalar dy)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Translate(dx, dy);
@@ -681,7 +695,7 @@ void RSPaintFilterCanvasBase::Translate(scalar dx, scalar dy)
 
 void RSPaintFilterCanvasBase::Scale(scalar sx, scalar sy)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Scale(sx, sy);
@@ -696,7 +710,7 @@ void RSPaintFilterCanvasBase::Scale(scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Rotate(scalar deg, scalar sx, scalar sy)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Rotate(deg, sx, sy);
@@ -711,7 +725,7 @@ void RSPaintFilterCanvasBase::Rotate(scalar deg, scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Shear(sx, sy);
@@ -726,7 +740,7 @@ void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Flush()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Flush();
@@ -741,7 +755,7 @@ void RSPaintFilterCanvasBase::Flush()
 
 void RSPaintFilterCanvasBase::Clear(ColorQuad color)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Clear(color);
@@ -756,7 +770,7 @@ void RSPaintFilterCanvasBase::Clear(ColorQuad color)
 
 uint32_t RSPaintFilterCanvasBase::Save()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     uint32_t count = 0U;
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
@@ -786,7 +800,7 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
         OnFilterWithBrush(brush);
     }
     SaveLayerOps slo(saveLayerRec.GetBounds(), &brush, saveLayerRec.GetSaveLayerFlags());
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->SaveLayer(slo);
@@ -799,7 +813,7 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
 
 void RSPaintFilterCanvasBase::Restore()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Restore();
@@ -814,7 +828,7 @@ void RSPaintFilterCanvasBase::Restore()
 
 void RSPaintFilterCanvasBase::Discard()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Discard();
@@ -829,7 +843,7 @@ void RSPaintFilterCanvasBase::Discard()
 
 CoreCanvas& RSPaintFilterCanvasBase::AttachPen(const Pen& pen)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachPen(pen);
@@ -845,7 +859,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachPen(const Pen& pen)
 
 CoreCanvas& RSPaintFilterCanvasBase::AttachBrush(const Brush& brush)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachBrush(brush);
@@ -861,7 +875,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachBrush(const Brush& brush)
 
 CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Drawing::Paint& paint)
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachPaint(paint);
@@ -877,7 +891,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Drawing::Paint& paint)
 
 CoreCanvas& RSPaintFilterCanvasBase::DetachPen()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->DetachPen();
@@ -893,7 +907,7 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPen()
 
 CoreCanvas& RSPaintFilterCanvasBase::DetachBrush()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->DetachBrush();
@@ -909,7 +923,7 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachBrush()
 
 CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 {
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->DetachPaint();
@@ -926,15 +940,15 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams)
 {
     bool result = false;
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            result |= (*iter)->DrawBlurImage(image, blurParams);
+            result = ((*iter)->DrawBlurImage(image, blurParams) || result);
         }
     }
 #else
     if (canvas_ != nullptr) {
-        result |= canvas_->DrawBlurImage(image, blurParams);
+        result = canvas_->DrawBlurImage(image, blurParams);
     }
 #endif
     return result;
@@ -943,7 +957,7 @@ bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const D
 std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
 {
     std::array<int, 2> result = {0, 0}; // There are 2 variables
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             result = (*iter)->CalcHpsBluredImageDimension(blurParams);
@@ -960,7 +974,7 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             result = result || (*iter)->IsClipRect();
@@ -1016,7 +1030,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
         }
     }
 
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachPen(p);
@@ -1051,7 +1065,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
         }
     }
 
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachBrush(b);
@@ -1086,7 +1100,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
         }
     }
 
-#ifdef ENABLE_RECORDING_DCL
+#ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->AttachPaint(p);
@@ -1107,7 +1121,6 @@ Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
 {
     return recordingState_ ? canvas_ : nullptr;
 }
-
 
 bool RSPaintFilterCanvas::GetRecordingState() const
 {
@@ -1289,6 +1302,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     brightnessRatio_ = other.brightnessRatio_;
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
+    isHdrOn_ = other.isHdrOn_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1507,13 +1521,13 @@ void RSPaintFilterCanvas::SaveLayer(const Drawing::SaveLayerOps& saveLayerOps)
     RSPaintFilterCanvasBase::SaveLayer(saveLayerOps);
 }
 
-bool RSPaintFilterCanvas::IsCapture() const
+bool RSPaintFilterCanvas::IsOnMultipleScreen() const
 {
-    return isCapture_;
+    return multipleScreen_;
 }
-void RSPaintFilterCanvas::SetCapture(bool isCapture)
+void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
 {
-    isCapture_ = isCapture;
+    multipleScreen_ = multipleScreen;
 }
 
 ScreenId RSPaintFilterCanvas::GetScreenId() const
@@ -1554,6 +1568,16 @@ float RSPaintFilterCanvas::GetBrightnessRatio() const
 void RSPaintFilterCanvas::SetBrightnessRatio(float brightnessRatio)
 {
     brightnessRatio_ = brightnessRatio;
+}
+
+bool RSPaintFilterCanvas::GetIsWindowFreezeCapture() const
+{
+    return isWindowFreezeCapture_;
+}
+
+void RSPaintFilterCanvas::SetIsWindowFreezeCapture(bool isWindowFreezeCapture)
+{
+    isWindowFreezeCapture_ = isWindowFreezeCapture;
 }
 } // namespace Rosen
 } // namespace OHOS

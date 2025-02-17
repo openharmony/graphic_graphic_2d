@@ -16,7 +16,12 @@
 #include "transaction/rs_transaction_proxy.h"
 #include <stdlib.h>
 
+#ifdef ROSEN_OHOS
+#include "mem_mgr_client.h"
+#endif
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -77,6 +82,16 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
     if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+        #ifdef ROSEN_OHOS
+        int appPid = ExtractPid(nodeId);
+        if (isRenderServiceCommand && command->GetSubType() == RSCommandType::ANIMATION &&
+            RSSystemProperties::GetDmaReclaimParam()) {
+            RS_TRACE_NAME_FMT("MemoryStatusChanged from proxy pid[%d]", appPid);
+            Memory::MemMgrClient::GetInstance().MemoryStatusChanged(appPid,
+                static_cast<int32_t>(Memory::MemoryTypeCode::DMABUF),
+                static_cast<int32_t>(Memory::MemoryStatusCode::USED));
+        }
+        #endif
         AddRemoteCommand(command, nodeId, followType);
         return;
     }
@@ -126,7 +141,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
-        RS_LOGE("FlushImplicitTransaction failed");
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
@@ -147,7 +162,8 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     } else {
-        RS_LOGE("FlushImplicitTransaction failed, [%{public}d, %{public}d]",
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
+            " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
     }
 }
@@ -190,6 +206,42 @@ void RSTransactionProxy::StartSyncTransaction()
 void RSTransactionProxy::CloseSyncTransaction()
 {
     needSync_ = false;
+}
+
+void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(
+    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    static uint32_t num = 0;
+    const std::string name = "CloseSyncTransactionFallbackTask";
+    const int timeOutDelay = 5000;
+    if (!handler) {
+        ROSEN_LOGD("StartCloseSyncTransactionFallbackTask handler is null");
+        return;
+    }
+    if (isOpen) {
+        num++;
+        auto taskName = name + std::to_string(num);
+        taskNames_.push(taskName);
+        auto task = [this]() {
+            RS_TRACE_NAME("CloseSyncTransaction timeout");
+            ROSEN_LOGE("CloseSyncTransaction timeout");
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->CommitSyncTransaction();
+                transactionProxy->CloseSyncTransaction();
+            }
+            if (!taskNames_.empty()) {
+                taskNames_.pop();
+            }
+        };
+        handler->PostTask(task, taskName, timeOutDelay);
+    } else {
+        if (!taskNames_.empty()) {
+            handler->RemoveTask(taskNames_.front());
+            taskNames_.pop();
+        }
+    }
 }
 
 void RSTransactionProxy::Begin()

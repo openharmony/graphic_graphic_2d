@@ -67,6 +67,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t refreshRateMode = GetData<int32_t>();
     int32_t refreshRate = GetData<int32_t>();
     auto configData = std::make_shared<RSHgmConfigData>();
+    float ppi = GetData<float>();
+    float xDpi = GetData<float>();
+    float yDpi = GetData<float>();
+
+    configData->SetPpi(ppi);
+    configData->SetXDpi(xDpi);
+    configData->SetYDpi(yDpi);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);

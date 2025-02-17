@@ -40,7 +40,6 @@ HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
     animDynamicCfgCallbacks_.clear();
     pendingAnimDynamicCfgCallbacks_.clear();
     refreshRateModeCallbacks_.clear();
-    instance_ = nullptr;
 }
 
 void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(

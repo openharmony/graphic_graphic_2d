@@ -20,6 +20,7 @@
 #include <cstdint>
 
 #include "draw/surface.h"
+#include "message_parcel.h"
 #include "render/rs_pixel_map_shader.h"
 #include "pixel_map.h"
 
@@ -131,7 +132,7 @@ bool RSMainFuzzTest(const uint8_t* data, size_t size)
     std::shared_ptr<RSPixelMapShader> pixelMapShader1 =
         std::make_shared<RSPixelMapShader>(pixelMap, tileX, tileY, sampling, matrix);
     std::shared_ptr<RSPixelMapShader> pixelMapShader2 = std::make_shared<RSPixelMapShader>();
-    Parcel parcel;
+    MessageParcel parcel;
     pixelMapShader1->Marshalling(parcel);
     pixelMapShader2->Unmarshalling(parcel);
     std::shared_ptr<Drawing::ShaderEffect> shaderEffect;

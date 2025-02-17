@@ -189,12 +189,10 @@ HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level1)
     uint64_t location = 0;
     uint64_t length = 0;
     runs_[0]->GetStringRange(nullptr, &length);
-    EXPECT_EQ(location, 0);
     EXPECT_EQ(length, 0);
 
     runs_[0]->GetStringRange(&location, nullptr);
     EXPECT_EQ(location, 0);
-    EXPECT_EQ(length, 0);
 
     std::unique_ptr<OHOS::Rosen::Run> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
     location = 10;

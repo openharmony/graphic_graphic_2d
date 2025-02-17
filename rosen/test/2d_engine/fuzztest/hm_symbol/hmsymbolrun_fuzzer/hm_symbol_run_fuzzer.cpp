@@ -40,20 +40,23 @@ bool DrawSymbolFuzzTest(const uint8_t* data, size_t size)
     float offsety = SPText::GetObject<float>();
     RSPoint paint = {offsetX, offsety};
     RSEffectStrategy effectStrategy = SPText::GetObject<RSEffectStrategy>();
-    HMSymbolTxt symbolText;
-    symbolText.SetSymbolEffect(effectStrategy);
+    HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolEffect(effectStrategy);
 
-    HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob1.get(), paint, symbolText);
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint);
 
     // test the TextBlob is nullptr
     textblob1 = nullptr;
-    hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob1.get(), paint, symbolText);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint);
 
     // test the multiple glyphs
     const char* str2 = "Test multiple glyphs";
     auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
-    hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob2.get(), paint, symbolText);
+    HMSymbolRun hmSymbolRun1 = HMSymbolRun(1, symbolTxt, textblob2, animationFunc);
+    hmSymbolRun1.DrawSymbol(rsCanvas.get(), paint);
     return true;
 }
 } // namespace SPText

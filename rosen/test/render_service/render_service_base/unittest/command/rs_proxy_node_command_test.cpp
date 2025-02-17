@@ -47,5 +47,6 @@ HWTEST_F(RSProxyNodeCommandTest, TestRSProxyNodeCommand001, TestSize.Level1)
     NodeId targetId = static_cast<NodeId>(2);
     ProxyNodeCommandHelper::Create(context, id, targetId);
     ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
+    EXPECT_TRUE(id != -2);
 }
 } // namespace OHOS::Rosen

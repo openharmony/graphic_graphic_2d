@@ -44,8 +44,11 @@ public:
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
     void ClearFontFileCache();
 
+    void CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName);
+    void DeleteDynamicTypefaceFromCache(const std::string &familyName);
+
 private:
-    FontDescriptorMgr();
+    FontDescriptorMgr() = default;
     FontDescriptorCache descCache_;
     std::mutex parserMtx_;
 };

@@ -68,8 +68,9 @@ public:
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
     void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
-        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
-        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
+        Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag,
+        bool isLimitElevation) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
@@ -106,6 +107,7 @@ public:
     void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
         bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
+    void ResetClip() override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
     void ResetMatrix() override;
@@ -256,17 +258,6 @@ public:
     void SwapBackMainScreenData();
     void SavePCanvasList();
     void RestorePCanvasList();
-    void StoreCanvas()
-    {
-        if (storeMainCanvas_ == nullptr) {
-            storeMainCanvas_ = canvas_;
-        }
-    }
-
-    Drawing::Canvas* GetOriginalCanvas()
-    {
-        return storeMainCanvas_;
-    }
 
     // canvas status relate
     struct CanvasStatus {
@@ -284,12 +275,25 @@ public:
     {
         return offscreenDataList_;
     }
+
+    void StoreCanvas()
+    {
+        if (storeMainCanvas_ == nullptr) {
+            storeMainCanvas_ = canvas_;
+        }
+    }
+
+    Drawing::Canvas* GetOriginalCanvas()
+    {
+        return storeMainCanvas_;
+    }
+
     Drawing::DrawingType GetDrawingType() const override
     {
         return Drawing::DrawingType::PAINT_FILTER;
     }
-    bool IsCapture() const;
-    void SetCapture(bool isCapture);
+    bool IsOnMultipleScreen() const;
+    void SetOnMultipleScreen(bool multipleScreen);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
@@ -299,6 +303,8 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetIsWindowFreezeCapture() const;
+    void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
 
 protected:
     using Env = struct {
@@ -336,7 +342,23 @@ protected:
     }
 
 private:
+    bool isParallelCanvas_ = false;
+    bool disableFilterCache_ = false;
+    bool recordingState_ = false;
+    bool recordDrawable_ = false;
+    bool multipleScreen_ = false;
+    bool isHdrOn_ = false;
+    bool isWindowFreezeCapture_ = false;
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
+    std::atomic_bool isHighContrastEnabled_ { false };
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    ScreenId screenId_ = INVALID_SCREEN_ID;
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     Drawing::Surface* surface_ = nullptr;
+    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
+    Drawing::Rect visibleRect_ = Drawing::Rect();
+
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
 
@@ -351,23 +373,6 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas_
-
-    std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
-    Drawing::Rect visibleRect_ = Drawing::Rect();
-
-    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
-    ScreenId screenId_ = INVALID_SCREEN_ID;
-
-    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
-    bool isParallelCanvas_ = false;
-    bool disableFilterCache_ = false;
-    bool recordingState_ = false;
-    bool recordDrawable_ = false;
-    bool isCapture_ = false;
-    bool isHdrOn_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

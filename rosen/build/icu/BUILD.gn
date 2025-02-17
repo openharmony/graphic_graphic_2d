@@ -30,7 +30,6 @@ template("icu_config") {
   forward_variables_from(invoker, "*")
 
   config(target_name) {
-    visibility = [ ":*" ]
     if (defined(config.use_external_icu)) {
       include_dirs = external_icu_include_dirs
     } else {

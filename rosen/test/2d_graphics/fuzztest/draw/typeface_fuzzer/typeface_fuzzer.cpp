@@ -27,7 +27,19 @@ constexpr size_t MAX_SIZE = 5000;
 constexpr size_t SLANT_SIZE = 3;
 } // namespace
 namespace Drawing {
-
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeDefault()
+ * 2. GetFamilyName()
+ * 3. GetFontStyle()
+ * 4. GetTableSize(uint32_t tag)
+ * 5. GetTableData(uint32_t tag, size_t offset, size_t length, void* data)
+ * 6. GetItalic()
+ * 7. GetUniqueID()
+ * 8. GetUnitsPerEm()
+ * 9. IsCustomTypeface()
+ * 10. IsThemeTypeface()
+ */
 bool TypefaceFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -51,9 +63,14 @@ bool TypefaceFuzzTest001(const uint8_t* data, size_t size)
     typeface->GetUniqueID();
     typeface->GetUnitsPerEm();
     typeface->IsCustomTypeface();
+    typeface->IsThemeTypeface();
     return true;
 }
 
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeFromFile(const char* path, size_t length)
+ */
 bool TypefaceFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -78,6 +95,10 @@ bool TypefaceFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeFromStream(std::unique_ptr<MemoryStream> memoryStream)
+ */
 bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -106,6 +127,20 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeDefault()
+ * 2. GetFamilyName()
+ * 3. GetFontStyle()
+ * 4. GetTableSize(uint32_t tag)
+ * 5. GetTableData(uint32_t tag, size_t offset, size_t length, void* data)
+ * 6. GetItalic()
+ * 7. GetUniqueID()
+ * 8. GetUnitsPerEm()
+ * 9. IsCustomTypeface()
+ * 10. IsThemeTypeface()
+ * 11. MakeClone(const FontArguments& arg)
+ */
 bool TypefaceFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -149,6 +184,10 @@ bool TypefaceFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeFromName(const char* familyName, const FontStyle& style)
+ */
 bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

@@ -16,6 +16,7 @@
 #include "rs_profiler_utils.h"
 
 #include <chrono>
+#include <cstdarg>
 #include <fcntl.h>
 #include <filesystem>
 #include <fstream>
@@ -35,6 +36,24 @@
 #endif
 
 namespace OHOS::Rosen {
+
+float Utils::Kilobytes(size_t bytes)
+{
+    constexpr float factor = 1024;
+    return static_cast<float>(bytes) / factor;
+}
+
+float Utils::Megabytes(size_t bytes)
+{
+    constexpr float factor = 1024 * 1024;
+    return static_cast<float>(bytes) / factor;
+}
+
+float Utils::Gigabytes(size_t bytes)
+{
+    constexpr float factor = 1024 * 1024 * 1024;
+    return static_cast<float>(bytes) / factor;
+}
 
 // Time routines
 uint64_t Utils::Now()
@@ -103,6 +122,44 @@ pid_t Utils::GetPid()
 #endif
 
 // String routines
+std::string Utils::Format(const char* format, va_list args)
+{
+    if (!format) {
+        return {};
+    }
+
+    va_list temporary;
+    va_copy(temporary, args);
+    const auto length = vsnprintf(nullptr, 0, format, temporary);
+    va_end(temporary);
+
+    if (length <= 0) {
+        return {};
+    }
+
+    std::string out(length + 1, 0);
+    const auto size = vsnprintf_s(out.data(), length + 1, length, format, args);
+    if ((size > 0) && (size <= length)) {
+        out.resize(size);
+    } else {
+        out.clear();
+    }
+    return out;
+}
+
+std::string Utils::Format(const char* format, ...)
+{
+    if (!format) {
+        return {};
+    }
+
+    va_list args;
+    va_start(args, format);
+    auto out = Format(format, args);
+    va_end(args);
+    return out;
+}
+
 std::vector<std::string> Utils::Split(const std::string& string)
 {
     std::istringstream stream(string);
@@ -547,6 +604,9 @@ void Utils::FileSeek(FILE* file, int64_t offset, int origin)
 
 void Utils::FileRead(FILE* file, void* data, size_t size)
 {
+    if (size == 0) { // Avoid the frequent logging when size is zero
+        return;
+    }
     if (!data) {
         HRPE("FileRead: Data is null"); // NOLINT
         return;

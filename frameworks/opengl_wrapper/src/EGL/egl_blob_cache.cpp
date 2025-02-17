@@ -303,6 +303,10 @@ void BlobCache::WriteToDisk()
         }
     }
     size_t filesize = GetCacheSize();
+    if (filesize == 0) {
+        close(fd);
+        return;
+    }
     size_t headsize = sizeof(CacheHeader);
     size_t bufsize = filesize + CACHE_HEAD;
     uint8_t *buf = new uint8_t[bufsize];
@@ -342,12 +346,18 @@ void BlobCache::WriteToDisk()
     close(fd);
 }
 
-void BlobCache::ReadFromDisk()
+void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
 {
-    readStatus_ = true;
-    std::string storefile = cacheDir_ + fileName_;
-    int fd = open(storefile.c_str(), O_RDONLY, 0);
+    WLOGI("filePath:%{public}s", filePath.c_str());
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(filePath.c_str(), tmpPath) == nullptr) {
+        WLOGE("open file failed, because of realpath check");
+        return;
+    }
+    std::string realPath = tmpPath;
+    int fd = open(realPath.c_str(), O_RDONLY, 0);
     if (fd == -1) {
+        WLOGE("open failed, errno:%{public}d", errno);
         close(fd);
         return;
     }
@@ -391,6 +401,16 @@ void BlobCache::ReadFromDisk()
     }
     munmap(buf, filesize);
     close(fd);
+}
+
+void BlobCache::ReadFromDisk()
+{
+    readStatus_ = true;
+#ifdef PRELOAD_BLOB_CACHE
+    BlobCacheReadFromDisk(PRESET_BLOB_CACHE_PATH);
+#endif
+    std::string storefile = cacheDir_ + fileName_;
+    BlobCacheReadFromDisk(storefile);
 }
 
 //CRC standard function

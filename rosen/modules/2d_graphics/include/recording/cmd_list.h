@@ -36,6 +36,7 @@ namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
+constexpr size_t MAX_OPITEMSIZE = 10000;
 
 class DRAWING_API ExtendImageObject {
 public:
@@ -52,6 +53,24 @@ public:
     virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) = 0;
+    virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
+};
+
+class DRAWING_API ExtendImageNineObject {
+public:
+    virtual ~ExtendImageNineObject() = default;
+    virtual void Playback(Canvas& canvas, const RectI& center, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) = 0;
+    virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
+};
+
+class DRAWING_API ExtendImageLatticeObject {
+public:
+    virtual ~ExtendImageLatticeObject() = default;
+    virtual void Playback(Canvas& canvas, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) = 0;
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
 };
@@ -230,6 +249,46 @@ public:
     uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
 
      /*
+     * @brief  return imageNineObject index, negative is error.
+     */
+    uint32_t AddImageNineObject(const std::shared_ptr<ExtendImageNineObject>& object);
+
+    /*
+     * @brief  get imageNineObject by index.
+     */
+    std::shared_ptr<ExtendImageNineObject> GetImageNineObject(uint32_t id);
+
+    /*
+     * @brief  return imageNineObject size, 0 is no imageNineObject.
+     */
+    uint32_t GetAllImageNineObject(std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList);
+
+    /*
+     * @brief  return real setup imageNineObject size.
+     */
+    uint32_t SetupImageNineObject(const std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList);
+
+     /*
+     * @brief  return imageLatticeObject index, negative is error.
+     */
+    uint32_t AddImageLatticeObject(const std::shared_ptr<ExtendImageLatticeObject>& object);
+
+    /*
+     * @brief  get imageLatticeObject by index.
+     */
+    std::shared_ptr<ExtendImageLatticeObject> GetImageLatticeObject(uint32_t id);
+
+    /*
+     * @brief  return imageLatticeObject size, 0 is no imageLatticeObject.
+     */
+    uint32_t GetAllImageLatticeObject(std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList);
+
+    /*
+     * @brief  return real setup imageLatticeObject size.
+     */
+    uint32_t SetupImageLatticeObject(const std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList);
+
+     /*
      * @brief  return DrawFuncObj index, negative is error.
      */
     uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
@@ -280,6 +339,9 @@ public:
 #endif
 
 protected:
+    void ProfilerPushObjects(std::stringstream& stream, size_t size);
+    void ProfilerPopObjects(std::stringstream& stream, size_t size);
+
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
@@ -295,6 +357,10 @@ protected:
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
     std::mutex imageBaseObjMutex_;
+    std::vector<std::shared_ptr<ExtendImageNineObject>> imageNineObjectVec_;
+    std::mutex imageNineObjectMutex_;
+    std::vector<std::shared_ptr<ExtendImageLatticeObject>> imageLatticeObjectVec_;
+    std::mutex imageLatticeObjectMutex_;
     std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
     std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS

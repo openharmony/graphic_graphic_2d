@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -30,12 +29,30 @@ namespace {
 constexpr size_t ELEMENT_SIZE = 9;
 constexpr size_t ARRAY_MAX_SIZE = 5000;
 constexpr size_t MATH_TWO = 2;
-constexpr size_t MATH_ONE = 1;
 constexpr size_t MATH_FORE = 4;
 constexpr size_t MATH_NINE = 9;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 Matrix 接口：
+ * 1. Get
+ * 2. Skew
+ * 3. Rotate
+ * 4. Translate
+ * 5. Scale
+ * 6. SetScale
+ * 7. SetScaleTranslate
+ * 8. SetSkew
+ * 9. PreRotate
+ * 10. PostRotate
+ * 11. PreTranslate
+ * 12. PostTranslate
+ * 13. PreScale
+ * 14. PostScale
+ * 15. PreSkew
+ * 16. PostSkew
+ */
 bool MatrixFuzzTest000(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -81,6 +98,22 @@ bool MatrixFuzzTest000(const uint8_t* data, size_t size)
     return false;
 }
 
+/*
+ * 测试以下 Matrix 接口：
+ * 1. PreConcat
+ * 2. PostConcat
+ * 3. Invert
+ * 4. SetMatrix
+ * 5. SetRectToRect
+ * 6. MapRect
+ * 7. Set
+ * 8. IsIdentity
+ * 9. Reset
+ * 10. HasPerspective
+ * 11. Swap
+ * 12. 操作符==
+ * 13. 操作符*
+ */
 void MatrixFuzzTest001(const uint8_t* data, size_t size)
 {
     // initialize
@@ -125,6 +158,14 @@ void MatrixFuzzTest001(const uint8_t* data, size_t size)
     Matrix other2 = other * other1;
 }
 
+/*
+ * 测试以下 Matrix 接口：
+ * 1. MapPoints
+ * 2. SetPolyToPoly
+ * 3. SetAll
+ * 4. GetAll
+ * 5. GetMinMaxScales
+ */
 void MatrixFuzzTest002(const uint8_t* data, size_t size)
 {
     // initialize
@@ -137,15 +178,17 @@ void MatrixFuzzTest002(const uint8_t* data, size_t size)
     uint32_t array_size = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
 
     Matrix matrix;
-    std::vector<Point> dst = { {xRad, yRad} };
-    std::vector<Point> src = { {xRad, yRad} };
+    std::vector<Point> dst;
+    std::vector<Point> src;
     Point src1[array_size];
     Point dst1[array_size];
     for (size_t i = 0; i< array_size; i++) {
-        src1[i].Set(xRad, yRad);
-        dst1[i].Set(xRad, yRad);
+        src1[i].Set(GetObject<scalar>(), GetObject<scalar>());
+        dst1[i].Set(GetObject<scalar>(), GetObject<scalar>());
+        dst.push_back({GetObject<scalar>(), GetObject<scalar>()});
+        src.push_back({GetObject<scalar>(), GetObject<scalar>()});
     }
-    matrix.MapPoints(dst, src, MATH_ONE);
+    matrix.MapPoints(dst, src, array_size);
     matrix.SetPolyToPoly(src1, dst1, array_size);
     Matrix::Buffer buffer;
     for (size_t i = 0; i < Matrix::MATRIX_SIZE; i++) {
@@ -153,7 +196,6 @@ void MatrixFuzzTest002(const uint8_t* data, size_t size)
     }
     matrix.SetAll(buffer);
     matrix.GetAll(buffer);
-    matrix.GetImpl<SkiaMatrix>();
     scalar scaleFactors[MATH_TWO] = {xRad, yRad};
     matrix.GetMinMaxScales(scaleFactors);
 }

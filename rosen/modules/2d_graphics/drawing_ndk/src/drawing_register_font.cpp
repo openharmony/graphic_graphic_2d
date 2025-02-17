@@ -58,8 +58,8 @@ inline T1* ConvertToOriginalText(T2* ptr)
     return reinterpret_cast<T1*>(ptr);
 }
 
-static uint32_t LoadFromFontCollection(
-    OH_Drawing_FontCollection* fontCollection, const std::string& familyName, const uint8_t* data, size_t dataLength)
+static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection,
+    const std::string& familyName, const uint8_t* data, size_t dataLength)
 {
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
@@ -141,8 +141,8 @@ uint32_t OH_Drawing_RegisterFont(
     return LoadFromFontCollection(fontCollection, familyName, data, size);
 }
 
-uint32_t OH_Drawing_RegisterFontBuffer(
-    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, uint8_t* fontBuffer, size_t length)
+uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
+    uint8_t* fontBuffer, size_t length)
 {
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;

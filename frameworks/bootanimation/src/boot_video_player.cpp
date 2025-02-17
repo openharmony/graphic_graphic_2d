@@ -21,10 +21,15 @@
 #include <parameters.h>
 
 using namespace OHOS;
-#ifdef PLAYER_FRAMEWORK_ENABLE
-static const int CONTENT_TYPE_UNKNOWN = 0;
-static const int STREAM_USAGE_ENFORCED_TONE = 15;
-#endif
+
+const std::vector<std::string> NORMAL_REBOOT_REASON_ARR = {"AP_S_COLDBOOT", "bootloader", "recovery", "fastbootd",
+    "resetfactory", "at2resetfactory", "atfactoryreset0", "resetuser", "sdupdate", "chargereboot", "resize",
+    "erecovery", "usbupdate", "cust", "oem_rtc", "UNKNOWN", "mountfail", "hungdetect", "COLDBOOT", "updatedataimg",
+    "AP_S_FASTBOOTFLASH", "gpscoldboot", "AP_S_COMBINATIONKEY", "CP_S_NORMALRESET", "IOM3_S_USER_EXCEPTION",
+    "BR_UPDATE_USB", "BR_UPDATA_SD_FORCE", "BR_KEY_VOLUMN_UP", "BR_PRESS_1S", "BR_CHECK_RECOVERY",
+    "BR_CHECK_ERECOVERY", "BR_CHECK_SDUPDATE", "BR_CHECK_USBUPDATE", "BR_CHECK_RESETFACTORY", "BR_CHECK_HOTAUPDATE",
+    "BR_POWERONNOBAT", "BR_NOGUI", "BR_FACTORY_VERSION", "BR_RESET_HAPPEN", "BR_POWEROFF_ALARM", "BR_POWEROFF_CHARGE",
+    "BR_POWERON_BY_SMPL", "BR_CHECK_UPDATEDATAIMG", "BR_POWERON_CHARGE", "AP_S_PRESS6S", "BR_PRESS_10S"};
 
 BootVideoPlayer::BootVideoPlayer(const PlayerParams& params)
 {
@@ -101,21 +106,21 @@ bool BootVideoPlayer::SetVideoSound()
         mediaPlayer_->SetVolume(0, 0);
         return true;
     }
-    Media::Format format;
-    format.PutIntValue(Media::PlayerKeys::CONTENT_TYPE, CONTENT_TYPE_UNKNOWN);
-    format.PutIntValue(Media::PlayerKeys::STREAM_USAGE, STREAM_USAGE_ENFORCED_TONE);
-    format.PutIntValue(Media::PlayerKeys::RENDERER_FLAG, 0);
-    int ret = mediaPlayer_->SetParameter(format);
+
+    int ret = mediaPlayer_->SetParameter(buildMediaFormat());
     if (ret != 0) {
         LOGE("PlayVideo SetParameter fail, errorCode:%{public}d", ret);
         return false;
     }
 
     bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
-    if (!bootSoundEnabled) {
-        ret = mediaPlayer_->SetVolume(0, 0);
-        if (ret != 0) {
-            LOGE("PlayVideo SetVolume fail, errorCode:%{public}d", ret);
+    if (!bootSoundEnabled || !IsNormalBoot()) {
+        if (!SetCustomizedVolume(0)) {
+            return false;
+        }
+    } else {
+        int customizedVolume = system::GetIntParameter(BOOT_SOUND, INVALID_VOLUME, MIN_VOLUME, MAX_VOLUME);
+        if (customizedVolume != INVALID_VOLUME && !SetCustomizedVolume(customizedVolume)) {
             return false;
         }
     }
@@ -139,6 +144,18 @@ std::shared_ptr<Media::Player> BootVideoPlayer::GetMediaPlayer() const
 void BootVideoPlayer::StopVideo()
 {
     vSyncCallback_(userData_);
+}
+
+bool BootVideoPlayer::IsNormalBoot()
+{
+    std::string bootReason = system::GetParameter("ohos.boot.reboot_reason", "");
+    LOGI("bootReason: %{public}s", bootReason.c_str());
+    if (std::find(NORMAL_REBOOT_REASON_ARR.begin(), NORMAL_REBOOT_REASON_ARR.end(), bootReason)
+        != NORMAL_REBOOT_REASON_ARR.end()) {
+        LOGI("normal boot");
+        return true;
+    }
+    return false;
 }
 
 #ifdef PLAYER_FRAMEWORK_ENABLE

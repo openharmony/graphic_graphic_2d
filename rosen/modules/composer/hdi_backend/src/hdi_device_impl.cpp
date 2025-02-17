@@ -202,6 +202,21 @@ int32_t HdiDeviceImpl::SetScreenMode(uint32_t screenId, uint32_t modeId)
     return g_composer->SetDisplayMode(screenId, modeId);
 }
 
+int32_t HdiDeviceImpl::SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect)
+{
+    if (activeRect.w <= 0 || activeRect.h <= 0) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    CHECK_FUNC(g_composer);
+    IRect hdiActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    return g_composer->SetDisplayActiveRegion(screenId, hdiActiveRect);
+}
+
 int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height)
 {
     CHECK_FUNC(g_composer);
@@ -425,6 +440,12 @@ int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFenc
     }
     return ret;
 }
+
+int32_t HdiDeviceImpl::GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayIdentificationData(screenId, outPort, edidData);
+}
 /* set & get device screen info end */
 
 /* set & get device layer info begin */
@@ -624,6 +645,13 @@ std::vector<std::string>& HdiDeviceImpl::GetSupportedLayerPerFrameParameterKey()
 
 int32_t HdiDeviceImpl::SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
                                                  const std::vector<int8_t>& value)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);
+}
+
+int32_t HdiDeviceImpl::SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t layerId, const std::string& key,
+    const std::vector<int8_t>& value)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);

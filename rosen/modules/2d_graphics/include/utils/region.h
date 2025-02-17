@@ -133,13 +133,16 @@ private:
 
 inline void Region::Dump(std::string& out) const
 {
-    out += "[empty:" + std::string(impl_->IsEmpty() ? "true" : "false");
-    out += " isRect:" + std::string(impl_->IsRect() ? "true" : "false");
-    out += " BoundaryPath";
-    Path path;
-    impl_->GetBoundaryPath(&path);
-    path.Dump(out);
-    out += "]";
+    out += '[';
+    if (impl_ != nullptr) {
+        out += "empty:" + std::string(impl_->IsEmpty() ? "true" : "false");
+        out += " isRect:" + std::string(impl_->IsRect() ? "true" : "false");
+        out += " BoundaryPath";
+        Path path;
+        impl_->GetBoundaryPath(&path);
+        path.Dump(out);
+    }
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

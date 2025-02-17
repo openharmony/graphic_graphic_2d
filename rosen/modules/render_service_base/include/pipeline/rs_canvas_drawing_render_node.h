@@ -76,11 +76,13 @@ public:
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
     void ClearResource() override;
     void ClearNeverOnTree() override;
+    void CheckCanvasDrawingPostPlaybacked();
+    bool GetIsPostPlaybacked();
 private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-        void CheckDrawCmdListSize(RSModifierType type);
+    void CheckDrawCmdListSize(RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
@@ -89,27 +91,27 @@ private:
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
 
-    std::mutex imageMutex_;
-    std::shared_ptr<Drawing::Surface> surface_;
-    std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
 #endif
+    bool isNeverOnTree_ = true;
+    bool isPostPlaybacked_ = false;
+    bool lastOverflowStatus_ = false;
+    std::atomic<bool> isNeedProcess_ = false;
+    pid_t threadId_ = 0;
+    // Used in uni render thread.
+    uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
+    std::shared_ptr<Drawing::Surface> surface_;
+    std::shared_ptr<Drawing::Image> image_;
+    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::mutex imageMutex_;
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex taskMutex_;
-    std::atomic<bool> isNeedProcess_ = false;
-    pid_t threadId_ = 0;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
-    bool isNeverOnTree_ = true;
-    bool lastOverflowStatus_ = false;
 
-    // Used in uni render thread.
-    uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
-    uint32_t playbackNotOnTreeCmdSize_ = 0;
 
     friend class RSCanvasDrawingNodeCommandHelper;
 };

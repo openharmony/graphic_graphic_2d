@@ -18,6 +18,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_font_utils.h"
 #include "drawing_helper.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
@@ -65,6 +66,11 @@ static const Drawing::Rect& CastToRect(const OH_Drawing_Rect& cRect)
     return reinterpret_cast<const Drawing::Rect&>(cRect);
 }
 
+static const Drawing::Rect* CastToRect(const OH_Drawing_Rect* cRect)
+{
+    return reinterpret_cast<const Drawing::Rect*>(cRect);
+}
+
 static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
 {
     return reinterpret_cast<const Point&>(cPoint);
@@ -83,6 +89,11 @@ static const Point3& CastToPoint3(OH_Drawing_Point3D& cPoint3)
 static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
 {
     return reinterpret_cast<const RoundRect&>(cRoundRect);
+}
+
+static const RoundRect* CastToRoundRect(const OH_Drawing_RoundRect* cRoundRect)
+{
+    return reinterpret_cast<const RoundRect*>(cRoundRect);
 }
 
 static const TextBlob* CastToTextBlob(const OH_Drawing_TextBlob* cTextBlob)
@@ -105,9 +116,9 @@ static const SamplingOptions& CastToSamplingOptions(const OH_Drawing_SamplingOpt
     return reinterpret_cast<const SamplingOptions&>(cSamplingOptions);
 }
 
-static const Font& CastToFont(const OH_Drawing_Font& cFont)
+static const Font* CastToFont(const OH_Drawing_Font* cFont)
 {
-    return reinterpret_cast<const Font&>(cFont);
+    return reinterpret_cast<const Font*>(cFont);
 }
 
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
@@ -387,6 +398,34 @@ void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bi
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
+    const OH_Drawing_Rect* center, const OH_Drawing_Rect* dst, OH_Drawing_FilterMode mode)
+{
+#ifdef OHOS_PLATFORM
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || pixelMap == nullptr || dst == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::shared_ptr<Media::PixelMap> p = nullptr;
+    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
+        case NativePixelMapType::OBJECT_FROM_C:
+            if (pixelMap) {
+                p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
+            }
+            break;
+        case NativePixelMapType::OBJECT_FROM_JS:
+            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
+            break;
+        default:
+            break;
+    }
+    return DrawingCanvasUtils::DrawPixelMapNine(canvas, p,
+        CastToRect(center), CastToRect(dst), static_cast<FilterMode>(mode));
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
+}
+
 void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {
@@ -493,6 +532,26 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect*
     canvas->DrawArc(CastToRect(*cRect), startAngle, sweepAngle);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawArcWithCenter(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
+    float startAngle, float sweepAngle, bool useCenter)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const Drawing::Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    if (useCenter) {
+        canvas->DrawPie(*rect, startAngle, sweepAngle);
+    } else {
+        canvas->DrawArc(*rect, startAngle, sweepAngle);
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* cRoundRect)
 {
     if (cRoundRect == nullptr) {
@@ -505,6 +564,25 @@ void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing
         return;
     }
     canvas->DrawRoundRect(CastToRoundRect(*cRoundRect));
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawNestedRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* outer,
+    const OH_Drawing_RoundRect* inner)
+{
+    const RoundRect* roundRectOuter = CastToRoundRect(outer);
+    if (roundRectOuter == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const RoundRect* roundRectInner = CastToRoundRect(inner);
+    if (roundRectInner == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawNestedRoundRect(*roundRectOuter, *roundRectInner);
+    return OH_DRAWING_SUCCESS;
 }
 
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCanvas, const char* str,
@@ -523,7 +601,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
     }
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
-    canvas->DrawSingleCharacter(unicode, CastToFont(*cFont), x, y);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    canvas->DrawSingleCharacter(unicode, *font, x, y);
     return OH_DRAWING_SUCCESS;
 }
 
@@ -882,5 +965,33 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     canvas->DrawRecordCmd(recordCmdHandle->value);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath,
+    bool* quickReject)
+{
+    if (quickReject == nullptr || cPath == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *quickReject = canvas->QuickReject(CastToPath(*cPath));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
+    bool* quickReject)
+{
+    if (quickReject == nullptr || cRect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *quickReject = canvas->QuickReject(CastToRect(*cRect));
     return OH_DRAWING_SUCCESS;
 }

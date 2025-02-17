@@ -32,6 +32,7 @@ enum class RSModifierType : int16_t {
     BOUNDS,
     FRAME,
     POSITION_Z,
+    POSITION_Z_APPLICABLE_CAMERA3D,
     PIVOT,
     PIVOT_Z,
     QUATERNION,
@@ -52,6 +53,7 @@ enum class RSModifierType : int16_t {
     FOREGROUND_COLOR,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
+    BACKGROUND_SHADER_PROGRESS,
     BG_IMAGE,
     BG_IMAGE_INNER_RECT,
     BG_IMAGE_WIDTH,
@@ -125,7 +127,6 @@ enum class RSModifierType : int16_t {
     OUTLINE_DASH_WIDTH,
     OUTLINE_DASH_GAP,
     OUTLINE_RADIUS,
-    USE_SHADOW_BATCHING,
     GREY_COEF,
     LIGHT_INTENSITY,
     LIGHT_COLOR,
@@ -133,10 +134,11 @@ enum class RSModifierType : int16_t {
     ILLUMINATED_BORDER_WIDTH,
     ILLUMINATED_TYPE,
     BLOOM,
+    FOREGROUND_EFFECT_RADIUS,
+    USE_SHADOW_BATCHING,
+    MOTION_BLUR_PARA,
     PARTICLE_EMITTER_UPDATER,
     PARTICLE_NOISE_FIELD,
-    FOREGROUND_EFFECT_RADIUS,
-    MOTION_BLUR_PARA,
     FLY_OUT_DEGREE,
     FLY_OUT_PARAMS,
     DISTORTION_K,
@@ -170,6 +172,8 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
     CUSTOM_CLIP_TO_FRAME,
+    HDR_BRIGHTNESS,
+    BEHIND_WINDOW_FILTER_ENABLED,
     BEHIND_WINDOW_FILTER_RADIUS,
     BEHIND_WINDOW_FILTER_SATURATION,
     BEHIND_WINDOW_FILTER_BRIGHTNESS,
@@ -222,6 +226,7 @@ public:
             case RSModifierType::BOUNDS: return "Bounds";
             case RSModifierType::FRAME: return "Frame";
             case RSModifierType::POSITION_Z: return "PositionZ";
+            case RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D: return "PositionZApplicableCamera3D";
             case RSModifierType::PIVOT: return "Pivot";
             case RSModifierType::PIVOT_Z: return "PivotZ";
             case RSModifierType::QUATERNION: return "Quaternion";
@@ -242,6 +247,7 @@ public:
             case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
             case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
             case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
             case RSModifierType::BG_IMAGE: return "BgImage";
             case RSModifierType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";
             case RSModifierType::BG_IMAGE_WIDTH: return "BgImageWidth";
@@ -353,6 +359,8 @@ public:
             case RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
             case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
             case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
+            case RSModifierType::HDR_BRIGHTNESS: return "HDRBrightness";
+            case RSModifierType::BEHIND_WINDOW_FILTER_ENABLED: return "BehindWindowFilterEnabled";
             case RSModifierType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSModifierType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";

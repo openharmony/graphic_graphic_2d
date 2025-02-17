@@ -73,7 +73,20 @@ JANK_STATS_RS:
   STARTTIME: {type: UINT64, desc: begin time since last report}
   DURATION: {type: UINT64, desc: duration since last report}
   JANK_STATS: {type: UINT16, desc: jank frame stats}
+  PID: {type: INT32, desc: app pid}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
   JANK_STATS_VER: {type: UINT32, desc: jank range version}
+
+JANK_FRAME_RS:
+  __BASE: {type: FAULT, level: MINOR, tag: performance, desc: jank frame}
+  PID: {type: INT32, desc: app pid}
+  BUNDLE_NAME: {type: STRING, desc: bundle name}
+  PROCESS_NAME: {type: STRING, desc: process name}
+  VERSION_NAME: {type: STRING, desc: version name}
+  VERSION_CODE: {type: INT32, desc: version code}
 
 INTERACTION_RESPONSE_LATENCY:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction response statistics}
@@ -120,6 +133,8 @@ INTERACTION_RENDER_JANK:
   TOTAL_FRAMES: {type: INT32, desc: total frames}
   TOTAL_MISSED_FRAMES: {type: INT32, desc: total missed frames during the scene}
   MAX_FRAMETIME: {type: UINT64, desc: max single frame time during the scene}
+  MAX_TECH_FRAMETIME: {type: UINT64, desc: max tech single frame time during the scene}
+  MAX_REAL_FRAMETIME: {type: UINT64, desc: max real single frame time during the scene}
   MAX_FRAMETIME_SINCE_START: {type: UINT64, desc: duration from the scene start to the max frame end}
   AVERAGE_FRAMETIME: {type: FLOAT, desc: average frame time during the scene}
   MAX_SEQ_MISSED_FRAMES: {type: INT32, desc: max successive missed frames during the scene}
@@ -162,6 +177,11 @@ RS_NODE_LIMIT_EXCEEDED:
   RS_TOP3_APP_NAME: {type: STRING, desc: name of current app with top3 rs nodes}
   RS_TOP3_APP_NODE: {type: UINT32, desc: number of nodes of current app with top3 rs nodes}
 
+ANIMATION_CALLBACK_MISSING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: animation finish callback guarantee}
+  CURVE_TYPE: {type: INT32, desc: curve type}
+  DURATION: {type: FLOAT, desc: animation duration}
+
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}
   MSG: {type: STRING, desc: voter info}
@@ -199,3 +219,7 @@ RS_HARDWARE_THREAD_LOAD_WARNING:
   FRAME_RATE: {type: UINT16, desc: the refresh rate you set}
   MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
   FRAME_TIME: {type: UINT64, desc: frame length}
+
+RENDER_DRAWABLE_MULTI_ACCESS:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: multi thread competition occurs in the graphics drawing process}
+  MULTI_ACCESS_MSG: {type: STRING, desc: drawable multi-access information}

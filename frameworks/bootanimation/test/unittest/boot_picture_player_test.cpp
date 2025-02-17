@@ -89,28 +89,35 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_004, TestSize.Level1)
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    int flag = 0;
     handler->PostTask([&] {
         player->Play();
+        flag = 1;
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, 1);
     
     player->receiver_ = nullptr;
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     player->receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", handler);
     handler->PostTask([&] {
         player->Play();
+        flag = 0;
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, 0);
 
     ImageStructVec imgVec;
     player->imageVector_ = imgVec;
     handler->PostTask([&] {
         player->Play();
+        flag = 1;
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, 1);
 }
 
 /**
@@ -172,32 +179,45 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_007, TestSize.Level1)
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
     PlayerParams params;
+    bool flag = false;
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
     handler->PostTask([&] {
-        player->OnDraw(nullptr, 0);
+        flag = player->OnDraw(nullptr, 0);
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, false);
 
     Rosen::Drawing::CoreCanvas canvas;
     handler->PostTask([&] {
-        player->OnDraw(&canvas, 0);
+        flag = player->OnDraw(&canvas, 0);
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, false);
 
     player->imgVecSize_ = 1;
     handler->PostTask([&] {
-        player->OnDraw(&canvas, -1);
+        flag = player->OnDraw(&canvas, -1);
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, false);
 
     player->imgVecSize_ = -1;
     handler->PostTask([&] {
-        player->OnDraw(&canvas, -1);
+        flag = player->OnDraw(&canvas, -1);
         runner->Stop();
     });
     runner->Run();
+    EXPECT_EQ(flag, false);
+
+    ImageStructVec imgVec;
+    player->imageVector_ = imgVec;
+    player->picCurNo_ = 0;
+    player->imgVecSize_ = 2;
+    player->OnVsync();
+    flag = player->Stop();
+    EXPECT_EQ(flag, false);
 }
 }

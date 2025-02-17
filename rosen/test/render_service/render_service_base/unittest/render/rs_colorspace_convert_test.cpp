@@ -92,6 +92,168 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ColorSpaceConvertor201
+ * @tc.desc: tilex TileMode is REPEAT
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor201, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ColorSpaceConvertor202
+ * @tc.desc: TileMode is MIRROR
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor202, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::MIRROR, Drawing::TileMode::CLAMP, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ColorSpaceConvertor203
+ * @tc.desc: tilex TileMode is DECAL
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor203, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::DECAL, Drawing::TileMode::CLAMP, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ColorSpaceConvertor204
+ * @tc.desc: tileY TileMode is REPEAT
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor204, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ColorSpaceConvertor205
+ * @tc.desc: tileY TileMode is MIRROR
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor205, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::REPEAT, Drawing::TileMode::MIRROR, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
+ * @tc.name: ColorSpaceConvertor206
+ * @tc.desc: tileY TileMode is MIRROR
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor206, TestSize.Level1)
+{
+    Drawing::Paint paint;
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;  //Identity Matrix
+    std::shared_ptr<Drawing::Image> img = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(img != nullptr);
+
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *img, Drawing::TileMode::REPEAT, Drawing::TileMode::DECAL, sampling, matrix);
+    ASSERT_TRUE(imageShader != nullptr);
+
+    bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
+        screenId, dynamicRangeMode);
+    ASSERT_TRUE(ret == false);
+}
+
+/**
  * @tc.name: ColorSpaceConvertor003
  * @tc.desc: test inputShader != nullptr && surfaceBuffer != nullptr
  * @tc.type:FUNC

@@ -99,7 +99,6 @@ napi_value NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBase, c
             "Failed to get undefined, stat:%d", static_cast<int>(stat));
     }
 
-    contextBase->IncStrongRef(nullptr);
     napi_value resource = nullptr;
     stat = napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return promise,
@@ -181,9 +180,7 @@ void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
         stat = napi_call_function(contextBase->env, nullptr, callback, RESULT_ALL, result, &callbackResult);
         TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to call callback function, stat:%d", static_cast<int>(stat)));
     }
-    int count = contextBase->GetSptrRefCount();
-    for (int i = 0; i < count - 1; ++i) {
-        contextBase->DecStrongRef(nullptr);
-    }
+    contextBase->execute = nullptr;
+    contextBase->complete = nullptr;
 }
 }

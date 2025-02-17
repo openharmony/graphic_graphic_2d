@@ -66,15 +66,20 @@ void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
 bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     if (val == nullptr) {
-        parcel.WriteUint16(static_cast<int16_t>(RSModifierType::INVALID));
+        if (!parcel.WriteUint16(static_cast<int16_t>(RSModifierType::INVALID))) {
+            ROSEN_LOGE("RSRenderPropertyBase::Marshalling WriteUint16 1 failed");
+            return false;
+        }
         return true;
     }
     RSRenderPropertyType type = val->GetPropertyType();
     if (!(parcel.WriteInt16(static_cast<int16_t>(type)))) {
+        ROSEN_LOGE("RSRenderPropertyBase::Marshalling WriteUint16 2 failed");
         return false;
     }
     RSPropertyUnit unit = val->GetPropertyUnit();
     if (!(parcel.WriteInt16(static_cast<int16_t>(unit)))) {
+        ROSEN_LOGE("RSRenderPropertyBase::Marshalling WriteUint16 3 failed");
         return false;
     }
     switch (type) {
@@ -83,63 +88,108 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_FLOAT failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_COLOR failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_MATRIX3F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Matrix3f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_MATRIX3F failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_QUATERNION: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Quaternion>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_QUATERNION failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_FILTER: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_FILTER failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_VECTOR2F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_VECTOR2F failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_VECTOR4F failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_VECTOR4_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4<Color>>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_VECTOR4_COLOR failed");
+            }
+            return flag;
         }
         case RSRenderPropertyType::PROPERTY_RRECT: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<RRect>>(val);
             if (property == nullptr) {
                 return false;
             }
-            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_RRECT failed");
+            }
+            return flag;
         }
         default: {
             return false;
@@ -152,6 +202,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
 {
     int16_t typeId = 0;
     if (!parcel.ReadInt16(typeId)) {
+        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling ReadInt16 1 failed");
         return false;
     }
     RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);
@@ -161,11 +212,13 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     }
     int16_t unitId = 0;
     if (!parcel.ReadInt16(unitId)) {
+        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling ReadInt16 2 failed");
         return false;
     }
     RSPropertyUnit unit = static_cast<RSPropertyUnit>(unitId);
     PropertyId id = 0;
     if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling ReadInt16 3 failed");
         return false;
     }
     RS_PROFILER_PATCH_NODE_ID(parcel, id);
@@ -309,7 +362,11 @@ std::shared_ptr<RSRenderPropertyBase> operator+(
         return {};
     }
 
-    return a->Clone()->Add(b);
+    auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Add(b);
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator-(
@@ -319,7 +376,11 @@ std::shared_ptr<RSRenderPropertyBase> operator-(
         return {};
     }
 
-    return a->Clone()->Minus(b);
+    auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Minus(b);
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator*(
@@ -329,7 +390,12 @@ std::shared_ptr<RSRenderPropertyBase> operator*(
         return {};
     }
 
-    return value->Clone()->Multiply(scale);
+    auto clone = value->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+
+    return clone->Multiply(scale);
 }
 
 bool operator==(
@@ -511,6 +577,17 @@ void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
         propertyData->Dump(out);
         out += ']';
     }
+}
+
+template<>
+size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const
+{
+    auto propertyData = Get();
+    size_t size = sizeof(*this);
+    if (propertyData != nullptr) {
+        size += propertyData->GetSize();
+    }
+    return size;
 }
 
 template<>

@@ -14,8 +14,9 @@
  */
 
 #include "run_impl.h"
-#include "impl/run_impl.h"
+
 #include "convert.h"
+#include "impl/run_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,7 +94,7 @@ void RunImpl::GetStringRange(uint64_t* location, uint64_t* length) const
     if (location == nullptr || length == nullptr) {
         return;
     } else if (run_ == nullptr) {
-        *location = 0;
+        *location= 0;
         *length = 0;
         return;
     }

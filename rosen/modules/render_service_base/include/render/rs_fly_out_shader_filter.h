@@ -23,6 +23,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t FLY_POINT_NUM = 12; // 12 anchor points of a patch
+
 class RSB_EXPORT RSFlyOutShaderFilter : public RSDrawingFilterOriginal {
 public:
     RSFlyOutShaderFilter(float degree_, uint32_t flyMode_);
@@ -38,9 +40,11 @@ public:
     void PostProcess(Drawing::Canvas& canvas) override {};
     float GetDegree() const;
     uint32_t GetFlyMode() const;
-    // 12 means anchor points of one patch
-    void CalculateDeformation(std::array<Drawing::Point, 12>& flyUp,
-        std::array<Drawing::Point, 12>& flyDown, const float deformWidth, const float deformHeight) const;
+    void SetPathTo(Drawing::Path &path, const float width, const std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+        const std::array<Drawing::Point, FLY_POINT_NUM>& flyDown) const;
+    Drawing::Point CloserToHalf(const Drawing::Point &pointOfPatch, const float nodeBounds, const float width) const;
+    void CalculateDeformation(std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+        std::array<Drawing::Point, FLY_POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const;
 
     std::shared_ptr<RSDrawingFilterOriginal> Compose(
         const std::shared_ptr<RSDrawingFilterOriginal>& other) const override

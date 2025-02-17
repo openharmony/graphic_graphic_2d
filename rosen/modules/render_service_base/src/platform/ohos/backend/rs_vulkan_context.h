@@ -199,7 +199,7 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(bool independentContext = false,
-        bool isProtected = false);
+        bool isProtected = false, std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext() const
@@ -268,7 +268,8 @@ private:
 class RsVulkanContext {
 public:
     static RsVulkanContext& GetSingleton();
-    RsVulkanContext();
+    static RsVulkanContext& GetSingletonWithCacheDir(std::string& cacheDir);
+    explicit RsVulkanContext(std::string cacheDir = "");
     ~RsVulkanContext() {};
 
     RsVulkanContext(const RsVulkanContext&) = delete;

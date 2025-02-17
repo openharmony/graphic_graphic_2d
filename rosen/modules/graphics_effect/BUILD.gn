@@ -49,26 +49,28 @@ ohos_source_set("graphics_effect_src") {
   ]
 
   sources = [
+    "src/ext/gex_dot_matrix_shader.cpp",
+    "src/ext/gex_flow_light_sweep_shader.cpp",
+    "src/ext/gex_marshalling_helper.cpp",
+    "src/ge_aibar_shader_filter.cpp",
+    "src/ge_external_dynamic_loader.cpp",
+    "src/ge_grey_shader_filter.cpp",
+    "src/ge_kawase_blur_shader_filter.cpp",
+    "src/ge_linear_gradient_blur_shader_filter.cpp",
+    "src/ge_magnifier_shader_filter.cpp",
     "src/ge_mesa_blur_shader_filter.cpp",
     "src/ge_render.cpp",
     "src/ge_system_properties.cpp",
     "src/ge_visual_effect.cpp",
     "src/ge_visual_effect_container.cpp",
     "src/ge_visual_effect_impl.cpp",
+    "src/ge_water_ripple_filter.cpp",
   ]
 
-  if (rs_enable_gpu) {
-    sources += [
-      "src/ge_aibar_shader_filter.cpp",
-      "src/ge_grey_shader_filter.cpp",
-      "src/ge_kawase_blur_shader_filter.cpp",
-      "src/ge_linear_gradient_blur_shader_filter.cpp",
-      "src/ge_magnifier_shader_filter.cpp",
-      "src/ge_water_ripple_filter.cpp",
-    ]
-  }
-
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/platform:utils",
+  ]
   if (is_arkui_x) {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
@@ -84,9 +86,16 @@ ohos_source_set("graphics_effect_src") {
     ]
   }
 
+  defines = []
   if (current_os == "ohos") {
-    defines = [ "GE_OHOS" ]
+    defines += [ "GE_OHOS" ]
     external_deps += [ "init:libbegetutil" ]
+  }
+
+  if (is_mingw || is_win) {
+    defines += [ "GE_PLATFORM_WIN" ]
+  } else {
+    defines += [ "GE_PLATFORM_UNIX" ]
   }
 
   part_name = "graphic_2d"

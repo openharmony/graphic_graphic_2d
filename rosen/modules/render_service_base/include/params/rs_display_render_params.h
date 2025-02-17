@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "common/rs_macros.h"
+#include "common/rs_special_layer_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -73,21 +74,25 @@ public:
     {
         return nodeRotation_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasSecSurface() const
+    bool IsMirrorScreen() const
     {
-        return displayHasSecSurface_;
+        return isMirrorScreen_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasSkipSurface() const
+    bool IsFirstVisitCrossNodeDisplay() const
     {
-        return displayHasSkipSurface_;
+        return isFirstVisitCrossNodeDisplay_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasSnapshotSkipSurface() const
+    bool HasChildCrossNode() const
     {
-        return displayHasSnapshotSkipSurface_;
+        return hasChildCrossNode_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasProtectedSurface() const
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
     {
-        return displayHasProtectedSurface_;
+        return specialLayerManager_;
+    }
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
+    {
+        return specialLayerManager_;
     }
     const std::map<ScreenId, bool>& GethasCaptureWindow() const
     {
@@ -113,16 +118,18 @@ public:
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    bool HasSecurityLayer() const;
-    bool HasSkipLayer() const;
-    bool HasSnapshotSkipLayer() const;
-    bool HasProtectedLayer() const;
     bool HasCaptureWindow() const;
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
+
+    bool IsRotationFinished() const;
+    void SetRotationFinished(bool finished);
+
+    void SetFingerprint(bool hasFingerprint) override;
+    bool GetFingerprint() override;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -149,15 +156,22 @@ public:
         return isSecurityExemption_;
     }
 
+    bool HasSecLayerInVisibleRect() const
+    {
+        return hasSecLayerInVisibleRect_;
+    }
+
+    bool HasSecLayerInVisibleRectChanged() const
+    {
+        return hasSecLayerInVisibleRectChanged_;
+    }
+
     // dfx
     std::string ToString() const override;
 
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable() override;
 private:
-    std::map<ScreenId, bool> displayHasSecSurface_;
-    std::map<ScreenId, bool> displayHasSkipSurface_;
-    std::map<ScreenId, bool> displayHasSnapshotSkipSurface_;
-    std::map<ScreenId, bool> displayHasProtectedSurface_;
+    RSSpecialLayerManager specialLayerManager_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
@@ -169,22 +183,28 @@ private:
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
     bool isSecurityExemption_ = false;
+    bool hasSecLayerInVisibleRect_ = false;
+    bool hasSecLayerInVisibleRectChanged_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
+    bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
+    bool isRotationFinished_ = false;
+    bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
-    
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrawables_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window

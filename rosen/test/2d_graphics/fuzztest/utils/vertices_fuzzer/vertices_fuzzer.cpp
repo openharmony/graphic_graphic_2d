@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
 #include "utils/vertices.h"
 
 namespace OHOS {
@@ -60,7 +59,6 @@ void VerticesFuzzTest000(const uint8_t* data, size_t size)
     ver1.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors, arr_size, indices);
     ver.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors);
     ver1.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors);
-    ver.GetImpl<SkiaMatrix>();
     std::shared_ptr<Data> data1 = ver.Serialize();
     ver.Deserialize(data1);
     if (positions != nullptr) {

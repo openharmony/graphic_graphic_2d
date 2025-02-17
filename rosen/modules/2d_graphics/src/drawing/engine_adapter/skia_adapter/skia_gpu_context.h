@@ -74,6 +74,8 @@ public:
 
     void DumpGpuStats(std::string& out) override;
 
+    void DumpAllResource(std::stringstream& dump) override;
+
     void ReleaseResourcesAndAbandonContext() override;
 
     void PurgeUnlockedResources(bool scratchResourcesOnly) override;
@@ -122,7 +124,7 @@ public:
 
     void SetGpuCacheSuppressWindowSwitch(bool enabled) override;
 
-    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) override;
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) override;
 
     void FlushGpuMemoryInWaitQueue() override;
     

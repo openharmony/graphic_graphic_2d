@@ -50,7 +50,7 @@ HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
     KawaseParameter param = KawaseParameter(src, dst, 1);
     std::shared_ptr<Drawing::Image> image;
 
-    kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param);
+    EXPECT_FALSE(kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param));
 }
 
 /**
@@ -113,6 +113,23 @@ HWTEST_F(KawaseBlurFilterTest, ApplyBlurTest001, TestSize.Level1)
     auto colorFilter = std::make_shared<Drawing::ColorFilter>();
     KawaseParameter param(srcRect, dstRect, 1, colorFilter, 0.f);
     EXPECT_TRUE(kawaseBlurFilter->ApplyBlur(canvas, image, blurImage, param));
+}
+
+/**
+ * @tc.name: ApplyBlurTest002
+ * @tc.desc: Verify function ApplyBlur
+ * @tc.type:FUNC
+ */
+HWTEST_F(KawaseBlurFilterTest, ApplyBlurTest002, TestSize.Level1)
+{
+    auto kawaseBlurFilter = std::make_shared<KawaseBlurFilter>();
+    Drawing::Canvas canvas(1, 1);
+    auto blurImage = std::make_shared<Drawing::Image>();
+    Drawing::Rect srcRect;
+    Drawing::Rect dstRect;
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>();
+    KawaseParameter param(srcRect, dstRect, 1, colorFilter, 0.f);
+    EXPECT_TRUE(!kawaseBlurFilter->ApplyBlur(canvas, nullptr, blurImage, param));
 }
 
 /**
@@ -185,5 +202,6 @@ HWTEST_F(KawaseBlurFilterTest, ExecutePingPongBlurTest, TestSize.Level1)
     kawaseBlurFilter->ExecutePingPongBlur(canvas, input, inParam, blur);
     EXPECT_EQ(kawaseBlurFilter->blurEffectAF_, nullptr);
 }
+
 } // namespace Rosen
 } // namespace OHOS

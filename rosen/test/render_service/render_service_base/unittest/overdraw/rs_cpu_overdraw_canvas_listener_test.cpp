@@ -198,6 +198,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, RSCPUOverdrawCanvasShapeDrawerTest003,
     Drawing::RoundRect roundRectTest2;
     Drawing::RoundRect roundRectTest3;
     canvasListener.DrawNestedRoundRect(roundRectTest2, roundRectTest3);
+    ASSERT_TRUE(canvasListener.regions_.size() != 0);
 }
 
 /**
@@ -220,6 +221,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, RSCPUOverdrawCanvasRendererTest004, Te
 
     Drawing::Path path;
     canvasListener.DrawPath(path);
+    ASSERT_TRUE(canvasListener.regions_.size() != 0);
 }
 
 /**
@@ -251,6 +253,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest005, 
     canvasListener.DrawPicture(picture);
 
     canvasListener.Clear(Drawing::Color::COLOR_BLACK);
+    ASSERT_TRUE(canvasListener.regions_.size() != 0);
 }
 
 /**
@@ -280,6 +283,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawImageRectanglesTest006, TestSize.L
     Drawing::Image imageTest3;
     Drawing::SamplingOptions samplingTest3;
     canvasListener.DrawImageRect(imageTest3, Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), samplingTest3);
+    ASSERT_TRUE(canvasListener.regions_.size() != 0);
 }
 } // namespace Rosen
 } // namespace OHOS

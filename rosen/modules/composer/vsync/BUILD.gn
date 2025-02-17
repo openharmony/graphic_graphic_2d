@@ -26,7 +26,7 @@ config("vsync_config") {
   ]
 
   if (graphic_2d_feature_enable_dvsync) {
-    gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+    gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
   }
 
   defines = []
@@ -45,7 +45,7 @@ config("vsync_public_config") {
     "$graphic_2d_root/utils/sandbox",
   ]
   if (graphic_2d_feature_enable_dvsync) {
-    include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
+    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
   }
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
@@ -60,6 +60,7 @@ ohos_shared_library("libvsync") {
     ubsan = true
   }
   sources = [
+    "src/vsync_callback_listener.cpp",
     "src/vsync_connection_proxy.cpp",
     "src/vsync_connection_stub.cpp",
     "src/vsync_controller.cpp",
@@ -90,7 +91,9 @@ ohos_shared_library("libvsync") {
 
   if (graphic_2d_feature_enable_dvsync) {
     deps += [ "$graphic_2d_ext_root/dvsync:libdvsync" ]
-    include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
+    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
+    sources +=
+        [ "$graphic_2d_ext_root/dvsync/dvsync_2/src/dvsync_controller.cpp" ]
   }
 
   public_deps = [
@@ -102,6 +105,7 @@ ohos_shared_library("libvsync") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",

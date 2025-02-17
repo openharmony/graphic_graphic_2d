@@ -15,7 +15,9 @@
 
 #include "js_path_effect.h"
 #include "js_drawing_utils.h"
+#include "path_napi/js_path.h"
 #include "native_value.h"
+#include "utils/performanceCaculate.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -26,6 +28,10 @@ napi_value JsPathEffect::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createDashPathEffect", JsPathEffect::CreateDashPathEffect),
         DECLARE_NAPI_STATIC_FUNCTION("createCornerPathEffect", JsPathEffect::CreateCornerPathEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createDiscretePathEffect", JsPathEffect::CreateDiscretePathEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createComposePathEffect", JsPathEffect::CreateComposePathEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createPathDashEffect", JsPathEffect::CreatePathDashEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createSumPathEffect", JsPathEffect::CreateSumPathEffect),
     };
 
     napi_value constructor = nullptr;
@@ -146,6 +152,46 @@ napi_value JsPathEffect::CreateCornerPathEffect(napi_env env, napi_callback_info
     return JsPathEffect::Create(env, pathEffect);
 }
 
+napi_value JsPathEffect::CreateDiscretePathEffect(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    size_t argc = ARGC_THREE;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
+
+    double segLength = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, segLength);
+
+    double dev = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, dev);
+
+    uint32_t seedAssist = 0;
+    if (argc > ARGC_TWO) {
+        GET_UINT32_PARAM(ARGC_TWO, seedAssist);
+    }
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateDiscretePathEffect(segLength, dev, seedAssist);
+    return JsPathEffect::Create(env, pathEffect);
+}
+
+napi_value JsPathEffect::CreateComposePathEffect(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    JsPathEffect *jsPathEffect1 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsPathEffect1);
+
+    JsPathEffect *jsPathEffect2 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsPathEffect2);
+
+    std::shared_ptr<PathEffect> pathEffect1 = jsPathEffect1->GetPathEffect();
+    std::shared_ptr<PathEffect> pathEffect2 = jsPathEffect2->GetPathEffect();
+
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateComposePathEffect(*pathEffect1, *pathEffect2);
+    return JsPathEffect::Create(env, pathEffect);
+}
+
 napi_value JsPathEffect::Create(napi_env env, std::shared_ptr<PathEffect> pathEffect)
 {
     napi_value objValue = nullptr;
@@ -163,6 +209,50 @@ napi_value JsPathEffect::Create(napi_env env, std::shared_ptr<PathEffect> pathEf
         return nullptr;
     }
     return objValue;
+}
+
+napi_value JsPathEffect::CreatePathDashEffect(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    JsPath* jsPath = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
+    if (jsPath->GetPath() == nullptr) {
+        ROSEN_LOGE("JsPathEffect::CreatePathDashEffect path is nullptr");
+        return nullptr;
+    }
+
+    double advance = 0.0;
+    GET_DOUBLE_CHECK_GT_ZERO_PARAM(ARGC_ONE, advance);
+
+    double phase = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, phase);
+
+    int32_t style = 0;
+    GET_ENUM_PARAM(ARGC_THREE, style, 0, static_cast<int32_t>(PathDashStyle::MORPH));
+
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreatePathDashEffect(*jsPath->GetPath(), advance, phase,
+        static_cast<PathDashStyle>(style));
+    return JsPathEffect::Create(env, pathEffect);
+}
+
+napi_value JsPathEffect::CreateSumPathEffect(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    JsPathEffect* jsPathEffect1 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsPathEffect1);
+
+    JsPathEffect* jsPathEffect2 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsPathEffect2);
+
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateSumPathEffect(*jsPathEffect1->GetPathEffect(),
+        *jsPathEffect2->GetPathEffect());
+    return JsPathEffect::Create(env, pathEffect);
 }
 
 std::shared_ptr<PathEffect> JsPathEffect::GetPathEffect()

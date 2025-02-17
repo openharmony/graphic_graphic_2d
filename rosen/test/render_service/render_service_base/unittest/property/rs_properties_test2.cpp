@@ -974,45 +974,15 @@ HWTEST_F(PropertiesTest, TransformFactor, TestSize.Level1)
     RSProperties properties;
     properties.SetScaleZ(1.0f);
     EXPECT_EQ(properties.GetScaleZ(), 1.0f);
- 
+
     properties.SetPersp(Vector4f(1.0, 1.0, 1.0, 1.0));
     EXPECT_EQ(properties.GetPersp(), Vector4f(1.0, 1.0, 1.0, 1.0));
- 
+
     properties.SetPerspZ(2.0);
     EXPECT_EQ(properties.GetPerspZ(), 2.0);
- 
+
     properties.SetPerspW(3.0);
     EXPECT_EQ(properties.GetPerspW(), 3.0);
-}
-
-/**
- * @tc.name: SetGetUseEffectTypeTest
- * @tc.desc: SetGetUseEffectTypeTest
- * @tc.type: FUNC
- * @tc.require: issueIB0UQV
- */
-HWTEST_F(PropertiesTest, SetGetUseEffectTypeTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.SetUseEffectType(1);
-    ASSERT_EQ(properties.GetUseEffectType(), 1);
-    ASSERT_EQ(properties.isDrawn_, true);
-    ASSERT_EQ(properties.contentDirty_, true);
-}
-
-/**
- * @tc.name: NeedDrawBehindWindowTest
- * @tc.desc: Test NeedDrawBehindWindow Get, Set and UpdateFilter
- * @tc.type: FUNC
- * @tc.require: issueIB0UQV
- */
-HWTEST_F(PropertiesTest, SetGetNeedDrawBehindWindowTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.SetNeedDrawBehindWindow(true);
-    ASSERT_EQ(properties.GetNeedDrawBehindWindow(), true);
-    properties.UpdateFilter();
-    ASSERT_TRUE(properties.needFilter_);
 }
 } // namespace Rosen
 } // namespace OHOS

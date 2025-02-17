@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_spring_animation.h"
+#include "command/rs_message_processor.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
 
@@ -138,6 +139,52 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Unmarshalling002
+ * @tc.desc: Verify the Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property);
+    EXPECT_TRUE(renderPropertyAnimation != nullptr);
+
+    Parcel parcel;
+    auto result = renderPropertyAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result == true);
+    auto animation = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation == nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling003
+ * @tc.desc: Verify the Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    Parcel parcel;
+    renderSpringAnimation->initialVelocity_ = nullptr;
+    auto result = renderSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result == true);
+    auto animation = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation != nullptr);
+}
+
+/**
  * @tc.name: Attach001
  * @tc.desc: Verify the Attach
  * @tc.type:FUNC
@@ -212,7 +259,7 @@ HWTEST_F(RSRenderSpringAnimationTest, Attach003, TestSize.Level1)
     renderSpringAnimation1->Attach(renderNode.get());
     renderSpringAnimation1->Start();
     renderSpringAnimation1->Pause();
-    
+
     auto renderSpringAnimation2 = std::make_shared<RSRenderSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     EXPECT_TRUE(renderSpringAnimation2 != nullptr);
@@ -319,6 +366,29 @@ HWTEST_F(RSRenderSpringAnimationTest, OnInitialize002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnInitialize003
+ * @tc.desc: Verify the OnInitialize
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnInitialize003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->blendDuration_ = true;
+    renderSpringAnimation->OnInitialize(0.0f);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+}
+
+/**
  * @tc.name: SetInitialVelocity001
  * @tc.desc: Verify the SetInitialVelocity
  * @tc.type:FUNC
@@ -369,6 +439,54 @@ HWTEST_F(RSRenderSpringAnimationTest, OnAnimate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnAnimate002
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimate002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 0.5f;
+    float dampingRatio = 0.5f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    float fraction = 0.1f;
+    renderSpringAnimation->springValueEstimator_ = nullptr;
+    renderSpringAnimation->OnAnimate(fraction);
+    EXPECT_EQ(true, renderSpringAnimation->IsCalculateAniamtionValue());
+}
+
+/**
+ * @tc.name: OnAnimate003
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimate003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 0.5f;
+    float dampingRatio = 0.5f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    float fraction = 0.1f;
+    renderSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderSpringAnimation->animationFraction_.repeatCount_ = 1;
+    renderSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderSpringAnimation->OnAnimate(fraction);
+    EXPECT_EQ(true, renderSpringAnimation->IsCalculateAniamtionValue());
+}
+
+/**
  * @tc.name: OnSetFraction001
  * @tc.desc: Verify the OnSetFraction
  * @tc.type:FUNC
@@ -407,6 +525,478 @@ HWTEST_F(RSRenderSpringAnimationTest, InitValueEstimatorTest001, TestSize.Level1
     EXPECT_TRUE(animation.valueEstimator_ == nullptr);
 
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest InitValueEstimatorTest001 end";
+}
+
+/**
+ * @tc.name: DumpAnimationInfo001
+ * @tc.desc: Test case for property is not null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, DumpAnimationInfo001, TestSize.Level1)
+{
+    RSRenderSpringAnimation animation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    animation.property_ = property;
+    std::string out;
+    animation.DumpAnimationInfo(out);
+    EXPECT_EQ(out, "Type:RSRenderSpringAnimation, ModifierType: 0, StartValue: , EndValue: ");
+}
+
+/**
+ * @tc.name: DumpAnimationInfo002
+ * @tc.desc: Test case for property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, DumpAnimationInfo002, TestSize.Level1)
+{
+    RSRenderSpringAnimation animation;
+    animation.property_ = nullptr;
+    std::string out;
+    animation.DumpAnimationInfo(out);
+    EXPECT_EQ(out, "Type:RSRenderSpringAnimation, ModifierType: INVALID, StartValue: , EndValue: ");
+}
+
+/**
+ * @tc.name: InheritSpringAnimation001
+ * @tc.desc: Verify the InheritSpringAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringAnimation001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto prevAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    prevAnimation->AttachRenderProperty(property);
+    prevAnimation->InitValueEstimator();
+    prevAnimation->OnInitialize(0.0f);
+    renderSpringAnimation->InheritSpringAnimation(prevAnimation);
+
+    EXPECT_TRUE(prevAnimation->state_ != AnimationState::FINISHED);
+}
+
+/**
+ * @tc.name: InheritSpringAnimation002
+ * @tc.desc: Verify the InheritSpringAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringAnimation002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto prevAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property2, property2, property1);
+    prevAnimation->AttachRenderProperty(property);
+    prevAnimation->InitValueEstimator();
+    prevAnimation->OnInitialize(0.0f);
+    prevAnimation->Start();
+    renderSpringAnimation->InheritSpringAnimation(prevAnimation);
+
+    EXPECT_TRUE(prevAnimation->state_ == AnimationState::FINISHED);
+}
+
+/**
+ * @tc.name: InheritSpringAnimation003
+ * @tc.desc: Verify the InheritSpringAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringAnimation003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto prevAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderSpringAnimation->InheritSpringAnimation(prevAnimation);
+
+    EXPECT_TRUE(prevAnimation->state_ != AnimationState::FINISHED);
+}
+
+/**
+ * @tc.name: InheritSpringAnimation004
+ * @tc.desc: Verify the InheritSpringAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringAnimation004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    auto prevAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    prevAnimation->AttachRenderProperty(property);
+    prevAnimation->InitValueEstimator();
+    prevAnimation->OnInitialize(0.0f);
+    renderSpringAnimation->InheritSpringAnimation(prevAnimation);
+
+    EXPECT_TRUE(prevAnimation->state_ != AnimationState::FINISHED);
+}
+
+/**
+ * @tc.name: OnDetach001
+ * @tc.desc: Verify the OnDetach
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnDetach001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+
+    renderSpringAnimation->Attach(renderNode.get());
+    renderNode->GetAnimationManager().AddAnimation(renderSpringAnimation);
+    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) != nullptr);
+    renderSpringAnimation->OnDetach();
+    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) == nullptr);
+}
+
+/**
+ * @tc.name: GetSpringStatus001
+ * @tc.desc: Verify the GetSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    renderSpringAnimation->prevMappedTime_ = 0.0f;
+    auto [startValue, endValue, velocity] = renderSpringAnimation->GetSpringStatus();
+    EXPECT_TRUE(startValue == renderSpringAnimation->startValue_);
+    EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
+    EXPECT_TRUE(velocity == renderSpringAnimation->initialVelocity_);
+}
+
+/**
+ * @tc.name: GetSpringStatus002
+ * @tc.desc: Verify the GetSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    renderSpringAnimation->prevMappedTime_ = 1.0f;
+    renderSpringAnimation->springValueEstimator_ = nullptr;
+    auto [startValue, endValue, velocity] = renderSpringAnimation->GetSpringStatus();
+    EXPECT_TRUE(startValue == renderSpringAnimation->startValue_);
+    EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
+    EXPECT_TRUE(velocity == renderSpringAnimation->initialVelocity_);
+}
+
+/**
+ * @tc.name: GetSpringStatus003
+ * @tc.desc: Verify the GetSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+    renderSpringAnimation->prevMappedTime_ = 1.0f;
+    auto [startValue, endValue, velocity] = renderSpringAnimation->GetSpringStatus();
+    EXPECT_TRUE(startValue != renderSpringAnimation->startValue_);
+    EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
+    EXPECT_TRUE(velocity != renderSpringAnimation->initialVelocity_);
+}
+
+/**
+ * @tc.name: GetSpringStatus004
+ * @tc.desc: Verify the GetSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    renderSpringAnimation->animationFraction_.SetAnimationScale(0.0f);
+    renderSpringAnimation->prevMappedTime_ = 1.0f;
+    auto [startValue, endValue, velocity] = renderSpringAnimation->GetSpringStatus();
+    EXPECT_TRUE(startValue == renderSpringAnimation->startValue_);
+    EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
+    EXPECT_TRUE(velocity == renderSpringAnimation->initialVelocity_);
+}
+
+/**
+ * @tc.name: InheritSpringStatus001
+ * @tc.desc: Verify the InheritSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringStatus001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto renderSpringAnimationFrom =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property2, property2, property1);
+    renderSpringAnimationFrom->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationFrom != nullptr);
+
+    auto result = renderSpringAnimation->InheritSpringStatus(nullptr);
+    EXPECT_FALSE(result);
+
+    renderSpringAnimation->springValueEstimator_ = nullptr;
+    result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimationFrom.get());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InheritSpringStatus002
+ * @tc.desc: Verify the InheritSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringStatus002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto renderSpringAnimationFrom =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property2, nullptr, property1);
+    renderSpringAnimationFrom->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationFrom != nullptr);
+
+    auto result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimationFrom.get());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InheritSpringStatus003
+ * @tc.desc: Verify the InheritSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringStatus003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, nullptr, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto renderSpringAnimationFrom =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderSpringAnimationFrom->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationFrom != nullptr);
+    renderSpringAnimationFrom->InitValueEstimator();
+    renderSpringAnimationFrom->OnInitialize(0.0f);
+
+    auto result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimationFrom.get());
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: InheritSpringStatus004
+ * @tc.desc: Verify the InheritSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringStatus004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto renderSpringAnimationFrom =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property2, property2, property1);
+    renderSpringAnimationFrom->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationFrom != nullptr);
+    renderSpringAnimationFrom->InitValueEstimator();
+    renderSpringAnimationFrom->OnInitialize(0.0f);
+
+    auto result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimationFrom.get());
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: InheritSpringStatus005
+ * @tc.desc: Verify the InheritSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InheritSpringStatus005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    renderSpringAnimation->AttachRenderProperty(property);
+    renderSpringAnimation->InitValueEstimator();
+    renderSpringAnimation->OnInitialize(0.0f);
+
+    auto renderSpringAnimationFrom =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderSpringAnimationFrom->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationFrom != nullptr);
+    renderSpringAnimationFrom->InitValueEstimator();
+    renderSpringAnimationFrom->OnInitialize(0.0f);
+
+    auto result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimationFrom.get());
+    EXPECT_FALSE(result);
+
+    result = renderSpringAnimation->InheritSpringStatus(renderSpringAnimation.get());
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CallLogicallyFinishCallback001
+ * @tc.desc: Verify the CallLogicallyFinishCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, CallLogicallyFinishCallback001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+
+    renderSpringAnimation->Attach(renderNode.get());
+    renderNode->GetAnimationManager().AddAnimation(renderSpringAnimation);
+    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) != nullptr);
+
+    renderSpringAnimation->CallLogicallyFinishCallback();
+    EXPECT_TRUE(RSMessageProcessor::Instance().HasTransaction());
 }
 } // namespace Rosen
 } // namespace OHOS

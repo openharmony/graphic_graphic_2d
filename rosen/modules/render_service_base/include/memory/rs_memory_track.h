@@ -42,7 +42,7 @@ struct MemoryInfo {
     uint64_t uid = 0;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
     OHOS::Media::AllocatorType allocType;
-    std::weak_ptr<OHOS::Media::PixelMap> pixelMap;
+    OHOS::Media::PixelFormat pixelMapFormat;
 };
 
 class MemoryNodeOfPid {
@@ -51,6 +51,7 @@ public:
     ~MemoryNodeOfPid() = default;
     MemoryNodeOfPid(size_t size, NodeId id);
     size_t GetMemSize();
+    void SetMemSize(size_t size);
     bool operator==(const MemoryNodeOfPid& other);
 private:
     size_t nodeSize_ = 0;
@@ -80,11 +81,13 @@ private:
     const char* MemoryType2String(MEMORY_TYPE type);
     const std::string PixelMapInfo2String(MemoryInfo info);
     const std::string AllocatorType2String(OHOS::Media::AllocatorType);
+    const std::string PixelFormat2String(OHOS::Media::PixelFormat);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);
     void DumpMemoryPicStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
+        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+        const std::vector<MemoryInfo>& memPicRecord = {});
     bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
     void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);
     std::mutex mutex_;

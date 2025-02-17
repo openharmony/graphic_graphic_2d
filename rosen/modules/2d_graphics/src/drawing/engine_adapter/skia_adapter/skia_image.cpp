@@ -61,12 +61,13 @@ void SkiaImage::PostSkImgToTargetThread()
     if (skiaImage_ == nullptr) {
         return;
     }
+#ifdef RS_ENABLE_GPU
     auto context = as_IB(skiaImage_.get())->directContext();
     auto func = SkiaGPUContext::GetPostFunc(sk_ref_sp(context));
     if (func) {
-        auto image = skiaImage_;
-        func([image]() {});
+        func([image = skiaImage_.release()]() { SkSafeUnref(image); });
     }
+#endif
 }
 
 std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,

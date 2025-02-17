@@ -131,12 +131,12 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
      */
-    void PatchTypefaceIds();
+    void PatchTypefaceIds(bool takeIdFromList = false);
 
     /**
      * @brief   Draw cmd is empty or not.
@@ -171,6 +171,16 @@ public:
     void SetHeight(int32_t height);
 
     /**
+     * @brief  Gets whether DrawCmdList needs to be UICaptured.
+     */
+    bool GetNoNeedUICaptured() const;
+
+    /**
+     * @brief  Sets whether DrawCmdList needs to be UICaptured.
+     */
+    void SetNoNeedUICaptured(bool noNeedUICaptured);
+
+    /**
      * @brief   Convert Textblob Op to Image Op, it is different for difference mode
      *          IMMEDIATE: the Image Op will add to the end of buffer, and the mapped offset will be recorded in
      *          replacedOpListForBuffer.
@@ -179,11 +189,11 @@ public:
      */
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
-    bool GetIsCache();
+    bool GetIsCache() const;
 
     void SetIsCache(bool isCached);
 
-    bool GetCachedHighContrast();
+    bool GetCachedHighContrast() const;
 
     void SetCachedHighContrast(bool cachedHighContrast);
 
@@ -198,6 +208,11 @@ public:
     void Dump(std::string& out);
 
     void Purge();
+
+    void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
+
+    size_t GetSize();
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -207,6 +222,8 @@ private:
     void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
+
+    void ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList);
 
     int32_t width_;
     int32_t height_;
@@ -220,6 +237,8 @@ private:
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
+    bool isNeedUnmarshalOnDestruct_ = false;
+    bool noNeedUICaptured_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

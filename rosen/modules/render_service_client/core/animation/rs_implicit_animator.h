@@ -100,6 +100,7 @@ private:
 
     void CloseImplicitAnimationInner();
     void ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
+    void ProcessAnimationFinishCallbackGuaranteeTask();
 
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();

@@ -32,6 +32,7 @@ config("local_drawing_config") {
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "../../../../../rosen/modules/render_service_base/include",
   ]
 }
 
@@ -70,13 +71,13 @@ if (is_arkui_x) {
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
       "image_filter_napi/js_image_filter.cpp",
-      "js_common.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
       "lattice_napi/js_lattice.cpp",
       "mask_filter_napi/js_mask_filter.cpp",
       "matrix_napi/js_matrix.cpp",
       "path_effect_napi/js_path_effect.cpp",
+      "path_iterator_napi/js_path_iterator.cpp",
       "path_napi/js_path.cpp",
       "pen_napi/js_pen.cpp",
       "region_napi/js_region.cpp",
@@ -112,13 +113,13 @@ if (is_arkui_x) {
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
       "image_filter_napi/js_image_filter.cpp",
-      "js_common.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
       "lattice_napi/js_lattice.cpp",
       "mask_filter_napi/js_mask_filter.cpp",
       "matrix_napi/js_matrix.cpp",
       "path_effect_napi/js_path_effect.cpp",
+      "path_iterator_napi/js_path_iterator.cpp",
       "path_napi/js_path.cpp",
       "pen_napi/js_pen.cpp",
       "region_napi/js_region.cpp",
@@ -127,6 +128,7 @@ if (is_arkui_x) {
       "shader_effect_napi/js_shader_effect.cpp",
       "shadow_layer_napi/js_shadow_layer.cpp",
       "text_blob_napi/js_text_blob.cpp",
+      "tool_napi/js_tool.cpp",
     ]
     defines = []
     configs = [ ":local_drawing_config" ]
@@ -146,10 +148,12 @@ if (is_arkui_x) {
         ubsan = true
       }
       external_deps += [
+        "ability_runtime:abilitykit_native",
+        "ability_runtime:app_context",
         "hilog:libhilog",
         "image_framework:image_native",
-        "image_framework:image_utils",
         "init:libbegetutil",
+        "resource_management:global_resmgr",
       ]
       deps += [ "../../../../../utils:libgraphic_utils" ]
       defines += [ "ROSEN_OHOS" ]

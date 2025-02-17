@@ -47,6 +47,7 @@ public:
     bool Deserialize(std::shared_ptr<Data> data) override;
     bool IsSRGB() const override;
     bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const override;
+    CMSMatrix3x3 ToXYZD50(bool& hasToXYZD50) override;
 private:
     sk_sp<SkColorSpace> colorSpace_;
 };

@@ -17,9 +17,9 @@
 #define RENDER_SERVICE_DRAWABLE_RS_CANVAS_DRAWING_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
@@ -31,8 +31,8 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    void Purge() override;
     void CheckAndSetThreadIdx(uint32_t& threadIdx);
+    bool CheckPostplaybackParamValid(NodeId, pid_t);
     void PostPlaybackInCorrespondThread();
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {
@@ -40,8 +40,6 @@ public:
         threadId_ = threadId;
     }
     bool InitSurface(int width, int height, RSPaintFilterCanvas& canvas);
-    bool InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
-    bool InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas();
     void Flush(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
@@ -74,11 +72,12 @@ private:
     void DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     bool ResetSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
-#if defined(RS_ENABLE_GL)
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
-#endif
-#if defined(RS_ENABLE_VK)
-    bool GpuContextResetVk(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+    bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+    Drawing::TextureOrigin GetTextureOrigin();
+    void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
+#ifdef RS_ENABLE_VK
+    bool ReleaseSurfaceVK(int width, int height);
 #endif
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
@@ -88,6 +87,8 @@ private:
     void FlushForVK(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bool InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
+    bool InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
     bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);
     void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);
@@ -102,7 +103,6 @@ private:
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
-    bool isPurge_ = false;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif

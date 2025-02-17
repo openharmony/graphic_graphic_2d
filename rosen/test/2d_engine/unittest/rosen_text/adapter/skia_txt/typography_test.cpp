@@ -18,13 +18,14 @@
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"
-
+#include "txt/text_bundle_config_parser.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+const double ARC_FONT_SIZE = 28;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
@@ -290,6 +291,110 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
     Boundary range3 = typography2->GetEllipsisTextRange();
     ASSERT_EQ(range3, Boundary(2, 14));
     typography2->GetEllipsisTextRange();
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest010
+ * @tc.desc: test for GeneratePaintRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"text is too long                                 ";
+    PlaceholderSpan placeholderSpan;
+    placeholderSpan.width = 10;
+    placeholderSpan.height = 300;
+    placeholderSpan.alignment = PlaceholderVerticalAlignment::TOP_OF_ROW_BOX;
+    placeholderSpan.baseline = TextBaseline::ALPHABETIC;
+    placeholderSpan.baselineOffset = 0;
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    typographyCreate->AppendPlaceholder(placeholderSpan);
+    typographyCreate->AppendText(text);
+    TextShadow shadow;
+    shadow.blurRadius = 5.0f;
+    shadow.offset = Drawing::Point(0, 10);
+    typographyTextStyle.shadows.emplace_back(shadow);
+    typographyCreate->PushStyle(typographyTextStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+
+    Drawing::RectI paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
+    ASSERT_EQ(paintRegion, Drawing::RectI(5, 5, 5, 5));
+    typography->Layout(maxWidth);
+    paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
+    ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 60, 385));
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest011
+ * @tc.desc: test for truncated hight surrogate emoji text building and layouting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text;
+    // hight surrogate emoji
+    text.push_back(0xD83D);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
+        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
+
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    // The value of longestlineWithIndent will Close to 16 if the truncation of emoji fails.
+    ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE / 2));
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest012
+ * @tc.desc: test for truncated surrogate pair reverse emoji text building and layouting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text;
+    // emoji low surrogate
+    text.push_back(0xDC7B);
+    // emoji hight surrogate
+    text.push_back(0xD83D);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
+        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
+
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+
+    typography->Layout(maxWidth);
+    // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
+    ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE));
 }
 } // namespace Rosen
 } // namespace OHOS

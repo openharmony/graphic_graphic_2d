@@ -81,6 +81,34 @@ bool RSDisplayRenderParams::IsRotationChanged() const
     return isRotationChanged_;
 }
 
+bool RSDisplayRenderParams::IsRotationFinished() const
+{
+    return isRotationFinished_;
+}
+
+void RSDisplayRenderParams::SetRotationFinished(bool finished)
+{
+    if (isRotationFinished_ == finished) {
+        return;
+    }
+    isRotationFinished_ = finished;
+    needSync_ = true;
+}
+
+void RSDisplayRenderParams::SetFingerprint(bool hasFingerprint)
+{
+    if (hasFingerprint_ == hasFingerprint) {
+        return;
+    }
+    hasFingerprint_ = hasFingerprint;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetFingerprint()
+{
+    return hasFingerprint_;
+}
+
 void RSDisplayRenderParams::SetHDRPresent(bool hasHdrPresent)
 {
     if (hasHdrPresent_ == hasHdrPresent) {
@@ -167,12 +195,12 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         allMainAndLeashSurfaceDrawables_.push_back(ptr);
     }
     targetDisplayParams->allMainAndLeashSurfaceDrawables_ = allMainAndLeashSurfaceDrawables_;
-    targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
-    targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
-    targetDisplayParams->displayHasSnapshotSkipSurface_ = displayHasSnapshotSkipSurface_;
-    targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
+    targetDisplayParams->specialLayerManager_ = specialLayerManager_;
     targetDisplayParams->displaySpecailSurfaceChanged_ = displaySpecailSurfaceChanged_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
+    targetDisplayParams->hasChildCrossNode_ = hasChildCrossNode_;
+    targetDisplayParams->isMirrorScreen_ = isMirrorScreen_;
+    targetDisplayParams->isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay_;
     targetDisplayParams->offsetX_ = offsetX_;
     targetDisplayParams->offsetY_ = offsetY_;
     targetDisplayParams->nodeRotation_ = nodeRotation_;
@@ -180,6 +208,8 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->screenId_ = screenId_;
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
     targetDisplayParams->isSecurityExemption_ = isSecurityExemption_;
+    targetDisplayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
+    targetDisplayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
@@ -188,6 +218,8 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->needOffscreen_ = needOffscreen_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
+    targetDisplayParams->isRotationFinished_ = isRotationFinished_;
+    targetDisplayParams->hasFingerprint_ = hasFingerprint_;
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
@@ -217,46 +249,6 @@ std::string RSDisplayRenderParams::ToString() const
 DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetMirrorSourceDrawable()
 {
     return mirrorSourceDrawable_;
-}
-
-bool RSDisplayRenderParams::HasSecurityLayer() const
-{
-    bool hasSecLayerFlag = false;
-    auto iter = displayHasSecSurface_.find(screenId_);
-    if (iter != displayHasSecSurface_.end()) {
-        hasSecLayerFlag = iter->second;
-    }
-    return hasSecLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasSkipLayer() const
-{
-    bool hasSkipLayerFlag = false;
-    auto iter = displayHasSkipSurface_.find(screenId_);
-    if (iter != displayHasSkipSurface_.end()) {
-        hasSkipLayerFlag = iter->second;
-    }
-    return hasSkipLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasSnapshotSkipLayer() const
-{
-    bool hasSnapshotSkipLayerFlag = false;
-    auto iter = displayHasSnapshotSkipSurface_.find(screenId_);
-    if (iter != displayHasSnapshotSkipSurface_.end()) {
-        hasSnapshotSkipLayerFlag = iter->second;
-    }
-    return hasSnapshotSkipLayerFlag;
-}
-
-bool RSDisplayRenderParams::HasProtectedLayer() const
-{
-    bool hasProtectedLayerFlag = false;
-    auto iter = displayHasProtectedSurface_.find(screenId_);
-    if (iter != displayHasProtectedSurface_.end()) {
-        hasProtectedLayerFlag = iter->second;
-    }
-    return hasProtectedLayerFlag;
 }
 
 bool RSDisplayRenderParams::HasCaptureWindow() const

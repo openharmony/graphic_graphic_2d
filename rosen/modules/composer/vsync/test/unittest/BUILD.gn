@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/composer"
 
@@ -24,9 +25,14 @@ group("unittest") {
     ":vsync_controller_test",
     ":vsync_distributor_test",
     ":vsync_generator_test",
+    ":vsync_present_fence_test",
     ":vsync_receiver_test",
     ":vsync_sampler_test",
   ]
+
+  if (graphic_2d_feature_enable_dvsync) {
+    deps += [ ":dvsync_rate_test" ]
+  }
 }
 
 ## UnitTest vsync_connection_test {{{
@@ -122,6 +128,38 @@ ohos_unittest("native_vsync_test") {
 }
 
 ## UnitTest vsync_connection_test }}}
+
+## UnitTest vsync_present_fence_test {{{
+ohos_unittest("vsync_present_fence_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_present_fence_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_present_fence_test }}}
+
+## UnitTest dvsync_rate_test {{{
+ohos_unittest("dvsync_rate_test") {
+  module_out_path = module_out_path
+
+  sources = [ "$graphic_2d_ext_root/dvsync/test/unittest/dvsync_rate_test.cpp" ]
+
+  deps = [
+    ":vsync_test_common",
+    "../../../../../../utils:socketpair",
+    "../../../../../modules/platform:eventhandler",
+    "../../../../../modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "ipc:ipc_core",
+  ]
+}
+
+## UnitTest dvsync_rate_test }}}
 
 ## Build vsync_test_common.a {{{
 config("vsync_test_common_public_config") {

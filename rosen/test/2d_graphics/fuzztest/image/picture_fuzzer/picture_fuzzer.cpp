@@ -25,16 +25,19 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_ARRAY_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
 bool PictureFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Picture picture;
     auto dataVal = std::make_shared<Data>();
     size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;

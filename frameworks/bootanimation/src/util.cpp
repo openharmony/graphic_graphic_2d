@@ -118,6 +118,10 @@ void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs)
         config.rotateDegree = std::atoi(rotateDegreeJson->valuestring);
         LOGI("cust rotateDegree: %{public}d", config.rotateDegree);
     }
+    cJSON* extraVideoPath = cJSON_GetObjectItem(data, "cust.bootanimation.video_extensions");
+    if (extraVideoPath != nullptr && cJSON_IsObject(extraVideoPath)) {
+        ParseVideoExtraPath(extraVideoPath, config);
+    }
     configs.emplace_back(config);
 }
 
@@ -163,7 +167,7 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
                 LOGI("cust rotateDegree: %{public}d", config.rotateDegree);
             }
             cJSON* extraVideoPath = cJSON_GetObjectItem(item, "cust.bootanimation.video_extensions");
-            if (extraVideoPath != nullptr && cJSON_IsArray(extraVideoPath)) {
+            if (extraVideoPath != nullptr && cJSON_IsObject(extraVideoPath)) {
                 ParseVideoExtraPath(extraVideoPath, config);
             }
             configs.emplace_back(config);
@@ -177,8 +181,10 @@ void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)
     int size = cJSON_GetArraySize(data);
     for (int index = 0; index < size; index++) {
         cJSON* extraPath = cJSON_GetArrayItem(data, index);
-        if (extraPath != nullptr && cJSON_IsString(extraPath)) {
-            config.videoExtPath.emplace_back(extraPath->valuestring);
+        if (extraPath != nullptr && extraPath->string != nullptr && extraPath->valuestring != nullptr
+            && strlen(extraPath->string) != 0) {
+            LOGI("%{public}s : %{public}s", extraPath->string, extraPath->valuestring);
+            config.videoExtPath.emplace(extraPath->string, extraPath->valuestring);
         }
     }
 }
@@ -333,7 +339,9 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
     imageStruct->memPtr.setOwnerShip(data);
     imageStruct->fileName = fileName;
     imageStruct->imageData = std::make_shared<Rosen::Drawing::Image>();
+#ifdef RS_ENABLE_GPU
     imageStruct->imageData->MakeFromEncoded(data);
+#endif
     imgVec.push_back(imageStruct);
     return true;
 }
@@ -348,5 +356,39 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
 int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
 {
     return static_cast<int32_t>(std::ceil(sideLen * HALF / RADIO) / HALF * vp);
+}
+
+std::string ReadFile(const std::string &filePath)
+{
+    std::string content;
+    if (filePath.empty() || filePath.length() > PATH_MAX) {
+        LOGE("filepath check failed.");
+        return content;
+    }
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(filePath.c_str(), tmpPath) == nullptr) {
+        LOGE("filepath check failed! %{public}s %{public}d %{public}s", filePath.c_str(), errno, ::strerror(errno));
+        return content;
+    }
+    std::ifstream infile;
+    infile.open(tmpPath);
+    if (!infile.is_open()) {
+        LOGE("failed to open file");
+        return content;
+    }
+
+    getline(infile, content);
+    infile.close();
+    return content;
+}
+
+std::string GetHingeStatus()
+{
+    if (!IsFileExisted(HING_STATUS_INFO_PATH)) {
+        LOGE("failed not exist");
+        return "";
+    }
+
+    return ReadFile(HING_STATUS_INFO_PATH);
 }
 } // namespace OHOS

@@ -26,6 +26,9 @@ namespace Rosen {
 
 class RSB_EXPORT RSMagnifierParams {
 public:
+    explicit RSMagnifierParams() {}
+    ~RSMagnifierParams() = default;
+
     float factor_ = 0.f;
     float width_ = 0.f;
     float height_ = 0.f;
@@ -44,10 +47,6 @@ public:
     uint32_t gradientMaskColor2_ = 0x00000000;
     uint32_t outerContourColor1_ = 0x00000000;
     uint32_t outerContourColor2_ = 0x00000000;
-
-    explicit RSMagnifierParams() {}
-
-    ~RSMagnifierParams() = default;
 
     void Dump(std::string& out) const
     {

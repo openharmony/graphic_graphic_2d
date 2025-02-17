@@ -24,13 +24,13 @@
 #include "params/rs_display_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/parallel_render/rs_ui_first_render_listener.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
@@ -153,7 +153,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", surfaceParams.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
-    // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_) ||
         !surfaceHandlerUiFirst_->GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");

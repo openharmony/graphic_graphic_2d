@@ -16,6 +16,8 @@
 
 #include "render/rs_spherize_effect_filter.h"
 #include "draw/color.h"
+#include "draw/canvas.h"
+#include "draw/surface.h"
 #include "image/image_info.h"
 #include "skia_image.h"
 #include "skia_image_info.h"
@@ -38,6 +40,21 @@ void RSSpherizeEffectFilterTest::SetUpTestCase() {}
 void RSSpherizeEffectFilterTest::TearDownTestCase() {}
 void RSSpherizeEffectFilterTest::SetUp() {}
 void RSSpherizeEffectFilterTest::TearDown() {}
+
+static std::shared_ptr<Drawing::Image> CreateDrawingImage(int width, int height)
+{
+    const Drawing::ImageInfo info =
+        Drawing::ImageInfo(width, height, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE);
+    auto surface(Drawing::Surface::MakeRaster(info));
+    auto canvas = surface->GetCanvas();
+    canvas->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(Drawing::Rect(0, 0, width, height));
+    canvas->DetachBrush();
+    return surface->GetImageSnapshot();
+}
 
 /**
  * @tc.name: DrawImageRect001
@@ -107,6 +124,40 @@ HWTEST_F(RSSpherizeEffectFilterTest, IsValidTest, TestSize.Level1)
 {
     RSSpherizeEffectFilter effectFilter(0.f);
     EXPECT_FALSE(effectFilter.IsValid());
+}
+
+/**
+ * @tc.name: IsValidTest001
+ * @tc.desc: test results of IsValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, IsValidTest001, TestSize.Level1)
+{
+    RSSpherizeEffectFilter effectFilter(1.f);
+    EXPECT_TRUE(effectFilter.IsValid());
+}
+
+/**
+ * @tc.name: DrawImageRect_002
+ * @tc.desc: Verify function DrawImageRect
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, DrawImageRect_002, TestSize.Level2)
+{
+    RSSpherizeEffectFilter effectFilter(0.f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    Drawing::Rect src;
+    Drawing::Rect dst;
+
+    effectFilter.spherizeDegree_ = 1.0f;
+    image = std::make_shared<Drawing::Image>();
+    EXPECT_TRUE(image);
+
+    image = CreateDrawingImage(2, 1);
+    EXPECT_TRUE(image->GetWidth() > image->GetHeight());
+    effectFilter.DrawImageRect(canvas, image, src, dst);
 }
 } // namespace Rosen
 } // namespace OHOS

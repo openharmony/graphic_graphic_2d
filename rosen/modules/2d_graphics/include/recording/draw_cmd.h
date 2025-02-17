@@ -89,6 +89,8 @@ public:
         IMAGE_WITH_PARM_OPITEM,
         PIXELMAP_WITH_PARM_OPITEM,
         PIXELMAP_RECT_OPITEM,
+        PIXELMAP_NINE_OPITEM,
+        PIXELMAP_LATTICE_OPITEM,
         REGION_OPITEM,
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
@@ -121,6 +123,8 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 
     virtual void Purge() {}
+
+    size_t GetOpSize();
 };
 
 class DRAWING_API UnmarshallingHelper {
@@ -909,6 +913,7 @@ public:
     virtual void DumpItems(std::string& out) const override;
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
+    uint64_t GetTypefaceId();
 protected:
     void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;
@@ -918,6 +923,7 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
+    uint64_t globalUniqueId_;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {

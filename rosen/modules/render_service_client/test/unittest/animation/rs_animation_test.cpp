@@ -643,5 +643,321 @@ HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
     }
     GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 end";
 }
+
+/**
+ * @tc.name: Pause
+ * @tc.desc: Verify the Pause of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, Pause, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest Pause start";
+    /**
+     * @tc.steps: step1. init Pause
+     */
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(newCanvasNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&newCanvasNode, &effect]() {
+        newCanvasNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start Pause test
+     */
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::RUNNING;
+        animation->target_.reset();
+        animation->Pause();
+        std::weak_ptr<RSNode> rsNode = animation->GetTarget();
+        EXPECT_FALSE(rsNode.lock() != nullptr);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest Pause end";
+}
+
+/**
+ * @tc.name: InteractivePause
+ * @tc.desc: Verify the InteractivePause of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, InteractivePause, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractivePause start";
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->InteractivePause();
+    animation->state_ = RSAnimation::AnimationState::RUNNING;
+    animation->target_.reset();
+    animation->InteractivePause();
+    std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+    animation->target_ = target;
+    std::shared_ptr<RSRenderAnimation> uiAnimation =
+        std::make_unique<RSRenderAnimation>();
+    animation->uiAnimation_ = uiAnimation;
+    animation->InteractivePause();
+    EXPECT_NE(nullptr, animation->uiAnimation_);
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractivePause end";
+}
+
+/**
+ * @tc.name: InteractiveContinue
+ * @tc.desc: Verify the InteractiveContinue of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, InteractiveContinue, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveContinue start";
+    /**
+     * @tc.steps: step1. init InteractiveContinue
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+
+    /**
+     * @tc.steps: step2. start InteractiveContinue test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::RUNNING;
+        animation->InteractiveContinue();
+        animation->state_ = RSAnimation::AnimationState::PAUSED;
+        animation->target_.reset();
+        animation->InteractiveContinue();
+        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+        animation->target_ = target;
+        std::shared_ptr<RSRenderAnimation> uiAnimation =
+            std::make_unique<RSRenderAnimation>();
+        animation->uiAnimation_ = uiAnimation;
+        animation->InteractiveContinue();
+        EXPECT_NE(nullptr, animation->uiAnimation_);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveContinue end";
+}
+
+/**
+ * @tc.name: InteractiveFinish
+ * @tc.desc: Verify the InteractiveFinish of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, InteractiveFinish, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveFinish start";
+    /**
+     * @tc.steps: step1. init InteractiveFinish
+     */
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(newCanvasNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&newCanvasNode, &effect]() {
+        newCanvasNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start InteractiveFinish test
+     */
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::FINISHED;
+        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+
+        animation->state_ = RSAnimation::AnimationState::PAUSED;
+        animation->target_.reset();
+        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+
+        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+        animation->target_ = target;
+        std::shared_ptr<RSRenderAnimation> uiAnimation =
+            std::make_unique<RSRenderAnimation>();
+        animation->uiAnimation_ = uiAnimation;
+        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+        EXPECT_NE(nullptr, animation->uiAnimation_);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveFinish end";
+}
+
+/**
+ * @tc.name: InteractiveReverse
+ * @tc.desc: Verify the InteractiveReverse of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, InteractiveReverse, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveReverse start";
+    /**
+     * @tc.steps: step1. init InteractiveReverse
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+
+    /**
+     * @tc.steps: step2. start InteractiveReverse test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::FINISHED;
+        animation->InteractiveReverse();
+        animation->state_ = RSAnimation::AnimationState::PAUSED;
+        animation->target_.reset();
+        animation->InteractiveReverse();
+        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+        animation->target_ = target;
+        std::shared_ptr<RSRenderAnimation> uiAnimation =
+            std::make_unique<RSRenderAnimation>();
+        animation->uiAnimation_ = uiAnimation;
+        animation->InteractiveReverse();
+        EXPECT_NE(nullptr, animation->uiAnimation_);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveReverse end";
+}
+
+/**
+ * @tc.name: InteractiveSetFraction
+ * @tc.desc: Verify the InteractiveSetFraction of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, InteractiveSetFraction, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveSetFraction start";
+    /**
+     * @tc.steps: step1. init InteractiveSetFraction
+     */
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(newCanvasNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&newCanvasNode, &effect]() {
+        newCanvasNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start InteractiveSetFraction test
+     */
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::FINISHED;
+        animation->InteractiveSetFraction(3.14f);
+
+        animation->state_ = RSAnimation::AnimationState::PAUSED;
+        animation->target_.reset();
+        animation->InteractiveSetFraction(3.14f);
+        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+        animation->target_ = target;
+        std::shared_ptr<RSRenderAnimation> uiAnimation =
+            std::make_unique<RSRenderAnimation>();
+        animation->uiAnimation_ = uiAnimation;
+        animation->InteractiveSetFraction(3.14f);
+        EXPECT_NE(nullptr, animation->uiAnimation_);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest InteractiveSetFraction end";
+}
+
+/**
+ * @tc.name: Finish
+ * @tc.desc: Verify the Finish of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest Finish start";
+    /**
+     * @tc.steps: step1. init Finish
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+
+    /**
+     * @tc.steps: step2. start Finish test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        animation->state_ = RSAnimation::AnimationState::PAUSED;
+        animation->target_.reset();
+        animation->Finish();
+        animation->state_ = RSAnimation::AnimationState::RUNNING;
+        animation->Finish();
+        std::weak_ptr<RSNode> rsNode = animation->GetTarget();
+        EXPECT_FALSE(rsNode.lock() != nullptr);
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
+}
 } // namespace Rosen
 } // namespace OHOS

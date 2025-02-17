@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <map>
 
 #include "ge_visual_effect_impl.h"
-
-#include <unordered_map>
-
 #include "ge_log.h"
+#include "ge_external_dynamic_loader.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,16 +53,16 @@ std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEf
             impl->MakeLinearGradientBlurParams();
         }
     },
-    { GE_FILTER_WATER_RIPPLE,
-        [](GEVisualEffectImpl* impl) {
-            impl->SetFilterType(GEVisualEffectImpl::FilterType::WATER_RIPPLE);
-            impl->MakeWaterRippleParams();
-        }
-    },
     { GE_FILTER_MAGNIFIER,
         [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::MAGNIFIER);
             impl->MakeMagnifierParams();
+        }
+    },
+    { GE_FILTER_WATER_RIPPLE,
+        [](GEVisualEffectImpl* impl) {
+            impl->SetFilterType(GEVisualEffectImpl::FilterType::WATER_RIPPLE);
+            impl->MakeWaterRippleParams();
         }
     }
 };
@@ -228,6 +227,10 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, const std::vector<std:
 void GEVisualEffectImpl::SetParam(const std::string& tag, const uint32_t param)
 {
     switch (filterType_) {
+        case FilterType::MAGNIFIER: {
+            SetMagnifierParamsUint32(tag, param);
+            break;
+        }
         case FilterType::WATER_RIPPLE: {
             if (waterRippleParams_ == nullptr) {
                 return;
@@ -237,10 +240,6 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, const uint32_t param)
             } else if (tag == GE_FILTER_WATER_RIPPLE_WAVE_NUM) {
                 waterRippleParams_->waveCount = param;
             }
-            break;
-        }
-        case FilterType::MAGNIFIER: {
-            SetMagnifierParamsUint32(tag, param);
             break;
         }
         default:
@@ -423,7 +422,6 @@ void GEVisualEffectImpl::SetWaterRippleParams(const std::string& tag, float para
         it->second(this, param);
     }
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -49,7 +49,7 @@ struct DeviceInfo final {
 
 class RSTelemetry final {
 public:
-    static const DeviceInfo& GetDeviceInfo();
+    static DeviceInfo GetDeviceInfo();
     static std::string GetDeviceInfoString();
     static std::string GetDeviceFrequencyString();
     static std::string GetCpuAffinityString();

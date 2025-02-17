@@ -26,12 +26,14 @@ class RSCaptureData final {
 public:
     // every rs update
     inline static const std::string KEY_RS_FRAME_NUMBER = "rs_frame_number";
+    inline static const std::string KEY_RS_SYNC_TIME = "rs_sync_time";
     inline static const std::string KEY_RS_FRAME_LEN = "rs_frame_len";
     inline static const std::string KEY_RS_CMD_COUNT = "rs_cmd_count";
     inline static const std::string KEY_RS_CMD_EXECUTE_COUNT = "rs_cmd_execute_count";
-    inline static const std::string KEY_RS_CMD_PARCEL_LIST = "rs_cmd_parcel_list";
+    inline static const std::string KEY_RS_PARCEL_CMD_LIST = "rs_parcel_cmd_list";
     inline static const std::string KEY_RS_PIXEL_IMAGE_ADDED = "rs_pixelimage_added";
     inline static const std::string KEY_RS_DIRTY_REGION = "rs_dirty_region";
+    inline static const std::string KEY_RS_DIRTY_REGION_LIST = "rs_dirty_region_list";
     inline static const std::string KEY_RS_CPU_ID = "rs_cpu_id";
     inline static const std::string KEY_RS_VSYNC_ID = "rs_vsync_id";
 
@@ -44,9 +46,9 @@ public:
     inline static const std::string KEY_CPU_LOAD = "cpu_load";
     inline static const std::string KEY_CPU_FREQ = "cpu_freq";
     inline static const std::string KEY_CPU_CURRENT = "cpu_current";
-
     inline static const std::string KEY_GPU_LOAD = "gpu_load";
     inline static const std::string KEY_GPU_FREQ = "gpu_freq";
+    inline static const std::string KEY_CPU_ID = "cpu_id";
 
     RSCaptureData();
     ~RSCaptureData();

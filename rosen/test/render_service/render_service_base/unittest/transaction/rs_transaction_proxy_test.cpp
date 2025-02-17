@@ -300,6 +300,8 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT003, TestSize.Lev
 HWTEST_F(RSTransactionProxyTest, Commit001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
+    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    EXPECT_NE(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->Commit(timestamp);
 }
 
@@ -853,6 +855,32 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT004, TestSize.Lev
     instance->AddRemoteCommand(command, 1, FollowType::NONE);
     ASSERT_TRUE(instance->implicitCommonTransactionDataStack_.empty());
     ASSERT_TRUE(instance->implicitRemoteTransactionDataStack_.empty());
+}
+
+/**
+ * @tc.name: StartCloseSyncTransactionFallbackTaskTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, StartCloseSyncTransactionFallbackTaskTest, TestSize.Level1)
+{
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("runner");
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+
+    RSTransactionProxy* instance = RSTransactionProxy::GetInstance();
+
+    instance->StartCloseSyncTransactionFallbackTask(nullptr, true);
+    instance->StartCloseSyncTransactionFallbackTask(nullptr, false);
+    ASSERT_TRUE(instance->taskNames_.empty());
+
+    instance->StartCloseSyncTransactionFallbackTask(handler, true);
+    instance->StartCloseSyncTransactionFallbackTask(handler, false);
+    ASSERT_TRUE(instance->taskNames_.empty());
+
+    instance->StartCloseSyncTransactionFallbackTask(handler, true);
+    sleep(8);
+    ASSERT_TRUE(instance->taskNames_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

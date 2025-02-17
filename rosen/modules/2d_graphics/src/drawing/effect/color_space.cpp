@@ -123,6 +123,10 @@ bool ColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
     return impl_->Equals(colorSpace);
 }
 
+CMSMatrix3x3 ColorSpace::ToXYZD50(bool& hasToXYZD50)
+{
+    return impl_->ToXYZD50(hasToXYZD50);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -16,7 +16,6 @@ import("graphic_config.gni")
 
 group("default") {
   public_deps = [ ":graphic.rc" ]
-  public_deps += [ "etc:graphic_config" ]
 
   if (graphic_2d_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]

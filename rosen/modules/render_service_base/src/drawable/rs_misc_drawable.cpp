@@ -50,12 +50,14 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
                 continue;
             }
-            if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-                if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
-                    childDrawable->SetSkip(SkipType::NONE);
-                }
-                stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child);
+            if (!childDrawable) {
+                continue;
             }
+            if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
+                childDrawable->SetSkip(SkipType::NONE);
+            }
+            stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     } else {
         // ShadowBatching mode, draw all shadows, then draw all children
@@ -87,8 +89,6 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
 {
     auto nodeId = node->GetId();
     const auto& sharedTransitionParam = node->GetSharedTransitionParam();
-    // Test if this node is lower in the hierarchy
-    bool isLower = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(nodeId);
 
     auto pairedNode = sharedTransitionParam->GetPairedNode(nodeId);
     if (!pairedNode || !pairedNode->IsOnTheTree()) {
@@ -97,21 +97,19 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
     }
 
     childrenHasSharedTransition_ = true;
-    auto& unpairedShareTransitions = SharedTransitionParam::unpairedShareTransitions_;
-    if (auto it = unpairedShareTransitions.find(sharedTransitionParam->inNodeId_);
-        it != unpairedShareTransitions.end()) {
-        // remove successfully paired share transition
-        unpairedShareTransitions.erase(it);
-        sharedTransitionParam->paired_ = true;
-    } else {
-        // add unpaired share transition
-        unpairedShareTransitions.emplace(sharedTransitionParam->inNodeId_, sharedTransitionParam);
-    }
     // Skip if the shared transition is not paired (Note: this may cause the lower node to be drawn twice)
     if (!sharedTransitionParam->paired_) {
         return false;
     }
 
+    // Relation will be set in QuickPrepare
+    if (!sharedTransitionParam->HasRelation()) {
+        sharedTransitionParam->SetNeedGenerateDrawable(true);
+        return true;
+    }
+
+    // Test if this node is lower in the hierarchy
+    bool isLower = sharedTransitionParam->IsLower(nodeId);
     if (isLower) {
         // for lower hierarchy node, we skip it here
         return true;
@@ -120,6 +118,7 @@ bool RSChildrenDrawable::OnSharedTransition(const RSRenderNode::SharedPtr& node)
         if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(pairedNode)) {
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
+        sharedTransitionParam->SetNeedGenerateDrawable(false);
         return false;
     }
 }
@@ -176,7 +175,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     needSync_ = true;
     stagingDrawCmdListVec_.clear();
-    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && type_ == RSModifierType::CONTENT_STYLE) {
         auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
         auto& cmdLists = drawingNode.GetDrawCmdLists();
         auto itr = cmdLists.find(type_);
@@ -408,6 +407,7 @@ RSDrawable::Ptr RSEnvFGColorDrawable::OnGenerate(const RSRenderNode& node)
     }
     return nullptr;
 }
+
 bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
@@ -421,6 +421,7 @@ bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     return true;
 }
+
 void RSEnvFGColorDrawable::OnSync()
 {
     if (!needSync_) {
@@ -429,6 +430,7 @@ void RSEnvFGColorDrawable::OnSync()
     envFGColor_ = stagingEnvFGColor_;
     needSync_ = false;
 }
+
 Drawing::RecordingCanvas::DrawFunc RSEnvFGColorDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSEnvFGColorDrawable>(shared_from_this());
@@ -535,8 +537,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc()
 {
     auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        paintFilterCanvas->ClipRect(ptr->customClipRect_);
+        canvas->ClipRect(ptr->customClipRect_);
     };
 }
 

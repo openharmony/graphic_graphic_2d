@@ -83,6 +83,7 @@ HWTEST_F(DrawCmdTest, DrawCmdList001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling000, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     PaintHandle paintHandle;
     DrawPointsOpItem::ConstructorHandle handle{PointMode::POINTS_POINTMODE, {0, 0}, paintHandle};
     DrawPointsOpItem opItem{*drawCmdList, &handle};
@@ -106,6 +107,7 @@ HWTEST_F(DrawCmdTest, BrushHandleToBrush001, TestSize.Level1)
     brushHandle.imageFilterHandle.size = 1;
     brushHandle.maskFilterHandle.size = 1;
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Brush brush;
     DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
 }
@@ -123,6 +125,7 @@ HWTEST_F(DrawCmdTest, GeneratePaintFromHandle001, TestSize.Level1)
     paintHandle.imageFilterHandle.size = 1;
     paintHandle.pathEffectHandle.size = 1;
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Paint paint;
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
@@ -138,6 +141,7 @@ HWTEST_F(DrawCmdTest, GenerateHandleFromPaint001, TestSize.Level1)
 {
     PaintHandle paintHandle;
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Paint paint;
     Filter filter;
     paint.SetFilter(filter);
@@ -230,6 +234,7 @@ HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper002, TestSize.Level1)
 HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr, 0));
     OpDataHandle opDataHandle;
@@ -250,6 +255,7 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 1;
     PaintHandle paintHandle;
@@ -275,6 +281,7 @@ HWTEST_F(DrawCmdTest, DrawShadowOpItem001, TestSize.Level1)
     DrawShadowOpItem opItem{path, planeParams, devLightPos,
         10, ambientColor, spotColor, ShadowFlags::NONE}; // 10: lightRadius
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
 }
 
@@ -294,6 +301,7 @@ HWTEST_F(DrawCmdTest, DrawShadowStyleOpItem001, TestSize.Level1)
     DrawShadowStyleOpItem opItem{path, planeParams, devLightPos,
         10, ambientColor, spotColor, ShadowFlags::NONE, true}; // 10: lightRadius
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
 }
 
@@ -308,6 +316,7 @@ HWTEST_F(DrawCmdTest, ClipPathOpItem001, TestSize.Level1)
     Path path;
     ClipPathOpItem opItem{path, ClipOp::DIFFERENCE, true};
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
 }
 
@@ -322,6 +331,7 @@ HWTEST_F(DrawCmdTest, SaveLayerOpItem001, TestSize.Level1)
     SaveLayerOps ops;
     SaveLayerOpItem opItem{ops};
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     opItem.Marshalling(*drawCmdList);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     Rect rect1;
@@ -346,6 +356,7 @@ HWTEST_F(DrawCmdTest, SaveLayerOpItem001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     DrawingHMSymbolData drawingHMSymbolData;
     DrawingSymbolLayers symbolInfo;
     DrawingRenderGroup groups;
@@ -384,6 +395,7 @@ HWTEST_F(DrawCmdTest, DrawSymbolOpItem001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Point point;
     PaintHandle paintHandle;
     DrawPointOpItem::ConstructorHandle handle{point, paintHandle};
@@ -400,6 +412,7 @@ HWTEST_F(DrawCmdTest, Marshalling001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling002, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Rect rect;
     PaintHandle paintHandle;
     DrawPieOpItem::ConstructorHandle handle{rect, 0, 0, paintHandle};
@@ -416,6 +429,7 @@ HWTEST_F(DrawCmdTest, Marshalling002, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling003, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Rect rect;
     PaintHandle paintHandle;
     DrawOvalOpItem::ConstructorHandle handle{rect, paintHandle};
@@ -432,6 +446,7 @@ HWTEST_F(DrawCmdTest, Marshalling003, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling004, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Point point;
     PaintHandle paintHandle;
     DrawCircleOpItem::ConstructorHandle handle{point, 100, paintHandle}; // 100: radius
@@ -448,6 +463,7 @@ HWTEST_F(DrawCmdTest, Marshalling004, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling005, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Path path;
     Paint paint;
     DrawPathOpItem opItem{path, paint};
@@ -463,6 +479,7 @@ HWTEST_F(DrawCmdTest, Marshalling005, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling006, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     BrushHandle brushHandle;
     DrawBackgroundOpItem::ConstructorHandle handle{brushHandle};
     DrawBackgroundOpItem opItem{*drawCmdList, &handle};
@@ -478,6 +495,7 @@ HWTEST_F(DrawCmdTest, Marshalling006, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling007, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Region region;
     Paint paint;
     DrawRegionOpItem opItem{region, paint};
@@ -493,6 +511,7 @@ HWTEST_F(DrawCmdTest, Marshalling007, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling008, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Vertices vertices;
     Paint paint;
     DrawVerticesOpItem opItem{vertices, BlendMode::SRC_OVER, paint};
@@ -510,6 +529,7 @@ HWTEST_F(DrawCmdTest, Marshalling008, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling009, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     ColorQuad colorQuad{0};
     DrawColorOpItem::ConstructorHandle handle{colorQuad, BlendMode::SRC_OVER};
     DrawColorOpItem opItem{&handle};
@@ -527,6 +547,7 @@ HWTEST_F(DrawCmdTest, Marshalling009, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling010, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     OpDataHandle opDataHandle;
     RectI recti;
     Rect rect;
@@ -552,6 +573,7 @@ HWTEST_F(DrawCmdTest, Marshalling010, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling011, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Image image;
     Lattice lattice;
     Rect dst;
@@ -571,6 +593,7 @@ HWTEST_F(DrawCmdTest, Marshalling011, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling012, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Bitmap bitmap;
     Paint paint;
     DrawBitmapOpItem opItem{bitmap, 0, 0, paint};
@@ -586,6 +609,7 @@ HWTEST_F(DrawCmdTest, Marshalling012, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling013, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Image image;
     SamplingOptions options;
     Paint paint;
@@ -602,6 +626,7 @@ HWTEST_F(DrawCmdTest, Marshalling013, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling014, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Image image;
     Rect src;
     Rect dst;
@@ -627,6 +652,7 @@ HWTEST_F(DrawCmdTest, Marshalling014, TestSize.Level1)
 HWTEST_F(DrawCmdTest, Marshalling015, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Picture picture;
     DrawPictureOpItem opItem{picture};
     opItem.Marshalling(*drawCmdList);
@@ -641,6 +667,7 @@ HWTEST_F(DrawCmdTest, Marshalling015, TestSize.Level1)
 HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     Font font;
     auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
     Paint paint;
@@ -720,6 +747,7 @@ HWTEST_F(DrawCmdTest, GetOpsWithDesc001, TestSize.Level1)
     std::string s = "";
     s = drawCmdList->GetOpsWithDesc();
     drawCmdList->ClearOp();
+    EXPECT_TRUE(drawCmdList->IsEmpty());
     delete drawCmdList;
 }
 
@@ -742,6 +770,7 @@ HWTEST_F(DrawCmdTest, MarshallingDrawOps001, TestSize.Level1)
     drawCmdList2->UnmarshallingDrawOps();
     ColorQuad color = 0xFF000000;
     drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, BlendMode::SRC_OVER);
+    EXPECT_TRUE(drawCmdList2->IsEmpty());
     delete drawCmdList2;
 }
 
@@ -777,6 +806,7 @@ HWTEST_F(DrawCmdTest, Playback001, TestSize.Level1)
 
     auto drawCmdList3 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     drawCmdList3->Playback(*recordingCanvas, &rect);
+    EXPECT_TRUE(drawCmdList3->IsEmpty());
 }
 
 /**
@@ -820,6 +850,7 @@ HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
     ColorQuad color2 = 0xFF000000;
     drawCmdList2->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color2, BlendMode::SRC_OVER);
     drawCmdList2->GenerateCache(recordingCanvas.get(), &rect);
+    EXPECT_TRUE(drawCmdList2->IsEmpty());
     delete drawCmdList2;
 }
 
@@ -832,6 +863,7 @@ HWTEST_F(DrawCmdTest, GenerateCache001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, UpdateNodeIdToPicture001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
     NodeId nodeId = 100;
     drawCmdList->AddDrawOp(nullptr);
     Brush brush;
@@ -850,6 +882,7 @@ HWTEST_F(DrawCmdTest, MaskCmdList001, TestSize.Level1)
 {
     Drawing::CmdListData listData;
     auto maskCmdList = MaskCmdList::CreateFromData(listData, true);
+    EXPECT_TRUE(maskCmdList != nullptr);
     auto path = std::make_shared<Path>();
     Brush brush;
     maskCmdList->Playback(path, brush);
@@ -858,6 +891,7 @@ HWTEST_F(DrawCmdTest, MaskCmdList001, TestSize.Level1)
     EXPECT_FALSE(path->IsValid());
 
     auto maskCmdList2 = MaskCmdList::CreateFromData(listData, false);
+    EXPECT_TRUE(maskCmdList2 != nullptr);
     maskCmdList2->Playback(path, brush);
     maskCmdList2->Playback(path, pen, brush);
     EXPECT_FALSE(path->IsValid());
@@ -882,6 +916,19 @@ HWTEST_F(DrawCmdTest, SurfaceBuffer001, TestSize.Level1)
     EXPECT_TRUE(surfaceBufferSize >= 0);
 }
 #endif
+
+/**
+ * @tc.name: SetNoNeedUICapturedTest
+ * @tc.desc: Test SetNoNeedUICaptured
+ * @tc.type: FUNC
+ * @tc.require: IBDGY3
+ */
+HWTEST_F(DrawCmdTest, SetNoNeedUICapturedTest, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    drawCmdList->SetNoNeedUICaptured(true);
+    ASSERT_TRUE(drawCmdList->GetNoNeedUICaptured());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

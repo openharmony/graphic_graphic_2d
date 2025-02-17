@@ -111,16 +111,18 @@ void RSKeyframeAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderKey
         ROSEN_LOGE("Failed to start keyframe animation, target is null!");
         return;
     }
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start keyframe animation, transaction proxy is null!");
+        return;
+    }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationCreateKeyframe>(target->GetId(), animation);
+        transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
@@ -152,6 +154,8 @@ void RSKeyframeAnimation::OnStart()
         }
     }
     if (isCustom_) {
+        SetPropertyValue(originValue_);
+        property_->UpdateCustomAnimation();
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {

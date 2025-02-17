@@ -42,20 +42,17 @@ sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 
 void RSRenderServiceConnectHub::Init()
 {
-    RS_LOGD("RSRenderServiceConnectHub::Init");
     instance_ = new RSRenderServiceConnectHub();
     ::atexit(&RSRenderServiceConnectHub::Destroy);
 }
 
 void RSRenderServiceConnectHub::Destroy()
 {
-    RS_LOGI("RSRenderServiceConnectHub::Destroy");
     instance_ = nullptr;
 }
 
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
-    RS_LOGD("RSRenderServiceConnectHub: ctor");
 }
 
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
@@ -63,7 +60,6 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
     if (renderService_ && renderService_->AsObject() && deathRecipient_) {
         renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
-    RS_LOGI("~RSRenderServiceConnectHub: dtor");
 }
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
@@ -149,7 +145,6 @@ bool RSRenderServiceConnectHub::Connect()
 void RSRenderServiceConnectHub::ConnectDied()
 {
     mutex_.lock();
-    RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %{public}d", getpid());
     renderService_ = nullptr;
     if (conn_) {
         conn_->RunOnRemoteDiedCallback();
@@ -158,7 +153,6 @@ void RSRenderServiceConnectHub::ConnectDied()
     deathRecipient_ = nullptr;
     token_ = nullptr;
     mutex_.unlock();
-    RS_LOGI("RSRenderServiceConnectHub::ConnectDied unlock pid: %{public}d", getpid());
 }
 
 void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)

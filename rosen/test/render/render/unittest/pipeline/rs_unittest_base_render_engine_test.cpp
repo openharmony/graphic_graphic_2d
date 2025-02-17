@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/rs_base_render_engine.h"
-#include "pipeline/rs_render_engine.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "recording/recording_canvas.h"
 #include "rs_test_util.h"
 

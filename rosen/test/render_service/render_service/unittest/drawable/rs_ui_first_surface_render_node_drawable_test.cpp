@@ -17,10 +17,12 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_render_thread.h"
+#include "skia_adapter/skia_surface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -128,20 +130,40 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
     if (surfaceDrawable_ == nullptr) {
         return;
     }
+
     uint32_t threadIndex = 1;
     bool isUIFirst = true;
-
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    auto result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    auto paintFilterCanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     EXPECT_EQ(result, nullptr);
 
-    isUIFirst = false;
-    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 
+    surfaceDrawable_->cacheCompletedBackendTexture_.isValid_ = true;
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_NE(result, nullptr);
+
+#ifdef RS_ENABLE_VK
     surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(10, 10, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
+    auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVkTextureInfo();
+    surfaceDrawable_->cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+        RsVulkanContext::GetSingleton, vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_NE(result, nullptr);
+    delete surfaceDrawable_->cacheCompletedCleanupHelper_;
+    surfaceDrawable_->cacheCompletedCleanupHelper_ = nullptr;
+#endif
+
+    isUIFirst = false;
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_EQ(result, nullptr);
+
+    surfaceDrawable_->cacheCompletedSurface_ = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 }
 
@@ -362,16 +384,24 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, InitCacheSurfaceTest, TestSize.
 }
 
 /**
- * @tc.name: GetGravityTranslate
- * @tc.desc: Test If GetGravityTranslate Can Run
+ * @tc.name: GetGravityMatrix
+ * @tc.desc: Test If GetGravityMatrix Can Run
  * @tc.type: FUNC
  * @tc.require: issueIAH6OI
  */
-HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetGravityTranslateTest, TestSize.Level1)
+HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetGravityMatrixTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
-    Vector2f res = surfaceDrawable_->GetGravityTranslate(1.f, 1.f);
-    ASSERT_EQ(res, Vector2f(0, 0));
+    Drawing::Matrix res = surfaceDrawable_->GetGravityMatrix(1.f, 1.f);
+    ASSERT_EQ(res, Drawing::Matrix());
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    surfaceDrawable_->renderParams_->SetCacheSize(Vector2f(100, 100));
+    auto surfaceparams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceparams, nullptr);
+    surfaceparams->SetUIFirstFrameGravity(Gravity::TOP_LEFT);
+    Drawing::Matrix matrix = surfaceDrawable_->GetGravityMatrix(100, 100);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_X), 0);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_Y), 0);
 }
 
 /**

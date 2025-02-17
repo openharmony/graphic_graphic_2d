@@ -52,9 +52,6 @@
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
 
-#ifdef RS_ENABLE_RECORDING
-#include "benchmarks/rs_recording_thread.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -299,6 +296,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest005, TestSize.Level1)
     std::shared_ptr<RSShader> val;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     val = RSShader::CreateRSShader();
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     Drawing::Color color;
     auto drShader = Drawing::ShaderEffect::CreateColorShader(color.COLOR_TRANSPARENT);
     val->SetDrawingShader(drShader);
@@ -318,6 +316,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest006, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    parcel.WriteInt32(0);
     parcel.WriteInt32(1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }

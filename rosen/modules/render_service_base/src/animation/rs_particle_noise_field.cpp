@@ -164,7 +164,7 @@ float PerlinNoise2D::Lerp(float t, float a, float b)
 float PerlinNoise2D::Grad(int hash, float x, float y)
 {
     // Convert low 4 bits of hash code into 12 gradient directions.
-    // Use a bitwise AND operation (&) to get the lowest 4 bits of the hash value.
+    // 15 mins use a bitwise AND operation (&) to get the lowest 4 bits of the hash value.
     uint32_t h = static_cast<uint32_t>(hash) & 15;
     // The value of h determines whether the first component of the gradient vector is x or y.
     // If the value of h is less than 8, u is assigned the value x, otherwise y

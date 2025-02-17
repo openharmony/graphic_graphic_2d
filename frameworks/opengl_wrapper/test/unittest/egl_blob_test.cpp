@@ -168,6 +168,7 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
  HWTEST_F(EglBlobTest, destructBlobCacheTest001, Level1)
 {
     auto cache = new BlobCache();
+    EXPECT_NE(cache, nullptr);
     cache->blobCache_ = nullptr;
     delete cache;
     cache = nullptr;
@@ -183,6 +184,7 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     auto cache = new BlobCache();
     cache->blobCache_ = nullptr;
     BlobCache::Get();
+    EXPECT_NE(cache->blobCache_, nullptr);
     delete cache;
     cache = nullptr;
 }
@@ -210,6 +212,7 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     ret->Init(nullptr);
     ret->initStatus_ = false;
     ret->Init(nullptr);
+    EXPECT_FALSE(ret->initStatus_);
 }
 
 /**
@@ -221,7 +224,7 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
 {
     BlobCache* ret = BlobCache::Get();
     ret->SetBlob(nullptr, 0, nullptr, 0);
-    ret->GetBlob(nullptr, 0, nullptr, 0);
+    EXPECT_EQ(ret->GetBlob(nullptr, 0, nullptr, 0), 0);
 }
 
 /**
@@ -232,6 +235,7 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
  HWTEST_F(EglBlobTest, SetCacheDirTest, Level1)
 {
     BlobCache* ret = BlobCache::Get();
+    EXPECT_NE(ret, nullptr);
     ret->SetCacheDir("SetCacheDirTest");
 }
 
@@ -246,5 +250,6 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     ret->SetCacheShaderSize(0);
     ret->SetCacheShaderSize(MAX_SHADER + 1);
     ret->SetCacheShaderSize(1);
+    EXPECT_EQ(ret->blobSizeMax_, 1);
 }
 } // OHOS::Rosen

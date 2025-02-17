@@ -69,6 +69,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
     RectI screenRect { 0, 0, 2560, 1600 };
     RectI absRect { 0, 100, 400, 500 };
     surfaceRenderNode.SetAbilityBGAlpha(255);
+    ASSERT_EQ(surfaceRenderNode.GetAbilityBgAlpha(), 255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     surfaceRenderNode.parent_ = std::make_shared<RSRenderNode>(1);
@@ -131,82 +132,71 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceTest003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SyncSecurityInfoToFirstLevelNodeTest
+ * @tc.name: UpdateSpecialLayerInfoByTypeChangeTest
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: issueIA4VTS
+ * @tc.require: issueIB9LWV
  */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSecurityInfoToFirstLevelNode001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSpecialLayerInfoByTypeChangeTest, TestSize.Level1)
+{
+    id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    rsContext->GetMutableNodeMap().renderNodeMap_.clear();
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SECURITY, true);
+    ASSERT_EQ(renderNode->GetFirstLevelNode(), nullptr);
+    rsContext->GetMutableNodeMap().renderNodeMap_[ExtractPid(id)][id] = renderNode;
+    renderNode->isOnTheTree_ = true;
+    renderNode->firstLevelNodeId_ = id;
+    renderNode->SetSecurityLayer(true);
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SECURITY, true);
+    ASSERT_NE(renderNode->GetFirstLevelNode(), nullptr);
+    ASSERT_FALSE(renderNode->GetFirstLevelNodeId() != renderNode->GetId());
+    auto nodeTwo = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    rsContext->GetMutableNodeMap().renderNodeMap_[ExtractPid(id + 1)][id + 1] = nodeTwo;
+    renderNode->firstLevelNodeId_ = id + 1;
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SECURITY, true);
+    ASSERT_NE(renderNode->GetFirstLevelNode(), nullptr);
+    ASSERT_TRUE(renderNode->GetFirstLevelNodeId() != renderNode->GetId());
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SECURITY, true);
+    ASSERT_TRUE(renderNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
+    ASSERT_NE(renderNode->GetFirstLevelNode(), nullptr);
+    renderNode->isOnTheTree_ = true;
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SECURITY, true);
+    ASSERT_TRUE(renderNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
+    ASSERT_NE(renderNode->GetFirstLevelNode(), nullptr);
+    ASSERT_TRUE(renderNode->GetFirstLevelNodeId() != renderNode->GetId());
+
+    renderNode->SetProtectedLayer(true);
+    renderNode->UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::PROTECTED, true);
+    ASSERT_TRUE(renderNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED));
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoByOnTreeStateChangeTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueIB9LWV
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSpecialLayerInfoByOnTreeStateChange001, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->SetSecurityLayer(true);
-    renderNode->SyncSecurityInfoToFirstLevelNode();
-    EXPECT_TRUE(renderNode->securityLayerIds_.size() > 0);
-    EXPECT_TRUE(renderNode->isSecurityLayer_);
-    renderNode->SetSecurityLayer(false);
-    renderNode->SyncSecurityInfoToFirstLevelNode();
-    EXPECT_TRUE(!renderNode->isSecurityLayer_);
-    EXPECT_TRUE(renderNode->securityLayerIds_.size() == 0);
-}
-
-/**
- * @tc.name: SyncSkipInfoToFirstLevelNodeTest
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSkipInfoToFirstLevelNode001, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
     renderNode->SetProtectedLayer(true);
-    renderNode->SyncSkipInfoToFirstLevelNode();
-    EXPECT_TRUE(renderNode->GetId() != 0);
-    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
+    renderNode->UpdateSpecialLayerInfoByOnTreeStateChange();
+    ASSERT_TRUE(renderNode->GetId() == renderNode->GetFirstLevelNodeId());
     renderNode->SetProtectedLayer(false);
-    renderNode->SyncSkipInfoToFirstLevelNode();
-    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(renderNodeSecond->GetId() == 0);
-    EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
-    renderNodeSecond->SyncSkipInfoToFirstLevelNode();
-    EXPECT_TRUE(renderNodeSecond->skipLayerIds_.size() == 0);
-}
+    renderNode->UpdateSpecialLayerInfoByOnTreeStateChange();
+    ASSERT_FALSE(renderNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED));
 
-/**
- * @tc.name: SyncSnapshotSkipInfoToFirstLevelNodeTest
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSnapshotSkipInfoToFirstLevelNode001, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
-    renderNode->SetProtectedLayer(true);
-    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
-    EXPECT_TRUE(renderNode->GetId() != 0);
-    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
-    renderNode->SetProtectedLayer(false);
-    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
-    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(renderNodeSecond->GetId() == 0);
-    EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
-    renderNodeSecond->SyncSnapshotSkipInfoToFirstLevelNode();
-    EXPECT_TRUE(renderNodeSecond->snapshotSkipLayerIds_.size() == 0);
-}
-
-/**
- * @tc.name: SyncProtectedInfoToFirstLevelNodeTest
- * @tc.desc: function test
- * @tc.type:FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncProtectedInfoToFirstLevelNode001, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
-    renderNode->SetProtectedLayer(true);
-    EXPECT_TRUE(renderNode->GetProtectedLayer());
-    EXPECT_TRUE(renderNode->GetId() == 1);
-    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
-    renderNode->SyncProtectedInfoToFirstLevelNode();
+    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(1);
+    renderNodeSecond->UpdateSpecialLayerInfoByOnTreeStateChange();
+    ASSERT_TRUE(renderNodeSecond->GetId() != renderNodeSecond->GetFirstLevelNodeId());
+    renderNodeSecond->SetProtectedLayer(true);
+    renderNodeSecond->isOnTheTree_ = true;
+    renderNodeSecond->UpdateSpecialLayerInfoByOnTreeStateChange();
+    ASSERT_TRUE(renderNodeSecond->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED));
+    renderNodeSecond->isOnTheTree_ = false;
+    renderNodeSecond->UpdateSpecialLayerInfoByOnTreeStateChange();
 }
 
 /**
@@ -506,24 +496,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceHardwareTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SyncSecurityInfoToFirstLevelNodeTest
- * @tc.desc: test results of SyncSecurityInfoToFirstLevelNode
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSecurityInfoToFirstLevelNodeTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->SyncSecurityInfoToFirstLevelNode();
-    EXPECT_FALSE(renderNode->isSecurityLayer_);
-    std::shared_ptr<RSContext> sharedContext = std::make_shared<RSContext>();
-    renderNode->context_ = sharedContext;
-    renderNode->firstLevelNodeId_ = 0;
-    renderNode->SyncSecurityInfoToFirstLevelNode();
-    EXPECT_TRUE(sharedContext != nullptr);
-}
-
-/**
  * @tc.name: SetForceUIFirstTest
  * @tc.desc: test results of SetForceUIFirst
  * @tc.type: FUNC
@@ -715,27 +687,27 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetChildrenNeedFilterRectsWithoutCacheValid
 }
 
 /**
- * @tc.name: SetHwcChildrenDisabledStateByUifirst
- * @tc.desc: test results of SetHwcChildrenDisabledStateByUifirst
+ * @tc.name: SetHwcChildrenDisabledState
+ * @tc.desc: test results of SetHwcChildrenDisabledState
  * @tc.type: FUNC
  * @tc.require: issueIA4VTS
  */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledState, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     std::shared_ptr<RSSurfaceRenderNode> rssNode = nullptr;
     std::weak_ptr<RSSurfaceRenderNode> rssNode1 = rssNode;
     std::weak_ptr<RSSurfaceRenderNode> rssNode2 = std::make_shared<RSSurfaceRenderNode>(0);
     auto node3 = std::make_shared<RSSurfaceRenderNode>(id + 1);
-    node3->isProtectedLayer_ = true;
+    node3->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     std::weak_ptr<RSSurfaceRenderNode> rssNode3 = node3;
     node->childHardwareEnabledNodes_.emplace_back(rssNode1);
     node->childHardwareEnabledNodes_.emplace_back(rssNode2);
     node->childHardwareEnabledNodes_.emplace_back(rssNode3);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     std::shared_ptr<RSRenderNode> rsrNode1 = std::make_shared<RSRenderNode>(0);
     std::shared_ptr<RSRenderNode> rsrNode2 = std::make_shared<RSSurfaceRenderNode>(id + 2);
@@ -743,7 +715,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestS
     children.push_back(rsrNode1);
     children.push_back(rsrNode2);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     ASSERT_FALSE(node->childHardwareEnabledNodes_.empty());
 }
 
@@ -919,14 +891,16 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, QuerySubAssignable, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool isRotation = true;
     bool res = node->QuerySubAssignable(isRotation);
-    ASSERT_FALSE(res);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    EXPECT_FALSE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
     std::vector<std::shared_ptr<RSRenderNode>> children;
     children.push_back(rssNode);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    EXPECT_FALSE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> nodeF = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_FALSE(nodeF->QuerySubAssignable(isRotation));
 }

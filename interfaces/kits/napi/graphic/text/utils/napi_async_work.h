@@ -69,7 +69,7 @@ struct ContextBase : RefBase {
     napi_value output = nullptr;
     napi_status status = napi_invalid_arg;
     std::string errMessage;
-    int32_t errCode;
+    int32_t errCode = -1;
     napi_value self = nullptr;
     void* native = nullptr;
 

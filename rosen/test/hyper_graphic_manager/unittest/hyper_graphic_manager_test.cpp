@@ -82,10 +82,13 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
 {
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
+            auto defaultRateMode = "0";
             auto newRateMode = "1";
             RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
             auto &instance1 = HgmCore::Instance();
-            STEP_ASSERT_EQ(instance1.customFrameRateMode_, std::stoi(newRateMode));
+            RSSystemProperties::SetHgmRefreshRateModesEnabled(defaultRateMode);
+            auto &instance2 = HgmCore::Instance();
+            STEP_ASSERT_EQ(&instance1, &instance2);
         }
     }
 }
@@ -754,6 +757,35 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
     bool isForceRefresh = false;
     hgmCore.SetForceRefreshFlag(isForceRefresh);
     EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
+}
+
+/**
+ * @tc.name: SetFastComposeTimeStampDiff
+ * @tc.desc: Verify the result of SetFastComposeTimeStampDiff function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool fastComposeTimeStampDiff = false;
+    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
+    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff() == fastComposeTimeStampDiff, true);
+}
+
+/**
+ * @tc.name: SetIdealPipelineOffset
+ * @tc.desc: Verify the result of SetIdealPipelineOffset function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    int32_t pipelineOffsetPulseNum = 6;
+    int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
+    hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
+    EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -85,7 +85,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
     symbolAnimationConfig->symbolSpanId = 1996; // the 1996 is the unique ID of a symbol
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::VARIABLE_COLOR;
     auto newCanvasNode = RSCanvasNode::Create();
-    rootNode->canvasNodesListMap[symbolAnimationConfig->symbolSpanId] = {{newCanvasNode->GetId(), newCanvasNode}};
+    rootNode->canvasNodesListMap_[symbolAnimationConfig->symbolSpanId] = {{newCanvasNode->GetId(), newCanvasNode}};
     /**
      * @tc.steps: step2.1 test variable_color animation
      */
@@ -285,11 +285,10 @@ HWTEST_F(RSSymbolAnimationTest, SetDisappearConfig002, TestSize.Level1)
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     auto disappearConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
-    // init replaceNodesSwapMap
+    // init replaceNodesSwapArr
     OHOS::Rosen::AnimationNodeConfig animationNodeConfig;
-    std::unordered_map<NodeId, OHOS::Rosen::AnimationNodeConfig> nodeMap;
-    nodeMap.insert({1999, animationNodeConfig}); // 1999 is a nodeId
-    rootNode->replaceNodesSwapMap.insert({APPEAR_STATUS, nodeMap});
+    animationNodeConfig.nodeId = 1999;
+    rootNode->replaceNodesSwapArr_[APPEAR_STATUS] = {animationNodeConfig};
     /**
      * @tc.steps: step2. start test SetDisappearConfig
      */
@@ -494,10 +493,10 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest001, TestSize.Level1)
     auto symbolAnimation = RSSymbolAnimation();
     symbolAnimation.SetNode(rootNode);
     uint64_t symbolSpanId = 1;
-    rootNode->canvasNodesListMap[symbolSpanId] = {{canvasNode->GetId(), canvasNode}};
+    rootNode->canvasNodesListMap_[symbolSpanId] = {{canvasNode->GetId(), canvasNode}};
     symbolAnimation.PopNodeFromReplaceList(symbolSpanId);
     /**
-     * @tc.steps: step1.2 if symbolSpanId not in canvasNodesListMap
+     * @tc.steps: step1.2 if symbolSpanId not in canvasNodesListMap_
      */
     symbolSpanId = 9999; // random value
     symbolAnimation.PopNodeFromReplaceList(symbolSpanId);
@@ -513,12 +512,12 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest002 start";
     /**
-     * @tc.steps: step1 if INVALID_STATUS&APPEAR_STATUS in replaceNodesSwapMap
+     * @tc.steps: step1 if INVALID_STATUS&APPEAR_STATUS in replaceNodesSwapArr
      */
     auto symbolAnimation = RSSymbolAnimation();
     symbolAnimation.SetNode(rootNode);
     uint64_t symbolSpanId = 1;
-    rootNode->canvasNodesListMap[symbolSpanId] = {{canvasNode->GetId(), canvasNode}};
+    rootNode->canvasNodesListMap_[symbolSpanId] = {{canvasNode->GetId(), canvasNode}};
     Drawing::Path path;
     path.AddCircle(100, 100, 50); // 100 x, 100y, 50 radius
     Drawing::DrawingHMSymbolData symbol;
@@ -526,9 +525,9 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest002, TestSize.Level1)
     TextEngine::SymbolNode symbolNode;
     symbolNode.symbolData = symbol;
     symbolNode.nodeBoundary = {100, 100, 50, 50};
-    AnimationNodeConfig appearNodeConfig = {symbolNode, symbolNode.animationIndex};
-    rootNode->replaceNodesSwapMap[1] = {{canvasNode->GetId(), appearNodeConfig}}; // APPEAR_STATUS = 1
-    rootNode->replaceNodesSwapMap[-1] = {{canvasNode->GetId(), appearNodeConfig}}; // INVALID_STATUS = -1
+    AnimationNodeConfig appearNodeConfig = {symbolNode, canvasNode->GetId(), symbolNode.animationIndex};
+    rootNode->replaceNodesSwapArr_[APPEAR_STATUS] = {appearNodeConfig};
+    rootNode->replaceNodesSwapArr_[INVALID_STATUS] = {appearNodeConfig};
     symbolAnimation.PopNodeFromReplaceList(symbolSpanId);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest002 end";
 }
@@ -1198,40 +1197,6 @@ HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas001, TestSize.Level1)
      * @tc.steps: step3. start DrawPathOnCanvas test on recordingCanvas
      */
     symbolAnimation.DrawPathOnCanvas(recordingCanvas, symbolNode, vector4f);
-    NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 end";
-}
-
-/**
- * @tc.name: DrawSymbolOnCanvas001
- * @tc.desc: set brush&pen and draw path
- * @tc.type: FUNC
- */
-HWTEST_F(RSSymbolAnimationTest, DrawSymbolOnCanvas001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 start";
-    /**
-     * @tc.steps: step1. init data for symbolNode
-     */
-    Drawing::Path path;
-    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
-    Drawing::DrawingHMSymbolData symbol;
-    symbol.path_ = path;
-    TextEngine::SymbolNode symbolNode;
-    symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
-    symbolNode.symbolData = symbol;
-    Vector4f vector4f = Vector4f(50.f, 50.f, 50.f, 50.f); // the offset of path
-    auto recordingCanvas = canvasNode->BeginRecording(CANVAS_NODE_BOUNDS_WIDTH,
-                                                      CANVAS_NODE_BOUNDS_HEIGHT);
-    auto symbolAnimation = RSSymbolAnimation();
-    /**
-     * @tc.steps: step2. start DrawSymbolOnCanvas test on nullptr
-     */
-    symbolAnimation.DrawSymbolOnCanvas(nullptr, symbolNode, vector4f);
-    /**
-     * @tc.steps: step3. start DrawSymbolOnCanvas test on recordingCanvas
-     */
-    symbolAnimation.DrawSymbolOnCanvas(recordingCanvas, symbolNode, vector4f);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 end";
 }

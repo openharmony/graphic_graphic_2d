@@ -47,7 +47,24 @@ bool RegisterTypefaceCallback()
     return true;
 }
 
-bool g_typefaceAutoRegister = RegisterTypefaceCallback();
+class TypefaceAutoRegister {
+public:
+    TypefaceAutoRegister()
+    {
+        RegisterTypefaceCallback();
+    }
+
+    ~TypefaceAutoRegister()
+    {
+        Drawing::Typeface::RegisterCallBackFunc(nullptr);
+        Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
+    }
+};
+
+#ifndef ARKUI_X_ENABLE
+// Prohibiting resigter the callback function in advance when arkui-x use custom's font
+TypefaceAutoRegister g_typefaceAutoRegister;
+#endif
 }
 
 std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isTextureExportNode)

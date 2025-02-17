@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_special_layer_manager.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -30,10 +31,10 @@ constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-      isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
+    : RSRenderNode(id, context), isMirroredDisplay_(config.isMirrored), offsetX_(0), offsetY_(0),
+      screenId_(config.screenId), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
-    RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
+    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", screenid:%{public}" PRIu64, id, screenId_);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
@@ -41,7 +42,7 @@ RSDisplayRenderNode::RSDisplayRenderNode(
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
-    RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
+    RS_LOGI("RSScreen RSDisplayRenderNode dtor id:%{public}" PRIu64 ", screenId:%{public}" PRIu64, GetId(), screenId_);
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
@@ -83,11 +84,11 @@ void RSDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 }
 
 void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, cacheNodeId, uifirstRootNodeId);
+    RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, cacheNodeId, uifirstRootNodeId, GetId());
 }
 
 RSDisplayRenderNode::CompositeType RSDisplayRenderNode::GetCompositeType() const
@@ -167,12 +168,14 @@ bool RSDisplayRenderNode::GetBootAnimation() const
 
 void RSDisplayRenderNode::InitRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
         RS_LOGE("RSDisplayRenderNode::InitRenderParams failed");
         return;
     }
+#endif
 }
 
 ReleaseDmaBufferTask RSDisplayRenderNode::releaseScreenDmaBufferTask_;
@@ -187,6 +190,7 @@ void RSDisplayRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
 
 void RSDisplayRenderNode::OnSync()
 {
+#ifdef RS_ENABLE_GPU
     RS_OPTIONAL_TRACE_NAME_FMT("RSDisplayRenderNode::OnSync global dirty[%s]",
         dirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str());
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
@@ -202,7 +206,7 @@ void RSDisplayRenderNode::OnSync()
     displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
-    HandleCurMainAndLeashSurfaceNodes();
+#endif
 }
 
 void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
@@ -210,7 +214,7 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
     surfaceCountForMultiLayersPerf_ = 0;
     for (const auto& surface : curMainAndLeashSurfaceNodes_) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || surfaceNode->IsLeashWindow()) {
+        if (!surfaceNode || surfaceNode->IsLeashWindow() || !surfaceNode->IsOnTheTree()) {
             continue;
         }
         surfaceCountForMultiLayersPerf_++;
@@ -225,29 +229,35 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
 
 void RSDisplayRenderNode::UpdateRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("RSDisplayRenderNode::UpdateRenderParams displayParams is null");
         return;
     }
+    displayParams->offsetX_ = GetDisplayOffsetX();
+    displayParams->offsetY_ = GetDisplayOffsetY();
+    displayParams->nodeRotation_ = GetRotation();
     auto mirroredNode = GetMirrorSource().lock();
     if (mirroredNode == nullptr) {
         displayParams->mirrorSourceId_ = INVALID_NODEID;
+        displayParams->mirrorSourceDrawable_.reset();
         RS_LOGW("RSDisplayRenderNode::UpdateRenderParams mirroredNode is null");
     } else {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
-    displayParams->offsetX_ = GetDisplayOffsetX();
-    displayParams->offsetY_ = GetDisplayOffsetY();
-    displayParams->nodeRotation_ = GetRotation();
     displayParams->mirrorSource_ = GetMirrorSource();
+    displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
+    displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     RSRenderNode::UpdateRenderParams();
+#endif
 }
 
 void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("RSDisplayRenderNode::UpdateScreenRenderParams displayParams is null");
@@ -256,34 +266,39 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRen
     displayParams->screenId_ = GetScreenId();
     displayParams->screenRotation_ = GetScreenRotation();
     displayParams->compositeType_ = GetCompositeType();
+    displayParams->hasChildCrossNode_ = HasChildCrossNode();
+    displayParams->isMirrorScreen_ = IsMirrorScreen();
+    displayParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
     displayParams->isSecurityDisplay_ = GetSecurityDisplay();
     displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
-    displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
-    displayParams->displayHasSkipSurface_ = std::move(screenRenderParams.displayHasSkipSurface);
-    displayParams->displayHasSnapshotSkipSurface_ = std::move(screenRenderParams.displayHasSnapshotSkipSurface);
-    displayParams->displayHasProtectedSurface_ = std::move(screenRenderParams.displayHasProtectedSurface);
+    displayParams->specialLayerManager_ = specialLayerManager_;
     displayParams->displaySpecailSurfaceChanged_ = std::move(screenRenderParams.displaySpecailSurfaceChanged);
     displayParams->hasCaptureWindow_ = std::move(screenRenderParams.hasCaptureWindow);
+#endif
 }
 
 void RSDisplayRenderNode::UpdateOffscreenRenderParams(bool needOffscreen)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("RSDisplayRenderNode::UpdateOffscreenRenderParams displayParams is null");
         return;
     }
     displayParams->SetNeedOffscreen(needOffscreen);
+#endif
 }
 
 void RSDisplayRenderNode::UpdatePartialRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("RSDisplayRenderNode::UpdatePartialRenderParams displayParams is null");
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+#endif
 }
 
 bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
@@ -323,12 +338,14 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInte
 
 void RSDisplayRenderNode::SetDisplayGlobalZOrder(float zOrder)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("RSDisplayRenderNode::SetDisplayGlobalZOrder displayParams is null");
         return;
     }
     displayParams->SetGlobalZOrder(zOrder);
+#endif
 }
 
 
@@ -354,8 +371,21 @@ bool RSDisplayRenderNode::IsRotationChanged() const
     return !(ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd);
 }
 
+bool RSDisplayRenderNode::IsRotationFinished() const
+{
+    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
+    if (boundsGeoPtr == nullptr) {
+        return false;
+    }
+    // boundsGeoPtr->IsNeedClientCompose() return false if rotation degree is times of 90
+    // which means rotation is end.
+    bool isRotationEnd = !boundsGeoPtr->IsNeedClientCompose();
+    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd;
+}
+
 void RSDisplayRenderNode::UpdateRotation()
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
@@ -367,11 +397,13 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
+    displayParams->SetRotationFinished(IsRotationFinished());
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
     curRotationStatus_ = IsRotationChanged();
     displayParams->SetRotationChanged(curRotationStatus_);
+#endif
 }
 
 void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
@@ -388,6 +420,7 @@ void RSDisplayRenderNode::ClearCurrentSurfacePos()
 
 void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
@@ -397,10 +430,31 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+#endif
+}
+
+void RSDisplayRenderNode::SetFingerprint(bool hasFingerprint)
+{
+#ifdef RS_ENABLE_GPU
+    if (hasFingerprint_ == hasFingerprint) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetFingerprint(hasFingerprint);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    hasFingerprint_ = hasFingerprint;
+#endif
 }
 
 void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
@@ -410,15 +464,70 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+#endif
 }
 
 void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
+#ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetBrightnessRatio(brightnessRatio);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+#endif
+}
+
+void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+{
+#ifdef RS_ENABLE_GPU
+    if (pixelFormat_ == pixelFormat) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (!displayParams) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewPixelFormat(pixelFormat);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    pixelFormat_ = pixelFormat;
+#endif
+}
+
+GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
+{
+    return pixelFormat_;
+}
+
+void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
+{
+#ifdef RS_ENABLE_GPU
+    if (colorSpace_ == colorSpace) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewColorSpace(colorSpace);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    colorSpace_ = colorSpace;
+#endif
+}
+
+GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
+{
+    return colorSpace_;
 }
 
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
@@ -439,23 +548,23 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
             }
         }
     }
-    if (isNeedWaitNewScbPid_) {
+    if (isNeedWaitNewScbPid_ && lastScbPid_ < 0) {
         return fullChildrenList;
     }
     std::vector<int32_t> oldScbPids = GetOldScbPids();
     currentChildrenList_->clear();
     for (auto& child : *fullChildrenList) {
+        if (child == nullptr) {
+            continue;
+        }
         auto childPid = ExtractPid(child->GetId());
         auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
-        if (pidIter != oldScbPids.end()) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(false);
-            }
+        // only when isNeedWaitNewScbPid_ is ture, put lastScb's child to currentChildrenList_
+        if (pidIter != oldScbPids.end() && (!isNeedWaitNewScbPid_ || childPid != lastScbPid_)) {
+            child->SetIsOntheTreeOnlyFlag(false);
             continue;
         } else if (childPid == currentScbPid) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(true);
-            }
+            child->SetIsOntheTreeOnlyFlag(true);
         }
         currentChildrenList_->emplace_back(child);
     }
@@ -485,6 +594,39 @@ Occlusion::Region RSDisplayRenderNode::GetDisappearedSurfaceRegionBelowCurrent(N
 bool RSDisplayRenderNode::IsZoomStateChange() const
 {
     return preZoomState_ != curZoomState_;
+}
+
+
+void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
+{
+    screenStatusNotifyTask_ = task;
+}
+
+void RSDisplayRenderNode::NotifyScreenNotSwitching()
+{
+    if (screenStatusNotifyTask_) {
+        screenStatusNotifyTask_(false);
+        ROSEN_LOGI("RSDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus true");
+        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
+    }
+}
+
+void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)
+{
+    if (auto oldContainer = std::exchange(windowContainer_, container)) {
+        if (container) {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+                ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
+        } else {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+                oldContainer->GetId());
+        }
+    }
+}
+
+std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
+{
+    return windowContainer_;
 }
 } // namespace Rosen
 } // namespace OHOS

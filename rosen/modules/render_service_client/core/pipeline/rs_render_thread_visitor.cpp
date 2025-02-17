@@ -30,7 +30,9 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_render_thread_util.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
@@ -389,6 +391,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessRootRenderNode quick skip");
         return;
     }
+    if (node.GetIsTextureExportNode()) {
+        activeSubtreeRootId_ = node.GetId();
+    }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
@@ -405,12 +410,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(ACE_ENABLE_GL) || defined (ACE_ENABLE_VK)
+#if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
 #endif
 
-#ifdef ACE_ENABLE_VK
+#ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (skContext == nullptr) {
@@ -556,6 +561,18 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     ROSEN_LOGD("RSRenderThreadVisitor FlushFrame surfaceNodeId = %{public}" PRIu64 ", uiTimestamp = %{public}" PRIu64,
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
+        auto rootId = GetActiveSubtreeRootId();
+        if (rootId != INVALID_NODEID) {
+            RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
+            RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
+        }
+        ::close(fenceFd);
+    }
+#endif
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
 #endif
@@ -615,7 +632,11 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 bool RSRenderThreadVisitor::UpdateAnimatePropertyCacheSurface(RSRenderNode& node)
 {
     if (!node.GetCacheSurface()) {
+#ifdef RS_ENABLE_GPU
         node.InitCacheSurface(canvas_ ? canvas_->GetGPUContext().get() : nullptr);
+#else
+        node.InitCacheSurface(nullptr);
+#endif
     }
     if (!node.GetCacheSurface()) {
         return false;
@@ -659,101 +680,12 @@ void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
-Drawing::Matrix RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds)
-{
-    GraphicTransformType rotation;
-    switch (transform) {
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
-            rotation = GraphicTransformType::GRAPHIC_ROTATE_90;
-            break;
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
-            rotation = GraphicTransformType::GRAPHIC_ROTATE_180;
-            break;
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
-            rotation = GraphicTransformType::GRAPHIC_ROTATE_270;
-            break;
-        default:
-            rotation = transform;
-            break;
-    }
-    Drawing::Matrix matrix;
-    const float boundsWidth = bounds.GetWidth();
-    const float boundsHeight = bounds.GetHeight();
-    switch (rotation) {
-        case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PreTranslate(0, boundsHeight);
-            matrix.PreRotate(-90); // rotate 90 degrees anti-clockwise at last.
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PreTranslate(boundsWidth, boundsHeight);
-            matrix.PreRotate(-180); // rotate 180 degrees anti-clockwise at last.
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            matrix.PreTranslate(boundsWidth, 0);
-            matrix.PreRotate(-270); // rotate 270 degrees anti-clockwise at last.
-            break;
-        }
-        default:
-            break;
-    }
-    if (rotation == GraphicTransformType::GRAPHIC_ROTATE_90 || rotation == GraphicTransformType::GRAPHIC_ROTATE_270) {
-        std::swap(bounds.width_, bounds.height_);
-    }
-    return matrix;
-}
-
-GraphicTransformType RSRenderThreadVisitor::GetFlipTransform(GraphicTransformType transform)
-{
-    switch (transform) {
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_H;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_V;
-        }
-        default: {
-            return transform;
-        }
-    }
-}
-
-void RSRenderThreadVisitor::FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds)
-{
-    GraphicTransformType type = GetFlipTransform(transform);
-    if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
-        return;
-    }
-     
-    const int angle = 180;
-    Drawing::Camera3D camera3D;
-    if (GraphicTransformType::GRAPHIC_FLIP_H) {
-        camera3D.RotateYDegrees(angle);
-    } else {
-        camera3D.RotateXDegrees(angle);
-    }
-    Drawing::Matrix flip;
-    camera3D.ApplyToMatrix(flip);
-    const float half = 0.5f;
-    flip.PreTranslate(-half * bounds.GetWidth(), -half * bounds.GetHeight());
-    flip.PostTranslate(half * bounds.GetWidth(), half * bounds.GetHeight());
-    matrix.PreConcat(flip);
-}
-
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
+    canvas_->Save();
     const auto& property = node.GetRenderProperties();
     auto& geoPtr = property.GetBoundsGeometry();
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
-    canvas_->Save();
 #ifdef ROSEN_OHOS
     sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(node.GetSurfaceId());
     if (surface == nullptr) {
@@ -781,19 +713,15 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
         return;
     }
-    if (fence != nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT: waitfence");
-        fence->Wait(3000); // wait at most 3000ms
-    }
     auto transform = surface->GetTransform();
-    RectF bounds = {property.GetBoundsPositionX(), property.GetBoundsPositionY(),
-        property.GetBoundsWidth(), property.GetBoundsHeight()};
-    Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
-    FlipMatrix(transform, transfromMatrix, bounds);
-    canvas_->ConcatMatrix(transfromMatrix);
+    auto params = RSRenderThreadUtil::CreateTextureExportBufferDrawParams(node, transform, surfaceBuffer);
+    canvas_->ConcatMatrix(params.matrix);
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
-    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, 0, 0, bounds.width_, bounds.height_);
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, params.dstRect.GetLeft(), params.dstRect.GetTop(),
+        params.dstRect.GetWidth(), params.dstRect.GetHeight());
+    rsSurfaceBufferInfo.srcRect_ = params.srcRect;
+    rsSurfaceBufferInfo.acquireFence_ = fence;
     recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);
@@ -829,7 +757,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
-    if (!node.GetIsTextureExportNode()) {
+    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
     }
@@ -1046,6 +974,11 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
 
     // clip hole
     ClipHoleForSurfaceNode(node);
+}
+
+NodeId RSRenderThreadVisitor::GetActiveSubtreeRootId()
+{
+    return activeSubtreeRootId_;
 }
 } // namespace Rosen
 } // namespace OHOS

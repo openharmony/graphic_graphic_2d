@@ -16,10 +16,13 @@
 #ifndef FONT_CONFIG_H
 #define FONT_CONFIG_H
 
-#include <string>
-#include <vector>
-#include <include/core/SkString.h>
+#include <algorithm>
+#include <cstring>
 #include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 struct cJSON;
 namespace OHOS {
@@ -102,15 +105,10 @@ public:
 private:
     int ParseConfigList(const char* fname);
     int ParseConfigListPath(const char* fname);
-    int ParseGeneric(const cJSON* root, const char* key);
-    int ParseAlias(const cJSON* root, FontGenericInfo &genericInfo);
-    int ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo);
-    int ParseFallback(const cJSON* root, const char* key);
     int ParseFontMap(const cJSON* root, const char* key);
     int ParseDir(const cJSON* root);
-    void AnalyseFontDir(const cJSON* root);
-    int ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo);
-    int ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo);
+    int ParseFonts(const cJSON* root);
+    void AnalyseFont(const cJSON* root);
     int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
     void DumpFontDir() const;
     void DumpGeneric() const;
@@ -118,9 +116,19 @@ private:
     void DumpAlias(const AliasSet &aliasSet) const;
     void DumpAjdust(const AdjustSet &adjustSet) const;
     void DumpFontFileMap() const;
+    struct FontJson {
+        int type = 0;
+        int weight = 0;
+        std::string alias;
+        std::string family;
+        std::string lang;
+    };
+    void EmplaceFontJson(const FontJson &fontJson);
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
     std::shared_ptr<FontFileMap> fontFileMap = nullptr;
+    // because of some memory bugs, this place use shared ptr
+    std::shared_ptr<std::unordered_map<std::string, size_t>> indexMap = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

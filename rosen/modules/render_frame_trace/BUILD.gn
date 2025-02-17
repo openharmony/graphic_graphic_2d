@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_source_set("render_frame_trace") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [ "include" ]
   sources = [
     "src/frame_rate_report.cpp",

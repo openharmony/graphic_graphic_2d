@@ -175,4 +175,92 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe001, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest AddKeyframe001 end";
 }
+
+/**
+ * @tc.name: AddKeyframe002
+ * @tc.desc: Verify the RSImplicitKeyframeAnimationParam AddKeyframe
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AddKeyframe002 start";
+
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 1000;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    int startDuration = INT32_MAX;
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+
+    std::shared_ptr<RSAnimation> animation = std::make_shared<RSKeyframeAnimation>(property);
+    animationParam->AddKeyframe(animation, startDuration, startValue, endValue);
+    EXPECT_TRUE(animationParam != nullptr);
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest AddKeyframe002 end";
+}
+
+/**
+ * @tc.name: CreateAnimation001
+ * @tc.desc: Verify the RSImplicitKeyframeAnimationParam CreateAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CreateAnimation001 start";
+
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 1000;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    int startDuration = 500;
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+
+    animationParam->CreateAnimation(property, true, startDuration, startValue, endValue);
+    EXPECT_TRUE(animationParam != nullptr);
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest CreateAnimation001 end";
+}
+
+/**
+ * @tc.name: CreateAnimation002
+ * @tc.desc: Verify the RSImplicitKeyframeAnimationParam CreateAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest CreateAnimation002 start";
+
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    float fraction = 0.1f;
+    int duration = 1000;
+    auto animationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
+        timingProtocol, timingCurve, fraction, duration);
+
+    int startDuration = INT32_MAX;
+    auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+
+    animationParam->CreateAnimation(property, true, startDuration, startValue, endValue);
+    EXPECT_TRUE(animationParam != nullptr);
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest CreateAnimation002 end";
+}
 } // namespace OHOS::Rosen

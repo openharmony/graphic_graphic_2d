@@ -74,17 +74,17 @@ RSEffectStrategy HMSymbolTxt::GetEffectStrategy() const
     return effectStrategy_;
 }
 
-void HMSymbolTxt::SetAnimationMode(const uint16_t animationMode)
+void HMSymbolTxt::SetAnimationMode(uint16_t animationMode)
 {
     animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
 }
 
-void HMSymbolTxt::SetRepeatCount(const int repeatCount)
+void HMSymbolTxt::SetRepeatCount(int repeatCount)
 {
     repeatCount_ = repeatCount;
 }
 
-void HMSymbolTxt::SetAnimationStart(const bool animationStart)
+void HMSymbolTxt::SetAnimationStart(bool animationStart)
 {
     animationStart_ = animationStart;
 }

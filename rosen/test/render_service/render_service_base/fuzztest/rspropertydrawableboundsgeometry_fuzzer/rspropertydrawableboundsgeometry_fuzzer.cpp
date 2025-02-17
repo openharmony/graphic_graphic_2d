@@ -486,11 +486,7 @@ bool DoRSForegroundFilterDrawable(const uint8_t* data, size_t size)
     int32_t height = GetData<int32_t>();
     Canvas canvas(width, height);
     RSPaintFilterCanvas cacheCanvas(&canvas);
-    std::shared_ptr<Drawing::SkiaSurface> skiaSurface = std::make_shared<Drawing::SkiaSurface>();
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(1, 1);
-    auto surface = std::make_shared<Drawing::Surface>();
-    skiaSurface->skSurface_ = skSurface;
-    surface->impl_ = skiaSurface;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(1, 1);
     cacheCanvas.surface_ = surface.get();
     rsForegroundFilterDrawable->Draw(content, cacheCanvas);
     RSForegroundFilterDrawable::Generate(content);
@@ -736,7 +732,7 @@ bool DoRSBlendSaveLayerDrawable(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2);
+    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 1);
     RSRenderContent content;
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();

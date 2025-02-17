@@ -1,0 +1,74 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_unittest("feature_cfg_test") {
+  module_out_path = "graphic_2d/rosen/modules/feature_cfg"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  sources = [
+    "drm_param_test.cpp",
+    "graphic_feature_param_manager_test.cpp",
+    "hdr_param_test.cpp",
+    "hfbc_param_test.cpp",
+    "hwc_param_test.cpp",
+    "xml_parser_base_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/test/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/utils/test_header:test_header",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":feature_cfg_test" ]
+}

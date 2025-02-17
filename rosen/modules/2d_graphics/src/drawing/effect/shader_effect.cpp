@@ -89,16 +89,16 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std:
     impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
-/* LightUpShader */
-ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept
-    : ShaderEffect(t)
-{
-    impl_->InitWithLightUp(lightUpDeg, imageShader);
-}
-
 /* ExtendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
     : type_(t), object_(object) {}
+
+/* SdfShader */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithSdf(shape);
+}
 
 ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
@@ -171,14 +171,14 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& cen
         ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
-std::shared_ptr<ShaderEffect> ShaderEffect::CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader)
-{
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LIGHT_UP, lightUpDeg, imageShader);
-}
-
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<ExtendObject> object)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::EXTEND_SHADER, object);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSdfShader(const SDFShapeBase& shape)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SDF_SHADER, shape);
 }
 
 std::shared_ptr<Data> ShaderEffect::Serialize() const

@@ -124,7 +124,7 @@ public:
 
     void CacheVsyncId2Time(uint32_t layer);
     double ConvertVsyncId2Time(int64_t vsyncId);
-    int64_t ConvertTime2VsyncId(double time);
+    int64_t ConvertTime2VsyncId(double time) const;
 
 private:
     void WriteHeaders();
@@ -142,9 +142,11 @@ private:
         }
     }
 
-    void ReadHeaders();
-    void ReadHeader();
-    void LayerReadHeader(uint32_t layer);
+    std::string ReadHeaders();
+    std::string ReadHeader();
+    bool ReadHeaderPidList();
+    bool ReadHeaderFirstScreen();
+    std::string LayerReadHeader(uint32_t layer);
 
     template<typename Track>
     void LayerReadHeaderOfTrack(Track& track)
@@ -186,6 +188,9 @@ private:
     std::vector<uint8_t> preparedHeader_;
     bool preparedHeaderMode_ = false;
     std::map<int64_t, double> mapVsyncId2Time_;
+
+    static constexpr size_t chunkSizeMax = 100'000'000;
+    static constexpr size_t headerSizeMax = 512u * 1024u * 1024u;
 };
 
 } // namespace OHOS::Rosen

@@ -64,20 +64,24 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_pos = 0;
     float width = GetData<float>();
     float height = GetData<float>();
+    float scaleX = GetData<float>();
+    float scaleY = GetData<float>();
     uint64_t id = GetData<uint64_t>();
     int min = GetData<int>();
     int max = GetData<int>();
     int preferred = GetData<int>();
     PropertyValue velocity;
     FrameRateRange range(min, max, preferred);
+    auto frameRateGetFunc =
+        [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t { return 0; };
     RSAnimationRateDecider rsAnimationRateDecider;
     rsAnimationRateDecider.SetEnable(true);
-    rsAnimationRateDecider.SetScaleReferenceSize(width, height);
+    rsAnimationRateDecider.SetNodeSize(width, height);
+    rsAnimationRateDecider.SetNodeScale(scaleX, scaleY);
     rsAnimationRateDecider.Reset();
     rsAnimationRateDecider.AddDecisionElement(id, velocity, range);
-    rsAnimationRateDecider.MakeDecision([](const RSPropertyUnit unit, float velocity) -> int32_t { return 0; });
+    rsAnimationRateDecider.MakeDecision(frameRateGetFunc);
     rsAnimationRateDecider.GetFrameRateRange();
-    auto frameRateGetFunc = [](const RSPropertyUnit unit, float velocity) -> int32_t { return 0; };
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
         0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
     RSRenderPropertyType type = RSRenderPropertyType::PROPERTY_VECTOR4F;

@@ -46,6 +46,16 @@ add_library(entry SHARED
     dm/newsurface.cpp
     dm/drawbitmaprect.cpp
     dm/anisotropic.cpp
+    function/rect_test.cpp
+    function/round_rect_test.cpp
+    function/brush_null_test.cpp
+    function/canvas_test.cpp
+    function/filter_test.cpp
+    function/path_test.cpp
+    function/path_effect_test.cpp
+    function/font_measure_text_test.cpp
+    function/function_path_test.cpp
+    function/function_pen_test.cpp
     interface/canvas_test.cpp
     interface/text_blob_test.cpp
     interface/path_test.cpp
@@ -60,7 +70,41 @@ add_library(entry SHARED
     interface/font_test.cpp
     interface/memory_stream_test.cpp
     interface/sample_option_test.cpp
-    interface/surface_test.cpp    
+    interface/surface_test.cpp
+    reliability/bitmap_test.cpp
+    reliability/pen_exception_test.cpp
+    reliability/reliability_brush_test.cpp
+    stability/bitmap_test.cpp
+    stability/typeface_test.cpp
+    stability/text_blob_test.cpp
+    stability/surface_test.cpp
+    stability/shadow_layer_test.cpp
+    stability/shader_effect_test.cpp
+    stability/sampling_options_test.cpp
+    stability/round_rect_test.cpp
+    stability/region_test.cpp
+    stability/pen_test.cpp
+    stability/mask_filter_test.cpp
+    stability/matrix_test.cpp
+    stability/memory_stream_test.cpp
+    stability/path_effect_test.cpp
+    stability/path_test.cpp
+    stability/point_test.cpp
+    stability/rect_test.cpp
+    stability/brush_test.cpp
+    stability/canvas_test.cpp
+    stability/color_test.cpp
+    stability/filter_test.cpp
+    stability/surface_test.cpp
+    performance/canvas_clip_path_test.cpp
+    performance/canvas_draw_image_rect_with_src.cpp
+    performance/canvas_draw_image_rect.cpp
+    performance/canvas_draw_text_blob_text.cpp
+    performance/canvas_draw_shadow_test.cpp
+    performance/canvas_draw_performance.cpp
+    performance/canvas_draw_performance_c_property.cpp
+    performance/canvas_draw_performance_c_operation_switch.cpp
+    performance/path_effect_performance.cpp
 )
 
 add_library(myxnode SHARED
@@ -100,6 +144,16 @@ add_library(myxnode SHARED
     dm/newsurface.cpp
     dm/drawbitmaprect.cpp
     dm/anisotropic.cpp
+    function/rect_test.cpp
+    function/round_rect_test.cpp
+    function/brush_null_test.cpp
+    function/canvas_test.cpp
+    function/filter_test.cpp
+    function/path_test.cpp
+    function/path_effect_test.cpp
+    function/font_measure_text_test.cpp
+    function/function_path_test.cpp
+    function/function_pen_test.cpp
     interface/canvas_test.cpp
     interface/text_blob_test.cpp
     interface/path_test.cpp
@@ -114,7 +168,41 @@ add_library(myxnode SHARED
     interface/font_test.cpp
     interface/memory_stream_test.cpp
     interface/sample_option_test.cpp
-    interface/surface_test.cpp    
+    interface/surface_test.cpp
+    reliability/bitmap_test.cpp
+    reliability/pen_exception_test.cpp
+    reliability/reliability_brush_test.cpp
+    stability/bitmap_test.cpp
+    stability/typeface_test.cpp
+    stability/text_blob_test.cpp
+    stability/surface_test.cpp
+    stability/shadow_layer_test.cpp
+    stability/shader_effect_test.cpp
+    stability/sampling_options_test.cpp
+    stability/round_rect_test.cpp
+    stability/region_test.cpp
+    stability/pen_test.cpp
+    stability/mask_filter_test.cpp
+    stability/matrix_test.cpp
+    stability/memory_stream_test.cpp
+    stability/path_effect_test.cpp
+    stability/path_test.cpp
+    stability/point_test.cpp
+    stability/rect_test.cpp
+    stability/brush_test.cpp
+    stability/canvas_test.cpp
+    stability/color_test.cpp
+    stability/filter_test.cpp
+    stability/surface_test.cpp
+    performance/canvas_clip_path_test.cpp
+    performance/canvas_draw_image_rect_with_src.cpp
+    performance/canvas_draw_image_rect.cpp
+    performance/canvas_draw_text_blob_text.cpp
+    performance/canvas_draw_shadow_test.cpp
+    performance/canvas_draw_performance.cpp
+    performance/canvas_draw_performance_c_property.cpp
+    performance/canvas_draw_performance_c_operation_switch.cpp
+    performance/path_effect_performance.cpp
 )
 
 find_library(

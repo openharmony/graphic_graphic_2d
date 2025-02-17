@@ -16,6 +16,7 @@
 #include "font_collection.h"
 
 #include "convert.h"
+#include "texgine/src/font_descriptor_mgr.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
 
@@ -45,6 +46,11 @@ FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollecti
     fontCollection_->SetDynamicFontManager(dfmanager_);
 }
 
+std::shared_ptr<txt::FontCollection> FontCollection::Get()
+{
+    return fontCollection_;
+}
+
 FontCollection::~FontCollection()
 {
     if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
@@ -54,13 +60,14 @@ FontCollection::~FontCollection()
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [id, typeface] : typefaces_) {
         Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
+        auto it = familyNames_.find(id);
+        if (it != familyNames_.end()) {
+            std::string familyName = it->second;
+            FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
+        }
     }
     typefaces_.clear();
-}
-
-std::shared_ptr<txt::FontCollection> FontCollection::Get()
-{
-    return fontCollection_;
+    familyNames_.clear();
 }
 
 void FontCollection::DisableFallback()
@@ -86,14 +93,14 @@ bool FontCollection::RegisterTypeface(std::shared_ptr<Drawing::Typeface> typefac
 
     std::unique_lock<std::mutex> lock(mutex_);
     if (typefaces_.find(typeface->GetUniqueID()) != typefaces_.end()) {
-        TEXT_LOGI("Find same typeface:familyname:%{public}s, uniqueid:%{public}u",
+        TEXT_LOGI("Find same typeface:family name:%{public}s, uniqueid:%{public}u",
             typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
         return true;
     }
     if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface)) {
         return false;
     }
-    TEXT_LOGI("Reg fontcollection typeface:familyname:%{public}s, uniqueid:%{public}u",
+    TEXT_LOGI("Reg fontcollection typeface:family name:%{public}s, uniqueid:%{public}u",
         typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     typefaces_.emplace(typeface->GetUniqueID(), typeface);
     return true;
@@ -104,9 +111,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 {
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        TEXT_LOGE("Register typeface failed.");
+        TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
         return nullptr;
     }
+    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, familyName);
+    familyNames_.emplace(typeface->GetUniqueID(), familyName);
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
@@ -126,10 +135,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     std::shared_ptr<Drawing::Typeface> face = CreateTypeFace(data, datalen);
     if (face != nullptr) {
         std::string name = face->GetFamilyName();
+        uint32_t faceHash = face->GetHash();
         for (auto item : typefaces_) {
-            if (name == item.second->GetFamilyName()) {
-                TEXT_LOGI("Find same theme font:familyname:%{public}s, uniqueid:%{public}u",
-                    name.c_str(), item.second->GetUniqueID());
+            if (faceHash == item.second->GetHash()) {
+                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",
+                    name.c_str(), item.second->GetUniqueID(), faceHash);
                 dfmanager_->LoadThemeFont(OHOS_THEME_FONT, item.second);
                 fontCollection_->ClearFontFamilyCache();
                 return item.second;
@@ -139,7 +149,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
 
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        TEXT_LOGE("Register typeface failed.");
+        TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
     }
     fontCollection_->ClearFontFamilyCache();
     return typeface;

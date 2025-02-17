@@ -24,11 +24,18 @@ namespace Rosen {
 namespace {
 constexpr size_t ENCODING_SIZE = 4;
 constexpr size_t MAX_SIZE = 5000;
-constexpr size_t TEXT_SIZE = 130;
 constexpr size_t TEXTUTF8_SIZE = 128;
 } // namespace
 namespace Drawing {
-
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromText(const char* text, int length, const Font& font, TextEncoding encoding)
+ * 2. Bounds()
+ * 3. Serialize(Data* data)
+ * 4. Deserialize(Data* data, size_t size, void* ctx)
+ * 5. GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
+ * 6. GetDrawingPathforTextBlob(uint16_t someParam, const TextBlob* blob)
+ */
 bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -39,20 +46,36 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    const char* str = "as";
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
+    char* text = new char[count];
+    for (size_t i = 0; i < count - 1; i++) {
+        text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。 TextEncoding::UTF8 text 传>128会导致崩溃
+    }
+    text[count - 1] = '\0';
     Font font;
-    auto textblob = TextBlob::MakeFromText(str, strlen(str), font, TextEncoding::UTF8);
-    textblob->Bounds();
-    textblob->Serialize(nullptr);
-    textblob->Deserialize(nullptr, 0, nullptr);
+    auto textblob = TextBlob::MakeFromText(text, count - 1, font, TextEncoding::UTF8);
+    if (textblob) {
+        textblob->Bounds();
+        textblob->Serialize(nullptr);
+        textblob->Deserialize(nullptr, 0, nullptr);
 
-    std::vector<uint16_t> glyphIds = {};
-    TextBlob::GetDrawingGlyphIDforTextBlob(textblob.get(), glyphIds);
-    TextBlob::GetDrawingPathforTextBlob(0, textblob.get());
-
+        std::vector<uint16_t> glyphIds = {};
+        TextBlob::GetDrawingGlyphIDforTextBlob(textblob.get(), glyphIds);
+        TextBlob::GetDrawingPathforTextBlob(GetObject<uint16_t>() % MAX_SIZE, textblob.get());
+    }
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromPosText(const char* text, int length, const Point* points, const Font& font, TextEncoding encoding)
+ * 2. GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
+ * 3. UniqueID()
+ */
 bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -62,7 +85,7 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
     for (size_t i = 0; i < count - 1; i++) {
         text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。 TextEncoding::UTF8 text 传>128会导致崩溃
@@ -75,14 +98,16 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
-    auto textBlob = TextBlob::MakeFromPosText(text, count, points, font, TextEncoding::UTF8);
+    auto textBlob = TextBlob::MakeFromPosText(text, count - 1, points, font, TextEncoding::UTF8);
     std::vector<Point> pointsVector;
     Point ptOne { GetObject<scalar>(), GetObject<scalar>() };
     Point ptTwo { GetObject<scalar>(), GetObject<scalar>() };
     pointsVector.push_back(ptOne);
     pointsVector.push_back(ptTwo);
-    TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), pointsVector);
-    textBlob->UniqueID();
+    if (textBlob) {
+        TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), pointsVector);
+        textBlob->UniqueID();
+    }
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -94,6 +119,10 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromString(const char* text, const Font& font, TextEncoding encoding)
+ */
 bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -107,7 +136,7 @@ bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* text = new char[count];
     for (size_t i = 0; i < count; i++) {
-        text[i] = GetObject<char>();
+        text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。 TextEncoding::UTF8 text 传>128会导致崩溃
     }
     text[count - 1] = '\0';
     Font font;
@@ -122,6 +151,14 @@ bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. Context(std::shared_ptr<Typeface> typeface, bool isCustomTypeface)
+ * 2. SetTypeface(std::shared_ptr<Typeface> typeface)
+ * 3. GetTypeface()
+ * 4. SetIsCustomTypeface(bool isCustomTypeface)
+ * 5. IsCustomTypeface()
+ */
 bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -138,7 +175,7 @@ bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
         path[i] = GetObject<char>();
     }
     path[length - 1] = '\0';
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, length);
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, length - 1);
     bool isCustomTypeface = GetObject<bool>();
     TextBlob::Context context = TextBlob::Context(typeface, isCustomTypeface);
     context.SetTypeface(typeface);
@@ -152,6 +189,11 @@ bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 TextBlob 接口：
+ * 1. MakeFromRSXform(const char* text, int length, const RSXform* xforms, const Font& font, TextEncoding encoding)
+ * 2. GetIntercepts(float* bounds, float* intervals, const Paint* paint)
+ */
 bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -162,22 +204,21 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    scalar cos = GetObject<scalar>();
-    scalar sin = GetObject<scalar>();
-    scalar tx = GetObject<scalar>();
-    scalar ty = GetObject<scalar>();
-    RSXform xform[] = { RSXform::Make(cos, sin, tx, ty), RSXform::Make(cos, sin, tx, ty),
-        RSXform::Make(cos, sin, tx, ty) };
-    uint32_t count = GetObject<uint32_t>() % TEXT_SIZE + 1;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
-    for (size_t i = 0; i < count - 1; i++) {
+    for (size_t i = 0; i < count; i++) {
         text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。TextEncoding::UTF8 text 传>128会导致崩溃
     }
     text[count - 1] = '\0';
+    uint32_t length = (count - 1) * sizeof(RSXform);
+    RSXform xform[length];
+    for (size_t i = 0; i < length; i++) {
+        xform[i] = RSXform::Make(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    }
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
-    auto textBlob = TextBlob::MakeFromRSXform(text, count, xform, font, TextEncoding::UTF8);
+    auto textBlob = TextBlob::MakeFromRSXform(text, count - 1, xform, font, TextEncoding::UTF8);
     uint32_t countT = GetObject<uint32_t>() % MAX_SIZE + 1;
     float* bounds = new float[countT];
     float* intervals = new float[countT];
@@ -185,13 +226,11 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
         bounds[i] = GetObject<float>();
         intervals[i] = GetObject<float>();
     }
-    uint32_t alpha = GetObject<uint32_t>();
-    uint32_t red = GetObject<uint32_t>();
-    uint32_t blue = GetObject<uint32_t>();
-    uint32_t green = GetObject<uint32_t>();
-    Color color = Color(red, green, blue, alpha);
+    Color color = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>());
     Paint paint = Paint(color);
-    textBlob->GetIntercepts(bounds, intervals, &paint);
+    if (textBlob) {
+        textBlob->GetIntercepts(bounds, intervals, &paint);
+    }
     if (text != nullptr) {
         delete [] text;
         text = nullptr;

@@ -57,7 +57,7 @@ HWTEST_F(SkiaPaintTest, AsBlendMode001, TestSize.Level1)
 {
     Brush brush;
     SkiaPaint skiaPaint;
-    skiaPaint.AsBlendMode(brush);
+    EXPECT_TRUE(skiaPaint.AsBlendMode(brush));
 }
 
 /**
@@ -187,12 +187,14 @@ HWTEST_F(SkiaPaintTest, ApplyStrokeParam001, TestSize.Level1)
     SkiaPaint skiaPaint;
     SkPaint skPaint;
     skiaPaint.ApplyStrokeParam(paint, skPaint);
+    EXPECT_TRUE(skPaint.getStrokeCap() == SkPaint::Cap::kRound_Cap);
     Paint paint2;
     paint2.SetStyle(Paint::PaintStyle::PAINT_FILL);
     paint2.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
     paint2.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
     paint2.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
     skiaPaint.ApplyStrokeParam(paint2, skPaint);
+    EXPECT_TRUE(skPaint.getStrokeCap() == SkPaint::Cap::kSquare_Cap);
 }
 
 /**

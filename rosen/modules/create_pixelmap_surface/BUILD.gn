@@ -39,19 +39,19 @@ ohos_source_set("create_pixelmap_surface_src") {
   sources = [ "src/pixel_map_from_surface.cpp" ]
 
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/utils:scoped_bytrace",
   ]
 
-  if (rs_enable_gpu) {
-    deps += [
-      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
-    ]
-  }
-
   external_deps = [ "graphic_surface:sync_fence" ]
+
+  if (use_video_processing_engine) {
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

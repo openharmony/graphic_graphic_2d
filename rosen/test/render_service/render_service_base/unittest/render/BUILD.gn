@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/render"
+module_output_path = "graphic_2d/rosen_engine/render_service_base/render"
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
 ohos_unittest("RSAibarShaderFilterTest") {
@@ -187,6 +187,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
   sources = [
     "rs_colorful_shadow_filter_test.cpp",
     "rs_distortion_shader_filter_test.cpp",
+    "rs_dot_matrix_shader_test.cpp",
     "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
     "rs_fly_out_shader_filter_test.cpp",
@@ -400,6 +401,51 @@ ohos_unittest("RSHpsBlurTest") {
 }
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
+ohos_unittest("RSHveFilterTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_high_performance_visual_engine_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceBaseRenderTest  ##################################
 ohos_unittest("RSMESABlurShaderFilterTest") {
   module_out_path = module_output_path
 
@@ -508,6 +554,7 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_flow_light_sweep_shader_test.cpp",
     "rs_magnifier_shader_filter_test.cpp",
     "rs_mask_test.cpp",
     "rs_maskcolor_shader_filter_test.cpp",
@@ -752,6 +799,7 @@ group("unittest") {
     ":RSColorfulShadowFilterTest",
     ":RSColorspaceConvertTest",
     ":RSHpsBlurTest",
+    ":RSHveFilterTest",
     ":RSImageCacheTest",
     ":RSKawaseBlurShaderFilterTest",
     ":RSLightUpEffectFilterTest",

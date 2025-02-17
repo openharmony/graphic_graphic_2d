@@ -26,6 +26,12 @@
 namespace OHOS {
 namespace Rosen {
 
+enum class CrossNodeOffScreenRenderDebugType {
+    DISABLED = 0,
+    ENABLE,
+    ENABLE_DFX
+};
+
 enum class DirtyRegionDebugType {
     DISABLED = 0,
     CURRENT_SUB,
@@ -121,6 +127,7 @@ public:
     static std::string GetRecordingFile();
     static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
+    static int GetSceneJankFrameThreshold();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
     static bool GetVkQueuePriorityEnable();
@@ -139,6 +146,8 @@ public:
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
     static bool GetRenderNodePurgeEnabled();
+    static bool GetRSImagePurgeEnabled();
+    static bool GetClosePixelMapFdEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -149,7 +158,6 @@ public:
     static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
-    static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
@@ -160,28 +168,28 @@ public:
     static SurfaceRegionDebugType GetSurfaceRegionDfxType();
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
+    static bool GetDoDirectCompositionEnabled();
+    static bool GetDumpRsTreeDetailEnabled();
     static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetDrawMirrorCacheImageEnabled();
     static bool GetPixelmapDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
+    static bool GetReclaimMemoryEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
-    static void SetDefaultDeviceRotationOffset(uint32_t offset);
-    static uint32_t GetDefaultDeviceRotationOffset();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
     static bool GetHardCursorEnabled();
-
+    static bool GetSLRScaleEnabled();
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
     static bool GetFilterCacheEnabled();
@@ -193,8 +201,11 @@ public:
     static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
+    static float GetHpsBlurNoiseFactor();
     static bool GetHpsBlurEnabled();
     static bool GetMESABlurFuzedEnabled();
+    static int GetSimplifiedMesaEnabled();
+    static bool GetForceKawaseDisabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetImageReleaseUsingPostTask();
@@ -218,6 +229,9 @@ public:
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
+    static bool GetCacheOptimizeRotateEnable();
+    static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
+    static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
@@ -236,6 +250,7 @@ public:
     static bool IsPhoneType();
     static bool IsTabletType();
     static bool IsPcType();
+    static bool IsSuperFoldDisplay();
     static bool IsBetaRelease();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
@@ -286,13 +301,14 @@ public:
     static int GetRSNodeLimit();
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
+    static bool GetHveFilterEnabled();
+    static bool GetDmaReclaimParam();
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
-    inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

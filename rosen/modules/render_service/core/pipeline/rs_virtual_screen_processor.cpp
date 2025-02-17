@@ -20,7 +20,7 @@
 
 #include "draw/color.h"
 #include "platform/common/rs_log.h"
-#include "rs_base_render_util.h"
+#include "render_thread/rs_base_render_util.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
@@ -38,9 +38,11 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
                                     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
+#ifdef RS_ENABLE_GPU
     if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
         return false;
     }
+#endif
 
     if (mirroredId != INVALID_SCREEN_ID) {
         SetMirrorScreenSwap(node);

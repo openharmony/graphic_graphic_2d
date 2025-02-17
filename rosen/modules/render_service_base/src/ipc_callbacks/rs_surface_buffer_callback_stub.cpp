@@ -29,14 +29,40 @@ int RSSurfaceBufferCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH): {
-            uint64_t uid = {};
-            auto readRet = data.ReadUint64(uid);
-            std::vector<uint32_t> surfaceBufferIds;
-            readRet = readRet && data.ReadUInt32Vector(&surfaceBufferIds);
+            FinishCallbackRet ret;
+            auto readRet = data.ReadUint64(ret.uid);
+            readRet = readRet && data.ReadUInt32Vector(&ret.surfaceBufferIds);
+            readRet = readRet && data.ReadUInt8Vector(&ret.isRenderedFlags);
+            readRet = readRet && data.ReadBool(ret.isUniRender);
+#ifdef ROSEN_OHOS
+            uint64_t releaseFenceVecSize = {};
+            constexpr uint64_t MAX_RELEASE_FENCE_VEC_SIZE = 32;
+            readRet = readRet && data.ReadUint64(releaseFenceVecSize);
+            if (releaseFenceVecSize > MAX_RELEASE_FENCE_VEC_SIZE) {
+                ROSEN_LOGE("RSSurfaceBufferCallbackStub releaseFenceVecSize exceeds limits");
+                return ERR_INVALID_DATA;
+            }
+            ret.releaseFences.reserve(releaseFenceVecSize);
+            for (uint64_t idx = 0; idx < releaseFenceVecSize; ++idx) {
+                auto fence = SyncFence::ReadFromMessageParcel(data);
+                ret.releaseFences.emplace_back(fence);
+                readRet = readRet && (!!fence);
+            }
+#endif
             if (!readRet) {
                 ROSEN_LOGE("RSSurfaceBufferCallbackStub Read Remote Data ERROR");
             }
-            OnFinish(uid, surfaceBufferIds);
+            OnFinish(ret);
+            break;
+        }
+        case static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_AFTER_ACQUIRE_BUFFER) : {
+            AfterAcquireBufferRet ret;
+            auto readRet = data.ReadUint64(ret.uid);
+            readRet = readRet && data.ReadBool(ret.isUniRender);
+            if (!readRet) {
+                ROSEN_LOGE("RSSurfaceBufferCallbackStub Read Remote Data ERROR");
+            }
+            OnAfterAcquireBuffer(ret);
             break;
         }
         default: {

@@ -23,8 +23,10 @@
 
 #include "pixel_map.h"
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_display_node.h"
@@ -88,6 +90,7 @@ shared_ptr<Media::PixelMap> DecodePixelMap(const string& pathName, const Media::
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -104,11 +107,13 @@ void InitNativeTokenInfo()
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+#endif
 }
 } // namespace
 
 int main()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
 
     cout << "rs pixelmap demo start!" << endl;
@@ -185,5 +190,6 @@ int main()
     cout << "rs pixelmap demo end!" << endl;
     window->Hide();
     window->Destroy();
+#endif
     return 0;
 }

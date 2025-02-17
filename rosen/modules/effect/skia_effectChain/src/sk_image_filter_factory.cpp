@@ -22,14 +22,23 @@ namespace Rosen {
 static constexpr float GRAYSCALE_PARAONE = 0.2126f;
 static constexpr float GRAYSCALE_PARATWO = 0.7152f;
 static constexpr float GRAYSCALE_PARATHREE = 0.0722f;
+static constexpr float RADIUS_THRESHOLD = 0.0f;
+static constexpr float BRIGHTNESS_MIN_THRESHOLD = 0.0f;
+static constexpr float BRIGHTNESS_MAX_THRESHOLD = 1.0f;
 
 sk_sp<SkImageFilter> SKImageFilterFactory::Blur(float radius, SkTileMode tileMode)
 {
+    if (radius < RADIUS_THRESHOLD) {
+        return nullptr;
+    }
     return SkImageFilters::Blur(radius, radius, tileMode, nullptr);
 }
 
 sk_sp<SkImageFilter> SKImageFilterFactory::Brightness(float degree)
 {
+    if (degree < BRIGHTNESS_MIN_THRESHOLD || degree > BRIGHTNESS_MAX_THRESHOLD) {
+        return nullptr;
+    }
     float matrix[20] = {
         1, 0, 0, 0, degree,
         0, 1, 0, 0, degree,

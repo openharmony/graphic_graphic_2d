@@ -151,6 +151,28 @@ bool SkiaColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
     return SkColorSpace::Equals(colorSpace_.get(), skColorSpace.get());
 }
 
+CMSMatrix3x3 SkiaColorSpace::ToXYZD50(bool& hasToXYZD50)
+{
+    CMSMatrix3x3 xyzGamut;
+    if (colorSpace_ == nullptr) {
+        hasToXYZD50 = false;
+        return xyzGamut;
+    }
+    skcms_ICCProfile encodedProfile;
+    colorSpace_->toProfile(&encodedProfile);
+    hasToXYZD50 = encodedProfile.has_toXYZD50;
+    if (!hasToXYZD50) {
+        LOGW("This profile's gamut can not be represented by a 3x3 tranform to XYZD50");
+        return xyzGamut;
+    }
+    skcms_Matrix3x3 skiaXYZGamut = encodedProfile.toXYZD50;
+    for (int i = 0; i < MATRIX3_SIZE; i++) {
+        for (int j = 0; j < MATRIX3_SIZE; j++) {
+            xyzGamut.vals[i][j] = skiaXYZGamut.vals[i][j];
+        }
+    }
+    return xyzGamut;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

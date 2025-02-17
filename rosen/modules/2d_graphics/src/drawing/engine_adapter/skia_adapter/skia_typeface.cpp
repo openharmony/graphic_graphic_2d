@@ -53,7 +53,7 @@ std::string SkiaTypeface::GetFontPath() const
 {
     std::string path;
     if (!skTypeface_) {
-        LOGE("skTypeface nullptr");
+        LOGE("SkTypeface nullptr");
         return path;
     }
     SkString skName;
@@ -145,6 +145,15 @@ bool SkiaTypeface::IsCustomTypeface() const
         return false;
     }
     return skTypeface_->isCustomTypeface();
+}
+
+bool SkiaTypeface::IsThemeTypeface() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isThemeTypeface();
 }
 
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
@@ -322,24 +331,20 @@ std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t siz
 
 uint32_t SkiaTypeface::GetHash() const
 {
-    if (hash_ != 0) {
-        return hash_;
-    }
     if (!skTypeface_) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return hash_;
+        return 0;
     }
-
-    auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDontIncludeData);
-    std::unique_ptr<SkStreamAsset> ttfStream = skTypeface_->openExistingStream(0);
-    uint32_t seed = ttfStream.get() != nullptr ? ttfStream->getLength() : 0;
-    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), seed);
-    return hash_;
+    return skTypeface_->GetHash();
 }
 
 void SkiaTypeface::SetHash(uint32_t hash)
 {
-    hash_ = hash;
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skTypeface_->SetHash(hash);
 }
 
 } // namespace Drawing

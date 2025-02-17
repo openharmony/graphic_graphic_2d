@@ -681,7 +681,8 @@ bool DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
     NodeId nodeId = GetData<NodeId>();
     pid_t pid = GetData<pid_t>();
     uint32_t taskId = GetData<uint32_t>();
-    RSUIDirector::DumpNodeTreeProcessor(nodeId, pid, taskId);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->DumpNodeTreeProcessor(nodeId, pid, taskId);
     return true;
 }
 
@@ -701,7 +702,10 @@ bool DoPostDelayTask(const uint8_t* data, size_t size)
     const std::function<void()>& task = []() {
         std::cout << "for test" << std::endl;
     };
+    uint32_t delay = GetData<uint32_t>();
+    int32_t instanceId = GetData<int32_t>();
     director->PostDelayTask(task);
+    director->PostDelayTask(task, delay, instanceId);
     return true;
 }
 } // namespace Rosen

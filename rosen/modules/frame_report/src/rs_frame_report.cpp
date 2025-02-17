@@ -118,82 +118,42 @@ int RsFrameReport::GetEnable()
     }
 }
 
-void RsFrameReport::ProcessCommandsStart()
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
 {
-    if (processCommandsStartFun_ == nullptr) {
-        processCommandsStartFun_ = (ProcessCommandsStartFunc)LoadSymbol("ProcessCommandsStart");
+    if (!GetEnable()) {
+        return;
     }
-    if (processCommandsStartFun_ != nullptr) {
-        processCommandsStartFun_();
+    if (reportSchedEventFunc_ == nullptr) {
+        reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
+    }
+    if (reportSchedEventFunc_ != nullptr) {
+        reportSchedEventFunc_(event, payload);
     } else {
-        LOGE("RsFrameReport:[ProcessCommandsStart]load ProcessCommandsStart function failed!");
+        LOGE("RsFrameReport load ReportSchedEvent function failed!");
     }
 }
 
-void RsFrameReport::AnimateStart()
+void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
 {
-    if (animateStartFunc_ == nullptr) {
-        animateStartFunc_ = (AnimateStartFunc)LoadSymbol("AnimateStart");
+    if (!GetEnable()) {
+        return;
     }
-    if (animateStartFunc_ != nullptr) {
-        animateStartFunc_();
+    if (setFrameParamFunc_ == nullptr) {
+        setFrameParamFunc_ = (SetFrameParamFunc)LoadSymbol("SetFrameParam");
+    }
+
+    if (setFrameParamFunc_ != nullptr) {
+        setFrameParamFunc_(requestId, load, schedFrameNum, value);
     } else {
-        LOGE("RsFrameReport:[AnimateStart]load AnimateStart function failed!");
-    }
-}
-
-void RsFrameReport::RenderStart(uint64_t timestamp)
-{
-    if (renderStartFunc_ == nullptr) {
-        renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
-    }
-
-    if (renderStartFunc_ != nullptr) {
-        renderStartFunc_(timestamp);
-    } else {
-        LOGE("RsFrameReport:[RenderStart]load RenderStart function failed!");
-    }
-}
-
-void RsFrameReport::RSRenderStart()
-{
-    if (parallelRenderStartFunc_ == nullptr) {
-        parallelRenderStartFunc_ = reinterpret_cast<ParallelRenderStartFunc>(LoadSymbol("RSRenderStart"));
-    }
-    if (parallelRenderStartFunc_ != nullptr) {
-        parallelRenderStartFunc_();
-    } else {
-        LOGE("RsFrameReport:[RSRenderStart]load RSRenderStart function failed!");
-    }
-}
-
-void RsFrameReport::RenderEnd()
-{
-    if (renderEndFunc_ == nullptr) {
-        renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
-    }
-
-    if (renderEndFunc_ != nullptr) {
-        renderEndFunc_();
-    } else {
-        LOGE("RsFrameReport:[RenderEnd]load RenderEnd function failed!");
-    }
-}
-
-void RsFrameReport::RSRenderEnd()
-{
-    if (parallelRenderEndFunc_ == nullptr) {
-        parallelRenderEndFunc_ = reinterpret_cast<ParallelRenderEndFunc>(LoadSymbol("RSRenderEnd"));
-    }
-    if (parallelRenderEndFunc_ != nullptr) {
-        parallelRenderEndFunc_();
-    } else {
-        LOGE("RsFrameReport:[RSRenderEnd]load RSRenderEnd function failed!");
+        LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
     }
 }
 
 void RsFrameReport::SendCommandsStart()
 {
+    if (!GetEnable()) {
+        return;
+    }
     if (sendCommandsStartFunc_ == nullptr) {
         sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
     }
@@ -205,17 +165,65 @@ void RsFrameReport::SendCommandsStart()
     }
 }
 
-void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
+void RsFrameReport::RenderStart(uint64_t timestamp)
 {
-    if (setFrameParamFunc_ == nullptr) {
-        setFrameParamFunc_ = (SetFrameParamFunc)LoadSymbol("SetFrameParam");
-    }
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["vsyncTime"] = std::to_string(timestamp);
+    ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, payload);
+}
 
-    if (setFrameParamFunc_ != nullptr) {
-        setFrameParamFunc_(requestId, load, schedFrameNum, value);
-    } else {
-        LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
+void RsFrameReport::RenderEnd()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
+}
+
+void RsFrameReport::UniRenderStart()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
+}
+
+void RsFrameReport::CheckUnblockMainThreadPoint()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNBLOCK_MAINTHREAD, {});
+}
+
+void RsFrameReport::CheckPostAndWaitPoint()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
+}
+
+void RsFrameReport::CheckBeginFlushPoint()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
+}
+
+void RsFrameReport::ReportBufferCount(int count)
+{
+    if (bufferCount_ == count) {
+        return;
     }
+    bufferCount_ = count;
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["bufferCount"] = std::to_string(count);
+    ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
+}
+
+void RsFrameReport::ReportHardwareInfo(int tid)
+{
+    if (hardwareTid_ == tid) {
+        return;
+    }
+    hardwareTid_ = tid;
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["hardwareTid"] = std::to_string(tid);
+    ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, payload);
+}
+
+void RsFrameReport::ReportFrameDeadline(int deadline)
+{
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["rsFrameDeadline"] = std::to_string(deadline);
+    ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 } // namespace Rosen
 } // namespace OHOS

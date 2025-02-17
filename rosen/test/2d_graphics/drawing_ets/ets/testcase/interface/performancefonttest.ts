@@ -24,6 +24,7 @@ export class PerformanceFontEnableSubpixel extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.enableSubpixel(true);
     }
@@ -38,6 +39,7 @@ export class PerformanceFontEnableEmbolden extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.enableEmbolden(true);
     }
@@ -52,6 +54,7 @@ export class PerformanceFontEnableLinearMetrics extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.enableLinearMetrics(true);
     }
@@ -66,6 +69,7 @@ export class PerformanceFontSetBaselineSnap extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setBaselineSnap(true);
     }
@@ -80,6 +84,7 @@ export class PerformanceFontSetEmbeddedBitmaps extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setEmbeddedBitmaps(true);
     }
@@ -94,6 +99,7 @@ export class PerformanceFontSetForceAutoHinting extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setForceAutoHinting(true);
     }
@@ -108,6 +114,7 @@ export class PerformanceFontSetSize extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setSize(100);
     }
@@ -123,6 +130,7 @@ export class PerformanceFontSetTypeface extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
     let type = new drawing.Typeface();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setTypeface(type);
     }
@@ -137,6 +145,7 @@ export class PerformanceFontGetTypeface extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getTypeface();
     }
@@ -151,6 +160,7 @@ export class PerformanceFontGetSize extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getSize();
     }
@@ -165,6 +175,7 @@ export class PerformanceFontGetMetrics extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getMetrics();
     }
@@ -180,6 +191,7 @@ export class PerformanceFontGetWidths extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
     let num: number[] = [15, 16, 17];
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getWidths(num);
     }
@@ -194,6 +206,7 @@ export class PerformanceFontIsBaselineSnap extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isBaselineSnap();
     }
@@ -208,6 +221,7 @@ export class PerformanceFontIsEmbeddedBitmaps extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isEmbeddedBitmaps();
     }
@@ -222,6 +236,7 @@ export class PerformanceFontIsForceAutoHinting extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isForceAutoHinting();
     }
@@ -237,6 +252,7 @@ export class PerformanceFontMeasureSingleCharacter extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
     let text = "h";
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.measureSingleCharacter(text);
     }
@@ -252,6 +268,7 @@ export class PerformanceFontMeasureText extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
     let text = "hello world";
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.measureText(text, drawing.TextEncoding.TEXT_ENCODING_UTF8);
     }
@@ -266,6 +283,7 @@ export class PerformanceFontSetScaleX extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setScaleX(15);
     }
@@ -280,6 +298,7 @@ export class PerformanceFontSetSkewX extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setSkewX(15);
     }
@@ -294,6 +313,7 @@ export class PerformanceFontSetEdging extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setEdging(drawing.FontEdging.ALIAS);
     }
@@ -308,6 +328,7 @@ export class PerformanceFontSetHinting extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.setHinting(drawing.FontHinting.NONE);
     }
@@ -323,6 +344,7 @@ export class PerformanceFontCountText extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
     let text = "hello world";
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.countText(text);
     }
@@ -337,6 +359,7 @@ export class PerformanceFontIsSubpixel extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isSubpixel();
     }
@@ -351,6 +374,7 @@ export class PerformanceFontIsLinearMetrics extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isLinearMetrics();
     }
@@ -365,6 +389,7 @@ export class PerformanceFontGetSkewX extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getSkewX();
     }
@@ -379,6 +404,7 @@ export class PerformanceFontIsEmbolden extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.isEmbolden();
     }
@@ -393,6 +419,7 @@ export class PerformanceFontGetScaleX extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getScaleX();
     }
@@ -407,6 +434,7 @@ export class PerformanceFontGetHinting extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getHinting();
     }
@@ -421,6 +449,7 @@ export class PerformanceFontGetEdging extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.getEdging();
     }
@@ -437,6 +466,7 @@ export class PerformanceFontTextToGlyphs extends TestBase {
     let font = new drawing.Font();
     let text = "hello world";
     let num = text.length;
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       font.textToGlyphs(text, num);
     }

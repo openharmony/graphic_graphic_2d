@@ -75,6 +75,7 @@ config("export") {
 
 if (current_os == "ohos") {
   ohos_shared_library("color_manager") {
+    branch_protector_ret = "pac_ret"
     deps = [ ":color_manager_source" ]
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
     public_configs = [ ":export" ]

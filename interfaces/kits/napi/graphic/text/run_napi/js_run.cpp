@@ -293,12 +293,17 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("JsRun::OnPaint argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
     Drawing::JsCanvas* jsCanvas = nullptr;
     double x = 0.0;
     double y = 0.0;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas() ||
-        !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
+        !(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         TEXT_LOGE("Failed to get paint parameter");
         return NapiGetUndefined(env);
     }

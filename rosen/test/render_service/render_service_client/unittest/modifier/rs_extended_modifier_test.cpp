@@ -226,5 +226,19 @@ HWTEST_F(RSExtendedModifierTest, DrawTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     RSDrawingContext rsDrawingContext = { &canvas, 1, 1 };
     geometryTransModifier.Draw(rsDrawingContext);
+    ASSERT_EQ(geometryTransModifier.GetModifierType(), RSModifierType::GEOMETRYTRANS);
+}
+
+/**
+ * @tc.name: SetNoNeedUICapturedTest
+ * @tc.desc: SetNoNeedUICaptured Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBDGY3
+ */
+HWTEST_F(RSExtendedModifierTest, SetNoNeedUICapturedTest, TestSize.Level1)
+{
+    ExtendedModifierTest extendedModifier;
+    extendedModifier.SetNoNeedUICaptured(true);
+    ASSERT_TRUE(extendedModifier.noNeedUICaptured_);
 }
 } // namespace OHOS::Rosen

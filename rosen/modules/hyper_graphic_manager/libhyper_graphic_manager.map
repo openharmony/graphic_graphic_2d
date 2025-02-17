@@ -1,0 +1,189 @@
+# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{
+  global:
+    extern "C++" {
+      *HgmConfigCallbackManager::GetInstance*;
+      *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
+      *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
+      *HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::SyncHgmConfigChangeCallback*;
+      *HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback*;
+      *HgmConfigCallbackManager::SyncRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback*;
+
+      *HgmCore::AddScreen*;
+      *HgmCore::AddScreenInfo*;
+      *HgmCore::CheckCustomFrameRateModeValid*;
+      *HgmCore::GetActiveScreen*;
+      *HgmCore::GetCurrentRefreshRateMode*;
+      *HgmCore::GetIdealPeriod*;
+      *HgmCore::GetModesToApply*;
+      *HgmCore::GetScreen*;
+      *HgmCore::GetScreenCurrentRefreshRate*;
+      *HgmCore::Init*;
+      *HgmCore::Instance*;
+      *HgmCore::NotifyScreenPowerStatus*;
+      *HgmCore::NotifyScreenRectFrameRateChange*;
+      *HgmCore::RegisterRefreshRateModeChangeCallback*;
+      *HgmCore::RemoveScreen*;
+      *HgmCore::SetASConfig*;
+      *HgmCore::SetActiveScreenId*;
+      *HgmCore::SetRateAndResolution*;
+      *HgmCore::SetRefreshRateMode*;
+      *HgmCore::SetScreenRefreshRate*;
+
+      *HgmEnergyConsumptionPolicy::GetAnimationIdleFps*;
+      *HgmEnergyConsumptionPolicy::GetComponentFps*;
+      *HgmEnergyConsumptionPolicy::GetUiIdleFps*;
+      *HgmEnergyConsumptionPolicy::Instance*;
+      *HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog*;
+      *HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode*;
+      *HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig*;
+      *HgmEnergyConsumptionPolicy::SetRefreshRateMode*;
+      *HgmEnergyConsumptionPolicy::SetTouchState*;
+      *HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig*;
+      *HgmEnergyConsumptionPolicy::StartNewAnimation*;
+      *HgmEnergyConsumptionPolicy::StatisticAnimationTime*;
+
+      *HgmFrameRateManager::ChangePriority*;
+      *HgmFrameRateManager::CleanVote*;
+      *HgmFrameRateManager::CollectFrameRateChange*;
+      *HgmFrameRateManager::CollectVRateChange*;
+      *HgmFrameRateManager::DeliverRefreshRateVote*;
+      *HgmFrameRateManager::FrameRateReport*;
+      *HgmFrameRateManager::GetDrawingFrameRate*;
+      *HgmFrameRateManager::GetExpectedFrameRate*;
+      *HgmFrameRateManager::GetLowBrightVec*;
+      *HgmFrameRateManager::GetPreferredFps*;
+      *HgmFrameRateManager::GetStylusVec*;
+      *HgmFrameRateManager::HandleAppStrategyConfigEvent*;
+      *HgmFrameRateManager::HandleDynamicModeEvent*;
+      *HgmFrameRateManager::HandleFrameRateChangeForLTPO*;
+      *HgmFrameRateManager::HandleGamesEvent*;
+      *HgmFrameRateManager::HandleIdleEvent*;
+      *HgmFrameRateManager::HandleLightFactorStatus*;
+      *HgmFrameRateManager::HandlePackageEvent*;
+      *HgmFrameRateManager::HandleRefreshRateEvent*;
+      *HgmFrameRateManager::HandleRefreshRateMode*;
+      *HgmFrameRateManager::HandleRsFrame*;
+      *HgmFrameRateManager::HandleSceneEvent*;
+      *HgmFrameRateManager::HandleScreenPowerStatus*;
+      *HgmFrameRateManager::HandleScreenRectFrameRate*;
+      *HgmFrameRateManager::HandleTouchEvent*;
+      *HgmFrameRateManager::HgmFrameRateManager*;
+      *HgmFrameRateManager::Init*;
+      *HgmFrameRateManager::MergeRangeByPriority*;
+      *HgmFrameRateManager::ProcessAdaptiveSync*;
+      *HgmFrameRateManager::ProcessPendingRefreshRate*;
+      *HgmFrameRateManager::ProcessRefreshRateVote*;
+      *HgmFrameRateManager::ReportHiSysEvent*;
+      *HgmFrameRateManager::SetAceAnimatorVote*;
+      *HgmFrameRateManager::SetShowRefreshRateEnabled*;
+      *HgmFrameRateManager::UniProcessDataForLtpo*;
+      *HgmFrameRateManager::UpdateGuaranteedPlanVote*;
+      *HgmFrameRateManager::UpdateSurfaceTime*;
+      *HgmFrameRateManager::UpdateUIFrameworkDirtyNodes*;
+      *HgmFrameRateManager::UpdateVoteRule*;
+
+      *HgmHfbcConfig::HandleHfbcConfig*;
+
+      *HgmIdleDetector::GetSurfaceIdleState*;
+      *HgmIdleDetector::GetTouchUpExpectedFPS*;
+      *HgmIdleDetector::SetAceAnimatorIdleState*;
+      *HgmIdleDetector::SetAppSupportedState*;
+      *HgmIdleDetector::UpdateSurfaceTime*;
+
+      *HgmMultiAppStrategy::AnalyzePkgParam*;
+      *HgmMultiAppStrategy::CalcVote*;
+      *HgmMultiAppStrategy::CheckPackageInConfigList*;
+      *HgmMultiAppStrategy::GetAppStrategyConfig*;
+      *HgmMultiAppStrategy::GetVoteRes*;
+      *HgmMultiAppStrategy::HandleLightFactorStatus*;
+      *HgmMultiAppStrategy::HandleLowAmbientStatus*;
+      *HgmMultiAppStrategy::HandlePkgEvent*;
+      *HgmMultiAppStrategy::HandlePkgsEvent*;
+      *HgmMultiAppStrategy::HandleTouchInfo*;
+      *HgmMultiAppStrategy::HgmMultiAppStrategy*;
+      *HgmMultiAppStrategy::OnStrategyChange*;
+      *HgmMultiAppStrategy::SetAppStrategyConfig*;
+      *HgmMultiAppStrategy::UpdateAppStrategyConfigCache*;
+
+      *HgmScreen::AddScreenModeInfo*;
+      *HgmScreen::GetActiveRefreshRate*;
+      *HgmScreen::GetModeIdViaRate*;
+      *HgmScreen::HgmScreen*;
+      *HgmScreen::IfSwitchToRate*;
+      *HgmScreen::SetActiveRefreshRate*;
+      *HgmScreen::SetRateAndResolution*;
+      *HgmScreen::SetRefreshRateRange*;
+
+      *HgmScreenInfo::GetInstance*;
+      *HgmScreenInfo::GetPanelInfo*;
+      *HgmScreenInfo::GetScreenType*;
+      *HgmScreenInfo::Init*;
+      *HgmScreenInfo::InitPanelTypeMap*;
+      *HgmScreenInfo::IsLtpoType*;
+
+      *HgmSimpleTimer::HgmSimpleTimer*;
+      *HgmSimpleTimer::Reset*;
+      *HgmSimpleTimer::Start*;
+      *HgmSimpleTimer::Stop*;
+
+      *HgmTaskHandleThread::DetectMultiThreadingCalls*;
+      *HgmTaskHandleThread::Instance*;
+      *HgmTaskHandleThread::PostEvent*;
+      *HgmTaskHandleThread::PostSyncTask*;
+      *HgmTaskHandleThread::PostTask*;
+      *HgmTaskHandleThread::RemoveEvent*;
+
+      *HgmTouchManager::CheckChangeStateValid*;
+      *HgmTouchManager::HandleRsFrame*;
+      *HgmTouchManager::HandleTouchEvent*;
+      *HgmTouchManager::HgmTouchManager*;
+      *HgmTouchManager::State2String*;
+
+      *HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime*;
+      *HgmVSyncGeneratorController::ChangeGeneratorRate*;
+      *HgmVSyncGeneratorController::GetAppOffset*;
+      *HgmVSyncGeneratorController::HgmVSyncGeneratorController*;
+      *HgmVSyncGeneratorController::~HgmVSyncGeneratorController*;
+
+      *RSFrameRateVote::CancelVoteRate*;
+      *RSFrameRateVote::NotifyRefreshRateEvent*;
+      *RSFrameRateVote::RSFrameRateVote*;
+      *RSFrameRateVote::ReleaseSurfaceMap*;
+      *RSFrameRateVote::SurfaceVideoVote*;
+      *RSFrameRateVote::VideoFrameRateVote*;
+      *RSFrameRateVote::VoteRate*;
+      *RSFrameRateVote::~RSFrameRateVote*;
+
+      *RSVideoFrameRateVote::CancelDelayTask*;
+      *RSVideoFrameRateVote::DoReleaseCallback*;
+      *RSVideoFrameRateVote::DoVoteCallback*;
+      *RSVideoFrameRateVote::RSVideoFrameRateVote*;
+      *RSVideoFrameRateVote::SendDelayTask*;
+      *RSVideoFrameRateVote::StartVideoFrameRateVote*;
+      *RSVideoFrameRateVote::VoteVideoFrameRate*;
+      *RSVideoFrameRateVote::~RSVideoFrameRateVote*;
+
+      *XMLParser::Destroy*;
+      *XMLParser::IsNumber*;
+      *XMLParser::LoadConfiguration*;
+      *XMLParser::Parse*;
+      *XMLParser::StringToVector*;
+      *XMLParser::XMLParser*;
+    };
+  local: *;
+};

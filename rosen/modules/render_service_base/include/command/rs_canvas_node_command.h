@@ -29,6 +29,7 @@ enum RSCanvasNodeCommandType : uint16_t {
     CANVAS_NODE_CREATE,
     CANVAS_NODE_UPDATE_RECORDING,
     CANVAS_NODE_CLEAR_RECORDING,
+    CANVAS_NODE_SET_HDR_PRESENT,
 };
 
 namespace Drawing {
@@ -41,17 +42,24 @@ public:
     static void UpdateRecording(
         RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
     static void ClearRecording(RSContext& context, NodeId id);
+    static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
 private:
     static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
         std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
 };
 
-ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSCanvasNodeCreate,
+    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_CREATE,
+        RSCanvasNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSCanvasNodeUpdateRecording,
-    ARG(CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING, RSCanvasNodeCommandHelper::UpdateRecording, NodeId,
-        std::shared_ptr<Drawing::DrawCmdList>, uint16_t))
+    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING,
+        RSCanvasNodeCommandHelper::UpdateRecording, NodeId, std::shared_ptr<Drawing::DrawCmdList>, uint16_t))
 ADD_COMMAND(RSCanvasNodeClearRecording,
-    ARG(CANVAS_NODE, CANVAS_NODE_CLEAR_RECORDING, RSCanvasNodeCommandHelper::ClearRecording, NodeId))
+    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_CLEAR_RECORDING,
+        RSCanvasNodeCommandHelper::ClearRecording, NodeId))
+ADD_COMMAND(RSCanvasNodeSetHDRPresent,
+    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_HDR_PRESENT,
+        RSCanvasNodeCommandHelper::SetHDRPresent, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

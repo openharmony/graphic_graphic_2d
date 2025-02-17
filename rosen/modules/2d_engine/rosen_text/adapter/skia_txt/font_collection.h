@@ -17,6 +17,7 @@
 #define ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 
 #include <mutex>
+#include <string>
 #include <unordered_map>
 
 #include "rosen_text/font_collection.h"
@@ -49,6 +50,7 @@ private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
     std::unordered_map<uint32_t, std::shared_ptr<Drawing::Typeface>> typefaces_;
+    std::unordered_map<uint32_t, std::string> familyNames_;
     std::mutex mutex_;
 };
 } // namespace AdapterTxt

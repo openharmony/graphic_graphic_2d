@@ -269,6 +269,7 @@ HWTEST_F(CmdListHelperTest, Symbol, TestSize.Level1)
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     auto handle = CmdListHelper::AddSymbolToCmdList(*cmdList, symbol);
     auto obj = CmdListHelper::GetSymbolFromCmdList(*cmdList, handle);
+    EXPECT_EQ(obj.symbolId, 0);
 }
 
 /**

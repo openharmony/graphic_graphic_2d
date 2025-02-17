@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef C_INCLUDE_EFFECT_TYPES_H
-#define C_INCLUDE_EFFECT_TYPES_H
-
 /**
  * @addtogroup image
  * @{
@@ -35,6 +32,9 @@
  * @syscap SystemCapability.Multimedia.Image.Core
  * @since 12
  */
+
+#ifndef C_INCLUDE_EFFECT_TYPES_H
+#define C_INCLUDE_EFFECT_TYPES_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -86,6 +86,24 @@ typedef enum {
     /** unknown error */
     EFFECT_UNKNOWN_ERROR = 7600901,
 } EffectErrorCode;
+
+/**
+ * @brief Defines a effect filter tile mode.
+ *
+ * @since 14
+ */
+typedef enum {
+    /** Replicate the edge color if the shader draws outside of its original bounds */
+    CLAMP = 0,
+    /** Repeat the shader's image horizontally and vertically */
+    REPEAT,
+    /** Repeat the shader's image horizontally and vertically,
+     *  alternating mirror images so that adjacent images always seam
+     */
+    MIRROR,
+    /** Only draw within the original domain, return transparent-black everywhere else */
+    DECAL,
+} EffectTileMode;
 
 #ifdef __cplusplus
 }

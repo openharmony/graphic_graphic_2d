@@ -53,6 +53,7 @@ private:
     bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
         Drawing::DrawingEffectStrategy& effectStrategy);
+    void UpdateSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
     // choose the animation is a public animation or special animation
     bool ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
@@ -93,13 +94,12 @@ private:
 
     // drawing a path group : symbol drawing or path drawing
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
-        const Vector4f& offsets, bool isMultiLayer);
+        const Vector4f& offsets);
 
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, Drawing::DrawingSColor& color);
 
     Vector4f CalculateOffset(const Drawing::Path& path, const float offsetX, const float offsetY);
-    void DrawSymbolOnCanvas(
-        ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+
     void DrawPathOnCanvas(
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     bool CalcTimePercents(std::vector<float>& timePercents, const uint32_t totalDuration,
@@ -122,11 +122,16 @@ private:
     bool SetDisappearConfig(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::shared_ptr<TextEngine::SymbolAnimationConfig>& disappearConfig);
 
+    // Determine whether to create a node based on the existing canvasNodesListMap node
+    bool CreateSymbolNode(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        const Vector4f& offsets, uint32_t index);
+
     // process node before animation include clean invalid node and config info
     void NodeProcessBeforeAnimation(
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     // pop invalid node before replace animation, replace animation have special rsnode lifecycle.
     void PopNodeFromReplaceList(uint64_t symbolSpanId);
+
     std::shared_ptr<RSNode> rsNode_ = nullptr;
     // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_ = nullptr;

@@ -17,6 +17,7 @@
 #define RS_DRAW_WINDOW_CACHE_H
 
 #include "image/image.h"
+#include "params/rs_render_thread_params.h"
 #include "params/rs_surface_render_params.h"
 
 namespace OHOS {
@@ -51,12 +52,18 @@ public:
      * @param surfaceParams Indicates the render params
      * @return true if success, otherwise false
     */
-    bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-private:
-    bool HasCache() const;
+
     void ClearCache();
 
+#ifdef RS_ENABLE_GPU
+    bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam);
+#endif
+
+    void DrawCrossNodeOffscreenDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams, const Drawing::Color& color);
+private:
+    bool HasCache() const;
     std::shared_ptr<Drawing::Image> image_ = nullptr;
 };
 } // Rosen

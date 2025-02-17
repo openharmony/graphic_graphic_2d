@@ -345,4 +345,85 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.isLayerTop_, isLayerTop);
 }
+
+/**
+ * @tc.name: SetIsBufferFlushed
+ * @tc.desc: SetIsBufferFlushed and GetIsBufferFlushed test
+ * @tc.type:FUNC
+ * @tc.require: issueIBEBTA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsBufferFlushed, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(116);
+    params.SetIsBufferFlushed(false);
+    EXPECT_EQ(params.GetIsBufferFlushed(), false);
+
+    params.SetIsBufferFlushed(true);
+    EXPECT_EQ(params.GetIsBufferFlushed(), true);
+}
+
+/**
+ * @tc.name: GetClonedNodeRenderDrawable
+ * @tc.desc: Test function GetClonedNodeRenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetClonedNodeRenderDrawable, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(117);
+    auto clonedNodeRenderDrawable = params.GetClonedNodeRenderDrawable();
+    EXPECT_TRUE(clonedNodeRenderDrawable.expired());
+}
+
+/**
+ * @tc.name: IsCloneNode
+ * @tc.desc: Test function IsCloneNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, IsCloneNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(118);
+    auto result = params.IsCloneNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ClonedSourceNode
+ * @tc.desc: Test function ClonedSourceNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClonedSourceNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(119);
+    auto result = params.ClonedSourceNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetIsCloned
+ * @tc.desc: Test function SetIsCloned
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsCloned, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(120);
+    params.SetIsCloned(true);
+    EXPECT_TRUE(params.clonedSourceNode_);
+}
+
+/**
+ * @tc.name: isClonedNodeOnTheTree
+ * @tc.desc: Test function isClonedNodeOnTheTree
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, isClonedNodeOnTheTree, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(121);
+    auto result = params.IsClonedNodeOnTheTree();
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

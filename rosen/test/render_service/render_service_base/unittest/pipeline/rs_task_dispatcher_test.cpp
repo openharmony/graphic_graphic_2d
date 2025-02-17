@@ -56,6 +56,7 @@ HWTEST_F(RSTaskDispatcherTest, TestPostTask002, TestSize.Level1)
 {
     RSTaskDispatcher& dispatcher = RSTaskDispatcher::GetInstance();
     dispatcher.RegisterTaskDispatchFunc(1, [](RSTaskDispatcher::RSTask task, bool isSyncTask) {});
+    EXPECT_TRUE(dispatcher.HasRegisteredTask(1));
     dispatcher.PostTask(1, []() {});
     dispatcher.PostTask(0, []() {});
 }

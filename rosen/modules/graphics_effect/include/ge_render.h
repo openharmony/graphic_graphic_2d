@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "ge_shader.h"
 #include "ge_shader_filter.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -35,7 +36,7 @@ namespace GraphicsEffectEngine {
 
 using namespace Rosen;
 
-class GERender {
+class GE_EXPORT GERender {
 public:
     GERender();
     ~GERender();
@@ -50,6 +51,8 @@ public:
 
 private:
     std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer& veContainer);
+
+    std::shared_ptr<GEShaderFilter> GenerateExtShaderFilter(const std::shared_ptr<Drawing::GEVisualEffectImpl>&);
 };
 
 } // namespace GraphicsEffectEngine

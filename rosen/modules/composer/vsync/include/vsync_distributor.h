@@ -67,6 +67,7 @@ public:
     {
         gcNotifyTask_ = hook;
     }
+    void RegisterDeathRecipient();
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
@@ -100,6 +101,7 @@ private:
     sptr<LocalSocketPair> socketPair_;
     bool isDead_;
     std::mutex mutex_;
+    std::mutex postEventMutex_;
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
 };
@@ -123,6 +125,7 @@ public:
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
+    VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
 
     // used by DVSync
     bool IsDVsyncOn();
@@ -141,6 +144,12 @@ public:
     int64_t GetVsyncCount();
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
+    void SetHasNativeBuffer();
+    void PrintConnectionsStatus();
+    void FirstRequestVsync();
+
+    // used by V Rate
+    std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
 
 private:
 
@@ -188,6 +197,7 @@ private:
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
     std::map<uint64_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
+    std::map<uint64_t, std::vector<uint64_t>> pidWindowIdMap_;
     VSyncEvent event_;
     bool vsyncEnabled_;
     std::string name_;
@@ -210,6 +220,34 @@ private:
 #endif
     bool isRs_ = false;
     std::atomic<bool> hasVsync_ = false;
+    void ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &conns, int64_t now, int64_t period,
+        uint32_t generatorRefreshRate, int64_t vsyncCount, bool isDvsyncController);
+    void ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int64_t period, int64_t vsyncCount);
+    void TriggerNext(sptr<VSyncConnection> con);
+    // Start of DVSync
+    void DisableDVSyncController();
+    void OnDVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
+    void InitDVSync();
+    void DVSyncAddConnection(const sptr<VSyncConnection> &connection);
+    void DVSyncDisableVSync();
+    void RecordEnableVsync();
+    void DVSyncRecordVSync(int64_t now, int64_t period, uint32_t refreshRate, bool isDvsyncController);
+    bool DVSyncCheckSkipAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timeStamp);
+    bool DVSyncNeedSkipUi(const sptr<VSyncConnection> &connection);
+    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom);
+    bool DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
+        int64_t &period, int64_t &vsyncCount);
+    sptr<VSyncController> dvsyncController_ = nullptr;
+    bool dvsyncControllerEnabled_ = false;
+    // End of DVSync
+    int64_t beforeWaitRnvTime_ = 0;
+    int64_t afterWaitRnvTime_ = 0;
+    int64_t lastNotifyTime_ = 0;
+    std::atomic<int64_t> beforePostEvent_ = 0;
+    std::atomic<int64_t> startPostEvent_ = 0;
+    bool isFirstRequest_ = false;
+    bool isFirstSend_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -65,6 +65,28 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
     ASSERT_NE(drawable, nullptr);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: ReleaseSurfaceVk
+ * @tc.desc: Test If ReleaseSurfaceVk Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIB2B14
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    int width = 10;
+    int height = 10;
+    auto res = drawable->ReleaseSurfaceVk(width, height);
+    EXPECT_TRUE(res);
+
+    drawable->backendTexture_ = Drawing::BackendTexture(false);
+    res = drawable->ReleaseSurfaceVk(width, height);
+    EXPECT_TRUE(res);
+}
+#endif
+
 /**
  * @tc.name: OnDraw
  * @tc.desc: Test If OnDraw Can Run
@@ -232,6 +254,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForGLTest, TestSize.Level1)
     drawable->curThreadInfo_.first = INVALID_NODEID;
     drawable->FlushForGL(width, height, context, nodeId, rscanvas);
     ASSERT_FALSE(drawable->backendTexture_.IsValid());
+
+    drawable->backendTexture_.isValid_ = true;
+    drawable->FlushForGL(width, height, context, nodeId, rscanvas);
+    ASSERT_TRUE(drawable->backendTexture_.IsValid());
+
     drawable->recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0);
     drawable->FlushForGL(width, height, context, nodeId, rscanvas);
     drawable->recordingCanvas_->cmdList_ =
@@ -438,6 +465,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1
     res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
     ASSERT_FALSE(res);
 
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
+    ASSERT_FALSE(res);
+
     drawCmdList = std::make_shared<Drawing::DrawCmdList>();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
@@ -466,6 +497,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCaptureImageTest, TestSize.L
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->DrawCaptureImage(canvas);
     EXPECT_NE(drawable->image_, nullptr);
+
+    drawable->backendTexture_.isValid_ = true;
+    drawable->DrawCaptureImage(canvas);
+    EXPECT_TRUE(drawable->backendTexture_.IsValid());
+    EXPECT_EQ(canvas.GetGPUContext(), nullptr);
 }
 
 /**
@@ -485,11 +521,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
     canvas.recordingState_ = true;
     auto result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
+    auto resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
+    EXPECT_EQ(resultVK, true);
 
     canvas.recordingState_ = false;
     drawable->image_ = std::make_shared<Drawing::Image>();
     result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
+    resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
+    EXPECT_EQ(resultVK, true);
 }
 
 /**
@@ -592,17 +632,4 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
     ASSERT_EQ(result, false);
 }
 #endif
-
-/**
- * @tc.name: Purge
- * @tc.desc: Test If Purge Can Run
- * @tc.type: FUNC
- * @tc.require: issueIB1KMY
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PurgeTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    drawable->Purge();
-}
 }

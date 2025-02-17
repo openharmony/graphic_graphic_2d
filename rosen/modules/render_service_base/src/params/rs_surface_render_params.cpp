@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetNeedMakeImage(bool enabled)
+{
+    if (needMakeImage_ == enabled) {
+        return;
+    }
+    needMakeImage_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedMakeImage() const
+{
+    return needMakeImage_;
+}
+
 void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
 {
     if (isHardCursor_ == status) {
@@ -179,6 +193,20 @@ void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
 bool RSSurfaceRenderParams::GetHardCursorStatus() const
 {
     return isHardCursor_;
+}
+
+void RSSurfaceRenderParams::SetPreSubHighPriorityType(bool enabledType)
+{
+    if (subHighPriorityType_ == enabledType) {
+        return;
+    }
+    subHighPriorityType_ = enabledType;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetPreSubHighPriorityType() const
+{
+    return subHighPriorityType_;
 }
 
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
@@ -242,6 +270,9 @@ void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const R
     buffer_ = buffer;
     damageRect_ = damageRect;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
@@ -259,6 +290,9 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
     preBuffer_ = preBuffer;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
@@ -387,6 +421,16 @@ void RSSurfaceRenderParams::SetSkipDraw(bool skip)
     isSkipDraw_ = skip;
 }
 
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSSurfaceRenderParams::GetClonedNodeRenderDrawable()
+{
+    return clonedNodeRenderDrawable_;
+}
+
+bool RSSurfaceRenderParams::IsCloneNode() const
+{
+    return isCloneNode_;
+}
+
 bool RSSurfaceRenderParams::GetSkipDraw() const
 {
     return isSkipDraw_;
@@ -453,10 +497,15 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
+    targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
+    targetSurfaceParams->isCloneNode_ = isCloneNode_;
+    targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
+    targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->absDrawRect_ = absDrawRect_;
@@ -467,8 +516,10 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
@@ -476,22 +527,15 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->uifirstUseStarting_ = uifirstUseStarting_;
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
-    targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
     targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
-    targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
-    targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
-    targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
+    targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
-    targetSurfaceParams->skipLayerIds_= skipLayerIds_;
-    targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
-    targetSurfaceParams->securityLayerIds_= securityLayerIds_;
-    targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
+    targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
-    targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
     targetSurfaceParams->overDrawBufferNodeCornerRadius_ = overDrawBufferNodeCornerRadius_;
@@ -506,9 +550,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
-    targetSurfaceParams->scalingMode_ = scalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
@@ -520,6 +564,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
+    targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
+    targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
+    targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
+    targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
+    targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     RSRenderParams::OnSync(target);
 }
 
@@ -545,7 +595,8 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
-    if (IsLeashWindow()) {
+    if (IsLeashWindow() && (!IsCrossNode() ||
+        GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::DISABLED)) {
         return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;

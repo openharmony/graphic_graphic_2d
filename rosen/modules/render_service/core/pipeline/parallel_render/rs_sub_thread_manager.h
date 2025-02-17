@@ -35,8 +35,6 @@ public:
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
-    void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
-        const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     void ResetSubThreadGrContext();
     void CancelReleaseResourceTask();
     void ReleaseTexture();

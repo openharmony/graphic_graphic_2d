@@ -47,6 +47,8 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRange, TestSize.Level1)
     FrameRateRange range(60, 144, 120);
     frameRateLinker->SetExpectedRange(range);
     EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
+    frameRateLinker->SetExpectedRange(range);
+    EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
 }
 
 /**
@@ -64,6 +66,8 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetFrameRate, TestSize.Level1)
     uint32_t rate = 120;
     frameRateLinker->SetFrameRate(rate);
     EXPECT_EQ(frameRateLinker->GetFrameRate(), rate);
+    frameRateLinker->SetFrameRate(rate);
+    EXPECT_EQ(frameRateLinker->GetFrameRate(), rate);
 }
 
 /**
@@ -79,5 +83,28 @@ HWTEST_F(RSRenderFrameRateLinkerTest, GenerateId, TestSize.Level1)
     auto id1 = frameRateLinker->GenerateId();
     auto id2 = frameRateLinker->GenerateId();
     EXPECT_LT(id1, id2);
+}
+
+/**
+ * @tc.name: SetAnimatorExpectedFrameRate
+ * @tc.desc: Test SetAnimatorExpectedFrameRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, SetAnimatorExpectedFrameRate, TestSize.Level1)
+{
+    FrameRateLinkerId id = 1;
+    int32_t animatorExpectedFrameRate = 60;
+    std::shared_ptr<RSRenderFrameRateLinker> frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id);
+    frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+    EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
+    frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+    EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
+
+    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>([] (const RSRenderFrameRateLinker& linker) {});
+    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id, [] (const RSRenderFrameRateLinker& linker) {});
+    frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+    EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 }
 } // namespace OHOS::Rosen

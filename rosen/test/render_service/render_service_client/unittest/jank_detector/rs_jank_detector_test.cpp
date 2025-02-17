@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "jank_detector/rs_jank_detector.h"
+#include "render_thread/jank_detector/rs_jank_detector.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"

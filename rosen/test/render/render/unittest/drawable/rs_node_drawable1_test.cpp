@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

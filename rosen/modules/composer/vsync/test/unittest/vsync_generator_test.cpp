@@ -74,6 +74,9 @@ void VSyncGeneratorTest::TearDownTestCase()
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator_ = nullptr;
     DestroyVSyncGenerator();
+    receiver->looper_->RemoveFileDescriptorListener(receiver->fd_);
+    receiver->looper_ = nullptr;
+    receiver->fd_ = -1;
 }
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {
@@ -1016,6 +1019,65 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest008, Function | MediumTest| 
     auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
         listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now + 110000000); // 110ms == 110000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: SetCurrentRefreshRateTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test SetCurrentRefreshRate
+ */
+HWTEST_F(VSyncGeneratorTest, SetCurrentRefreshRateTest001, Function | MediumTest| Level0)
+{
+    uint32_t currRefreshRate = 60;
+    uint32_t lastRefreshRate = 30;
+    int64_t delayTime = VSyncGeneratorTest::vsyncGenerator_->SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
+    ASSERT_EQ(delayTime, 0);
+}
+
+/*
+* Function: DVSyncRateChangedTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test DVSyncRateChanged
+ */
+HWTEST_F(VSyncGeneratorTest, DVSyncRateChangedTest001, Function | MediumTest| Level0)
+{
+    uint32_t currRefreshRate = 60;
+    bool frameRateChanged = false;
+    VSyncGeneratorTest::vsyncGenerator_->DVSyncRateChanged(currRefreshRate, frameRateChanged);
+    ASSERT_EQ(frameRateChanged, false);
+}
+
+/*
+* Function: AddDVSyncListenerTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test AddDVSyncListener
+ */
+HWTEST_F(VSyncGeneratorTest, AddDVSyncListenerTest001, Function | MediumTest| Level0)
+{
+    sptr<VSyncGenerator::Callback> cb = nullptr;
+    int64_t phase = 0;
+    VsyncError error = VSyncGeneratorTest::vsyncGenerator_->AddDVSyncListener(phase, cb);
+    ASSERT_EQ(error, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: RemoveDVSyncListenerTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test RemoveDVSyncListener
+ */
+HWTEST_F(VSyncGeneratorTest, RemoveDVSyncListenerTest001, Function | MediumTest| Level0)
+{
+    sptr<VSyncGenerator::Callback> cb = nullptr;
+    VsyncError error = VSyncGeneratorTest::vsyncGenerator_->RemoveDVSyncListener(cb);
+    ASSERT_EQ(error, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 } // namespace
 } // namespace Rosen

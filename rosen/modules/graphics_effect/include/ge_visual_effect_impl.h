@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "ge_shader.h"
 #include "ge_shader_filter.h"
 #include "ge_visual_effect.h"
 
@@ -28,7 +29,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class GEVisualEffectImpl {
+class GE_EXPORT GEVisualEffectImpl {
 public:
     enum class FilterType {
         NONE,
@@ -36,8 +37,10 @@ public:
         MESA_BLUR,
         GREY, AIBAR,
         LINEAR_GRADIENT_BLUR,
-        WATER_RIPPLE,
         MAGNIFIER,
+        WATER_RIPPLE,
+        DOT_MATRIX,
+        FLOW_LIGHT_SWEEP,
         MAX
     };
 
@@ -145,8 +148,10 @@ private:
     void SetAIBarParams(const std::string& tag, float param);
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
+
     void SetMagnifierParamsFloat(const std::string& tag, float param);
     void SetMagnifierParamsUint32(const std::string& tag, uint32_t param);
+
     void SetWaterRippleParams(const std::string& tag, float param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
@@ -156,6 +161,7 @@ private:
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
+
     std::shared_ptr<GEMagnifierShaderFilterParams> magnifierParams_ = nullptr;
     std::shared_ptr<GEWaterRippleFilterParams> waterRippleParams_ = nullptr;
 };

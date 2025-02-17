@@ -295,9 +295,11 @@ HWTEST_F(ShaderCacheTest, load_test_001, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, cleanAllShaders_test_001, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
+    EXPECT_EQ(nullptr, cache.cacheData_);
     cache.CleanAllShaders();
     const char* identity = nullptr;
     cache.InitShaderCache(identity, 0, false);
+    EXPECT_NE(nullptr, cache.cacheData_);
     cache.CleanAllShaders();
 }
 
@@ -314,7 +316,10 @@ HWTEST_F(ShaderCacheTest, querryShaderNum_test_001, TestSize.Level1)
     cache.QuerryShaderNum();
     const char* identity = nullptr;
     cache.InitShaderCache(identity, 0, false);
-    cache.QuerryShaderNum();
+    const char* testKey1 = "testKey1";
+    const char* testValue1 = "testValue1";
+    cache.cacheData_->Rewrite(testKey1, 8, testValue1, 8);
+    EXPECT_NE(0, cache.QuerryShaderNum());
 }
 
 /**

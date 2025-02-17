@@ -180,6 +180,23 @@ HWTEST_F(TypefaceTest, Deserialize001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHash001
+ * @tc.desc: Test Set Hash
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(TypefaceTest, SetHash001, TestSize.Level1)
+{
+    auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
+    ASSERT_NE(stream, nullptr);
+
+    auto typeface = Typeface::MakeFromStream(std::move(stream));
+    ASSERT_NE(typeface, nullptr);
+    uint32_t hash = 1;
+    typeface->SetHash(hash);
+}
+
+/**
  * @tc.name: NullTests001
  * @tc.desc: Test nullptr
  * @tc.type: FUNC
@@ -197,6 +214,16 @@ HWTEST_F(TypefaceTest, NullTests001, TestSize.Level1)
     EXPECT_EQ(typeface->Serialize(), nullptr);
     char data[10] = { 0 };
     EXPECT_EQ(Typeface::Deserialize(data, 10), nullptr);
+    EXPECT_EQ(typeface->GetFontStyle(), FontStyle());
+    EXPECT_EQ(typeface->GetUnitsPerEm(), 0);
+    EXPECT_EQ(typeface->IsCustomTypeface(), false);
+    EXPECT_EQ(typeface->IsThemeTypeface(), false);
+    EXPECT_EQ(typeface->GetHash(), 0);
+    uint32_t hash = 1;
+    typeface->SetHash(hash);
+    EXPECT_EQ(typeface->GetSize(), 0);
+    FontArguments arg;
+    EXPECT_EQ(typeface->MakeClone(arg), nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -86,7 +86,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level1)
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
     EXPECT_EQ(textLine_.at(0)->GetTextRange().start, 0);
-    EXPECT_EQ(textLine_.at(0)->GetTextRange().end, 6);
+    EXPECT_EQ(textLine_.at(0)->GetTextRange().end, 5);
 }
 
 /*

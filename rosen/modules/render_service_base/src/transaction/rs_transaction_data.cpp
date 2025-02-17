@@ -18,6 +18,8 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "common/rs_optional_trace.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_profiler.h"
@@ -130,7 +132,11 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             }
         }
         if (!success) {
-            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+            if (command != nullptr) {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+            } else {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling, pparcel write error");
+            }
             return false;
         }
         ++marshallingIndex_;
@@ -159,6 +165,9 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteUint64(syncId_);
     success = success && parcel.WriteInt32(parentPid_);
+    if (!success) {
+        ROSEN_LOGE("RSTransactionData::Marshalling failed");
+    }
     return success;
 }
 
@@ -261,6 +270,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
                 RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
             }
+            RS_PROFILER_PUSH_OFFSET(commandOffsets_, parcel.GetReadPosition());
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
             }
@@ -281,6 +291,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     static_cast<uint32_t>(commandSubType));
             }
             payloadLock.lock();
+            RS_OPTIONAL_TRACE_NAME_FMT("UnmarshallingCommand [nodeId:%zu], cmd is [%s]", command->GetNodeId(),
+                command->PrintType().c_str());
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
         } else {
@@ -288,14 +300,18 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
     }
     int32_t pid;
-    return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
+    bool flag = parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) &&
+        parcel.ReadInt32(syncTransactionCount_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
+    if (!flag) {
+        RS_LOGE("RSTransactionData::UnmarshallingCommand failed");
+    }
+    return flag;
 }
 
-bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
-    std::string& commandMapDesc) const
+bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
     // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
     // we temporarily add a white list to avoid abnormal functionality or abnormal display.
@@ -305,7 +321,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     }
 
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
-        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap;
+        std::pair<uint16_t, uint16_t>>>> inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {
         if (command == nullptr) {
@@ -313,22 +329,21 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        if (callingPid == commandPid) {
+        bool allowNonSystemAppCalling = command->GetAccessPermission() != RSCommandPermissionType::PERMISSION_SYSTEM;
+        if (allowNonSystemAppCalling && (callingPid == commandPid || nodeMap.IsUIExtensionSurfaceNode(nodeId))) {
             continue;
         }
-        if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-            continue;
-        }
-        conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
+        inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
     }
     lock.unlock();
-    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
-        conflictCommandPid = commandPid;
-        commandMapDesc = PrintCommandMapDesc(commandTypeMap);
-        return false;
+    for (const auto& [commandPid, commandTypeMap] : inaccessibleCommandMap) {
+        std::string commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+        RS_LOGE("RSTransactionData::IsCallingPidValid check failed: callingPid = %{public}d, commandPid = %{public}d, "
+                "commandMap = %{public}s", static_cast<int>(callingPid), static_cast<int>(commandPid),
+                commandMapDesc.c_str());
     }
-    return true;
+    return inaccessibleCommandMap.empty();
 }
 
 std::string RSTransactionData::PrintCommandMapDesc(
@@ -348,5 +363,23 @@ std::string RSTransactionData::PrintCommandMapDesc(
     return commandMapDesc;
 }
 
+void RSTransactionData::ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumber)
+{
+    RS_PROFILER_PUSH_OFFSETS(parcel, parcelNumber, commandOffsets_);
+}
+
+void RSTransactionData::DumpCommand(std::string& dumpString)
+{
+    dumpString.append(", [Command: ");
+    for (const auto& [_, followType, command] : payload_) {
+        if (command == nullptr) {
+            continue;
+        }
+        dumpString.append("(Node:" + std::to_string(command->GetNodeId()) +
+                          ", Type:" + std::to_string(command->GetType()) +
+                          ", SubType:" + std::to_string(command->GetSubType()) + ") ");
+    }
+    dumpString.append("]");
+}
 } // namespace Rosen
 } // namespace OHOS

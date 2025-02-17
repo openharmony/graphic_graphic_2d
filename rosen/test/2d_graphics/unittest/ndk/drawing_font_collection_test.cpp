@@ -27,40 +27,25 @@ class OH_Drawing_FontCollectionTest : public testing::Test {
 
 /*
  * @tc.name: NativeDrawingTest001
- * @tc.desc: test for creating fontCollection
+ * @tc.desc: test for fontcollection
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    OH_Drawing_FontCollection* fontCollection2 = OH_Drawing_CreateSharedFontCollection();
+    OH_Drawing_FontCollection* fontCollection3 = OH_Drawing_GetFontCollectionGlobalInstance();
     EXPECT_NE(fontCollection, nullptr);
-    OH_Drawing_DestroyFontCollection(fontCollection);
-}
-
-/*
- * @tc.name: NativeDrawingTest002
- * @tc.desc: test for disabling fontCollection fallback
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
-{
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    EXPECT_NE(fontCollection, nullptr);
+    EXPECT_NE(fontCollection2, nullptr);
+    EXPECT_NE(fontCollection3, nullptr);
     OH_Drawing_DisableFontCollectionFallback(fontCollection);
-    OH_Drawing_DestroyFontCollection(fontCollection);
-}
-
-/*
- * @tc.name: NativeDrawingTest003
- * @tc.desc: test for disabling the font collection systemfont
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
-{
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    EXPECT_NE(fontCollection, nullptr);
+    OH_Drawing_DisableFontCollectionFallback(nullptr);
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
+    OH_Drawing_DisableFontCollectionSystemFont(nullptr);
     OH_Drawing_ClearFontCaches(fontCollection);
+    OH_Drawing_ClearFontCaches(nullptr);
     OH_Drawing_DestroyFontCollection(fontCollection);
+    OH_Drawing_DestroyFontCollection(fontCollection2);
+    OH_Drawing_DestroyFontCollection(nullptr);
 }
-}
+} // namespace OHOS

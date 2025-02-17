@@ -87,19 +87,25 @@ public:
         }
         mSurfaceMap.clear();
     }
+    int DupReservedFlushFd();
+
+    int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
+        int& fenceFd, bool useAFBC, bool isProtected = false);
+    bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
+    int mReservedFlushFd = -1;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
+    std::list<std::pair<NativeWindowBuffer*, int>> protectedSurfaceBufferList_;
+    std::mutex protectedSurfaceBufferListMutex_;
     std::list<uint32_t> mSurfaceList2;
     std::unordered_map<uint32_t, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap2;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
-    int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
-        int32_t width, int32_t height, int& fenceFd, bool useAFBC, bool isProtected = false);
     void CreateVkSemaphore(VkSemaphore& semaphore,
         RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 };

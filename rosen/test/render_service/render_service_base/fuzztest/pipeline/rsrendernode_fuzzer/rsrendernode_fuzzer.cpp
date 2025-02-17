@@ -27,6 +27,7 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -129,6 +130,35 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
     node->UpdateChildrenOutOfRectFlag(flag);
+
+    return true;
+}
+
+bool RSCrossRenderNodeFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    bool isMirrored = GetData<bool>();
+    NodeId mirrorNodeId = GetData<NodeId>();
+    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSDisplayRenderNode displayNode(id, config, context);
+
+    NodeId childId = GetData<NodeId>();
+    NodeId cloneNodeId = GetData<NodeId>();
+    int index = GetData<int>();
+    RSSurfaceRenderNode::SharedPtr child = std::make_shared<RSSurfaceRenderNode>(childId, context);
+    displayNode.AddCrossScreenChild(child, cloneNodeId, index);
+    displayNode.RemoveCrossScreenChild(child);
 
     return true;
 }

@@ -32,6 +32,15 @@ bool Picture::Deserialize(std::shared_ptr<Data> data)
     return pictureImplPtr->Deserialize(data);
 }
 
+int Picture::ApproximateOpCount(bool nested)
+{
+    return pictureImplPtr->ApproximateOpCount(nested);
+}
+
+std::shared_ptr<Data> Picture::Serialize(SerialProcs* proc)
+{
+    return pictureImplPtr->Serialize(proc);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

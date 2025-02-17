@@ -75,9 +75,16 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest003, TestSize.Level1)
 {
     uint16_t glyphId = 0;
     SPText::TextStyle textStyle;
-    SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun();
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    SPText::HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     auto symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
-    EXPECT_TRUE(symbolInfo.renderGroups.empty() && symbolInfo.layers.empty());
+    bool flag = symbolInfo.renderGroups.empty() && symbolInfo.layers.empty();
+    EXPECT_TRUE(flag);
 }
 
 /*

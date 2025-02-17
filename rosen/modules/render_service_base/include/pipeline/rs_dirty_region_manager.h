@@ -117,7 +117,43 @@ public:
     // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
-    bool SetSurfaceSize(const int32_t width, const int32_t height);
+
+    void SetActiveSurfaceRect(const RectI& rect)
+    {
+        auto dstRect = surfaceRect_.IntersectRect(rect);
+        lastActiveSurfaceRect_ = activeSurfaceRect_;
+        activeSurfaceRect_ = dstRect;
+    }
+
+    bool IsActiveSurfaceRectChanged() const
+    {
+        return lastActiveSurfaceRect_ != activeSurfaceRect_;
+    }
+
+    const RectI& GetLastActiveSurfaceRect() const
+    {
+        return lastActiveSurfaceRect_;
+    }
+
+    const RectI& GetActiveSurfaceRect() const
+    {
+        return activeSurfaceRect_;
+    }
+
+    bool SetSurfaceRect(const RectI& rect)
+    {
+        if (rect.IsEmpty()) {
+            return false;
+        }
+        surfaceRect_ = rect;
+        return true;
+    }
+
+    bool SetSurfaceSize(const int32_t width, const int32_t height)
+    {
+        return SetSurfaceRect(RectI(0, 0, width, height));
+    }
+
     RectI GetSurfaceRect() const
     {
         return surfaceRect_;
@@ -178,6 +214,9 @@ public:
         return hwcDirtyRegion_;
     }
 
+    const RectI& GetUifirstFrameDirtyRegion();
+    void SetUifirstFrameDirtyRect(const RectI& dirtyRect);
+
 private:
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
@@ -185,9 +224,32 @@ private:
     RectI GetHistory(unsigned int i) const;
     void AlignHistory();
 
-    RectI surfaceRect_;             // dirtyregion clipbounds
+    bool isDfxTarget_ = false;
+    bool isDirtyRegionAlignedEnable_ = false;
+    bool isFilterCacheRectValid_ = true;
+    bool isDisplayDirtyManager_ = false;
+    bool hasOffset_ = false;
+    std::atomic<bool> isSync_ = false;
+    int historyHead_ = -1;
+    unsigned int historySize_ = 0;
+    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
+    // may add new set function for bufferAge
+    unsigned int bufferAge_ = 0;
+    // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
+    // For example when dirtymanager is used in cachesurface when surfacenode's
+    // shadow and surfacenode are cached in a surface, dirty region's coordinate should start
+    // from shadow's left-top rather than that of displaynode.
+    // Normally, this value should be set to:
+    //      offsetX_ =  - surfacePos.x + shadowWidth
+    //      offsetY_ =  - surfacePos.y + shadowHeight
+    int offsetX_ = 0;
+    int offsetY_ = 0;
+    RectI lastActiveSurfaceRect_;   // active rect of the canvas surface in the last frame
+    RectI activeSurfaceRect_;       // active rect of the canvas surface
+    RectI surfaceRect_;             // rect of the canvas surface
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
+    RectI uifirstFrameDirtyRegion_; // dirtyRegion in current frame
     RectI hwcDirtyRegion_;          // hwc dirty region used in virtual screen
     RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
     RectI mergedDirtyInVirtualScreen_;
@@ -199,28 +261,7 @@ private:
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
-    bool isDfxTarget_ = false;
     std::vector<RectI> dirtyHistory_;
-    int historyHead_ = -1;
-    unsigned int historySize_ = 0;
-    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
-    // may add new set function for bufferAge
-    unsigned int bufferAge_ = 0;
-    bool isDirtyRegionAlignedEnable_ = false;
-    bool isFilterCacheRectValid_ = true;
-    bool isDisplayDirtyManager_ = false;
-    std::atomic<bool> isSync_ = false;
-
-    // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
-    // For example when dirtymanager is used in cachesurface when surfacenode's
-    // shadow and surfacenode are cached in a surface, dirty region's coordinate should start
-    // from shadow's left-top rather than that of displaynode.
-    // Normally, this value should be set to:
-    //      offsetX_ =  - surfacePos.x + shadowWidth
-    //      offsetY_ =  - surfacePos.y + shadowHeight
-    bool hasOffset_ = false;
-    int offsetX_ = 0;
-    int offsetY_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

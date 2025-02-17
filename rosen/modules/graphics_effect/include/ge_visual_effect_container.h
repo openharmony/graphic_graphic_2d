@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class GEVisualEffectContainer {
+class GE_EXPORT GEVisualEffectContainer {
 public:
     GEVisualEffectContainer();
     ~GEVisualEffectContainer() = default;

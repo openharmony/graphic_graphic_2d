@@ -20,6 +20,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_font_utils.h"
 #include "drawing_path.h"
 #include "text/font.h"
 
@@ -35,11 +36,6 @@ static Font* CastToFont(OH_Drawing_Font* cFont)
 static const Font* CastToFont(const OH_Drawing_Font* cFont)
 {
     return reinterpret_cast<const Font*>(cFont);
-}
-
-static const Font& CastToFont(const OH_Drawing_Font& cFont)
-{
-    return reinterpret_cast<const Font&>(cFont);
 }
 
 static Typeface* CastToTypeface(OH_Drawing_Typeface* cTypeface)
@@ -158,7 +154,7 @@ bool OH_Drawing_FontIsSubpixel(const OH_Drawing_Font* cFont)
 OH_Drawing_Font* OH_Drawing_FontCreate()
 {
     Font* font = new Font();
-    font->SetTypeface(g_LoadZhCnTypeface());
+    font->SetTypeface(DrawingFontUtils::GetZhCnTypeface());
     return (OH_Drawing_Font*)font;
 }
 
@@ -209,7 +205,11 @@ int OH_Drawing_FontCountText(OH_Drawing_Font* cFont, const void* text, size_t by
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
-    Font* font = CastToFont(cFont);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     return font->CountText(text, byteLength, static_cast<TextEncoding>(encoding));
 }
 
@@ -220,7 +220,12 @@ uint32_t OH_Drawing_FontTextToGlyphs(const OH_Drawing_Font* cFont, const void* t
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
-    return CastToFont(*cFont).TextToGlyphs(text, byteLength,
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    return font->TextToGlyphs(text, byteLength,
         static_cast<TextEncoding>(encoding), glyphs, maxGlyphCount);
 }
 
@@ -230,7 +235,12 @@ void OH_Drawing_FontGetWidths(const OH_Drawing_Font* cFont, const uint16_t* glyp
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
-    CastToFont(*cFont).GetWidths(glyphs, count, widths);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    font->GetWidths(glyphs, count, widths);
 }
 
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font* cFont, const char* str,
@@ -243,9 +253,14 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font
     if (len == 0) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
-    *textWidth = CastToFont(*cFont).MeasureSingleCharacter(unicode);
+    *textWidth = font->MeasureSingleCharacter(unicode);
     return OH_DRAWING_SUCCESS;
 }
 
@@ -255,8 +270,13 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* cFont, co
     if (cFont == nullptr || text == nullptr || byteLength == 0 || textWidth == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
 
-    *textWidth = CastToFont(*cFont).MeasureText(text, byteLength,
+    *textWidth = font->MeasureText(text, byteLength,
         static_cast<TextEncoding>(encoding), reinterpret_cast<Drawing::Rect*>(bounds));
     return OH_DRAWING_SUCCESS;
 }
@@ -372,12 +392,16 @@ void OH_Drawing_FontDestroy(OH_Drawing_Font* cFont)
 float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics* cFontMetrics)
 {
     float ret = -1;
-    Font* font = CastToFont(cFont);
+    const Font* font = CastToFont(cFont);
     if (font == nullptr || cFontMetrics == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return ret;
     }
     FontMetrics metrics;
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     ret = font->GetMetrics(&metrics);
 
     cFontMetrics->flags = metrics.fFlags;
@@ -419,7 +443,12 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, cons
     if (rectArr == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    CastToFont(*cFont).GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    font->GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
     return OH_DRAWING_SUCCESS;
 }
 
@@ -429,6 +458,10 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* cFont
     const Font* font = CastToFont(cFont);
     if (font == nullptr || path == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
     }
     if (!font->GetPathForGlyph(glyph, reinterpret_cast<Path*>(path))) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
@@ -443,6 +476,30 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* cFont, co
     if (font == nullptr || text == nullptr || byteLength == 0 || path == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     font->GetTextPath(text, byteLength, static_cast<TextEncoding>(encoding), x, y, reinterpret_cast<Path*>(path));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontSetThemeFontFollowed(OH_Drawing_Font* cFont, bool followed)
+{
+    Font* font = CastToFont(cFont);
+    if (font == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    font->SetThemeFontFollowed(followed);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontIsThemeFontFollowed(const OH_Drawing_Font* cFont, bool* followed)
+{
+    const Font* font = CastToFont(cFont);
+    if (followed == nullptr || font == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *followed = font->IsThemeFontFollowed();
     return OH_DRAWING_SUCCESS;
 }

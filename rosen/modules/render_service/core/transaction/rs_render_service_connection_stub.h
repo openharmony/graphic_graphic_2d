@@ -41,11 +41,16 @@ public:
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
-    void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
-    void ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
+    bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+    bool ReadAppInfo(AppInfo& info, MessageParcel& data);
+    bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
+    bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+    bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+    bool ReadSurfaceCaptureAreaRect(Drawing::Rect& specifiedAreaRect, MessageParcel& data);
     void SetQos();
     RSRenderServiceSecurityUtils securityUtils_;
     std::unordered_set<int> tids_;
+    std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

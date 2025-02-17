@@ -307,6 +307,18 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
 }
 
 /**
+ * @tc.name: MakeLightUpEffectBlender001
+ * @tc.desc: test results of MakeLightUpEffectBlender
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeLightUpEffectBlender001, testing::ext::TestSize.Level1)
+{
+    auto blender = RSPropertyDrawableUtils::MakeLightUpEffectBlender(1.0f);
+    EXPECT_NE(blender, nullptr);
+}
+
+/**
  * @tc.name: TransformativeShaderTest011
  * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
  * @tc.type: FUNC
@@ -472,6 +484,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest016, 
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
     EXPECT_EQ(rsPropertyDrawableUtilsTest1->IsDangerousBlendMode(1, 0), 0);
     EXPECT_EQ(rsPropertyDrawableUtilsTest1->IsDangerousBlendMode(1, 1), 1);
+    EXPECT_EQ(rsPropertyDrawableUtilsTest1->IsDangerousBlendMode(1, 2), 1);
 
     Drawing::Canvas canvasTest;
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest);

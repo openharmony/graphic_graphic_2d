@@ -28,7 +28,8 @@ public:
     explicit RSSurfaceBufferCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSSurfaceBufferCallbackProxy() noexcept = default;
 
-    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override;
+    void OnFinish(const FinishCallbackRet& ret) override;
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override;
 
 private:
     static inline BrokerDelegator<RSSurfaceBufferCallbackProxy> delegator_;

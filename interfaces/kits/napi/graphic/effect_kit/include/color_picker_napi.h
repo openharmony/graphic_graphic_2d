@@ -51,15 +51,21 @@ private:
     static bool ProcessCallbackAndCoordinates(napi_env env, napi_value* argValue, size_t argCount,
         napi_value& result, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
     static napi_value CreateColorPicker(napi_env env, napi_callback_info info);
-    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data);
+    static void CreateColorPickerFromPixelMapComplete(napi_env env, napi_status status, void* data);
     static napi_value GetScaledPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetMainColor(napi_env env, napi_callback_info info);
     static napi_value GetMainColorSync(napi_env env, napi_callback_info info);
     static napi_value GetLargestProportionColor(napi_env env, napi_callback_info info);
     static napi_value GetHighestSaturationColor(napi_env env, napi_callback_info info);
-    static napi_value GetGrayscaleMSD(napi_env env, napi_callback_info info);
     static napi_value GetAverageColor(napi_env env, napi_callback_info info);
     static napi_value IsBlackOrWhiteOrGrayColor(napi_env env, napi_callback_info info);
+    static napi_value GetMorandiBackgroundColor(napi_env env, napi_callback_info info);
+    static napi_value GetMorandiShadowColor(napi_env env, napi_callback_info info);
+    static napi_value GetDeepenImmersionColor(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveBackgroundColor(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveForegroundColor(napi_env env, napi_callback_info info);
+    static napi_value DiscriminatePitureLightDegree(napi_env env, napi_callback_info info);
+    static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
 

@@ -402,6 +402,13 @@ public:
     virtual void SetFillStyle(PathFillType fillstyle);
 
     /**
+     * @brief Gets PathFillType, the rule used to fill Path.
+     *
+     * @return current PathFillType setting
+     */
+    PathFillType GetFillStyle() const;
+
+    /**
      * @brief Interpolates between Path with Point array of equal size.
      *
      * @param ending Point array averaged with this Point array
@@ -517,12 +524,15 @@ private:
 
 inline void Path::Dump(std::string& out) const
 {
-    auto bounds = impl_->GetBounds();
-    out += "[length:" + std::to_string(impl_->GetLength(false));
-    out += " Bounds";
-    bounds.Dump(out);
-    out += " valid:" + std::string(impl_->IsValid() ? "true" : "false");
-    out += "]";
+    out += '[';
+    if (impl_ != nullptr) {
+        auto bounds = impl_->GetBounds();
+        out += "length:" + std::to_string(impl_->GetLength(false));
+        out += " Bounds";
+        bounds.Dump(out);
+        out += " valid:" + std::string(impl_->IsValid() ? "true" : "false");
+    }
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

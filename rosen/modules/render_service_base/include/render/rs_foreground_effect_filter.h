@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_FOREGROUND_EFFECT_FILTER_H
 
 #include <memory>
+#include <mutex>
 
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
@@ -51,12 +52,17 @@ public:
         return nullptr;
     }
 
+    float GetRadius() const;
+
 private:
     float blurScale_ {};
     float blurRadius_ {}; //kawase blur's blur radius
     int numberOfPasses_{};
     float radiusByPasses_{};
     float unit_{};
+
+    static std::mutex blurEffectMutex_;
+    static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;
 
     static constexpr float BASE_BLUR_SCALE = 0.5f; // base downSample radio
     static constexpr uint32_t MAX_PASSES_LARGE_RADIUS = 7;

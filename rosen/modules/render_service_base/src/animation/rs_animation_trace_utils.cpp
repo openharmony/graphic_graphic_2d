@@ -171,7 +171,8 @@ void RSAnimationTraceUtils::addSpringInitialVelocityTrace(const uint64_t propert
     const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     if (isDebugOpen_) {
-        auto propertyValue = ParseRenderPropertyVaule(initialVelocity, value->GetPropertyType());
+        auto type = (value == nullptr) ? RSRenderPropertyType::INVALID : value->GetPropertyType();
+        auto propertyValue = ParseRenderPropertyVaule(initialVelocity, type);
         RS_TRACE_NAME_FMT("spring pro[%llu] animate[%llu], initialVelocity[%s]",
             propertyId, animationId, propertyValue.c_str());
     }

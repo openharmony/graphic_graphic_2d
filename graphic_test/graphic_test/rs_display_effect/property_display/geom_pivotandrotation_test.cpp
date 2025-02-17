@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -42,7 +42,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_0_Rotation_float_Test_1)
         { 45, 45, 45 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
         testNode->SetPivot(Vector2f(0, 0));
         testNode->SetRotation(degreeList[i][0], degreeList[i][1], degreeList[i][2]);
         GetRootNode()->AddChild(testNode);
@@ -59,7 +59,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_05_Rotation_float_Test_1)
         { 45, 45, 45 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
         testNode->SetPivot(Vector2f(0.5, 0.5));
         testNode->SetRotation(degreeList[i][0], degreeList[i][1], degreeList[i][2]);
         GetRootNode()->AddChild(testNode);
@@ -76,7 +76,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_1_Rotation_float_Test_1)
         { 45, 45, 45 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
         testNode->SetPivot(Vector2f(1, 1));
         testNode->SetRotation(degreeList[i][0], degreeList[i][1], degreeList[i][2]);
         GetRootNode()->AddChild(testNode);
@@ -93,8 +93,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_0_Rotation_quaternion_Tes
         { 0.462, 0.191, 0.462, 0.733 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
-        testNode->SetPivot(Vector2f(0, 0));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
+        testNode->SetPivotX(0);
+        testNode->SetPivotY(0);
         testNode->SetRotation(degreeList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -110,8 +111,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_05_Rotation_quaternion_Te
         { 0.462, 0.191, 0.462, 0.733 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
+        testNode->SetPivotX(0.5);
+        testNode->SetPivotY(0.5);
         testNode->SetRotation(degreeList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -127,8 +129,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Pivot_1_Rotation_quaternion_Tes
         { 0.462, 0.191, 0.462, 0.733 },
     };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
-        testNode->SetPivot(Vector2f(1, 1));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
+        testNode->SetPivotX(1);
+        testNode->SetPivotY(1);
         testNode->SetRotation(degreeList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -139,8 +142,9 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, PivotZ_Rotation_Test_1)
 {
     float zList[] = { 0.0, 0.5, 1.0, 100.0 };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
-        testNode->SetPivot(Vector2f(0.5, 0.5));
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
+        testNode->SetPivotX(0.5);
+        testNode->SetPivotY(0.5);
         testNode->SetPivotZ(zList[i]);
         testNode->SetRotation(0, 45.0, 0);
         GetRootNode()->AddChild(testNode);

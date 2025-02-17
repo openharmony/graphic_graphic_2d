@@ -24,10 +24,16 @@
 namespace OHOS {
 namespace Rosen {
 
-enum HDR_TYPE : int32_t {
-    PHOTO,
-    VIDEO,
-    MAX = 255,
+enum CLOSEHDR_SCENEID : uint32_t {
+    MULTI_DISPLAY = 0,
+    CLOSEHDR_SCENEID_MAX
+};
+
+enum HdrStatus : uint32_t {
+    NO_HDR = 0x0000,
+    HDR_PHOTO = 0x0001,
+    HDR_VIDEO = 0x0010,
+    AI_HDR_VIDEO = 0x0100,
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -40,7 +46,7 @@ public:
     RSB_EXPORT static RSLuminanceControl& Get();
     RSB_EXPORT void Init();
 
-    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type = HDR_TYPE::PHOTO);
+    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, HdrStatus displayHdrstatus);
     RSB_EXPORT bool IsHdrOn(ScreenId screenId);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);
@@ -55,8 +61,12 @@ public:
     RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
-    RSB_EXPORT float CalScaler(const float& maxContentLightLevel);
+    RSB_EXPORT float CalScaler(const float& maxContentLightLevel,
+        int32_t dynamicMetadataSize, const float& ratio = 1.0f);
     RSB_EXPORT bool IsHdrPictureOn();
+
+    RSB_EXPORT bool IsForceCloseHdr();
+    RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
 
 private:
     RSLuminanceControl() = default;
@@ -70,8 +80,9 @@ private:
 
     bool initStatus_{false};
     void *extLibHandle_{nullptr};
+    HdrStatus lastHdrStatus_{HdrStatus::NO_HDR};
 
-    using SetHdrStatusFunc = bool(*)(ScreenId, bool, int32_t);
+    using SetHdrStatusFunc = bool(*)(ScreenId, HdrStatus);
     using IsHdrOnFunc = bool(*)(ScreenId);
     using IsDimmingOnFunc = bool(*)(ScreenId);
     using DimmingIncreaseFunc = void(*)(ScreenId);
@@ -84,8 +95,10 @@ private:
     using GetHdrDisplayNitsFunc = float(*)(ScreenId);
     using GetDisplayNitsFunc = float(*)(ScreenId);
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
-    using CalScalerFunc = float(*)(const float&);
+    using CalScalerFunc = float(*)(const float&, int32_t, const float&);
     using IsHdrPictureOnFunc = bool(*)();
+    using IsForceCloseHdrFunc = bool(*)();
+    using ForceCloseHdrFunc = void(*)(uint32_t, bool);
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
     IsHdrOnFunc isHdrOn_{nullptr};
@@ -102,6 +115,8 @@ private:
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
     CalScalerFunc calScaler_{nullptr};
     IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
+    IsForceCloseHdrFunc isForceCloseHdr_{nullptr};
+    ForceCloseHdrFunc forceCloseHdr_{nullptr};
 #endif
 };
 

@@ -16,15 +16,15 @@
 #include "surface_ohos_vulkan.h"
 
 #include <iostream>
+#ifdef RS_ENABLE_OLD_VK
 #include <vulkan_native_surface_ohos.h>
 #include <vulkan_window.h>
 #include <vulkan_proc_table.h>
 #include <hilog/log.h>
 #include <display_type.h>
 #include "window.h"
+#endif
 
-
-#include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
@@ -49,10 +49,12 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
         DestoryNativeWindow(mNativeWindow_);
         mNativeWindow_ = nullptr;
     }
+#ifdef RS_ENABLE_OLD_VK
     if (mVulkanWindow_ != nullptr) {
         delete mVulkanWindow_;
         mVulkanWindow_ = nullptr;
     }
+#endif
 }
 
 void SurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
@@ -78,6 +80,7 @@ void SurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
 
 std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int32_t height)
 {
+#ifdef RS_ENABLE_OLD_VK
     if (mNativeWindow_ == nullptr) {
         mNativeWindow_ = CreateNativeWindowFromSurface(&producer_);
         if (mNativeWindow_ == nullptr) {
@@ -87,8 +90,8 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
     }
 
     if (mVulkanWindow_ == nullptr) {
-        auto vulkan_surface_ohos = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(mNativeWindow_);
-        mVulkanWindow_ = new vulkan::VulkanWindow(std::move(vulkan_surface_ohos));
+        auto vulkan_surface_ohos = std::make_unique<vulkan::RSVulkanNativeSurfaceOHOS>(mNativeWindow_);
+        mVulkanWindow_ = new vulkan::RSVulkanWindow(std::move(vulkan_surface_ohos));
     }
 
     surface_ = std::make_shared<Drawing::Surface>();
@@ -120,6 +123,9 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
 
     std::unique_ptr<SurfaceFrame> ret(std::move(frame_));
     return ret;
+#else
+    return nullptr;
+#endif
 }
 
 void SurfaceOhosVulkan::CreateVkSemaphore(
@@ -222,6 +228,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
 
 bool SurfaceOhosVulkan::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 {
+#ifdef RS_ENABLE_OLD_VK
     if (drawingProxy_ == nullptr) {
         LOGE("drawingProxy_ is nullptr, can not FlushFrame");
         return false;
@@ -237,6 +244,7 @@ bool SurfaceOhosVulkan::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
     } else {
         LOGE("mVulkanWindow_ is null");
     }
+#endif
     return true;
 }
 

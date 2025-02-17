@@ -181,54 +181,6 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 }
 
 /*
-* Function: GetLayerCompCapacity
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetLayerCompCapacity
-*                  2. call GetLayerCompCapacity
-*                  3. check ret
-*/
-HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
-{
-    uint32_t layerCompositionCapacity = 8;
-    HdiOutputTest::hdiOutput_->SetLayerCompCapacity(layerCompositionCapacity);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetLayerCompCapacity(), 8u);
-}
-
-/*
-* Function: GetDirectClientCompEnableStatus001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetDirectClientCompEnableStatus
-*                  2. call GetDirectClientCompEnableStatus
-*                  3. check ret
- */
-HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus001, Function | MediumTest| Level1)
-{
-    bool enablStatus = false;
-    HdiOutputTest::hdiOutput_->SetDirectClientCompEnableStatus(enablStatus);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetDirectClientCompEnableStatus(), false);
-}
-
-/*
-* Function: GetDirectClientCompEnableStatus002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetDirectClientCompEnableStatus
-*                  2. call GetDirectClientCompEnableStatus
-*                  3. check ret
- */
-HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus002, Function | MediumTest| Level1)
-{
-    bool enablStatus = true;
-    HdiOutputTest::hdiOutput_->SetDirectClientCompEnableStatus(enablStatus);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetDirectClientCompEnableStatus(), true);
-}
-
-/*
 * Function: Commit002
 * Type: Function
 * Rank: Important(1)
@@ -349,10 +301,12 @@ HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
     auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
     for (auto &layer : map) {
         layer.second->GetLayerInfo()->SetIsSupportedPresentTimestamp(true);
+        EXPECT_EQ(layer.second->GetLayerInfo()->IsSupportedPresentTimestamp(), true);
     }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     HdiOutputTest::hdiOutput_->ReleaseLayers(fbFence);
 }
+
 /*
 * Function: DumpHitchs
 * Type: Function
@@ -370,6 +324,7 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
+    EXPECT_EQ(ret, "\n");
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
 }
 
@@ -411,6 +366,302 @@ HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
     std::string result;
     std::string arg;
     output->DumpFps(result, arg);
+}
+
+/*
+ * Function: DeletePrevLayersLocked001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call DeletePrevLayersLocked()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& surfaceIdMap = hdiOutput->surfaceIdMap_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    layer->isInUsing_ = true;
+    surfaceIdMap[id] = layer;
+    layerIdMap[id] = layer;
+
+    hdiOutput->DeletePrevLayersLocked();
+    EXPECT_EQ(surfaceIdMap.count(id), 1);
+    EXPECT_EQ(layerIdMap.count(id), 1);
+
+    layer->isInUsing_ = false;
+    hdiOutput->DeletePrevLayersLocked();
+    EXPECT_EQ(surfaceIdMap.count(id), 0);
+    EXPECT_EQ(layerIdMap.count(id), 0);
+}
+
+/*
+ * Function: RecordCompositionTime001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call RecordCompositionTime()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, RecordCompositionTime001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    int64_t timestamp = 100;
+    hdiOutput->RecordCompositionTime(timestamp);
+    auto compTimeRcdIndex = hdiOutput->compTimeRcdIndex_;
+    if (compTimeRcdIndex == 0) {
+        compTimeRcdIndex = hdiOutput->COMPOSITION_RECORDS_NUM - 1;
+    } else {
+        compTimeRcdIndex -= 1;
+    }
+    EXPECT_EQ(hdiOutput->compositionTimeRecords_[compTimeRcdIndex], timestamp);
+}
+
+/*
+ * Function: CheckIfDoArsrPre001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call CheckIfDoArsrPre()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    bool res = hdiOutput->CheckIfDoArsrPre(nullptr);
+    EXPECT_FALSE(res);
+
+    layerInfo->cSurface_ = nullptr;
+    res = hdiOutput->CheckIfDoArsrPre(layerInfo);
+    EXPECT_FALSE(res);
+
+    layerInfo->cSurface_ = IConsumerSurface::Create("xcomponentIdSurface");
+    layerInfo->sbuffer_ = nullptr;
+    res = hdiOutput->CheckIfDoArsrPre(layerInfo);
+    EXPECT_FALSE(res);
+
+    layerInfo->sbuffer_ = new SurfaceBufferImpl();
+    layerInfo->arsrTag_ = true;
+    res = hdiOutput->CheckIfDoArsrPre(layerInfo);
+    EXPECT_TRUE(res);
+}
+
+/*
+ * Function: CheckIfDoArsrPreForVm001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call CheckIfDoArsrPreForVm()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    layerInfo->cSurface_ = IConsumerSurface::Create("xcomponentIdSurface");
+    bool res = hdiOutput->CheckIfDoArsrPreForVm(layerInfo);
+    EXPECT_FALSE(res);
+
+    hdiOutput->vmArsrWhiteList_ = "xcomponentIdSurface";
+    res = res = hdiOutput->CheckIfDoArsrPreForVm(layerInfo);
+    EXPECT_TRUE(res);
+}
+
+/*
+ * Function: ReleaseFramebuffer001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call ReleaseFramebuffer()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, ReleaseFramebuffer001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    sptr<SyncFence> fence = new SyncFence(0);
+    hdiOutput->currFrameBuffer_ = nullptr;
+    int32_t res = hdiOutput->ReleaseFramebuffer(fence);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_NULL_PTR);
+
+    hdiOutput->currFrameBuffer_ = new SurfaceBufferImpl();
+    hdiOutput->lastFrameBuffer_ = nullptr;
+    res = hdiOutput->ReleaseFramebuffer(fence);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+
+    hdiOutput->currFrameBuffer_ = new SurfaceBufferImpl();
+    hdiOutput->lastFrameBuffer_ = new SurfaceBufferImpl();
+    hdiOutput->fbSurface_ = nullptr;
+    res = hdiOutput->ReleaseFramebuffer(fence);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_NULL_PTR);
+
+    hdiOutput->currFrameBuffer_ = new SurfaceBufferImpl();
+    hdiOutput->lastFrameBuffer_ = new SurfaceBufferImpl();
+    hdiOutput->fbSurface_ = new HdiFramebufferSurface();
+    res = hdiOutput->ReleaseFramebuffer(fence);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+ * Function: GetBufferCacheSize001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetBufferCacheSize()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, GetBufferCacheSize001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    int res = hdiOutput->GetBufferCacheSize();
+    EXPECT_EQ(hdiOutput->bufferCache_.size(), res);
+}
+
+/*
+ * Function: StartVSyncSampler
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call StartVSyncSampler()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, StartVSyncSampler001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    CreateVSyncSampler()->SetVsyncSamplerEnabled(false);
+    int32_t res = hdiOutput->StartVSyncSampler(true);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_FAILURE);
+
+    CreateVSyncSampler()->SetVsyncSamplerEnabled(true);
+    hdiOutput->sampler_ = nullptr;
+    res = hdiOutput->StartVSyncSampler(false);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+
+    res = hdiOutput->StartVSyncSampler(true);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+ * Function: ClearFpsDump001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call ClearFpsDump()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    std::string result = "";
+    std::string arg = "xcomponentIdSurface";
+    auto& surfaceIdMap = hdiOutput->surfaceIdMap_;
+    surfaceIdMap.clear();
+    uint64_t id = 0;
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    layer->layerInfo_ = layerInfo;
+    layer->layerInfo_->cSurface_ = nullptr;
+    surfaceIdMap[id] = layer;
+    hdiOutput->ClearFpsDump(result, arg);
+    EXPECT_EQ(result, static_cast<std::string>("\nlayer is null.\n"));
+
+    result = "";
+    layer->layerInfo_->cSurface_ = IConsumerSurface::Create(arg);
+    hdiOutput->ClearFpsDump(result, arg);
+    EXPECT_EQ(
+        result, static_cast<std::string>("\n\n The fps info of surface [xcomponentIdSurface] Id[0] is cleared.\n"));
+}
+
+/*
+ * Function: GetComposeClientLayers001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetComposeClientLayers with layer is nullptr
+ *                  2.check clientLayers size
+ */
+HWTEST_F(HdiOutputTest, GetComposeClientLayers001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    layerIdMap[id] = nullptr;
+    std::vector<LayerPtr> clientLayers;
+    hdiOutput->GetComposeClientLayers(clientLayers);
+    EXPECT_EQ(clientLayers.size(), 0);
+}
+
+/*
+ * Function: GetComposeClientLayers002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetComposeClientLayers with layerInfo is nullptr
+ *                  2.check clientLayers size
+ */
+HWTEST_F(HdiOutputTest, GetComposeClientLayers002, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    layer->layerInfo_ = nullptr;
+    layerIdMap[id] = layer;
+    std::vector<LayerPtr> clientLayers;
+    hdiOutput->GetComposeClientLayers(clientLayers);
+    EXPECT_EQ(clientLayers.size(), 0);
+}
+
+/*
+ * Function: ReleaseSurfaceBuffer001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call ReleaseSurfaceBuffer with layer or layerInfo or layer's cSurface is nullptr
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    layerIdMap[id] = nullptr;
+    auto& layersId = hdiOutput->layersId_;
+    EXPECT_EQ(layersId.size(), 0);
+    sptr<SyncFence> releaseFence = nullptr;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
+
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    layer->layerInfo_ = nullptr;
+    layerIdMap[id] = layer;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
+
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    layer->layerInfo_ = layerInfo;
+    layer->layerInfo_->cSurface_ = nullptr;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
+}
+
+/*
+ * Function: SetProtectedFrameBufferState
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: get hdiOutput
+ *                  2. operation: SetProtectedFrameBufferState and GetProtectedFrameBufferState
+ *                  3. result: return ProtectedFrameBufferState
+ */
+HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_001, testing::ext::TestSize.Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), false);
+    hdiOutput->SetProtectedFrameBufferState(true);
+    EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), true);
 }
 } // namespace
 } // namespace Rosen

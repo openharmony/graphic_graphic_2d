@@ -91,6 +91,34 @@ void BaseNodeCommandHelper::RemoveCrossParentChild(RSContext& context, NodeId no
     }
 }
 
+void BaseNodeCommandHelper::SetIsCrossNode(RSContext& context, NodeId nodeId, bool isCrossNode)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode(nodeId)) {
+        node->SetIsCrossNode(isCrossNode);
+    }
+}
+
+void BaseNodeCommandHelper::AddCrossScreenChild(RSContext& context, NodeId id, NodeId childId,
+    NodeId cloneNodeId, int32_t index)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode(id);
+    auto child = nodeMap.GetRenderNode(childId);
+    if (node) {
+        node->AddCrossScreenChild(child, cloneNodeId, index);
+    }
+}
+
+void BaseNodeCommandHelper::RemoveCrossScreenChild(RSContext& context, NodeId nodeId, NodeId childNodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode(nodeId);
+    auto child = nodeMap.GetRenderNode(childNodeId);
+    if (node) {
+        node->RemoveCrossScreenChild(child);
+    }
+}
+
 void BaseNodeCommandHelper::RemoveFromTree(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();

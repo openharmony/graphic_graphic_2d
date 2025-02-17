@@ -35,7 +35,14 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/utils/sandbox",
   ]
 
-  cflags = [ "-g3" ]
+  cflags = [
+    "-g3",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-Os",
+  ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
@@ -51,13 +58,15 @@ ohos_shared_library("libhyper_graphic_manager") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  public_configs = [ ":libhyper_graphic_manager_config" ]
+  configs = [ ":libhyper_graphic_manager_config" ]
+  version_script = "libhyper_graphic_manager.map"
 
   sources = [
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
+    "core/frame_rate_manager/hgm_hfbc_config.cpp",
     "core/frame_rate_manager/hgm_idle_detector.cpp",
     "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",

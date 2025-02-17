@@ -28,6 +28,7 @@ ohos_fuzztest("RSPixelMapShaderFuzzTest") {
     "graphic_2d:2d_graphics",
     "graphic_2d:librender_service_base",
     "image_framework:image_native",
+    "ipc:ipc_core",
   ]
   cflags = [
     "-g",

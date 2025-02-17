@@ -15,221 +15,123 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-if (enable_text_gine) {
-  config("rosen_text_public_config") {
-    include_dirs = [
-      "export",
-      "$graphic_2d_root/rosen/modules/2d_graphics/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$rosen_root/modules/texgine/texgine_drawing/src",
-      "$graphic_2d_root/rosen/modules",
-      "$graphic_2d_root/rosen/modules/render_service_client",
-      "$graphic_2d_root/rosen/modules/render_service_client/core",
-      "$graphic_2d_root/rosen/modules/render_service_base",
-      "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "$graphic_2d_root/rosen/modules/platform/image_native",
-    ]
+config("rosen_text_public_config") {
+  include_dirs = [
+    "export",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$rosen_root/modules/texgine/texgine_drawing/src",
+    "$graphic_2d_root/rosen/modules",
+    "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/platform/image_native",
+  ]
+}
+
+defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+
+ohos_shared_library("rosen_text") {
+  include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
+  deps = [ ":rosen_text_inner" ]
+  public_configs =
+      [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
   }
 
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
-
-  ohos_shared_library("rosen_text") {
-    include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
-    deps = [ ":rosen_text_inner" ]
-    public_configs =
-        [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_config" ]
-    platform = current_os
-    if (platform == "mingw") {
-      platform = "windows"
-    }
-
-    if (platform == "ohos") {
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-    } else {
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
-    }
-
-    external_deps = [ "hilog:libhilog" ]
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
+  if (platform == "ohos") {
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  } else {
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
   }
 
-  ohos_source_set("rosen_text_inner") {
-    if (use_texgine) {
-      public_deps = [ ":rosen_text_texgine" ]
-    } else if (use_skia_txt) {
-      public_deps = [ ":rosen_text_skia" ]
-    } else {
-      public_deps = [ ":rosen_text_txt" ]
-    }
+  external_deps = [ "hilog:libhilog" ]
 
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
-  }
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
 
-  ohos_source_set("rosen_text_texgine") {
-    public_configs = [ ":rosen_text_public_config" ]
+ohos_source_set("rosen_text_inner") {
+  public_deps = [ ":rosen_text_skia" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_source_set("rosen_text_skia") {
+  public_configs = [ ":rosen_text_public_config" ]
+  include_dirs = [
+    "$rosen_root/modules/2d_engine/rosen_text/skia_txt",
+    "$rosen_root/modules/2d_engine/rosen_text/skia_txt/txt/src",
+  ]
+
+  if (is_arkui_x) {
+    include_dirs += [ "//third_party/bounds_checking_function/include" ]
+  } else {
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
-
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-    cflags = [ "-std=c++17" ]
-
-    include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
-
-    sources = [
-      "adapter/common/hm_symbol_txt.cpp",
-      "adapter/common/text_style.cpp",
-      "adapter/common/typography_style.cpp",
-      "adapter/texgine/convert.cpp",
-      "adapter/texgine/font_collection.cpp",
-      "adapter/texgine/typography.cpp",
-      "adapter/texgine/typography_create.cpp",
-    ]
-
-    if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [ "USE_ROSEN_DRAWING" ]
-      if (rs_enable_gpu) {
-        defines += [ "RS_ENABLE_GPU" ]
-      }
-    }
-
-    deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
   }
 
-  ohos_source_set("rosen_text_txt") {
-    public_configs = [ ":rosen_text_public_config" ]
-    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+  defines += [
+    "USE_GRAPHIC_TEXT_GINE",
+    "WINDOWS_PLATFORM",
+  ]
+  cflags_cc = [ "-std=c++17" ]
 
-    include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
+  sources = [
+    "adapter/common/hm_symbol_txt.cpp",
+    "adapter/common/text_style.cpp",
+    "adapter/common/typography_style.cpp",
+    "adapter/skia_txt/convert.cpp",
+    "adapter/skia_txt/font_collection.cpp",
+    "adapter/skia_txt/line_typography.cpp",
+    "adapter/skia_txt/run_impl.cpp",
+    "adapter/skia_txt/text_line_base.cpp",
+    "adapter/skia_txt/typography.cpp",
+    "adapter/skia_txt/typography_create.cpp",
+  ]
 
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
+  }
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [
-      "USE_GRAPHIC_TEXT_GINE",
-      "WINDOWS_PLATFORM",
+      "USE_ROSEN_DRAWING",
+      "USE_SKIA_TXT",
     ]
-    cflags = [ "-std=c++17" ]
-
-    if (!defined(use_new_skia)) {
-      include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
-
-    sources = [
-      "adapter/common/hm_symbol_txt.cpp",
-      "adapter/common/text_style.cpp",
-      "adapter/common/typography_style.cpp",
-      "adapter/txt/convert.cpp",
-      "adapter/txt/font_collection.cpp",
-      "adapter/txt/typography.cpp",
-      "adapter/txt/typography_create.cpp",
-    ]
-
-    platform = current_os
-    if (platform == "mingw") {
-      platform = "windows"
-    }
-
-    if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [ "USE_ROSEN_DRAWING" ]
-      if (rs_enable_gpu) {
-        defines += [ "RS_ENABLE_GPU" ]
-      }
-    }
-
-    external_deps = [ "skia:skia_canvaskit" ]
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
   }
 
-  ohos_source_set("rosen_text_skia") {
-    public_configs = [ ":rosen_text_public_config" ]
+  external_deps = [
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
+  ]
 
-    if (!is_arkui_x) {
-      public_external_deps = [ "bounds_checking_function:libsec_shared" ]
-    }
+  deps = [
+    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
+    "./skia_txt:skia_libtxt_$platform",
+  ]
 
-    include_dirs = [
-      "$rosen_root/modules/render_service_base/include",
-      "$rosen_root/modules/2d_engine/rosen_text/skia_txt",
-      "$rosen_root/modules/2d_engine/rosen_text/skia_txt/txt/src",
+  is_cross_platform =
+      current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
+      current_os == "android" || current_os == "ios"
+
+  if (!is_cross_platform) {
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
     ]
-
-    if (is_arkui_x) {
-      include_dirs += [ "//third_party/bounds_checking_function/include" ]
-    }
-
-    defines += [
-      "USE_GRAPHIC_TEXT_GINE",
-      "WINDOWS_PLATFORM",
-    ]
-    cflags = [ "-std=c++17" ]
-
-    sources = [
-      "adapter/common/hm_symbol_txt.cpp",
-      "adapter/common/text_style.cpp",
-      "adapter/common/typography_style.cpp",
-      "adapter/skia_txt/convert.cpp",
-      "adapter/skia_txt/font_collection.cpp",
-      "adapter/skia_txt/line_typography.cpp",
-      "adapter/skia_txt/run_impl.cpp",
-      "adapter/skia_txt/text_line_base.cpp",
-      "adapter/skia_txt/typography.cpp",
-      "adapter/skia_txt/typography_create.cpp",
-    ]
-
-    platform = current_os
-    if (platform == "mingw") {
-      platform = "windows"
-    }
-
-    if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [
-        "USE_ROSEN_DRAWING",
-        "USE_SKIA_TXT",
-      ]
-      if (rs_enable_gpu) {
-        defines += [ "RS_ENABLE_GPU" ]
-      }
-    }
-    external_deps = [ "hilog:libhilog" ]
-    deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
-    if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps += [ "./skia_txt:skia_libtxt_$platform" ]
-      external_deps += [ "skia:skia_canvaskit" ]
-    }
-
-    is_cross_platform =
-        current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
-        current_os == "android" || current_os == "ios"
-
-    if (!is_cross_platform) {
-      external_deps += [
-        "hitrace:hitrace_meter",
-        "init:libbegetutil",
-      ]
-      defines += [ "OHOS_TEXT_ENABLE" ]
-    }
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
-  }
-} else {
-  ## Build librosen_text.so
-  config("rosen_text_config") {
-    include_dirs = [ "$rosen_2d_engine_root" ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
   }
 
-  ohos_shared_library("rosen_text") {
-    public_configs = [ ":rosen_text_config" ]
-
-    public_deps = [ "ui:rosen_text_ui" ]
-
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
-  }
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

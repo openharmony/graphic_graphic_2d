@@ -27,12 +27,6 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t DEFAULT_PREFERRED_FPS = 120;
 
-void RSAnimationRateDecider::SetScaleReferenceSize(float width, float height)
-{
-    scaleWidth_ = width;
-    scaleHeight_ = height;
-}
-
 void RSAnimationRateDecider::Reset()
 {
     frameRateRange_.Reset();
@@ -121,9 +115,14 @@ int32_t RSAnimationRateDecider::ProcessVector4f(const PropertyValue& property, c
     }
     auto data = animatableProperty->Get();
     // Vector4f data include data[0], data[1], data[2], data[3]
-    int32_t positionRate = func(propertyUnit, sqrt(data[0] * data[0] + data[1] * data[1]));
-    int32_t sizeRate = func(RSPropertyUnit::PIXEL_SIZE, sqrt(data[2] * data[2] + data[3] * data[3]));
-    return std::max(positionRate, sizeRate);
+    // data[0], data[1] indicate the speed of the position moves
+    // data[2], data[3] indicate the speed of the width and height change
+    int32_t matchFpsByPosition = func(propertyUnit, sqrt(data[0] * data[0] + data[1] * data[1]), absArea_, absLength_);
+    float velocityX = data[2] * nodeScaleX_;
+    float velocityY = data[3] * nodeScaleY_;
+    int32_t matchFpsBySize = func(RSPropertyUnit::PIXEL_SIZE,
+        sqrt(velocityX * velocityX + velocityY * velocityY), absArea_, absLength_);
+    return std::max(matchFpsByPosition, matchFpsBySize);
 }
 
 int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, const FrameRateGetFunc& func)
@@ -134,14 +133,15 @@ int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, c
         if (animatableProperty != nullptr) {
             auto data = animatableProperty->Get();
             // Vector2f data include data[0], data[1]
-            float velocityX = data[0] * scaleWidth_;
-            float velocityY = data[1] * scaleHeight_;
+            float velocityX = data[0] * nodeWidth_;
+            float velocityY = data[1] * nodeHeight_;
             velocity = sqrt(velocityX * velocityX + velocityY * velocityY);
         }
     } else {
+        // for other animation type such as translate
         velocity = property->ToFloat();
     }
-    return func(property->GetPropertyUnit(), velocity);
+    return func(property->GetPropertyUnit(), velocity, absArea_, absLength_);
 }
 
 int32_t RSAnimationRateDecider::ProcessFloat(const PropertyValue& property, const FrameRateGetFunc& func)
@@ -150,14 +150,14 @@ int32_t RSAnimationRateDecider::ProcessFloat(const PropertyValue& property, cons
     float propertyValue = property->ToFloat();
     if (propertyUnit == RSPropertyUnit::ANGLE_ROTATION) {
         // get the longest from height and width, record as H.
-        float height = ROSEN_GE(scaleHeight_, scaleWidth_) ? scaleHeight_ : scaleWidth_;
+        float height = std::max(nodeWidth_ * nodeScaleX_, nodeHeight_ * nodeScaleY_);
         // V = W * R = W * (H / 2) = w * (2 * pi) * (H / 2) / 360 = w * pi * H / 360
         // let w = propertyValue => w *= H * FLOAT_PI / 360
         // 360 means 360 angle, relative to 2 * pi radian.
         propertyValue *= height * FLOAT_PI / 360;
         ROSEN_LOGD("%{public}s, ANGLE_ROTATION scene, propertyValue: %{public}f", __func__, propertyValue);
     }
-    return func(propertyUnit, propertyValue);
+    return func(propertyUnit, propertyValue, absArea_, absLength_);
 }
 } // namespace Rosen
 } // namespace OHOS

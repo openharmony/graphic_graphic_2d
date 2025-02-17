@@ -14,34 +14,22 @@
  */
 
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-    auto g_prevPrintTime = std::chrono::steady_clock::now();
-    auto g_sendBufferCnt = 0;
-    void LogMessage()
-    {
-        ++g_sendBufferCnt;
-        auto currTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(currTime - g_prevPrintTime);
-        if (duration.count() >= 1) {
-            RS_LOGE("TextureViewLog: %{public}d", g_sendBufferCnt);
-            g_prevPrintTime = std::chrono::steady_clock::now();
-            g_sendBufferCnt = 0;
-        }
-    }
-}
-
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
     return surfaceBufferCallbackMgr;
 }
 
-void RSSurfaceBufferCallbackManager::SetRunPolicy(std::function<void(std::function<void()>)> runPolicy)
+void RSSurfaceBufferCallbackManager::SetRunPolicy(
+    std::function<void(std::function<void()>)> runPolicy)
 {
     runPolicy_ = runPolicy;
 }
@@ -50,6 +38,37 @@ void RSSurfaceBufferCallbackManager::SetVSyncFuncs(VSyncFuncs vSyncFuncs)
 {
     vSyncFuncs_ = vSyncFuncs;
 }
+
+void RSSurfaceBufferCallbackManager::SetIsUniRender(bool isUniRender)
+{
+    isUniRender_ = isUniRender;
+}
+
+#ifdef RS_ENABLE_VK
+void RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan(
+    int releaseFenceFd, NodeId rootNodeId)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
+    for (auto& [_, data] : stagingSurfaceBufferIds_) {
+        auto& fences = data.releaseFences;
+        size_t idx = 0;
+        for (auto& fence : fences) {
+            if (data.isRenderedFlags[idx] && data.rootNodeIds[idx] == rootNodeId) {
+                fence = new (std::nothrow) SyncFence(::dup(releaseFenceFd));
+                if (!fence) {
+                    RS_LOGE("RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan"
+                        " Err on creating SyncFence");
+                }
+            }
+            ++idx;
+        }
+    }
+}
+#endif
 
 void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
@@ -86,13 +105,25 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
     }
 }
 
-std::function<void(pid_t, uint64_t, uint32_t)> RSSurfaceBufferCallbackManager::GetSurfaceBufferOpItemCallback() const
+#ifdef ROSEN_OHOS
+RSSurfaceBufferCallbackManager::OnFinishCb RSSurfaceBufferCallbackManager::GetOnFinishCb(
+    ) const
 {
     auto mutablePtr = const_cast<RSSurfaceBufferCallbackManager*>(this);
-    return [mutablePtr](pid_t pid, uint64_t uid, uint32_t surfaceBufferId) {
-        mutablePtr->OnSurfaceBufferOpItemDestruct(pid, uid, surfaceBufferId);
+    return [mutablePtr](const Drawing::DrawSurfaceBufferFinishCbData& data) {
+        mutablePtr->OnFinish(data);
     };
 }
+
+RSSurfaceBufferCallbackManager::OnAfterAcquireBufferCb RSSurfaceBufferCallbackManager::GetOnAfterAcquireBufferCb(
+    ) const
+{
+    auto mutablePtr = const_cast<RSSurfaceBufferCallbackManager*>(this);
+    return [mutablePtr](const Drawing::DrawSurfaceBufferAfterAcquireCbData& data) {
+        mutablePtr->OnAfterAcquireBuffer(data);
+    };
+}
+#endif
 
 sptr<RSISurfaceBufferCallback> RSSurfaceBufferCallbackManager::GetSurfaceBufferCallback(
     pid_t pid, uint64_t uid) const
@@ -114,14 +145,21 @@ size_t RSSurfaceBufferCallbackManager::GetSurfaceBufferCallbackSize() const
     return surfaceBufferCallbacks_.size();
 }
 
-void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(pid_t pid, uint64_t uid, uint32_t surfaceBufferId)
+#ifdef ROSEN_OHOS
+void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(
+    const Drawing::DrawSurfaceBufferFinishCbData& data)
 {
-    auto iter = stagingSurfaceBufferIds_.find({pid, uid});
+    auto iter = stagingSurfaceBufferIds_.find({data.pid, data.uid});
     if (iter == std::end(stagingSurfaceBufferIds_)) {
-        std::tie(iter, std::ignore) = stagingSurfaceBufferIds_.insert({{pid, uid}, {}});
+        std::tie(iter, std::ignore) = stagingSurfaceBufferIds_.insert({{data.pid, data.uid}, {}});
     }
-    iter->second.push_back(surfaceBufferId);
+    auto& [surfaceBufferIds, isRenderedFlags, fences, rootNodeIds] = iter->second;
+    surfaceBufferIds.push_back(data.surfaceBufferId);
+    isRenderedFlags.push_back(static_cast<uint8_t>(data.isRendered));
+    fences.push_back(data.releaseFence);
+    rootNodeIds.push_back(data.rootNodeId);
 }
+#endif
 
 void RSSurfaceBufferCallbackManager::RequestNextVSync()
 {
@@ -132,45 +170,175 @@ void RSSurfaceBufferCallbackManager::RequestNextVSync()
     }
 }
 
-void RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct(
-    pid_t pid, uint64_t uid, uint32_t surfaceBufferId)
+#ifdef ROSEN_OHOS
+void RSSurfaceBufferCallbackManager::OnFinish(
+    const Drawing::DrawSurfaceBufferFinishCbData& data)
 {
-    {
-        std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
-        if (surfaceBufferCallbacks_.find({pid, uid}) == std::end(surfaceBufferCallbacks_)) {
-            RS_LOGE("RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct Pair:"
-                "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
-                std::to_string(pid).c_str(), std::to_string(uid).c_str());
-            return;
+    if (auto callback = GetSurfaceBufferCallback(data.pid, data.uid)) {
+        if (data.isNeedTriggerCbDirectly) {
+            callback->OnFinish({
+                .uid = data.uid,
+                .surfaceBufferIds = { data.surfaceBufferId },
+                .isRenderedFlags = { static_cast<uint8_t>(data.isRendered) },
+                .releaseFences = { data.releaseFence },
+                .isUniRender = isUniRender_,
+            });
+        } else {
+            {
+                std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
+                EnqueueSurfaceBufferId(data);
+            }
+            RequestNextVSync();
         }
-        EnqueueSurfaceBufferId(pid, uid, surfaceBufferId);
+    } else {
+        RS_LOGE("RSSurfaceBufferCallbackManager::OnFinish Pair:"
+            "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
+            std::to_string(data.pid).c_str(), std::to_string(data.uid).c_str());
     }
-    RequestNextVSync();
+}
+
+void RSSurfaceBufferCallbackManager::OnAfterAcquireBuffer(
+    const Drawing::DrawSurfaceBufferAfterAcquireCbData& data)
+{
+    if (auto callback = GetSurfaceBufferCallback(data.pid, data.uid)) {
+        callback->OnAfterAcquireBuffer({
+            .uid = data.uid,
+            .isUniRender = isUniRender_,
+        });
+    } else {
+        RS_LOGE("RSSurfaceBufferCallbackManager::OnAfterAcquireBuffer Pair:"
+            "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
+            std::to_string(data.pid).c_str(), std::to_string(data.uid).c_str());
+    }
+}
+#endif
+
+std::string RSSurfaceBufferCallbackManager::SerializeBufferIdVec(
+    const std::vector<uint32_t>& bufferIdVec)
+{
+    std::string ret;
+    for (const auto& id : bufferIdVec) {
+        ret += std::to_string(id) + ",";
+    }
+    if (!ret.empty()) {
+        ret.pop_back();
+    }
+    return ret;
 }
 
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
 {
+    if (GetSurfaceBufferCallbackSize() == 0) {
+        return;
+    }
     runPolicy_([this]() {
-        if (GetSurfaceBufferCallbackSize() == 0) {
-            return;
-        }
-        std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> surfaceBufferIds;
+        std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
         {
             std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
             surfaceBufferIds.swap(stagingSurfaceBufferIds_);
         }
-        for (auto& [code, bufferIds] : surfaceBufferIds) {
+        bool isNeedRequestNextVSync = false;
+        for (auto& [code, data] : surfaceBufferIds) {
             auto [pid, uid] = code;
             auto callback = GetSurfaceBufferCallback(pid, uid);
             if (callback) {
-                callback->OnFinish(uid, bufferIds);
-                LogMessage();
+                if (!data.bufferIds.empty()) {
+                    isNeedRequestNextVSync = true;
+                } else {
+                    continue;
+                }
+                RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback"
+                    "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
+                callback->OnFinish({
+                    .uid = uid,
+                    .surfaceBufferIds = std::move(data.bufferIds),
+                    .isRenderedFlags = std::move(data.isRenderedFlags),
+#ifdef ROSEN_OHOS
+                    .releaseFences = std::move(data.releaseFences),
+#endif
+                    .isUniRender = isUniRender_,
+                });
             }
         }
-        if (!surfaceBufferIds.empty()) {
+        if (isNeedRequestNextVSync) {
             RequestNextVSync();
         }
     });
 }
+ 
+#ifdef RS_ENABLE_VK
+void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+ 
+    if (GetSurfaceBufferCallbackSize() == 0) {
+        return;
+    }
+ 
+    // Step 1: Extract BufferQueueData by RootNodeId
+    std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
+    {
+        std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
+        for (auto &[code, data] : stagingSurfaceBufferIds_) {
+            auto [pid, uid] = code;
+            auto& dstBufferQueueData = surfaceBufferIds[{pid, uid}];
+            auto bufferQueueDataBegin = std::tuple {
+                data.bufferIds.begin(), data.isRenderedFlags.begin(),
+                data.releaseFences.begin(), data.rootNodeIds.begin() };
+            auto bufferQueueDataEnd = std::tuple {
+                data.bufferIds.end(), data.isRenderedFlags.end(),
+                data.releaseFences.end(), data.rootNodeIds.end() };
+            static auto runCondition = [rootNodeId](auto iterTuple) {
+                return rootNodeId == *std::get<ROOTNODEIDS_POS>(iterTuple);
+            };
+            (void) RSSurfaceBufferCallbackMgrUtil::CopyIf(
+                bufferQueueDataBegin, bufferQueueDataEnd,
+                std::tuple {
+                    std::back_inserter(dstBufferQueueData.bufferIds),
+                    std::back_inserter(dstBufferQueueData.isRenderedFlags),
+                    std::back_inserter(dstBufferQueueData.releaseFences),
+                    std::back_inserter(dstBufferQueueData.rootNodeIds),
+                }, runCondition);
+            auto partitionPoint = RSSurfaceBufferCallbackMgrUtil::RemoveIf(
+                bufferQueueDataBegin, bufferQueueDataEnd, runCondition);
+            auto resizeSize = std::distance(
+                data.bufferIds.begin(), std::get<0>(partitionPoint));
+            data.bufferIds.resize(resizeSize);
+            data.isRenderedFlags.resize(resizeSize);
+            data.releaseFences.resize(resizeSize);
+            data.rootNodeIds.resize(resizeSize);
+        }
+    }
+ 
+    // step 2: Send BufferQueueData to Arkui
+    bool isNeedRequestNextVSync = false;
+    for (auto& [code, data] : surfaceBufferIds) {
+        auto [pid, uid] = code;
+        auto callback = GetSurfaceBufferCallback(pid, uid);
+        if (callback) {
+            if (!data.bufferIds.empty()) {
+                isNeedRequestNextVSync = true;
+            } else {
+                continue;
+            }
+            RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan"
+                "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
+            callback->OnFinish({
+                .uid = uid,
+                .surfaceBufferIds = std::move(data.bufferIds),
+                .isRenderedFlags = std::move(data.isRenderedFlags),
+                .releaseFences = std::move(data.releaseFences),
+                .isUniRender = isUniRender_,
+            });
+        }
+    }
+    if (isNeedRequestNextVSync) {
+        RequestNextVSync();
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

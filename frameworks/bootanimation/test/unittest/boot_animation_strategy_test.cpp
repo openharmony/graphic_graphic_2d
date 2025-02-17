@@ -77,6 +77,7 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Leve
     
     std::shared_ptr<BootAnimationStrategy> bas2 = std::make_shared<BootAnimationStrategy>();
     system::SetParameter("const.bms.optimizing_apps.switch", "on");
+    EXPECT_EQ("on", system::GetParameter("const.bms.optimizing_apps.switch", "off"));
     bas2->CheckNeedOtaCompile();
 
     std::shared_ptr<BootAnimationStrategy> bas3 = std::make_shared<BootAnimationStrategy>();
@@ -87,6 +88,7 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Leve
     std::shared_ptr<BootAnimationStrategy> bas4 = std::make_shared<BootAnimationStrategy>();
     system::SetParameter("const.bms.optimizing_apps.switch", "on");
     system::SetParameter("persist.dupdate_engine.update_type", "manual");
+    EXPECT_EQ("manual", system::GetParameter("persist.dupdate_engine.update_type", ""));
     bas4->CheckNeedOtaCompile();
 
     std::shared_ptr<BootAnimationStrategy> bas5 = std::make_shared<BootAnimationStrategy>();

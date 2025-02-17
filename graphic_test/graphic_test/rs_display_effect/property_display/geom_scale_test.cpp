@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -51,15 +51,96 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_1)
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
 {
-    float scales[] = { 1, 0.5, 2 };
-    for (int j = 0; j < 3; j++) {
-        auto testNode =
-            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, j * 780 + 100, 600, 600 });
-        testNode->SetPivot(Vector2f(0.5, 0.5));
-        testNode->SetScaleZ(scales[j]);
+    float zList[] = { 1, 0.5, 2 };
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            auto testNode =
+                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScale(zList[i], zList[j]);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_3)
+{
+    float zList[] = { 1, 0.5, 2 };
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            auto testNode =
+                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScale({ zList[i], zList[j] });
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_4)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f};
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetScale({ scaleData[i], 0.5 });
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_5)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(0.0, 0, 45.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_6)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(45.0, 0, 0.0);
+        testNode->SetScale({ scaleData[i], 0.5 });
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_7)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetScaleZ(0.5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_8)
+{
+    std::array<float, 3> scaleData = { 0.f, 0.5f, -0.5f };
+    for (int i = 0; i < scaleData.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetScale({ scaleData[i], 0.5 });
+        testNode->SetScaleZ(0.5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

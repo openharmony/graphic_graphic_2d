@@ -31,6 +31,8 @@ ohos_fuzztest("VsyncDistributorFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "vsyncdistributor_fuzzer.cpp" ]
   deps = [
@@ -40,7 +42,7 @@ ohos_fuzztest("VsyncDistributorFuzzTest") {
   external_deps = [ "c_utils:utils" ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {
-    defines += [ "RS_ENABLE_DVSYNC" ]
+    defines += [ "RS_ENABLE_DVSYNC_2" ]
   }
 }
 

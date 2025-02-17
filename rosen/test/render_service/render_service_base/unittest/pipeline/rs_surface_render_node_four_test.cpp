@@ -106,127 +106,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetForceHardwareAndFixRotation, TestSize.L
 }
 
 /**
- * @tc.name: SetSkipLayer
- * @tc.desc: test results of SetSkipLayer
- * @tc.type:FUNC SetSkipLayer
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, SetSkipLayer, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->SetSkipLayer(true);
-    ASSERT_FALSE(node->skipLayerIds_.empty());
-    node->SetSkipLayer(false);
-    ASSERT_TRUE(node->skipLayerIds_.empty());
-}
-
-/**
- * @tc.name: SyncSecurityInfoToFirstLevelNode
- * @tc.desc: test results of SyncSecurityInfoToFirstLevelNode
- * @tc.type:FUNC SyncSecurityInfoToFirstLevelNode
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, SyncSecurityInfoToFirstLevelNode, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_.clear();
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_EQ(node->GetFirstLevelNode(), nullptr);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id] = node;
-    node->firstLevelNodeId_ = id;
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_FALSE(node->GetFirstLevelNodeId() != node->GetId());
-    auto nodeTwo = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id + 1] = nodeTwo;
-    node->firstLevelNodeId_ = id + 1;
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_TRUE(node->GetFirstLevelNodeId() != node->GetId());
-    node->isSecurityLayer_ = true;
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    node->isOnTheTree_ = true;
-    node->isSecurityLayer_ = false;
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    node->isOnTheTree_ = true;
-    node->isSecurityLayer_ = true;
-    node->SyncSecurityInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-}
-
-/**
- * @tc.name: SyncSkipInfoToFirstLevelNode
- * @tc.desc: test results of SyncSkipInfoToFirstLevelNode
- * @tc.type:FUNC SyncSkipInfoToFirstLevelNode
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, SyncSkipInfoToFirstLevelNode, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_.clear();
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_EQ(node->GetFirstLevelNode(), nullptr);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id] = node;
-    node->firstLevelNodeId_ = id;
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_FALSE(node->GetFirstLevelNodeId() != node->GetId());
-    auto nodeTwo = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id + 1] = nodeTwo;
-    node->firstLevelNodeId_ = id + 1;
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_TRUE(node->GetFirstLevelNodeId() != node->GetId());
-    node->isSkipLayer_ = true;
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    node->isOnTheTree_ = true;
-    node->isSkipLayer_ = false;
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    node->isOnTheTree_ = true;
-    node->isSkipLayer_ = true;
-    node->SyncSkipInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-}
-
-/**
- * @tc.name: SyncProtectedInfoToFirstLevelNode
- * @tc.desc: test results of SyncProtectedInfoToFirstLevelNode
- * @tc.type:FUNC SyncProtectedInfoToFirstLevelNode
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, SyncProtectedInfoToFirstLevelNode, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_.clear();
-    node->SyncProtectedInfoToFirstLevelNode();
-    node->isProtectedLayer_ = true;
-    node->SyncProtectedInfoToFirstLevelNode();
-    ASSERT_EQ(node->GetFirstLevelNode(), nullptr);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id] = node;
-    node->firstLevelNodeId_ = id;
-    node->SyncProtectedInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_FALSE(node->GetFirstLevelNodeId() != node->GetId());
-    auto nodeTwo = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    rsContext->GetMutableNodeMap().renderNodeMap_[id + 1] = nodeTwo;
-    node->firstLevelNodeId_ = id + 1;
-    node->SyncProtectedInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-    ASSERT_TRUE(node->GetFirstLevelNodeId() != node->GetId());
-    node->isOnTheTree_ = true;
-    node->SyncProtectedInfoToFirstLevelNode();
-    ASSERT_NE(node->GetFirstLevelNode(), nullptr);
-}
-
-/**
  * @tc.name: UpdateSurfaceDefaultSize
  * @tc.desc: test results of UpdateSurfaceDefaultSize
  * @tc.type:FUNC UpdateSurfaceDefaultSize
@@ -242,43 +121,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateSurfaceDefaultSize, TestSize.Level2)
     ASSERT_NE(node->GetRSSurfaceHandler()->consumer_, nullptr);
     node->surfaceHandler_ = nullptr;
     node->UpdateSurfaceDefaultSize(1920.0f, 1080.0f);
-    ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
-}
-
-/**
- * @tc.name: NeedClearBufferCache
- * @tc.desc: test results of NeedClearBufferCache
- * @tc.type:FUNC NeedClearBufferCache
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, NeedClearBufferCache, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->surfaceHandler_ = nullptr;
-    node->NeedClearBufferCache();
     ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
 }
 
@@ -531,23 +373,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetAbilityState, TestSize.Level2)
 }
 
 /**
- * @tc.name: QuickPrepareTest001
- * @tc.desc: QuickPrepareTest
- * @tc.type: FUNC
- * @tc.require: issueIB0UQV
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, QuickPrepareTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderThreadVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
-    ASSERT_NE(visitor, nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->childrenBlurBehindWindow_.emplace(id + 1);
-    node->QuickPrepare(visitor);
-    ASSERT_TRUE(node->oldHasChildrenBlurBehindWindow_);
-}
-
-/**
  * @tc.name: ChildrenBlurBehindWindowTest
  * @tc.desc: Test ChildrenBlurBehindWindow and NeedUpdateDrawableBehindWindow
  * @tc.type: FUNC
@@ -562,12 +387,28 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
     node->AddChildBlurBehindWindow(idOne);
     ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
     ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
-    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idTwo);
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idOne);
     ASSERT_FALSE(node->NeedDrawBehindWindow());
+}
+
+/**
+ * @tc.name: GetBehindWindowRegionTest
+ * @tc.desc: GetBehindWindowRegionTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBFVDA
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, GetBehindWindowRegionTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    RectI region(0, 0, 1, 1);
+    surfaceNode->drawBehindWindowRegion_ = region;
+    ASSERT_EQ(surfaceNode->GetBehindWindowRegion(), region);
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node->GetBehindWindowRegion(), region);
 }
 } // namespace Rosen
 } // namespace OHOS

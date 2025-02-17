@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_BASE_CORE_PIPELINE_RS_RENDER_CONTENT_H
 #define RENDER_SERVICE_BASE_CORE_PIPELINE_RS_RENDER_CONTENT_H
 
+#include <list>
 #include "common/rs_macros.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"

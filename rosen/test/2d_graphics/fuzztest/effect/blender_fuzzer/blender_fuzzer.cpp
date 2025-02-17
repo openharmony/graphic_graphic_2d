@@ -47,7 +47,6 @@ bool BlenderFuzzTest001(const uint8_t* data, size_t size)
     blenderOne->GetDrawingType();
     uint32_t skBlendMode = GetObject<uint32_t>();
     sk_sp<SkBlender> skBlender = SkBlender::Mode(static_cast<SkBlendMode>(skBlendMode % BLENDMODE_SIZE));
-    blenderOne->SetSkBlender(skBlender);
     return true;
 }
 } // namespace Drawing

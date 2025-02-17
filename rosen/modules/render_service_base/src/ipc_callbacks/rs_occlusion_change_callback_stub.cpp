@@ -24,6 +24,7 @@ int RSOcclusionChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIOcclusionChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSOcclusionChangeCallbackStub::OnRemoteRequest GetDescriptor failed");
         return ERR_INVALID_STATE;
     }
 

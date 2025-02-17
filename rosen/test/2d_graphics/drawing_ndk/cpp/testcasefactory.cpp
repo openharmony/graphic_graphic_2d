@@ -56,6 +56,7 @@
 #include "function/path_test.h"
 #include "function/rect_test.h"
 #include "function/round_rect_test.h"
+#include "function/path_effect_test.h"
 #include "interface/bitmap_test.h"
 #include "interface/brush_test.h"
 #include "interface/canvas_test.h"
@@ -104,7 +105,7 @@
 #include "stability/surface_test.h"
 #include "stability/text_blob_test.h"
 #include "stability/typeface_test.h"
-
+#include "performance/path_effect_performance.h"
 #include "common/log_common.h"
 
 namespace {
@@ -252,6 +253,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
             return std::make_shared<DrawBitmapRect2>();
         } }, // OH_Drawing_CanvasDrawRect接口有问题内部逻辑并未用画笔而是用画刷
     { "bigbitmaprect", []() -> std::shared_ptr<TestBase> { return std::make_shared<DrawBitmapRect4>(false); } },
+    { "canvasquickrejectpath",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasQuickRejectPath>(); } },
+    { "canvasquickrejectrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasQuickRejectRect>(); } },
+    { "canvasdrawarcwithcenter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawArcWithCenter>(); } },
+    { "canvasdrawnestedroundrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawNestedRoundRect>(); } },
+    { "canvasdrawpixelmapnine",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawPixelMapNine>(); } },
     { "anisotropic_hq",
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<Anisotropic>();
@@ -481,6 +492,28 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
     // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PEN_2001
     { "functionPenSetShaderEffectNullTest",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenSetShaderEffectNullTest>(); } },
+
+    // path effect
+    { "patheffectcreatecornerpatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionPathEffectCreateCornerPathEffect>(false);
+        } },
+    { "patheffectcreatediscretepatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionPathEffectCreateDiscretePathEffect>(false);
+        } },
+    { "patheffectcreatecomposepatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionPathEffectCreateComposePathEffect>(false);
+        } },
+    { "patheffectcreatepathdasheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionPathEffectCreatePathDashEffect>(false);
+        } },
+    { "patheffectcreatesumpatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<FunctionPathEffectCreateSumPathEffect>(false);
+        } },
 };
 
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> PerformanceCpuMap = {
@@ -606,6 +639,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetHeight>(TestBase::DRAW_STYLE_COMPLEX); } },
     { "canvas_getwidth",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<CanvasGetWidth>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "canvas_quickrejectpath",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasQuickRejectPath>(); } },
+    { "canvas_quickrejectrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasQuickRejectRect>(); } },
+    { "canvas_drawarcwithcenter",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawArcWithCenter>(); } },
+    { "canvas_drawnestedroundrect",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawNestedRoundRect>(); } },
+    { "canvas_drawpixelmapnine",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PerformanceCanvasDrawImageNine>(); } },
 
     // path
     { "path_create",
@@ -692,6 +735,28 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
         []() -> std::shared_ptr<TestBase> {
             return std::make_shared<PathAddPathWithOffsetAndMode>(
                 TestBase::DRAW_STYLE_COMPLEX, OH_Drawing_PathAddMode::PATH_ADD_MODE_APPEND);
+        } },
+
+    // path effect
+    { "patheffect_createcornerpatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformancePathEffectCreateDiscretePathEffect>(false);
+        } },
+    { "patheffect_creatediscretepatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformancePathEffectCreateCornerPathEffect>(false);
+        } },
+    { "patheffect_createcomposepatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformancePathEffectCreateComposePathEffect>(false);
+        } },
+    { "patheffect_createpathdasheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformancePathEffectCreatePathDashEffect>(false);
+        } },
+    { "patheffect_createsumpatheffect",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PerformancePathEffectCreateSumPathEffect>(false);
         } },
 
     // textblob

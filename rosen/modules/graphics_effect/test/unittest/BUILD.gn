@@ -32,7 +32,14 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_visual_effect_impl_test.cpp",
     "ge_visual_effect_test.cpp",
     "ge_water_ripple_filter_test.cpp",
+    "gex_dot_matrix_shader_params_test.cpp",
+    "gex_dot_matrix_shader_test.cpp",
+    "gex_flow_light_sweep_shader_test.cpp",
   ]
+
+  if (!is_mingw && !is_win) {
+    sources += [ "ge_external_dynamic_loader_test.cpp" ]
+  }
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
@@ -48,6 +55,7 @@ ohos_unittest("GraphicsEffectTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
+    "$graphic_2d_root/rosen/modules/platform:utils",
     "//third_party/googletest:gtest_main",
   ]
 

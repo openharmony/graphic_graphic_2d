@@ -29,6 +29,8 @@ ohos_fuzztest("RSAnimationBaseFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "rsanimationbase_fuzzer.cpp" ]
   deps = [

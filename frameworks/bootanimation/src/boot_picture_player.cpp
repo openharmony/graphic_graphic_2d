@@ -34,15 +34,24 @@ BootPicturePlayer::BootPicturePlayer(const PlayerParams& params)
 void BootPicturePlayer::Play()
 {
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
-    while (receiver_ == nullptr) {
+    int waitVsyncReceiverCreateTime = 0;
+    while (receiver_ == nullptr && waitVsyncReceiverCreateTime < MAX_WAIT_VSYNCRECEIVER_CREATE_TIME) {
         LOGI("receiver is nullptr, try create again");
         receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", AppExecFwk::EventHandler::Current());
+        usleep(SLEEP_TIME_US);
+        waitVsyncReceiverCreateTime += SLEEP_TIME_US;
+    }
+
+    if (receiver_ == nullptr) {
+        LOGI("receiver create fail");
+        Stop();
+        return;
     }
 
     VsyncError ret = receiver_->Init();
     if (ret) {
         LOGE("vsync receiver init failed: %{public}d", ret);
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return;
     }
 
@@ -51,7 +60,7 @@ void BootPicturePlayer::Play()
         imgVecSize_ = static_cast<int32_t> (imageVector_.size());
     } else {
         LOGE("read pic zip failed");
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return;
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -64,7 +73,7 @@ void BootPicturePlayer::Play()
     ret = receiver_->SetVSyncRate(fcb, changeFreq);
     if (ret) {
         LOGE("SetVSyncRate failed: %{public}d %{public}d", ret, freq_);
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return;
     } else {
         LOGI("SetVSyncRate success: %{public}d, %{public}d", freq_, changeFreq);
@@ -134,7 +143,7 @@ bool BootPicturePlayer::Draw()
 {
     if (picCurNo_ >= (imgVecSize_ - 1)) {
         LOGI("play sequence frames end");
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return false;
     }
     picCurNo_ = picCurNo_ + 1;
@@ -143,7 +152,7 @@ bool BootPicturePlayer::Draw()
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     if (frame == nullptr) {
         LOGE("draw frame is nullptr");
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return false;
     }
     rsSurfaceFrame_ = std::move(frame);
@@ -159,11 +168,11 @@ bool BootPicturePlayer::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo
 {
     if (canvas == nullptr) {
         LOGE("OnDraw canvas is nullptr");
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return false;
     }
     if (curNo > (imgVecSize_ - 1) || curNo < 0) {
-        AppExecFwk::EventRunner::Current()->Stop();
+        Stop();
         return false;
     }
     std::shared_ptr<ImageStruct> imgstruct = imageVector_[curNo];
@@ -183,6 +192,17 @@ bool BootPicturePlayer::OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo
     canvas->DrawImageRect(*image, rect, samplingOptions);
     imageVector_[curNo].reset();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return true;
+}
+
+bool BootPicturePlayer::Stop()
+{
+    auto runner = AppExecFwk::EventRunner::Current();
+    if (runner == nullptr) {
+        LOGE("runner is null");
+        return false;
+    }
+    runner->Stop();
     return true;
 }
 } // namespace OHOS

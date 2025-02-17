@@ -28,7 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_ARRAY_SIZE = 5000;
 } // namespace
 
@@ -36,7 +35,7 @@ namespace Drawing {
 
 void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
     // initialize
@@ -81,9 +80,10 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
     OH_Drawing_TypefaceDestroy(typefaceTwo);
     OH_Drawing_MemoryStreamDestroy(memoryStream);
 }
+
 void NativeDrawingTypefaceTest002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
     // initialize

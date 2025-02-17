@@ -15,7 +15,6 @@
 
 #include "js_sampling_options.h"
 #include "js_drawing_utils.h"
-#include "js_common.h"
 #include "native_value.h"
 
 namespace OHOS::Rosen {

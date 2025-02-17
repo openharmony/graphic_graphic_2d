@@ -50,7 +50,7 @@ std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(c
 
     RSTypeface* tf = fontMgr_->MatchFamilyStyleCharacter(familyName.c_str(),
         *style.GetFontStyle(), bcp47, bcp47Count, character);
-    return std::make_shared<TexgineTypeface>(std::shared_ptr<RSTypeface>(tf));
+    return std::make_shared<TexgineTypeface>(tf);
 }
 
 std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::string &familyName)

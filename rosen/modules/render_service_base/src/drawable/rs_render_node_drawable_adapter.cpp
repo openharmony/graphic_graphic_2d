@@ -15,10 +15,11 @@
 
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include <mutex>
+#include <sstream>
 
 #include "skia_adapter/skia_canvas.h"
-#include "src/core/SkCanvasPriv.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
@@ -30,6 +31,10 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+
+#ifdef ROSEN_OHOS
+#include "hisysevent.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
@@ -75,6 +80,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node null");
         return nullptr;
     }
     if (node->renderDrawable_ != nullptr) {
@@ -100,7 +106,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %d is not supported", node->GetType());
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
         return nullptr;
     }
     auto ptr = it->second(node);
@@ -141,6 +147,8 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;
     }
+    sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
+    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -157,6 +165,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     };
 
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable, node null");
         return nullptr;
     }
     auto id = node->GetId();
@@ -266,8 +275,17 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
+    }
+
     if (uifirstDrawCmdList_.empty()) {
         return;
     }
@@ -333,6 +351,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     if (drawSkipType_ != DrawSkipType::NONE) {
         out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_));
     }
+    out += ", ChildrenIndex:" + std::to_string(drawCmdIndex_.childrenIndex_);
     out += "\n";
 
     // Dump children drawable(s)
@@ -419,9 +438,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),
                     shadowRect.GetTop(), shadowRect.GetWidth(), shadowRect.GetHeight());
                 Drawing::AutoCanvasRestore arc(*curCanvas, true);
-                auto coreCanvas = curCanvas->GetCanvasData();
-                auto skiaCanvas = static_cast<Drawing::SkiaCanvas*>(coreCanvas.get());
-                SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
+                curCanvas->ResetClip();
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 UpdateFilterInfoForNodeGroup(curCanvas);
@@ -580,8 +597,51 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (drawCmdList_.empty()) {
+        return;
+    }
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
         drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
     }
+}
+
+// will only called by OnDraw or OnSync
+void RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport(const std::string& func) const
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    MultiAccessReportInfo reportInfo;
+    if (drawable_) {
+        reportInfo.drawableNotNull = true;
+        reportInfo.nodeId = drawable_->GetId();
+        reportInfo.nodeType = drawable_->GetNodeType();
+        const auto& params = drawable_->GetRenderParams();
+        if (params) {
+            reportInfo.paramNotNull = true;
+            reportInfo.uifirstRootNodeId = params->GetUifirstRootNodeId();
+            reportInfo.firstLevelNodeId = params->GetFirstLevelNodeId();
+        }
+    }
+
+    auto task = [tid, func, reportInfo]() {
+        RS_TRACE_NAME_FMT("DrawableOnDrawMultiAccessEventReport HiSysEventWrite nodeId:%" PRIu64, reportInfo.nodeId);
+        std::ostringstream oss;
+        oss << "func:" << func << ",";
+        oss << "drawable:" << reportInfo.drawableNotNull << ",";
+        oss << "param:" << reportInfo.paramNotNull << ",";
+        if (reportInfo.drawableNotNull) {
+            oss << "id:" << reportInfo.nodeId << ",";
+            oss << "type:" << static_cast<int>(reportInfo.nodeType) << ",";
+        }
+        if (reportInfo.paramNotNull) {
+            oss << "URN:" << reportInfo.uifirstRootNodeId << ",";
+            oss << "FLN:" << reportInfo.firstLevelNodeId << ",";
+        }
+        oss << "tid:" << tid;
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RENDER_DRAWABLE_MULTI_ACCESS",
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "MULTI_ACCESS_MSG", oss.str());
+    };
+    RSBackgroundThread::Instance().PostTask(task);
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2

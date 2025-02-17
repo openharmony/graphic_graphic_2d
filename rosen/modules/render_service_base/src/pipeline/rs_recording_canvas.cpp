@@ -120,10 +120,16 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
     }
     std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry = std::make_shared<Drawing::SurfaceBufferEntry>(
         surfaceBufferInfo.surfaceBuffer_, surfaceBufferInfo.acquireFence_);
+    Drawing::Rect srcRect = surfaceBufferInfo.srcRect_;
+    if ((srcRect.GetWidth() <= 0 || srcRect.GetHeight() <= 0) && surfaceBufferInfo.surfaceBuffer_) {
+        srcRect = Drawing::Rect { 0, 0, surfaceBufferInfo.surfaceBuffer_->GetWidth(),
+            surfaceBufferInfo.surfaceBuffer_->GetHeight() };
+    }
     AddDrawOpImmediate<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
         Drawing::CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList_, surfaceBufferEntry),
-        surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
-        surfaceBufferInfo.width_, surfaceBufferInfo.height_, surfaceBufferInfo.pid_, surfaceBufferInfo.uid_);
+        surfaceBufferInfo.dstRect_.GetLeft(), surfaceBufferInfo.dstRect_.GetTop(),
+        surfaceBufferInfo.dstRect_.GetWidth(), surfaceBufferInfo.dstRect_.GetHeight(), surfaceBufferInfo.pid_,
+        surfaceBufferInfo.uid_, surfaceBufferInfo.transform_, srcRect);
 }
 #endif
 
@@ -187,6 +193,36 @@ void ExtendRecordingCanvas::DrawImageNineWithPixelMap(const std::shared_ptr<Medi
 {
     auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
     Drawing::RecordingCanvas::DrawImageNine(image.get(), center, dst, filter, brush);
+}
+
+void ExtendRecordingCanvas::DrawPixelMapNine(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::RectI& center, const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<Drawing::DrawPixelMapNineOpItem>(pixelMap, center, dst, filterMode);
+        return;
+    }
+    auto object = std::make_shared<RSExtendImageNineObject>(pixelMap);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
+    auto objectHandle =
+        Drawing::CmdListHelper::AddImageNineObjecToCmdList(*drawCallList, object);
+    AddDrawOpImmediate<Drawing::DrawPixelMapNineOpItem::ConstructorHandle>(objectHandle, center, dst, filterMode);
+}
+
+void ExtendRecordingCanvas::DrawPixelMapLattice(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<Drawing::DrawPixelMapLatticeOpItem>(pixelMap, lattice, dst, filterMode);
+        return;
+    }
+    auto object = std::make_shared<RSExtendImageLatticeObject>(pixelMap);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
+    auto imageLatticeHandle =
+        Drawing::CmdListHelper::AddImageLatticeObjecToCmdList(*drawCallList, object);
+    auto latticeHandle = Drawing::CmdListHelper::AddLatticeToCmdList(*drawCallList, lattice);
+    AddDrawOpImmediate<Drawing::DrawPixelMapLatticeOpItem::ConstructorHandle>(imageLatticeHandle,
+        latticeHandle, dst, filterMode);
 }
 } // namespace Rosen
 } // namespace OHOS

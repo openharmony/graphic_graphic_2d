@@ -46,6 +46,9 @@ void VSyncSystemAbilityListener::OnAddSystemAbility(int32_t systemAbilityId, con
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().RegisterEventListener(
             ResschedEventListener::GetInstance(),
             ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT);
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().RegisterEventListener(
+            ResschedEventListener::GetInstance(),
+            ResourceSchedule::ResType::EventType::EVENT_FRAME_RATE_STATISTICS);
     }
 #endif
 }

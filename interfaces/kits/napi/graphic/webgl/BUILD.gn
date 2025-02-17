@@ -26,44 +26,9 @@ ohos_source_set("webgl_src") {
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
   ]
 
-  sources = [
-    "common/napi/n_class.cpp",
-    "common/napi/n_func_arg.cpp",
-    "common/napi/n_val.cpp",
-    "src/egl_manager.cpp",
-    "src/module.cpp",
-    "src/util.cpp",
-    "src/webgl2_rendering_context.cpp",
-    "src/webgl2_rendering_context_base.cpp",
-    "src/webgl2_rendering_context_impl.cpp",
-    "src/webgl2_rendering_context_override.cpp",
-    "src/webgl_active_info.cpp",
-    "src/webgl_arg.cpp",
-    "src/webgl_buffer.cpp",
-    "src/webgl_framebuffer.cpp",
-    "src/webgl_program.cpp",
-    "src/webgl_query.cpp",
-    "src/webgl_renderbuffer.cpp",
-    "src/webgl_rendering_context.cpp",
-    "src/webgl_rendering_context_base.cpp",
-    "src/webgl_rendering_context_base_impl.cpp",
-    "src/webgl_rendering_context_basic_base.cpp",
-    "src/webgl_rendering_context_common.cpp",
-    "src/webgl_rendering_context_draw.cpp",
-    "src/webgl_rendering_context_ext.cpp",
-    "src/webgl_rendering_context_overloads.cpp",
-    "src/webgl_sampler.cpp",
-    "src/webgl_shader.cpp",
-    "src/webgl_shader_precision_format.cpp",
-    "src/webgl_sync.cpp",
-    "src/webgl_texture.cpp",
-    "src/webgl_transform_feedback.cpp",
-    "src/webgl_uniform_location.cpp",
-    "src/webgl_vertex_array_object.cpp",
-  ]
+  sources = [ "common/napi/n_class.cpp" ]
 
   external_deps = [
-    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "egl:libEGL",
     "graphic_surface:surface_headers",
@@ -72,10 +37,48 @@ ohos_source_set("webgl_src") {
     "napi:ace_napi",
   ]
 
-  deps = [
-    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
-  ]
+  if (rs_enable_gpu) {
+    sources += [
+      "common/napi/n_func_arg.cpp",
+      "common/napi/n_val.cpp",
+      "src/egl_manager.cpp",
+      "src/module.cpp",
+      "src/util.cpp",
+      "src/webgl2_rendering_context.cpp",
+      "src/webgl2_rendering_context_base.cpp",
+      "src/webgl2_rendering_context_impl.cpp",
+      "src/webgl2_rendering_context_override.cpp",
+      "src/webgl_active_info.cpp",
+      "src/webgl_arg.cpp",
+      "src/webgl_buffer.cpp",
+      "src/webgl_framebuffer.cpp",
+      "src/webgl_program.cpp",
+      "src/webgl_query.cpp",
+      "src/webgl_renderbuffer.cpp",
+      "src/webgl_rendering_context.cpp",
+      "src/webgl_rendering_context_base.cpp",
+      "src/webgl_rendering_context_base_impl.cpp",
+      "src/webgl_rendering_context_basic_base.cpp",
+      "src/webgl_rendering_context_common.cpp",
+      "src/webgl_rendering_context_draw.cpp",
+      "src/webgl_rendering_context_ext.cpp",
+      "src/webgl_rendering_context_overloads.cpp",
+      "src/webgl_sampler.cpp",
+      "src/webgl_shader.cpp",
+      "src/webgl_shader_precision_format.cpp",
+      "src/webgl_sync.cpp",
+      "src/webgl_texture.cpp",
+      "src/webgl_transform_feedback.cpp",
+      "src/webgl_uniform_location.cpp",
+      "src/webgl_vertex_array_object.cpp",
+    ]
+
+    deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    external_deps += [ "bounds_checking_function:libsec_shared" ]
+  }
 
   cflags = [
     "-Wall",
@@ -96,8 +99,12 @@ ohos_source_set("webgl_src") {
 ohos_shared_library("libwebglnapi") {
   external_deps = [ "hilog:libhilog" ]
   deps = [ ":webgl_src" ]
-  install_enable = true
-  relative_install_dir = "module"
+  if (rs_enable_gpu) {
+    install_enable = true
+    relative_install_dir = "module"
+  } else {
+    install_enable = false
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

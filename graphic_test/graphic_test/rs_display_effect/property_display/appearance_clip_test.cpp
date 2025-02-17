@@ -24,8 +24,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -115,6 +115,75 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_2)
             RegisterNode(testNode);
             RegisterNode(testFaNode);
         }
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, CustomClipToFrame_Test_1)
+{
+    const Vector4f rect[] = { { 0.1, 0.2, 0.3, 0.4 }, { 0.5, 1.0, 0.5, 1.0 }, { 1, 1, 1, 1 },
+        { -0.1, 1.1, -0.2, 2.1 } };
+
+    const int columnCount = 2;
+    const int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    const int counts = 4;
+    for (int i = 0; i < counts; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNode->SetBorderStyle(0, 0, 0, 0);
+        testNode->SetBorderWidth(5, 5, 5, 5);
+        testNode->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+        testNode->SetClipToFrame(true);
+        testNode->SetCustomClipToFrame(rect[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, SetClipBounds_RSPath_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    drawingPath[0].AddRect(0, 0, 200, 450, Drawing::PathDirection::CW_DIRECTION);
+    drawingPath[1].AddCircle(160, 260, 245);
+    std::vector<Drawing::Point> triangle = { { 50, 50 }, { 250, 50 }, { 150, 250 } };
+    drawingPath[2].AddPoly(triangle, 3, true);
+    std::vector<Drawing::Point> star = { { 50, 15 }, { 61, 39 }, { 88, 39 }, { 66, 57 }, { 74, 84 }, { 50, 69 },
+        { 26, 84 }, { 34, 57 }, { 12, 39 }, { 39, 39 } };
+    drawingPath[3].AddPoly(star, 10, true);
+    drawingPath[3].AddCircle(160, 260, 145);
+
+    for (int i = 0; i < rowCount; i++) {
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        int y = i * sizeY;
+        auto testNode1 = RSCanvasNode::Create();
+        testNode1->SetBounds({ 0, y, sizeX - 10, sizeY - 10 });
+        testNode1->SetBackgroundColor(0xff00ff00);
+        testNode1->SetBorderStyle(0, 0, 0, 0);
+        testNode1->SetBorderWidth(5, 5, 5, 5);
+        testNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNode1->SetClipToBounds(true);
+        testNode1->SetClipBounds(clipPath);
+        GetRootNode()->AddChild(testNode1);
+        RegisterNode(testNode1);
+
+        auto testNode2 =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { sizeX, y, sizeX - 10, sizeY - 10 });
+        testNode2->SetBorderStyle(0, 0, 0, 0);
+        testNode2->SetBorderWidth(5, 5, 5, 5);
+        testNode2->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+        testNode2->SetClipToBounds(true);
+        testNode2->SetClipBounds(clipPath);
+        GetRootNode()->AddChild(testNode2);
+        RegisterNode(testNode2);
     }
 }
 } // namespace OHOS::Rosen

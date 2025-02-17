@@ -24,6 +24,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+/**
+ * 该函数主要测试了 Color 的下列方法：
+ * - SetRgb(...)
+ * - GetAlpha()
+ * - GetRed()
+ * - GetGreen()
+ * - GetBlue()
+ * - SetColorQuad(...)
+ */
 bool ColorFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -56,6 +65,16 @@ bool ColorFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试了以下 Color 接口：
+ * 1. 构造函数：
+ *    - Color()
+ *    - Color(const Color&)
+ *    - Color(uint32_t, uint32_t, uint32_t, uint32_t)
+ *    - Color(ColorQuad)
+ * 2. SetRed() / SetGreen() / SetBlue() / SetAlpha()
+ * 3. operator== / operator!=
+ */
 bool ColorFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -86,6 +105,14 @@ bool ColorFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试了以下 Color 接口：
+ * 1. SetRedF() / SetGreenF() / SetBlueF() / SetAlphaF()
+ * 2. GetRedF() / GetGreenF() / GetBlueF() / GetAlphaF()
+ * 3. GetColor4f()
+ * 4. SetRgbF(...)
+ * 5. CastToColorQuad()
+ */
 bool ColorFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -116,6 +143,14 @@ bool ColorFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试了以下 Color 接口：
+ * 1. ColorQuadSetARGB(...)
+ * 2. ColorQuadGetA(...)
+ * 3. ColorQuadGetR(...)
+ * 4. ColorQuadGetG(...)
+ * 5. ColorQuadGetB(...)
+ */
 bool ColorFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

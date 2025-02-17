@@ -133,6 +133,146 @@ HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TransformDataSetForAstcnTest002
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest002, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = false;
+    pixelMap->transformData_.flipY = true;
+    pixelMap->transformData_.cropLeft = 0;
+    pixelMap->transformData_.cropTop = 0;
+    pixelMap->transformData_.cropWidth = 1;
+    pixelMap->transformData_.cropHeight = 1;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 1;
+    pixelMap->transformData_.scaleY = 1;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: TransformDataSetForAstcnTest003
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest003, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = false;
+    pixelMap->transformData_.flipY = false;
+    pixelMap->transformData_.cropLeft = 0;
+    pixelMap->transformData_.cropTop = 0;
+    pixelMap->transformData_.cropWidth = 1;
+    pixelMap->transformData_.cropHeight = 1;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 1;
+    pixelMap->transformData_.scaleY = 1;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: TransformDataSetForAstcnTest004
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest004, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = true;
+    pixelMap->transformData_.flipY = true;
+    pixelMap->transformData_.cropLeft = -1;
+    pixelMap->transformData_.cropTop = -1;
+    pixelMap->transformData_.cropWidth = 1;
+    pixelMap->transformData_.cropHeight = 1;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 1;
+    pixelMap->transformData_.scaleY = 1;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: TransformDataSetForAstcnTest005
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest005, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = true;
+    pixelMap->transformData_.flipY = true;
+    pixelMap->transformData_.cropLeft = 0;
+    pixelMap->transformData_.cropTop = 0;
+    pixelMap->transformData_.cropWidth = 0;
+    pixelMap->transformData_.cropHeight = 0;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 1;
+    pixelMap->transformData_.scaleY = 1;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
+ * @tc.name: TransformDataSetForAstcnTest006
+ * @tc.desc: Verify function TransformDataSetForAstc
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, TransformDataSetForAstcnTest006, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    int width = 200;
+    int height = 300;
+    pixelMap = CreatePixelMap(width, height);
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    Drawing::Canvas canvas;
+    pixelMap->transformData_.flipX = true;
+    pixelMap->transformData_.flipY = true;
+    pixelMap->transformData_.cropLeft = 0;
+    pixelMap->transformData_.cropTop = 0;
+    pixelMap->transformData_.cropWidth = 1;
+    pixelMap->transformData_.cropHeight = 1;
+    pixelMap->astcrealSize_.width = 1;
+    pixelMap->astcrealSize_.height = 1;
+    pixelMap->transformData_.scaleX = 0;
+    pixelMap->transformData_.scaleY = 0;
+    RSPixelMapUtil::TransformDataSetForAstc(pixelMap, src, dst, canvas);
+    EXPECT_NE(pixelMap, nullptr);
+}
+
+/**
  * @tc.name: IsYUVFormat
  * @tc.desc:
  * @tc.type: FUNC
@@ -217,6 +357,86 @@ HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImageTest, TestSize.Leve
     pixelmap = CreatePixelMap(width, height);
     auto image = RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap);
     EXPECT_EQ(image, nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 20;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage002, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage003, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage004, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
 }
 
 /**

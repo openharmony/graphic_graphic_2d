@@ -85,17 +85,21 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         return vsyncCount;
     }
     int pulseNum;
-    if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
+    if (RSSystemProperties::IsPcType()) {
         pulseNum = 0;
     } else {
-        pulseNum = GetAppOffset(controllerRate);
+        if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
+            pulseNum = 0;
+        } else {
+            pulseNum = GetAppOffset(controllerRate);
+        }
     }
 
     VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;
 
     if (currentRate_ != controllerRate) {
-        HGM_LOGI("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}d, appOffset = %{public}d",
+        HGM_LOGD("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}d, appOffset = %{public}d",
             controllerRate, pulseNum);
         RS_TRACE_NAME("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate: " +
             std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum) +
@@ -113,16 +117,6 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
     }
     return vsyncCount;
-}
-
-int64_t HgmVSyncGeneratorController::GetCurrentOffset() const
-{
-    return currentOffset_;
-}
-
-uint32_t HgmVSyncGeneratorController::GetCurrentRate() const
-{
-    return currentRate_;
 }
 } // namespace Rosen
 } // namespace OHOS

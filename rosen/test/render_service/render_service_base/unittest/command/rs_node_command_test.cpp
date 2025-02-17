@@ -46,6 +46,7 @@ HWTEST_F(RSNodeCommandTest, TestRSNodeCommand001, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     PropertyId propertyId = static_cast<PropertyId>(1);
     RSNodeCommandHelper::RemoveModifier(context, nodeId, propertyId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -57,6 +58,7 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
+    EXPECT_NE(nodeId, -2);
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
 }
@@ -124,6 +126,7 @@ HWTEST_F(RSNodeCommandTest, SetDrawRegionTest, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(1);
     std::shared_ptr<RectF> rect = nullptr;
     RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
 
 /**
@@ -137,6 +140,7 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
     NodeId inNodeId = static_cast<NodeId>(1);
     NodeId outNodeId = static_cast<NodeId>(1);
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId) == nullptr);
 }
 
 /**
@@ -186,6 +190,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
+    pid_t pid = ExtractPid(nodeId);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 
@@ -194,7 +199,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
 
     renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
+    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
@@ -316,6 +321,48 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(0), nullptr);
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(1), nullptr);
+}
+
+/**
+ * @tc.name: RegisterGeometryTransitionPair002
+ * @tc.desc: test results of RegisterGeometryTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 0;
+    NodeId outNodeId = 1;
+
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = std::make_shared<RSRenderNode>(outNodeId);
+    context.GetMutableNodeMap().RegisterRenderNode(outNode);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(inNode, outNode);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 1;
+    outNode->instanceRootNodeId_ = 0;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 0;
+    outNode->instanceRootNodeId_ = 1;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 1;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_NE(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_NE(outNode->sharedTransitionParam_, nullptr);
 }
 
 /**

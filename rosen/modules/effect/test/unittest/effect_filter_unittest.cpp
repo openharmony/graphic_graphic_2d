@@ -146,6 +146,31 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_Blur002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OH_Filter_Blur
+ * @tc.desc: Create a blur effect filter with tile mode.
+ * @tc.type: FUNC
+ * @tc.require: IB3UJ4
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_BlurWithTileMode, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_BlurWithTileMode start";
+    OH_PixelmapNative *pixmap = nullptr;
+    /** pixmap is necessary, otherwise can not create pixelmap*/
+    OH_PixelmapNative ** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    // 0.5 for test
+    ASSERT_TRUE(OH_Filter_BlurWithTileMode(filter, 0.5f, CLAMP) == EFFECT_SUCCESS);
+    // 0.5 for test
+    ASSERT_TRUE(OH_Filter_BlurWithTileMode(nullptr, 0.5, CLAMP) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+}
+
+/**
  * @tc.name: OH_Filter_GrayScale
  * @tc.desc: Create a gray scale effect filter with pixelmap.
  * @tc.type: FUNC

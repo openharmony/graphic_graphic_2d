@@ -218,4 +218,18 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsCommonV
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->IsCommonVerificationPassed(code), true);
 }
+
+/**
+ * @tc.name: IsAccessTimesVerificationPassedTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsAccessTimesVerificationPassedTest,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = 0;
+    ASSERT_EQ(verifier->IsAccessTimesVerificationPassed(code, 0), true);
+}
 } // namespace OHOS::Rosen

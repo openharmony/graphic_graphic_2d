@@ -15,9 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "surface.h"
-#include "pipeline/rs_base_render_util.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "surface.h"
 
 using namespace testing;
 using namespace testing::ext;

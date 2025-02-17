@@ -319,17 +319,6 @@ HWTEST_F(RSSystemPropertiesTest, GetRSEventProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDirectClientCompEnableStatus
- * @tc.desc: GetDirectClientCompEnableStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDirectClientCompEnableStatus, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetDirectClientCompEnableStatus());
-}
-
-/**
  * @tc.name: GetHighContrastStatus
  * @tc.desc: GetHighContrastStatus Test
  * @tc.type:FUNC
@@ -468,18 +457,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 {
     RSSystemProperties::SetCacheEnabledForRotation(true);
     ASSERT_TRUE(RSSystemProperties::GetCacheEnabledForRotation());
-}
-
-/**
- * @tc.name: GetDefaultDeviceRotationOffset
- * @tc.desc: GetDefaultDeviceRotationOffset Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
-{
-    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
-    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
 }
 
 /**
@@ -649,6 +626,28 @@ HWTEST_F(RSSystemPropertiesTest, GetMESABlurFuzedEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetForceKawaseDisabled
+ * @tc.desc: GetForceKawaseDisabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetForceKawaseDisabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetForceKawaseDisabled());
+}
+
+/**
+ * @tc.name: GetSimplifiedMesaEnabled
+ * @tc.desc: GetSimplifiedMesaEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSimplifiedMesaEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetSimplifiedMesaEnabled(), 0);
+}
+
+/**
  * @tc.name: SetForceHpsBlurDisabled
  * @tc.desc: SetForceHpsBlurDisabled Test
  * @tc.type:FUNC
@@ -672,6 +671,17 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
 {
     RSSystemProperties::SetForceHpsBlurDisabled(false);
     ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
+}
+
+/**
+ * @tc.name: GetHpsBlurNoiseFactor
+ * @tc.desc: GetHpsBlurNoiseFactor Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
 }
 
 /**
@@ -771,28 +781,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetUIFirstDebugEnabled());
-}
-
-/**
- * @tc.name: GetDebugTraceEnabled
- * @tc.desc: GetDebugTraceEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetDebugTraceEnabled());
-}
-
-/**
- * @tc.name: GetDebugTraceLevel
- * @tc.desc: GetDebugTraceLevel Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceLevel, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetDebugTraceLevel(), 0);
 }
 
 /**
@@ -1019,6 +1007,17 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_EQ(RSSystemProperties::GetVirtualScreenScaleModeDFX(), 2);
     ASSERT_EQ(RSSystemProperties::GetSubTreePrepareCheckType(), SubTreePrepareCheckType::ENABLED);
     EXPECT_TRUE(RSSystemProperties::GetBlurEffectTerminateLimit() > 0);
+}
+
+/**
+ * @tc.name: IsSuperFoldDisplay
+ * @tc.desc: IsSuperFoldDisplay Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBLTM5
+ */
+HWTEST_F(RSSystemPropertiesTest, IsSuperFoldDisplay, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::IsSuperFoldDisplay());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
 #include "utils/data.h"
 
 namespace OHOS {
@@ -30,6 +29,13 @@ constexpr size_t ARRAY_MAX_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 Data 接口：
+ * 1. BuildWithCopy
+ * 2. BuildWithoutCopy
+ * 3. BuildUninitialized
+ * 4. BuildEmpty
+ */
 void DataFuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
@@ -54,6 +60,15 @@ void DataFuzzTest000(const uint8_t* data, size_t size)
     }
 }
 
+/*
+ * 测试以下 Data 接口：
+ * 1. MakeFromFileName
+ * 2. WritableData
+ * 3. GetSize
+ * 4. GetData
+ * 5. Serialize
+ * 6. BuildFromMalloc
+ */
 void DataFuzzTest001(const uint8_t* data, size_t size)
 {
     g_data = data;

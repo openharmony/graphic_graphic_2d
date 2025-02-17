@@ -28,6 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static std::mutex g_registarMutex;
 SkiaPersistentCache::SkiaPersistentCache(GPUContextOptions::PersistentCache* cache) : cache_(cache) {}
 
 sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
@@ -211,6 +212,15 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     grContext_->priv().dumpGpuStats(&stat);
     grContext_->dumpVmaStats(&stat);
     out = stat.c_str();
+}
+
+void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllResource, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllResource(dump);
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
@@ -402,13 +412,13 @@ void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     grContext_->setGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
     if (!grContext_) {
         LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
         return;
     }
-    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled);
+    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
@@ -434,6 +444,7 @@ std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& ta
 
 void SkiaGPUContext::RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
 {
+    std::unique_lock lock(g_registarMutex);
     if (grContext_ != nullptr) {
         contextPostMap_[uintptr_t(grContext_.get())] = func;
     }
@@ -441,6 +452,7 @@ void SkiaGPUContext::RegisterPostFunc(const std::function<void(const std::functi
 
 std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFunc(sk_sp<GrDirectContext> grContext)
 {
+    std::unique_lock lock(g_registarMutex);
     if (grContext != nullptr && contextPostMap_.count(uintptr_t(grContext.get())) > 0) {
         return contextPostMap_[uintptr_t(grContext.get())];
     }

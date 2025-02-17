@@ -106,6 +106,11 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
+void GPUContext::DumpAllResource(std::stringstream& dump) const
+{
+    impl_->DumpAllResource(dump);
+}
+
 void GPUContext::DumpGpuStats(std::string& out) const
 {
     impl_->DumpGpuStats(out);
@@ -213,9 +218,9 @@ void GPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     impl_->SetGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
-    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void GPUContext::FlushGpuMemoryInWaitQueue()
@@ -228,6 +233,15 @@ void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void
     impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
 }
 
+void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
+{
+    filePath_ = filePath;
+}
+
+std::string GPUContextOptions::GetStoreCachePath() const
+{
+    return filePath_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

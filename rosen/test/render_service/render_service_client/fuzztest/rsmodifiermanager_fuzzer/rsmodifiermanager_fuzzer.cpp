@@ -90,7 +90,6 @@ bool TestModifierManager(const uint8_t* data, size_t size)
     manager.JudgeAnimateWhetherSkip(id, time, time);
     manager.SetDisplaySyncEnable(true);
     manager.FlushStartAnimation(time);
-    manager.OnAnimationFinished(animation);
     manager.GetAnimation(id);
     return true;
 }

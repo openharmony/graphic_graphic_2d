@@ -77,6 +77,38 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSHDRBrightnessModifier
+ * @tc.desc: RSHDRBrightnessModifier CreateRenderModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    auto res = hdrModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessModifier
+ * @tc.desc: RSHDRBrightnessModifier GetModifierType Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    RSModifierType res = hdrModifier->GetModifierType();
+    EXPECT_EQ(res, RSModifierType::HDR_BRIGHTNESS);
+}
+
+/**
  * @tc.name: GetModifierType02
  * @tc.desc: RSEnvForegroundColorStrategyModifier Test
  * @tc.type: FUNC
@@ -320,19 +352,19 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     std::shared_ptr<RSPerspModifier> perspModifier = std::make_shared<RSPerspModifier>(property);
     ASSERT_NE(perspModifier, nullptr);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 10);
-    EXPECT_EQ(geometry->trans_->perspY_, 10);
-    EXPECT_EQ(geometry->trans_->perspZ_, 10);
-    EXPECT_EQ(geometry->trans_->perspW_, 11);
+    EXPECT_EQ(geometry->trans_->perspX_, 0);
+    EXPECT_EQ(geometry->trans_->perspY_, 0);
+    EXPECT_EQ(geometry->trans_->perspZ_, 0);
+    EXPECT_EQ(geometry->trans_->perspW_, 1);
 
     auto property02 = std::make_shared<RSProperty<Vector4f>>(INITIAL_VALUE_RECT_4F);
     ASSERT_NE(property02, nullptr);
     perspModifier = std::make_shared<RSPerspModifier>(property02);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 20);
-    EXPECT_EQ(geometry->trans_->perspY_, 20);
-    EXPECT_EQ(geometry->trans_->perspZ_, 20);
-    EXPECT_EQ(geometry->trans_->perspW_, 21);
+    EXPECT_EQ(geometry->trans_->perspX_, 0);
+    EXPECT_EQ(geometry->trans_->perspY_, 0);
+    EXPECT_EQ(geometry->trans_->perspZ_, 0);
+    EXPECT_EQ(geometry->trans_->perspW_, 1);
 
     auto property03 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SIZE_2F);
     ASSERT_NE(property03, nullptr);

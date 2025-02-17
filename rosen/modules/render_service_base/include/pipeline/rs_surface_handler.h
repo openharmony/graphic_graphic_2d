@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
-using OnDeleteBufferFunc = std::function<void(int32_t)>;
+using OnDeleteBufferFunc = std::function<void(uint32_t)>;
 class RSB_EXPORT RSSurfaceHandler {
 public:
     // indicates which node this handler belongs to.
@@ -41,8 +41,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
         ~SurfaceBufferEntry() noexcept
         {
-            if (buffer != nullptr && bufferDeleteCb_ != nullptr) {
-                bufferDeleteCb_(buffer->GetSeqNum());
+            if (bufferDeleteCb_ != nullptr) {
+                bufferDeleteCb_(seqNum);
             }
         }
 
@@ -75,6 +75,7 @@ public:
         sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
         Rect damageRect = {0, 0, 0, 0};
         OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
+        uint32_t seqNum = 0;
 #endif
         int64_t timestamp = 0;
     };
@@ -124,6 +125,9 @@ public:
         preBuffer_.Reset();
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
+        if (buffer != nullptr) {
+            buffer_.seqNum = buffer->GetSeqNum();
+        }
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
         buffer_.timestamp = timestamp;

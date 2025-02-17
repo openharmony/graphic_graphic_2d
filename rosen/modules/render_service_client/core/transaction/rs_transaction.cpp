@@ -31,33 +31,36 @@ void RSTransaction::FlushImplicitTransaction()
     }
 }
 
-void RSTransaction::OpenSyncTransaction()
+void RSTransaction::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
     syncId_ = GenerateSyncId();
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("OpenSyncTransaction");
+        ROSEN_LOGI("OpenSyncTransaction");
         transactionProxy->FlushImplicitTransaction();
         transactionProxy->StartSyncTransaction();
         transactionProxy->Begin();
         isOpenSyncTransaction_ = true;
         transactionCount_ = 0;
         parentPid_ = GetRealPid();
+        transactionProxy->StartCloseSyncTransactionFallbackTask(handler, true);
     }
 }
 
-void RSTransaction::CloseSyncTransaction()
+void RSTransaction::CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
-        ROSEN_LOGD(
+        ROSEN_LOGI(
             "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
         isOpenSyncTransaction_ = false;
         transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
+        transactionProxy->StartCloseSyncTransactionFallbackTask(handler, false);
     }
     ResetSyncTransactionInfo();
 }
@@ -67,6 +70,7 @@ void RSTransaction::Begin()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("BeginSyncTransaction");
+        ROSEN_LOGI("BeginSyncTransaction");
         transactionProxy->StartSyncTransaction();
         transactionProxy->Begin();
     }
@@ -78,6 +82,8 @@ void RSTransaction::Commit()
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT(
             "CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_, transactionCount_, parentPid_);
+        ROSEN_LOGI("CommitSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d parentPid: %{public}d",
+            syncId_, transactionCount_, parentPid_);
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->SetParentPid(parentPid_);

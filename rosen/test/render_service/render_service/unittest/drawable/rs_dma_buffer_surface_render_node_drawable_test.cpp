@@ -17,8 +17,8 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "pipeline/rs_uni_render_engine.h"
-#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

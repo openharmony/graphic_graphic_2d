@@ -197,9 +197,19 @@ void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFu
     frameRateGetFunc_ = func;
 }
 
-void RSAnimationManager::SetRateDeciderScaleSize(float width, float height)
+void RSAnimationManager::SetRateDeciderSize(float width, float height)
 {
-    rateDecider_.SetScaleReferenceSize(width, height);
+    rateDecider_.SetNodeSize(width, height);
+}
+
+void RSAnimationManager::SetRateDeciderScale(float scaleX, float scaleY)
+{
+    rateDecider_.SetNodeScale(scaleX, scaleY);
+}
+
+void RSAnimationManager::SetRateDeciderAbsRect(int32_t width, int32_t height)
+{
+    rateDecider_.SetAbsRect(width, height);
 }
 
 const FrameRateRange& RSAnimationManager::GetDecideFrameRateRange() const

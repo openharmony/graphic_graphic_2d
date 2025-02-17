@@ -74,6 +74,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
     rsSurface.ClearBuffer();
 
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    ASSERT_TRUE(renderContext);
     rsSurface.SetRenderContext(renderContext);
     rsSurface.ClearBuffer();
 

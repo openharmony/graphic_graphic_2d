@@ -32,6 +32,7 @@
 #include "include/core/SkPixmap.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkTypeface.h"
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -47,7 +48,7 @@ std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::sh
 {
     // Create scaled pixelmap
     if (pixmap == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ScaledPixelMap with null pixmap.");
+        EFFECT_LOG_E("[ColorPicker]failed to create ScaledPixelMap with null pixmap.");
         return nullptr;
     }
     OHOS::Media::InitializationOptions options;
@@ -65,14 +66,14 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     uint32_t &errorCode)
 {
     if (pixmap == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with null pixmap.");
+        EFFECT_LOG_E("[ColorPicker]failed to create ColorPicker with null pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
     
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     if (scaledPixelMap == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
+        EFFECT_LOG_E("[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
@@ -85,7 +86,7 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     double* coordinates, uint32_t &errorCode)
 {
     if (pixmap == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with null pixmap.");
+        EFFECT_LOG_E("[ColorPicker]failed to create ColorPicker with null pixmap.");
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
@@ -164,11 +165,6 @@ uint32_t ColorPicker::GetHighestSaturationColor(ColorManager::Color &color) cons
     return SUCCESS;
 }
 
-uint32_t ColorPicker::GetGrayscaleMSD() const
-{
-    return grayMsd_;
-}
-
 uint32_t ColorPicker::GetAverageColor(ColorManager::Color &color) const
 {
     uint32_t colorPicked = 0;
@@ -204,6 +200,443 @@ bool ColorPicker::IsBlackOrWhiteOrGrayColor(uint32_t color) const
         return true;
     }
     return false;
+}
+
+// Transfrom rgb to ligthtness
+uint32_t ColorPicker::RGB2GRAY(uint32_t color) const
+{
+    uint32_t r = GetARGB32ColorR(color);
+    uint32_t g = GetARGB32ColorG(color);
+    uint32_t b = GetARGB32ColorB(color);
+    return static_cast<uint32_t>(r * GRAY_RATIO_RED + g * GRAY_RATIO_GREEN + b * GRAY_RATIO_BLUE);
+}
+
+// Calculate Lightness Variance
+uint32_t ColorPicker::CalcGrayVariance() const
+{
+    long long int grayVariance = 0;
+
+    ColorManager::Color color;
+    bool rst = GetAverageColor(color);
+    if (rst != SUCCESS) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t averageColor = ((color.PackValue() >> 32) & 0xFFFFFFFF);
+    uint32_t averageGray = RGB2GRAY(averageColor);
+    for (size_t i = 0; i < featureColors_.size(); i++) {
+        // 2 is square
+        grayVariance += pow(static_cast<long long int>(RGB2GRAY(featureColors_[i].first)) - averageGray, 2) *
+                        featureColors_[i].second;
+    }
+    grayVariance /= colorValLen_;
+    return static_cast<uint32_t>(grayVariance);
+}
+
+// Relative luminance calculation, normalized to 0 - 1
+double ColorPicker::CalcRelaticeLuminance(uint32_t color) const
+{
+    uint32_t r = GetARGB32ColorR(color);
+    uint32_t g = GetARGB32ColorG(color);
+    uint32_t b = GetARGB32ColorB(color);
+    return (r * LUMINANCE_RATIO_RED + g * LUMINANCE_RATIO_GREEN + b * LUMINANCE_RATIO_BLUE) / 255; // 255 is max value.
+}
+
+double ColorPicker::CalcContrastRatioWithWhite() const
+{
+    double lightColorDegree = 0;
+    for (size_t i = 0; i < featureColors_.size(); i++) {
+        // 0.05 is used to calculate contrast ratio.
+        lightColorDegree += (((1 + 0.05) / (CalcRelaticeLuminance(featureColors_[i].first) + 0.05))
+                            * featureColors_[i].second);
+    }
+    lightColorDegree /= colorValLen_;
+    return lightColorDegree;
+}
+
+// Discriminate wallpaper color shade mode
+uint32_t ColorPicker::DiscriminatePitureLightDegree(PictureLightColorDegree &degree) const
+{
+    if (featureColors_.empty()) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t grayVariance = grayMsd_;
+    // Gray variance less than 6000 means not extremely flowery picture.
+    if (grayVariance < 6000) {
+        double lightColorDegree = contrastToWhite_;
+        // LightColorDegree less than 1.5 means extremely light color picture.
+        if (lightColorDegree < 1.5) {
+            degree = EXTREMELY_LIGHT_COLOR_PICTURE;
+        // LightColorDegree between 1.5 and 1.9 means light color picture.
+        } else if (lightColorDegree >= 1.5 && lightColorDegree < 1.9) {
+            degree = LIGHT_COLOR_PICTURE;
+        // LightColorDegree between 1.9 and 7 means flowery picture.
+        } else if (lightColorDegree >= 1.9 && lightColorDegree <= 7) {
+            degree = FLOWERY_PICTURE;
+        } else {
+            // GrayVariance more than 3000 means dark color picture.
+            if (grayVariance >= 3000) {
+                degree = DARK_COLOR_PICTURE;
+            } else {
+                degree = EXTREMELY_DARK_COLOR_PICTURE;
+            }
+        }
+    } else {
+        degree = EXTREMELY_FLOWERY_PICTURE;
+    }
+    return SUCCESS;
+}
+
+// Reverse picture color
+uint32_t ColorPicker::GetReverseColor(ColorManager::Color &color) const
+{
+    PictureLightColorDegree lightColorDegree;
+    bool rst = DiscriminatePitureLightDegree(lightColorDegree);
+    if (rst != SUCCESS) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    if (lightColorDegree == EXTREMELY_LIGHT_COLOR_PICTURE) {
+        uint32_t black = 0xFF000000;
+        color = ColorManager::Color(black);
+        return SUCCESS;
+    } else {
+        uint32_t white = 0xFFFFFFFF;
+        color = ColorManager::Color(white);
+        return SUCCESS;
+    }
+};
+
+void ColorPicker::GenerateMorandiBackgroundColor(HSV& hsv) const
+{
+    hsv.s = 9; // 9 is morandi background color's saturation.
+    hsv.v = 84; // 84 is morandi background color's value.
+    return;
+}
+
+// Get morandi background color
+uint32_t ColorPicker::GetMorandiBackgroundColor(ColorManager::Color &color) const
+{
+    bool rst = GetLargestProportionColor(color);
+    if (rst != SUCCESS) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t dominantColor = ((color.PackValue() >> 32) & 0xFFFFFFFF);
+    HSV hsv = RGB2HSV(dominantColor);
+    bool isBWGColor = IsBlackOrWhiteOrGrayColor(dominantColor);
+    if (isBWGColor) {
+        uint32_t nextDominantColor = 0;
+        uint32_t nextDominantColorCnt = 0;
+        bool existColor = false;
+        for (size_t i = 0; i < featureColors_.size(); i++) {
+            if (!IsBlackOrWhiteOrGrayColor(featureColors_[i].first) &&
+                featureColors_[i].second > nextDominantColorCnt) {
+                nextDominantColor = featureColors_[i].first;
+                nextDominantColorCnt = featureColors_[i].second;
+                existColor = true;
+            }
+        }
+        if (existColor) {
+            HSV nextColorHsv = RGB2HSV(nextDominantColor);
+            GenerateMorandiBackgroundColor(nextColorHsv);
+            nextDominantColor = HSVtoRGB(nextColorHsv);
+            color = ColorManager::Color(nextDominantColor | 0xFF000000);
+            return SUCCESS;
+        } else {
+            hsv.s = 0;
+            hsv.v = 77; // Adjust value to 77.
+            dominantColor = HSVtoRGB(hsv);
+            color = ColorManager::Color(dominantColor | 0xFF000000);
+            return SUCCESS;
+        }
+    } else {
+        GenerateMorandiBackgroundColor(hsv);
+        dominantColor = HSVtoRGB(hsv);
+        color = ColorManager::Color(dominantColor | 0xFF000000);
+        return SUCCESS;
+    }
+}
+
+void ColorPicker::GenerateMorandiShadowColor(HSV& hsv) const
+{
+    // When hue between 20 and 60, adjust s and v.
+    if (hsv.h > 20 && hsv.h <= 60) {
+        hsv.s = 53; // Adjust saturation to 53.
+        hsv.v = 46; // Adjust value to 46.
+    // When hue between 60 and 190, adjust s and v.
+    } else if (hsv.h > 60 && hsv.h <= 190) {
+        hsv.s = 23; // Adjust saturation to 23.
+        hsv.v = 36; // Adjust value to 36.
+    // When hue between 190 and 270, adjust s and v.
+    } else if (hsv.h > 190 && hsv.h <= 270) {
+        hsv.s = 34; // Adjust saturation to 34.
+        hsv.v = 35; // Adjust value to 35.
+    } else {
+        hsv.s = 48; // Adjust saturation to 48.
+        hsv.v = 40; // Adjust value to 40.
+    }
+}
+
+// Get morandi shadow color
+uint32_t ColorPicker::GetMorandiShadowColor(ColorManager::Color &color) const
+{
+    bool rst = GetLargestProportionColor(color);
+    if (rst != SUCCESS) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t dominantColor = ((color.PackValue() >> 32) & 0xFFFFFFFF);
+
+    HSV hsv = RGB2HSV(dominantColor);
+    bool isBWGColor = IsBlackOrWhiteOrGrayColor(dominantColor);
+    if (isBWGColor) {
+        uint32_t nextDominantColor = 0;
+        uint32_t nextDominantColorCnt = 0;
+        bool existColor = false;
+        for (size_t i = 0; i < featureColors_.size(); i++) {
+            if (!IsBlackOrWhiteOrGrayColor(featureColors_[i].first) &&
+                featureColors_[i].second > nextDominantColorCnt) {
+                nextDominantColor = featureColors_[i].first;
+                nextDominantColorCnt = featureColors_[i].second;
+                existColor = true;
+            }
+        }
+        if (existColor) {
+            HSV nextColorHsv = RGB2HSV(nextDominantColor);
+            GenerateMorandiShadowColor(nextColorHsv);
+            nextDominantColor = HSVtoRGB(nextColorHsv);
+            color = ColorManager::Color(nextDominantColor | 0xFF000000);
+            return SUCCESS;
+        } else {
+            hsv.s = 0;
+            hsv.v = 26; // Adjust value to 26.
+            dominantColor = HSVtoRGB(hsv);
+            color = ColorManager::Color(dominantColor | 0xFF000000);
+            return SUCCESS;
+        }
+    } else {
+        GenerateMorandiShadowColor(hsv);
+        dominantColor = HSVtoRGB(hsv);
+        color = ColorManager::Color(dominantColor | 0xFF000000);
+        return SUCCESS;
+    }
+}
+
+ColorBrightnessMode ColorPicker::DiscriminateDarkOrBrightColor(const HSV& hsv) const
+{
+    // 80 is dark color judgement condition.
+    if (hsv.v <= 80) {
+        return ColorBrightnessMode::DARK_COLOR;
+    } else {
+        // 20 and 50 is color judgement condition.
+        if (hsv.h > 20 && hsv.h <= 50) {
+            // 60 is color judgement condition.
+            if (hsv.s > 60) {
+                return ColorBrightnessMode::HIGH_SATURATION_BRIGHT_COLOR;
+            } else {
+                return ColorBrightnessMode::LOW_SATURATION_BRIGHT_COLOR;
+            }
+        // 50 and 269 is color judgement condition.
+        } else if (hsv.h > 50 && hsv.h <= 269) {
+            // 40 is color judgement condition.
+            if (hsv.s > 40) {
+                return ColorBrightnessMode::DARK_COLOR;
+            } else {
+                return ColorBrightnessMode::LOW_SATURATION_BRIGHT_COLOR;
+            }
+        } else {
+            // // 50 is color judgement condition.
+            if (hsv.s > 50) {
+                return ColorBrightnessMode::HIGH_SATURATION_BRIGHT_COLOR;
+            } else {
+                return ColorBrightnessMode::LOW_SATURATION_BRIGHT_COLOR;
+            }
+        }
+    }
+}
+
+void ColorPicker::ProcessToBrightColor(HSV& hsv) const
+{
+    // Value more than 95, adjust to 95.
+    hsv.v = std::min(hsv.v, 95.0);
+}
+
+void ColorPicker::AdjustToBasicColor(HSV& hsv, double basicS, double basicV) const
+{
+    double x = hsv.s + hsv.v;
+    double y = basicS + basicV;
+    if (x <= y) {
+        return;
+    } else {
+        double z = x - y;
+        hsv.s = hsv.s - hsv.s / x * z;
+        hsv.v = hsv.v - hsv.v / x * z;
+        return;
+    }
+}
+
+void ColorPicker::ProcessToDarkColor(HSV& hsv) const
+{
+    // 18 and 69 is basic color threshold.
+    if (hsv.h >= 18 && hsv.h <= 69) {
+        AdjustToBasicColor(hsv, 70, 60); // 70 and 60 is basic color's s and v
+    // 69 and 189 is basic color threshold.
+    } else if (hsv.h > 69 && hsv.h <= 189) {
+        AdjustToBasicColor(hsv, 50, 50); // 50 is basic color's s and v
+    // 189 and 269 is basic color threshold.
+    } else if (hsv.h > 189 && hsv.h <= 269) {
+        AdjustToBasicColor(hsv, 70, 70); // 70 is basic color's s and v
+    } else {
+        AdjustToBasicColor(hsv, 60, 60); // 60 is basic color's s and v
+    }
+}
+
+void ColorPicker::AdjustLowSaturationBrightColor(HSV &colorHsv, HSV &mainHsv, HSV &secondaryHsv,
+                                                 const std::pair<uint32_t, uint32_t> &primaryColor,
+                                                 const std::pair<uint32_t, uint32_t> &secondaryColor) const
+{
+    if (colorHsv.s >= 10) { // 10 is the saturate's threshold
+        ProcessToBrightColor(mainHsv);
+        colorHsv = mainHsv;
+        return;
+    }
+    ColorBrightnessMode secondaryColorBrightMode = DiscriminateDarkOrBrightColor(secondaryHsv);
+    if (secondaryColorBrightMode == ColorBrightnessMode::LOW_SATURATION_BRIGHT_COLOR) {
+        ProcessToBrightColor(mainHsv);
+        colorHsv = mainHsv;
+    } else {
+        // 10 used to calculate threshold.
+        if (primaryColor.second - secondaryColor.second > colorValLen_ / 10) {
+            ProcessToBrightColor(mainHsv);
+            colorHsv = mainHsv;
+        } else {
+            secondaryHsv.s = 10; // Adjust secondary color's s to 10
+            secondaryHsv.v = 95; // Adjust secondary color's v to 95
+            colorHsv = secondaryHsv;
+        }
+    }
+}
+
+// Get immersive background color
+uint32_t ColorPicker::GetImmersiveBackgroundColor(ColorManager::Color &color) const
+{
+    uint32_t colorPicked = 0;
+    HSV colorHsv;
+    std::pair<uint32_t, uint32_t> primaryColor;
+    std::pair<uint32_t, uint32_t> secondaryColor;
+    if (featureColors_.empty()) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    bool hasPrimaryColor = GetDominantColor(primaryColor, secondaryColor);
+    HSV mainHsv = RGB2HSV(primaryColor.first);
+    HSV secondaryHsv = RGB2HSV(secondaryColor.first);
+    if (hasPrimaryColor || (mainHsv.s >= secondaryHsv.s)) {
+        colorHsv = mainHsv;
+    } else {
+        colorHsv = secondaryHsv;
+    }
+    ColorBrightnessMode colorBrightMode = DiscriminateDarkOrBrightColor(colorHsv);
+    switch (colorBrightMode) {
+        case ColorBrightnessMode::HIGH_SATURATION_BRIGHT_COLOR:
+            ProcessToDarkColor(colorHsv);
+            break;
+        case ColorBrightnessMode::LOW_SATURATION_BRIGHT_COLOR:
+            AdjustLowSaturationBrightColor(colorHsv, mainHsv, secondaryHsv, primaryColor, secondaryColor);
+            break;
+        case ColorBrightnessMode::DARK_COLOR:
+            ProcessToDarkColor(colorHsv);
+            break;
+        default:
+            break;
+    }
+    colorPicked = HSVtoRGB(colorHsv);
+    color = ColorManager::Color(colorPicked | 0xFF000000);
+    return SUCCESS;
+}
+
+// Get immersive foreground color
+uint32_t ColorPicker::GetImmersiveForegroundColor(ColorManager::Color &color) const
+{
+    // Get mask color
+    bool rst = GetImmersiveBackgroundColor(color);
+    if (rst != SUCCESS) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t colorPicked = ((color.PackValue() >> 32) & 0xFFFFFFFF);
+
+    HSV colorHsv = RGB2HSV(colorPicked);
+    ColorBrightnessMode colorBrightMode = DiscriminateDarkOrBrightColor(colorHsv);
+    if ((colorBrightMode == ColorBrightnessMode::HIGH_SATURATION_BRIGHT_COLOR) ||
+        (colorBrightMode == ColorBrightnessMode::DARK_COLOR)) {
+        ProcessToDarkColor(colorHsv);
+        if (colorHsv.s >= 20) { // 20 is saturation threshold.
+            colorHsv.s = 20; // Adjust saturation to 20
+            colorHsv.v = 100; // Adjust value to 100.
+        } else {
+            colorHsv.v = 100; // Adjust value to 100.
+        }
+    } else {
+        ProcessToBrightColor(colorHsv);
+        colorHsv.s = 30; // Adjust saturation to 30.
+        colorHsv.v = 40; // Adjust value to 40.
+    }
+    colorPicked = HSVtoRGB(colorHsv);
+    color = ColorManager::Color(colorPicked | 0xFF000000);
+    return SUCCESS;
+}
+
+bool ColorPicker::GetDominantColor(
+    std::pair<uint32_t, uint32_t>& primaryColor, std::pair<uint32_t, uint32_t>& secondaryColor) const
+{
+    if (featureColors_.empty()) {
+        primaryColor.first = 0;
+        primaryColor.second = 0;
+        secondaryColor.first = 0;
+        secondaryColor.second = 0;
+        return false;
+    }
+    if (featureColors_.size() == 1) {
+        primaryColor.first = featureColors_[0].first;
+        primaryColor.second = featureColors_[0].second;
+        secondaryColor.first = 0;
+        secondaryColor.second = 0;
+        return true;
+    } else {
+        primaryColor.first = featureColors_[0].first;
+        primaryColor.second = featureColors_[0].second;
+        secondaryColor.first = featureColors_[1].first;
+        secondaryColor.second = featureColors_[1].second;
+        // 20 used to calculate threshold.
+        if (primaryColor.second - secondaryColor.second > colorValLen_ / 20) {
+            return true;
+        }
+        return false;
+    }
+}
+
+// Gradient Mask Coloring - Deepening the Immersion Color (Fusing with the Background but Deeper than the Background)
+uint32_t ColorPicker::GetDeepenImmersionColor(ColorManager::Color &color) const
+{
+    uint32_t colorPicked = 0;
+    std::pair<uint32_t, uint32_t> primaryColor;
+    std::pair<uint32_t, uint32_t> secondaryColor;
+    if (featureColors_.empty()) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    bool hasPrimaryColor = GetDominantColor(primaryColor, secondaryColor);
+    if (hasPrimaryColor) {
+        HSV hsv = RGB2HSV(primaryColor.first);
+        if (hsv.v >= 40) { // 40 is value threshold.
+            hsv.v = 30; // Adjust value to 30.
+        } else if (hsv.v >= 20 && hsv.v < 40) { // 20, 40 is value threshold.
+            hsv.v -= 10; // 10 used to decrease value.
+        } else {
+            hsv.v += 20; // 20 used to increse saturation.
+        }
+        colorPicked = HSVtoRGB(hsv);
+    } else {
+        // If there is no dominant color, return black-0x00000000
+        colorPicked = 0xFF000000;
+    }
+    color = ColorManager::Color(colorPicked | 0xFF000000);
+    return SUCCESS;
 }
 
 // Get top proportion colors
@@ -279,7 +712,7 @@ HSV ColorPicker::RGB2HSV(uint32_t rgb) const
     return hsv;
 }
 
-void ColorPicker::AdjustHSVToDefinedIterval(HSV& hsv) const
+void ColorPicker::AdjustHSVToDefinedInterval(HSV& hsv) const
 {
     if (hsv.h > 360) { // Adjust hue to range [0, 360].
         hsv.h = 360; // Adjust hue to range [0, 360].
@@ -307,7 +740,7 @@ uint32_t ColorPicker::HSVtoRGB(HSV hsv) const
 {
     uint32_t r, g, b;
     uint32_t rgb = 0;
-    AdjustHSVToDefinedIterval(hsv);
+    AdjustHSVToDefinedInterval(hsv);
 
     // The brightness is directly proportional to the maximum value that RGB can reach, which is 2.55 times.
     float rgb_max = hsv.v * 2.55f;

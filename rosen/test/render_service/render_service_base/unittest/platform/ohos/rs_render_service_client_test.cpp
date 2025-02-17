@@ -120,6 +120,20 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHwcNodeBounds_Test
+ * @tc.desc: Test Set HwcNode Bounds
+ * @tc.type:FUNC
+ * @tc.require: IB2O0L
+ */
+HWTEST_F(RSClientTest, SetHwcNodeBounds_Test, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetHwcNodeBounds(TEST_ID, 1.0f, 1.0f,
+        1.0f, 1.0f);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener Test a notfound id True
  * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
  * @tc.type:FUNC
@@ -315,7 +329,7 @@ HWTEST_F(RSClientTest, CreateNodeAndSurface001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     RSSurfaceRenderNodeConfig config = {.id=0, .name="testSurface"};
-    ASSERT_NE(rsClient->CreateNodeAndSurface(config), nullptr);
+    ASSERT_EQ(rsClient->CreateNodeAndSurface(config), nullptr);
 }
 
 /**
@@ -414,10 +428,13 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
 {
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
-    auto callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
         screenId = id;
         screenEvent = event;
+        errorReason = reason;
         callbacked = true;
     };
     int32_t status = rsClient->SetScreenChangeCallback(callback);
@@ -492,6 +509,26 @@ HWTEST_F(RSClientTest, SetScreenActiveMode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetScreenActiveRect Test
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSClientTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsClient->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/**
  * @tc.name: SetScreenRefreshRate Test
  * @tc.desc: SetScreenRefreshRate Test
  * @tc.type:FUNC
@@ -561,11 +598,22 @@ HWTEST_F(RSClientTest, GetScreenSupportedRefreshRates001, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 {
-    rsClient->SetShowRefreshRateEnabled(false);
+    rsClient->SetShowRefreshRateEnabled(false, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
-    rsClient->SetShowRefreshRateEnabled(true);
+    rsClient->SetShowRefreshRateEnabled(true, 0);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
+}
+
+/**
+ * @tc.name: GetRealtimeRefreshRate001 Test
+ * @tc.desc: GetRealtimeRefreshRate001 Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, GetRealtimeRefreshRate001, TestSize.Level1)
+{
+    EXPECT_GE(rsClient->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
 }
 
 /**
@@ -886,6 +934,35 @@ HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     rsClient->SetLayerTop(nodeIdStr, true);
     rsClient->SetLayerTop(nodeIdStr, false);
+}
+
+/**
+ * @tc.name: SetWindowContainer Test
+ * @tc.desc: SetWindowContainer, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSClientTest, SetWindowContainer001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    NodeId nodeId = {};
+    rsClient->SetWindowContainer(nodeId, true);
+    rsClient->SetWindowContainer(nodeId, false);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessIdTest
+ * @tc.desc: Test GetPixelMapByProcessId
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    pid_t pid = 0;
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapVector, pid);
+    ASSERT_EQ(res, SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "ui/rs_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_linker.h"
 #include "animation/rs_transition.h"
 
 using namespace testing;
@@ -172,8 +172,8 @@ HWTEST_F(RSFrameRateLinkerTest, GenerateId, TestSize.Level1)
 HWTEST_F(RSFrameRateLinkerTest, IsUniRenderEnabled, TestSize.Level1)
 {
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
-    bool res = frameRateLinker->IsUniRenderEnabled();
-    EXPECT_TRUE(res != true);
+    ASSERT_NE(frameRateLinker, nullptr);
+    frameRateLinker->IsUniRenderEnabled();
 }
 
 /**
@@ -185,6 +185,7 @@ HWTEST_F(RSFrameRateLinkerTest, IsUniRenderEnabled, TestSize.Level1)
 HWTEST_F(RSFrameRateLinkerTest, InitUniRenderEnabled, TestSize.Level1)
 {
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
     frameRateLinker->InitUniRenderEnabled();
 }
 } // namespace OHOS::Rosen

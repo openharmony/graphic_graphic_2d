@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "pixel_map.h"
 
@@ -66,20 +67,17 @@
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
 
-#ifdef RS_ENABLE_RECORDING
-#include "benchmarks/rs_recording_thread.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 
 namespace {
-    bool g_useSharedMem = true;
-    std::thread::id g_tid = std::thread::id();
-    constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+bool g_useSharedMem = true;
+std::thread::id g_tid = std::thread::id();
+std::mutex g_writeMutex;
+constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+thread_local pid_t g_callingPid = 0;
 }
 
- 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
@@ -115,6 +113,7 @@ static bool MarshallingRecordCmdFromDrawCmdList(Parcel& parcel, const std::share
     std::vector<std::shared_ptr<Drawing::RecordCmd>> recordCmdVec;
     uint32_t recordCmdSize = val->GetAllRecordCmd(recordCmdVec);
     if (!parcel.WriteUint32(recordCmdSize)) {
+        ROSEN_LOGE("MarshallingRecordCmdFromDrawCmdList WriteUint32 failed");
         return false;
     }
     if (recordCmdSize == 0) {
@@ -146,10 +145,16 @@ static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<
         ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with max limit");
         return false;
     }
+    uint32_t opItemCount = 0;
     std::vector<std::shared_ptr<Drawing::RecordCmd>> recordCmdVec;
     for (uint32_t i = 0; i < recordCmdSize; i++) {
         std::shared_ptr<Drawing::RecordCmd> recordCmd = nullptr;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, recordCmd)) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, recordCmd, &opItemCount)) {
+            return false;
+        }
+        if (opItemCount > Drawing::MAX_OPITEMSIZE) {
+            ROSEN_LOGE(
+                "unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with max opItemSize");
             return false;
         }
         recordCmdVec.emplace_back(recordCmd);
@@ -166,6 +171,7 @@ bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_pt
     std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
     uint32_t objectSize = val->GetAllExtendObject(objectVec);
     if (!parcel.WriteUint32(objectSize)) {
+        ROSEN_LOGE("MarshallingExtendObjectFromDrawCmdList WriteUint32 failed");
         return false;
     }
     if (objectSize == 0) {
@@ -214,7 +220,11 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val)
 {
     if (!val) {
-        return parcel.WriteUint32(UINT32_MAX);
+        bool flag = parcel.WriteUint32(UINT32_MAX);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteUint32 failed");
+        }
+        return flag;
     }
 
     uint32_t size = val->GetSize();
@@ -225,7 +235,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::D
 
     if (size == 0) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Data size is 0");
-        return parcel.WriteUint32(0);
+        bool flag = parcel.WriteUint32(0);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteUint32 failed");
+        }
+        return flag;
     }
 
     const void* data = val->GetData();
@@ -269,6 +283,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ret = val->BuildFromMalloc(data, size);
     }
     if (!ret) {
+        if (isMalloc) {
+            free(const_cast<void*>(data));
+            data = nullptr;
+        }
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data failed with Build Data");
     }
     return ret;
@@ -370,11 +388,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
+    bool flag;
     if (!val) {
-        return parcel.WriteInt32(-1);
+        flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 -1 failed");
+        }
+        return flag;
     }
     int32_t type = val->IsLazyGenerated();
-    parcel.WriteInt32(type);
+    if (!parcel.WriteInt32(type)) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 type failed");
+    }
     if (type == 1) {
         auto data = val->Serialize();
         return Marshalling(parcel, data);
@@ -395,28 +420,54 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         const void* addr = pixmap.GetAddr();
         size_t size = bitmap.ComputeByteSize();
 
-        parcel.WriteUint32(size);
+        if (!parcel.WriteInt32(size)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 size failed");
+            return false;
+        }
         if (!WriteToParcel(parcel, addr, size)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling Image write parcel failed");
             return false;
         }
-
-        parcel.WriteUint32(rb);
-        parcel.WriteInt32(width);
-        parcel.WriteInt32(height);
-        parcel.WriteUint32(pixmap.GetColorType());
-        parcel.WriteUint32(pixmap.GetAlphaType());
+        if (!parcel.WriteInt32(rb)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 rb failed");
+            return false;
+        }
+        if (!parcel.WriteInt32(width)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 width failed");
+            return false;
+        }
+        if (!parcel.WriteInt32(height)) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 height failed");
+            return false;
+        }
+        if (!parcel.WriteInt32(pixmap.GetColorType())) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 color type failed");
+            return false;
+        }
+        if (!parcel.WriteInt32(pixmap.GetAlphaType())) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 alpha type failed");
+            return false;
+        }
 
         if (pixmap.GetColorSpace() == nullptr) {
-            parcel.WriteUint32(0);
-            return true;
+            flag = parcel.WriteUint32(0);
+            if (!flag) {
+                ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteUint32 0 failed");
+            }
+            return flag;
         } else {
             auto data = pixmap.GetColorSpace()->Serialize();
             if (data == nullptr || data->GetSize() == 0) {
-                parcel.WriteUint32(0);
-                return true;
+                flag = parcel.WriteUint32(0);
+                if (!flag) {
+                    ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteUint32 0 with get size 0 failed");
+                }
+                return flag;
             }
-            parcel.WriteUint32(data->GetSize());
+            if (!parcel.WriteUint32(data->GetSize())) {
+                ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteUint32 get size failed");
+                return false;
+            }
             if (!WriteToParcel(parcel, data->GetData(), data->GetSize())) {
                 ROSEN_LOGE("RSMarshallingHelper::Marshalling data write parcel failed");
                 return false;
@@ -440,10 +491,18 @@ bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_p
             return false;
         }
         if (data->BuildWithoutCopy(dataPtr, size) == false) {
+            if (isMal) {
+                free(const_cast<void*>(dataPtr));
+                dataPtr = nullptr;
+            }
             ROSEN_LOGE("data build without copy failed");
             return false;
         }
         if (colorSpace->Deserialize(data) == false) {
+            if (isMal) {
+                free(const_cast<void*>(dataPtr));
+                dataPtr = nullptr;
+            }
             ROSEN_LOGE("colorSpace deserialize failed");
             return false;
         }
@@ -470,11 +529,23 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     int width = parcel.ReadInt32();
     int height = parcel.ReadInt32();
 
-    Drawing::ColorType colorType = static_cast<Drawing::ColorType>(parcel.ReadUint32());
-    Drawing::AlphaType alphaType = static_cast<Drawing::AlphaType>(parcel.ReadUint32());
+    size_t ct = parcel.ReadUint32();
+    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_UNKNOWN;
+    if (ct >= Drawing::ColorType::COLORTYPE_ALPHA_8 && ct <= Drawing::ColorType::COLORTYPE_RGB_888X) {
+        colorType = static_cast<Drawing::ColorType>(ct);
+    }
+    size_t at = parcel.ReadUint32();
+    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_UNKNOWN;
+    if (at >= Drawing::AlphaType::ALPHATYPE_OPAQUE && at <= Drawing::AlphaType::ALPHATYPE_UNPREMUL) {
+        alphaType = static_cast<Drawing::AlphaType>(at);
+    }
     auto colorSpace = std::make_shared<Drawing::ColorSpace>(Drawing::ColorSpace::ColorSpaceType::NO_TYPE);
 
     if (!ReadColorSpaceFromParcel(parcel, colorSpace)) {
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
 
@@ -559,18 +630,24 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
 // RSShader
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
 {
-    if (!val || !val->GetDrawingShader()) {
+    if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 -1 failed");
+        }
+        return flag;
+    } else {
+        bool flag = parcel.WriteInt32(0);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 0 failed");
+            return false;
+        }
         return parcel.WriteInt32(-1);
     }
-    auto& shaderEffect = val->GetDrawingShader();
-    int32_t type = static_cast<int32_t>(shaderEffect->GetType());
-    std::shared_ptr<Drawing::Data> data = shaderEffect->Serialize();
-    if (!data) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSShader, data is nullptr");
-        return parcel.WriteInt32(-1);
-    }
-    return parcel.WriteInt32(type) && Marshalling(parcel, data);
+    bool success = parcel.WriteInt32(static_cast<int>(val->GetShaderType()));
+    success &= val->Marshalling(parcel);
+    return success;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
@@ -580,19 +657,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         val = nullptr;
         return true;
     }
-    std::shared_ptr<Drawing::Data> data;
-    if (!Unmarshalling(parcel, data) || !data) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, data is nullptr");
+
+    val = RSShader::CreateRSShader(static_cast<RSShader::ShaderType>(type));
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, create RSShader failed");
         return false;
     }
-    auto shaderEffect = std::make_shared<Drawing::ShaderEffect>
-        (static_cast<Drawing::ShaderEffect::ShaderEffectType>(type));
-    if (!shaderEffect->Deserialize(data)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, Deserialize failed");
-        return false;
+
+    bool needReset = false;
+    bool success = val->Unmarshalling(parcel, needReset);
+    if (needReset) {
+        val = nullptr;
     }
-    val = RSShader::CreateRSShader(shaderEffect);
-    return val != nullptr;
+    return success;
 }
 
 // Drawing::Matrix
@@ -637,15 +714,22 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLi
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling RSLinearGradientBlurPara is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 -1 failed");
+        }
+        return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->blurRadius_);
-    success = success && parcel.WriteUint32(static_cast<uint32_t>(val->fractionStops_.size()));
+    success &= parcel.WriteUint32(static_cast<uint32_t>(val->fractionStops_.size()));
     for (size_t i = 0; i < val->fractionStops_.size(); i++) {
-        success = success && Marshalling(parcel, val->fractionStops_[i].first);
-        success = success && Marshalling(parcel, val->fractionStops_[i].second);
+        success &= Marshalling(parcel, val->fractionStops_[i].first);
+        success &= Marshalling(parcel, val->fractionStops_[i].second);
     }
-    success = success && Marshalling(parcel, val->direction_);
+    success &= Marshalling(parcel, val->direction_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSLinearGradientBlurPara failed");
+    }
     return success;
 }
 
@@ -667,19 +751,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
         std::pair<float, float> fractionStop;
         float first = 0.0;
         float second = 0.0;
-        success = success && Unmarshalling(parcel, first);
+        success &= Unmarshalling(parcel, first);
         if (!success) {
             return false;
         }
         fractionStop.first = first;
-        success = success && Unmarshalling(parcel, second);
+        success &= Unmarshalling(parcel, second);
         if (!success) {
             return false;
         }
         fractionStop.second = second;
         fractionStops.push_back(fractionStop);
     }
-    success = success && Unmarshalling(parcel, direction);
+    success &= Unmarshalling(parcel, direction);
     if (success) {
         val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
     }
@@ -690,8 +774,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<MotionBlurParam>& val)
 {
     bool success = Marshalling(parcel, val->radius);
-    success = success && Marshalling(parcel, val->scaleAnchor[0]);
-    success = success && Marshalling(parcel, val->scaleAnchor[1]);
+    success &= Marshalling(parcel, val->scaleAnchor[0]);
+    success &= Marshalling(parcel, val->scaleAnchor[1]);
     return success;
 }
 
@@ -702,8 +786,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
     float anchorY = 0.f;
 
     bool success = Unmarshalling(parcel, radius);
-    success = success && Unmarshalling(parcel, anchorX);
-    success = success && Unmarshalling(parcel, anchorY);
+    success &= Unmarshalling(parcel, anchorX);
+    success &= Unmarshalling(parcel, anchorY);
     Vector2f anchor(anchorX, anchorY);
 
     if (success) {
@@ -716,22 +800,22 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMagnifierParams>& val)
 {
     bool success = Marshalling(parcel, val->factor_);
-    success = success && Marshalling(parcel, val->width_);
-    success = success && Marshalling(parcel, val->height_);
-    success = success && Marshalling(parcel, val->cornerRadius_);
-    success = success && Marshalling(parcel, val->borderWidth_);
-    success = success && Marshalling(parcel, val->offsetX_);
-    success = success && Marshalling(parcel, val->offsetY_);
+    success &= Marshalling(parcel, val->width_);
+    success &= Marshalling(parcel, val->height_);
+    success &= Marshalling(parcel, val->cornerRadius_);
+    success &= Marshalling(parcel, val->borderWidth_);
+    success &= Marshalling(parcel, val->offsetX_);
+    success &= Marshalling(parcel, val->offsetY_);
 
-    success = success && Marshalling(parcel, val->shadowOffsetX_);
-    success = success && Marshalling(parcel, val->shadowOffsetY_);
-    success = success && Marshalling(parcel, val->shadowSize_);
-    success = success && Marshalling(parcel, val->shadowStrength_);
+    success &= Marshalling(parcel, val->shadowOffsetX_);
+    success &= Marshalling(parcel, val->shadowOffsetY_);
+    success &= Marshalling(parcel, val->shadowSize_);
+    success &= Marshalling(parcel, val->shadowStrength_);
  
-    success = success && Marshalling(parcel, val->gradientMaskColor1_);
-    success = success && Marshalling(parcel, val->gradientMaskColor2_);
-    success = success && Marshalling(parcel, val->outerContourColor1_);
-    success = success && Marshalling(parcel, val->outerContourColor2_);
+    success &= Marshalling(parcel, val->gradientMaskColor1_);
+    success &= Marshalling(parcel, val->gradientMaskColor2_);
+    success &= Marshalling(parcel, val->outerContourColor1_);
+    success &= Marshalling(parcel, val->outerContourColor2_);
 
     return success;
 }
@@ -759,35 +843,35 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnif
 
     bool success = Unmarshalling(parcel, factor);
     if (success) { val->factor_ = factor; }
-    success = success && Unmarshalling(parcel, width);
+    success &= Unmarshalling(parcel, width);
     if (success) { val->width_ = width; }
-    success = success && Unmarshalling(parcel, height);
+    success &= Unmarshalling(parcel, height);
     if (success) { val->height_ = height; }
-    success = success && Unmarshalling(parcel, cornerRadius);
+    success &= Unmarshalling(parcel, cornerRadius);
     if (success) { val->cornerRadius_ = cornerRadius; }
-    success = success && Unmarshalling(parcel, borderWidth);
+    success &= Unmarshalling(parcel, borderWidth);
     if (success) { val->borderWidth_ = borderWidth; }
-    success = success && Unmarshalling(parcel, offsetX);
+    success &= Unmarshalling(parcel, offsetX);
     if (success) { val->offsetX_ = offsetX; }
-    success = success && Unmarshalling(parcel, offsetY);
+    success &= Unmarshalling(parcel, offsetY);
     if (success) { val->offsetY_ = offsetY; }
 
-    success = success && Unmarshalling(parcel, shadowOffsetX);
+    success &= Unmarshalling(parcel, shadowOffsetX);
     if (success) { val->shadowOffsetX_ = shadowOffsetX; }
-    success = success && Unmarshalling(parcel, shadowOffsetY);
+    success &= Unmarshalling(parcel, shadowOffsetY);
     if (success) { val->shadowOffsetY_ = shadowOffsetY; }
-    success = success && Unmarshalling(parcel, shadowSize);
+    success &= Unmarshalling(parcel, shadowSize);
     if (success) { val->shadowSize_ = shadowSize; }
-    success = success && Unmarshalling(parcel, shadowStrength);
+    success &= Unmarshalling(parcel, shadowStrength);
     if (success) { val->shadowStrength_ = shadowStrength; }
 
-    success = success && Unmarshalling(parcel, gradientMaskColor1);
+    success &= Unmarshalling(parcel, gradientMaskColor1);
     if (success) { val->gradientMaskColor1_ = gradientMaskColor1; }
-    success = success && Unmarshalling(parcel, gradientMaskColor2);
+    success &= Unmarshalling(parcel, gradientMaskColor2);
     if (success) { val->gradientMaskColor2_ = gradientMaskColor2; }
-    success = success && Unmarshalling(parcel, outerContourColor1);
+    success &= Unmarshalling(parcel, outerContourColor1);
     if (success) { val->outerContourColor1_ = outerContourColor1; }
-    success = success && Unmarshalling(parcel, outerContourColor2);
+    success &= Unmarshalling(parcel, outerContourColor2);
     if (success) { val->outerContourColor2_ = outerContourColor2; }
 
     return success;
@@ -798,12 +882,19 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Emit
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling EmitterUpdater is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 -1 failed");
+        }
+        return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->emitterIndex_);
-    success = success && Marshalling(parcel, val->position_);
-    success = success && Marshalling(parcel, val->emitSize_) ;
-    success = success && Marshalling(parcel, val->emitRate_);
+    success &= Marshalling(parcel, val->position_);
+    success &= Marshalling(parcel, val->emitSize_) ;
+    success &= Marshalling(parcel, val->emitRate_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling EmitterUpdater failed");
+    }
     return success;
 }
 
@@ -819,9 +910,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     std::optional<int> emitRate = std::nullopt;
 
     bool success = Unmarshalling(parcel, emitterIndex);
-    success = success && Unmarshalling(parcel, position);
-    success = success && Unmarshalling(parcel, emitSize);
-    success = success && Unmarshalling(parcel, emitRate);
+    success &= Unmarshalling(parcel, position);
+    success &= Unmarshalling(parcel, emitSize);
+    success &= Unmarshalling(parcel, emitRate);
     if (success) {
         val = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
     }
@@ -831,8 +922,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<EmitterUpdater>>& val)
 {
     bool success = parcel.WriteUint32(static_cast<uint32_t>(val.size()));
-    for (size_t i = 0; i < val.size(); i++) {
-        success = success && Marshalling(parcel, val[i]);
+    for (size_t i = 0; i < val.size() && success; i++) {
+        success &= Marshalling(parcel, val[i]);
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling vector EmitterUpdater failed");
     }
     return success;
 }
@@ -842,12 +936,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdaters;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<EmitterUpdater> emitterUpdater;
-        success = success && Unmarshalling(parcel, emitterUpdater);
+        success &= Unmarshalling(parcel, emitterUpdater);
         emitterUpdaters.push_back(emitterUpdater);
     }
     if (success) {
@@ -860,14 +954,21 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleNoiseField is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleNoiseField WriteInt32 failed");
+        }
+        return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->fieldStrength_);
-    success = success && Marshalling(parcel, val->fieldShape_);
-    success = success && Marshalling(parcel, val->fieldSize_.x_) && Marshalling(parcel, val->fieldSize_.y_);
-    success = success && Marshalling(parcel, val->fieldCenter_.x_) && Marshalling(parcel, val->fieldCenter_.y_);
-    success = success && Marshalling(parcel, val->fieldFeather_) &&  Marshalling(parcel, val->noiseScale_);
-    success = success && Marshalling(parcel, val->noiseFrequency_) &&  Marshalling(parcel, val->noiseAmplitude_);
+    success &= Marshalling(parcel, val->fieldShape_);
+    success &= Marshalling(parcel, val->fieldSize_.x_) && Marshalling(parcel, val->fieldSize_.y_);
+    success &= Marshalling(parcel, val->fieldCenter_.x_) && Marshalling(parcel, val->fieldCenter_.y_);
+    success &= Marshalling(parcel, val->fieldFeather_) &&  Marshalling(parcel, val->noiseScale_);
+    success &= Marshalling(parcel, val->noiseFrequency_) &&  Marshalling(parcel, val->noiseAmplitude_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling  ParticleNoiseField failed");
+    }
     return success;
 }
 
@@ -889,15 +990,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     float noiseAmplitude = 0.f;
 
     bool success = Unmarshalling(parcel, fieldStrength);
-    success = success && Unmarshalling(parcel, fieldShape);
-    success = success && Unmarshalling(parcel, fieldSizeX) && Unmarshalling(parcel, fieldSizeY);
+    success &= Unmarshalling(parcel, fieldShape);
+    success &= Unmarshalling(parcel, fieldSizeX) && Unmarshalling(parcel, fieldSizeY);
     Vector2f fieldSize(fieldSizeX, fieldSizeY);
-    success = success && Unmarshalling(parcel, fieldCenterX) && Unmarshalling(parcel, fieldCenterY);
+    success &= Unmarshalling(parcel, fieldCenterX) && Unmarshalling(parcel, fieldCenterY);
     Vector2f fieldCenter(fieldCenterX, fieldCenterY);
-    success = success && Unmarshalling(parcel, fieldFeather);
-    success = success && Unmarshalling(parcel, noiseScale);
-    success = success && Unmarshalling(parcel, noiseFrequency);
-    success = success && Unmarshalling(parcel, noiseAmplitude);
+    success &= Unmarshalling(parcel, fieldFeather);
+    success &= Unmarshalling(parcel, noiseScale);
+    success &= Unmarshalling(parcel, noiseFrequency);
+    success &= Unmarshalling(parcel, noiseAmplitude);
     if (success) {
         val = std::make_shared<ParticleNoiseField>(fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather,
             noiseScale, noiseFrequency, noiseAmplitude);
@@ -909,11 +1010,18 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleNoiseFields is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleNoiseFields WriteInt32 failed");
+        }
+        return flag;
     }
     bool success = parcel.WriteInt32(1) && parcel.WriteUint32(static_cast<uint32_t>(val->fields_.size()));
-    for (size_t i = 0; i < val->fields_.size(); i++) {
-        success = success && Marshalling(parcel, val->fields_[i]);
+    for (size_t i = 0; i < val->fields_.size() && success; i++) {
+        success &= Marshalling(parcel, val->fields_[i]);
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleNoiseFields failed");
     }
     return success;
 }
@@ -926,13 +1034,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     }
     uint32_t size = parcel.ReadUint32();
     bool success = true;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     std::shared_ptr<ParticleNoiseFields> noiseFields = std::make_shared<ParticleNoiseFields>();
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleNoiseField> ParticleNoiseField;
-        success = success && Unmarshalling(parcel, ParticleNoiseField);
+        success &= Unmarshalling(parcel, ParticleNoiseField);
         noiseFields->AddField(ParticleNoiseField);
     }
     if (success) {
@@ -944,19 +1052,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
 {
     bool success = Marshalling(parcel, val.emitRate_);
-    success = success && Marshalling(parcel, val.emitShape_);
-    success = success && Marshalling(parcel, val.position_.x_);
-    success = success && Marshalling(parcel, val.position_.y_);
-    success = success && Marshalling(parcel, val.emitSize_.x_);
-    success = success && Marshalling(parcel, val.emitSize_.y_);
-    success = success && Marshalling(parcel, val.particleCount_);
-    success = success && Marshalling(parcel, val.lifeTime_.start_);
-    success = success && Marshalling(parcel, val.lifeTime_.end_);
-    success = success && Marshalling(parcel, val.type_);
-    success = success && Marshalling(parcel, val.radius_);
-    success = success && Marshalling(parcel, val.image_);
-    success = success && Marshalling(parcel, val.imageSize_.x_);
-    success = success && Marshalling(parcel, val.imageSize_.y_);
+    success &= Marshalling(parcel, val.emitShape_);
+    success &= Marshalling(parcel, val.position_.x_);
+    success &= Marshalling(parcel, val.position_.y_);
+    success &= Marshalling(parcel, val.emitSize_.x_);
+    success &= Marshalling(parcel, val.emitSize_.y_);
+    success &= Marshalling(parcel, val.particleCount_);
+    success &= Marshalling(parcel, val.lifeTime_.start_);
+    success &= Marshalling(parcel, val.lifeTime_.end_);
+    success &= Marshalling(parcel, val.type_);
+    success &= Marshalling(parcel, val.radius_);
+    success &= Marshalling(parcel, val.image_);
+    success &= Marshalling(parcel, val.imageSize_.x_);
+    success &= Marshalling(parcel, val.imageSize_.y_);
 
     return success;
 }
@@ -979,21 +1087,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     float imageHeight = 0.f;
 
     bool success = Unmarshalling(parcel, emitRate);
-    success = success && Unmarshalling(parcel, emitShape);
-    success = success && Unmarshalling(parcel, positionX);
-    success = success && Unmarshalling(parcel, positionY);
+    success &= Unmarshalling(parcel, emitShape);
+    success &= Unmarshalling(parcel, positionX);
+    success &= Unmarshalling(parcel, positionY);
     Vector2f position(positionX, positionY);
-    success = success && Unmarshalling(parcel, emitSizeWidth);
-    success = success && Unmarshalling(parcel, emitSizeHeight);
+    success &= Unmarshalling(parcel, emitSizeWidth);
+    success &= Unmarshalling(parcel, emitSizeHeight);
     Vector2f emitSize(emitSizeWidth, emitSizeHeight);
-    success = success && Unmarshalling(parcel, particleCount);
-    success = success && Unmarshalling(parcel, lifeTimeStart);
-    success = success && Unmarshalling(parcel, lifeTimeEnd);
-    success = success && Unmarshalling(parcel, particleType);
-    success = success && Unmarshalling(parcel, radius);
+    success &= Unmarshalling(parcel, particleCount);
+    success &= Unmarshalling(parcel, lifeTimeStart);
+    success &= Unmarshalling(parcel, lifeTimeEnd);
+    success &= Unmarshalling(parcel, particleType);
+    success &= Unmarshalling(parcel, radius);
     Unmarshalling(parcel, image);
-    success = success && Unmarshalling(parcel, imageWidth);
-    success = success && Unmarshalling(parcel, imageHeight);
+    success &= Unmarshalling(parcel, imageWidth);
+    success &= Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
     if (success) {
         Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);
@@ -1030,20 +1138,23 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleParaTy
     bool success = Marshalling(parcel, val.val_.start_) && Marshalling(parcel, val.val_.end_) &&
                    Marshalling(parcel, val.updator_);
     if (val.updator_ == ParticleUpdator::RANDOM) {
-        success = success && Marshalling(parcel, val.random_.start_) && Marshalling(parcel, val.random_.end_);
+        success &= Marshalling(parcel, val.random_.start_) && Marshalling(parcel, val.random_.end_);
     } else if (val.updator_ == ParticleUpdator::CURVE) {
-        success = success && parcel.WriteUint32(static_cast<uint32_t>(val.valChangeOverLife_.size()));
+        success &= parcel.WriteUint32(static_cast<uint32_t>(val.valChangeOverLife_.size()));
         for (size_t i = 0; i < val.valChangeOverLife_.size(); i++) {
             if (val.valChangeOverLife_[i] == nullptr || val.valChangeOverLife_[i]->interpolator_ == nullptr) {
                 ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RenderParticleParaType fail cause nullptr");
                 return false;
             }
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->fromValue_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->toValue_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->startMillis_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->endMillis_);
-            success = success && val.valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->fromValue_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->toValue_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->startMillis_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->endMillis_);
+            success &= val.valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
         }
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RenderParticleParaType failed");
     }
     return success;
 }
@@ -1059,7 +1170,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
     bool success =
         Unmarshalling(parcel, valueStart) && Unmarshalling(parcel, valueEnd) && Unmarshalling(parcel, updator);
     if (updator == ParticleUpdator::RANDOM) {
-        success = success && Unmarshalling(parcel, randomStart) && Unmarshalling(parcel, randomEnd);
+        success &= Unmarshalling(parcel, randomStart) && Unmarshalling(parcel, randomEnd);
     } else if (updator == ParticleUpdator::CURVE) {
         uint32_t valChangeOverLifeSize = parcel.ReadUint32();
         if (valChangeOverLifeSize > SIZE_UPPER_LIMIT) {
@@ -1070,10 +1181,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
             float toValue = 0.f;
             int startMillis = 0;
             int endMillis = 0;
-            success = success && Unmarshalling(parcel, fromValue);
-            success = success && Unmarshalling(parcel, toValue);
-            success = success && Unmarshalling(parcel, startMillis);
-            success = success && Unmarshalling(parcel, endMillis);
+            success &= Unmarshalling(parcel, fromValue);
+            success &= Unmarshalling(parcel, toValue);
+            success &= Unmarshalling(parcel, startMillis);
+            success &= Unmarshalling(parcel, endMillis);
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
             auto change = std::make_shared<ChangeInOverLife<float>>(
                 fromValue, toValue, startMillis, endMillis, interpolator);
@@ -1093,26 +1204,26 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleColorP
     bool success = Marshalling(parcel, val.colorVal_.start_) && Marshalling(parcel, val.colorVal_.end_) &&
                    Marshalling(parcel, val.distribution_) && Marshalling(parcel, val.updator_);
     if (val.updator_ == ParticleUpdator::RANDOM) {
-        success = success && Marshalling(parcel, val.redRandom_.start_) && Marshalling(parcel, val.redRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.greenRandom_.start_) && Marshalling(parcel, val.greenRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.blueRandom_.start_) && Marshalling(parcel, val.blueRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.alphaRandom_.start_) && Marshalling(parcel, val.alphaRandom_.end_);
+        success &= Marshalling(parcel, val.redRandom_.start_) && Marshalling(parcel, val.redRandom_.end_);
+        success &= Marshalling(parcel, val.greenRandom_.start_) && Marshalling(parcel, val.greenRandom_.end_);
+        success &= Marshalling(parcel, val.blueRandom_.start_) && Marshalling(parcel, val.blueRandom_.end_);
+        success &= Marshalling(parcel, val.alphaRandom_.start_) && Marshalling(parcel, val.alphaRandom_.end_);
     } else if (val.updator_ == ParticleUpdator::CURVE) {
-        success = success && parcel.WriteUint32(static_cast<uint32_t>(val.valChangeOverLife_.size()));
+        success &= parcel.WriteUint32(static_cast<uint32_t>(val.valChangeOverLife_.size()));
         for (size_t i = 0; i < val.valChangeOverLife_.size(); i++) {
             if (val.valChangeOverLife_[i] == nullptr || val.valChangeOverLife_[i]->interpolator_ == nullptr) {
                 ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RenderParticleColorParaType fail cause nullptr");
                 return false;
             }
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->fromValue_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->toValue_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->startMillis_);
-            success = success && Marshalling(parcel, val.valChangeOverLife_[i]->endMillis_);
-            success = success && val.valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->fromValue_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->toValue_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->startMillis_);
+            success &= Marshalling(parcel, val.valChangeOverLife_[i]->endMillis_);
+            success &= val.valChangeOverLife_[i]->interpolator_->Marshalling(parcel);
         }
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RenderParticleColorParaType failed");
     }
     return success;
 }
@@ -1135,7 +1246,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
     bool success = Unmarshalling(parcel, colorValStart) && Unmarshalling(parcel, colorValEnd) &&
                    Unmarshalling(parcel, distribution) && Unmarshalling(parcel, updator);
     if (updator == ParticleUpdator::RANDOM) {
-        success = success && Unmarshalling(parcel, redRandomStart) && Unmarshalling(parcel, redRandomEnd) &&
+        success &= Unmarshalling(parcel, redRandomStart) && Unmarshalling(parcel, redRandomEnd) &&
                   Unmarshalling(parcel, greenRandomStart) && Unmarshalling(parcel, greenRandomEnd) &&
                   Unmarshalling(parcel, blueRandomStart) && Unmarshalling(parcel, blueRandomEnd) &&
                   Unmarshalling(parcel, alphaRandomStart) && Unmarshalling(parcel, alphaRandomEnd);
@@ -1149,7 +1260,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
             Color toValue = RSColor(0, 0, 0);
             int startMillis = 0;
             int endMillis = 0;
-            success = success && Unmarshalling(parcel, fromValue) && Unmarshalling(parcel, toValue) &&
+            success &= Unmarshalling(parcel, fromValue) && Unmarshalling(parcel, toValue) &&
                       Unmarshalling(parcel, startMillis) && Unmarshalling(parcel, endMillis);
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
             auto change = std::make_shared<ChangeInOverLife<Color>>(
@@ -1173,16 +1284,23 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleRenderParams is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRenderParams WriteInt32 failed");
+        }
+        return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->emitterConfig_);
-    success = success && Marshalling(parcel, val->velocity_);
-    success = success && Marshalling(parcel, val->acceleration_.accelerationValue_);
-    success = success && Marshalling(parcel, val->acceleration_.accelerationAngle_);
-    success = success && Marshalling(parcel, val->color_);
-    success = success && Marshalling(parcel, val->opacity_);
-    success = success && Marshalling(parcel, val->scale_);
-    success = success && Marshalling(parcel, val->spin_);
+    success &= Marshalling(parcel, val->velocity_);
+    success &= Marshalling(parcel, val->acceleration_.accelerationValue_);
+    success &= Marshalling(parcel, val->acceleration_.accelerationAngle_);
+    success &= Marshalling(parcel, val->color_);
+    success &= Marshalling(parcel, val->opacity_);
+    success &= Marshalling(parcel, val->scale_);
+    success &= Marshalling(parcel, val->spin_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRenderParams failed");
+    }
     return success;
 }
 
@@ -1201,14 +1319,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
     bool success = Unmarshalling(parcel, emitterConfig);
-    success = success && Unmarshalling(parcel, velocity);
-    success = success && Unmarshalling(parcel, accelerationValue);
-    success = success && Unmarshalling(parcel, accelerationAngle);
+    success &= Unmarshalling(parcel, velocity);
+    success &= Unmarshalling(parcel, accelerationValue);
+    success &= Unmarshalling(parcel, accelerationAngle);
     RenderParticleAcceleration acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
-    success = success && Unmarshalling(parcel, color);
-    success = success && Unmarshalling(parcel, opacity);
-    success = success && Unmarshalling(parcel, scale);
-    success = success && Unmarshalling(parcel, spin);
+    success &= Unmarshalling(parcel, color);
+    success &= Unmarshalling(parcel, opacity);
+    success &= Unmarshalling(parcel, scale);
+    success &= Unmarshalling(parcel, spin);
     if (success) {
         val =
             std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
@@ -1219,8 +1337,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     bool success = parcel.WriteUint32(static_cast<uint32_t>(val.size()));
-    for (size_t i = 0; i < val.size(); i++) {
-        success = success && Marshalling(parcel, val[i]);
+    for (size_t i = 0; i < val.size() && success; i++) {
+        success &= Marshalling(parcel, val[i]);
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling vector ParticleRenderParams failed");
     }
     return success;
 }
@@ -1230,12 +1351,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
-        success = success && Unmarshalling(parcel, particleRenderParams);
+        success &= Unmarshalling(parcel, particleRenderParams);
         particlesRenderParams.push_back(particleRenderParams);
     }
     if (success) {
@@ -1249,7 +1370,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPa
 {
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSPath is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSPath WriteInt32 failed");
+        }
+        return flag;
     }
     
     std::shared_ptr<Drawing::Data> data = val->GetDrawingPath().Serialize();
@@ -1257,8 +1382,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPa
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Path is nullptr");
         return false;
     }
-
-    return parcel.WriteInt32(1) && Marshalling(parcel, data);
+    bool success = parcel.WriteInt32(1) && Marshalling(parcel, data);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSPath failed");
+    }
+    return success;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>& val)
@@ -1290,9 +1418,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
 {
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSMask is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSMask WriteInt32 failed");
+        }
+        return flag;
     }
-    return parcel.WriteInt32(1) && val->Marshalling(parcel);
+    bool flag = parcel.WriteInt32(1) && val->Marshalling(parcel);
+    if (!flag) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSMask failed");
+    }
+    return flag;
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>& val)
 {
@@ -1308,18 +1444,22 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFilter>& val)
 {
     if (!val) {
-        return parcel.WriteInt32(RSFilter::NONE);
+        bool ret = parcel.WriteInt32(RSFilter::NONE);
+        if (!ret) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSFilter WriteInt32 failed");
+        }
+        return ret;
     }
     bool success = parcel.WriteInt32(static_cast<int>(val->GetFilterType()));
     switch (val->GetFilterType()) {
         case RSFilter::BLUR: {
             auto blur = std::static_pointer_cast<RSBlurFilter>(val);
-            success = success && parcel.WriteFloat(blur->GetBlurRadiusX()) && parcel.WriteFloat(blur->GetBlurRadiusY());
+            success &= parcel.WriteFloat(blur->GetBlurRadiusX()) && parcel.WriteFloat(blur->GetBlurRadiusY());
             break;
         }
         case RSFilter::MATERIAL: {
             auto material = std::static_pointer_cast<RSMaterialFilter>(val);
-            success = success && parcel.WriteFloat(material->radius_) && parcel.WriteFloat(material->saturation_) &&
+            success &= parcel.WriteFloat(material->radius_) && parcel.WriteFloat(material->saturation_) &&
                       parcel.WriteFloat(material->brightness_) &&
                       RSMarshallingHelper::Marshalling(parcel, material->maskColor_) &&
                       parcel.WriteInt32(material->colorMode_);
@@ -1327,11 +1467,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFi
         }
         case RSFilter::LIGHT_UP_EFFECT: {
             auto lightUp = std::static_pointer_cast<RSLightUpEffectFilter>(val);
-            success = success && parcel.WriteFloat(lightUp->lightUpDegree_);
+            success &= parcel.WriteFloat(lightUp->lightUpDegree_);
             break;
         }
         default:
             break;
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSMask failed");
     }
     return success;
 }
@@ -1343,7 +1486,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
         case RSFilter::BLUR: {
             float blurRadiusX;
             float blurRadiusY;
-            success = success && parcel.ReadFloat(blurRadiusX) && parcel.ReadFloat(blurRadiusY);
+            success &= parcel.ReadFloat(blurRadiusX) && parcel.ReadFloat(blurRadiusY);
             if (success) {
                 val = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
             }
@@ -1352,7 +1495,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
         case RSFilter::MATERIAL: {
             MaterialParam materialParam;
             int colorMode;
-            success = success && parcel.ReadFloat(materialParam.radius) && parcel.ReadFloat(materialParam.saturation) &&
+            success &= parcel.ReadFloat(materialParam.radius) && parcel.ReadFloat(materialParam.saturation) &&
                       parcel.ReadFloat(materialParam.brightness) &&
                       RSMarshallingHelper::Unmarshalling(parcel, materialParam.maskColor) &&
                       parcel.ReadInt32(colorMode);
@@ -1363,7 +1506,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
         }
         case RSFilter::LIGHT_UP_EFFECT: {
             float lightUpDegree;
-            success = success && parcel.ReadFloat(lightUpDegree);
+            success &= parcel.ReadFloat(lightUpDegree);
             if (success) {
                 val = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
             }
@@ -1374,6 +1517,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
             break;
         }
     }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSFilter failed");
+    }
     return success;
 }
 
@@ -1382,9 +1528,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSIm
 {
     if (!val) {
         ROSEN_LOGD("RSMarshallingHelper::Marshalling RSImageBase is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSImageBase WriteInt32 failed");
+        }
+        return flag;
     }
-    return parcel.WriteInt32(1) && val->Marshalling(parcel);
+    bool success = parcel.WriteInt32(1) && val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSImageBase failed");
+    }
+    return success;
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImageBase>& val)
 {
@@ -1401,9 +1555,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSIm
 {
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSImage is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSImage WriteInt32 failed");
+        }
+        return flag;
     }
-    return parcel.WriteInt32(1) && val->Marshalling(parcel);
+    bool success = parcel.WriteInt32(1) && val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSImage failed");
+    }
+    return success;
 }
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImage>& val)
 {
@@ -1419,7 +1581,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSImage>
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& val)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling PixelMap WriteInt32 failed");
+        }
+        return flag;
     }
     auto position = parcel.GetWritePosition();
     if (!(parcel.WriteInt32(1) && RS_PROFILER_MARSHAL_PIXELMAP(parcel, val))) {
@@ -1435,7 +1601,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
 #ifdef ROSEN_OHOS
-    MemoryTrack::Instance().RemovePictureRecord(context);
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().RemovePictureRecord(addr);
+    } else {
+        MemoryTrack::Instance().RemovePictureRecord(context);
+    }
 #else
     MemoryTrack::Instance().RemovePictureRecord(addr);
 #endif
@@ -1448,7 +1618,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return true;
     }
     auto readPosition = parcel.GetReadPosition();
-    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         if (readPosition > PIXELMAP_UNMARSHALLING_DEBUG_OFFSET &&
@@ -1463,12 +1636,22 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         
         return false;
     }
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        val->CloseFd();
+    }
+    OHOS::Media::ImageInfo imageInfo;
+    val->GetImageInfo(imageInfo);
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
+        val->GetByteCount(), 0, 0, val->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
 #ifdef ROSEN_OHOS
-    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+    } else {
+        MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+    }
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
@@ -1493,9 +1676,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rect
 {
     if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RectF is nullptr");
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RectT WriteInt32 failed");
+        }
+        return flag;
     }
-    return parcel.WriteInt32(1) && val->Marshalling(parcel);
+    bool success = parcel.WriteInt32(1) && val->Marshalling(parcel);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RectT failed");
+    }
+    return success;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<float>>& val)
@@ -1524,18 +1715,30 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 
 
 // Drawing::DrawCmdList
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
+    bool isRecordCmd)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling DrawCmdList WriteInt32 failed");
+        }
+        return flag;
+    }
+    auto opItemSize = val->GetOpItemSize();
+    if (opItemSize > Drawing::MAX_OPITEMSIZE) {
+        ROSEN_LOGE("OpItemSize is too large, OpItemSize is %{public}zu", opItemSize);
+        return false;
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
+
     parcel.WriteInt32(val->GetWidth());
     parcel.WriteInt32(val->GetHeight());
 
     parcel.WriteBool(val->GetIsCache());
     parcel.WriteBool(val->GetCachedHighContrast());
+    parcel.WriteBool(val->GetNoNeedUICaptured());
     auto replacedOpList = val->GetReplacedOpList();
     parcel.WriteUint32(replacedOpList.size());
     for (size_t i = 0; i < replacedOpList.size(); ++i) {
@@ -1614,15 +1817,53 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
+    std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>> objectNineVec;
+    uint32_t objectNineSize = val->GetAllImageNineObject(objectNineVec);
+    ret &= parcel.WriteUint32(objectNineSize);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageNine");
+        return ret;
+    }
+    if (objectNineSize > 0) {
+        for (const auto& objectNine : objectNineVec) {
+            auto rsNineObject = std::static_pointer_cast<RSExtendImageNineObject>(objectNine);
+            ret &= RSMarshallingHelper::Marshalling(parcel, rsNineObject);
+            if (!ret) {
+                ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageNine");
+                return ret;
+            }
+        }
+    }
+
+    std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>> objectLatticeVec;
+    uint32_t objectLatticeSize = val->GetAllImageLatticeObject(objectLatticeVec);
+    ret &= parcel.WriteUint32(objectLatticeSize);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageLattice");
+        return ret;
+    }
+    if (objectLatticeSize > 0) {
+        for (const auto& objectLattice : objectLatticeVec) {
+            auto rsLatticeObject = std::static_pointer_cast<RSExtendImageLatticeObject>(objectLattice);
+            ret &= RSMarshallingHelper::Marshalling(parcel, rsLatticeObject);
+            if (!ret) {
+                ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageLattice");
+                return ret;
+            }
+        }
+    }
+
     ret &= MarshallingExtendObjectFromDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
         return ret;
     }
-    ret &= MarshallingRecordCmdFromDrawCmdList(parcel, val);
-    if (!ret) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
-        return ret;
+    if (!isRecordCmd) {
+        ret &= MarshallingRecordCmdFromDrawCmdList(parcel, val);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
+            return ret;
+        }
     }
 #ifdef ROSEN_OHOS
     std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
@@ -1651,12 +1892,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     return ret;
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
+    uint32_t* opItemCount)
 {
     int32_t size = parcel.ReadInt32();
     if (size == -1) {
         val = nullptr;
         return true;
+    } else if (size < 0) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList size is invalid!");
+        val = nullptr;
+        return false;
     }
     int32_t width = parcel.ReadInt32();
     int32_t height = parcel.ReadInt32();
@@ -1668,12 +1914,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     bool isCache = parcel.ReadBool();
     bool cachedHighContrast = parcel.ReadBool();
+    bool noNeedUICaptured = parcel.ReadBool();
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
     uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
     if (replacedOpListSize > readableSize) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing readableSize %{public}d less than size %{public}d",
             readableSize, replacedOpListSize);
+        val = nullptr;
+        return false;
+    }
+    if (replacedOpListSize > Drawing::MAX_OPITEMSIZE) {
         val = nullptr;
         return false;
     }
@@ -1705,6 +1956,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     val->SetIsCache(isCache);
     val->SetCachedHighContrast(cachedHighContrast);
+    val->SetNoNeedUICaptured(noNeedUICaptured);
     val->SetReplacedOpList(replacedOpList);
 
     int32_t imageSize = parcel.ReadInt32();
@@ -1740,7 +1992,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool ret = true;
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize > 0) {
-        if (objectSize > PARTICLE_UPPER_LIMIT) {
+        if (objectSize > Drawing::MAX_OPITEMSIZE) {
             return false;
         }
         std::vector<std::shared_ptr<Drawing::ExtendImageObject>> imageObjectVec;
@@ -1759,7 +2011,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t objectBaseSize = parcel.ReadUint32();
     if (objectBaseSize > 0) {
-        if (objectBaseSize > PARTICLE_UPPER_LIMIT) {
+        if (objectBaseSize > Drawing::MAX_OPITEMSIZE) {
             return false;
         }
         std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> ObjectBaseVec;
@@ -1776,29 +2028,72 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupBaseObj(ObjectBaseVec);
     }
 
+    uint32_t objectNineSize = parcel.ReadUint32();
+    if (objectNineSize > 0) {
+        if (objectNineSize > Drawing::MAX_OPITEMSIZE) {
+            return false;
+        }
+        std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>> ObjectNineVec;
+        for (uint32_t i = 0; i < objectNineSize; i++) {
+            std::shared_ptr<RSExtendImageNineObject> objectNine;
+            ret &= RSMarshallingHelper::Unmarshalling(parcel, objectNine);
+            if (!ret) {
+                ROSEN_LOGE(
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectNine: %{public}d", i);
+                return ret;
+            }
+            ObjectNineVec.emplace_back(objectNine);
+        }
+        val->SetupImageNineObject(ObjectNineVec);
+    }
+
+    uint32_t objectLatticeSize = parcel.ReadUint32();
+    if (objectLatticeSize > 0) {
+        if (objectLatticeSize > Drawing::MAX_OPITEMSIZE) {
+            return false;
+        }
+        std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>> ObjectLatticeVec;
+        for (uint32_t i = 0; i < objectLatticeSize; i++) {
+            std::shared_ptr<RSExtendImageLatticeObject> objectLattice;
+            ret &= RSMarshallingHelper::Unmarshalling(parcel, objectLattice);
+            if (!ret) {
+                ROSEN_LOGE(
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectLattice: %{public}d", i);
+                return ret;
+            }
+            ObjectLatticeVec.emplace_back(objectLattice);
+        }
+        val->SetupImageLatticeObject(ObjectLatticeVec);
+    }
+
     ret &= UnmarshallingExtendObjectToDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
         return ret;
     }
 
-    ret &= UnmarshallingRecordCmdToDrawCmdList(parcel, val);
-    if (!ret) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
-        return ret;
+    if (!opItemCount) {
+        ret &= UnmarshallingRecordCmdToDrawCmdList(parcel, val);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
+            return ret;
+        }
     }
 #ifdef ROSEN_OHOS
     uint32_t surfaceBufferEntrySize = parcel.ReadUint32();
     if (surfaceBufferEntrySize > 0) {
-        if (surfaceBufferEntrySize > PARTICLE_UPPER_LIMIT) {
+        if (surfaceBufferEntrySize > Drawing::MAX_OPITEMSIZE) {
             return false;
         }
+        auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+            return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+        };
         std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
         for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
             MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
             uint32_t sequence = 0U;
-            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer);
+            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
             if (retCode != GSERROR_OK) {
                 ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
                 return false;
@@ -1806,7 +2101,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             sptr<SyncFence> acquireFence = nullptr;
             bool hasAcquireFence = parcel.ReadBool();
             if (hasAcquireFence) {
-                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer);
+                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer, readSafeFdFunc);
             }
             std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry =
                 std::make_shared<Drawing::SurfaceBufferEntry>(surfaceBuffer, acquireFence);
@@ -1817,7 +2112,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 #endif
 
     RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
-    val->UnmarshallingDrawOps();
+    val->UnmarshallingDrawOps(opItemCount);
     return ret;
 }
 
@@ -1828,12 +2123,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         return false;
     }
     const auto& rect = val->GetCullRect();
-    return parcel.WriteFloat(rect.GetLeft()) && parcel.WriteFloat(rect.GetTop()) &&
+    bool success = parcel.WriteFloat(rect.GetLeft()) && parcel.WriteFloat(rect.GetTop()) &&
         parcel.WriteFloat(rect.GetRight()) && parcel.WriteFloat(rect.GetBottom()) &&
-        RSMarshallingHelper::Marshalling(parcel, val->GetDrawCmdList());
+        RSMarshallingHelper::Marshalling(parcel, val->GetDrawCmdList(), true);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling RecordCmd failed");
+    }
+    return success;
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val,
+    uint32_t* opItemCount)
 {
     val = nullptr;
     float left = 0;
@@ -1847,7 +2147,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return false;
     }
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    success = RSMarshallingHelper::Unmarshalling(parcel, drawCmdList);
+    success = RSMarshallingHelper::Unmarshalling(parcel, drawCmdList, opItemCount);
     if (!success) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd, drawCmdList unmarshalling failed.");
         return false;
@@ -1860,7 +2160,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageObject>& val)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSExtendImageObject WriteInt32 failed");
+        }
+        return flag;
     }
     if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling imageObject");
@@ -1888,7 +2192,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageBaseObj>& val)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSExtendImageBaseObj WriteInt32 failed");
+        }
+        return flag;
     }
     if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageBaseObj");
@@ -1913,10 +2221,78 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtend
     return true;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageNineObject>& val)
+{
+    if (!val) {
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSExtendImageNineObject WriteInt32 failed");
+        }
+        return flag;
+    }
+    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageNineObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageNineObject>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RSExtendImageNineObject::Unmarshalling(parcel));
+    if (val == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageNineObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageLatticeObject>& val)
+{
+    if (!val) {
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSExtendImageLatticeObject WriteInt32 failed");
+        }
+        return flag;
+    }
+    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageLatticeObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageLatticeObject>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RSExtendImageLatticeObject::Unmarshalling(parcel));
+    if (val == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageLatticeObject");
+        return false;
+    }
+
+    return true;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::MaskCmdList>& val)
 {
     if (!val) {
-        return parcel.WriteInt32(-1);
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling MaskCmdList WriteInt32 failed");
+        }
+        return flag;
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
@@ -2180,6 +2556,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
     }
 
     if (!parcel.WriteUint32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::WriteToParcel WriteUint32 failed");
         return false;
     }
     if (size < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
@@ -2217,8 +2594,22 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
         isMalloc = false;
         return parcel.ReadUnpadBuffer(size);
     }
+    // read from ashmem flow control begins
+    bool success = MemoryFlowControl::Instance().AddAshmemStatistic(g_callingPid, bufferSize);
+    if (!success) {
+        // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
+        isMalloc = false;
+        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromParcel reject ashmem buffer size %" PRIu32
+            " from pid %d", bufferSize, static_cast<int>(g_callingPid));
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel reject ashmem buffer size %{public}" PRIu32
+            " from pid %{public}d", bufferSize, static_cast<int>(g_callingPid));
+        return nullptr;
+    }
     // read from ashmem
-    return RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
+    const void* data = RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
+    // read from ashmem flow control ends
+    MemoryFlowControl::Instance().RemoveAshmemStatistic(g_callingPid, bufferSize);
+    return data;
 }
 
 bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
@@ -2237,7 +2628,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return true;
     }
     // read from ashmem
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     return ashmemAllocator != nullptr;
 }
@@ -2245,7 +2639,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
 {
     isMalloc = false;
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     if (!ashmemAllocator) {
         ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");
@@ -2257,11 +2654,13 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
 
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
 {
+    std::unique_lock<std::mutex> lock(g_writeMutex);
     g_useSharedMem = false;
     g_tid = tid;
 }
 void RSMarshallingHelper::EndNoSharedMem()
 {
+    std::unique_lock<std::mutex> lock(g_writeMutex);
     g_useSharedMem = true;
     g_tid.__reset();
 }
@@ -2284,6 +2683,11 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
         return false;
     }
     return true;
+}
+
+void RSMarshallingHelper::SetCallingPid(pid_t callingPid)
+{
+    g_callingPid = callingPid;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)

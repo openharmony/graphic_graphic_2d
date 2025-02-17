@@ -264,7 +264,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         // Translate
         matrix3D.PreTranslate(-trans_->pivotX_ * width_, -trans_->pivotY_ * height_, 0);
 
-        matrix3D.PostTranslate(x_, y_, z_);
+        matrix3D.PostTranslate(x_, y_);
 
         // Concatenate the 3D matrix with the 2D matrix
         matrix_.PreConcat(matrix3D);
@@ -272,7 +272,11 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         Drawing::Matrix matrix3D;
         Drawing::Camera3D camera;
         // Z Position
-        camera.Translate(0, 0, z_ + trans_->translateZ_);
+        if (isZApplicableCamera3D_) {
+            camera.Translate(0, 0, z_ + trans_->translateZ_);
+        } else {
+            camera.Translate(0, 0, trans_->translateZ_);
+        }
 
         // Set camera distance
         if (trans_->cameraDistance_ == 0) {

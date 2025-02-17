@@ -56,6 +56,11 @@ public:
     }
     virtual void Draw(RSDrawingContext& context) const = 0;
 
+    void SetNoNeedUICaptured(bool noNeedUICaptured)
+    {
+        noNeedUICaptured_ = noNeedUICaptured;
+    }
+
 protected:
     explicit RSExtendedModifier(const RSModifierType type, const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, type)
@@ -92,6 +97,10 @@ protected:
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;
         }
+        if (drawCmdList) {
+            drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
+            drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
+        }
         lastDrawCmdListEmpty_ = isEmpty;
 
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
@@ -108,6 +117,7 @@ protected:
     }
 private:
     bool lastDrawCmdListEmpty_ = false;
+    bool noNeedUICaptured_ = false;
 };
 
 class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {

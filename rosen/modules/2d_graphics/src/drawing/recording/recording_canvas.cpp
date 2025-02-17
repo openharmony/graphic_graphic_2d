@@ -364,6 +364,10 @@ void RecordingCanvas::DrawRecordCmd(const std::shared_ptr<RecordCmd> recordCmd,
         LOGE("RecordingCanvas::DrawRecordCmd, recordCmd is nullptr!");
         return;
     }
+    if (isRecordCmd_) {
+        LOGE("RecordingCanvas::DrawRecordCmd, operation is unsupported!");
+        return;
+    }
     if (!addDrawOpImmediate_) {
         cmdList_->AddDrawOp(std::make_shared<DrawRecordCmdOpItem>(recordCmd, matrix, brush));
         return;
@@ -705,6 +709,11 @@ void RecordingCanvas::SetIsCustomTypeface(bool isCustomTypeface)
 bool RecordingCanvas::IsCustomTypeface() const
 {
     return isCustomTypeface_;
+}
+
+void RecordingCanvas::SetIsRecordCmd(bool isRecordCmd)
+{
+    isRecordCmd_ = isRecordCmd;
 }
 
 void RecordingCanvas::CheckForLazySave()

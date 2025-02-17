@@ -79,7 +79,7 @@ void TypefaceFontAssetProvider::RegisterTypeface(sk_sp<SkTypeface> typeface, std
             auto value = std::make_pair(canonicalName, sk_make_sp<TypefaceFontStyleSet>());
             iter = registeredFamilies_.emplace(value).first;
         }
-        TEXT_LOGI("Reg fontmgr typeface:canonicalName:%{public}s, uniqueid:%{public}u",
+        TEXT_LOGI("Reg fontmgr typeface: family name:%{public}s, uniqueid:%{public}u",
             canonicalName.c_str(), typeface->uniqueID());
         iter->second->registerTypeface(std::move(typeface));
     } else if (iter != registeredFamilies_.end()) {
@@ -91,7 +91,7 @@ void TypefaceFontAssetProvider::RegisterTypeface(sk_sp<SkTypeface> typeface, std
                 break;
             }
         }
-        TEXT_LOGW("Unreg fontmgr typeface:canonicalName:%{public}s", canonicalName.c_str());
+        TEXT_LOGI("Unreg fontmgr typeface: family name:%{public}s", canonicalName.c_str());
     }
 }
 

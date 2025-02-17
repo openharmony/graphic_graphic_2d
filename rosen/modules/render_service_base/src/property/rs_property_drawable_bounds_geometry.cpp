@@ -19,6 +19,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -433,7 +434,8 @@ void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || properties.IsAttractionValid() || !properties.IsShadowValid()) {
+    if (properties.IsSpherizeValid() || properties.IsAttractionValid() || !properties.IsShadowValid() ||
+        properties.GetNeedSkipShadow()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {
@@ -483,7 +485,6 @@ void RSShadowBaseDrawable::ClipShadowPath(
 void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     if (content.GetRenderProperties().GetNeedSkipShadow()) {
-        RS_TRACE_NAME("RSShadowDrawable::Draw NeedSkipShadow");
         return;
     }
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
@@ -927,7 +928,7 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
         canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     }
     canvas.DetachBrush();
 }
@@ -1006,24 +1007,13 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
         return;
     }
 
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    auto pixelMap = image->GetPixelMap();
-    if (pixelMap && pixelMap->IsAstc()) {
-        const void* data = pixelMap->GetPixels();
-        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-        const int seekSize = 16;
-        if (pixelMap->GetCapacity() > seekSize) {
-            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
-        }
-        image->SetCompressData(fileData);
-    }
-#endif
-
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);
-    image->SetInnerRect(std::make_optional<Drawing::RectI>(
-        innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
+    if (innerRect != Vector4f()) {
+        image->SetInnerRect(std::make_optional<Drawing::RectI>(
+            innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
+    }
     image->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
 }
@@ -1048,7 +1038,7 @@ std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderCont
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendFastDrawable>(blendMode, blender);
     }
-    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode, blender);
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode, blendModeApplyType, blender);
 }
 
 std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
@@ -1060,13 +1050,15 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
         // no blend
         return nullptr;
     }
-    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER)) {
+    if (blendModeApplyType != static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendSaveLayerRestoreDrawable>();
     }
     return std::make_unique<RSBlendFastRestoreDrawable>();
 }
 
-RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender)
+RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode, int blendModeApplyType,
+    std::shared_ptr<Drawing::Blender> blender)
+    : blendModeApplyType_(blendModeApplyType)
 {
     if (blender != nullptr) {
         blendBrush_.SetBlender(blender);
@@ -1079,7 +1071,7 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
 {
     if (!canvas.HasOffscreenLayer() &&
         RSPropertiesPainter::IsDangerousBlendMode(
-            static_cast<int>(blendBrush_.GetBlendMode()), static_cast<int>(RSColorBlendApplyType::SAVE_LAYER))) {
+            static_cast<int>(blendBrush_.GetBlendMode()), blendModeApplyType_)) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
         ROSEN_LOGD("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
@@ -1089,7 +1081,9 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
     auto brush = blendBrush_;
-    brush.SetAlphaF(canvas.GetAlpha());
+    if (blendModeApplyType_ == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA)) {
+        brush.SetAlphaF(canvas.GetAlpha());
+    }
     Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, 0);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlendMode(std::nullopt);

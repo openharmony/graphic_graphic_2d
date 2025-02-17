@@ -45,6 +45,7 @@ ohos_source_set("rosen_ohos_sources") {
 
     #overdraw
     "overdraw/rs_cpu_overdraw_canvas_listener.cpp",
+    "overdraw/rs_gpu_overdraw_canvas_listener.cpp",
     "overdraw/rs_listened_canvas.cpp",
     "overdraw/rs_overdraw_controller.cpp",
     "rs_event_detector.cpp",
@@ -83,7 +84,7 @@ ohos_source_set("rosen_ohos_sources") {
         "backend/rs_vulkan_context.cpp",
       ]
     }
-    if (graphic_2d_feature_enable_opengl) {
+    if (graphic_2d_feature_enable_opengl && rs_enable_gpu) {
       sources += [
         "backend/rs_surface_frame_ohos_gl.cpp",
         "backend/rs_surface_ohos_gl.cpp",
@@ -95,7 +96,6 @@ ohos_source_set("rosen_ohos_sources") {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
-      "overdraw/rs_gpu_overdraw_canvas_listener.cpp",
     ]
   }
 
@@ -107,6 +107,8 @@ ohos_source_set("rosen_ohos_sources") {
     } else {
       sources += [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache_utils.cpp" ]
     }
+  } else {
+    defines += [ "IS_ENABLE_DRM" ]
   }
 
   include_dirs = [
@@ -121,12 +123,14 @@ ohos_source_set("rosen_ohos_sources") {
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]
+    defines += [ "RS_PROFILER_BETA_ENABLED" ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
   ]
 
   if (rs_enable_gpu) {

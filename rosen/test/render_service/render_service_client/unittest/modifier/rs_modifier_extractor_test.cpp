@@ -396,6 +396,6 @@ HWTEST_F(RSModifierExtractorTest, GetPersp, TestSize.Level1)
 {
     NodeId id = 1;
     auto extractor = std::make_shared<RSModifierExtractor>(id);
-    EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 0.f));
+    EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
 }
 } // namespace OHOS::Rosen

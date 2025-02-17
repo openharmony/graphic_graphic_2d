@@ -18,17 +18,19 @@
 #include <parameters.h>
 
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+#endif
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "nativetoken_kit.h"
 #include "surface.h"
-#include "pipeline/rs_base_render_util.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "wm/window.h"
 #include "draw/color.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
-#include "token_setproc.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_display_node.h"
@@ -86,6 +88,7 @@ void RSUniRenderTest::TearDownTestCase()
 
 void RSUniRenderTest::SetUp()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     const char **perms = new const char *[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
     NativeTokenInfoParams infoInstance = {
@@ -102,6 +105,7 @@ void RSUniRenderTest::SetUp()
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     delete[] perms;
+#endif
 }
 
 void RSUniRenderTest::TearDown() {}
@@ -112,6 +116,7 @@ void RSUniRenderTest::TearDown() {}
  */
 HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     std::cout << "rs uni render demo start!" << std::endl;
     RSSystemProperties::GetUniRenderEnabled();
     sptr<WindowOption> option = new WindowOption();
@@ -176,6 +181,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
     window->Hide();
     window->Destroy();
     system::SetParameter("rosen.uni.partialrender.enabled", "4");
+#endif
 }
 
 /**
@@ -184,6 +190,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderTest, RSUniRenderTest002, TestSize.Level2)
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     RSSystemProperties::GetUniRenderEnabled();
     sptr<WindowOption> option1 = new WindowOption();
     option1->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -233,5 +240,6 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest002, TestSize.Level2)
     window2->Destroy();
     system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
     system::SetParameter("rosen.uni.partialrender.enabled", "4");
+#endif
 }
 } // namespace OHOS::Rosen

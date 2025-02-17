@@ -18,12 +18,13 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "utils/rect.h"
 #include "utils/region.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -42,6 +43,7 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+#ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -50,15 +52,13 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const auto& params = GetRenderParams();
     if (params == nullptr) {
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
-        RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw params is null, id:%{public}" PRIu64 "", nodeId_);
         return;
     }
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in sudthread
+    if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in subthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
             SetDrawSkipType(DrawSkipType::PARALLEL_CANVAS_SKIP);
-            RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw do not draw startingwindow"
-                " with parallel canvas, id:%{public}" PRIu64 "", nodeId_);
             return;
         }
     }
@@ -69,9 +69,17 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
-        RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw quickReject, and uniParam is nullptr?"
-            " %{public}d, id:%{public}" PRIu64 "", !uniParam, nodeId_);
         return;
+    }
+
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+            return;
+        }
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
@@ -85,6 +93,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSRenderNodeDrawable::OnDraw(canvas);
     }
     RSRenderNodeDrawable::ProcessedNodeCountInc();
+#endif
 }
 
 /*
@@ -92,6 +101,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
  */
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+#ifdef RS_ENABLE_GPU
     if (!ShouldPaint()) {
         return;
     }
@@ -100,6 +110,14 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture node %{public}" PRIu64 " onDraw!!!", GetId());
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
+    }
     if (LIKELY(isDrawingCacheEnabled_)) {
         if (canvas.GetUICapture() && !drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
@@ -108,5 +126,6 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -215,6 +215,11 @@ void Path::SetFillStyle(PathFillType fillstyle)
     impl_->SetFillStyle(fillstyle);
 }
 
+PathFillType Path::GetFillStyle() const
+{
+    return impl_->GetFillStyle();
+}
+
 bool Path::Interpolate(const Path& ending, scalar weight, Path& out)
 {
     return impl_->Interpolate(ending, weight, out);

@@ -50,13 +50,14 @@
         "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
-        "graphic_2d_feature_enable_recording_dcl",
         "graphic_2d_feature_enable_rspipeline",
         "graphic_2d_feature_enable_stack_culling",
         "graphic_2d_feature_enable_vulkan",
         "graphic_2d_feature_use_aps_igameservice_func",
         "graphic_2d_feature_use_igraphics_extend_hooks",
-        "graphic_2d_feature_vkqueue_priority_enable"
+        "graphic_2d_feature_vkqueue_priority_enable",
+        "graphic_2d_feature_bootanimation_ext_enable",
+        "graphic_2d_feature_overlay_display_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -110,7 +111,8 @@
           "libpng",
           "ffrt",
           "libxml2",
-          "skia"
+          "skia",
+          "graphic_2d_ext"
         ],
         "third_party": [
           "skia"
@@ -122,10 +124,10 @@
             "//third_party/libpng:libpng",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
+            "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_packages",
-            "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain:libeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_ndk:native_effect_ndk",
@@ -254,6 +256,7 @@
             "header": {
               "header_files": [
                 "animation/rs_animation_timing_protocol.h",
+                "common/rs_common_def.h",
                 "common/rs_macros.h",
                 "common/rs_rect.h",
                 "common/rs_vector3.h",
@@ -270,6 +273,7 @@
                 "render/rs_path.h",
                 "render/rs_border.h",
                 "render/rs_image_base.h",
+                "screen_manager/screen_types.h",
                 "modifier/rs_animatable_arithmetic.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"
@@ -287,7 +291,6 @@
                 "ui/rs_node.h",
                 "ui/rs_proxy_node.h",
                 "ui/rs_base_node.h",
-                "ui/rs_ui_share_context.h",
                 "ui/rs_ui_director.h",
                 "ui/rs_surface_extractor.h",
                 "ui/rs_surface_node.h",
@@ -463,7 +466,9 @@
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
-          "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo"
+          "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect/test:test",
+          "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",
+          "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk"
         ]
       }
     }

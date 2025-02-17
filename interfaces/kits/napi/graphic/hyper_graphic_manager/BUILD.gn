@@ -48,6 +48,7 @@ ohos_shared_library("libhgmnapi") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "napi:ace_napi",
   ]
 

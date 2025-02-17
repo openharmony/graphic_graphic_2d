@@ -72,9 +72,11 @@ void RSRenderNode::OpincUpdateRootFlag(bool& unchangeMarkEnable)
     if (unchangeMarkEnable) {
         if (IsOpincUnchangeState()) {
             isOpincRootFlag_ = true;
+#ifdef RS_ENABLE_GPU
             if (stagingRenderParams_) {
                 stagingRenderParams_->OpincUpdateRootFlag(true);
             }
+#endif
         }
     }
     if (isUnchangeMarkEnable_) {
@@ -154,6 +156,11 @@ void RSRenderNode::NodeCacheStateChange(NodeChangeType type)
             if (unchangeCount_ > unchangeCountUpper_) {
                 nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
             }
+#ifdef RS_ENABLE_GPU
+            if (stagingRenderParams_) {
+                stagingRenderParams_->OpincSetCacheChangeFlag(false, lastFrameSynced_);
+            }
+#endif
             break;
         case NodeChangeType::SELF_DIRTY:
             NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
@@ -180,10 +187,12 @@ void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)
     if (OpincGetRootFlag()) {
         SetCacheStateByRetrytime();
     }
+#ifdef RS_ENABLE_GPU
     if (stagingRenderParams_) {
         stagingRenderParams_->OpincSetCacheChangeFlag(true, lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(false);
     }
+#endif
     isOpincRootFlag_ = false;
 }
 } // namespace Rosen

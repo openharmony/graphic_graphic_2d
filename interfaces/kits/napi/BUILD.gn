@@ -11,8 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
-
 group("napi_packages") {
   deps = [
     "graphic/animation/window_animation_manager:windowanimationmanager_napi",
@@ -24,9 +22,6 @@ group("napi_packages") {
     "graphic/hyper_graphic_manager:libhgmnapi",
     "graphic/text:textnapi",
     "graphic/ui_effect:uieffect_napi",
+    "graphic/webgl:libwebglnapi",
   ]
-
-  if (rs_enable_gpu) {
-    deps += [ "graphic/webgl:libwebglnapi" ]
-  }
 }

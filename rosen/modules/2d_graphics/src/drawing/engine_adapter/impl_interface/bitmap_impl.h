@@ -34,7 +34,8 @@ public:
     BitmapImpl() {}
     ~BitmapImpl() override {}
 
-    virtual bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0) = 0;
+    virtual bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0,
+        std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr) = 0;
     virtual bool Build(const ImageInfo& imageInfo, int32_t stride = 0) = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;

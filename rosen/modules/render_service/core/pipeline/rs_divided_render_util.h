@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_RENDER_SERVICE_UTIL_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_RENDER_SERVICE_UTIL_H
 
-#include "rs_base_render_util.h"
+#include "render_thread/rs_base_render_util.h"
 
 namespace OHOS {
 namespace Rosen {

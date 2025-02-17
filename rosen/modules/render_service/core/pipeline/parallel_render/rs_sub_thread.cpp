@@ -28,11 +28,11 @@
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "rs_trace.h"
 
@@ -277,6 +277,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
         nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum_--;
+        RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
         return;
     }
     if (nodeDrawable->UseDmaBuffer()) {
@@ -332,13 +333,16 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
-        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        if (!RSSystemProperties::IsPcType()) {
+            useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        }
 #endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
+        MemoryManager::SetGpuMemoryLimit(gpuContext.get());
         return gpuContext;
     }
 #endif
@@ -352,10 +356,16 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         return;
     }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
-    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
-            RSMainThread::Instance()->IsUIFirstOn();
-        bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
+    bool isHdrSurface = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+    if (surfaceParams != nullptr) {
+        isHdrSurface = surfaceParams->GetHDRPresent();
+    }
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool isNeedFP16 = isHdrSurface || isScRGBEnable;
+    bool bufferFormatNeedUpdate = nodeDrawable->BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
+    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface() || bufferFormatNeedUpdate) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, isNeedFP16);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
@@ -377,10 +387,8 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->SetScreenId(nodeDrawable->GetScreenId());
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
+    rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#ifdef RS_ENABLE_GL
-    nodeDrawable->WaitSemaphore();
-#endif
     nodeDrawable->SubDraw(*rscanvas);
     bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);

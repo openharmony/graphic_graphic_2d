@@ -18,7 +18,9 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
+#ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"
+#endif
 
 namespace OHOS::Rosen {
 

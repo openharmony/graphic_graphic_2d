@@ -20,10 +20,7 @@ module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/skia_test"
 
 ohos_unittest("2d_engine_rosen_text_skia_test") {
   module_out_path = module_output_path
-  sources = [
-    "skia_txt_test.cpp",
-    "texgine_test.cpp",
-  ]
+  sources = [ "skia_txt_test.cpp" ]
 
   cflags_cc = [
     "-std=c++17",

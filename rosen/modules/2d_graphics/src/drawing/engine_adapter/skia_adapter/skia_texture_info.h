@@ -42,10 +42,11 @@ public:
     
     static void ConvertToVKTexture(const GrBackendTexture& backendTexture, TextureInfo& info);
 #endif
-
+#ifdef RS_ENABLE_GPU
     static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture);
 
     static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info);
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

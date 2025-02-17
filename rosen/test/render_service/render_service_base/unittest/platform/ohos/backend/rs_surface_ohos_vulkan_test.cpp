@@ -57,6 +57,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
     sptr<Surface> producer = nullptr;
     RSSurfaceOhosVulkan rsSurface(producer);
     rsSurface.ClearBuffer();
+    ASSERT_FALSE(rsSurface.IsValid());
 }
 
 /**
@@ -94,6 +95,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge001, TestSize.Level1)
     sptr<Surface> producer = nullptr;
     RSSurfaceOhosVulkan rsSurface(producer);
     rsSurface.ResetBufferAge();
+    ASSERT_FALSE(rsSurface.IsValid());
 }
 
 /**
@@ -168,6 +170,27 @@ HWTEST_F(RSSurfaceOhosVulkanTest, RequestNativeWindowBuffer001, TestSize.Level1)
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     auto res = rsSurface.RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC);
     EXPECT_TRUE(res != GSERROR_OK);
+}
+/*
+ * Function: PreAllocateProtectedBuffer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create cSurface
+ *                  2. operation: PreAllocateProtectedBuffer
+ *                  3. result: PreAllocateProtectedBuffer return false
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, PreAllocateProtectedBuffer001, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+    int32_t width = 1;
+    int32_t height = 1;
+    bool ret = rsSurface.PreAllocateProtectedBuffer(width, height);
+    EXPECT_FALSE(ret);
 }
 /**
  * @tc.name: RequestFrame001

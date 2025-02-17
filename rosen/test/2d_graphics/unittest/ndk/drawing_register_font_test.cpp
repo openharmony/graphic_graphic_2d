@@ -14,20 +14,21 @@
  */
 
 #include <fstream>
-#include <gtest/gtest.h>
 
 #include "drawing_font_collection.h"
 #include "drawing_register_font.h"
 #include "drawing_text_declaration.h"
+#include "gtest/gtest.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-static const char* g_fontFamily = "Roboto-Black";
-static const char* g_fontPath = "/data/Roboto-Black.ttf";
-
 class NativeDrawingRegisterFontTest : public testing::Test {
+protected:
+    const char* fontFamily_ = "Roboto";
+    const char* existFontPath_ = "/system/fonts/Roboto-Regular.ttf";
+    const char* notExistFontPath_ = "/system/fonts/Roboto-Regular1.ttf";
 };
 
 /*
@@ -38,14 +39,58 @@ class NativeDrawingRegisterFontTest : public testing::Test {
 HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, g_fontFamily, g_fontPath);
-    std::ifstream fileStream(g_fontPath);
-    if (fileStream.is_open()) {
-        EXPECT_EQ(errorCode, 0);
-        fileStream.close();
-    } else {
-        EXPECT_EQ(errorCode, 1);
-    }
+    uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, fontFamily_, notExistFontPath_);
+    EXPECT_EQ(errorCode, 1);
+    errorCode = OH_Drawing_RegisterFont(fontCollection, fontFamily_, existFontPath_);
+    EXPECT_EQ(errorCode, 0);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest002
+ * @tc.desc: test for register font buffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest002, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    std::ifstream fileStream(existFontPath_);
+    ASSERT_TRUE(fileStream.is_open());
+    fileStream.seekg(0, std::ios::end);
+    uint32_t bufferSize = fileStream.tellg();
+    fileStream.seekg(0, std::ios::beg);
+    std::unique_ptr buffer = std::make_unique<uint8_t[]>(bufferSize);
+    fileStream.read(reinterpret_cast<char*>(buffer.get()), bufferSize);
+    fileStream.close();
+    // 测试有效的数据
+    uint32_t result = OH_Drawing_RegisterFontBuffer(fontCollection, fontFamily_, buffer.get(), bufferSize);
+    EXPECT_EQ(result, 0);
+    uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };
+    // 测试无效的数据
+    result = OH_Drawing_RegisterFontBuffer(fontCollection, fontFamily_, invalidBuffer, sizeof(invalidBuffer));
+    OH_Drawing_DestroyFontCollection(fontCollection);
 }
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest003
+ * @tc.desc: test for nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest003, TestSize.Level1)
+{
+    // ERROR_NULL_FONT_COLLECTION is 8
+    const uint32_t nullFontCollection = 8;
+    // ERROR_NULL_FONT_BUFFER is 6
+    const uint32_t nullFontBuffer = 6;
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    uint32_t result = OH_Drawing_RegisterFontBuffer(fontCollection, nullptr, nullptr, 0);
+    EXPECT_EQ(result, nullFontBuffer);
+    result = OH_Drawing_RegisterFontBuffer(nullptr, nullptr, nullptr, 0);
+    EXPECT_EQ(result, nullFontCollection);
+    result = OH_Drawing_RegisterFont(nullptr, nullptr, nullptr);
+    EXPECT_EQ(result, nullFontCollection);
+    result = OH_Drawing_RegisterFont(fontCollection, nullptr, nullptr);
+    EXPECT_EQ(result, nullFontCollection);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+} // namespace OHOS

@@ -37,7 +37,7 @@ public:
     explicit HdiLayer(uint32_t screenId);
     virtual ~HdiLayer();
 
-    static constexpr int FRAME_RECORDS_NUM = 256;
+    static constexpr int FRAME_RECORDS_NUM = 384;
 
     /* output create and set layer info */
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
@@ -127,6 +127,7 @@ private:
                                         std::vector<uint32_t>& deletingList);
 
     int32_t SetPerFrameParameters();
+    int32_t SetPerFrameParameterSdrNit();
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
     int32_t SetPerFrameLayerSourceTuning(); // used for source crop tuning

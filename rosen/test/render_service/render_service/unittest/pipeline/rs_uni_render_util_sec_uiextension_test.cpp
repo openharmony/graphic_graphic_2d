@@ -18,8 +18,8 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_uni_render_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -61,14 +61,15 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, UIExtensionFindAndTraverseAncestor_0
     ASSERT_TRUE(callbackData.empty());
     // hostnode is not surface node
     auto canvasNode = std::make_shared<RSRenderNode>(hostNodeId);
-    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, canvasNode));
+    pid_t hostNodePid = ExtractPid(hostNodeId);
+    nodeMap.renderNodeMap_[hostNodePid].insert(std::pair(hostNodeId, canvasNode));
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
     ASSERT_TRUE(callbackData.empty());
 }
 
 /*
  * @tc.name: UIExtensionFindAndTraverseAncestor_002
- * @tc.desc: test when host node is surface node and one uiextension child, callback data is not empty
+ * @tc.desc: test when host node is surface node and one uiExtension child, callback data is not empty
  * @tc.type: FUNC
  * @tc.require: issueI9SDDH
  */
@@ -86,7 +87,8 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, UIExtensionFindAndTraverseAncestor_0
     hostNode->AddChild(uiExtensionNode);
     hostNode->GenerateFullChildrenList();
     uiExtensionNode->SetIsOnTheTree(true, hostNodeId, INVALID_NODEID, INVALID_NODEID);
-    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+    pid_t hostNodePid = ExtractPid(hostNodeId);
+    nodeMap.renderNodeMap_[hostNodePid].insert(std::pair(hostNodeId, hostNode));
 
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
     ASSERT_FALSE(callbackData.empty());
@@ -107,7 +109,8 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, TraverseAndCollectUIExtensionInfo_00
     auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
     hostNode->AddChild(nullptr);
     hostNode->GenerateFullChildrenList();
-    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+    pid_t hostNodePid = ExtractPid(hostNodeId);
+    nodeMap.renderNodeMap_[hostNodePid].insert(std::pair(hostNodeId, hostNode));
 
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
     ASSERT_TRUE(callbackData.empty());
@@ -130,7 +133,8 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, TraverseAndCollectUIExtensionInfo_00
     auto childNode = std::make_shared<RSRenderNode>(childNodeId);
     hostNode->AddChild(childNode);
     hostNode->GenerateFullChildrenList();
-    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+    pid_t hostNodePid = ExtractPid(hostNodeId);
+    nodeMap.renderNodeMap_[hostNodePid].insert(std::pair(hostNodeId, hostNode));
 
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
     ASSERT_TRUE(callbackData.empty());
@@ -160,7 +164,8 @@ HWTEST_F(RSUniRenderUtilSecUIExtensionTest, TraverseAndCollectUIExtensionInfo_00
 
     hostNode->GenerateFullChildrenList();
     uiExtensionNode->SetIsOnTheTree(true, hostNodeId, INVALID_NODEID, INVALID_NODEID);
-    nodeMap.renderNodeMap_.insert(std::pair(hostNodeId, hostNode));
+    pid_t hostNodePid = ExtractPid(hostNodeId);
+    nodeMap.renderNodeMap_[hostNodePid].insert(std::pair(hostNodeId, hostNode));
 
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(nodeMap, callbackData);
     ASSERT_FALSE(callbackData.empty());

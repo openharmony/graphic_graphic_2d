@@ -147,7 +147,7 @@ int RSInterfaceCodeAccessVerifierBase::GetInterfacePermissionSize() const
 bool RSInterfaceCodeAccessVerifierBase::IsSystemApp()
 {
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    return Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode)

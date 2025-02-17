@@ -106,7 +106,7 @@ HWTEST_F(RSShadowTest, TestRSShadow001, TestSize.Level1)
 {
     RSShadow shadow;
     shadow.SetRadius(0.1);
-    shadow.IsValid();
+    EXPECT_TRUE(shadow.IsValid());
 }
 
 /**

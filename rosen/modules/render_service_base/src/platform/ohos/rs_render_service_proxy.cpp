@@ -39,8 +39,11 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): WriteInterfaceToken failed.");
         return nullptr;
     }
+    if (!data.WriteRemoteObject(token->AsObject())) {
+        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): WriteRemoteObject failed.");
+        return nullptr;
+    }
 
-    data.WriteRemoteObject(token->AsObject());
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -48,6 +51,11 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
         return nullptr;
     }
 
+    bool isReadRemoteObj = reply.ReadBool();
+    if (!isReadRemoteObj) {
+        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): ReadBool failed, connection is nullptr.");
+        return nullptr;
+    }
     auto remoteObj = reply.ReadRemoteObject();
     if (remoteObj == nullptr || !remoteObj->IsProxyObject()) {
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");

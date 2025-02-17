@@ -430,20 +430,6 @@ HWTEST_F(Vector4Test, Multiply003, TestSize.Level1)
 }
 
 /**
- * @tc.name: Div001
- * @tc.desc: test results of Div
- * @tc.type: FUNC
- * @tc.require: issueI9MO8D
- */
-HWTEST_F(Vector4Test, Div001, TestSize.Level1)
-{
-    Vector4 vector(1.f, 4.f, 2.f, 1.f); // for test
-    Vector4 vectorNew(1.f, 2.f, 2.f, 1.f); // for test
-    vector.Div(vectorNew);
-    EXPECT_TRUE(vector.data_[1] == 2.f);
-}
-
-/**
  * @tc.name: Negate001
  * @tc.desc: test results of Negate
  * @tc.type: FUNC

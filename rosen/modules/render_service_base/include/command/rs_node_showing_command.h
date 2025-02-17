@@ -49,6 +49,7 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const
     {
         return property_;
@@ -56,6 +57,10 @@ public:
     bool IsTimeout() const
     {
         return isTimeout_;
+    }
+    uint16_t GetType() const override
+    {
+        return commandType;
     }
 
 private:
@@ -85,10 +90,16 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
 
     const PropertiesMap& GetProperties() const
     {
         return this->propertiesMap_;
+    }
+
+    uint16_t GetType() const override
+    {
+        return commandType;
     }
 
 private:
@@ -115,10 +126,16 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
 
     float GetFraction() const
     {
         return fraction_;
+    }
+
+    uint16_t GetType() const override
+    {
+        return commandType;
     }
 
 private:

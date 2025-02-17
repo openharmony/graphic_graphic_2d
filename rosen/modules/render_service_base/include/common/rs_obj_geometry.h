@@ -51,7 +51,8 @@ public:
 
 class RSObjGeometry {
 public:
-    RSObjGeometry() : x_(-INFINITY), y_(-INFINITY), z_(0.0f), width_(-INFINITY), height_(-INFINITY) {}
+    RSObjGeometry() : x_(-INFINITY), y_(-INFINITY), z_(0.0f), width_(-INFINITY), height_(-INFINITY),
+        isZApplicableCamera3D_(true) {}
 
     virtual ~RSObjGeometry() = default;
 
@@ -278,6 +279,10 @@ public:
         }
         trans_->quaternion_ = quaternion;
     }
+    void SetZApplicableCamera3D(bool isApplicable)
+    {
+        isZApplicableCamera3D_ = isApplicable;
+    }
 
     float GetX() const
     {
@@ -387,6 +392,10 @@ public:
     {
         return width_ <= 0 && height_ <= 0;
     }
+    bool GetZApplicableCamera3D() const
+    {
+        return isZApplicableCamera3D_;
+    }
     void Round()
     {
         x_ = std::floor(x_);
@@ -408,6 +417,7 @@ protected:
     float z_;
     float width_;
     float height_;
+    bool isZApplicableCamera3D_;
     std::optional<RSTransform> trans_;
 };
 } // namespace Rosen

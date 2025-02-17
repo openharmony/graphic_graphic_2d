@@ -61,7 +61,6 @@ protected:
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
     bool recordingUpdated_ = false;
-    bool hdrPresent_ = false;
     mutable std::mutex mutex_;
 
     friend class RSUIDirector;
@@ -70,7 +69,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
     void OnBoundsSizeChanged() const override;
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
     pid_t tid_;
 };
 } // namespace Rosen

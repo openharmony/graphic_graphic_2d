@@ -53,7 +53,11 @@ std::shared_ptr<Drawing::Image> GEGreyShaderFilter::ProcessImage(Drawing::Canvas
     builder.SetChild("imageShader", imageShader);
     builder.SetUniform("coefficient1", greyCoef1_);
     builder.SetUniform("coefficient2", greyCoef2_);
+#ifdef RS_ENABLE_GPU
     auto greyImage = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
+#else
+    auto greyImage = builder.MakeImage(nullptr, nullptr, image->GetImageInfo(), false);
+#endif
     if (greyImage == nullptr) {
         LOGE("DrawGreyAdjustment successful");
         return image;

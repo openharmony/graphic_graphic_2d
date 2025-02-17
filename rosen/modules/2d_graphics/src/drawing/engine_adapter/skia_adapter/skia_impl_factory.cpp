@@ -23,9 +23,11 @@
 #include "skia_adapter/skia_color_filter.h"
 #include "skia_adapter/skia_color_space.h"
 #include "skia_adapter/skia_data.h"
+#include "skia_adapter/skia_document.h"
 #ifdef RS_ENABLE_GPU
 #include "skia_adapter/skia_gpu_context.h"
 #endif
+#include "skia_adapter/skia_file_w_stream.h"
 #include "skia_adapter/skia_font.h"
 #include "skia_adapter/skia_font_mgr.h"
 #include "skia_adapter/skia_hm_symbol_config_ohos.h"
@@ -36,10 +38,14 @@
 #include "skia_adapter/skia_matrix44.h"
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_path_effect.h"
+#include "skia_adapter/skia_path_iterator.h"
 #include "skia_adapter/skia_picture.h"
+#include "skia_adapter/skia_picture_recorder.h"
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_resource_holder.h"
+#include "skia_adapter/skia_serial_procs.h"
 #include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_sharing_serial_context.h"
 #include "skia_adapter/skia_runtime_blender_builder.h"
 #include "skia_adapter/skia_runtime_effect.h"
 #include "skia_adapter/skia_runtime_shader_builder.h"
@@ -60,12 +66,6 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas()
 std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(DrawingType type)
 {
     return std::make_unique<SkiaCanvas>(type);
-}
-
-std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanvas)
-{
-    auto skCanvasPtr = reinterpret_cast<std::shared_ptr<SkCanvas>*>(rawCanvas);
-    return std::make_unique<SkiaCanvas>(*skCanvasPtr);
 }
 
 std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(int32_t width, int32_t height)
@@ -121,9 +121,34 @@ std::unique_ptr<PictureImpl> SkiaImplFactory::CreatePicture()
     return std::make_unique<SkiaPicture>();
 }
 
+std::unique_ptr<PictureRecorderImpl> SkiaImplFactory::CreatePictureRecorder()
+{
+    return std::make_unique<SkiaPictureRecorder>();
+}
+
+std::unique_ptr<SerialProcsImpl> SkiaImplFactory::CreateSerialProcs()
+{
+    return std::make_unique<SkiaSerialProcs>();
+}
+
+std::unique_ptr<SharingSerialContextImpl> SkiaImplFactory::CreateSharingSerialContext()
+{
+    return std::make_unique<SkiaSharingSerialContext>();
+}
+
+std::unique_ptr<FileWStreamImpl> SkiaImplFactory::CreateFileWStream(const char path[])
+{
+    return std::make_unique<SkiaFileWStream>(path);
+}
+
 std::unique_ptr<PathImpl> SkiaImplFactory::CreatePath()
 {
     return std::make_unique<SkiaPath>();
+}
+
+std::unique_ptr<PathIteratorImpl> SkiaImplFactory::CreatePathIterator(const Path& path)
+{
+    return std::make_unique<SkiaPathIterator>(path);
 }
 
 std::unique_ptr<ColorFilterImpl> SkiaImplFactory::CreateColorFilter()

@@ -49,5 +49,101 @@ HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest, TestSize.Level1)
     greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest001
+ * @tc.desc: greyCoefLow is invalid
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest001, TestSize.Level1)
+{
+    float greyCoefLow = -1.f;
+    float greyCoefHigh = 0.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest002
+ * @tc.desc: greyCoefLow is max
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest002, TestSize.Level1)
+{
+    float greyCoefLow = 10000000.f;
+    float greyCoefHigh = 0.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest003
+ * @tc.desc: greyCoefHigh is invalid
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest003, TestSize.Level1)
+{
+    float greyCoefLow = 0.f;
+    float greyCoefHigh = -1.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest004
+ * @tc.desc: greyCoefHigh is max
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest004, TestSize.Level1)
+{
+    float greyCoefLow = 0.f;
+    float greyCoefHigh = 100000.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest004
+ * @tc.desc: greyCoefHigh and greyCoefLow is invalid
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest005, TestSize.Level1)
+{
+    float greyCoefLow = -1.f;
+    float greyCoefHigh = -1.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GenerateGEVisualEffectTest004
+ * @tc.desc: greyCoefHigh and greyCoefLow is max
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSGreyShaderFilterTest, GenerateGEVisualEffectTest006, TestSize.Level1)
+{
+    float greyCoefLow = 10000000.f;
+    float greyCoefHigh = 10000000.f;
+    auto greyShaderFilter = std::make_shared<RSGreyShaderFilter>(greyCoefLow, greyCoefHigh);
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    greyShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
 } // namespace Rosen
 } // namespace OHOS

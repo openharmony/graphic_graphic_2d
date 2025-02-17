@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GL))
 #include <GLES/gl.h>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -24,12 +24,15 @@
 #include "GLES2/gl2ext.h"
 #endif
 
+#include "common/rs_common_def.h"
+
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "render/rs_image.h"
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "surface_type.h"
 #include "sync_fence.h"
 #include "external_window.h"
 #endif
@@ -43,18 +46,20 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
-          pid_(pid), uid_(uid), acquireFence_(acquireFence)
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr,
+        GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+        Drawing::Rect srcRect = {})
+        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
+          dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
+          acquireFence_(acquireFence), transform_(transform)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
-    int offSetX_ = 0;
-    int offSetY_ = 0;
-    int width_ = 0;
-    int height_ = 0;
+    Drawing::Rect srcRect_;
+    Drawing::Rect dstRect_;
     pid_t pid_ = {};
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
+    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 };
 #endif
 
@@ -112,6 +117,36 @@ public:
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
+    void SetNodeId(NodeId id) override;
+    void Purge() override;
+protected:
+    std::shared_ptr<RSImageBase> rsImage_;
+};
+
+class RSB_EXPORT RSExtendImageNineObject : public Drawing::ExtendImageNineObject {
+public:
+    RSExtendImageNineObject() = default;
+    RSExtendImageNineObject(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    ~RSExtendImageNineObject() override = default;
+    void Playback(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode) override;
+    bool Marshalling(Parcel &parcel) const;
+    static RSExtendImageNineObject *Unmarshalling(Parcel &parcel);
+    void SetNodeId(NodeId id) override;
+    void Purge() override;
+protected:
+    std::shared_ptr<RSImageBase> rsImage_;
+};
+
+class RSB_EXPORT RSExtendImageLatticeObject : public Drawing::ExtendImageLatticeObject {
+public:
+    RSExtendImageLatticeObject() = default;
+    RSExtendImageLatticeObject(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    ~RSExtendImageLatticeObject() override = default;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode) override;
+    bool Marshalling(Parcel &parcel) const;
+    static RSExtendImageLatticeObject *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
     void Purge() override;
 protected:
@@ -245,15 +280,110 @@ private:
     std::shared_ptr<ExtendDrawFuncObj> objectHandle_;
 };
 
+class DrawPixelMapNineOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const Drawing::RectI& center,
+            const Drawing::Rect& dst, Drawing::FilterMode filterMode, const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::PIXELMAP_NINE_OPITEM), objectHandle(objectHandle), center(center),
+              dst(dst), filterMode(filterMode), paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        Drawing::RectI center;
+        Drawing::Rect dst;
+        FilterMode filterMode;
+        PaintHandle paintHandle;
+    };
+    DrawPixelMapNineOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::RectI& center,
+        const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint);
+    ~DrawPixelMapNineOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
+private:
+    Drawing::RectI center_;
+    Drawing::Rect dst_;
+    FilterMode filterMode_;
+    std::shared_ptr<ExtendImageNineObject> objectHandle_;
+};
+
+class DrawPixelMapLatticeOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const LatticeHandle& latticeHandle,
+            const Drawing::Rect& dst, Drawing::FilterMode filterMode, const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::PIXELMAP_LATTICE_OPITEM), objectHandle(objectHandle), latticeHandle(latticeHandle),
+              dst(dst), filterMode(filterMode), paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        LatticeHandle latticeHandle;
+        Drawing::Rect dst;
+        FilterMode filterMode;
+        PaintHandle paintHandle;
+    };
+    DrawPixelMapLatticeOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Lattice& lattice,
+        const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint);
+    ~DrawPixelMapLatticeOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
+private:
+    Drawing::Lattice lattice_;
+    Drawing::Rect dst_;
+    FilterMode filterMode_;
+    std::shared_ptr<ExtendImageLatticeObject> objectHandle_;
+};
+
 #ifdef ROSEN_OHOS
+struct RSB_EXPORT DrawSurfaceBufferFinishCbData {
+    uint64_t uid;
+    pid_t pid;
+    uint32_t surfaceBufferId;
+    NodeId rootNodeId = INVALID_NODEID;
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    bool isRendered = false;
+    bool isNeedTriggerCbDirectly = false;
+};
+ 
+struct RSB_EXPORT DrawSurfaceBufferAfterAcquireCbData {
+    uint64_t uid;
+    pid_t pid;
+};
+
+struct RSB_EXPORT DrawSurfaceBufferOpItemCb {
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> OnFinish;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> OnAfterAcquireBuffer;
+};
+
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
+            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
-            paintHandle(paintHandle) {}
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect),
+              paintHandle(paintHandle)
+        {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;
@@ -269,16 +399,34 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     virtual void DumpItems(std::string& out) const override;
-    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(DrawSurfaceBufferOpItemCb callbacks);
+    RSB_EXPORT static void RegisterGetRootNodeIdFuncForRT(std::function<NodeId()> func);
+    RSB_EXPORT static void SetIsUniRender(bool isUniRender);
 private:
+    void OnAfterAcquireBuffer();
+    void OnBeforeDraw();
+    void OnAfterDraw();
     void OnDestruct();
+    void ReleaseBuffer();
     void Clear();
+    void DealWithRotate(Canvas* canvas);
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
-    Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    bool IsNeedDrawDirectly() const;
+    static Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+#ifdef RS_ENABLE_GL
+    static GLenum GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType);
+#endif
+    static GraphicTransformType MapGraphicTransformType(GraphicTransformType origin);
+    static bool IsValidRemoteAddress(pid_t pid, uint64_t uid);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    NodeId rootNodeId_ = INVALID_NODEID;
+    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    bool isRendered_ = false;
+    bool isNeedRotateDstRect_ = false;
+    bool isNeedDrawDirectly_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

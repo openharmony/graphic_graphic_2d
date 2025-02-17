@@ -57,7 +57,7 @@ void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
     float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
 {
     response_ = response;
-    dampingRatio_ = dampingRatio;
+    dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
 }
@@ -73,68 +73,6 @@ void RSRenderInterpolatingSpringAnimation::SetZeroThreshold(float zeroThreshold)
     zeroThreshold_ = zeroThreshold;
     needLogicallyFinishCallback_ = true;
 }
-
-#ifdef ROSEN_OHOS
-bool RSRenderInterpolatingSpringAnimation::Marshalling(Parcel& parcel) const
-{
-    if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, RenderPropertyAnimation failed");
-        return false;
-    }
-    if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_))) {
-        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, MarshallingHelper failed");
-        return false;
-    }
-
-    if (!(RSMarshallingHelper::Marshalling(parcel, response_) &&
-            RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Marshalling(parcel, normalizedInitialVelocity_) &&
-            RSMarshallingHelper::Marshalling(parcel, minimumAmplitudeRatio_) &&
-            RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
-        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::Marshalling, invalid parametter failed");
-        return false;
-    }
-
-    return true;
-}
-
-RSRenderInterpolatingSpringAnimation* RSRenderInterpolatingSpringAnimation::Unmarshalling(Parcel& parcel)
-{
-    auto* renderInterpolatingSpringAnimation = new RSRenderInterpolatingSpringAnimation();
-    if (!renderInterpolatingSpringAnimation->ParseParam(parcel)) {
-        ROSEN_LOGE("RenderInterpolatingSpringAnimation::Unmarshalling, failed");
-        delete renderInterpolatingSpringAnimation;
-        return nullptr;
-    }
-    return renderInterpolatingSpringAnimation;
-}
-
-bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
-{
-    if (!RSRenderPropertyAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, ParseParam Fail");
-        return false;
-    }
-
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
-        return false;
-    }
-
-    if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, normalizedInitialVelocity_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, minimumAmplitudeRatio_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
-        return false;
-    }
-
-    return true;
-}
-#endif
 
 void RSRenderInterpolatingSpringAnimation::OnSetFraction(float fraction)
 {

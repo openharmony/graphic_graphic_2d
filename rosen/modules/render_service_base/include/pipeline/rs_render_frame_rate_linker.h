@@ -23,16 +23,20 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSIFrameRateLinkerExpectedFpsUpdateCallback;
 class RSB_EXPORT RSRenderFrameRateLinker : public std::enable_shared_from_this<RSRenderFrameRateLinker> {
 public:
+    using ObserverType = std::function<void (const RSRenderFrameRateLinker&)>;
+    explicit RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer);
+    explicit RSRenderFrameRateLinker(ObserverType observer);
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id);
     explicit RSRenderFrameRateLinker();
 
-    RSRenderFrameRateLinker(const RSRenderFrameRateLinker&) = delete;
-    RSRenderFrameRateLinker(const RSRenderFrameRateLinker&&) = delete;
-    RSRenderFrameRateLinker& operator=(const RSRenderFrameRateLinker&) = delete;
-    RSRenderFrameRateLinker& operator=(const RSRenderFrameRateLinker&&) = delete;
-    ~RSRenderFrameRateLinker() = default;
+    RSRenderFrameRateLinker(const RSRenderFrameRateLinker& other);
+    RSRenderFrameRateLinker(const RSRenderFrameRateLinker&& other);
+    RSRenderFrameRateLinker& operator=(const RSRenderFrameRateLinker& other);
+    RSRenderFrameRateLinker& operator=(const RSRenderFrameRateLinker&& other);
+    ~RSRenderFrameRateLinker();
 
     inline FrameRateLinkerId GetId() const
     {
@@ -49,13 +53,20 @@ public:
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);
     uint32_t GetFrameRate() const;
-    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
+
+    void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
 private:
     static FrameRateLinkerId GenerateId();
+    void Copy(const RSRenderFrameRateLinker&& other);
+    void Notify();
+
     FrameRateLinkerId id_ = 0;
+    ObserverType observer_ = nullptr; // will not be copied to other obj
     FrameRateRange expectedRange_;
     uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
+
+    std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #include "ge_visual_effect_fuzzer.h"
 #include "get_object.h"
 #include "ge_render.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -67,15 +68,10 @@ bool GEVisualEffectFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    GETest::g_data = data;
-    GETest::g_size = size;
-    GETest::g_pos = 0;
-
-    DrawingPaintType type = GETest::GetPlainData<DrawingPaintType>();
-    auto geVisualEffect = std::make_shared<GEVisualEffect>("test", type);
-    std::string tag = GETest::GetStringFromData(STR_LEN);
-    int32_t param = GETest::GetPlainData<int32_t>();
+    FuzzedDataProvider fdp(data, size);
+    auto geVisualEffect = std::make_shared<GEVisualEffect>("test");
+    std::string tag = fdp.ConsumeRandomLengthString(STR_LEN);
+    int32_t param = fdp.ConsumeIntegral<int32_t>();
     geVisualEffect->SetParam(tag, param);
     return true;
 }

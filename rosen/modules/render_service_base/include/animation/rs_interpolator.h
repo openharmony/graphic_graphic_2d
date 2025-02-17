@@ -29,6 +29,8 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int MAX_SAMPLE_POINTS = 300;
+static constexpr int MIN_SAMPLE_POINTS = 2;
 
 enum InterpolatorType : uint16_t {
     LINEAR = 1,
@@ -48,6 +50,7 @@ public:
 
     float Interpolate(float input);
     virtual InterpolatorType GetType() = 0;
+    static void Init();
 protected:
     RSInterpolator();
     RSInterpolator(uint64_t id) : id_(id) {};
@@ -56,6 +59,7 @@ protected:
 private:
     virtual float InterpolateImpl(float input) const = 0;
     static uint64_t GenerateId();
+    [[nodiscard]] static RSInterpolator* UnmarshallingFromParcel(Parcel& parcel);
     float prevInput_ { -1.0f };
     float prevOutput_ { -1.0f };
 };

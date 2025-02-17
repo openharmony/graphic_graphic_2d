@@ -19,7 +19,9 @@
 
 #include "js_drawing_utils.h"
 #include "matrix_napi/js_matrix.h"
+#include "path_iterator_napi/js_path_iterator.h"
 #include "roundRect_napi/js_roundrect.h"
+#include "utils/performanceCaculate.h"
 
 #include "matrix_napi/js_matrix.h"
 
@@ -60,6 +62,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
+    DECLARE_NAPI_FUNCTION("getPathIterator", JsPath::GetPathIterator),
 };
 
 napi_value JsPath::Init(napi_env env, napi_value exportObj)
@@ -140,25 +143,27 @@ void JsPath::Destructor(napi_env env, void *nativeObject, void *finalize)
 napi_value JsPath::CreateJsPath(napi_env env, Path* path)
 {
     napi_value constructor = nullptr;
-    napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
-    if (status == napi_ok) {
-        auto jsPath = new JsPath(path);
-        napi_create_object(env, &result);
-        if (result == nullptr) {
-            delete jsPath;
-            ROSEN_LOGE("JsPath::CreateJsPath Create path object failed!");
-            return nullptr;
-        }
-        status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
-        if (status != napi_ok) {
-            delete jsPath;
-            ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
-            return nullptr;
-        }
-        napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
-        return result;
+    if (status != napi_ok) {
+        delete path;
+        ROSEN_LOGE("JsPath::CreateJsPath failed to get reference value!");
+        return nullptr;
     }
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        delete path;
+        ROSEN_LOGE("JsPath::CreateJsPath create object failed!");
+        return nullptr;
+    }
+    JsPath* jsPath = new JsPath(path);
+    status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsPath;
+        ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
 
@@ -354,6 +359,13 @@ napi_value JsPath::Op(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnOp(env, info) : nullptr;
+}
+
+napi_value JsPath::GetPathIterator(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetPathIterator(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -729,6 +741,7 @@ napi_value JsPath::OnGetLength(napi_env env, napi_callback_info info)
 
     bool forceClosed = false;
     GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
+
     double len = m_path->GetLength(forceClosed);
     return CreateJsNumber(env, len);
 }
@@ -1089,6 +1102,18 @@ napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
 
     bool result = m_path->IsClosed(false);
     return CreateJsValue(env, result);
+}
+
+napi_value JsPath::OnGetPathIterator(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetPathIterator path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    PathIterator *iter = new PathIterator(*m_path);
+    return JsPathIterator::CreateJsPathIterator(env, iter);
 }
 
 Path* JsPath::GetPath()

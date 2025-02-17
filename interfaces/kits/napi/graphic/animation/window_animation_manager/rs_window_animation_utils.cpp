@@ -21,7 +21,7 @@
 
 #include "ui/rs_proxy_node.h"
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
+#include "accesstoken_kit.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -150,7 +150,7 @@ napi_value RSWindowAnimationUtils::CreateJsRRect(napi_env env, const RRect& rrec
 bool RSWindowAnimationUtils::IsSystemApp()
 {
     uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+    return Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
 }
 
 napi_value RSWindowAnimationUtils::CreateNull(napi_env env)

@@ -85,6 +85,8 @@ typedef enum {
     GRAPHIC_POWER_STATUS_OFF_FAKE,        /**< Dss is off but screen is still on. */
     GRAPHIC_POWER_STATUS_ON_ADVANCED,     /**< Power-on the screen in advance. */
     GRAPHIC_POWER_STATUS_OFF_ADVANCED,    /**< Power-off the screen in advance. */
+    GRAPHIC_POWER_STATUS_DOZE,            /**< The power status is doze. */
+    GRAPHIC_POWER_STATUS_DOZE_SUSPEND,    /**< The power status is doze suspend. */
     GRAPHIC_POWER_STATUS_BUTT
 } GraphicDispPowerStatus;
 

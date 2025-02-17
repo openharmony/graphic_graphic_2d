@@ -92,7 +92,12 @@ bool RSFile::Open(const std::string& fname)
     Utils::FileSeek(file_, 0, SEEK_END);
     writeDataOff_ = Utils::FileTell(file_);
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
-    ReadHeaders();
+    std::string errReason = ReadHeaders();
+    if (errReason.size()) {
+        Utils::FileClose(file_);
+        file_ = nullptr;
+        return false;
+    }
     wasChanged_ = false;
 
     return true;
@@ -198,36 +203,59 @@ void RSFile::WriteHeader()
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
 }
 
-void RSFile::ReadHeader()
+bool RSFile::ReadHeaderPidList()
 {
+    uint32_t recordSize;
+    Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+    if (recordSize > chunkSizeMax) {
+        return false;
+    }
+    headerPidList_.resize(recordSize);
+    Utils::FileRead(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
+    return true;
+}
+
+bool RSFile::ReadHeaderFirstScreen()
+{
+    // READ FIRST SCREEN
+    uint32_t firstScrSize;
+    Utils::FileRead(&firstScrSize, sizeof(firstScrSize), 1, file_);
+    if (firstScrSize > chunkSizeMax) {
+        return false;
+    }
+    headerFirstFrame_.resize(firstScrSize);
+    Utils::FileRead(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
+    return true;
+}
+
+std::string RSFile::ReadHeader()
+{
+    const std::string errCode = "can't read header";
     if (!file_) {
-        return;
+        return errCode;
     }
 
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
-
-    uint32_t recordSize;
-
     const size_t subHeaderStartOff = Utils::FileTell(file_);
 
     // READ what was write start time
     Utils::FileRead(&writeStartTime_, 1, sizeof(writeStartTime_), file_);
 
-    // READ PID LIST
-    Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
-    headerPidList_.resize(recordSize);
-    Utils::FileRead(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
+    if (!ReadHeaderPidList()) {
+        return errCode;
+    }
 
-    // READ FIRST SCREEN
-    uint32_t firstScrSize;
-    Utils::FileRead(&firstScrSize, sizeof(firstScrSize), 1, file_);
-    headerFirstFrame_.resize(firstScrSize);
-    Utils::FileRead(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
+    if (!ReadHeaderFirstScreen()) {
+        return errCode;
+    }
 
      // READ ANIME START TIMES
     if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
         uint32_t startTimesSize;
         Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_);
+        if (startTimesSize > chunkSizeMax) {
+            return errCode;
+        }
         headerAnimeStartTimes_.resize(startTimesSize);
         Utils::FileRead(headerAnimeStartTimes_.data(),
             headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
@@ -240,17 +268,25 @@ void RSFile::ReadHeader()
         const size_t subHeaderEndOff = Utils::FileTell(file_);
         Utils::FileSeek(file_, subHeaderStartOff, SEEK_SET);
         const size_t subHeaderLen = subHeaderEndOff - subHeaderStartOff;
+        if (subHeaderLen > headerSizeMax) {
+            return errCode;
+        }
         preparedHeader_.resize(subHeaderLen);
         Utils::FileRead(preparedHeader_.data(), subHeaderLen, 1, file_);
     }
 
     // READ LAYERS OFFSETS
+    uint32_t recordSize;
     Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+    if (recordSize > chunkSizeMax) {
+        return errCode;
+    }
     layerData_.resize(recordSize);
     for (auto& i : layerData_) {
         Utils::FileRead(&i.layerHeader, sizeof(i.layerHeader), 1, file_);
         i.readindexRsData = 0;
     }
+    return "";
 }
 
 // ***********************************
@@ -311,10 +347,11 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     writeDataOff_ = Utils::FileTell(file_);
 }
 
-void RSFile::LayerReadHeader(uint32_t layer)
+std::string RSFile::LayerReadHeader(uint32_t layer)
 {
+    const std::string errCode = "can't read layer header";
     if (!file_ || !HasLayer(layer)) {
-        return;
+        return errCode;
     }
 
     RSFileLayer& layerData = layerData_[layer];
@@ -324,6 +361,9 @@ void RSFile::LayerReadHeader(uint32_t layer)
     // READ LAYER PROPERTY
     uint32_t recordSize = 0u;
     Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+    if (recordSize > chunkSizeMax) {
+        return errCode;
+    }
     std::vector<char> propertyData;
     propertyData.resize(recordSize);
     Utils::FileRead(propertyData.data(), recordSize, 1, file_);
@@ -337,6 +377,8 @@ void RSFile::LayerReadHeader(uint32_t layer)
     }
     LayerReadHeaderOfTrack(layerData.oglMetrics);
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
+
+    return "";
 }
 
 uint32_t RSFile::GetVersion() const
@@ -467,6 +509,9 @@ bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& re
     }
 
     const uint32_t dataLen = layerData.rsData[layerData.readindexRsData].second - sizeof(readTime);
+    if (dataLen > chunkSizeMax) {
+        return false;
+    }
     data.resize(dataLen);
     Utils::FileRead(data.data(), dataLen, 1, file_);
 
@@ -551,12 +596,19 @@ void RSFile::WriteHeaders()
     WriteHeader();
 }
 
-void RSFile::ReadHeaders()
+std::string RSFile::ReadHeaders()
 {
-    ReadHeader();
-    for (size_t i = 0; i < layerData_.size(); i++) {
-        LayerReadHeader(i);
+    std::string errReason = ReadHeader();
+    if (errReason.size()) {
+        return errReason;
     }
+    for (size_t i = 0; i < layerData_.size(); i++) {
+        errReason = LayerReadHeader(i);
+        if (errReason.size()) {
+            return errReason;
+        }
+    }
+    return "";
 }
 
 void RSFile::Close()
@@ -619,6 +671,9 @@ bool RSFile::ReadTrackData(
     }
 
     const uint32_t dataLen = trackData[trackIndex].second - RSFileLayer::MARKUP_SIZE;
+    if (dataLen > chunkSizeMax) {
+        return false;
+    }
     data.resize(dataLen);
     Utils::FileRead(data.data(), dataLen, 1, file_);
 
@@ -673,8 +728,8 @@ double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
     if (mapVsyncId2Time_.count(vsyncId)) {
         return mapVsyncId2Time_[vsyncId];
     }
-    constexpr int64_t MAX_INT64T = 0x7FFFFFFFFFFFFFFF;
-    int64_t minVSync = MAX_INT64T;
+    constexpr int64_t maxInt64t = std::numeric_limits<int64_t>::max();
+    int64_t minVSync = std::numeric_limits<int64_t>::max();
     int64_t maxVSync = -1;
     for (const auto& item : mapVsyncId2Time_) {
         if (minVSync > item.first) {
@@ -697,7 +752,7 @@ double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
     return 0.0;
 }
 
-int64_t RSFile::ConvertTime2VsyncId(double time)
+int64_t RSFile::ConvertTime2VsyncId(double time) const
 {
     constexpr double numericError = 1e-5;
     for (const auto& item : mapVsyncId2Time_) {
@@ -719,7 +774,7 @@ void RSFile::CacheVsyncId2Time(uint32_t layer)
     LayerTrackPtr track = { &RSFileLayer::readindexRsMetrics, &RSFileLayer::rsMetrics };
 
     RSFileLayer& layerData = layerData_[layer];
-    auto& trackData = layerData.*track.markup;
+    const auto& trackData = layerData.*track.markup;
 
     double readTime;
     std::vector<char> data;

@@ -96,12 +96,9 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t
         return nullptr;
     }
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
-    SkRSXform skXform;
-    if (xform) {
-        SkiaConvertUtils::DrawingRSXformCastToSkXform(*xform, skXform);
-    }
     sk_sp<SkTextBlob> skTextBlob =
-        SkTextBlob::MakeFromRSXform(text, byteLength, xform ? &skXform : nullptr, skiaFont->GetFont(), skEncoding);
+        SkTextBlob::MakeFromRSXform(text, byteLength, xform ? reinterpret_cast<const SkRSXform*>(xform) : nullptr,
+            skiaFont->GetFont(), skEncoding);
     if (!skTextBlob) {
         LOGD("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;

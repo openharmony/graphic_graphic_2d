@@ -111,17 +111,14 @@ public:
 
 private:
     bool antiAlias_ = false;
-    Color color_ = Color::COLOR_BLACK;
-    BlendMode blendMode_ = BlendMode::SRC_OVER;
+    bool blenderEnabled_ = true;
+    bool hasFilter_ = false;
     PaintStyle style_ = PaintStyle::PAINT_NONE;
+    BlendMode blendMode_ = BlendMode::SRC_OVER;
     scalar width_ = 0.0f;
     scalar miterLimit_ = DEFAULT_MITER_VAL; // default as 4.0f
     Pen::JoinStyle join_ = Pen::JoinStyle::DEFAULT_JOIN;
     Pen::CapStyle cap_ = Pen::CapStyle::DEFAULT_CAP;
-
-    bool blenderEnabled_ = true;
-    bool hasFilter_ = false;
-    Filter filter_;
 
     std::shared_ptr<ColorSpace> colorSpace_ = nullptr;
     std::shared_ptr<ShaderEffect> shaderEffect_ = nullptr;
@@ -129,6 +126,9 @@ private:
     std::shared_ptr<Blender> blender_ = nullptr;
     // blur effect, non-atomic interface
     std::shared_ptr<BlurDrawLooper> blurDrawLooper_ = nullptr;
+
+    Color color_ = Color::COLOR_BLACK;
+    Filter filter_;
 };
 } // namespace Drawing
 } // namespace Rosen

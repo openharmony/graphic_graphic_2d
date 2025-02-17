@@ -45,6 +45,7 @@ public:
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
     virtual bool IsSRGB() const = 0;
     virtual bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const = 0;
+    virtual CMSMatrix3x3 ToXYZD50(bool& hasToXYZD50) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

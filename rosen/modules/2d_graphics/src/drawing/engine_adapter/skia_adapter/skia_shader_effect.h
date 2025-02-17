@@ -19,6 +19,7 @@
 #include "include/core/SkShader.h"
 
 #include "impl_interface/shader_effect_impl.h"
+#include "include/effects/SkRuntimeEffect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,7 +62,7 @@ public:
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix) override;
 
-    void InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader) override;
+    void InitWithSdf(const SDFShapeBase& shape) override;
 
     sk_sp<SkShader> GetShader() const;
     /*

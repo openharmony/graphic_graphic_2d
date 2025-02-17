@@ -20,8 +20,10 @@
 #include "wm/window.h"
 
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"
@@ -292,6 +294,7 @@ private:
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -308,10 +311,12 @@ void InitNativeTokenInfo()
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+#endif
 }
 
 int main()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
 
     int cnt = 0;
@@ -432,5 +437,6 @@ int main()
 
     window->Hide();
     window->Destroy();
+#endif
     return 0;
 }

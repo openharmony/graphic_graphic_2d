@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "utils/log.h"
+
 #include <native_engine/native_engine.h>
+
 #include "js_text_init.h"
+#include "utils/text_log.h"
 
 static napi_module g_textModule = {
     .nm_filename = "libtext_napi.so/text.js",

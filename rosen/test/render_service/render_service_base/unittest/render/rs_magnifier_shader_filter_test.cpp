@@ -59,6 +59,7 @@ HWTEST_F(RSMagnifierShaderFilterTest, SetMagnifierOffsetTest, TestSize.Level1)
 {
     auto para = std::make_shared<RSMagnifierParams>();
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
+    auto rsMagnifierShaderFilterNull = std::make_shared<RSMagnifierShaderFilter>(nullptr);
 
     Drawing::Matrix matrix1;
     matrix1.PostRotate(90); // 90 degree

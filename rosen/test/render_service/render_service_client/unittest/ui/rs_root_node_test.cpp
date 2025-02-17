@@ -41,7 +41,7 @@ void RSRootNodeTest::TearDown() {}
  */
 HWTEST_F(RSRootNodeTest, CreateAndDestroy001, TestSize.Level1)
 {
-    RSRootNode::Create();
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create()->GetType());
 }
 
 /**
@@ -51,7 +51,7 @@ HWTEST_F(RSRootNodeTest, CreateAndDestroy001, TestSize.Level1)
  */
 HWTEST_F(RSRootNodeTest, CreateAndDestroy002, TestSize.Level1)
 {
-    RSRootNode::Create(true);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(true)->GetType());
 }
 
 /**
@@ -61,7 +61,7 @@ HWTEST_F(RSRootNodeTest, CreateAndDestroy002, TestSize.Level1)
  */
 HWTEST_F(RSRootNodeTest, CreateAndDestroy003, TestSize.Level1)
 {
-    RSRootNode::Create(false);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(false)->GetType());
 }
 
 /**
@@ -102,8 +102,7 @@ HWTEST_F(RSRootNodeTest, GetType003, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
 {
     RSRootNode::Create()->OnBoundsSizeChanged();
-    bool res = true;
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create()->GetType());
 }
 
 /**
@@ -114,8 +113,7 @@ HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged002, TestSize.Level1)
 {
     RSRootNode::Create(true)->OnBoundsSizeChanged();
-    bool res = true;
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(true)->GetType());
 }
 
 /**
@@ -126,8 +124,7 @@ HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged002, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, OnBoundsSizeChanged003, TestSize.Level1)
 {
     RSRootNode::Create(false)->OnBoundsSizeChanged();
-    bool res = true;
-    EXPECT_EQ(res, true);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(false)->GetType());
 }
 
 /**
@@ -139,9 +136,8 @@ HWTEST_F(RSRootNodeTest, SetEnableRender001, TestSize.Level1)
 {
     bool flag = true;
     auto node = std::make_shared<RSRootNode>(false);
+    ASSERT_NE(node, nullptr);
     node->SetEnableRender(flag);
-    bool res = true;
-    EXPECT_EQ(res, true);
 }
 
 /**
@@ -153,9 +149,8 @@ HWTEST_F(RSRootNodeTest, SetEnableRender002, TestSize.Level1)
 {
     bool flag = true;
     auto node = std::make_shared<RSRootNode>(true);
+    ASSERT_NE(node, nullptr);
     node->SetEnableRender(flag);
-    bool res = true;
-    EXPECT_EQ(res, true);
 }
 
 /**
@@ -168,10 +163,9 @@ HWTEST_F(RSRootNodeTest, AttachRSSurfaceNode001, TestSize.Level1)
     Rosen::RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "WindowScene_";
     std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
+    ASSERT_NE(surfaceNode, nullptr);
     auto node = std::make_shared<RSRootNode>(false);
     node->AttachRSSurfaceNode(surfaceNode);
-    bool res = true;
-    EXPECT_EQ(res, true);
 }
 
 /**
@@ -184,9 +178,8 @@ HWTEST_F(RSRootNodeTest, AttachRSSurfaceNode002, TestSize.Level1)
     Rosen::RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "WindowScene_";
     std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
+    ASSERT_NE(surfaceNode, nullptr);
     auto node = std::make_shared<RSRootNode>(true);
     node->AttachRSSurfaceNode(surfaceNode);
-    bool res = true;
-    EXPECT_EQ(res, true);
 }
 } // namespace OHOS::Rosen

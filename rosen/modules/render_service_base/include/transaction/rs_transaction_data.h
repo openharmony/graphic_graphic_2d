@@ -70,6 +70,8 @@ public:
         timestamp_ = timestamp;
     }
 
+    void ProfilerPushOffsets(Parcel& parcel, uint32_t parcelNumber);
+
     std::string GetAbilityName() const
     {
         return abilityName_;
@@ -170,8 +172,8 @@ public:
         return parentPid_;
     }
 
-    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
-        std::string& commandMapDesc) const;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const;
+    void DumpCommand(std::string& dumpString);
 
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
@@ -194,8 +196,10 @@ private:
     int32_t syncTransactionCount_ { 0 };
     int32_t parentPid_ { -1 };
     uint64_t syncId_ { 0 };
+    uint32_t parcelNumber_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
+    std::vector<uint32_t> commandOffsets_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

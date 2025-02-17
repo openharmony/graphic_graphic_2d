@@ -52,6 +52,7 @@ bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConc
 }
 
 thread_local napi_ref JsFontCollection::constructor_ = nullptr;
+
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -63,6 +64,10 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsFontCollection* jsFontCollection = new(std::nothrow) JsFontCollection();
+    if (jsFontCollection == nullptr) {
+        TEXT_LOGE("Failed to new font collection");
+        return nullptr;
+    }
     status = napi_wrap(env, jsThis, jsFontCollection,
         JsFontCollection::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
@@ -386,6 +391,10 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
         return nullptr;
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("Argv[0] is invalid");
+        return nullptr;
+    }
     std::string familyName;
     std::string familySrc;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
@@ -393,6 +402,10 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         return nullptr;
     }
     napi_valuetype valueType = napi_undefined;
+    if (argv[1] == nullptr) {
+        TEXT_LOGE("JsFontCollection::OnLoadFont Argv[1] is invalid");
+        return nullptr;
+    }
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_object) {
         if (!ConvertFromJsValue(env, argv[1], familySrc)) {

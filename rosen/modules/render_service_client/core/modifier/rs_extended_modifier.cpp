@@ -207,7 +207,8 @@ std::shared_ptr<Drawing::DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RS
         return nullptr;
     }
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN && RSSystemProperties::GetTextBlobAsPixelMap()) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetTextBlobAsPixelMap()) {
         auto pixelMapDrawCmdList = MakePiexlMapDrawCmdList(recording, ctx);
         if (pixelMapDrawCmdList) {
             delete ctx.canvas;

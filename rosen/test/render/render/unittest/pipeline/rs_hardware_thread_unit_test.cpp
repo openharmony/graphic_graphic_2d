@@ -14,11 +14,11 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/rs_hardware_thread.h"
-#include "pipeline/rs_uni_render_composer_adapter.h"
-#include "rs_test_util.h"
-#include "pipeline/rs_uni_render_engine.h"
 #include "mock/mock_hdi_device.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;

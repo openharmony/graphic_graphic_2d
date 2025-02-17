@@ -36,10 +36,11 @@ public:
 };
 
 ADD_COMMAND(RSFrameRateLinkerDestroy,
-    ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_DESTROY, RSFrameRateLinkerCommandHelper::Destroy, FrameRateLinkerId))
+    ARG(PERMISSION_APP, FRAME_RATE_LINKER, FRAME_RATE_LINKER_DESTROY,
+        RSFrameRateLinkerCommandHelper::Destroy, FrameRateLinkerId))
 ADD_COMMAND(RSFrameRateLinkerUpdateRange,
-    ARG(FRAME_RATE_LINKER, FRAME_RATE_LINKER_UPDATE_RANGE, RSFrameRateLinkerCommandHelper::UpdateRange,
-        FrameRateLinkerId, FrameRateRange, int32_t))
+    ARG(PERMISSION_APP, FRAME_RATE_LINKER, FRAME_RATE_LINKER_UPDATE_RANGE,
+        RSFrameRateLinkerCommandHelper::UpdateRange, FrameRateLinkerId, FrameRateRange, int32_t))
 } // namespace Rosen
 } // namespace OHOS
 

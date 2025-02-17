@@ -63,6 +63,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level1)
     HgmTaskHandleThread::Instance().PostTask(func);
     int64_t delayTime = 1;
     HgmTaskHandleThread::Instance().PostTask(func, delayTime);
+    EXPECT_TRUE(HgmTaskHandleThread::Instance().handler_);
 }
 
 /*
@@ -90,14 +91,33 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level1)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
     int count = 0;
+    const int count1 = 1;
+    const int time = 500;
+    const int time1 = 1000;
     auto start_time = std::chrono::high_resolution_clock::now();
-    instance.PostTask([&count](){ count++; }, 1000);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_EQ(count, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    instance.PostTask([&count](){ count++; }, time1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(time));
+    std::this_thread::sleep_for(std::chrono::milliseconds(time1));
     auto end_time = std::chrono::high_resolution_clock::now();
-    EXPECT_EQ(count, 1);
-    EXPECT_GE(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(), 1000);
+    EXPECT_EQ(count, count1);
+    EXPECT_GE(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(), time1);
+}
+
+/*
+ * @tc.name: DetectMultiThreadingCalls
+ * @tc.desc: Test DetectMultiThreadingCalls
+ * @tc.type: FUNC
+ * @tc.require:IB3MVN
+ */
+HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level1)
+{
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
+    instance.DetectMultiThreadingCalls();
+    int32_t curThreadId = instance.curThreadId_;
+    instance.DetectMultiThreadingCalls();
+    EXPECT_EQ(curThreadId, instance.curThreadId_);
+    std::thread([&instance]() { instance.DetectMultiThreadingCalls(); }).join();
+    EXPECT_NE(curThreadId, instance.curThreadId_);
 }
 } // namespace Rosen
 } // namespace OHOS

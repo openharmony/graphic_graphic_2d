@@ -66,6 +66,14 @@ public:
         }
     }
 
+    size_t GetSize() {
+        auto property = GetProperty();
+        if (property != nullptr) {
+            return property->GetSize();
+        }
+        return 0;
+    }
+
     virtual RSModifierType GetType()
     {
         return RSModifierType::INVALID;
@@ -265,6 +273,22 @@ public:
     ~RSAppearanceRenderModifier() override = default;
 };
 
+class RSB_EXPORT RSHDRBrightnessRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSHDRBrightnessRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::HDR_BRIGHTNESS);
+    }
+    ~RSHDRBrightnessRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::HDR_BRIGHTNESS;
+    }
+};
 
 class RSB_EXPORT RSEnvForegroundColorRenderModifier : public RSForegroundRenderModifier {
 public:
@@ -316,6 +340,23 @@ public:
     RSModifierType GetType() override
     {
         return RSModifierType::CUSTOM_CLIP_TO_FRAME;
+    }
+};
+
+class RSB_EXPORT RSBehindWindowFilterEnabledRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBehindWindowFilterEnabledRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
+    }
+    ~RSBehindWindowFilterEnabledRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override {}
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BEHIND_WINDOW_FILTER_ENABLED;
     }
 };
 

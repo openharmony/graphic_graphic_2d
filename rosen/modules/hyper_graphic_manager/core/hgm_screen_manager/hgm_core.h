@@ -151,10 +151,27 @@ public:
         return isForceRefresh_.load();
     }
 
+    // called by RSMainThread
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_.store(fastComposeTimeStampDiff);
+    }
+
+    // called by RSMainThread/RSUniRenderThread
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_.load();
+    }
+
+    // called by RSMainThread
+    bool SetHgmTaskFlag(bool value)
+    {
+        return postHgmTaskFlag_.exchange(value);
+    }
+
     bool GetLtpoEnabled() const
     {
-        return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
-            (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
+        return ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
     }
 
     bool GetAdaptiveSyncEnabled() const
@@ -188,6 +205,16 @@ public:
         return alignRate_;
     }
 
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
+    {
+        idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
+    }
+
+    int64_t GetIdealPipelineOffset() const
+    {
+        return idealPipelineOffset_;
+    }
+
     int64_t GetPipelineOffset() const
     {
         auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
@@ -216,12 +243,19 @@ public:
         doDirectComposition_.store(doDirectComposition);
     }
 
+    // called by RSMainThread
+    void SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
+    {
+        mPolicyConfigData_->hfbcConfig_ = hfbcConfig;
+    }
+
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect);
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
@@ -269,6 +303,16 @@ public:
     {
         return isDelayMode_;
     }
+
+    void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
+    {
+        multiSelfOwnedScreenEnable_.store(multiSelfOwnedScreenEnable);
+    }
+
+    bool GetMultiSelfOwnedScreenEnable() const
+    {
+        return multiSelfOwnedScreenEnable_.load();
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -311,10 +355,12 @@ private:
     std::atomic<int64_t> actualTimestamp_{ 0 };
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
+    std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
     bool isDelayMode_ = false;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
+    int64_t idealPipelineOffset_ = 0;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };
@@ -323,6 +369,8 @@ private:
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
     std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
+    std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
+    std::atomic<bool> postHgmTaskFlag_{ true };
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

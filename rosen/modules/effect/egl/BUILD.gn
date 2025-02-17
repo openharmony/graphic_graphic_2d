@@ -21,7 +21,6 @@ config("egl_effect_config") {
   include_dirs = [
     "$graphic_2d_root/utils/log",
     "include",
-    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
   ]
 
   cflags = [

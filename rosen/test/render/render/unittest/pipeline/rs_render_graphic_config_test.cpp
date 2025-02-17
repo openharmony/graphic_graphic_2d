@@ -242,6 +242,7 @@ HWTEST_F(RSRenderGraphicConfigTest, DumpConfig, TestSize.Level2)
         "</Configs>";
     RSGraphicConfig::config_ = ReadConfig(xmlStr);
     RSGraphicConfig::DumpConfig(*RSGraphicConfig::GetConfig().mapValue);
+    EXPECT_TRUE(RSGraphicConfig::LoadConfigXml());
 }
 
 /* *
@@ -258,6 +259,7 @@ HWTEST_F(RSRenderGraphicConfigTest, ReadProperty, TestSize.Level2)
         "</blurEffect>"
         "</Configs>";
     RSGraphicConfig::config_ = ReadConfig(xmlStr);
+    EXPECT_TRUE(RSGraphicConfig::LoadConfigXml());
 }
 
 /* *

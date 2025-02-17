@@ -111,7 +111,10 @@ enum class RSColorBlendApplyType : int16_t {
 
     SAVE_LAYER,  // Apply blending by drawing the content onto an offscreen buffer and blend it when drawing it back to
                  // the screen
-    MAX = SAVE_LAYER
+    SAVE_LAYER_ALPHA,   // Similar to SAVE_LAYER, but when drawing back to the screen, it will be multiplied by the
+                        // alpha of the screen twice. We add this type to avoid incompatibility changes. Don't use
+                        // it in the future unless you have a clear understanding of what will happen!
+    MAX = SAVE_LAYER_ALPHA
 };
 
 struct RSDynamicBrightnessPara {
@@ -173,6 +176,7 @@ public:
     Decoration() {}
     ~Decoration() {}
     std::shared_ptr<RSShader> bgShader_ = nullptr;
+    float bgShaderProgress_ = 0.0f;
     std::shared_ptr<RSImage> bgImage_ = nullptr;
     RectF bgImageRect_ = RectF();
     Vector4f bgImageInnerRect_ = Vector4f();

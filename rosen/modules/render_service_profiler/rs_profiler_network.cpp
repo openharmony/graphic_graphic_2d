@@ -35,6 +35,7 @@ namespace OHOS::Rosen {
 std::atomic<bool> Network::isRunning_ = false;
 std::atomic<bool> Network::forceShutdown_ = false;
 std::atomic<bool> Network::blockBinary_ = false;
+std::chrono::steady_clock::time_point Network::ping_;
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -57,10 +58,32 @@ bool Network::IsRunning()
     return isRunning_;
 }
 
+void Network::ResetPing()
+{
+    ping_ = std::chrono::steady_clock::now();
+}
+
+void Network::Ping(const Socket& socket)
+{
+    if (!socket.Connected()) {
+        return;
+    }
+
+    using namespace std::chrono_literals;
+    const std::chrono::milliseconds period = 1s;
+    const auto now = std::chrono::steady_clock::now();
+    if (now <= ping_ + period) {
+        return;
+    }
+
+    Packet packet(Packet::COMMAND);
+    packet.Write("ping");
+    SendPacket(packet);
+}
+
 void Network::Run()
 {
-    const uint16_t port = 5050;
-    const uint32_t sleepTimeout = 500000u;
+    constexpr uint16_t port = 5050;
 
     Socket* socket = nullptr;
 
@@ -74,25 +97,22 @@ void Network::Run()
 
         const SocketState state = socket->GetState();
         if (forceShutdown_) {
+            HRPW("Network: Run: Force shutdown");
             Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
             socket->Open(port);
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
-            usleep(sleepTimeout);
-        } else if (state == SocketState::ACCEPT) {
-            bool readyToReceive = false;
-            bool readyToSend = false;
-            socket->GetStatus(readyToReceive, readyToSend);
-
-            if (readyToReceive) {
-                ProcessIncoming(*socket);
+            if (!socket->Connected()) {
+                usleep(20000); // 20000: sleep 20ms to reduce power consumption on standing by
             }
-            if (readyToSend) {
-                ProcessOutgoing(*socket);
-            }
+        } else if (state == SocketState::CONNECTED) {
+            Ping(*socket); // add ping packet to a queue
+            Send(*socket);
+            Receive(*socket);
         } else if (state == SocketState::SHUTDOWN) {
+            HRPW("Network: Run: Socket state got SHUTDOWN");
             Shutdown(socket);
         }
     }
@@ -105,12 +125,11 @@ void Network::Stop()
     isRunning_ = false;
 }
 
-
-void Network::SendPacket(const Packet& packet)
+void Network::SendPacket(Packet& packet)
 {
     if (isRunning_) {
         const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(const_cast<Packet&>(packet).Release());
+        outgoing_.emplace(packet.Release());
     }
 }
 
@@ -276,22 +295,26 @@ void Network::ProcessCommand(const char* data, size_t size)
     AwakeRenderServiceThread();
 }
 
-void Network::ProcessOutgoing(Socket& socket)
+void Network::Send(Socket& socket)
 {
     std::vector<char> data;
 
-    bool nothingToSend = false;
-    while (!nothingToSend) {
+    while (socket.Connected()) {
+        data.clear();
+
         outgoingMutex_.lock();
-        nothingToSend = outgoing_.empty();
-        if (!nothingToSend) {
+        if (!outgoing_.empty()) {
             data.swap(outgoing_.front());
             outgoing_.pop();
         }
         outgoingMutex_.unlock();
 
-        if (!nothingToSend) {
-            socket.SendWhenReady(data.data(), data.size());
+        if (data.empty()) {
+            break;
+        }
+        
+        if (socket.SendWhenReady(data.data(), data.size())) {
+            ResetPing();
         }
     }
 }
@@ -313,8 +336,7 @@ void Network::ProcessBinary(const std::vector<char>& data)
         return;
     }
 
-    constexpr size_t megabytes = 1024 * 1024;
-    HRPI("Receive file: %s %zuMB (%zu)", path.data(), size / megabytes, size);
+    HRPI("Receive file: %s %.2fMB (%zu)", path.data(), Utils::Megabytes(size), size);
     if (auto file = Utils::FileOpen(path, "wb")) {
         Utils::FileWrite(file, data.data() + offset, size);
         Utils::FileClose(file);
@@ -341,21 +363,25 @@ void Network::Shutdown(Socket*& socket)
     AwakeRenderServiceThread();
 
     HRPE("Network: Shutdown");
-    RSSystemProperties::SetProfilerDisabled();
-    HRPE("Network: persist.graphic.profiler.enabled 0");
 }
 
-void Network::ProcessIncoming(Socket& socket)
+void Network::Receive(Socket& socket)
 {
-    const uint32_t sleepTimeout = 500000u;
+    if (!socket.Connected()) {
+        return;
+    }
+    constexpr int timeWait = 10;
+    if (socket.PollReceive(timeWait) == 0) {
+        // no data for 10 ms
+        return;
+    }
 
     Packet packet { Packet::UNKNOWN };
     auto wannaReceive = Packet::HEADER_SIZE;
     socket.Receive(packet.Begin(), wannaReceive);
 
     if (wannaReceive == 0) {
-        socket.SetState(SocketState::SHUTDOWN);
-        usleep(sleepTimeout);
+        HRPW("Network: Receive: Invalid header");
         return;
     }
 
@@ -373,6 +399,8 @@ void Network::ProcessIncoming(Socket& socket)
     } else if (packet.IsCommand()) {
         ProcessCommand(data.data(), data.size());
     }
+
+    ResetPing();
 }
 
 } // namespace OHOS::Rosen

@@ -57,7 +57,10 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     std::ignore = luminCtrl.GetNewHdrLuminance(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
     luminCtrl.SetSdrLuminance(screenId, level);
-    luminCtrl.SetHdrStatus(screenId, false);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
 
     luminCtrl.initStatus_ = true;
     luminCtrl.DimmingIncrease(screenId);
@@ -70,7 +73,10 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     std::ignore = luminCtrl.GetNewHdrLuminance(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
     luminCtrl.SetSdrLuminance(screenId, level);
-    luminCtrl.SetHdrStatus(screenId, false);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     
     ASSERT_NE((&luminCtrl), nullptr);
 }

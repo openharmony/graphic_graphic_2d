@@ -47,16 +47,6 @@ std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(DrawingType ty
     return EngineImplFactory::CreateCoreCanvas(type);
 }
 
-std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(void* rawCanvas)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRImplFactory::CreateCoreCanvas(rawCanvas);
-    }
-#endif
-    return EngineImplFactory::CreateCoreCanvas(rawCanvas);
-}
-
 std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(int32_t width, int32_t height)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -159,6 +149,46 @@ std::unique_ptr<PictureImpl> ImplFactory::CreatePictureImpl()
     return EngineImplFactory::CreatePicture();
 }
 
+std::unique_ptr<PictureRecorderImpl> ImplFactory::CreatePictureRecorderImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePictureRecorder();
+    }
+#endif
+    return EngineImplFactory::CreatePictureRecorder();
+}
+
+std::unique_ptr<SerialProcsImpl> ImplFactory::CreateSerialProcsImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr; //ddgr has no serialprocs
+    }
+#endif
+    return EngineImplFactory::CreateSerialProcs();
+}
+
+std::unique_ptr<SharingSerialContextImpl> ImplFactory::CreateSharingSerialContextImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr; //ddgr has no sharingserialcontext
+    }
+#endif
+    return EngineImplFactory::CreateSharingSerialContext();
+}
+
+std::unique_ptr<FileWStreamImpl> ImplFactory::CreateFileWStreamImpl(const char path[])
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateFileWStream(path);
+    }
+#endif
+    return EngineImplFactory::CreateFileWStream(path);
+}
+
 std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -167,6 +197,16 @@ std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
     }
 #endif
     return EngineImplFactory::CreatePath();
+}
+
+std::unique_ptr<PathIteratorImpl> ImplFactory::CreatePathIteratorImpl(const Path& path)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePathIterator(path);
+    }
+#endif
+    return EngineImplFactory::CreatePathIterator(path);
 }
 
 std::unique_ptr<ColorFilterImpl> ImplFactory::CreateColorFilterImpl()

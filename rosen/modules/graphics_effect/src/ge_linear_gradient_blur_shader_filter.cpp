@@ -261,10 +261,6 @@ bool GELinearGradientBlurShaderFilter::ProcessGradientDirectionPoints(
 std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlphaGradientShader(
     const Drawing::Rect& clipBounds, const std::shared_ptr<GELinearGradientBlurPara>& para, uint8_t directionBias)
 {
-    if (para->fractionStops_.size() < 1) {
-        return nullptr;
-    }
-
     std::vector<Drawing::ColorQuad> c;
     std::vector<Drawing::scalar> p;
     Drawing::Point pts[2];  // 2 size of points
@@ -423,7 +419,11 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
     hBlurBuilder.SetChild("imageShader", shader1);
     hBlurBuilder.SetChild("gradientShader", alphaGradientShader);
     std::shared_ptr<Drawing::Image> tmpBlur(
+#ifdef RS_ENABLE_GPU
         hBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+        hBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
 
     Drawing::RuntimeShaderBuilder vBlurBuilder(verticalMeanBlurShaderEffect_);
     vBlurBuilder.SetUniform("r", radius);
@@ -432,19 +432,31 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
     vBlurBuilder.SetChild("imageShader", tmpBlurShader);
     vBlurBuilder.SetChild("gradientShader", alphaGradientShader);
     std::shared_ptr<Drawing::Image> tmpBlur2(
+#ifdef RS_ENABLE_GPU
         vBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+        vBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
 
     auto tmpBlur2Shader = Drawing::ShaderEffect::CreateImageShader(
         *tmpBlur2, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, m);
     hBlurBuilder.SetChild("imageShader", tmpBlur2Shader);
     std::shared_ptr<Drawing::Image> tmpBlur3(
+#ifdef RS_ENABLE_GPU
         hBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+        hBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
 
     auto tmpBlur3Shader = Drawing::ShaderEffect::CreateImageShader(
         *tmpBlur3, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, m);
     vBlurBuilder.SetChild("imageShader", tmpBlur3Shader);
     std::shared_ptr<Drawing::Image> tmpBlur4(
+#ifdef RS_ENABLE_GPU
         vBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+        vBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
     return tmpBlur4;
 }
 
@@ -476,7 +488,11 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::DrawMaskLinear
     auto builder = MakeMaskLinearGradientBlurShader(srcImageShader, blurImageShader, alphaGradientShader);
     auto outImageInfo = Drawing::ImageInfo(dst.GetWidth(), dst.GetHeight(), blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
+#ifdef RS_ENABLE_GPU
     auto outImage = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, outImageInfo, false);
+#else
+    auto outImage = builder->MakeImage(nullptr, nullptr, outImageInfo, false);
+#endif
 
     return outImage;
 }

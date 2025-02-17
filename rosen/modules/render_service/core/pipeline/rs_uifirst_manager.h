@@ -64,6 +64,7 @@ public:
     bool CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node);
     void ForceClearSubthreadRes();
     void ProcessForceUpdateNode();
+    bool ForceUpdateUifirstNodes(RSSurfaceRenderNode& node);
 
     // event process
     void OnProcessEventResponse(DataBaseRs& info);
@@ -90,17 +91,18 @@ public:
         isUiFirstOn_ = uiFirstSwitch;
     }
 
-    void SetHasDoneNodeFlag(bool flag)
+    void SetNodeNeedForceUpdateFlag(bool flag)
     {
-        hasDoneNode_ = flag;
+        hasForceUpdateNode_ = flag;
     }
 
-    bool HasDoneNode()
+    bool HasForceUpdateNode()
     {
-        return hasDoneNode_;
+        return hasForceUpdateNode_;
     }
 
-    void MergeOldDirty(RSSurfaceRenderNode& node);
+    void MergeOldDirty(NodeId id);
+    void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
 
     void SetRotationChanged(bool rotationChanged)
     {
@@ -159,6 +161,10 @@ public:
         uifirstCacheState_.clear();
     }
 
+    bool IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node);
+    bool IsSubHighPriorityType(RSSurfaceRenderNode& node) const;
+    void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
+    void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;
@@ -171,7 +177,7 @@ private:
     void UpdateCompletedSurface(NodeId id);
 
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId id);
-    void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
+    bool SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
     void RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
@@ -183,6 +189,7 @@ private:
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -190,7 +197,8 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
-    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
+    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
+        const GraphicColorGamut& colorGamut);
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
@@ -208,10 +216,24 @@ private:
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
     bool IsVMSurfaceName(std::string surfaceName);
 
+    bool rotationChanged_ = false;
+    bool isUiFirstOn_ = false;
+    bool hasForceUpdateNode_ = false;
+    bool useDmaBuffer_ = false;
+    bool isFreeMultiWindowEnabled_ = false;
+    std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
+    // for recents scene
+    std::atomic<bool> isRecentTaskScene_ = false;
+    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
+    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    int32_t scbPid_ = 0;
+    std::atomic<int> noUifirstNodeFrameCount_ = 0;
+    NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
+    NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
+    RSMainThread* mainThread_ = nullptr;
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
-    bool rotationChanged_ = false;
 
     std::map<NodeId, CacheProcessStatus> uifirstCacheState_;
 
@@ -232,23 +254,14 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
-    bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
-    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
-    std::atomic<int> noUifirstNodeFrameCount_ = 0;
-    bool hasDoneNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
     std::vector<EventInfo> currentFrameEvent_;
-    std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
-    NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
-    NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
-    int32_t scbPid_ = 0;
-    RSMainThread* mainThread_ = nullptr;
     // scene in scb
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
@@ -276,14 +289,8 @@ private:
 
     // use in MainThread & RT & subThread
     std::mutex useDmaBufferMutex_;
-    bool useDmaBuffer_ = false;
-    // for recents scene
-    std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
-    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
-
-    bool isFreeMultiWindowEnabled_ = false;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
@@ -319,8 +326,12 @@ public:
         }
     }
     // return false when timeout
-    static void NotifyAll()
+    static inline void NotifyAll(std::function<void()> condChange)
     {
+        if (LIKELY(condChange)) {
+            std::unique_lock<std::mutex> lock(notifyMutex_);
+            condChange();
+        }
         notifyCv_.notify_all();
     }
     static bool CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch = true);

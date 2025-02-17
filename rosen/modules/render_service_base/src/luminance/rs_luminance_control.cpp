@@ -126,6 +126,16 @@ bool RSLuminanceControl::LoadStatusControl()
         RS_LOGE("LumCtr link IsHdrPictureOn error!");
         return false;
     }
+    isForceCloseHdr_ = reinterpret_cast<IsForceCloseHdrFunc>(dlsym(extLibHandle_, "IsForceCloseHdr"));
+    if (isForceCloseHdr_ == nullptr) {
+        RS_LOGE("LumCtr link IsForceCloseHdr error!");
+        return false;
+    }
+    forceCloseHdr_ = reinterpret_cast<ForceCloseHdrFunc>(dlsym(extLibHandle_, "ForceCloseHdr"));
+    if (forceCloseHdr_ == nullptr) {
+        RS_LOGE("LumCtr link ForceCloseHdr error!");
+        return false;
+    }
     return true;
 }
 
@@ -195,9 +205,14 @@ bool RSLuminanceControl::LoadTmoControl()
     return true;
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
 {
-    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, isHdrOn, type) : false;
+    if (hdrstatus != lastHdrStatus_) {
+        RS_LOGI("LumCtr::SetHdrStatus:DisplayHdrStatus:0x%{public}04X screenId:%{public}" PRIu64 "",
+            hdrstatus, screenId);
+        lastHdrStatus_ = hdrstatus;
+    }
+    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, hdrstatus) : false;
 }
 
 bool RSLuminanceControl::IsHdrOn(ScreenId screenId)
@@ -266,14 +281,27 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode
     return (initStatus_ && getNonlinearRatio_ != nullptr) ? getNonlinearRatio_(screenId, mode) : 1.0;
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, int32_t dynamicMetadataSize, const float& ratio)
 {
-    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel) : HDR_DEFAULT_SCALER;
+    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel, dynamicMetadataSize, ratio) :
+        HDR_DEFAULT_SCALER * ratio;
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
 {
     return (initStatus_ && isHdrPictureOn_ != nullptr) ? isHdrPictureOn_() : false;
+}
+
+bool RSLuminanceControl::IsForceCloseHdr()
+{
+    return (initStatus_ && isForceCloseHdr_ != nullptr) ? isForceCloseHdr_() : false;
+}
+
+void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr)
+{
+    if (initStatus_ && forceCloseHdr_ != nullptr) {
+        forceCloseHdr_(closeHdrSceneId, forceCloseHdr);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

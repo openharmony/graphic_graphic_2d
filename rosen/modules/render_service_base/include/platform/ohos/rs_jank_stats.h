@@ -27,6 +27,7 @@
 
 #include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,6 +51,7 @@ struct JankFrames {
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
+    bool isAnimationInterrupted_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
@@ -68,6 +70,10 @@ struct JankFrames {
     int32_t lastTotalMissedFrames_ = 0;
     int64_t maxFrameTimeSteady_ = 0;
     int64_t lastMaxFrameTimeSteady_ = 0;
+    int64_t maxTechFrameTimeSteady_ = 0;
+    int64_t lastMaxTechFrameTimeSteady_ = 0;
+    int64_t maxRealFrameTimeSteady_ = 0;
+    int64_t lastMaxRealFrameTimeSteady_ = 0;
     int32_t maxSeqMissedFrames_ = 0;
     int32_t lastMaxSeqMissedFrames_ = 0;
     int64_t totalFrameTimeSteady_ = 0;
@@ -125,9 +131,13 @@ public:
                     bool doDirectComposition = false, bool isReportTaskDelayed = false);
     void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed);
     void ReportJankStats();
+    void ReportSceneJankStats(const AppInfo& appInfo);
+    void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
+    void SetReportRsSceneJankStart(const AppInfo& info);
+    void SetReportRsSceneJankEnd(const AppInfo& info);
     void SetAppFirstFrame(pid_t appPid);
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
@@ -174,8 +184,14 @@ private:
 
     static constexpr uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
     static constexpr uint32_t JANK_RANGE_VERSION = 1;
+    static constexpr uint32_t JANK_SCENE_RANGE_VERSION = 2;
     static constexpr size_t JANK_STATS_SIZE = 8;
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
+    static constexpr int64_t MIN_FRAME_SHOW_TIME = 16;
+    static constexpr int32_t DEFAULT_INT_VALUE = 0;
+    static inline const std::string DEFAULT_STRING_VALUE = "";
+    const int64_t SCENE_JANK_FRAME_THRESHOLD = RSSystemProperties::GetSceneJankFrameThreshold();
+    static constexpr int32_t FILTER_TYPE = 0;
     static constexpr bool IS_FOLD_DISP = false;
     static constexpr bool IS_CALCULATE_PRECISE_HITCH_TIME = true;
     static inline const std::string ACCUMULATED_BUFFER_COUNT_TRACE_NAME = "ACCUMULATED_BUFFER_COUNT";
@@ -188,6 +204,8 @@ private:
     bool isFirstSetStart_ = true;
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
+    bool isNeedReportSceneJankStats_ = false;
+    bool isLastReportSceneDone_ = true;
     bool isLastFrameDoDirectComposition_ = false;
     bool isCurrentFrameSwitchToNotDoDirectComposition_ = false;
     float rsStartTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
@@ -204,16 +222,21 @@ private:
     int64_t lastReportTime_ = TIMESTAMP_INITIAL;
     int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastSceneReportTime_ = TIMESTAMP_INITIAL;
+    int64_t lastSceneReportTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastSceneJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t explicitAnimationTotal_ = 0;
     int32_t implicitAnimationTotal_ = 0;
     uint16_t animationTraceCheckCnt_ = 0;
     int accumulatedBufferCount_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
+    std::vector<uint16_t> rsSceneJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
     std::queue<pid_t> firstFrameAppPids_;
     std::map<int32_t, AnimationTraceStats> animationAsyncTraces_;
     std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
+    Rosen::AppInfo appInfo_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

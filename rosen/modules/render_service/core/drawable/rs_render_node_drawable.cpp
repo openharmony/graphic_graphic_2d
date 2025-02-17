@@ -17,15 +17,17 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "luminance/rs_luminance_control.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "pipeline/rs_main_thread.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -76,6 +78,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
@@ -116,10 +119,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !OpincGetCachedMark()) &&
         !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
-        {
-            std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
-            drawingCacheUpdateTimeMap_.erase(nodeId_);
-        }
+        ClearDrawingCacheDataMap();
         return;
     }
 
@@ -131,8 +131,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
             // id in drawingCacheUpdateTimeMap_ [drawable will not be visited in RT].
             // If this node is marked node group by arkui again, we should first clear update time here, otherwise
             // update time will accumulate.)
-            std::lock_guard<std::mutex> mapLock(drawingCacheMapMutex_);
-            drawingCacheUpdateTimeMap_.erase(nodeId_);
+            ClearDrawingCacheDataMap();
         }
     }
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
@@ -353,6 +352,8 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     }
     if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
         RSRenderNodeDrawable::OnDraw(canvas);
+    } else {
+        DrawChildren(canvas, params.GetBounds());
     }
 }
 
@@ -403,6 +404,16 @@ bool RSRenderNodeDrawable::IsIntersectedWithFilter(std::vector<FilterNodeInfo>::
         }
     }
     return isIntersected;
+}
+
+void RSRenderNodeDrawable::ClearDrawingCacheDataMap()
+{
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
+        drawingCacheUpdateTimeMap_.erase(nodeId_);
+    }
+    // clear Rendergroup dfx data map
+    RSPerfMonitorReporter::GetInstance().ClearRendergroupDataMap(nodeId_);
 }
 
 void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
@@ -487,7 +498,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 }
 
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
-    pid_t threadId, bool isNeedFP16)
+    pid_t threadId, bool isNeedFP16, GraphicColorGamut colorGamut)
 {
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
@@ -530,8 +541,9 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, nullptr,
+            Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_);
     }
 #endif
@@ -630,10 +642,27 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     return cachedImage_;
 }
 
+void RSRenderNodeDrawable::SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image)
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    cachedImageByCapture_ = image;
+}
+
+std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCacheImageByCapture() const
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    return cachedImageByCapture_;
+}
+
 void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto cacheImage = GetCachedImage(canvas);
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    if (cachedImageByCapture_) {
+        // node has freezed, and to draw surfaceCapture image
+        cacheImage = cachedImageByCapture_;
+    }
     if (cacheImage == nullptr) {
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage image null");
         return;
@@ -739,16 +768,18 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = curCanvas->GetHdrOn();
+    bool isHdrOn = false; // todo: temporary set false, fix in future
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSMainThread::Instance()->IsUIFirstOn();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16,
+            curCanvas->GetTargetColorGamut());
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;
@@ -821,6 +852,9 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
+
+    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_,
+        drawingCacheUpdateTimeMap_[nodeId_]);
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

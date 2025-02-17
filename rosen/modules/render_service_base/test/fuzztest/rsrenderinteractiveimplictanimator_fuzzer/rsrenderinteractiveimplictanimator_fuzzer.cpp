@@ -77,13 +77,13 @@ namespace OHOS {
         auto value1 = GetData<float>();
         auto value2 = GetData<float>();
         auto value3 = GetData<float>();
-        RSContext context;
+        auto context = std::make_shared<RSContext>();
 
         // test
         auto interactiveAnimator = std::make_shared<RSRenderInteractiveImplictAnimator>(
-            animatorId, context.weak_from_this());
+            animatorId, context);
         auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-        context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+        context->GetMutableNodeMap().RegisterRenderNode(renderNode);
         auto property = std::make_shared<RSRenderAnimatableProperty<float>>(value1);
         auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(value2);
         auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(value3);
@@ -100,9 +100,9 @@ namespace OHOS {
         interactiveAnimator->ContinueAnimator();
         interactiveAnimator->FinishAnimator(position);
         
-        context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(interactiveAnimator);
-        context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(animatorId);
-        context.GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(animatorId);
+        context->GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(interactiveAnimator);
+        context->GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(animatorId);
+        context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(animatorId);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -300,6 +300,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
@@ -311,6 +312,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
     strategyType = NodeStrategyType::CACHE_NONE;
     drawable->recordState_ = NodeRecordState::RECORD_NONE;
     drawable->BeforeDrawCache(strategyType, canvas, params, isOpincDropNodeExt);
+    ASSERT_EQ(drawable->temNodeStragyType_, NodeStrategyType::CACHE_NONE);
 }
 
 /**
@@ -322,6 +324,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
@@ -331,9 +334,11 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
     drawable->recordState_ = NodeRecordState::RECORD_CALCULATE;
     NodeStrategyType cacheStragy = NodeStrategyType::CACHE_NONE;
     drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_EQ(drawable->isDrawAreaEnable_, DrawAreaEnableState::DRAW_AREA_INIT);
 
     drawable->recordState_ = NodeRecordState::RECORD_CACHING;
     drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(!drawable->isOpincMarkCached_);
 }
 
 /**
@@ -345,6 +350,7 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
@@ -385,6 +391,8 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     bool isOpincDropNodeExt = true;
@@ -395,6 +403,7 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
     RectI absRect = {10, 10, 10, 10};
     params.SetAbsDrawRect(absRect);
     drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(!drawable->isOpincMarkCached_);
 }
 
 /**
@@ -406,6 +415,7 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos = {
         { RectI(100, 100, 200, 200), "" },
@@ -414,6 +424,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->DrawAutoCacheDfx(paintFilterCanvas, autoCacheRenderNodeInfos);
+    ASSERT_TRUE(drawable->GetOpListUnionArea().IsEmpty());
 }
 
 /**
@@ -502,8 +513,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest, TestSize.Level1)
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_FALSE(!params.ChildHasVisibleEffect());
 
-    auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::DISABLED);
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_FALSE(drawable->HasFilterOrEffect());
     drawable->drawCmdIndex_.shadowIndex_ = 1;
@@ -757,7 +766,6 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawTest, TestSize.Level1)
 
     CaptureParam param;
     param.isSnapshot_ = true;
-    param.isMirror_ = true;
     RSUniRenderThread::SetCaptureParam(param);
     ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 }

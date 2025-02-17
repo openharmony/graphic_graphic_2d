@@ -38,8 +38,6 @@ class Surface;
 struct FlushInfo;
 #ifdef RS_ENABLE_GPU
 struct FrameBuffer;
-class ImageInfo;
-class GPUContext;
 #endif
 enum class BackendAccess;
 
@@ -55,7 +53,7 @@ public:
 #endif
     virtual std::shared_ptr<Canvas> GetCanvas() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;
-    virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
+    virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds, bool allowRefCache = true) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageInfo) const = 0;
     virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;

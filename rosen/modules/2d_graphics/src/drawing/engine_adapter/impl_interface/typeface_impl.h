@@ -41,6 +41,7 @@ public:
     virtual int32_t GetUnitsPerEm() const = 0;
     virtual std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const = 0;
     virtual bool IsCustomTypeface() const = 0;
+    virtual bool IsThemeTypeface() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     // provide default implementation for hashes
     virtual uint32_t GetHash() const = 0;

@@ -77,7 +77,6 @@ public:
     void Sub(const Vector4<T>& arg);
     void Add(const Vector4<T>& arg);
     void Multiply(const Vector4<T>& arg);
-    void Div(const Vector4<T>& arg);
     void Negate();
     void Absolute();
     static void Min(const Vector4<T>& a, const Vector4<T>& b, Vector4<T>& result);
@@ -119,9 +118,14 @@ Vector4<T>::Vector4(T value)
 template<typename T>
 Vector4<T>::Vector4(const Vector4<T>& value)
 {
-    for (uint32_t i = 0; i < Size(); i++) {
-        data_[i] = value[i];
-    }
+    T data0 = value[0];
+    T data1 = value[1];
+    T data2 = value[2];
+    T data3 = value[3];
+    data_[0] = data0;
+    data_[1] = data1;
+    data_[2] = data2;
+    data_[3] = data3;
 }
 
 template<typename T>
@@ -244,10 +248,18 @@ void Vector4<T>::Min(const Vector4<T>& a, const Vector4<T>& b, Vector4<T>& resul
     T* resultData = result.data_;
     const T* aData = a.data_;
     const T* bData = b.data_;
-    resultData[3] = std::min(aData[3], bData[3]);
-    resultData[2] = std::min(aData[2], bData[2]);
-    resultData[1] = std::min(aData[1], bData[1]);
-    resultData[0] = std::min(aData[0], bData[0]);
+    T aData3 = aData[3];
+    T aData2 = aData[2];
+    T aData1 = aData[1];
+    T aData0 = aData[0];
+    T bData3 = bData[3];
+    T bData2 = bData[2];
+    T bData1 = bData[1];
+    T bData0 = bData[0];
+    resultData[3] = std::min(aData3, bData3);
+    resultData[2] = std::min(aData2, bData2);
+    resultData[1] = std::min(aData1, bData1);
+    resultData[0] = std::min(aData0, bData0);
 }
 
 template<typename T>
@@ -256,10 +268,18 @@ void Vector4<T>::Max(const Vector4<T>& a, const Vector4<T>& b, Vector4<T>& resul
     T* resultData = result.data_;
     const T* aData = a.data_;
     const T* bData = b.data_;
-    resultData[3] = std::max(aData[3], bData[3]);
-    resultData[2] = std::max(aData[2], bData[2]);
-    resultData[1] = std::max(aData[1], bData[1]);
-    resultData[0] = std::max(aData[0], bData[0]);
+    T aData3 = aData[3];
+    T aData2 = aData[2];
+    T aData1 = aData[1];
+    T aData0 = aData[0];
+    T bData3 = bData[3];
+    T bData2 = bData[2];
+    T bData1 = bData[1];
+    T bData0 = bData[0];
+    resultData[3] = std::max(aData3, bData3);
+    resultData[2] = std::max(aData2, bData2);
+    resultData[1] = std::max(aData1, bData1);
+    resultData[0] = std::max(aData0, bData0);
 }
 
 template<typename T>
@@ -268,10 +288,18 @@ void Vector4<T>::Mix(const Vector4<T>& min, const Vector4<T>& max, T a, Vector4<
     T* resultData = result.data_;
     const T* minData = min.data_;
     const T* maxData = max.data_;
-    resultData[3] = minData[3] + a * (maxData[3] - minData[3]);
-    resultData[2] = minData[2] + a * (maxData[2] - minData[2]);
-    resultData[1] = minData[1] + a * (maxData[1] - minData[1]);
-    resultData[0] = minData[0] + a * (maxData[0] - minData[0]);
+    T minData3 = minData[3];
+    T minData2 = minData[2];
+    T minData1 = minData[1];
+    T minData0 = minData[0];
+    T maxData3 = maxData[3];
+    T maxData2 = maxData[2];
+    T maxData1 = maxData[1];
+    T maxData0 = maxData[0];
+    resultData[3] = minData3 + a * (maxData3 - minData3);
+    resultData[2] = minData2 + a * (maxData2 - minData2);
+    resultData[1] = minData1 + a * (maxData1 - minData1);
+    resultData[0] = minData0 + a * (maxData0 - minData0);
 }
 
 template<typename T>
@@ -369,10 +397,14 @@ template<typename T>
 Vector4<T>& Vector4<T>::operator*=(const Vector4<T>& other)
 {
     const T* oData = other.data_;
-    data_[0] *= oData[0];
-    data_[1] *= oData[1];
-    data_[2] *= oData[2];
-    data_[3] *= oData[3];
+    T data3 = oData[3];
+    T data2 = oData[2];
+    T data1 = oData[1];
+    T data0 = oData[0];
+    data_[0] *= data0;
+    data_[1] *= data1;
+    data_[2] *= data2;
+    data_[3] *= data3;
     return *this;
 }
 
@@ -391,10 +423,14 @@ template<typename T>
 Vector4<T>& Vector4<T>::operator=(const Vector4<T>& other)
 {
     const T* oData = other.data_;
-    data_[0] = oData[0];
-    data_[1] = oData[1];
-    data_[2] = oData[2];
-    data_[3] = oData[3];
+    T data3 = oData[3];
+    T data2 = oData[2];
+    T data1 = oData[1];
+    T data0 = oData[0];
+    data_[0] = data0;
+    data_[1] = data1;
+    data_[2] = data2;
+    data_[3] = data3;
     return *this;
 }
 
@@ -453,40 +489,42 @@ template<typename T>
 void Vector4<T>::Sub(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
-    data_[3] -= argData[3];
-    data_[2] -= argData[2];
-    data_[1] -= argData[1];
-    data_[0] -= argData[0];
+    T data3 = argData[3];
+    T data2 = argData[2];
+    T data1 = argData[1];
+    T data0 = argData[0];
+    data_[3] -= data3;
+    data_[2] -= data2;
+    data_[1] -= data1;
+    data_[0] -= data0;
 }
 
 template<typename T>
 void Vector4<T>::Add(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
-    data_[3] += argData[3];
-    data_[2] += argData[2];
-    data_[1] += argData[1];
-    data_[0] += argData[0];
+    T data3 = argData[3];
+    T data2 = argData[2];
+    T data1 = argData[1];
+    T data0 = argData[0];
+    data_[3] += data3;
+    data_[2] += data2;
+    data_[1] += data1;
+    data_[0] += data0;
 }
 
 template<typename T>
 void Vector4<T>::Multiply(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
-    data_[3] *= argData[3];
-    data_[2] *= argData[2];
-    data_[1] *= argData[1];
-    data_[0] *= argData[0];
-}
-
-template<typename T>
-void Vector4<T>::Div(const Vector4<T>& arg)
-{
-    const T* argData = arg.data_;
-    data_[3] /= argData[3];
-    data_[2] /= argData[2];
-    data_[1] /= argData[1];
-    data_[0] /= argData[0];
+    T data3 = argData[3];
+    T data2 = argData[2];
+    T data1 = argData[1];
+    T data0 = argData[0];
+    data_[3] *= data3;
+    data_[2] *= data2;
+    data_[1] *= data1;
+    data_[0] *= data0;
 }
 
 template<typename T>

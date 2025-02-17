@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 #define RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 #include <chrono>
@@ -68,6 +69,15 @@ public:
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
 
+    std::map<uint64_t, int> GetVrateMap()
+    {
+        return linkersRateMap_;
+    }
+
+    bool SetVSyncRatesChangeStatus(bool newState)
+    {
+        return needPostTask_.exchange(newState);
+    }
 private:
     void NotifyVRates();
     int UpdateRatesLevel();
@@ -111,6 +121,9 @@ private:
     DeviceType deviceType_ = DeviceType::PC;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    std::map<NodeId, uint64_t> windowLinkerMap_;
+    std::map<uint64_t, int> linkersRateMap_;
+    std::atomic<bool> needPostTask_{ false };
 };
 
 } // namespace Rosen

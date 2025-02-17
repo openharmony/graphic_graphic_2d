@@ -25,7 +25,11 @@ namespace {
 constexpr size_t MAX_SIZE = 5000;
 }
 namespace Drawing {
-
+/*
+ * 测试以下 TextBlobBuilder 接口：
+ * 1. AllocRunPos(const Font& font, int count, const Rect* bounds)
+ * 2. Make()
+ */
 bool TextBlobBuilderFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -38,12 +42,16 @@ bool TextBlobBuilderFuzzTest001(const uint8_t* data, size_t size)
 
     TextBlobBuilder builder;
     Font font;
-    int count = 9;
-    builder.AllocRunPos(font, count, nullptr);
+    Rect rect {GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    builder.AllocRunPos(font, GetObject<int>() % MAX_SIZE, &rect);
     builder.Make();
     return true;
 }
 
+/*
+ * 测试以下 TextBlobBuilder 接口：
+ * 1. AllocRunRSXform(const Font& font, int count)
+ */
 bool TextBlobBuilderFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

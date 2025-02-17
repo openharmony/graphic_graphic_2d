@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/color_filter.h"
+#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,8 +27,19 @@ constexpr size_t BLENDMODE_SIZE = 29;
 constexpr size_t FILTERTYPE_SIZE = 8;
 constexpr size_t MATRIX_SIZE = 20;
 constexpr size_t OVER_DRAW_COLOR_NUM = 6;
+constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
+/*
+ * 测试以下 ColorFilter 接口：
+ * 1. CreateLinearToSrgbGamma()
+ * 2. Deserialize(...)
+ * 3. Serialize()
+ * 4. GetType()
+ * 5. GetDrawingType()
+ * 6. AsAColorMatrix(...)
+ * 7. InitWithCompose(...)
+ */
 bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -39,7 +51,15 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
-    colorFilter->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    colorFilter->Deserialize(dataVal);
     colorFilter->Serialize();
     colorFilter->GetType();
     colorFilter->GetDrawingType();
@@ -49,10 +69,28 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     float f1[MATRIX_SIZE];
     float f2[MATRIX_SIZE];
     colorFilter->InitWithCompose(f1, f2);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }
 
+/*
+ * 测试以下 ColorFilter 接口：
+ * 1. 构造函数：
+ *    - ColorFilter(FilterType, ColorQuad, BlendMode)
+ *    - ColorFilter(FilterType, const ColorMatrix&)
+ * 2. CreateBlendModeColorFilter(...)
+ * 3. CreateComposeColorFilter(..., ...)
+ * 4. CreateComposeColorFilter(float[], float[])
+ * 5. CreateMatrixColorFilter(...)
+ * 6. CreateFloatColorFilter(...)
+ * 7. CreateSrgbGammaToLinear()
+ * 8. CreateOverDrawColorFilter(...)
+ * 9. CreateLumaColorFilter()
+ */
 bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

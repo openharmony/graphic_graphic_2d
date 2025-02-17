@@ -273,7 +273,7 @@ public:
                 preKeyframeValue = animationValue;
                 continue;
             }
-            if (fraction == startFraction && startFraction == endFraction) {
+            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
                 bInFraction = true;
                 animationValue = keyframeValue;
                 preKeyframeValue = keyframeValue;
@@ -309,6 +309,7 @@ public:
     virtual ~RSSpringValueEstimatorBase() = default;
 
     virtual void SetResponse(const float response) {}
+    virtual void SetMinimumAmplitudeRatio(const float minimumAmplitudeRatio) {}
     virtual void SetDampingRatio(const float dampingRatio) {}
     virtual float GetResponse() const
     {
@@ -366,10 +367,17 @@ public:
         }
     }
 
+    void SetMinimumAmplitudeRatio(const float minimumAmplitudeRatio) override
+    {
+        if (springModel_) {
+            springModel_->minimumAmplitudeRatio_ = minimumAmplitudeRatio;
+        }
+    }
+
     void SetDampingRatio(const float dampingRatio) override
     {
         if (springModel_) {
-            springModel_->dampingRatio_ = dampingRatio;
+            springModel_->dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
         }
     }
 

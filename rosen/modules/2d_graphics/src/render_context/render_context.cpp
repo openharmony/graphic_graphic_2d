@@ -311,7 +311,7 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         if (drawingContext == nullptr) {
-            drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+            drawingContext = RsVulkanContext::GetSingletonWithCacheDir(cacheDir_).CreateDrawingContext();
         }
         std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
         drGPUContext_ = std::move(drGPUContext);
@@ -480,31 +480,30 @@ void RenderContext::ClearRedundantResources()
     }
 }
 
-sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
+std::shared_ptr<Drawing::ColorSpace> RenderContext::ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut)
 {
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
     switch (colorGamut) {
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-#if defined(NEW_SKIA)
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::DCIP3);
             break;
         case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::ADOBE_RGB);
             break;
         case GRAPHIC_COLOR_GAMUT_BT2020:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::REC2020);
             break;
         default:
-            skColorSpace = SkColorSpace::MakeSRGB();
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;
     }
 
-    return skColorSpace;
+    return colorSpace;
 }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

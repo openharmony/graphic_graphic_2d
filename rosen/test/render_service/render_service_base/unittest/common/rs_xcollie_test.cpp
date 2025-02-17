@@ -43,6 +43,6 @@ HWTEST_F(RSXCollieTest, RSXCollieTest001, TestSize.Level1)
 {
     // no except
     RSXCollie test("RSXCollieTest");
-    ASSERT_EQ(test.tag_, "render_service:RSXCollieTest");
+    ASSERT_EQ(test.tag_, "RSXCollieTest");
 }
 } // namespace OHOS::Rosen

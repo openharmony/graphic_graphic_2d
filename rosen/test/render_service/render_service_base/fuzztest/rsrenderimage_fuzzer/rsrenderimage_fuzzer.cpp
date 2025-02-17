@@ -227,6 +227,18 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     int height = GetData<int>();
     int id = GetData<int>();
 
+    Drawing::scalar sx = GetData<Drawing::scalar>();
+    Drawing::scalar sy = GetData<Drawing::scalar>();
+    Drawing::scalar sz = GetData<Drawing::scalar>();
+    Drawing::scalar dx = GetData<Drawing::scalar>();
+    Drawing::scalar dy = GetData<Drawing::scalar>();
+    Drawing::scalar dz = GetData<Drawing::scalar>();
+    Drawing::scalar tx = GetData<Drawing::scalar>();
+    Drawing::scalar ty = GetData<Drawing::scalar>();
+    Drawing::scalar tz = GetData<Drawing::scalar>();
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(tx, ty, tz, sx, sy, sz, dx, dy, dz);
+
     RSImage rsImage;
     rsImage.IsEqual(other);
     canvas.AttachBrush(brush);
@@ -239,6 +251,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     rsImage.SetRadius(radius);
     rsImage.SetScale(scale);
     rsImage.SetCompressData(drawingData, id, width, height);
+    rsImage.SetFitMatrix(matrix);
     return true;
 }
 

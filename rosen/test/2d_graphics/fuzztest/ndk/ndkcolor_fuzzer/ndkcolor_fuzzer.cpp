@@ -50,7 +50,7 @@ void NativeDrawingColorTest(const uint8_t* data, size_t size)
     uint32_t green = GetObject<uint32_t>();
 
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetAntiAlias(brush, false);
+    OH_Drawing_BrushSetAntiAlias(brush, GetObject<bool>());
     OH_Drawing_BrushIsAntiAlias(brush);
     OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(alpha, red, green, blue));
     OH_Drawing_BrushGetColor(brush);

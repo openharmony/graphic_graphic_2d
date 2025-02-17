@@ -26,6 +26,10 @@
 #endif
 
 namespace OHOS {
+const char* RS_CACHE_MAGIC_HEAD = "OHRS";
+const int RS_CACHE_MAGIC_HEAD_LEN = 4;
+const int RS_CACHE_HEAD_LEN = 8;
+const int RS_BYTE_SIZE = 8;
 namespace Rosen {
 CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
@@ -36,7 +40,92 @@ CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
 
 CacheData::~CacheData() {}
 
-void CacheData::CacheReadFromFile(std::string filePath)
+uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
+{
+    const uint32_t polynoimal = 0xEDB88320;
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < bufferSize ; ++i) {
+        crc ^= (static_cast<uint32_t>(buffer[i]));
+        for (size_t j = 0; j < RS_BYTE_SIZE; ++j) {
+            if (crc & 0x01) {
+                crc = (crc >> 1) ^ polynoimal;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    return crc ^ 0xFFFFFFFF;
+}
+
+bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
+{
+    if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
+        LOGE("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
+        return false;
+    }
+
+    uint32_t* storedCrc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
+    uint32_t computedCrc = CrcGen(buffer + RS_CACHE_HEAD_LEN, bufferSize - RS_CACHE_HEAD_LEN);
+    if (computedCrc != *storedCrc) {
+        LOGE("abandon, because of mismatched crc code");
+        DumpAbnormalCacheToFile(buffer, bufferSize);
+        return false;
+    }
+
+    return true;
+}
+
+void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
+{
+    if (cacheDir_.length() <= 0) {
+        LOGE("dump abnormal cache failed, because of empty filename");
+        return;
+    }
+    char canonicalPath[PATH_MAX] = {0};
+    if (realpath(cacheDir_.c_str(), canonicalPath) == nullptr) {
+        LOGE("dump abnormal cache failed, because of realpath check");
+        return;
+    }
+    std::string abnormalCacheDir = canonicalPath;
+    abnormalCacheDir = abnormalCacheDir + "_abnormal";
+    int fd = open(abnormalCacheDir.c_str(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == ERR_NUMBER) {
+        if (errno == EEXIST) {
+            if (unlink(abnormalCacheDir.c_str()) == ERR_NUMBER) {
+                LOGE("dump abnormal cache failed, because unlinking the existing file fails");
+                return;
+            }
+            fd = open(abnormalCacheDir.c_str(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+        }
+        if (fd == ERR_NUMBER) {
+            LOGE("dump abnormal cache failed, because the file creation fails");
+            return;
+        }
+    }
+
+    std::time_t curTime = time(nullptr);
+    char timestamp[TIME_MAX_LEN] = {0};
+    std::strftime(timestamp, TIME_MAX_LEN, "%Y-%m-%d %H:%M:%S", std::localtime(&curTime));
+    if (write(fd, timestamp, TIME_MAX_LEN) == ERR_NUMBER) {
+        LOGE("dump abnormal cache failed, because fail to write timestamp to disk");
+        close(fd);
+        unlink(abnormalCacheDir.c_str());
+        return;
+    }
+
+    if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
+        LOGE("dump abnormal cache failed, because fail to write data to disk");
+        close(fd);
+        unlink(abnormalCacheDir.c_str());
+        return;
+    }
+    fchmod(fd, S_IRUSR);
+    close(fd);
+    return;
+}
+
+void CacheData::CacheReadFromFile(const std::string filePath)
 {
     if (filePath.length() <= 0) {
         LOGD("abandon, because of empty filename.");
@@ -63,20 +152,28 @@ void CacheData::CacheReadFromFile(std::string filePath)
     }
 
     size_t fileSize = static_cast<size_t>(statBuf.st_size);
-    if (fileSize == 0 || fileSize > maxTotalSize_ * maxMultipleSize_) {
-        LOGD("abandon, illegal file size");
+    if (fileSize < RS_CACHE_HEAD_LEN || fileSize > maxTotalSize_ * maxMultipleSize_ + RS_CACHE_HEAD_LEN) {
+        LOGE("abandon, illegal file size");
         close(fd);
         return;
     }
-    void *buffer = mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0);
+    uint8_t *buffer = reinterpret_cast<uint8_t*>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0));
     if (buffer == MAP_FAILED) {
         LOGD("abandon, because of mmap failure:");
         close(fd);
         return;
     }
-    uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer);
-    if (DeSerialize(shaderBuffer, fileSize) < 0) {
-        LOGD("abandon, because fail to read file contents");
+
+    if (!IsValidFile(buffer, fileSize)) {
+        LOGE("abandon, invalid file");
+        munmap(buffer, fileSize);
+        close(fd);
+        return;
+    }
+
+    uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer + RS_CACHE_HEAD_LEN);
+    if (DeSerialize(shaderBuffer, fileSize - RS_CACHE_HEAD_LEN) < 0) {
+        LOGE("abandon, because fail to read file contents");
     }
     munmap(buffer, fileSize);
     close(fd);
@@ -118,21 +215,32 @@ void CacheData::WriteToFile()
         close(fd);
         return;
     }
-    uint8_t *buffer = new uint8_t[cacheSize];
+    size_t bufferSize = cacheSize + RS_CACHE_HEAD_LEN;
+    uint8_t *buffer = new uint8_t[bufferSize];
     if (!buffer) {
         LOGD("abandon, because fail to allocate buffer for cache content");
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-    if (Serialize(buffer, cacheSize) < 0) {
+    if (Serialize(buffer + RS_CACHE_HEAD_LEN, cacheSize) < 0) {
         LOGD("abandon, because fail to serialize the CacheData:");
         delete[] buffer;
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-    if (write(fd, buffer, cacheSize) == ERR_NUMBER) {
+
+    // Write the file rs magic head and CRC code
+    if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
+        delete[] buffer;
+        close(fd);
+        return;
+    }
+    uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
+    *crc = CrcGen(buffer + RS_CACHE_HEAD_LEN, cacheSize);
+
+    if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
         LOGD("abandon, because fail to write to disk");
         delete[] buffer;
         close(fd);
@@ -290,6 +398,10 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
         LOGD("abandon, not enough room for cache header");
     }
 
+    if (buffer == nullptr) {
+        LOGD("abandon, buffer is null");
+        return -EINVAL;
+    }
     const Header *header = reinterpret_cast<const Header *>(buffer);
     size_t numShaders = header->numShaders_;
     size_t byteOffset = Align4(sizeof(Header));

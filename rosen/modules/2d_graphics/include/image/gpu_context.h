@@ -18,9 +18,8 @@
 #include <functional>
 #include <set>
 
-#include "trace_memory_dump.h"
-
 #include "impl_interface/gpu_context_impl.h"
+#include "trace_memory_dump.h"
 #include "utils/data.h"
 #include "utils/drawing_macros.h"
 
@@ -94,9 +93,13 @@ public:
     void SetAllowPathMaskCaching(bool allowPathMaskCaching);
     bool GetAllowPathMaskCaching() const;
 
+    void SetStoreCachePath(const std::string& filename);
+    std::string GetStoreCachePath() const;
+
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
+    std::string filePath_ = "";
 };
 
 class DRAWING_API GPUContext {
@@ -165,6 +168,8 @@ public:
      * @param resourceBytes     If non-null, returns the total number of bytes of video memory held in the cache.
      */
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const;
+
+    void DumpAllResource(std::stringstream& dump) const;
 
     /**
      * @brief                   Free GPU created by the contetx.
@@ -276,7 +281,7 @@ public:
 
     void SetGpuCacheSuppressWindowSwitch(bool enabled);
 
-    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled);
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority);
 
     void FlushGpuMemoryInWaitQueue();
     

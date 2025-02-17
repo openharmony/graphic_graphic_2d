@@ -31,6 +31,10 @@ Func GetEglApi(const char* procname)
     static const char* libEGL = "/system/lib/platformsdk/libEGL.so";
 #endif
     void* dlEglHandle = dlopen(libEGL, RTLD_NOW | RTLD_GLOBAL);
+    if (!dlEglHandle) {
+        WLOGE("Failed to load EGL library (%s) using dlopen", libEGL);
+        return nullptr;
+    }
 
     void* func = dlsym(dlEglHandle, procname);
     if (func) {

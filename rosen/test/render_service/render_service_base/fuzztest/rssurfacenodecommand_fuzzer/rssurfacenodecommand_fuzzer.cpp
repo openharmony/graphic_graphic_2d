@@ -122,6 +122,34 @@ bool DoCreateWithConfig(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::CreateWithConfig(context, id, name, type, windowType);
     return true;
 }
+
+bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    NodeId id = GetData<NodeId>();
+    RSContext context;
+    uint64_t screenId = GetData<uint64_t>();
+    bool isEnabled = GetData<bool>();
+    uint8_t surfaceNodeType = GetData<uint8_t>();
+    bool isHidden = GetData<bool>();
+
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, isEnabled);
+    SurfaceNodeCommandHelper::AttachToDisplay(context, id, screenId);
+    SurfaceNodeCommandHelper::DetachToDisplay(context, id, screenId);
+    SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
+    SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, surfaceNodeType);
+    SurfaceNodeCommandHelper::MarkUIHidden(context, id, isHidden);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -131,6 +159,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoSurfacenodecommand(data, size);
     OHOS::Rosen::DoCreateWithConfig(data, size);
+    OHOS::Rosen::DoSurfacenodecommand002(data, size);
     return 0;
 }
 

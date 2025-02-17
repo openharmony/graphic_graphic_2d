@@ -29,6 +29,7 @@ enum class WordBreakType {
     NORMAL,     // to be done.
     BREAK_ALL,  // break occur after any characters.
     BREAK_WORD, // break only occur after word.
+    BREAK_HYPHEN,
 };
 
 enum class BreakStrategy {

@@ -24,55 +24,75 @@ Paint::Paint() noexcept
 
 Paint::Paint(const Paint& other) noexcept
 {
-    antiAlias_ = other.antiAlias_;
-    color_ = other.color_;
-    blendMode_ = other.blendMode_;
-    style_ = other.style_;
-    width_ = other.width_;
-    miterLimit_ = other.miterLimit_;
-    cap_ = other.cap_;
-    join_ = other.join_;
-    if (other.hasFilter_) {
-        filter_ = other.filter_;
-        hasFilter_ = true;
-    } else {
-        filter_.Reset();
-        hasFilter_ = false;
-    }
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    bool antiAlias = other.antiAlias_;
+    bool blenderEnabled = other.blenderEnabled_;
+    bool hasFilter = other.hasFilter_;
+    PaintStyle style = other.style_;
+    BlendMode blendMode = other.blendMode_;
+    scalar width = other.width_;
+    scalar miterLimit = other.miterLimit_;
+    Pen::JoinStyle join = other.join_;
+    Pen::CapStyle cap = other.cap_;
+    antiAlias_ = antiAlias;
+    blenderEnabled_ = blenderEnabled;
+    hasFilter_ = hasFilter;
+    style_ = style;
+    blendMode_ = blendMode;
+    width_ = width;
+    miterLimit_ = miterLimit;
+    join_ = join;
+    cap_ = cap;
+
     colorSpace_ = other.colorSpace_;
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
-    blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
+    color_ = other.color_;
+    if (other.hasFilter_) {
+        filter_ = other.filter_;
+    } else {
+        filter_.Reset();
+    }
 }
 
 Paint::Paint(const Color& c, std::shared_ptr<ColorSpace> colorSpace) noexcept
-    : color_(c), filter_(), colorSpace_(colorSpace) {}
+    : colorSpace_(colorSpace), color_(c), filter_() {}
 
 Paint& Paint::operator=(const Paint& other)
 {
-    antiAlias_ = other.antiAlias_;
-    color_ = other.color_;
-    blendMode_ = other.blendMode_;
-    style_ = other.style_;
-    width_ = other.width_;
-    miterLimit_ = other.miterLimit_;
-    cap_ = other.cap_;
-    join_ = other.join_;
-    if (other.hasFilter_) {
-        filter_ = other.filter_;
-        hasFilter_ = true;
-    } else {
-        filter_.Reset();
-        hasFilter_ = false;
-    }
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    bool antiAlias = other.antiAlias_;
+    bool blenderEnabled = other.blenderEnabled_;
+    bool hasFilter = other.hasFilter_;
+    PaintStyle style = other.style_;
+    BlendMode blendMode = other.blendMode_;
+    scalar width = other.width_;
+    scalar miterLimit = other.miterLimit_;
+    Pen::JoinStyle join = other.join_;
+    Pen::CapStyle cap = other.cap_;
+    antiAlias_ = antiAlias;
+    blenderEnabled_ = blenderEnabled;
+    hasFilter_ = hasFilter;
+    style_ = style;
+    blendMode_ = blendMode;
+    width_ = width;
+    miterLimit_ = miterLimit;
+    join_ = join;
+    cap_ = cap;
+
     colorSpace_ = other.colorSpace_;
     shaderEffect_ = other.shaderEffect_;
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
-    blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
+    color_ = other.color_;
+    if (other.hasFilter_) {
+        filter_ = other.filter_;
+    } else {
+        filter_.Reset();
+    }
     return *this;
 }
 
@@ -193,6 +213,7 @@ void Paint::SetJoinStyle(Pen::JoinStyle js)
 
 void Paint::SetBlendMode(BlendMode mode)
 {
+    blender_ = nullptr;
     blendMode_ = mode;
 }
 

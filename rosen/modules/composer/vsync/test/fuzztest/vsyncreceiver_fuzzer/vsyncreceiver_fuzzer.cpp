@@ -15,9 +15,14 @@
 
 #include "vsyncreceiver_fuzzer.h"
 
+#include <cstdint>
+#include <memory>
 #include <securec.h>
 #include <sstream>
+#include <sys/socket.h>
 
+#include <event_handler.h>
+#include <sys/types.h>
 #include "graphic_common_c.h"
 #include "graphic_common.h"
 #include "vsync_receiver.h"
@@ -28,15 +33,15 @@
 namespace OHOS {
     namespace {
         constexpr size_t STR_LEN = 10;
-        const uint8_t* data_ = nullptr;
-        size_t size_ = 0;
-        size_t pos;
+        const uint8_t* g_data = nullptr;
+        size_t g_size = 0;
+        size_t g_pos;
 
         void OnVSync(int64_t now, void* data) {}
     }
 
     /*
-    * describe: get data from outside untrusted data(data_) which size is according to sizeof(T)
+    * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
     * tips: only support basic type
     */
     template<class T>
@@ -44,19 +49,19 @@ namespace OHOS {
     {
         T object {};
         size_t objectSize = sizeof(object);
-        if (data_ == nullptr || objectSize > size_ - pos) {
+        if (g_data == nullptr || objectSize > g_size - g_pos) {
             return object;
         }
-        errno_t ret = memcpy_s(&object, objectSize, data_ + pos, objectSize);
+        errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
         if (ret != EOK) {
             return {};
         }
-        pos += objectSize;
+        g_pos += objectSize;
         return object;
     }
 
     /*
-    * get a string from data_
+    * get a string from g_data
     */
     std::string GetStringFromData(int strlen)
     {
@@ -109,43 +114,17 @@ namespace OHOS {
         }
     }
 
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    void VSyncCallBackListenerFuzzTest(sptr<Rosen::VSyncReceiver>& receiver)
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
-        // get data
-        int64_t offset = GetData<int64_t>();
-        int32_t rate = GetData<int32_t>();
-        bool uiDVSyncSwitch = GetData<bool>();
-        bool nativeDVSyncSwitch = GetData<bool>();
-        int32_t bufferCount = GetData<int32_t>();
-        void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         std::string name = GetStringFromData(STR_LEN);
         bool rnvFlag = GetData<bool>();
-
-        // test
-        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
-        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
-        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
-        sptr<Rosen::VSyncConnection> vsyncConnection = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
-        sptr<Rosen::VSyncReceiver> vsyncReceiver = new Rosen::VSyncReceiver(vsyncConnection);
+        int64_t now = GetData<int64_t>();
+        void* userData = static_cast<void*>(GetStringFromData(STR_LEN).data());
         Rosen::VSyncReceiver::FrameCallback fcb = {
-            .userData_ = data1,
+            .userData_ = userData,
             .callback_ = OnVSync,
         };
-        vsyncReceiver->SetVSyncRate(fcb, rate);
-        vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
-        vsyncReceiver->RequestNextVSync(fcb);
-        vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
+
         std::shared_ptr<Rosen::VSyncCallBackListener> vsyncCallBackListener(
             std::make_shared<Rosen::VSyncCallBackListener>());
         vsyncCallBackListener->SetCallback(fcb);
@@ -157,8 +136,66 @@ namespace OHOS {
         vsyncCallBackListener->GetPeriodShared();
         vsyncCallBackListener->GetTimeStampShared();
         vsyncCallBackListener->AddCallback(fcb);
+        vsyncCallBackListener->CalculateExpectedEndLocked(now);
 
         GraphicCommonTest();
+    }
+
+    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+
+        // initialize
+        g_data = data;
+        g_size = size;
+        g_pos = 0;
+
+        // get data
+        int64_t offset = GetData<int64_t>();
+        int32_t rate = GetData<int32_t>();
+        bool uiDVSyncSwitch = GetData<bool>();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        int32_t bufferCount = GetData<int32_t>();
+        void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        bool isOpen = GetData<bool>();
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool isThreadShared = GetData<bool>();
+        bool needCreateNewThread = GetData<bool>();
+
+        // test
+        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
+        sptr<Rosen::VSyncConnection> vsyncConnection = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
+        sptr<Rosen::VSyncReceiver> vsyncReceiver = new Rosen::VSyncReceiver(vsyncConnection);
+        std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(needCreateNewThread);
+        std::shared_ptr<AppExecFwk::EventHandler> eventHandler =
+            std::make_shared<AppExecFwk::EventHandler>(eventRunner);
+        sptr<Rosen::VSyncReceiver> vsyncReceiver2 = new Rosen::VSyncReceiver(
+            vsyncConnection, nullptr, eventHandler, "FuzzTest");
+        Rosen::VSyncReceiver::FrameCallback fcb = {
+            .userData_ = data1,
+            .callback_ = OnVSync,
+        };
+        vsyncReceiver->SetVSyncRate(fcb, rate);
+        vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
+        vsyncReceiver->RequestNextVSync(fcb);
+        vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
+
+        VSyncCallBackListenerFuzzTest(vsyncReceiver);
+
+        vsyncReceiver->SetVsyncCallBackForEveryFrame(fcb, isOpen);
+        vsyncReceiver->GetVSyncPeriodAndLastTimeStamp(period, timestamp, isThreadShared);
+        vsyncReceiver->GetVSyncPeriod(period);
+        vsyncReceiver->IsRequestedNextVSync();
+
+        //tearDown
+        vsyncReceiver->CloseVsyncReceiverFd();
         return true;
     }
 }

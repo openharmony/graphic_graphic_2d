@@ -15,11 +15,12 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_physical_screen_processor.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#include "pipeline/rs_uni_render_engine.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -300,14 +301,15 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Redraw, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
 {
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    ASSERT_NE(rsHardwareProcessor, nullptr);
     uint32_t layerLevel[] = { 0, 1, 2, 3 };
     bool onOffTag = true;
+    int total = 4;
+    int num = 0;
     for (uint32_t level : layerLevel) {
-        rsHardwareProcessor->RequestPerf(level, onOffTag);
+        RSUniRenderUtil::RequestPerf(level, onOffTag);
+        num++;
     }
+    EXPECT_TRUE(num == total);
 }
 
 /**
@@ -347,38 +349,6 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, Test
     mirroredWidth = 1.0f;
     processor->CalculateMirrorAdaptiveCoefficient(curWidth, curHeight, mirroredWidth, mirroredHeight);
     ASSERT_EQ(processor->mirrorAdaptiveCoefficient_, 1);
-}
-
-/**
- * @tc.name: MirrorScenePerf
- * @tc.desc: test results of MirrorScenePerf
- * @tc.type: FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSPhysicalScreenProcessorTest, MirrorScenePerf, TestSize.Level1)
-{   
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    processor->MirrorScenePerf();
-    ASSERT_TRUE(processor->needDisableMultiLayersPerf_);
-}
-
-/**
- * @tc.name: MultiLayersPerf
- * @tc.desc: test results of MultiLayersPerf
- * @tc.type: FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSPhysicalScreenProcessorTest, MultiLayersPerf, TestSize.Level1)
-{   
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    size_t layerNum = 1;
-    processor->needDisableMultiLayersPerf_ = true;
-    processor->MultiLayersPerf(layerNum);
-    processor->needDisableMultiLayersPerf_ = false;
-    processor->MultiLayersPerf(layerNum);
-    ASSERT_FALSE(processor->needDisableMultiLayersPerf_);
 }
 
 /**

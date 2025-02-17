@@ -15,7 +15,7 @@
 
 #include "cmap_table_parser.h"
 
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,11 +28,10 @@ const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size)
 void CmapTableParser::Dump() const
 {
     auto cmapTable = reinterpret_cast<const struct CmapTables*>(data_);
-    LOGSO_FUNC_LINE(INFO) << "cmapTable size: " << size_;
+    TEXT_LOGI("CmapTable size: %{public}d", size_);
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
-        LOGSO_FUNC_LINE(INFO) << "platformID: " << record.platformID.Get()
-            << ", encodingID: " << record.encodingID.Get();
+        TEXT_LOGI("PlatformID: %{public}d, encodingID: %{public}d", record.platformID.Get(), record.encodingID.Get());
     }
 }
 } // namespace TextEngine

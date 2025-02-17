@@ -77,9 +77,77 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
 HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
-    parser->LoadConfiguration(config);
+    int32_t load = parser->LoadConfiguration(config);
+    EXPECT_GE(load, EXEC_SUCCESS);
     parser->Parse();
     parser->GetParsedData();
+}
+
+/**
+ * @tc.name: StringToVector001
+ * @tc.desc: Verify the result of StringToVector001 functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmXmlParserTest, StringToVector001, Function | SmallTest | Level1)
+{
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    std::string emptyInput = "";
+    std::vector<uint32_t> result = parser->StringToVector(emptyInput);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: StringToVector002
+ * @tc.desc: Verify the result of StringToVector002 functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level1)
+{
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    std::string spacesBetweenNumbersInput = "1 2   3  45 ";
+    std::vector<uint32_t> expected = {1, 2, 3, 45};
+    std::vector<uint32_t> result = parser->StringToVector(spacesBetweenNumbersInput);
+    EXPECT_EQ(expected, result);
+}
+
+/**
+ * @tc.name: StringToVector003
+ * @tc.desc: Verify the result of StringToVector003 functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level1)
+{
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    std::string invalidInput = "abc";
+    std::vector<uint32_t> result = parser->StringToVector(invalidInput);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: IsNumber
+ * @tc.desc: Verify the result of IsNumber function
+ * @tc.type: FUNC
+ * @tc.require: IBCFDD
+ */
+HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level1)
+{
+    std::vector<std::pair<std::string, bool>> cases = {
+        {"", false},
+        {"123456789", false},
+        {"a023", false},
+        {"02a3", false},
+        {"023a", false},
+        {"123", true},
+        {"-123", true},
+        {"023", true},
+        {"12345678", true}
+    };
+    for (const auto& [str, res] : cases) {
+        EXPECT_EQ(XMLParser::IsNumber(str), res);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

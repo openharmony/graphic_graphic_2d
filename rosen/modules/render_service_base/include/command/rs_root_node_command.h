@@ -39,17 +39,22 @@ public:
     static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height);
 };
 
-ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSRootNodeCreate,
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_CREATE,
+        RootNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
-    ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_ATTACH,
+        RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeSetEnableRender,
-    ARG(ROOT_NODE, SET_ENABLE_RENDER, RootNodeCommandHelper::SetEnableRender, NodeId, bool))
+    ARG(PERMISSION_APP, ROOT_NODE, SET_ENABLE_RENDER,
+        RootNodeCommandHelper::SetEnableRender, NodeId, bool))
 // unirender
 ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
-    ARG(ROOT_NODE, ATTACH_TO_UNI_SURFACENODE, RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
+    ARG(PERMISSION_APP, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
+        RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
-    ARG(ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE, RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float,
-        float))
+    ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
+        RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
 
 } // namespace Rosen
 } // namespace OHOS

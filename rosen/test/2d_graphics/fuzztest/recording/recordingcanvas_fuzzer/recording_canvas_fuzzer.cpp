@@ -195,6 +195,11 @@ void RecordingCanvasFuzzTest003(const uint8_t* data, size_t size)
     TextBlob* row_blob = blob.get();
     recordcanvas.DrawTextBlob(row_blob, x, y);
     recordcanvas1.DrawTextBlob(row_blob, x, y);
+    recordcanvas1.SetIsCustomTextType(true);
+    recordcanvas1.DrawTextBlob(row_blob, x, y);
+    recordcanvas.GenerateCachedOpForTextblob(row_blob, x, y);
+    Paint paint;
+    recordcanvas.GenerateCachedOpForTextblob(row_blob, x, y, paint);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -318,6 +323,7 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
     recordcanvas.ResetMatrix();
     recordcanvas1.ResetMatrix();
     recordcanvas.ConcatMatrix(matrix);
+    matrix.Reset();
     recordcanvas1.ConcatMatrix(matrix);
     recordcanvas.Translate(dx, dy);
     recordcanvas1.Translate(dx, dy);
@@ -369,6 +375,26 @@ void RecordingCanvasFuzzTest007(const uint8_t* data, size_t size)
     recordcanvas.SetGrRecordingContext(nullptr);
     recordcanvas1.SetGrRecordingContext(nullptr);
 }
+
+void RecordingCanvasFuzzTest008(const uint8_t* data, size_t size)
+{
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    RecordingCanvas recordcanvas = RecordingCanvas(width, height);
+    Drawing::Image image;
+    Drawing::Lattice lattice;
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    scalar dz = GetObject<scalar>();
+    scalar df = GetObject<scalar>();
+    Rect rect(dx, dy, dz, df);
+    recordcanvas.DrawImageLattice(&image, lattice, rect, Drawing::FilterMode::LINEAR);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -385,5 +411,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest005(data, size);
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest006(data, size);
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest007(data, size);
+    OHOS::Rosen::Drawing::RecordingCanvasFuzzTest008(data, size);
     return 0;
 }

@@ -15,26 +15,33 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/ace_platforms.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/ipc_callbacks"
+module_output_path = "graphic_2d/rosen_engine/render_service_base/ipc_callbacks"
 
 ##############################  RSRenderServiceBaseIpcCallBacksTest  ##################################
 ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
   module_out_path = module_output_path
 
   sources = [
+    "buffer_available_callback_proxy_test.cpp",
     "buffer_available_callback_stub_test.cpp",
     "buffer_clear_callback_proxy_test.cpp",
     "buffer_clear_callback_stub_test.cpp",
     "hgm_config_change_callback_proxy_test.cpp",
     "hgm_config_change_callback_stub_test.cpp",
+    "rs_application_agent_proxy_test.cpp",
     "rs_occlusion_change_callback_proxy_test.cpp",
     "rs_occlusion_change_callback_stub_test.cpp",
     "rs_rt_refresh_callback_test.cpp",
+    "rs_surface_buffer_callback_proxy_test.cpp",
+    "rs_surface_buffer_callback_stub_test.cpp",
+    "rs_surface_buffer_callback_test.cpp",
+    "rs_surface_occlusion_change_callback_proxy_test.cpp",
     "rs_surface_occlusion_change_callback_stub_test.cpp",
     "rs_uiextension_callback_proxy_test.cpp",
     "rs_uiextension_callback_stub_test.cpp",
     "screen_change_callback_proxy_test.cpp",
     "screen_change_callback_stub_test.cpp",
+    "surface_capture_callback_proxy_test.cpp",
     "surface_capture_callback_stub_test.cpp",
   ]
 

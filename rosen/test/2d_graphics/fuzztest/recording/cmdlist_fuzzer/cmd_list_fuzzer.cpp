@@ -33,6 +33,26 @@ constexpr size_t ARRAY_MAX_SIZE = 5000;
 } // namespace
 
 namespace Drawing {
+/*
+ * 测试以下 CmdList 接口：
+ * 1. CreateFromData
+ * 2. GetType
+ * 3. AddCmdListData
+ * 4. GetCmdListData
+ * 5. GetData
+ * 6. SetUpImageData
+ * 7. AddImageData
+ * 8. GetImageData
+ * 9. GetAllImageData
+ * 10. AddBitmapData
+ * 11. GetBitmapData
+ * 12. SetUpBitmapData
+ * 13. GetAllBitmapData
+ * 14. GetExtendObject
+ * 15. AddExtendObject
+ * 16. GetAllExtendObject
+ * 17. SetupExtendObject
+ */
 void CmdListFuzzTest000(const uint8_t* data, size_t size)
 {
     // initialize
@@ -42,42 +62,61 @@ void CmdListFuzzTest000(const uint8_t* data, size_t size)
 
     size_t length = GetObject<size_t>() % ARRAY_MAX_SIZE + 1;
     size_t arrSize = GetObject<size_t>() % MATH_TEN;
-    size_t offset = GetObject<size_t>();
-    size_t dataSize = GetObject<size_t>();
+    uint32_t offset = GetObject<uint32_t>();
 
     char* obj = new char[length];
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
-    CmdListData cmdListData;
-    cmdListData.first = obj;
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
     cmdListData.second = length;
-    std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
 
     cmdList->GetType();
     cmdList->AddCmdListData(cmdListData);
-    cmdList->GetCmdListData(offset, dataSize);
+    cmdList->GetCmdListData(offset, arrSize);
     cmdList->GetData();
-    cmdList->SetUpImageData(obj, arrSize);
-    cmdList->AddImageData(obj, arrSize);
-    cmdList->GetImageData(offset, dataSize);
+    cmdList->SetUpImageData(nullptr, arrSize);
+    cmdList->AddImageData(nullptr, arrSize);
+    cmdList->GetImageData(offset, arrSize);
     cmdList->GetAllImageData();
-    cmdList->AddBitmapData(obj, arrSize);
-    cmdList->GetBitmapData(offset, dataSize);
-    cmdList->SetUpBitmapData(obj, arrSize);
+    cmdList->AddBitmapData(nullptr, arrSize);
+    cmdList->GetBitmapData(offset, arrSize);
+    cmdList->SetUpBitmapData(nullptr, arrSize);
     cmdList->GetAllBitmapData();
     std::shared_ptr<ExtendObject> object = cmdList->GetExtendObject(offset);
     cmdList->AddExtendObject(object);
-    std::vector<std::shared_ptr<ExtendObject>> objectList = { object, object };
+    std::vector<std::shared_ptr<ExtendObject>> objectList;
     cmdList->GetAllExtendObject(objectList);
-    cmdList->SetupExtendObject(objectList);
+    std::vector<std::shared_ptr<ExtendObject>> objectList2;
+    cmdList->SetupExtendObject(objectList2);
     if (obj != nullptr) {
         delete [] obj;
         obj = nullptr;
     }
 }
 
+
+/*
+ * 测试以下 CmdList 接口：
+ * 1. CreateFromData
+ * 2. GetImageObject
+ * 3. AddImageObject
+ * 4. GetAllObject
+ * 5. SetupObject
+ * 6. GetImageBaseObj
+ * 7. AddImageBaseObj
+ * 8. GetAllBaseObj
+ * 9. SetupBaseObj
+ * 10. GetDrawFuncObj
+ * 11. AddDrawFuncOjb
+ * 12. GetOpCnt
+ * 13. CopyObjectTo
+ * 14. AddImage
+ * 15. GetImage
+ */
 void CmdListFuzzTest001(const uint8_t* data, size_t size)
 {
     // initialize
@@ -88,8 +127,8 @@ void CmdListFuzzTest001(const uint8_t* data, size_t size)
     size_t length = GetObject<size_t>() % ARRAY_MAX_SIZE + 1;
     uint32_t id = GetObject<uint32_t>();
     Bitmap bitmap;
-    int32_t width = GetObject<int32_t>() % ARRAY_MAX_SIZE;
-    int32_t height = GetObject<int32_t>() % ARRAY_MAX_SIZE;
+    int32_t width = GetObject<int32_t>() % MATH_TEN + 1;
+    int32_t height = GetObject<int32_t>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(width, height, bitmapFormat);
     if (!buildBitmap) {
@@ -101,22 +140,26 @@ void CmdListFuzzTest001(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
-    CmdListData cmdListData;
-    cmdListData.first = obj;
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
     cmdListData.second = length;
-    std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     std::shared_ptr<ExtendImageObject> object = cmdList->GetImageObject(id);
     cmdList->AddImageObject(object);
     std::vector<std::shared_ptr<ExtendImageObject>> objectList;
     cmdList->GetAllObject(objectList);
-    cmdList->SetupObject(objectList);
-    std::shared_ptr<ExtendImageBaseObj> object1 = cmdList->GetImageBaseObj(id);
+    std::vector<std::shared_ptr<ExtendImageObject>> objectList2;
+    cmdList->SetupObject(objectList2);
+    uint32_t id1 = GetObject<uint32_t>();
+    std::shared_ptr<ExtendImageBaseObj> object1 = cmdList->GetImageBaseObj(id1);
     cmdList->AddImageBaseObj(object1);
     std::vector<std::shared_ptr<ExtendImageBaseObj>> objList;
     cmdList->GetAllBaseObj(objList);
-    cmdList->SetupBaseObj(objList);
-    std::shared_ptr<ExtendDrawFuncObj> object2 = cmdList->GetDrawFuncObj(id);
+    std::vector<std::shared_ptr<ExtendImageBaseObj>> objList2;
+    cmdList->SetupBaseObj(objList2);
+    uint32_t id2 = GetObject<uint32_t>();
+    std::shared_ptr<ExtendDrawFuncObj> object2 = cmdList->GetDrawFuncObj(id2);
     cmdList->AddDrawFuncOjb(object2);
     cmdList->GetOpCnt();
     cmdList->CopyObjectTo(*cmdList);

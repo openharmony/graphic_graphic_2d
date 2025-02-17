@@ -19,15 +19,22 @@
 namespace OHOS {
 namespace Rosen {
 RSDefaultSurfaceBufferCallback::RSDefaultSurfaceBufferCallback(
-    std::function<void(uint64_t, const std::vector<uint32_t>&)> callback) : callback_(callback)
+    DefaultSurfaceBufferCallbackFuncs funcs) : finishCallback_(funcs.OnFinish),
+    afterAcquireBufferCallback_(funcs.OnAfterAcquireBuffer)
 {
 }
 
-void RSDefaultSurfaceBufferCallback::OnFinish(
-    uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds)
+void RSDefaultSurfaceBufferCallback::OnFinish(const FinishCallbackRet& ret)
 {
-    if (callback_) {
-        std::invoke(callback_, uid, surfaceBufferIds);
+    if (finishCallback_) {
+        std::invoke(finishCallback_, ret);
+    }
+}
+
+void RSDefaultSurfaceBufferCallback::OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret)
+{
+    if (afterAcquireBufferCallback_) {
+        std::invoke(afterAcquireBufferCallback_, ret);
     }
 }
 

@@ -25,6 +25,7 @@
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
+static constexpr uint32_t SUB_VIDEO_THREAD_TASKS_NUM_MAX = 2;
 static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
 constexpr const char* RELEASE_TEXTURE = "releaseTexture";
@@ -107,107 +108,6 @@ float RSSubThreadManager::GetAppGpuMemoryInMB()
         total += subThread->GetAppGpuMemoryInMB();
     }
     return total;
-}
-
-void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
-    const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
-{
-    RS_TRACE_NAME("RSSubThreadManager::SubmitSubThreadTask");
-    bool ifNeedRequestNextVsync = false;
-
-    if (node == nullptr) {
-        ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask display node is null");
-        return;
-    }
-    if (subThreadNodes.empty()) {
-        return;
-    }
-    CancelReleaseTextureTask();
-    CancelReleaseResourceTask();
-    std::vector<std::unique_ptr<RSRenderTask>> renderTaskList;
-    auto cacheSkippedNodeMap = RSMainThread::Instance()->GetCacheCmdSkippedNodes();
-    for (const auto& child : subThreadNodes) {
-        if (!child) {
-            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask !child");
-            continue;
-        }
-        if (!child->ShouldPaint()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
-            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask child->ShouldPaint()");
-            continue;
-        }
-        if (!child->GetNeedSubmitSubThread()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", child->GetName().c_str());
-            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask !child->GetNeedSubmitSubThread()");
-            continue;
-        }
-        if (cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask cacheCmdSkippedNode: [%s, %llu]",
-                child->GetName().c_str(), child->GetId());
-            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask "
-                "cacheSkippedNodeMap.count(child->GetId()) != 0 && child->HasCachedTexture()");
-            continue;
-        }
-        nodeTaskState_[child->GetId()] = 1;
-        if (child->GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
-            child->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-        }
-        renderTaskList.push_back(std::make_unique<RSRenderTask>(*child, RSRenderTask::RenderNodeStage::CACHE));
-    }
-    if (renderTaskList.size()) {
-        ifNeedRequestNextVsync = true;
-    }
-
-    std::vector<std::shared_ptr<RSSuperRenderTask>> superRenderTaskList;
-    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
-        superRenderTaskList.emplace_back(std::make_shared<RSSuperRenderTask>(node,
-            RSMainThread::Instance()->GetFrameCount()));
-    }
-
-    for (auto& renderTask : renderTaskList) {
-        auto renderNode = renderTask->GetNode();
-        auto surfaceNode = renderNode->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceNode == nullptr) {
-            ROSEN_LOGE("RSSubThreadManager::SubmitSubThreadTask surfaceNode is null");
-            continue;
-        }
-        auto threadIndex = surfaceNode->GetSubmittedSubThreadIndex();
-        if (threadIndex != INT_MAX && superRenderTaskList[threadIndex]) {
-            RS_OPTIONAL_TRACE_NAME("node:[ " + surfaceNode->GetName() + ", " + std::to_string(surfaceNode->GetId()) +
-                ", " + std::to_string(threadIndex) + " ]; ");
-            superRenderTaskList[threadIndex]->AddTask(std::move(renderTask));
-        } else {
-            if (superRenderTaskList[minLoadThreadIndex_]) {
-                RS_OPTIONAL_TRACE_NAME("node:[ " + surfaceNode->GetName() +
-                    ", " + std::to_string(surfaceNode->GetId()) +
-                    ", " + std::to_string(minLoadThreadIndex_) + " ]; ");
-                superRenderTaskList[minLoadThreadIndex_]->AddTask(std::move(renderTask));
-                surfaceNode->SetSubmittedSubThreadIndex(minLoadThreadIndex_);
-            }
-        }
-        uint32_t minLoadThreadIndex = 0;
-        auto minNodesNum = superRenderTaskList[0]->GetTaskSize();
-        for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
-            auto num = superRenderTaskList[i]->GetTaskSize();
-            if (num < minNodesNum) {
-                minNodesNum = num;
-                minLoadThreadIndex = i;
-            }
-        }
-        minLoadThreadIndex_ = minLoadThreadIndex;
-    }
-
-    for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
-        auto subThread = threadList_[i];
-        subThread->PostTask([subThread, renderTask = superRenderTaskList[i]]() {
-            subThread->RenderCache(renderTask);
-        });
-    }
-    needResetContext_ = true;
-    if (ifNeedRequestNextVsync) {
-        RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
-        RSMainThread::Instance()->RequestNextVSync();
-    }
 }
 
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
@@ -378,7 +278,11 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
 
     auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
     minLoadThreadIndex_ = defaultThreadIndex_;
-    for (unsigned int j = 0; j < SUB_THREAD_NUM; j++) {
+    unsigned int loadDefaultIndex = 0;
+    if (RSSystemProperties::IsPcType()) {
+        loadDefaultIndex = 1;
+    }
+    for (unsigned int j = loadDefaultIndex; j < SUB_THREAD_NUM; j++) {
         if (j == defaultThreadIndex_) {
             continue;
         }
@@ -393,13 +297,23 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     } else {
         defaultThreadIndex_++;
         if (defaultThreadIndex_ >= SUB_THREAD_NUM) {
-            defaultThreadIndex_ = 0;
+            defaultThreadIndex_ = loadDefaultIndex;
+        }
+    }
+    if (RSSystemProperties::IsPcType()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+        if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
+            threadList_[0]->GetDoingCacheProcessNum() < SUB_VIDEO_THREAD_TASKS_NUM_MAX) {
+            nowIdx = 0;
         }
     }
 
     auto subThread = threadList_[nowIdx];
     auto tid = reThreadIndexMap_[nowIdx];
-    nodeTaskState_[param->GetId()] = 1;
+    {
+        std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+        nodeTaskState_[param->GetId()] = 1;
+    }
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
@@ -409,6 +323,9 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
             RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable subThread param is nullptr");
             return;
         }
+
+        // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
+        RSMainThread::GPUCompositonCacheGuard guard;
         std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
         /* Task run in SubThread, the uniParamUnique which is copyed from uniRenderThread will sync to SubTread */
         RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));

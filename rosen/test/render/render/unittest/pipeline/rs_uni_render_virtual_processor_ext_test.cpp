@@ -19,11 +19,11 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_uni_render_engine.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
-#include "pipeline/rs_render_engine.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -172,6 +172,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, CanvasInit_001, TestSize.Level2)
 {
     displayDrawable_->isFirstTimeToProcessor_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    EXPECT_NE(displayDrawable_, nullptr);
 }
 
 /**
@@ -185,6 +186,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, CanvasInit_002, TestSize.Level2)
     displayDrawable_->isFirstTimeToProcessor_ = false;
     virtualProcessor_->canvasRotation_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    EXPECT_NE(displayDrawable_, nullptr);
 }
 
 /**
@@ -315,6 +317,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, SetDirtyInfo_001, TestSize.Level2)
     virtualProcessor_->renderFrame_ = nullptr;
     std::vector<RectI> damageRegion {};
     virtualProcessor_->SetDirtyInfo(damageRegion);
+    EXPECT_NE(virtualProcessor_, nullptr);
 }
 
 /**

@@ -149,6 +149,13 @@ int32_t HdiScreen::SetScreenMode(uint32_t modeId)
     return ret;
 }
 
+int32_t HdiScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    CHECK_DEVICE_NULL(device_);
+    return device_->SetScreenActiveRect(screenId_, activeRect);
+}
+
 int32_t HdiScreen::SetScreenOverlayResolution(uint32_t width, uint32_t height) const
 {
     CHECK_DEVICE_NULL(device_);
@@ -247,7 +254,10 @@ int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uin
 
 bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
 {
-    CHECK_DEVICE_NULL(device_);
+    if (device_ == nullptr) {
+        HLOGE("[%{public}s]: HdiDevice is nullptr.", __func__);
+        return false;
+    }
     uint64_t propertyValue = 0;
     if (device_->GetDisplayProperty(screenId,
         HDI::Display::Composer::V1_2::DISPLAY_CAPBILITY_HARDWARE_CURSOR, propertyValue)
@@ -258,6 +268,12 @@ bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
         return true;
     }
     return false;
+}
+
+int32_t HdiScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->GetDisplayIdentificationData(screenId_, outPort, edidData);
 }
 } // namespace Rosen
 } // namespace OHOS

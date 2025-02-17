@@ -67,7 +67,6 @@ ohos_shared_library("uieffect_napi") {
     defines = [ "ENABLE_IPC_SECURITY" ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
-      "access_token:libtokenid_sdk",
       "ipc:ipc_core",
     ]
   }

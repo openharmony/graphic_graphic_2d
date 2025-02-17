@@ -24,7 +24,7 @@ namespace Drawing {
 namespace {
 constexpr size_t LARGE_MALLOC = 200000000;
 }
-static constexpr size_t MEM_SIZE_MAX = SIZE_MAX;
+static constexpr size_t MEM_SIZE_MAX = SIZE_MAX / 2;
 
 MemAllocator::MemAllocator() : isReadOnly_(false), capacity_(0), size_(0), startPtr_(nullptr) {}
 
@@ -110,7 +110,7 @@ bool MemAllocator::Resize(size_t size)
 
 void* MemAllocator::Add(const void* data, size_t size)
 {
-    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX) {
+    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX || size > MEM_SIZE_MAX - capacity_) {
         return nullptr;
     }
     auto current = startPtr_ + size_;
@@ -149,7 +149,7 @@ size_t MemAllocator::AddrToOffset(const void* addr) const
     }
 
     size_t offset = static_cast<size_t>(static_cast<const char*>(addr) - startPtr_);
-    if (offset > size_) {
+    if (offset >= size_) {
         return 0;
     }
     return offset;

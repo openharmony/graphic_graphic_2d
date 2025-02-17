@@ -22,6 +22,7 @@ constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
 constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
+const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
@@ -130,7 +131,8 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
             return GRAPHIC_DISPLAY_NULL_PTR;
         }
     } else {
-        bufferCacheCountMax_ = surface->GetQueueSize();
+        // The number of buffers cycle in the surface is larger than the queue size.
+        surface->GetCycleBuffersNumber(bufferCacheCountMax_);
     }
     uint32_t layerId = INT_MAX;
     GraphicLayerInfo hdiLayerInfo = {
@@ -533,12 +535,15 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetTransformMode");
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
-    ret = SetLayerDirtyRegion();
-    CheckRet(ret, "SetLayerDirtyRegion");
+    // The crop needs to be set in the first order
     ret = SetLayerCrop();
     CheckRet(ret, "SetLayerCrop");
+    // The data space contained in the layerbuffer needs to be set in the second order
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
+    // The dirty region needs to be set in the third order
+    ret = SetLayerDirtyRegion();
+    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerCompositionType();
     CheckRet(ret, "SetLayerCompositionType");
     ret = SetLayerBlendType();
@@ -643,7 +648,8 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
         std::unique_lock<std::mutex> lock(mutex_);
         const uint32_t offset = count_;
         for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-            uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+            // Reverse output timestamp array
+            uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
             auto windowsName = presentTimeRecords_[order].windowsName;
             auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
             int64_t lastFlushTimestamp = 0;
@@ -727,7 +733,7 @@ void HdiLayer::Dump(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
 }
@@ -737,7 +743,7 @@ void HdiLayer::DumpByName(std::string windowName, std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         auto windowsName = presentTimeRecords_[order].windowsName;
         auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
         if (iter != windowsName.end()) {
@@ -751,7 +757,7 @@ void HdiLayer::DumpMergedResult(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = mergedCount_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(mergedPresentTimeRecords_[order]) + "\n";
     }
 }
@@ -771,7 +777,10 @@ int32_t HdiLayer::SetPerFrameParameters()
     const auto& supportedKeys = device_->GetSupportedLayerPerFrameParameterKey();
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     for (const auto& key : supportedKeys) {
-        if (key == GENERIC_METADATA_KEY_BRIGHTNESS_NIT) {
+        if (key == GENERIC_METADATA_KEY_SDR_NIT) {
+            ret = SetPerFrameParameterSdrNit();
+            CheckRet(ret, "SetPerFrameParameterSdrNit");
+        } else if (key == GENERIC_METADATA_KEY_BRIGHTNESS_NIT) {
             ret = SetPerFrameParameterDisplayNit();
             CheckRet(ret, "SetPerFrameParameterDisplayNit");
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
@@ -785,9 +794,23 @@ int32_t HdiLayer::SetPerFrameParameters()
     return ret;
 }
 
+int32_t HdiLayer::SetPerFrameParameterSdrNit()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetSdrNit() == prevLayerInfo_->GetSdrNit()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetSdrNit();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SDR_NIT, valueBlob);
+}
+
 int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetDisplayNit() == prevLayerInfo_->GetDisplayNit()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -795,12 +818,13 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetBrightnessRatio() == prevLayerInfo_->GetBrightnessRatio()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -808,12 +832,13 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -821,7 +846,8 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()

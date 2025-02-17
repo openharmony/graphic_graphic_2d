@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 
+static constexpr int64_t PROTECTEDBUFFERSIZE = 2;
 class RSTimer {
 public:
     static inline int64_t GetNanoSeconds()
@@ -71,6 +72,10 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     mSurfaceList.clear();
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
+    if (mReservedFlushFd != -1) {
+        ::close(mReservedFlushFd);
+        mReservedFlushFd = -1;
+    }
 }
 
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected)
@@ -157,6 +162,26 @@ int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nati
     return res;
 }
 
+bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t height)
+{
+    if (mNativeWindow == nullptr) {
+        mNativeWindow = CreateNativeWindowFromSurface(&producer_);
+        ROSEN_LOGD("PreAllocateProtectedBuffer: create native window");
+    }
+    for (int num = 0; num < PROTECTEDBUFFERSIZE; num++) {
+        NativeWindowBuffer* nativeWindowBuffer = nullptr;
+        int fenceFd = -1;
+        if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, true, true) != OHOS::GSERROR_OK) {
+            RS_TRACE_NAME("PreAllocateProtectedBuffer failed.");
+            continue;
+        }
+        RS_TRACE_NAME("PreAllocateProtectedBuffer protectedSurfaceBufferList_ push back.");
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.emplace_back(std::make_pair(nativeWindowBuffer, fenceFd));
+    }
+    return true;
+}
+
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
@@ -172,12 +197,24 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height,
-        fenceFd, useAFBC, isProtected) != OHOS::GSERROR_OK) {
-        return nullptr;
+    {
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        if (isProtected && !protectedSurfaceBufferList_.empty()) {
+            RS_TRACE_NAME_FMT("protectedSurfaceBufferList_ size = %lu, addr = %p", protectedSurfaceBufferList_.size(),
+                this);
+            nativeWindowBuffer = protectedSurfaceBufferList_.front().first;
+            fenceFd = protectedSurfaceBufferList_.front().second;
+            mSurfaceList.emplace_back(nativeWindowBuffer);
+            protectedSurfaceBufferList_.pop_front();
+        } else {
+            if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, isProtected) !=
+                OHOS::GSERROR_OK) {
+                return nullptr;
+            }
+            mSurfaceList.emplace_back(nativeWindowBuffer);
+        }
     }
 
-    mSurfaceList.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&(nativeSurface.lastPresentedCount), 0, 1);
@@ -289,7 +326,10 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     }
     
     int fenceFd = -1;
-
+    if (mReservedFlushFd != -1) {
+        ::close(mReservedFlushFd);
+        mReservedFlushFd = -1;
+    }
     auto queue = vkContext.GetQueue();
     if (vkContext.GetHardWareGrContext().get() == mSkContext.get()) {
         queue = vkContext.GetHardwareQueue();
@@ -306,6 +346,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         return false;
     }
     callbackInfo->mFenceFd = ::dup(fenceFd);
+    mReservedFlushFd = ::dup(fenceFd);
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
@@ -363,6 +404,14 @@ void RSSurfaceOhosVulkan::ClearBuffer()
 void RSSurfaceOhosVulkan::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
+}
+
+int RSSurfaceOhosVulkan::DupReservedFlushFd()
+{
+    if (mReservedFlushFd != -1) {
+        return ::dup(mReservedFlushFd);
+    }
+    return -1;
 }
 } // namespace Rosen
 } // namespace OHOS

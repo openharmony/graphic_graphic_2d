@@ -412,6 +412,20 @@ HWTEST_F(HdiScreenTest, SetScreenConstraint001, Function | MediumTest | Level3)
     ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenConstraint(frameId, timestamp, type), 0);
 }
 
+/*
+ * Function: GetDisplayPropertyForHardCursor001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetDisplayPropertyForHardCursor
+ *                  2. check ret
+ */
+HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTest | Level3)
+{
+    uint32_t screenId = 0;
+    bool res = hdiScreen_->GetDisplayPropertyForHardCursor(screenId);
+    EXPECT_FALSE(res);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

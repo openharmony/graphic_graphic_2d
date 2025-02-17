@@ -365,40 +365,35 @@ const VkAllocationCallbacks &GetDefaultAllocator()
     return defaultAllocCallbacks;
 }
 
-GraphicColorDataSpace GetColorDataspace(VkColorSpaceKHR colorspace)
+OH_NativeBuffer_ColorSpace TranslateVkColorSpaceToNative(VkColorSpaceKHR colorspace)
 {
     switch (colorspace) {
         case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:
-            return GRAPHIC_BT709_SRGB_FULL;
+            return OH_COLORSPACE_SRGB_FULL;
         case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:
-            return GRAPHIC_DCI_P3_GAMMA26_FULL;
+            return OH_COLORSPACE_P3_FULL;
         case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:
-            return GRAPHIC_BT709_LINEAR_EXTENDED;
-        case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:
-            return GRAPHIC_BT709_SRGB_EXTENDED;
+            return OH_COLORSPACE_LINEAR_SRGB;
         case VK_COLOR_SPACE_DCI_P3_LINEAR_EXT:
-            return GRAPHIC_DCI_P3_LINEAR_FULL;
-        case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:
-            return GRAPHIC_DCI_P3_GAMMA26_FULL;
+            return OH_COLORSPACE_LINEAR_P3;
         case VK_COLOR_SPACE_BT709_LINEAR_EXT:
-            return GRAPHIC_BT709_LINEAR_FULL;
+            return OH_COLORSPACE_LINEAR_BT709;
         case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:
-            return GRAPHIC_BT709_SRGB_FULL;
+            return OH_COLORSPACE_BT709_FULL;
         case VK_COLOR_SPACE_BT2020_LINEAR_EXT:
-            return GRAPHIC_BT2020_LINEAR_FULL;
+            return OH_COLORSPACE_LINEAR_BT2020;
         case VK_COLOR_SPACE_HDR10_ST2084_EXT:
-            return GRAPHIC_BT2020_ST2084_FULL;
+            return OH_COLORSPACE_BT2020_PQ_FULL;
         case VK_COLOR_SPACE_DOLBYVISION_EXT:
-            return GRAPHIC_BT2020_ST2084_FULL;
+            return OH_COLORSPACE_BT2020_PQ_FULL;
         case VK_COLOR_SPACE_HDR10_HLG_EXT:
-            return GRAPHIC_BT2020_HLG_FULL;
-        case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:
-            return static_cast<GraphicColorDataSpace>(GRAPHIC_GAMUT_ADOBE_RGB |
-                                                      GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRECISION_FULL);
+            return OH_COLORSPACE_BT2020_HLG_FULL;
         case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:
-            return GRAPHIC_ADOBE_RGB_GAMMA22_FULL;
+            return OH_COLORSPACE_ADOBERGB_FULL;
+        case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:
+            return OH_COLORSPACE_SRGB_FULL;
         default:
-            return GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+            return OH_COLORSPACE_NONE;
     }
 }
 
@@ -411,13 +406,15 @@ void SwapchainCloseFd(int &fd)
     fd = -1;
 }
 
-static bool IsFencePending(int fd)
+static bool IsFencePending(int &fd)
 {
     if (fd < 0) {
         return false;
     }
     errno = 0;
     sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fd);
+    //SyncFence close need to change fd to -1
+    fd = -1;
     return syncFence->Wait(0) == -1 && errno == ETIME;
 }
 
@@ -597,14 +594,17 @@ VKAPI_ATTR VkResult SetWindowPixelFormat(NativeWindow* window, GraphicPixelForma
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowColorDataSpace(NativeWindow* window, GraphicColorDataSpace colorDataSpace)
+VKAPI_ATTR VkResult SetWindowColorSpace(NativeWindow* window, OH_NativeBuffer_ColorSpace colorSpace)
 {
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    SWLOGE("NativeWindow Not Support Set Color dataspace, now. Set GraphicColorDataSpace is [%{public}d]",
-        static_cast<int>(colorDataSpace));
-
+    int err = OH_NativeWindow_SetColorSpace(window, colorSpace);
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow Set ColorSpace [%{public}d] Failed : %{public}d",
+            static_cast<int>(colorSpace), err);
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
     return VK_SUCCESS;
 }
 
@@ -741,12 +741,9 @@ VKAPI_ATTR VkResult SetWindowQueueSize(NativeWindow* window, const VkSwapchainCr
 
 VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo)
 {
-    GraphicColorDataSpace colorDataSpace = GetColorDataspace(createInfo->imageColorSpace);
-    SWLOGD("Swapchain translate VkColorSpaceKHR:%{public}d to GraphicColorDataSpace:%{public}d",
-        static_cast<int>(createInfo->imageColorSpace), static_cast<int>(colorDataSpace));
-    if (colorDataSpace == GRAPHIC_COLOR_DATA_SPACE_UNKNOWN) {
-        return VK_ERROR_INITIALIZATION_FAILED;
-    }
+    OH_NativeBuffer_ColorSpace OHColorSpace = TranslateVkColorSpaceToNative(createInfo->imageColorSpace);
+    SWLOGD("Swapchain translate VkColorSpaceKHR:%{public}d to OHColorSpace:%{public}d",
+        static_cast<int>(createInfo->imageColorSpace), static_cast<int>(OHColorSpace));
     GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
     SWLOGD("Swapchain translate VkFormat:%{public}d to GraphicPixelFormat:%{public}d",
         static_cast<int>(createInfo->imageFormat), static_cast<int>(pixelFormat));
@@ -757,8 +754,11 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
     if (SetWindowPixelFormat(window, pixelFormat) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
-    // Set DataSpace
-    if (SetWindowColorDataSpace(window, colorDataSpace) != VK_SUCCESS) {
+    // Set ColorSpace
+    if (OHColorSpace == OH_COLORSPACE_NONE) {
+        SWLOGE("Color Space [%{public}d] Not Support, Not Set Native Window!",
+            static_cast<int>(createInfo->imageColorSpace));
+    } else if (SetWindowColorSpace(window, OHColorSpace) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
     // Set BufferGeometry
@@ -1032,6 +1032,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         if (fenceDup == -1) {
             SWLOGE("dup NativeWindow requested fencefd failed, wait for signalled");
             sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fence);
+            fence = -1;
             syncFence->Wait(-1);
         }
     }

@@ -17,8 +17,9 @@
 
 #include "app_mgr_client.h"
 #include "hisysevent.h"
-#include "pipeline/rs_base_render_util.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
@@ -45,10 +46,10 @@ constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
-const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
+const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
 {
-    static std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient =
-        std::make_unique<AppExecFwk::AppMgrClient>();
+    static std::shared_ptr<AppExecFwk::AppMgrClient> appMgrClient =
+        std::make_shared<AppExecFwk::AppMgrClient>();
     return appMgrClient;
 }
 }
@@ -72,14 +73,28 @@ void RSUnmarshalThread::Start()
 #endif
 }
 
-void RSUnmarshalThread::PostTask(const std::function<void()>& task)
+void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {
-        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        handler_->PostTask(
+            [task, taskName = name]() mutable {
+                auto handle = RSUnmarshalTaskManager::Instance().BeginTask(std::move(taskName));
+                std::invoke(task);
+                RSUnmarshalTaskManager::Instance().EndTask(handle);
+            }, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
-void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid)
+void RSUnmarshalThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
+    }
+}
+
+void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid,
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker, std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit,
+    uint32_t parcelNumber)
 {
     if (!handler_ || !parcel) {
         RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
@@ -87,22 +102,29 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
-    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid]() {
+    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
+        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
+        RSMarshallingHelper::SetCallingPid(callingPid);
+        AshmemFdContainer::SetIsUnmarshalThread(true);
+        if (ashmemFdWorker) {
+            ashmemFdWorker->PushFdsToContainer();
+        }
         SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
-        auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
+        auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel, parcelNumber);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
+        if (ashmemFdWorker) {
+            // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
+            parcel->FlushBuffer();
+            ashmemFdWorker->EnableManualCloseFds();
+        }
         if (!transData) {
             return;
         }
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-            pid_t conflictCommandPid = 0;
-            std::string commandMapDesc = "";
-            if (!transData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
-                RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
-                        " is denied to access commandPid %{public}d, commandMap = %{public}s",
-                        callingPid, conflictCommandPid, commandMapDesc.c_str());
+            if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
+                RS_LOGE("RSUnmarshalThread::RecvParcel IsCallingPidValid check failed");
             }
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {
@@ -118,13 +140,14 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (isPendingUnmarshal) {
             RSMainThread::Instance()->RequestNextVSync();
         }
+        // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
         ffrt::task_handle handle;
         if (RSSystemProperties::GetUnmarshParallelFlag()) {
             handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
         } else {
-            PostTask(task);
+            PostTask(task, std::to_string(callingPid));
         }
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
@@ -161,9 +184,7 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
 }
 void RSUnmarshalThread::SetFrameParam(int requestId, int load, int frameNum, int value)
 {
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().SetFrameParam(requestId, load, frameNum, value);
-    }
+    RsFrameReport::GetInstance().SetFrameParam(requestId, load, frameNum, value);
 }
 void RSUnmarshalThread::SetFrameLoad(int load)
 {
@@ -244,7 +265,11 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
             return false;
         }
     }
-    const auto& appMgrClient = GetAppMgrClient();
+    const auto appMgrClient = GetAppMgrClient();
+    if (!appMgrClient) {
+        RS_LOGW("Get global variable AppMgrClient failed");
+        return false;
+    }
     int32_t uid = 0;
     std::string bundleName;
     appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
