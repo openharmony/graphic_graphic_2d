@@ -4702,25 +4702,29 @@ void RSMainThread::UpdateLuminance()
         return;
     }
     bool isNeedRefreshAll{false};
-    if (auto screenManager = CreateOrGetScreenManager()) {
-        auto& rsLuminance = RSLuminanceControl::Get();
-        for (const auto& child : *rootNode->GetSortedChildren()) {
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-            if (displayNode == nullptr) {
-                continue;
-            }
-
-            auto screenId = displayNode->GetScreenId();
-            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
-                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+    auto& rsLuminance = RSLuminanceControl::Get();
+    for (const auto& child : *rootNode->GetSortedChildren()) {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+        if (displayNode == nullptr) {
+            continue;
+        }
+        auto screenId = displayNode->GetScreenId();
+        if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+            static std::function<void()> task = [screenId]() -> void {
+                uint32_t newLevel = RSLuminanceControl::Get().GetNewHdrLuminance(screenId);
+                auto screenManager = CreateOrGetScreenManager();
+                if (screenManager == nullptr) {
+                    return;
+                }
                 screenManager->SetScreenBacklight(screenId, newLevel);
-                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
-            }
-            if (rsLuminance.IsDimmingOn(screenId)) {
-                rsLuminance.DimmingIncrease(screenId);
-                isNeedRefreshAll = true;
-                SetLuminanceChangingStatus(screenId, true);
-            }
+                RSLuminanceControl::Get().SetNowHdrLuminance(screenId, newLevel);
+            };
+            RSBackgroundThread::Instance().PostSyncTask(task);
+        }
+        if (rsLuminance.IsDimmingOn(screenId)) {
+            rsLuminance.DimmingIncrease(screenId);
+            isNeedRefreshAll = true;
+            SetLuminanceChangingStatus(screenId, true);
         }
     }
     if (isNeedRefreshAll) {
