@@ -3153,12 +3153,18 @@ void RSMainThread::ConnectChipsetVsyncSer()
 void RSMainThread::SetVsyncInfo(uint64_t timestamp)
 {
     int64_t vsyncPeriod = 0;
+    bool allowFramerateChange = false;
     if (receiver_) {
         receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, vsyncPeriod);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld",
-        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod));
+    if (context_) {
+        // framerate not vote at animation and mult-window scenario
+        allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
+            context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    }
+    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, vsyncPeriod, allowFramerateChange);
+    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld, allowFramerateChange = %{public}d",
+        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod), allowFramerateChange);
 }
 #endif
 
@@ -3998,13 +4004,16 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
+    uint64_t unsignedNowTime = static_cast<uint64_t>(nowTime);
+    uint64_t unsignedLastFlushedDesiredPresentTimeStamp = static_cast<uint64_t>(lastFlushedDesiredPresentTimeStamp);
     int64_t vsyncPeriod = 0;
     VsyncError ret = VSYNC_ERROR_UNKOWN;
     if (receiver_) {
         ret = receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    if (ret != VSYNC_ERROR_OK || static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
-    	static_cast<uint64_t>(vsyncPeriod) < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
+    uint64_t unsignedVsyncPeriod = static_cast<uint64_t>(vsyncPeriod);
+    if (ret != VSYNC_ERROR_OK || unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
+    	unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
         RequestNextVSync();
         return;
     }
@@ -4014,20 +4023,19 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     } else {
         lastVsyncTime = timestamp_;
     }
-    lastVsyncTime = (uint64_t)nowTime - (((uint64_t)nowTime - lastVsyncTime) % (uint64_t)vsyncPeriod);
+    lastVsyncTime = unsignedNowTime - ((unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod);
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
         ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, nowTime, lastVsyncTime, timestamp_);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && (uint64_t)nowTime - timestamp_ > (uint64_t)vsyncPeriod &&
-        (uint64_t)lastFlushedDesiredPresentTimeStamp > lastVsyncTime - (uint64_t)vsyncPeriod &&
-        (uint64_t)lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
-        (uint64_t)nowTime - lastVsyncTime <
-        (uint64_t)(REFRESH_PERIOD / 2)) { // invoke when late less than 1/2 refresh period
+    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod &&
+        unsignedLastFlushedDesiredPresentTimeStamp > lastVsyncTime - unsignedVsyncPeriod &&
+        unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
+        unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
         RS_LOGD("RSMainThread::CheckFastCompose fastcompose start"
-            ", buffer late for %{public}" PRIu64, nowTime - lastVsyncTime);
+            ", buffer late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
         ForceRefreshForUni(true);
     } else {
         RequestNextVSync();
