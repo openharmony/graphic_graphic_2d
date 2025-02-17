@@ -24,6 +24,7 @@
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "draw/clip.h"
@@ -1336,10 +1337,17 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
         int degree = static_cast<int>(round(nodeParams->GetAbsRotation()));
         extraRotation = (degree - rotationDegree) % ROUND_ANGLE;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+            "fixRotationByUser:true surfaceNode:[%lu] rotationDegree:[%d] degree:[%d] extraRotation:[%d]",
+            nodeParams->GetId(), rotationDegree, degree, extraRotation);
     }
 
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
+
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+            "surfaceNode:[%lu] transform:[%d] rotationTransform:[%d]",
+            nodeParams != nullptr ? nodeParams->GetId() : 0, transform, rotationTransform);
 
     RectF bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f};
     if (params.buffer != nullptr) {
