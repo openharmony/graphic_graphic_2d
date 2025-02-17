@@ -301,6 +301,7 @@ private:
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+    RSDumpManager* rsDumpManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
