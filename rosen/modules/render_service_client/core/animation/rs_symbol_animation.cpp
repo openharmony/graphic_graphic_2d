@@ -724,16 +724,11 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
     Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
-    if (scaleProperty == nullptr) {
-        ROSEN_LOGD("[%{public}s] : scaleProperty is nullptr", __func__);
-        return;
-    }
-
     auto& properties = scaleParameter.properties;
     if (properties.count(SCALE_PROP_X) <= 0 || properties.count(SCALE_PROP_Y) <= 0 ||
         properties[SCALE_PROP_X].size() < PROPERTIES ||
         properties[SCALE_PROP_Y].size() < PROPERTIES) {
-        ROSEN_LOGD("[%{public}s] : invalid input", __func__);
+        ROSEN_LOGD("invalid scaleParameter input");
         return;
     }
 

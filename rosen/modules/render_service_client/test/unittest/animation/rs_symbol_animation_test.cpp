@@ -612,7 +612,7 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase001, TestSize.Level1)
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     auto bounceSecondPhaseParas = BOUNCE_SECOND_PHASE_PARAS;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
-    symbolAnimation.ScaleAnimationBase(scaleProperty, bounceSecondPhaseParas, groupAnimation);
+    symbolAnimation.ScaleAnimationBase(canvasNode, scaleProperty, bounceSecondPhaseParas, groupAnimation);
     /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
@@ -639,7 +639,7 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase002, TestSize.Level1)
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     Drawing::DrawingPiecewiseParameter testParas = {};
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
-    symbolAnimation.ScaleAnimationBase(scaleProperty, testParas, groupAnimation);
+    symbolAnimation.ScaleAnimationBase(canvasNode, scaleProperty, testParas, groupAnimation);
     /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
@@ -664,7 +664,7 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase003, TestSize.Level1)
     auto bounceSecondPhaseParas = BOUNCE_SECOND_PHASE_PARAS;
     bounceSecondPhaseParas.curveType = Drawing::DrawingCurveType::SHARP;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
-    symbolAnimation.ScaleAnimationBase(scaleProperty, bounceSecondPhaseParas, groupAnimation);
+    symbolAnimation.ScaleAnimationBase(canvasNode, scaleProperty, bounceSecondPhaseParas, groupAnimation);
     /**
      * @tc.steps: step2. start ScaleAnimationBase test
      */
