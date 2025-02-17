@@ -270,7 +270,8 @@ private:
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
-        COLOR_GAMUT_ADOBE_RGB };
+        COLOR_GAMUT_ADOBE_RGB,
+        COLOR_GAMUT_DISPLAY_P3 };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     int32_t currentVirtualColorGamutIdx_ = 0;
     int32_t currentPhysicalColorGamutIdx_ = 0;

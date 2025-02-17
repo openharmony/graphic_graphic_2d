@@ -57,6 +57,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     virtualScreenHeight_ = static_cast<float>(virtualScreenInfo.height);
     originalVirtualScreenWidth_ = virtualScreenWidth_;
     originalVirtualScreenHeight_ = virtualScreenHeight_;
+    renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto mirroredDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredDisplayDrawable) {
@@ -67,6 +68,19 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
             mirroredScreenWidth_ = static_cast<float>(mainScreenInfo.width);
             mirroredScreenHeight_ = static_cast<float>(mainScreenInfo.height);
+            auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+            auto mirroredDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
+            if (displayParams && mirroredDisplayParams &&
+                displayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB &&
+                mirroredDisplayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+                renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+                RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
+            }
+        }
+    } else if (isExpand_) {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+        if (displayParams && displayParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+            renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         }
     }
 
