@@ -77,6 +77,7 @@ RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (expectedRange_.preferred_ != range.preferred_) {
         for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
             if (cb) {
@@ -93,11 +94,13 @@ void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 
 const FrameRateRange& RSRenderFrameRateLinker::GetExpectedRange() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return expectedRange_;
 }
 
 void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (frameRate_ != rate) {
         frameRate_ = rate;
         Notify();
@@ -106,6 +109,7 @@ void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate)
 
 uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return frameRate_;
 }
 

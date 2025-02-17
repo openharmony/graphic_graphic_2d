@@ -2004,10 +2004,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
     // Start of DVSync
-    bool isUiDvsyncOn = false;
-    if (rsVSyncDistributor_ != nullptr) {
-        isUiDvsyncOn = rsVSyncDistributor_->IsUiDvsyncOn();
-    }
+    bool isUiDvsyncOn = rsVSyncDistributor_ != nullptr ? rsVSyncDistributor_->IsUiDvsyncOn() : false;
     // End of DVSync
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
@@ -2021,8 +2018,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         }
     });
     // Check and processing refresh rate task.
-    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
-    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, isUiDvsyncOn);
+    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsVSyncDistributor_->GetRefreshRate(), isUiDvsyncOn);
 
     if (rsFrameRateLinker_ != nullptr) {
         auto rsCurrRange = rsCurrRange_;
@@ -2032,14 +2028,19 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
 
+    if (rsCurrRange_.IsValid()) {
+        frameRateMgr->GetRsFrameRateTimer().Start();
+    } else {
+        frameRateMgr->GetRsFrameRateTimer().Stop();
+    }
+
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
     bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
     bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
     bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
 
-    if (!vrateStatusChange && !setHgmTaskFlag &&
-        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
-        !needRefresh && !isVideoCallVsyncChange) {
+    if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
+        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;
     }
 
@@ -2047,12 +2048,9 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                         linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            return;
-        }
-        // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
-        if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr &&
+            frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+            // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });

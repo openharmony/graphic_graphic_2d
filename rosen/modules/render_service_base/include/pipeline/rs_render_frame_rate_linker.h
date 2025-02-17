@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_H
 
+#include <mutex>
 #include <refbase.h>
 
 #include "animation/rs_frame_rate_range.h"
@@ -71,6 +72,7 @@ private:
     uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;
+    mutable std::mutex mutex_;
 
     std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };
