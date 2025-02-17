@@ -146,22 +146,13 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 
-    bool GetDumpRsTreeDetailEnabled()
-    {
-        return isDumpRsTreeDetailEnabled_;
-    }
+    bool GetDumpRsTreeDetailEnabled() { return isDumpRsTreeDetailEnabled_; }
 
-    inline uint32_t IncreasePrepareSeq()
-    {
-        return ++nodePreparedSeqNum_;
-    }
+    uint32_t IncreasePrepareSeq() { return ++nodePreparedSeqNum_; }
 
-    inline uint32_t IncreasePostPrepareSeq()
-    {
-        return ++nodePostPreparedSeqNum_;
-    }
+    uint32_t IncreasePostPrepareSeq() { return ++nodePostPreparedSeqNum_; }
 
-    void SetCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
+    void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
 private:
     const std::unordered_set<NodeId> GetCurrentBlackList() const;
@@ -470,9 +461,7 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
 
     bool isDumpRsTreeDetailEnabled_ = false;
-
     uint32_t nodePreparedSeqNum_ = 0;
-
     uint32_t nodePostPreparedSeqNum_ = 0;
 };
 } // namespace Rosen

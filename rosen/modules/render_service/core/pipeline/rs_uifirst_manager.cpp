@@ -1387,7 +1387,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
 
             // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
             node.SetHwcChildrenDisabledState();
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: namne:%s id:%" PRIu64 " children disabled by uifirst first frame",
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst first frame",
                 node.GetName().c_str(), node.GetId());
         } else {
             UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
@@ -1415,7 +1415,7 @@ void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const 
     }
     node.SetHardwareForcedDisabledState(intersect);
     if (intersect) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: namne:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
             node.GetName().c_str(), node.GetId());
     }
     Drawing::Matrix totalMatrix;
