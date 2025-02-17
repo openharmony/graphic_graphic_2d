@@ -968,7 +968,7 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
     return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
-        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
+        value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
 }
 
 float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)

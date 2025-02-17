@@ -888,8 +888,10 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
  */
 HWTEST_F(RSSurfaceRenderNodeTwoTest, QuerySubAssignable, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id + 1);
     bool isRotation = true;
+    node->SetProtectedLayer(false);
+    node->firstLevelNodeId_ = id + 1;
     bool res = node->QuerySubAssignable(isRotation);
     ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
