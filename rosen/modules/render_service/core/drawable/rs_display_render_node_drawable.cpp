@@ -1288,9 +1288,10 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
-        (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
-        (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() ||
-            mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)));
+        (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
+            (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() ||
+                (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC &&
+                mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY))));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
@@ -1373,15 +1374,15 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-        if (hasSecSurface) {
-            curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-            RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
-                "set canvas to black because of security layer.");
-            return;
-        }
+
+    auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+    if (hasSecSurface) {
+        curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+        RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
+            "set canvas to black because of security layer.");
+        return;
     }
+
     curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     bool isOpDropped = uniParam->IsOpDropped();
     uniParam->SetOpDropped(false);
