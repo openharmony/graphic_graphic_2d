@@ -2277,6 +2277,7 @@ void RSRenderServiceConnection::NotifyLightFactorStatus(int32_t lightFactorStatu
 
 void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
+    mainThread_->NotifyPackageEvent(packageList);
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, listSize, packageList]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
@@ -2321,6 +2322,7 @@ void RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rate
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
+    mainThread_->NotifyTouchEvent(touchStatus, touchCnt);
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
         frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);

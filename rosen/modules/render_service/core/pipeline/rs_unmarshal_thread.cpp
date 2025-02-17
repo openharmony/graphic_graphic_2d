@@ -133,12 +133,20 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             }
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
+        int64_t time = transData == nullptr ? 0 : transData->GetTimestamp();
         {
             std::lock_guard<std::mutex> lock(transactionDataMutex_);
             cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
         }
         if (isPendingUnmarshal) {
-            RSMainThread::Instance()->RequestNextVSync();
+            RSMainThread::Instance()->RequestNextVSync("UI", time);
+        } else {
+            const auto &now = std::chrono::steady_clock::now().time_since_epoch();
+            int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+            constexpr int64_t ONE_PERIOD = 8000000;
+            if (currentTime - time > ONE_PERIOD && time != 0) {
+                RSMainThread::Instance()->RequestNextVSync("UI", time);
+            }
         }
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };

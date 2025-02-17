@@ -147,6 +147,9 @@ public:
     void SetHasNativeBuffer();
     void PrintConnectionsStatus();
     void FirstRequestVsync();
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    bool AdaptiveDVSyncEnable(std::string nodeName);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
@@ -235,7 +238,7 @@ private:
     void DVSyncRecordVSync(int64_t now, int64_t period, uint32_t refreshRate, bool isDvsyncController);
     bool DVSyncCheckSkipAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timeStamp);
     bool DVSyncNeedSkipUi(const sptr<VSyncConnection> &connection);
-    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom);
+    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom, int64_t lastVSyncTS);
     bool DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
         int64_t &period, int64_t &vsyncCount);
     sptr<VSyncController> dvsyncController_ = nullptr;

@@ -145,9 +145,10 @@ public:
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
-    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
+    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
+        bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false);
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
