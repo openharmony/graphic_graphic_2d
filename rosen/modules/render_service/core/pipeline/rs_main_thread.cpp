@@ -148,6 +148,7 @@
 #include "c/ffrt_cpu_boost.h"
 // blur predict
 #include "rs_frame_blur_predict.h"
+#include "rs_frame_deadline_predict.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -192,9 +193,6 @@ constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr int64_t FIXED_EXTRA_DRAWING_TIME = 3000000; // 3ms
-constexpr int64_t SINGLE_SHIFT = 2700000; // 2.7ms
-constexpr int64_t DOUBLE_SHIFT = 5400000; // 5.4ms
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -4829,40 +4827,9 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
-    ReportRSFrameDeadline(hgmCore, forceRefreshFlag);
-}
 
-void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag)
-{
-    int64_t extraReserve = 0;
-    int64_t vsyncOffset = 0;
-    uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
-    int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
-    int64_t drawingTime = idealPeriod;
-
-    if (currentRate == OLED_120_HZ) {
-        if (hgmCore.GetLtpoEnabled()) {
-            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
-            if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
-                extraReserve = SINGLE_SHIFT;
-            } else if (vsyncOffset > DOUBLE_SHIFT && vsyncOffset < idealPeriod) {
-                extraReserve = DOUBLE_SHIFT;
-            }
-        } else {
-            extraReserve = FIXED_EXTRA_DRAWING_TIME;
-        }
-    }
-
-    if (idealPeriod == preIdealPeriod_ && (extraReserve == preExtraReserve_ || currentRate != OLED_120_HZ)) {
-        return;
-    }
-    drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
-    preIdealPeriod_ = idealPeriod;
-    preExtraReserve_ = extraReserve;
-    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
-        currentRate, vsyncOffset, drawingTime);
-
-    RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime);
+    auto &frameDeadline = OHOS::Rosen::RsFrameDeadlinePredict::GetInstance();
+    frameDeadline.ReportRSFrameDeadline(hgmCore, forceRefreshFlag);
 }
 
 void RSMainThread::MultiDisplayChange(bool isMultiDisplay)

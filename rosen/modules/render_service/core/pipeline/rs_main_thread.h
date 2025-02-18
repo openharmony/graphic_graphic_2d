@@ -568,8 +568,6 @@ private:
     // Used for CommitAndReleaseLayers task
     void SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag);
 
-    void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
-
     // Record change status of multi or single display
     void MultiDisplayChange(bool isMultiDisplay);
 
@@ -660,8 +658,6 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     uint64_t focusLeashWindowId_ = 0;
     uint64_t lastFocusNodeId_ = 0;
-    int64_t preIdealPeriod_ = 0;
-    int64_t preExtraReserve_ = 0;
     ScreenId displayNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
