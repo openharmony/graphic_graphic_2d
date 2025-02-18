@@ -56,11 +56,13 @@ static void DrawTextBlob(Drawing::Brush brush, std::vector<std::string>& texts,
 static std::shared_ptr<Drawing::TextBlob> MakeTextBlob(Drawing::Font& font1)
 {
     Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
+    const int count = 20;
+    const int dimension = 2;
+    auto buffer = builder.AllocRunPos(font1, count, nullptr);
+    for (int i = 0; i < count; i++) {
         buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
+        buffer.pos[i * dimension] = 50.f * i;
+        buffer.pos[i * dimension + 1] = 0;
     }
     std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
     return textBlob;

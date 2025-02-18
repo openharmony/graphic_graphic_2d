@@ -37,13 +37,14 @@ using namespace Drawing;
 
 static void MakeCmsMatrix(Drawing::CMSMatrix3x3& matrix)
 {
-    float srgb[3][3] = {
+    const int dimension = 3;
+    float srgb[dimension][dimension] = {
         {0.436065674f, 0.385147095f, 0.143066406f},
         {0.222488403f, 0.716873169f, 0.060607910f},
         {0.013916016f, 0.097076416f, 0.714096069f}
     };
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i = 0; i < dimension; ++i) {
+        for (int j = 0; j < dimension; ++j) {
             matrix.vals[i][j] = srgb[i][j];
         }
     }
