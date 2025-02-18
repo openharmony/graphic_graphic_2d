@@ -578,14 +578,9 @@ public:
         return isBufferFlushed_;
     }
 
-    void SetIsSurfaceCapturePipeline(bool isSurfaceCapturePipeline)
+    void MarkSurfaceCapturePipeline()
     {
-        isSurfaceCapturePipeline_ = isSurfaceCapturePipeline;
-    }
-
-    bool GetIsSurfaceCapturePipeline() const
-    {
-        return isSurfaceCapturePipeline_;
+        isSurfaceCapturePipeline_ = true;
     }
 
 protected:

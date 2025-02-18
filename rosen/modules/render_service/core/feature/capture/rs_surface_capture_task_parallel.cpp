@@ -88,7 +88,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
             }
             if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
                 auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
-                params->SetIsSurfaceCapturePipeline(true);
+                params->MarkSurfaceCapturePipeline();
             }
             if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
                 node->Sync();
