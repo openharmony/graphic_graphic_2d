@@ -1374,7 +1374,6 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
-
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
         auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
         if (hasSecSurface) {
@@ -1384,7 +1383,6 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
             return;
         }
     }
-
     curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     bool isOpDropped = uniParam->IsOpDropped();
     uniParam->SetOpDropped(false);
