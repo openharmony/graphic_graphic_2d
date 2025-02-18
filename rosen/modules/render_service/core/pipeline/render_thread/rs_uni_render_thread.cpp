@@ -1114,7 +1114,7 @@ void RSUniRenderThread::SetVmaCacheStatus(bool flag)
 {
     static constexpr int MAX_VMA_CACHE_COUNT = 600;
     RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
-    if (!vmaOptimizeFlag_) {
+    if (!vmaOptimizeFlag_ || !RSSystemProperties::GetVmaPreAllocEnabled()) {
         return;
     }
     std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
