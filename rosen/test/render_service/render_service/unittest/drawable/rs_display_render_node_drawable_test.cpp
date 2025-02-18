@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "drawable/rs_display_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
@@ -26,7 +27,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "platform/drawing/rs_surface_converter.h"
 
 using namespace testing;

@@ -25,8 +25,8 @@
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_display_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {

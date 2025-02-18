@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include "feature/uifirst/rs_ui_first_render_listener.h"
 #include "gtest/gtest.h"
-#include "pipeline/parallel_render/rs_ui_first_render_listener.h"
 
 using namespace testing;
 using namespace testing::ext;
