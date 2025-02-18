@@ -53,6 +53,19 @@ static void DrawTextBlob(Drawing::Brush brush, std::vector<std::string>& texts,
     }
 }
 
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob()
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
+        buffer.pos[i * 2] = 50.f * i;
+        buffer.pos[i * 2 + 1] = 0;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    return textBlob;
+}
+
 static std::vector<Drawing::BlendMode> MakeBlendModes()
 {
     std::vector<Drawing::BlendMode> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
@@ -829,14 +842,7 @@ DEF_DTK(Font_Scene_Effect_12, TestLevel::L2, 200)
     font1.SetSubpixel(font.IsSubpixel());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     auto rect = textBlob->Bounds();
@@ -877,14 +883,7 @@ DEF_DTK(Font_Scene_Effect_12, TestLevel::L2, 201)
     std::string text4 = "Recommended spacing between lines = " + std::to_string(SpaceLine);
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string text = "harmony_os";
@@ -937,14 +936,7 @@ DEF_DTK(Font_Scene_Effect_12, TestLevel::L2, 202)
     std::string text4 = "glyphsCount = " + std::to_string(glyphsCount);
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string textinfo1 = "Deserialize @Hello World";

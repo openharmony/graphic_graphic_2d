@@ -35,6 +35,33 @@ namespace Rosen {
 
 using namespace Drawing;
 
+static void MakeCmsMatrix(Drawing::CMSMatrix3x3& matrix)
+{
+    float srgb[3][3] = {
+        {0.436065674f, 0.385147095f, 0.143066406f},
+        {0.222488403f, 0.716873169f, 0.060607910f},
+        {0.013916016f, 0.097076416f, 0.714096069f}
+    };
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            matrix.vals[i][j] = srgb[i][j];
+        }
+    }
+}
+
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob()
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
+        buffer.pos[i * 2] = 50.f * i;
+        buffer.pos[i * 2 + 1] = 0;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    return textBlob;
+}
+
 static std::vector<Drawing::BlendMode> MakeBlendModes()
 {
     std::vector<Drawing::BlendMode> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,

@@ -33,7 +33,7 @@ namespace Rosen {
 
 void DrawFontStylesetmatchstyle(std::shared_ptr<Drawing::FontMgr> font_mgr,
     std::string name, TestPlaybackCanvas* playbackCanvas,
-        Drawing::FontStyle::Weight a, Drawing::FontStyle::Width b, Drawing::FontStyle::Slant c)
+    Drawing::FontStyle::Weight a, Drawing::FontStyle::Width b, Drawing::FontStyle::Slant c)
 {
     std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(
         name.empty()

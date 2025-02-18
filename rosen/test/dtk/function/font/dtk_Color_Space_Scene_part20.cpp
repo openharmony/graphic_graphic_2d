@@ -35,6 +35,33 @@ namespace Rosen {
 
 using namespace Drawing;
 
+static void MakeCmsMatrix(Drawing::CMSMatrix3x3& matrix)
+{
+    float srgb[3][3] = {
+        {0.436065674f, 0.385147095f, 0.143066406f},
+        {0.222488403f, 0.716873169f, 0.060607910f},
+        {0.013916016f, 0.097076416f, 0.714096069f}
+    };
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            matrix.vals[i][j] = srgb[i][j];
+        }
+    }
+}
+
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob()
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
+        buffer.pos[i * 2] = 50.f * i;
+        buffer.pos[i * 2 + 1] = 0;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    return textBlob;
+}
+
 static std::vector<Drawing::BlendMode> MakeBlendModes()
 {
     std::vector<Drawing::BlendMode> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
@@ -59,17 +86,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 330)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -124,17 +142,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 331)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -184,17 +193,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 332)
     brush.SetAntiAlias(true); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -253,17 +253,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 333)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -313,17 +304,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 334)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -377,17 +359,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 335)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -447,17 +420,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 336)
     brush.SetAntiAlias(true); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -515,17 +479,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 337)
     brush.SetAntiAlias(true); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -584,17 +539,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 338)
     brush.SetAntiAlias(true); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);
@@ -648,17 +594,8 @@ DEF_DTK(ColorSpace_Scene_20, TestLevel::L2, 339)
     brush.SetAntiAlias(false); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
 
     // 2.ColorSpace构造接口
-    float srgb[3][3] = {
-        {0.436065674f, 0.385147095f, 0.143066406f},
-        {0.222488403f, 0.716873169f, 0.060607910f},
-        {0.013916016f, 0.097076416f, 0.714096069f}
-    };
     Drawing::CMSMatrix3x3 matrix;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            matrix.vals[i][j] = srgb[i][j];
-        }
-    }
+    MakeCmsMatrix(matrix);
     Drawing::CMSTransferFunction PQ
         { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
     auto colorspace = Drawing::ColorSpace::CreateCustomRGB(PQ, matrix);

@@ -53,6 +53,19 @@ static void DrawTextBlob(Drawing::Brush brush, std::vector<std::string>& texts,
     }
 }
 
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob()
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
+        buffer.pos[i * 2] = 50.f * i;
+        buffer.pos[i * 2 + 1] = 0;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    return textBlob;
+}
+
 static std::vector<Drawing::BlendMode> MakeBlendModes()
 {
     std::vector<Drawing::BlendMode> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,

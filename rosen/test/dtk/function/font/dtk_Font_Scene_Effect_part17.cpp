@@ -53,6 +53,19 @@ static void DrawTextBlob(Drawing::Brush brush, std::vector<std::string>& texts,
     }
 }
 
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob()
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
+        buffer.pos[i * 2] = 50.f * i;
+        buffer.pos[i * 2 + 1] = 0;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    return textBlob;
+}
+
 static std::vector<Drawing::BlendMode> MakeBlendModes()
 {
     std::vector<Drawing::BlendMode> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
@@ -249,14 +262,7 @@ DEF_DTK(Font_Scene_Effect_17, TestLevel::L2, 272)
     font1.SetEdging(font.GetEdging());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     Drawing::Paint paint;
@@ -299,14 +305,7 @@ DEF_DTK(Font_Scene_Effect_17, TestLevel::L2, 273)
     font1.SetSubpixel(font.IsSubpixel());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::vector<Drawing::Point> points;
@@ -359,14 +358,7 @@ DEF_DTK(Font_Scene_Effect_17, TestLevel::L2, 274)
     font1.SetEmbolden(font.IsEmbolden());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunPos(font1, 20, nullptr);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x9088);
-        buffer.pos[i * 2] = 50.f * i;
-        buffer.pos[i * 2 + 1] = 0;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob();
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string text = "harmony_os";
