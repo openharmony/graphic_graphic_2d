@@ -919,6 +919,7 @@ protected:
     bool NeedRoutedBasedOnUIExtension(SharedPtr child);
 
     void UpdateDrawableVecV2();
+    void ClearDrawableVec2();
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -990,6 +991,7 @@ private:
     // Test pipeline
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool drawableVecNeedClear_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
