@@ -19,6 +19,7 @@
 #include <media_errors.h>
 #include "transaction/rs_interfaces.h"
 #include <parameters.h>
+#include <util.h>
 
 using namespace OHOS;
 
@@ -46,12 +47,13 @@ void BootVideoPlayer::Play()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlayVideo begin");
-    int waitMediaCreateTime = 0;
+    int64_t startTime = GetSystemCurrentTime();
+    int64_t endTime = startTime;
     while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
-        && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
-        LOGI("mediaPlayer is nullptr, try create again");
+        && (endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME) {
+        endTime = GetSystemCurrentTime();
         usleep(SLEEP_TIME_US);
-        waitMediaCreateTime += SLEEP_TIME_US;
+        LOGI("mediaPlayer is nullptr, try create again");
     }
 
     if (mediaPlayer_ == nullptr) {
