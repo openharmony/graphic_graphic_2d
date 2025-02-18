@@ -623,11 +623,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
-    auto mirroredParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
-    if (mirroredParams ||
+    auto mirroredRenderParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
+    if (mirroredRenderParams ||
         params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         if (!processor->InitForRenderThread(*this,
-            mirroredParams ? mirroredParams->GetScreenId() : INVALID_SCREEN_ID,
+            mirroredRenderParams ? mirroredRenderParams->GetScreenId() : INVALID_SCREEN_ID,
             RSUniRenderThread::Instance().GetRenderEngine())) {
             SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
             syncDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -635,7 +635,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
-        if (mirroredParams) {
+        if (mirroredRenderParams) {
             enableVisibleRect_ = screenInfo.enableVisibleRect;
             const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
             curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
