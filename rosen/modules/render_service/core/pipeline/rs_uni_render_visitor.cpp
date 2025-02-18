@@ -3262,47 +3262,39 @@ bool RSUniRenderVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& 
 void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
     const RSRenderNode& rootNode)
 {
-    const auto& property = hwcNodePtr->GetRenderProperties();
-    auto geoPtr = property.GetBoundsGeometry();
-    if (geoPtr == nullptr) {
-        return;
-    }
-    auto childRect = hwcNodePtr->GetSelfDrawRect();
-    Drawing::Rect childRectMapped;
-    geoPtr->GetMatrix().MapRect(childRectMapped,
-        {childRect.left_, childRect.top_,
-            childRect.left_ + childRect.width_,
-            childRect.top_ + childRect.height_});
-    auto hwcNodeParent = hwcNodePtr->GetParent().lock();
-    bool myFindInRoot = hwcNodeParent ? hwcNodeParent->GetId() == rootNode.GetId() : false;
-    while ((hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE) &&
-        !myFindInRoot) {
+    constexpr float MAX_FLOAT = std::numeric_limits<float>::max();
+    Drawing::Rect childRectMapped(0.0f, 0.0f, MAX_FLOAT, MAX_FLOAT);
+    RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
+    while (hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE &&
+           hwcNodeParent->GetId() != rootNode.GetId()) {
         const auto& parentProperties = hwcNodeParent->GetRenderProperties();
         const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
-        auto tempRectMapped = childRectMapped;
-        parentGeoPtr->GetMatrix().MapRect(childRectMapped, tempRectMapped);
+        parentGeoPtr->GetMatrix().MapRect(childRectMapped, childRectMapped);
         if (parentProperties.GetClipToBounds()) {
-            auto parentDrawRectF = hwcNodeParent->GetSelfDrawRect();
-            Drawing::Rect parentDrawRect(parentDrawRectF.left_, parentDrawRectF.top_,
-            parentDrawRectF.GetRight(), parentDrawRectF.GetBottom());
-            Drawing::Rect parentDrawClipRect;
-            parentGeoPtr->GetMatrix().MapRect(parentDrawClipRect, parentDrawRect);
-            childRectMapped.Intersect(parentDrawClipRect);
+            auto selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
+            Drawing::Rect clipSelfDrawRect(selfDrawRectF.left_, selfDrawRectF.top_,
+                selfDrawRectF.GetRight(), selfDrawRectF.GetBottom());
+            Drawing::Rect clipBoundRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipBoundRectMapped, clipSelfDrawRect);
+            childRectMapped.Intersect(clipBoundRectMapped);
         }
         if (parentProperties.GetClipToFrame()) {
             auto left = parentProperties.GetFrameOffsetX() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_X);
             auto top = parentProperties.GetFrameOffsetY() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_Y);
-            Drawing::Rect frameRect(
+            Drawing::Rect clipFrameRect(
                 left, top, left + parentProperties.GetFrameWidth(), top + parentProperties.GetFrameHeight());
-            Drawing::Rect frameClipRect;
-            parentGeoPtr->GetMatrix().MapRect(frameClipRect, frameRect);
-            childRectMapped.Intersect(frameClipRect);
+            Drawing::Rect clipFrameRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipFrameRectMapped, clipFrameRect);
+            childRectMapped.Intersect(clipFrameRectMapped);
+        }
+        if (parentProperties.GetClipToRRect()) {
+            RectF rectF = parentProperties.GetClipRRect().rect_;
+            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetWidth(), rectF.GetHeight());
+            Drawing::Rect clipRectMapped;
+            parentGeoPtr->GetMatrix().MapRect(clipRectMapped, clipRect);
+            childRectMapped.Intersect(clipRectMapped);
         }
         hwcNodeParent = hwcNodeParent->GetParent().lock();
-        if (!hwcNodeParent) {
-            break;
-        }
-        myFindInRoot = hwcNodeParent->GetId() == rootNode.GetId() ? true : myFindInRoot;
     }
     Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     Drawing::Rect absClipRect;
