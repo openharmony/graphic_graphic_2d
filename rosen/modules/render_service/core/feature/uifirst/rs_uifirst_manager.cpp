@@ -1281,7 +1281,8 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         }
         // 1: Planning: support multi appwindows
         isNeedAssignToSubThread = (isNeedAssignToSubThread ||
-                node.GetForceUIFirst()) && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
+                (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)) 
+                && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
     }
 
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
@@ -1320,7 +1321,8 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
     std::string surfaceName = node.GetName();
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType())) {
+    if (!(node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)
+        && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
     bool focus = node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
@@ -1342,6 +1344,7 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE ||
         !node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
+        // This branch will be discarded
         if (!node.isUifirstNode_) {
             node.isUifirstDelay_++;
             if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
@@ -1350,6 +1353,7 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
         }
         return true;
     }
+    // This branch will be discarded
     if (node.isForceFlag_ && node.IsLeashWindow()) {
         RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: isUifirstEnable: %d", node.isUifirstEnable_);
         if (!node.isUifirstEnable_) {
@@ -1357,6 +1361,16 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
             return true;
         }
         UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        return true;
+    }
+    if (node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE && node.IsLeashWindow()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: nodeName: %s, uiFirstSwitch: %d",
+            node.GetName().c_str(), node.GetUIFirstSwitch());
+        if (RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
+            UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
+        } else {
+            UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        }
         return true;
     }
     return false;

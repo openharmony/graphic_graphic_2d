@@ -300,6 +300,8 @@ enum class RSUIFirstSwitch {
     NONE,               // follow RS rules
     MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
     FORCE_DISABLE,      // force close uifirst
+    FORCE_ENABLE,       // force open uifirst
+    FORCE_ENABLE_LIMIT, // force open uifirst, but for limited
 };
 
 enum class SelfDrawingNodeType : uint8_t {
