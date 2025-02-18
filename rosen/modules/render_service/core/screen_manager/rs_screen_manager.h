@@ -268,6 +268,8 @@ public:
     virtual void SetScreenSwitchStatus(bool flag) = 0;
 
     virtual bool IsScreenSwitching() const = 0;
+
+    virtual int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -522,6 +524,8 @@ public:
     void SetScreenSwitchStatus(bool flag) override;
 
     bool IsScreenSwitching() const override;
+
+    int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix) override;
 
 private:
     RSScreenManager();

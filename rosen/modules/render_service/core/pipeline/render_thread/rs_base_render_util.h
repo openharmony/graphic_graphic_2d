@@ -52,6 +52,7 @@ struct ComposeInfo {
     int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
+    std::vector<float> layerLinearMatrix;
 };
 #ifdef RS_ENABLE_GPU
 class RSSurfaceRenderParams;
@@ -95,6 +96,7 @@ struct BufferDrawParam {
     float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
     float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    std::vector<float> layerLinearMatrix;
     bool isHdrRedraw = false;
     bool isHdrToSdr = false;
 #endif

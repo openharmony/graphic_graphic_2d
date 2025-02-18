@@ -16,6 +16,7 @@
 
 #include <dlfcn.h>
 
+#include "color_temp/rs_color_temp.h"
 #include "effect/image_filter.h"
 #include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
@@ -172,6 +173,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
+    parameter.layerLinearMatrix = RSColorTemp::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK?
+        parameter.dynamicMetadata : std::vector<uint8_t>(), parameter.outputColorSpace.colorSpaceInfo.matrix);
     RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u",
         parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
     return true;

@@ -97,6 +97,8 @@ public:
                                               const std::vector<int8_t>& value) = 0;
     virtual int32_t SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t layerId, const std::string& key,
                                                  const std::vector<int8_t>& value) = 0;
+    virtual int32_t SetDisplayPerFrameParameterSmq(uint32_t devId, const std::string& key,
+                                                   const std::vector<int8_t>& value) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;

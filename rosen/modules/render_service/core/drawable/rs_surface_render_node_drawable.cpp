@@ -1033,6 +1033,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();
     params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {

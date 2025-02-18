@@ -708,6 +708,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
     params.sdrNits = renderParams.GetSdrNit();
     params.tmoNits = renderParams.GetDisplayNit();
     params.displayNits = params.tmoNits / std::pow(renderParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    params.layerLinearMatrix = renderParams.GetLayerLinearMatrix();
 #endif
 
     Drawing::Filter filter;

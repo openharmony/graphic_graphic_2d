@@ -426,4 +426,31 @@ HWTEST_F(RSSurfaceRenderParamsTest, isClonedNodeOnTheTree, TestSize.Level2)
     auto result = params.IsClonedNodeOnTheTree();
     EXPECT_FALSE(result);
 }
+
+/**
+ * @tc.name: SdrNitTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SdrNitTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(122);
+    params.SetSdrNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetSdrNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: LayerLinearMatrixTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(123);
+    std::vector<float> matrix = {1.0f, 2.0f, 3.0f};
+    params.SetLayerLinearMatrix(matrix);
+    EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
+}
 } // namespace OHOS::Rosen

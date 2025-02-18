@@ -507,6 +507,20 @@ public:
         return brightnessRatio_;
     }
 
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
+    {
+        if (layerLinearMatrix_ == layerLinearMatrix) {
+            return;
+        }
+        layerLinearMatrix_ = layerLinearMatrix;
+        needSync_ = true;
+    }
+
+    std::vector<float> GetLayerLinearMatrix() const
+    {
+        return layerLinearMatrix_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
@@ -674,6 +688,8 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    // color temp
+    std::vector<float> layerLinearMatrix_; // matrix_1
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;
