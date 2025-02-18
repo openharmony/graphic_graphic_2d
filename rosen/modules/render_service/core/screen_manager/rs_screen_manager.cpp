@@ -44,6 +44,7 @@ namespace {
     constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
+    constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
     void SensorPostureDataCallback(SensorEvent *event)
     {
         OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
@@ -642,6 +643,15 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     }
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
+
+    if (isFoldScreenFlag_ && screens_.size() == ORIGINAL_FOLD_SCREEN_AMOUNT) {
+        std::vector<uint64_t> foldScreenIds;
+        for (auto screen : screens_) {
+            foldScreenIds.push_back(screen.first);
+        }
+        CreateVSyncSampler()->SetIsFoldScreenFlag(isFoldScreenFlag_);
+        CreateVSyncSampler()->SetFoldScreenIds(foldScreenIds);
+    }
 
     if (screens_[id]->GetCapability().type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_) {
