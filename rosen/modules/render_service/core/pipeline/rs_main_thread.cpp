@@ -3993,7 +3993,7 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
         return;
     }
     if (needRequestNextVsync && timestamp_ - prePerfTimestamp_ > PERF_PERIOD) {
-     ”   RS_LOGD("RSMainThread:: soc perf to render_service_animation");
+        RS_LOGD("RSMainThread:: soc perf to render_service_animation");
         prePerfTimestamp_ = timestamp_;
     } else if (!needRequestNextVsync && prePerfTimestamp_) {
         RS_LOGD("RSMainThread:: soc perf off render_service_animation");
