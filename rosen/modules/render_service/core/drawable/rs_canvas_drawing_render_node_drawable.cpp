@@ -355,30 +355,28 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
             return;
         }
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
-        if (surface != canvasDrawingDrawable->surface_) {
-            return;
-        }
-        cmds->Playback(*surface->GetCanvas());
-        auto image = surface->GetImageSnapshot(); // planning: adapt multithread
-        if (image) {
-            SKResourceManager::Instance().HoldResource(image);
-        }
         {
             std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
-            canvasDrawingDrawable->image_ = image;
-        }
-        auto task = [ctx, nodeId]() {
-            if (UNLIKELY(!ctx)) {
+            if (surface != canvasDrawingDrawable->surface_) {
                 return;
             }
-            RSMainThread::Instance()->PostTask([ctx, nodeId]() {
-                if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
-                    node->SetDirty();
-                    ctx->RequestVsync();
-                }
-            });
-        };
-        task();
+            cmds->Playback(*surface->GetCanvas());
+            auto image = surface->GetImageSnapshot(); // planning: adapt multithread
+            if (image) {
+                SKResourceManager::Instance().HoldResource(image);
+            }
+            canvasDrawingDrawable->image_ = image;
+        }
+        if (UNLIKELY(!ctx)) {
+            return;
+        }
+        RSMainThread::Instance()->PostTask([ctx, nodeId]() {
+            if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
+                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in RSMainThread", nodeId);
+                node->SetDirty();
+                ctx->RequestVsync();
+            }
+        });
     });
 }
 
