@@ -15,57 +15,25 @@
 
 #include "hwc_param.h"
 
+#include "hgm_core.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 
-bool HWCParam::IsHwcEnable() const
-{
-    return isHwcEnable_;
-}
-
-bool HWCParam::IsHwcMirrorEnable() const
-{
-    return isHwcMirrorEnable_;
-}
-
-int HWCParam::GetSourceTuningForApp(std::string appName) const
-{
-    auto iter = sourceTuningMap_.find(appName);
-    if (iter != sourceTuningMap_.end()) {
-        return iter->second;
-    }
-    RS_LOGD("HWCParam parse SourceTuningForApp cannot find name %{public}s", appName.c_str());
-    return PARSE_ERROR;
-}
-
-int HWCParam::GetSolidColorLayerForApp(std::string appName) const
-{
-    auto iter = solidColorLayerMap_.find(appName);
-    if (iter != solidColorLayerMap_.end()) {
-        return iter->second;
-    }
-    RS_LOGD("HWCParam parse SolidColorLayerForApp cannot find name %{public}s", appName.c_str());
-    return PARSE_ERROR;
-}
-
-void HWCParam::SetHwcEnable(bool isEnable)
-{
-    isHwcEnable_ = isEnable;
-}
-
-void HWCParam::SetHwcMirrorEnable(bool isEnable)
-{
-    isHwcMirrorEnable_ = isEnable;
-}
-
 void HWCParam::SetSourceTuningForApp(std::string appName, std::string val)
 {
-    sourceTuningMap_[appName] = std::stoi(val.c_str());
+    sourceTuningMap_[std::move(appName)] = std::move(val);
 }
 
 void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
 {
-    solidColorLayerMap_[appName] = std::stoi(val.c_str());
+    solidColorLayerMap_[std::move(appName)] = std::move(val);
+}
+
+void HWCParam::MoveDataToHgmCore()
+{
+    HgmCore& hgmCore = HgmCore::Instance();
+    hgmCore.mPolicyConfigData_->sourceTuningConfig_ = std::move(sourceTuningMap_);
+    hgmCore.mPolicyConfigData_->solidLayerConfig_ = std::move(solidColorLayerMap_);
 }
 } // namespace OHOS::Rosen
