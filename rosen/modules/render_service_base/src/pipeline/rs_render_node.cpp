@@ -1499,7 +1499,7 @@ const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
     return renderContent_;
 }
 #ifdef RS_ENABLE_GPU
-std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams()
+const std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams() const
 {
     return stagingRenderParams_;
 }

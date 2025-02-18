@@ -715,7 +715,7 @@ public:
         return;
     }
 #ifdef RS_ENABLE_GPU
-    std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
+    const std::unique_ptr<RSRenderParams>& GetStagingRenderParams() const;
 
     // Deprecated! Do not use this interface.
     // This interface has crash risks and will be deleted in later versions.
