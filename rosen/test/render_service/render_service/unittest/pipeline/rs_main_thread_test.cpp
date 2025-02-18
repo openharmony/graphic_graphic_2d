@@ -4533,6 +4533,7 @@ HWTEST_F(RSMainThreadTest, SetVsyncInfo, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
     auto receiver = mainThread->receiver_;
     if (mainThread->rsVSyncDistributor_ == nullptr) {
         auto vsyncGenerator = CreateVSyncGenerator();
