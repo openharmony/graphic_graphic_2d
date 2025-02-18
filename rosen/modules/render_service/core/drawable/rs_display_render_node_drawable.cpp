@@ -1287,11 +1287,11 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
+    bool isProcessSecLayer = RSMainThread::Instance()->GetDeviceType() != DeviceType::PC &&
+        mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
-            (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() ||
-                (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC &&
-                mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY))));
+            (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || isProcessSecLayer));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
