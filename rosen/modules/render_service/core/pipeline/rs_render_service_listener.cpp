@@ -80,7 +80,7 @@ void RSRenderServiceListener::OnBufferAvailable()
             
         }
     }
-    RSMainThread::Instance()->RequestNextVSync();
+    RSMainThread::Instance()->RequestNextVSync("selfdrawing");
 }
 
 void RSRenderServiceListener::OnTunnelHandleChange()

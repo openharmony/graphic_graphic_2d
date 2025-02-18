@@ -1131,9 +1131,9 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
     transactionFlags += " cache (" + std::to_string(pid) + "," + std::to_string(curIndex) + ")";
     RS_TRACE_NAME("RSMainThread::CheckAndUpdateTransactionIndex Trigger NextVsync");
     if (rsVSyncDistributor_->IsUiDvsyncOn()) {
-        RequestNextVSync("fromRsMainCommand", timestamp_);
+        RequestNextVSync("fromRsMainCommand", 0);
     } else {
-        RequestNextVSync();
+        RequestNextVSync("UI", 0);
     }
 #endif
 }
@@ -1438,7 +1438,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()))) {
+            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
+            rsVSyncDistributor_->AdaptiveDVSyncEnable(surfaceNode->GetName()))) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2217,6 +2218,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             needDrawFrame_ = false;
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
+            RSMainThread::Instance()->SetFrameIsRender(false);
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
@@ -3324,6 +3326,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (!rsTransactionData) {
         return;
     }
+    int64_t timestamp = rsTransactionData->GetTimestamp();
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
@@ -3333,7 +3336,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     } else {
         ClassifyRSTransactionData(rsTransactionData);
     }
-    RequestNextVSync();
+    RequestNextVSync("UI", timestamp);
 }
 
 void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
@@ -4873,6 +4876,16 @@ void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
     }
     isMultiDisplayChange_ = true;
     isMultiDisplayPre_ = isMultiDisplay;
+}
+
+void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageList)
+{
+    rsVSyncDistributor_->NotifyPackageEvent(packageList);
+}
+
+void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+{
+    rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 } // namespace Rosen
 } // namespace OHOS

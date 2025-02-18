@@ -1053,7 +1053,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         connection->triggerThisTime_ = true;
         EnableVSync();
         // Start of DVSync
-        DVSyncRecordRNV(connection, fromWhom);
+        DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
         NeedPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
         lastNotifyTime_ = Now();
     }
@@ -1573,10 +1573,11 @@ void VSyncDistributor::RecordEnableVsync()
 #endif
 }
 
-void VSyncDistributor::DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom)
+void VSyncDistributor::DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
+    int64_t lastVSyncTS)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().RecordRNV(connection, fromWhom, vsyncMode_);
+    DVSync::Instance().RecordRNV(connection, fromWhom, vsyncMode_, lastVSyncTS);
 #endif
 }
 
@@ -1595,6 +1596,29 @@ bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnecti
         connection->triggerThisTime_ = false;
     }
     return NeedPreexecute;
+#else
+    return false;
+#endif
+}
+
+void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packageList)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().NotifyPackageEvent(packageList);
+#endif
+}
+
+void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().NotifyTouchEvent(touchStatus, touchCnt);
+#endif
+}
+
+bool VSyncDistributor::AdaptiveDVSyncEnable(std::string nodeName)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName);
 #else
     return false;
 #endif

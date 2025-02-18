@@ -982,8 +982,9 @@ HWTEST_F(VSyncDistributorTest, DVSyncRecordRNVTest001, Function | MediumTest| Le
 {
     std::string fromWhom = "test";
     vsyncDistributor->isRs_ = false;
+    int64_t ts = 10000000;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
-    vsyncDistributor->DVSyncRecordRNV(conn, fromWhom);
+    vsyncDistributor->DVSyncRecordRNV(conn, fromWhom, ts);
     ASSERT_EQ(vsyncDistributor->isRs_, false);
 }
 
@@ -1003,6 +1004,49 @@ HWTEST_F(VSyncDistributorTest, DVSyncCheckPreexecuteAndUpdateTsTest001, Function
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
     vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount);
     ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: NotifyPackageEventTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test NotifyPackageEvent
+ */
+HWTEST_F(VSyncDistributorTest, NotifyPackageEventTest001, Function | MediumTest| Level3)
+{
+    std::vector<std::string> packageList = {};
+    vsyncDistributor->NotifyPackageEvent(packageList);
+    ASSERT_EQ(packageList.size(), 0);
+}
+
+/*
+* Function: NotifyTouchEventTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test NotifyTouchEvent
+ */
+HWTEST_F(VSyncDistributorTest, NotifyTouchEventTest001, Function | MediumTest| Level3)
+{
+    int32_t touchStatus = 0;
+    int32_t touchCnt = 0;
+    vsyncDistributor->NotifyTouchEvent(touchStatus, touchCnt);
+    ASSERT_EQ(touchStatus, 0);
+}
+
+/*
+* Function: AdaptiveDVSyncEnableTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test AdaptiveDVSyncEnable
+ */
+HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
+{
+    std::string nodeName = "test";
+    vsyncDistributor->AdaptiveDVSyncEnable(nodeName);
+    ASSERT_EQ(nodeName, "test");
 }
 } // namespace
 } // namespace Rosen
