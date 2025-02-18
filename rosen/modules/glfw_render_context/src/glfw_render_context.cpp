@@ -226,7 +226,9 @@ void GlfwRenderContext::CreateTexture()
 
 void GlfwRenderContext::CopySnapshot(void* addr)
 {
-    if (addr == nullptr) { return; }
+    if (addr == nullptr) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(renderingMutex);
     glfwMakeContextCurrent(window_);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -238,7 +240,9 @@ void GlfwRenderContext::CopySnapshot(void* addr)
 void GlfwRenderContext::DrawTexture()
 {
     std::lock_guard<std::mutex> lock(renderingMutex);
-    if (!textureReady) { return; }
+    if (!textureReady) {
+        return;
+    }
 
     glfwMakeContextCurrent(window_);
 
