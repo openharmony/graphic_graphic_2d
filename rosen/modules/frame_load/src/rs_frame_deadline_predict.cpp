@@ -24,42 +24,43 @@ constexpr int64_t DOUBLE_SHIFT = 5400000; // 5.4ms
 
 RsFrameDeadlinePredict& RsFrameDeadlinePredict::GetInstance()
 {
-	static RsFrameDeadlinePredict instance;
-	return instance;
+    static RsFrameDeadlinePredict instance;
+    return instance;
 }
 
 RsFrameDeadlinePredict::RsFrameDeadlinePredict() {}
 
-void RsFrameDeadlinePredict::ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag) {
-	int64_t extraReserve = 0;
-	int64_t vsyncOffset = 0;
-	uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
-	int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
-	int64_t drawingTime = idealPeriod;
+void RsFrameDeadlinePredict::ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag)
+{
+    int64_t extraReserve = 0;
+    int64_t vsyncOffset = 0;
+    uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
+    int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
+    int64_t drawingTime = idealPeriod;
 
-	if (currentRate == OLED_120_HZ) {
-		if (hgmCore.GetLtpoEnabled()) {
-			vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
-			if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
-				extraReserve = SINGLE_SHIFT;
-			} else if (vsyncOffset > DOUBLE_SHIFT && vsyncOffset < idealPeriod) {
-				extraReserve = DOUBLE_SHIFT;
+    if (currentRate == OLED_120_HZ) {
+        if (hgmCore.GetLtpoEnabled()) {
+            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
+            if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
+                extraReserve = SINGLE_SHIFT;
+            } else if (vsyncOffset > DOUBLE_SHIFT && vsyncOffset < idealPeriod) {
+                extraReserve = DOUBLE_SHIFT;
 			}
-		} else {
-			extraReserve = FIXED_EXTRA_DRAWING_TIME;
+        } else {
+            extraReserve = FIXED_EXTRA_DRAWING_TIME;
 		}
 	}
 
-	if (idealPeriod == preIdealPeriod_ && (extraReserve == preExtraReserve_ || currentRate != OLED_120_HZ)) {
-		return;
-	}
-	drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
-	preIdealPeriod_ = idealPeriod;
-	preExtraReserve_ = extraReserve;
-	RS_TRACE_NAME_FMT("FrameDeadline: isForceRefresh: %d, currentRate: %u,"
+    if (idealPeriod == preIdealPeriod_ && (extraReserve == preExtraReserve_ || currentRate != OLED_120_HZ)) {
+        return;
+    }
+    drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
+    preIdealPeriod_ = idealPeriod;
+    preExtraReserve_ = extraReserve;
+    RS_TRACE_NAME_FMT("FrameDeadline: isForceRefresh: %d, currentRate: %u,"
 		"vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
 		forceRefreshFlag, currentRate, vsyncOffset, drawingTime);
 
-	RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime);
+    RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime);
 }
 } // namespace OHOS::Rosen

@@ -27,14 +27,14 @@ namespace OHOS::Rosen {
 class RsFrameDeadlinePredict {
 public:
 	static RsFrameDeadlinePredict& GetInstance();
-	void ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
+    void ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
 
 private:
 	RsFrameDeadlinePredict();
-	~RsFrameDeadlinePredict() = default;
+    ~RsFrameDeadlinePredict() = default;
 
-	int64_t preIdealPeriod_ = 0;
-	int64_t preExtraReserve_ = 0;
+    int64_t preIdealPeriod_ = 0;
+    int64_t preExtraReserve_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // ROSEN_MODULE_FRAME_LOAD_RS_FRAME_DEADLINE_PREDICT_H
