@@ -69,6 +69,8 @@ public:
 
     SymbolType GetSymbolType() const;
 
+    std::string familyName_;
+
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;

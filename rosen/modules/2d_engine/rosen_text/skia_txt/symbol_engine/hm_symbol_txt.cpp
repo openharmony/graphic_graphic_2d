@@ -36,7 +36,10 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
             return false;
         }
     }
-    return true;
+
+    bool check = animationMode_ == symbol.animationMode_ && animationStart_ == symbol.animationStart_ &&
+        commonSubType_ == symbol.commonSubType_ && familyName_ == symbol.familyName_;
+    return check;
 }
 
 void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)

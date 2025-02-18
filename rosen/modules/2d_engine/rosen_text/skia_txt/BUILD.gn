@@ -19,6 +19,7 @@ import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 config("skia_libtxt_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/skia_txt",
   ]
 

@@ -73,24 +73,15 @@ private:
 
     // splice atomizated animation construct
     void SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
-        std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
-        const Drawing::DrawingEffectStrategy& effectStrategy);
-
-    void BounceAnimation(
-        const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
-    void AppearAnimation(
-        const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
-
-    // add scaleModifier to rsNode
-    bool AddScaleBaseModifier(const std::shared_ptr<RSNode>& rsNode,
-        Drawing::DrawingPiecewiseParameter& scaleParameter,
-        std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty);
+        std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
 
     // atomizated animation construct
-    void ScaleAnimationBase(std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
+    void ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+        std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
         Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations);
-    void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode, Drawing::DrawingPiecewiseParameter& alphaParamter,
-        std::vector<std::shared_ptr<RSAnimation>>& animations);
+    void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+        std::shared_ptr<RSAnimatableProperty<float>>& alphaProperty,
+        Drawing::DrawingPiecewiseParameter& alphaParamter, std::vector<std::shared_ptr<RSAnimation>>& animations);
 
     // drawing a path group : symbol drawing or path drawing
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,

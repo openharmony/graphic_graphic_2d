@@ -326,6 +326,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         PaintRecord paint;
         paint.SetColor(txt.color);
         paint.isSymbolGlyph = txt.isSymbolGlyph;
+        paint.symbol.familyName_ = txt.fontFamilies.empty() ? "" : txt.fontFamilies[0];
         paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
