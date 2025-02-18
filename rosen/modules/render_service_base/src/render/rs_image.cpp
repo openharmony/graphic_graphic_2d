@@ -208,7 +208,8 @@ void RSImage::DrawImageRect(
     } else {
         if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
             (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
-            fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0)) {
+            fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
+            fitMatrix_->HasPerspective())) {
             DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
             return;
         }
@@ -578,7 +579,10 @@ void RSImage::DrawImageShaderRectOnCanvas(
     }
     Drawing::Paint paint;
 
-    if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ && fitMatrix_->HasPerspective()) {
+    if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
+        (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
+        fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
+        fitMatrix_->HasPerspective())) {
         Drawing::Filter filter;
         Drawing::scalar sigma = 1;
         filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
@@ -612,7 +616,8 @@ void RSImage::DrawImageOnCanvas(
 
         if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
             (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
-            fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0)) {
+            fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
+            fitMatrix_->HasPerspective())) {
             DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
             return;
         }
@@ -625,15 +630,15 @@ void RSImage::DrawImageOnCanvas(
 void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const
 {
-    Drawing::Paint paint;
+    Drawing::Pen pen;
     Drawing::Filter filter;
     Drawing::scalar sigma = 1;
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
-    paint.SetFilter(filter);
-    canvas.AttachPaint(paint);
+    pen.SetFilter(filter);
+    canvas.AttachPen(pen);
     canvas.DrawImageRect(
         *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-    canvas.DetachPaint();
+    canvas.DetachPen();
 }
 
 void RSImage::SetCompressData(
