@@ -169,6 +169,95 @@ HWTEST_F(RSJankStatsTest, SetReportEventCompleteTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetReportSceneJankStatsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, SetReportSceneJankStatsTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->lastSceneReportTime_ = 1;
+    rsJankStats->lastSceneReportTimeSteady_ = 1;
+    rsJankStats->lastSceneJankFrame6FreqTimeSteady_ = 1;
+    rsJankStats->isNeedReportSceneJankStats_ = true;
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->SetReportRsSceneJankStart(appInfo);
+    EXPECT_FALSE(rsJankStats->isLastReportSceneDone_);
+    appInfo.endTime = 1;
+    rsJankStats->SetReportRsSceneJankEnd(appInfo);
+    EXPECT_EQ((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).pid, 0);
+    EXPECT_TRUE(rsJankStats->isLastReportSceneDone_);
+}
+
+/**
+ * @tc.name: SetReportSceneJankStatsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, SetReportSceneJankStatsTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->lastSceneReportTime_ = 1;
+    rsJankStats->lastSceneReportTimeSteady_ = 1;
+    rsJankStats->lastSceneJankFrame6FreqTimeSteady_ = 1;
+    rsJankStats->isNeedReportSceneJankStats_ = true;
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    appInfo.endTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->ReportSceneJankStats(rsJankStats->appInfo_);
+    EXPECT_EQ((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).pid, 0);
+    EXPECT_TRUE(rsJankStats->isLastReportSceneDone_);
+}
+
+/**
+ * @tc.name: ReportSceneJankFrameTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, ReportSceneJankFrameTest, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->rtEndTimeSteady_ = 100;
+    rsJankStats->rtLastEndTimeSteady_ = 10;
+    rsJankStats->rsStartTimeSteady_ = 20;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTime(true), 80);
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    appInfo.endTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->accumulatedBufferCount_ = 12;
+    rsJankStats->ReportSceneJankFrame(0);
+    EXPECT_NE((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_NE((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_NE((rsJankStats->appInfo_).pid, 0);
+}
+
+/**
  * @tc.name: SetReportEventJankFrameTest
  * @tc.desc:
  * @tc.type:FUNC
