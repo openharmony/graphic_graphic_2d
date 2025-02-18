@@ -29,7 +29,6 @@ namespace OHOS::Rosen {
 
 const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
 const static std::string DESCISION_VIDEO_CALL_TASK_ID = "DESCISION_VIDEO_CALL_TASK_ID";
-const static std::string VIDEO_CALL_BUFFER_NAME = "oh_flutter";
 static const std::unordered_map<std::string, uint32_t> UI_RATE_TYPE_NAME_MAP = {
     {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
     {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
@@ -296,7 +295,7 @@ void HgmEnergyConsumptionPolicy::StatisticsVideoCallBufferCount(pid_t pid, const
     if (!isEnableVideoCall_.load() || pid != videoCallPid_.load()) {
         return;
     }
-    if (surfaceName.find(VIDEO_CALL_BUFFER_NAME) != std::string::npos) {
+    if (surfaceName.find("oh_flutter") != std::string::npos) {
         videoBufferCount_.fetch_add(1);
     }
 }

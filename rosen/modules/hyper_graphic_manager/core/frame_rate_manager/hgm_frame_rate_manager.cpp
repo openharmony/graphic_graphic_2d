@@ -318,7 +318,7 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
 
 void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType)
 {
-    HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(pid, surfaceName);
+    HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCountTest(pid, surfaceName);
     if (!voterTouchEffective_) {
         return;
     }

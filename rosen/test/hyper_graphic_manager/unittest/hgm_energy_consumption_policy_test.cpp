@@ -437,11 +437,10 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticsVideoCallBufferCountTest, Tes
 
     };
     HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
-    std::string bufferNamePrefix = "oh_flutter_";
     pid_t pid = 1234;
     for (int i = 0; i < 100; i++) {
         HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCount(
-            pid, bufferNamePrefix + std::to_string(i));
+            pid, std::string("oh_flutter_") + std::to_string(i));
     }
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoBufferCount_.load(), 100);
 }
