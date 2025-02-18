@@ -1288,6 +1288,11 @@ public:
 
     bool IsUIBufferAvailable();
 
+    std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
+    {
+        return dirtyManager_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;

@@ -155,30 +155,46 @@ void RSUifirstManager::MergeOldDirty(NodeId id)
     }
     if (node->IsAppWindow() &&
         !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
-        MergeOldDirtyToDrawable(node);
+        auto& curDirtyManager = node->GetDirtyManagerForUifirst();
+        if (curDirtyManager) {
+            curDirtyManager->SetUifirstFrameDirtyRect(node->GetOldDirty());
+        }
         return;
     }
     for (auto& child : * node-> GetSortedChildren()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        auto& curDirtyManager = node->GetDirtyManagerForUifirst();
         if (surfaceNode && surfaceNode->IsAppWindow()) {
-            MergeOldDirtyToDrawable(surfaceNode);
+            if (curDirtyManager) {
+                curDirtyManager->SetUifirstFrameDirtyRect(surfaceNode->GetOldDirty());
+            }
             break;
         }
     }
 }
 
-void RSUifirstManager::MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node)
+void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    auto drawable = node->GetRenderDrawable();
-    if (!drawable) {
+    auto& curDirtyManager = node->GetDirtyManagerForUifirst();
+    if (!curDirtyManager) {
+        RS_LOGE("MergeOldDirtyToDirtyManager curDirtyManager is nullptr");
         return;
     }
-    const auto& oldDirty = node->GetOldDirty();
-    RS_OPTIONAL_TRACE_NAME_FMT("uifirst MergeOldDirty %" PRIu64" [%d %d %d %d]",
-        node->GetId(), oldDirty.left_, oldDirty.top_, oldDirty.width_, oldDirty.height_);
-    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-    if (auto dirtyManager = surfaceDrawable->GetSyncDirtyManager()) {
-        dirtyManager->MergeDirtyRect(oldDirty);
+    auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
+    auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
+    curDirtyManager->MergeDirtyRect(uifirstDirtyRegion);
+    curDirtyManager->SetUifirstFrameDirtyRect(curDirtyRegion);
+    RS_OPTIONAL_TRACE_NAME_FMT("MergeOldDirtyToDirtyManager %" PRIu64","
+        " curDirtyRegion[%d %d %d %d], uifirstDirtyRegion[%d %d %d %d]",
+        node->GetId(), curDirtyRegion.left_, curDirtyRegion.top_, curDirtyRegion.width_, curDirtyRegion.height_,
+        uifirstDirtyRegion.left_, uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
+    RS_LOGD("MergeOldDirtyToDirtyManager %{public}" PRIu64","
+        " curDirtyRegion[%{public}d %{public}d %{public}d %{public}d],"
+        " uifirstDirtyRegion[%{public}d %{public}d %{public}d %{public}d]",
+        node->GetId(), curDirtyRegion.left_, curDirtyRegion.top_, curDirtyRegion.width_, curDirtyRegion.height_,
+        uifirstDirtyRegion.left_, uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
+    if (!uifirstDirtyRegion.IsEmpty()) {
+        node->AddToPendingSyncList();
     }
 }
 
@@ -385,7 +401,10 @@ bool RSUifirstManager::CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSS
         RS_TRACE_NAME_FMT("node id:%" PRIu64" surfaceDirtyManager is nullptr", node->GetId());
         return true;
     }
-    auto surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
+    auto surfaceDirtyRect = surfaceDirtyManager->GetUifirstFrameDirtyRegion();
+    RS_TRACE_NAME_FMT("uifirstFrameDirtyRegion %" PRIu64", surfaceDirtyRegion[%d %d %d %d]",
+        surfaceDrawable->GetId(),
+        surfaceDirtyRect.left_, surfaceDirtyRect.top_, surfaceDirtyRect.width_, surfaceDirtyRect.height_);
     Occlusion::Region surfaceDirtyRegion { { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
         surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() } };
     Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);

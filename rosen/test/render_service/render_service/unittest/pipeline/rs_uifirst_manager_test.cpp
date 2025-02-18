@@ -136,7 +136,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty001, TestSize.Level1)
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (surfaceDrawable->GetSyncDirtyManager()) {
-        ASSERT_FALSE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
+        ASSERT_TRUE(surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
 }
 
@@ -167,7 +167,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirty002, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
     uifirstManager_.MergeOldDirty(surfaceNode->GetId());
     if (childDrawable->GetSyncDirtyManager()) {
-        ASSERT_FALSE(childDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
+        ASSERT_TRUE(childDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
     }
 }
 
