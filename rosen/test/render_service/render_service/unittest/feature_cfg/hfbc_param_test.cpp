@@ -44,7 +44,7 @@ void HfbcParamTest::TearDown() {}
  */
 HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
 {
-    HfbcParam hfbcParam;
+    HFBCParam hfbcParam;
     std::string appName = "com.test.banapp";
     const std::unordered_map<std::string, std::string>& hfbcConfig = hfbcParam.GetHfbcConfigMap();
 
