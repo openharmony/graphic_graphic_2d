@@ -362,7 +362,7 @@ HWTEST_F(RSUifirstManagerTest, CurSurfaceHasVisibleDirtyRegion, TestSize.Level1)
     ASSERT_FALSE(uifirstManager_.CurSurfaceHasVisibleDirtyRegion(surfaceNode));
 
     auto surfaceDrawable = surfaceNode->GetRenderDrawable();
-    surfaceDrawable->GetSyncDirtyManager()->SetCurrentFrameDirtyRect(RectI{0, 0, 100, 100});
+    surfaceDrawable->GetSyncDirtyManager()->SetUifirstFrameDirtyRect(RectI{0, 0, 100, 100});
     ASSERT_TRUE(uifirstManager_.CurSurfaceHasVisibleDirtyRegion(surfaceNode));
 }
 
