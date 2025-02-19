@@ -89,8 +89,9 @@ static void SettingxForm(Drawing::RSXform xform[], int maxGlyphCount)
     const int r = 10;
     const int t = 100;
     const int offset = 40;
+    const float f = 0.1;
     for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(r * i) + 0.1 * i;
+        xform[i].cos_ = cos(r * i) + f * i;
         xform[i].sin_ = sin(r * i);
         xform[i].tx_ = offset * i + t;
         xform[i].ty_ = t;
