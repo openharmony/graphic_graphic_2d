@@ -29,6 +29,8 @@
 namespace OHOS {
 namespace Rosen {
 
+using namespace Drawing;
+
 static void DrawTextBlob(Drawing::Brush brush, std::vector<std::string>& texts,
     std::shared_ptr<Drawing::TextBlob> textBlob, Drawing::Font& font1, TestPlaybackCanvas* playbackCanvas)
 {
@@ -507,12 +509,10 @@ DEF_DTK(Font_Scene_Effect_12, TestLevel::L2, 193)
     //7.组合视效接口并绘制
     Drawing::Brush brush;
     brush.SetColor(0xFFFF0000);
-    std::shared_ptr<Drawing::ColorFilter> colorFilter1 =
-        Drawing::ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, Drawing::BlendMode::SRC_IN);
-    std::shared_ptr<Drawing::ColorFilter> colorFilter2 =
-        Drawing::ColorFilter::CreateBlendModeColorFilter(0xFFFF00FF, Drawing::BlendMode::MODULATE);
-    std::shared_ptr<Drawing::ColorFilter> colorFilter3
-        = Drawing::ColorFilter::CreateComposeColorFilter(*colorFilter1, *colorFilter2);
+    std::shared_ptr<ColorFilter> colorFilter1 = ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, BlendMode::SRC_IN);
+    std::shared_ptr<ColorFilter> colorFilter2 =
+        ColorFilter::CreateBlendModeColorFilter(0xFFFF00FF, BlendMode::MODULATE);
+    std::shared_ptr<ColorFilter> colorFilter3 = ColorFilter::CreateComposeColorFilter(*colorFilter1, *colorFilter2);
     auto filter = Drawing::Filter();
     filter.SetColorFilter(colorFilter3);
     brush.SetFilter(filter);

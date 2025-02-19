@@ -84,6 +84,32 @@ static std::vector<Drawing::BlendMode> MakeBlendModes()
     return blendModes;
 }
 
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob2(Drawing::Font& font1)
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunRSXform(font1, 20);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
+        buffer.pos[i * 4] = cos(i * 18);
+        buffer.pos[i * 4 + 1] = sin(18 * i);
+        buffer.pos[i * 4 + 2] = 100;
+        buffer.pos[i * 4 + 3] = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+
+    return textBlob;
+}
+
+static void SettingxForm(Drawing::RSXform xform[], int maxGlyphCount)
+{
+    for (int i = 0; i < maxGlyphCount; ++i) {
+        xform[i].cos_ = cos(10 * i) + 0.1 * i;
+        xform[i].sin_ = sin(10 * i);
+        xform[i].tx_ = 40 * i + 100;
+        xform[i].ty_ = 100;
+    }
+}
+
 // 用例 Font_Scene_Effect_0120
 DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 120)
 {
@@ -385,12 +411,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 125)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 
@@ -449,12 +470,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 126)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 
@@ -512,12 +528,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 127)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 
@@ -710,16 +721,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 131)
     font1.SetBaselineSnap(font.IsBaselineSnap());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string text = "harmony_os";
@@ -781,16 +783,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 132)
     font1.SetEmbolden(font.IsEmbolden());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     Drawing::Paint paint;
@@ -828,16 +821,7 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 133)
     std::string text4 = "Recommended spacing between lines = " + std::to_string(SpaceLine);
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::vector<Drawing::Point> points;
@@ -912,10 +896,8 @@ DEF_DTK(Font_Scene_Effect_8, TestLevel::L2, 134)
     Drawing::Brush brush;
     Drawing::ColorMatrix matrix;
     float arr[] = {
-        1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
     };
     matrix.SetArray(arr);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);

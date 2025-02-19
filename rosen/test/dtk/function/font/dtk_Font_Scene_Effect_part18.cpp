@@ -84,6 +84,16 @@ static std::vector<Drawing::BlendMode> MakeBlendModes()
     return blendModes;
 }
 
+static void SettingxForm(Drawing::RSXform xform[], int maxGlyphCount)
+{
+    for (int i = 0; i < maxGlyphCount; ++i) {
+        xform[i].cos_ = cos(10 * i) + 0.1 * i;
+        xform[i].sin_ = sin(10 * i);
+        xform[i].tx_ = 40 * i + 100;
+        xform[i].ty_ = 100;
+    }
+}
+
 // 用例 Font_Scene_Effect_0286
 DEF_DTK(Font_Scene_Effect_18, TestLevel::L2, 286)
 {
@@ -164,12 +174,7 @@ DEF_DTK(Font_Scene_Effect_18, TestLevel::L2, 287)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 
@@ -224,12 +229,7 @@ DEF_DTK(Font_Scene_Effect_18, TestLevel::L2, 288)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 
@@ -288,12 +288,7 @@ DEF_DTK(Font_Scene_Effect_18, TestLevel::L2, 289)
     std::string textInfo = "1111111111111111111111111111111111";
     int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    for (int i = 0; i < maxGlyphCount; ++i) {
-        xform[i].cos_ = cos(10 * i) + 0.1 * i;
-        xform[i].sin_ = sin(10 * i);
-        xform[i].tx_ = 40 * i + 100;
-        xform[i].ty_ = 100;
-    }
+    SettingxForm(xform, maxGlyphCount);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
         textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
 

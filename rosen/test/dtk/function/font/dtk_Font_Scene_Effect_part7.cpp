@@ -891,16 +891,7 @@ DEF_DTK(Font_Scene_Effect_7, TestLevel::L2, 119)
     font1.SetSubpixel(font.IsSubpixel());
     font1.SetHinting(font.GetHinting());
 
-    // 4.创建TextBlob
-    std::string textInfo = "harmony_os";
-    int cont = textInfo.size();
-    Drawing::Point p[cont];
-    for (int i = 0; i < cont; i++) {
-        p[i].SetX(-100 + 50 * i);
-        p[i].SetY(1000 - 50 * i);
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromPosText(
-        textInfo.c_str(), 10, p, font1, Drawing::TextEncoding::UTF8);
+    // 4.创建TextBlob；texts为空无需绘制，删除textblob创建过程，避免函数超大
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string name1 = "HMOS Color Emoji";
@@ -930,7 +921,7 @@ DEF_DTK(Font_Scene_Effect_7, TestLevel::L2, 119)
         auto filter = Drawing::Filter();
         filter.SetImageFilter(Drawing::ImageFilter::CreateBlendImageFilter(blendMode, background, foreground));
         brush.SetFilter(filter);
-        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        //因为texts为空，所以不需要调用DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
         rectPos += 200;
     }
 }

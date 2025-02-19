@@ -84,6 +84,22 @@ static std::vector<Drawing::BlendMode> MakeBlendModes()
     return blendModes;
 }
 
+static std::shared_ptr<Drawing::TextBlob> MakeTextBlob2(Drawing::Font& font1)
+{
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunRSXform(font1, 20);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
+        buffer.pos[i * 4] = cos(i * 18);
+        buffer.pos[i * 4 + 1] = sin(18 * i);
+        buffer.pos[i * 4 + 2] = 100;
+        buffer.pos[i * 4 + 3] = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+
+    return textBlob;
+}
+
 // 用例 Font_Scene_Effect_0088
 DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 88)
 {
@@ -420,16 +436,7 @@ DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 94)
     font1.SetEmbeddedBitmaps(font.IsEmbeddedBitmaps());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     Drawing::Paint paint;
@@ -481,16 +488,7 @@ DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 95)
     font1.SetLinearMetrics(font.IsLinearMetrics());
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string name1 = "HMOS Color Emoji";
@@ -541,16 +539,7 @@ DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 96)
     std::string text4 = "Recommended spacing between lines = " + std::to_string(SpaceLine);
 
     // 4.创建TextBlob
-    Drawing::TextBlobBuilder builder;
-    auto buffer = builder.AllocRunRSXform(font1, 20);
-    for (int i = 0; i < 20; i++) {
-        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
-        buffer.pos[i * 4] = cos(i * 18);
-        buffer.pos[i * 4 + 1] = sin(18 * i);
-        buffer.pos[i * 4 + 2] = 100;
-        buffer.pos[i * 4 + 3] = 100;
-    }
-    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob2(font1);
 
     // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
     std::string textinfo1 = "Deserialize @Hello World";
