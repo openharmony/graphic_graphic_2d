@@ -44,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
 
 #include "text/font_mgr.h"
