@@ -238,6 +238,7 @@ private:
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
+    void RSUniRenderGfxDumpInit();
 
     bool displayNodeBufferReleased_ = false;
     // Those variable is used to manage memory.

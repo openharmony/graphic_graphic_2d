@@ -282,6 +282,7 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_uiextension_data.cpp",
 
     #gfx
+    "src/gfx/dump/rs_dump_manager.cpp",
     "src/gfx/fps_info/rs_surface_fps.cpp",
     "src/gfx/fps_info/rs_surface_fps_manager.cpp",
     "src/gfx/performance/rs_perfmonitor_reporter.cpp",
