@@ -1214,6 +1214,11 @@ public:
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
+    bool IsUnobscuredUIExtensionNode() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE && GetUIExtensionUnobscured();
+    }
+
     bool IsUIExtension() const
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
@@ -1290,6 +1295,8 @@ public:
     {
         subThreadAssignable_ = subThreadAssignable;
     }
+    bool GetUIExtensionUnobscured() const;
+
 protected:
     void OnSync() override;
 
@@ -1308,6 +1315,7 @@ private:
     bool IsHistoryOccludedDirtyRegionNeedSubmit();
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
+    void SetUIExtensionUnobscured(bool obscured);
     inline bool IsHardwareDisabledBySrcRect() const
     {
         return isHardwareForcedDisabledBySrcRect_;
@@ -1327,6 +1335,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
+    bool UIExtensionUnobscured_ = false;
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;

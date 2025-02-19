@@ -64,7 +64,8 @@ public:
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
 
     // This interface is only available for WMS
-    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true);
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true,
+        bool unobscured = false);
 
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
@@ -172,7 +173,8 @@ private:
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
 #endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0);
+    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0,
+        bool unobscured = false);
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();

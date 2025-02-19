@@ -250,6 +250,7 @@ public:
     {
         return instanceRootNodeId_;
     }
+
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
     inline NodeId GetFirstLevelNodeId() const
     {
@@ -836,6 +837,10 @@ protected:
     ModifierDirtyTypes dirtyTypes_;
     ModifierDirtyTypes curDirtyTypes_;
     bool isBootAnimation_ = false;
+    void AddUIExtensionChild(SharedPtr child);
+    void MoveUIExtensionChild(SharedPtr child);
+    void RemoveUIExtensionChild(SharedPtr child);
+    bool NeedRoutedBasedOnUIExtension(SharedPtr child);
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -875,6 +880,8 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> originUECChildren_ =
+        std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);

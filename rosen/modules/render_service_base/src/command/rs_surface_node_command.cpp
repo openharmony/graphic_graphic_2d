@@ -63,7 +63,7 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
 }
 
 std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigInRS(
-    const RSSurfaceRenderNodeConfig& config, RSContext& context)
+    const RSSurfaceRenderNodeConfig& config, RSContext& context, bool unobscured)
 {
     if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(config.id))) {
         ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfigInRS command is not vaild because there have "
@@ -72,6 +72,7 @@ std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigI
     }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    node->SetUIExtensionUnobscured(unobscured);
     return node;
 }
 

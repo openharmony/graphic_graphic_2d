@@ -802,6 +802,83 @@ HWTEST_F(RSRenderNodeTest, GetInstanceRootNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddUIExtensionChildTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBK74G
+ */
+HWTEST_F(RSRenderNodeTest, AddUIExtensionChildTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
+    node->AddUIExtensionChild(childNode);
+    EXPECT_FALSE(childNode->GetParent().lock());
+
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    uiExtension->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    node->AddUIExtensionChild(uiExtension);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+
+    auto parent = std::make_shared<RSSurfaceRenderNode>(id + 3, context);
+    parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    parent->AddUIExtensionChild(uiExtension);
+    EXPECT_TRUE(uiExtension->GetParent().lock());
+}
+
+/**
+ * @tc.name: MoveUIExtensionChildTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBK74G
+ */
+HWTEST_F(RSRenderNodeTest, MoveUIExtensionChildTest, TestSize.Level1)
+{
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    uiExtension->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    auto parent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    parent->AddUIExtensionChild(uiExtension);
+    EXPECT_TRUE(uiExtension->GetParent().lock());
+    parent->MoveUIExtensionChild(uiExtension);
+    EXPECT_TRUE(uiExtension->GetParent().lock());
+}
+
+/**
+ * @tc.name: RemoveUIExtensionChildTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBK74G
+ */
+HWTEST_F(RSRenderNodeTest, RemoveUIExtensionChildTest, TestSize.Level1)
+{
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    uiExtension->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    auto parent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    parent->AddUIExtensionChild(uiExtension);
+    EXPECT_TRUE(uiExtension->GetParent().lock());
+    parent->RemoveUIExtensionChild(uiExtension);
+    EXPECT_FALSE(uiExtension->GetParent().lock());
+}
+
+/**
+ * @tc.name: NeedRoutedBasedOnUIExtensionTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBK74G
+ */
+HWTEST_F(RSRenderNodeTest, NeedRoutedBasedOnUIExtensionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    auto uiExtension = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    uiExtension->SetUIExtensionUnobscured(true);
+    EXPECT_FALSE(node->NeedRoutedBasedOnUIExtension(uiExtension));
+}
+
+/**
  * @tc.name: UpdateTreeUifirstRootNodeIdTest
  * @tc.desc:
  * @tc.type: FUNC

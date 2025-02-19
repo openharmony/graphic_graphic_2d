@@ -733,9 +733,9 @@ void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
     renderServiceClient_->DropFrameByPid(pidList);
 }
 
-int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
+int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
 {
-    return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
+    return renderServiceClient_->RegisterUIExtensionCallback(userId, callback, unobscured);
 }
 
 bool RSInterfaces::SetAncoForceDoDirect(bool direct)

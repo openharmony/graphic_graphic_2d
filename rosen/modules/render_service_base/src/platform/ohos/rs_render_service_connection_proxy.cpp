@@ -220,7 +220,8 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig&
     return reply.ReadBool();
 }
 
-sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -245,6 +246,10 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
         return nullptr;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(config.surfaceWindowType))) {
+        return nullptr;
+    }
+    if (!data.WriteBool(unobscured)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteBool unobscured err.");
         return nullptr;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -2966,7 +2971,7 @@ void RSRenderServiceConnectionProxy::DropFrameByPid(const std::vector<int32_t> p
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
-    uint64_t userId, sptr<RSIUIExtensionCallback> callback)
+    uint64_t userId, sptr<RSIUIExtensionCallback> callback, bool unobscured)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterUIExtensionCallback: callback is nullptr.");
@@ -2979,7 +2984,7 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
         return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    if (data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject())) {
+    if (data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject()) && data.WriteBool(unobscured)) {
         uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
         if (err != NO_ERROR) {
