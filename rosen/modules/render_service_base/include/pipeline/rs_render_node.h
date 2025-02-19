@@ -64,11 +64,11 @@ class VulkanCleanupHelper;
 struct SharedTransitionParam;
 
 struct CurFrameInfoDetail {
-    uint32_t curFramePrepareSeqNum;
-    uint32_t curFramePostPrepareSeqNum;
-    uint64_t curFrameVsyncId;
-    bool curFrameSubTreeSkipped;
-    bool curFrameReverseChildren;
+    uint32_t curFramePrepareSeqNum = 0;
+    uint32_t curFramePostPrepareSeqNum = 0;
+    uint64_t curFrameVsyncId = 0;
+    bool curFrameSubTreeSkipped = false;
+    bool curFrameReverseChildren = false;
 };
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
@@ -875,10 +875,7 @@ public:
         return absRotation_;
     }
 
-    CurFrameInfoDetail& GetCurFrameInfoDetail()
-    {
-        return curFrameInfoDetail_;
-    }
+    CurFrameInfoDetail& GetCurFrameInfoDetail() { return curFrameInfoDetail_; }
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -973,6 +970,7 @@ protected:
     ModifierDirtyTypes curDirtyTypes_;
 
     CurFrameInfoDetail curFrameInfoDetail_;
+
 private:
     // mark cross node in physical extended screen model
     bool isCrossNode_ = false;
