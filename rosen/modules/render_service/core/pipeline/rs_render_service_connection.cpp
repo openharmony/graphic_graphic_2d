@@ -157,6 +157,9 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
 
 void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
 {
+    if (mainThread_ == nullptr) {
+        return;
+    }
     auto& context = mainThread_->GetContext();
     auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
     frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
