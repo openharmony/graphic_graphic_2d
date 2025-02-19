@@ -474,6 +474,7 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
+    void CreateColorfulShadowFilter();
     RectI GetAttractionEffectCurrentDirtyRegion() const;
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;

@@ -44,6 +44,7 @@
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_distortion_shader_filter.h"
+#include "drawable/rs_property_drawable_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -255,6 +256,9 @@ void RSProperties::SetBounds(Vector4f bounds)
     hasBounds_ = true;
     geoDirty_ = true;
     SetDirty();
+    if (GetShadowMask()) {
+        filterNeedUpdate_ = true;
+    }
 }
 
 void RSProperties::SetBoundsSize(Vector2f size)
@@ -630,6 +634,10 @@ void RSProperties::SetCornerRadius(const Vector4f& cornerRadius)
 {
     cornerRadius_ = cornerRadius;
     SetDirty();
+    if (GetShadowMask()) {
+        filterNeedUpdate_ = true;
+    }
+    contentDirty_ = true;
 }
 
 const Vector4f& RSProperties::GetCornerRadius() const
@@ -2031,6 +2039,9 @@ void RSProperties::SetShadowPath(std::shared_ptr<RSPath> shadowPath)
     }
     shadow_->SetPath(shadowPath);
     SetDirty();
+    if (GetShadowMask()) {
+        filterNeedUpdate_ = true;
+    }
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -2056,6 +2067,9 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     }
     shadow_->SetIsFilled(shadowIsFilled);
     SetDirty();
+    if (GetShadowMask()) {
+        filterNeedUpdate_ = true;
+    }
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
@@ -2490,6 +2504,21 @@ void RSProperties::CreateAttractionEffectFilter()
     attractionEffectFilter->UpdateDirtyRegion(windowLeftPoint, windowTopPoint);
     attractionEffectCurrentDirtyRegion_ = attractionEffectFilter->GetAttractionDirtyRegion();
     foregroundFilter_ = attractionEffectFilter;
+}
+
+void RSProperties::CreateColorfulShadowFilter()
+{
+    float elevation = GetShadowElevation();
+    Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f); // 0.25f 128.0f
+    Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
+    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(GetShadowPath(), GetClipBounds(), GetRRect());
+    auto colorfulShadowFilter = std::make_shared<RSColorfulShadowFilter>(
+        blurRadius, GetShadowOffsetX(), GetShadowOffsetY(), path, GetShadowIsFilled());
+    if (IS_UNI_RENDER) {
+        foregroundFilterCache_ = colorfulShadowFilter;
+    } else {
+        foregroundFilter_ = colorfulShadowFilter;
+    }
 }
 
 RectI RSProperties::GetAttractionEffectCurrentDirtyRegion() const
@@ -4365,10 +4394,10 @@ void RSProperties::OnApplyModifiers()
         greyCoefNeedUpdate_ = false;
         filterNeedUpdate_ = true;
     }
+    GenerateRRect();
     if (filterNeedUpdate_) {
         UpdateFilter();
     }
-    GenerateRRect();
 }
 
 void RSProperties::UpdateFilter()
@@ -4421,16 +4450,7 @@ void RSProperties::UpdateForegroundFilter()
     } else if (IsAttractionValid()) {
         CreateAttractionEffectFilter();
     } else if (GetShadowMask()) {
-        float elevation = GetShadowElevation();
-        Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f
-        Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
-        auto colorfulShadowFilter =
-            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
-        if (IS_UNI_RENDER) {
-            foregroundFilterCache_ = colorfulShadowFilter;
-        } else {
-            foregroundFilter_ = colorfulShadowFilter;
-        }
+        CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else {
