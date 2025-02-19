@@ -445,6 +445,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         return;
     }
 
+    if (autoClearCloneNode_ && !flag) {
+        ClearCloneCrossNode();
+    }
+
     SetPurgeStatus(flag);
 
     // Need to count upeer or lower trees of HDR nodes
@@ -631,7 +635,8 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index)
+void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index,
+    bool autoClearCloneNode)
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
@@ -639,6 +644,8 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
             child == nullptr, context == nullptr);
         return;
     }
+
+    child->autoClearCloneNode_ = autoClearCloneNode;
 
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::AddCrossScreenChild cloneNodeId=%" PRIu64 "", cloneNodeId);
     RSSurfaceRenderNodeConfig config = {
