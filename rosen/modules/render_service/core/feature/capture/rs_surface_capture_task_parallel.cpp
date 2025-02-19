@@ -228,7 +228,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY,
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false,
             true, isSystemCalling, blurParam.isNeedBlur));
         canvas.SetIsWindowFreezeCapture(isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
@@ -240,7 +240,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
         }
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(
-            CaptureParam(true, false, false, captureConfig_.scaleX, captureConfig_.scaleY));
+            CaptureParam(true, false, false));
         displayNodeDrawable_->OnCapture(canvas);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeDrawable!");

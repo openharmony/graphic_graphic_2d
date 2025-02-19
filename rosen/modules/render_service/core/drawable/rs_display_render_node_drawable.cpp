@@ -1141,7 +1141,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
     // the main display that's why no need additional scale.
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false); // disable partial render
@@ -1188,7 +1188,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     virtualProcesser->CanvasClipRegionForUniscaleMode();
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
     if (slrManager) {
         curCanvas_->Save();
         auto scaleNum = slrManager->GetScaleNum();
@@ -1242,10 +1242,6 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    float scaleX = 1.0f;
-    float scaleY = 1.0f;
-    // set expand screen capture param(isSnapshot, isSingleSurface, isMirror)
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, false, scaleX, scaleY));
     RSRenderNodeDrawable::OnCapture(*curCanvas_);
     RSUniRenderThread::ResetCaptureParam();
     // for HDR
@@ -1310,7 +1306,6 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
         DrawWiredMirrorCopy(*mirroredDrawable);
     }
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
     RSUniRenderThread::ResetCaptureParam();
     curCanvas_->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
@@ -1387,7 +1382,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     auto screenInfo = mirroredParams->GetScreenInfo();
     uniParam->SetScreenInfo(screenInfo);
     Drawing::Rect rect(0, 0, screenInfo.width, screenInfo.height);
-    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
     curCanvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
