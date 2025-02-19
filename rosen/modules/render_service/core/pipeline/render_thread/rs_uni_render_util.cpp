@@ -1505,7 +1505,7 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     if (!consumer || !buffer) {
         return;
     }
-    auto bufferRotateTransformType = node.GetFixRotationByUser() ? 
+    auto bufferRotateTransformType = node.GetFixRotationByUser() ?
         RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer) :
         RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer));
     const auto& property = node.GetRenderProperties();
@@ -1611,8 +1611,8 @@ void RSUniRenderUtil::CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const S
 RectI RSUniRenderUtil::SrcRectRotateTransform(const SurfaceBuffer& buffer,
     const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect)
 {
-    const auto bufferWidth = buffer->GetSurfaceBufferWidth();
-    const auto bufferHeight = buffer->GetSurfaceBufferHeight();
+    const auto bufferWidth = buffer.GetSurfaceBufferWidth();
+    const auto bufferHeight = buffer.GetSurfaceBufferHeight();
     int left = newSrcRect.GetLeft();
     int top = newSrcRect.GetTop();
     int width = newSrcRect.GetWidth();
