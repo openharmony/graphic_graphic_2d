@@ -35,8 +35,8 @@ struct CaptureParam {
     bool isSystemCalling_ = false;
     bool isNeedBlur_ = false;
     CaptureParam() {}
-    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        bool isFirstNode = false, bool isSystemCalling = false, bool isNeedBlur = false)
+    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
+        bool isSystemCalling = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
