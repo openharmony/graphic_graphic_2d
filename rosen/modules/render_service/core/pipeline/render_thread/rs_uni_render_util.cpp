@@ -1836,7 +1836,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
         (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation + consumerTransform + 360) % 360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation, consumerFlip);
 
-    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::GetLayerTransform nodeId:%[llu] fixRotationByUser:[%s] "
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::GetLayerTransform nodeId:[%llu] fixRotationByUser:[%s] "
                                "surfaceNodeRotation:[%d] consumerTransform:[%d] rotateEnum:[%d]",
                                node.GetId(), std::to_string(node.GetFixRotationByUser()).c_str(),
                                surfaceNodeRotation, consumerTransform, rotateEnum);
