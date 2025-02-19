@@ -283,6 +283,17 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
+    if (firstLevelNode) {
+        auto& appWindowNode = firstLevelNode->GetChildren()->front();
+        auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindowNode);
+        if (appSurfaceNode && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to colorgamut "
+                "%{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
+            return;
+        }
+    }
+    
     if (node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
         newColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) set new colorgamut %{public}d",
@@ -1667,7 +1678,6 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         node.OpincSetInAppStateStart(unchangeMarkInApp_);
     }
     // 3. check color space pixelFormat and update RelMatrix
-    CheckColorSpace(node);
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
@@ -1721,6 +1731,10 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     UpdateHwcNodeInfoForAppNode(node);
     if (node.IsHardwareEnabledTopSurface()) {
         UpdateSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
+    }
+    // 4. Update color gamut for appNode
+    if (!node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
+        CheckColorSpace(node);
     }
     return true;
 }
