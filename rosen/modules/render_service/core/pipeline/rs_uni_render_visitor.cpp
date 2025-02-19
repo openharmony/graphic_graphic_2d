@@ -3746,10 +3746,10 @@ void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
         uint32_t width = screenInfo_.width;
         uint32_t height = screenInfo_.height;
         if (!screenInfo_.activeRect.IsEmpty()) {
-            left = screenInfo_.activeRect.GetLeft();
-            top = screenInfo_.activeRect.GetTop();
-            width = screenInfo_.activeRect.GetWidth();
-            height = screenInfo_.activeRect.GetHeight();
+            left = static_cast<uint32_t>(std::max(0, screenInfo_.activeRect.GetLeft()));
+            top = static_cast<uint32_t>(std::max(0, screenInfo_.activeRect.GetTop()));
+            width = static_cast<uint32_t>(std::max(0, screenInfo_.activeRect.GetWidth()));
+            height = static_cast<uint32_t>(std::max(0, screenInfo_.activeRect.GetHeight()));
         }
         rcd_msg::GetInstance().SendMsg<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
             node.GetId(), left, top, width, height);
