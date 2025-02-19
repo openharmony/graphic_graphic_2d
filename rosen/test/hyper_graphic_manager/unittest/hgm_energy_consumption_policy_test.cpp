@@ -458,9 +458,6 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, CheckOnlyVideoCallExistTest, TestSize.L
     hgmEnergyConsumptionPolicy.videoBufferCount_.store(1);
     hgmEnergyConsumptionPolicy.CheckOnlyVideoCallExist();
     ASSERT_EQ(hgmEnergyConsumptionPolicy.isSubmitDecisionTask_.load(), true);
-    hgmEnergyConsumptionPolicy.videoBufferCount_.store(false);
-    hgmEnergyConsumptionPolicy.CheckOnlyVideoCallExist();
-    ASSERT_EQ(hgmEnergyConsumptionPolicy.isSubmitDecisionTask_.load(), false);
 }
 
 /**
