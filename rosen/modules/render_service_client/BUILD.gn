@@ -24,6 +24,7 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
     "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   defines = rs_common_define
   if (defined(is_arkui_x) && is_arkui_x) {
