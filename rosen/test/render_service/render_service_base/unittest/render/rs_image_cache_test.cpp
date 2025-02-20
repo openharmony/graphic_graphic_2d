@@ -197,10 +197,10 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto pixelMap = std::make_shared<Media::PixelMap>();
-    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap);
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheDrawingImage(1, img);
-    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap);
     EXPECT_FALSE(imageCache.drawingImageCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
@@ -542,7 +542,7 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest001, TestSize.Leve
     auto img = std::make_shared<Drawing::Image>();
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 2));
     imageCache.CacheDrawingImage(1, img);
-    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap, img);
+    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
@@ -560,7 +560,7 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest002, TestSize.Leve
     auto img = std::make_shared<Drawing::Image>();
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 1));
     imageCache.CacheDrawingImage(1, img);
-    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap, img);
+    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
@@ -579,7 +579,7 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest003, TestSize.Leve
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 1));
     imageCache.CacheDrawingImage(1, img);
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
-    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap, img);
+    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
@@ -598,7 +598,7 @@ HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest004, TestSize.Leve
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 1));
     imageCache.CacheDrawingImage(1, img);
     pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
-    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap, img);
+    imageCache.CheckRefCntAndReleaseImageCache(1, pixelMap);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.drawingImageCache_.clear();
 }

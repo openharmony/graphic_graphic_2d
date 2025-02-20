@@ -144,8 +144,10 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     }
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                                 fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
-    // Temporary value to avoid pixelMap_ being Unmapped during using it.
-    auto pixelMap = DePurge();
+#ifdef ROSEN_OHOS
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    DePurge();
+#endif
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);

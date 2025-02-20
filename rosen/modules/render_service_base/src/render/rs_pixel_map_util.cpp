@@ -90,10 +90,22 @@ static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 
 
 struct PixelMapReleaseContext {
-    explicit PixelMapReleaseContext(std::shared_ptr<PixelMap> pixelMap) : pixelMap_(pixelMap) {}
+    explicit PixelMapReleaseContext(std::shared_ptr<PixelMap> pixelMap) : pixelMap_(pixelMap)
+    {
+#ifdef ROSEN_OHOS
+        if (pixelMap_) {
+            pixelMap_->IncreaseUseCount();
+        }
+#endif
+    }
 
     ~PixelMapReleaseContext()
     {
+#ifdef ROSEN_OHOS
+        if (pixelMap_) {
+            pixelMap_->DecreaseUseCount();
+        }
+#endif
         pixelMap_ = nullptr;
     }
 
