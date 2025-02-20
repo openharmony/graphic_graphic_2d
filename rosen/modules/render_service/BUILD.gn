@@ -198,6 +198,10 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if (graphic_2d_feature_product != "wearable") {
+    defines += [ "IS_ENABLE_DRM" ]
+  }
+
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
       "core/feature/uifirst/rs_sub_thread.cpp",
