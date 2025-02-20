@@ -69,7 +69,7 @@ DEF_DTK(Bitmap_Scene26, TestLevel::L2, 1)
     // 5.设置视效效果，将效果添加到笔刷
     // CreateMatrixColorFilter
     Drawing::ColorMatrix matrix;
-    matrix.SetArray(arr);
+    matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
     filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));
@@ -1358,7 +1358,7 @@ DEF_DTK(Bitmap_Scene26, TestLevel::L2, 22)
 
     // 5.设置视效效果，将效果添加到笔刷
     Drawing::ColorMatrix matrix;
-    matrix.SetArray(arr);
+    matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
     filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));
@@ -1636,7 +1636,7 @@ DEF_DTK(Bitmap_Scene26, TestLevel::L2, 27)
 
     // 4.设置视效效果，将效果添加到笔刷
     Drawing::ColorMatrix matrix;
-    matrix.SetArray(arr);
+    matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
     filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));

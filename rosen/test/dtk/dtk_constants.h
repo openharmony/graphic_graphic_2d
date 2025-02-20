@@ -23,9 +23,9 @@ namespace OHOS {
 namespace Rosen {
 
     // 循环坐标计算常量
-    inline constexpr int LEFT = 200; // 200 is the positions to draw rect
-    inline constexpr int RIGHT = 350; // 350 is the positions to draw rect
-    inline constexpr int VARIATION = 5; // 5 is variables at fixed intervals
+    constexpr int LEFT = 200; // 200 is the positions to draw rect
+    constexpr int RIGHT = 350; // 350 is the positions to draw rect
+    constexpr int VARIATION = 5; // 5 is variables at fixed intervals
 
     // 数组常量
     // blendModes array
@@ -61,7 +61,7 @@ namespace Rosen {
         -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f
     };
     
-    inline constexpr std::array<float, 20> arr = {
+    constexpr float ARR[] = {
         1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f,

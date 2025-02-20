@@ -206,7 +206,7 @@ DEF_DTK(Bitmap_Scene8, TestLevel::L2, 3)
 
     // 5.视效：CreateMatrixColorFilter
     Drawing::ColorMatrix matrix;
-    matrix.SetArray(arr);
+    matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
     filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));
@@ -1610,7 +1610,7 @@ DEF_DTK(Bitmap_Scene8, TestLevel::L2, 27)
 
     // 设置视效效果
     Drawing::ColorMatrix matrix;
-    matrix.SetArray(arr);
+    matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
     filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));
