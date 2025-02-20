@@ -28,7 +28,7 @@
 #include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
-class                          HgmEnergyConsumptionPolicy {
+class HgmEnergyConsumptionPolicy {
 public:
     static HgmEnergyConsumptionPolicy& Instance();
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
