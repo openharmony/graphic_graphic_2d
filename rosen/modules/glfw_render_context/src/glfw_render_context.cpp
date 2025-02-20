@@ -17,6 +17,9 @@
 
 #include <mutex>
 
+#ifdef __APPLE__
+#include <glad/gl.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include "hilog/log.h"
@@ -109,10 +112,17 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
 
     glfwSetWindowUserPointer(window_, this);
 
+#ifdef __APPLE__
+    glfwGetFramebufferSize(window_, &framebufferWidth_, &framebufferHeight_);
+#endif
     width_ = width;
     height_ = height;
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "glfwSetWindowSizeCallback %{public}d %{public}d", width, height);
     glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
+
+#ifdef __APPLE__
+    CreateTexture();
+#endif
     return 0;
 }
 
@@ -121,6 +131,13 @@ void GlfwRenderContext::DestroyWindow()
     if (external_) {
         return;
     }
+
+#ifdef __APPLE__
+    glDeleteTextures(1, &textureId);
+    if (renderingWindow_ != nullptr) {
+        glfwDestroyWindow(renderingWindow_);
+    }
+#endif
 
     if (window_ != nullptr) {
         glfwDestroyWindow(window_);
@@ -140,6 +157,9 @@ void GlfwRenderContext::WaitForEvents()
 void GlfwRenderContext::PollEvents()
 {
     glfwPollEvents();
+#ifdef __APPLE__
+    DrawTexture();
+#endif
 }
 
 void GlfwRenderContext::GetWindowSize(int32_t &width, int32_t &height)
@@ -174,9 +194,93 @@ void GlfwRenderContext::MakeCurrent()
     glfwMakeContextCurrent(window_);
 }
 
+#ifdef __APPLE__
+bool GlfwRenderContext::CreateRenderingContext()
+{
+    if (renderingWindow_ != nullptr) {
+        glfwMakeContextCurrent(renderingWindow_);
+        return true;
+    }
+
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    renderingWindow_ = glfwCreateWindow(width_, height_, "glfw window", nullptr, nullptr);
+    if (renderingWindow_ == nullptr) {
+        return false;
+    }
+    glfwMakeContextCurrent(renderingWindow_);
+    return true;
+}
+
+void GlfwRenderContext::CreateTexture()
+{
+    glfwMakeContextCurrent(window_);
+    gladLoadGL(glfwGetProcAddress);
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth_, framebufferHeight_, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void GlfwRenderContext::CopySnapshot(void* addr)
+{
+    if (addr == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    glfwMakeContextCurrent(window_);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, framebufferWidth_, framebufferHeight_, GL_RGBA, GL_UNSIGNED_BYTE, addr);
+    textureReady = true;
+    glfwMakeContextCurrent(NULL);
+}
+
+void GlfwRenderContext::DrawTexture()
+{
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    if (!textureReady) {
+        return;
+    }
+
+    glfwMakeContextCurrent(window_);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glEnable(GL_TEXTURE_2D);
+
+    glBegin(GL_QUADS);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, framebufferWidth_);
+
+    glTexCoord2f(0, 0);
+    glVertex2f(-1, -1);
+
+    glTexCoord2f(1, 0);
+    glVertex2f(1, -1);
+
+    glTexCoord2f(1, 1);
+    glVertex2f(1, 1);
+
+    glTexCoord2f(0, 1);
+    glVertex2f(-1, 1);
+
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+
+    glfwSwapBuffers(window_);
+    textureReady = false;
+}
+#endif
+
 void GlfwRenderContext::SwapBuffers()
 {
     glfwSwapBuffers(window_);
+}
+
+void GlfwRenderContext::GetFrameBufferSize(int32_t &width, int32_t &height)
+{
+    glfwGetFramebufferSize(window_, &width, &height);
 }
 
 void GlfwRenderContext::OnMouseButton(const OnMouseButtonFunc &onMouseBotton)

@@ -53,6 +53,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
         ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, producer is nullptr");
         return nullptr;
     }
+
+#ifdef USE_GLFW_WINDOW
+    GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+#endif
+
     auto frame = std::make_unique<RSSurfaceFrameDarwin>(width, height);
     if (SetupGrContext() == false) {
         return frame;
@@ -70,13 +75,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
         ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, surface bind failed");
         return frame;
     }
-#ifdef USE_GLFW_WINDOW
-    const auto canvas = frame->surface_->GetCanvas();
-    if (canvas != nullptr) {
-        canvas->Translate(0, frame->height_);
-        canvas->Scale(1, -1);
-    }
-#endif
     return frame;
 }
 
@@ -120,7 +118,7 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     onRender_(addr, size, width, height, uiTimestamp);
 
 #ifdef USE_GLFW_WINDOW
-    GlfwRenderContext::GetGlobal()->SwapBuffers();
+    GlfwRenderContext::GetGlobal()->CopySnapshot(addr);
 #endif
     return true;
 }
@@ -167,7 +165,9 @@ bool RSSurfaceDarwin::SetupGrContext()
         return true;
     }
 
+#ifndef USE_GLFW_WINDOW
     GlfwRenderContext::GetGlobal()->MakeCurrent();
+#endif
     auto grContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     if (!grContext->BuildFromGL(options)) {

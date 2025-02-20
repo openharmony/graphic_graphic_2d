@@ -42,5 +42,12 @@ ohos_shared_library("libglfw_render_context") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  if (current_os == "mac") {
+    defines = [
+      "GLAD_GL_IMPLEMENTATION",
+      "GLFW_INCLUDE_NONE",
+    ]
+  }
 }
 ## Build libglfw_render_context.so }}}

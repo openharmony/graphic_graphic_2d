@@ -18,6 +18,9 @@
 
 #include <functional>
 #include <memory>
+#ifdef __APPLE__
+#include <mutex>
+#endif
 #include <string>
 
 struct GLFWwindow;
@@ -55,6 +58,12 @@ public:
     /* gl operation */
     void MakeCurrent();
     void SwapBuffers();
+#ifdef __APPLE__
+    bool CreateRenderingContext();
+    void CreateTexture();
+    void CopySnapshot(void* addr);
+    void DrawTexture();
+#endif
 
     /* input event */
     void OnMouseButton(const OnMouseButtonFunc &onMouseBotton);
@@ -62,6 +71,7 @@ public:
     void OnKey(const OnKeyFunc &onKey);
     void OnChar(const OnCharFunc &onChar);
     void OnSizeChanged(const OnSizeChangedFunc &onSizeChanged);
+    void GetFrameBufferSize(int32_t &width, int32_t &height);
 
 private:
     static void OnMouseButton(GLFWwindow *window, int button, int action, int mods);
@@ -81,6 +91,14 @@ private:
 
     int32_t width_ = 0;
     int32_t height_ = 0;
+#ifdef __APPLE__
+    int32_t framebufferWidth_ = 0;
+    int32_t framebufferHeight_ = 0;
+    GLFWwindow *renderingWindow_ = nullptr;
+    std::mutex renderingMutex;
+    unsigned int textureId;
+    bool textureReady = false;
+#endif
 };
 } // namespace OHOS::Rosen
 
