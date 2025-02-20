@@ -2895,7 +2895,7 @@ void RSNode::SetIsCrossNode(bool isCrossNode)
     transactionProxy->AddCommand(command);
 }
 
-void RSNode::AddCrossScreenChild(SharedPtr child, int index)
+void RSNode::AddCrossScreenChild(SharedPtr child, int index, bool autoClearCloneNode)
 {
     if (child == nullptr) {
         ROSEN_LOGE("RSNode::AddCrossScreenChild, child is nullptr");
@@ -2920,7 +2920,7 @@ void RSNode::AddCrossScreenChild(SharedPtr child, int index)
     NodeId childId = child->GetHierarchyCommandNodeId();
     // Generate an id on the client and create a clone node on the server based on the id.
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddCrossScreenChild>(id_, childId,
-        GenerateId(), index);
+        GenerateId(), index, autoClearCloneNode);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
 }
 

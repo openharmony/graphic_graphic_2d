@@ -110,7 +110,8 @@ public:
     void SetIsCrossNode(bool isCrossNode);
 
     // Only used in PC extend screen
-    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1);
+    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1,
+        bool autoClearCloneNode = false);
     void RemoveCrossScreenChild(const SharedPtr& child);
     void ClearCloneCrossNode();
 
@@ -976,6 +977,7 @@ private:
     bool isCrossNode_ = false;
     bool isCloneCrossNode_ = false;
     bool isFirstLevelCrossNode_ = false;
+    bool autoClearCloneNode_ = false;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
