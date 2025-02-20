@@ -45,7 +45,7 @@ namespace Rosen {
     // blurTypes array
     constexpr std::array<Drawing::BlurType, 4> blurTypes = {
         Drawing::BlurType::NORMAL,
-        Drawing::BlurSOLID,
+        Drawing::BlurType::SOLID,
         Drawing::BlurType::OUTER,
         Drawing::BlurType::INNER
     };
