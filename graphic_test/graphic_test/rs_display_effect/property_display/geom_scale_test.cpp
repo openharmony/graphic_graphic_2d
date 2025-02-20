@@ -143,4 +143,46 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_8)
         RegisterNode(testNode);
     }
 }
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_9)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float scale = 1.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScaleX(scale);
+            testNode->SetScaleY(scale);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            scale -= 0.06;
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_10)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float scale = 0.99;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScaleZ(scale);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            scale -= 0.06;
+        }
+    }
+}
+
 } // namespace OHOS::Rosen
