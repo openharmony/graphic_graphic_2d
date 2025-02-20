@@ -865,11 +865,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         ((isSecLayersNotExempted && !RSUniRenderThread::GetCaptureParam().isNeedBlur_) ||
             specialLayerManager.Find(SpecialLayerType::SKIP))) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: ",
-            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])",
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])",
+        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
 
@@ -886,10 +886,10 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
         !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
     if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || (isSecLayersNotExempted && isScreenshot)) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: ",
-            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])",
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])",
+        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
 
         Drawing::Brush rectBrush;
@@ -906,10 +906,10 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
     if ((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
         isSnapshotSkipLayer) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: ",
-            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])",
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])",
+        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
         return;
     }
