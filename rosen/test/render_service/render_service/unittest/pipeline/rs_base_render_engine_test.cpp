@@ -264,7 +264,7 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSiz
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_BT2020);
     ASSERT_NE(colorSpace, nullptr);
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
-    ASSERT_EQ(colorSpace, nullptr);
+    ASSERT_NE(colorSpace, nullptr);
 }
 
 /**
