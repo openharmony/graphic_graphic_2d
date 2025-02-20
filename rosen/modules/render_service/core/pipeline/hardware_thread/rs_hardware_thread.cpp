@@ -839,10 +839,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
+    bool isDefaultScreen = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
+    }
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled()) {
+        if (RSSystemProperties::GetDrmEnabled() && isDefaultScreen) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;
