@@ -28,6 +28,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -237,10 +238,12 @@ bool RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo(
 bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
-    if (!node || !node->GetConsumer() || !node->GetBuffer()) {
+    if (!node || !node->GetRSSurfaceHandler() || !node->GetRSSurfaceHandler()->GetConsumer() ||
+        !node->GetRSSurfaceHandler()->GetBuffer()) {
         return false;
     }
-    
+
+    auto surfaceHandler = node->GetRSSurfaceHandler();
     info.id = node->GetId();
     auto src = node->GetSrcRect();
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
@@ -249,12 +252,12 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     info.dstRect.y = static_cast<uint32_t>(static_cast<float>(dst.top_) * screenInfo.GetRogHeightRatio());
     info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * screenInfo.GetRogWidthRatio());
     info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * screenInfo.GetRogHeightRatio());
-    info.zOrder = static_cast<uint32_t>(node->GetGlobalZOrder());
-    info.usage = node->GetBuffer()->GetUsage();
-    info.format = node->GetBuffer()->GetFormat();
+    info.zOrder = static_cast<uint32_t>(surfaceHandler->GetGlobalZOrder());
+    info.usage = surfaceHandler->GetBuffer()->GetUsage();
+    info.format = surfaceHandler->GetBuffer()->GetFormat();
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
-    LayerRotate(info, node->GetConsumer(), screenInfo);
+    LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
     RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateRCDLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","

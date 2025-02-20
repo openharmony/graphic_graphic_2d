@@ -38,8 +38,10 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/anco_manager/rs_anco_manager.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -115,23 +117,34 @@ Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& sc
         region.Op(tmpRegion, Drawing::RegionOp::UNION);
     }
     return region;
-}
-}
-void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    const ScreenInfo& screenInfo)
+}}  // namespace
+
+// Rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
+void DoScreenRcdTask(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> &processor)
 {
-    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
+    if (processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has no processor");
+        return;
+    }
+    const auto &screenInfo = params.GetScreenInfo();
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
-            [id, &processor, &rcdInfo](void) {
-                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id, true);
-                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(id, rcdInfo->processInfo);
-            });
+
+    bool res = true;
+    bool resourceChanged = false;
+    auto drawables = params.GetRoundCornerDrawables();
+    for (auto drawable : drawables) {
+        auto rcdDrawable = std::static_pointer_cast<DrawableV2::RSRcdSurfaceRenderNodeDrawable>(drawable);
+        if (rcdDrawable) {
+            resourceChanged |= rcdDrawable->IsResourceChanged();
+            res &= rcdDrawable->DoProcessRenderTask(processor);
+        }
+    }
+    if (resourceChanged && res) {
+        RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(
+            TOPIC_RCD_DISPLAY_HWRESOURCE, params.GetId(), true);
     }
 }
 
@@ -408,9 +421,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
 
     // commit RCD layers
-    auto rcdInfo = std::make_unique<RcdInfo>();
-    const auto& screenInfo = params.GetScreenInfo();
-    DoScreenRcdTask(params.GetId(), processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(params, processor);
     processor->PostProcess();
     return true;
 }
@@ -915,8 +926,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // process round corner display
-    auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(*params, processor);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute"

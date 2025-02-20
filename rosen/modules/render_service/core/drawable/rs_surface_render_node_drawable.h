@@ -37,11 +37,14 @@ class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
+class RSRcdSurfaceRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
+
+// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
