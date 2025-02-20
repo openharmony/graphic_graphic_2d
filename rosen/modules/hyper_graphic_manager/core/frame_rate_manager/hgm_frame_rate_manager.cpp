@@ -34,6 +34,7 @@
 #include "frame_rate_report.h"
 #include "hisysevent.h"
 #include "hdi_device.h"
+#include "platform/common/rs_hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -510,8 +511,8 @@ void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
         for (auto& [timestamp, voteInfo] : frameRateVoteInfoVec_) {
             msg += voteInfo.ToString(timestamp);
         }
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "HGM_VOTER_INFO",
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "MSG", msg);
+        RS_TRACE_NAME("HgmFrameRateManager::ReportHiSysEvent HiSysEventWrite");
+        RSHiSysEvent::EventWrite(RSEventName::HGM_VOTER_INFO, RSEventType::RS_STATISTIC, "MSG", msg);
         frameRateVoteInfoVec_.clear();
     }
     if (needAdd) {

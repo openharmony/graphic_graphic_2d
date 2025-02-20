@@ -26,6 +26,7 @@
 #include "common/rs_background_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/common/rs_hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -94,19 +95,17 @@ void RSNodeStats::ReportRSNodeLimitExceeded()
     RSBackgroundThread::Instance().PostTask([
         rsNodeLimit, rsNodeCountTotal, curSysTime, appWindowTotal, nodeInfoTop1, nodeInfoTop2, nodeInfoTop3]() {
         RS_TRACE_NAME("RSNodeStats::ReportRSNodeLimitExceeded in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC,
-                        RS_NODE_LIMIT_EXCEEDED_EVENT_NAME,
-                        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
-                        "RS_NODE_LIMIT", rsNodeLimit,
-                        "RS_ACTUAL_NODE", rsNodeCountTotal,
-                        "TIMESTAMP", static_cast<uint64_t>(curSysTime),
-                        "RS_APP_WINDOW_TOTAL", appWindowTotal,
-                        "RS_TOP1_APP_NAME", nodeInfoTop1.first,
-                        "RS_TOP1_APP_NODE", nodeInfoTop1.second,
-                        "RS_TOP2_APP_NAME", nodeInfoTop2.first,
-                        "RS_TOP2_APP_NODE", nodeInfoTop2.second,
-                        "RS_TOP3_APP_NAME", nodeInfoTop3.first,
-                        "RS_TOP3_APP_NODE", nodeInfoTop3.second);
+        RSHiSysEvent::EventWrite(RSEventName::RS_NODE_LIMIT_EXCEEDED, RSEventType::RS_BEHAVIOR,
+            "RS_NODE_LIMIT", rsNodeLimit,
+            "RS_ACTUAL_NODE", rsNodeCountTotal,
+            "TIMESTAMP", static_cast<uint64_t>(curSysTime),
+            "RS_APP_WINDOW_TOTAL", appWindowTotal,
+            "RS_TOP1_APP_NAME", nodeInfoTop1.first,
+            "RS_TOP1_APP_NODE", nodeInfoTop1.second,
+            "RS_TOP2_APP_NAME", nodeInfoTop2.first,
+            "RS_TOP2_APP_NODE", nodeInfoTop2.second,
+            "RS_TOP3_APP_NAME", nodeInfoTop3.first,
+            "RS_TOP3_APP_NODE", nodeInfoTop3.second);
     });
     lastReportTime_ = curSysTime;
     lastReportTimeSteady_ = curSteadyTime;

@@ -41,6 +41,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "platform/common/rs_hisysevent.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -273,9 +274,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 " %{public}s",
                 frameTime, missedFrames, frameRate, surfaceName.c_str());
             intervalTimePoints_ = endTime;
-            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
-                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
-                missedFrames, "FRAME_TIME", frameTime);
+            RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers HiSysEventWrite in RSHardwareThread");
+            RSHiSysEvent::EventWrite(RSEventName::RS_HARDWARE_THREAD_LOAD_WARNING, RSEventType::RS_STATISTIC,
+                "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
         }
     };
     RSBaseRenderUtil::IncAcquiredBufferCount();

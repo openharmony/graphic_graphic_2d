@@ -68,7 +68,6 @@ private:
     static constexpr int RS_NODE_LIMIT_PROPERTY_MIN = 1;
     static constexpr int RS_NODE_LIMIT_PROPERTY_MAX = 1000;
     static constexpr float RS_NODE_LIMIT_REPORT_RATIO = 1.5f;
-    static inline const std::string RS_NODE_LIMIT_EXCEEDED_EVENT_NAME = "RS_NODE_LIMIT_EXCEEDED";
 
     int64_t lastReportTime_ = TIMESTAMP_INITIAL;
     int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;

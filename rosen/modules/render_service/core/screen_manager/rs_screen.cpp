@@ -25,6 +25,7 @@
 #include "string_utils.h"
 #include "hisysevent.h"
 #include "hgm_core.h"
+#include "platform/common/rs_hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -319,9 +320,10 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
     static GraphicDisplayModeInfo modeInfo;
     if ((modeInfo.freshRate != activeMode.freshRate)
         || modeInfo.width != activeMode.width || modeInfo.height != activeMode.height) {
-        HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "EPS_LCD_FREQ",
-            HiSysEvent::EventType::STATISTIC, "SOURCERATE", modeInfo.freshRate,
-            "TARGETRATE", activeMode.freshRate, "WIDTH", activeMode.width, "HEIGHT", activeMode.height);
+        RS_TRACE_NAME("RSScreen::WriteHisyseventEpsLcdInfo HiSysEventWrite");
+        RSHiSysEvent::EventWrite(RSEventName::EPS_LCD_FREQ, RSEventType::RS_STATISTIC,
+            "SOURCERATE", modeInfo.freshRate, "TARGETRATE", activeMode.freshRate, "WIDTH", activeMode.width,
+            "HEIGHT", activeMode.height);
         modeInfo = activeMode;
     }
 }

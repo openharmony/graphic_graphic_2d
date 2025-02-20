@@ -30,6 +30,8 @@
 #include "command/rs_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "recording/draw_cmd_list.h"
+#include "rs_trace.h"
+#include "platform/common/rs_hisysevent.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
@@ -282,8 +284,10 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
     std::string bundleName;
     appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
 
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, TRANSACTION_REPORT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "UID", uid,
+    RS_TRACE_NAME_FMT("RSUnmarshalThread::ReportTransactionDataStatistics HiSysEventWrite pid[%d] uid[%d]"
+        " bundleName[%s] opCount[%zu] exceeded[%d]",
+        pid, uid, bundleName.c_str(), totalCount, totalCount > TRANSACTION_DATA_KILL_COUNT);
+    RSHiSysEvent::EventWrite(RSEventName::IPC_DATA_OVER_ERROR, RSEventType::RS_STATISTIC, "PID", pid, "UID", uid,
         "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalCount);
     RS_LOGW("TransactionDataStatistics pid[%{public}d] uid[%{public}d]"
             " bundleName[%{public}s] opCount[%{public}zu] exceeded[%{public}d]",
