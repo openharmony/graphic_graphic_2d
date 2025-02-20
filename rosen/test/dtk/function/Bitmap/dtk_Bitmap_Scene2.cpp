@@ -458,28 +458,6 @@ DEF_DTK(Bitmap_Scene2, TestLevel::L2, 8)
 
     // 5.设置视效效果
     Drawing::ColorMatrix matrix;
-    float arr[] = {
-        1.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
     matrix.SetArray(arr);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
@@ -1143,7 +1121,7 @@ DEF_DTK(Bitmap_Scene2, TestLevel::L2, 20)
     using namespace Drawing;
     Drawing::Brush brush;
     brush.SetAntiAlias(true); // 设置笔刷抗锯齿，true为AA（抗锯齿），false为非AA（不抗锯齿）
-                              // 2.创建Bitmap  Bitmap_Build_L1_21
+    // 2.创建Bitmap  Bitmap_Build_L1_21
     Drawing::Bitmap bitmap;
     Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_PREMUL };
     bitmap.Build(500, 500, format);
@@ -1161,28 +1139,6 @@ DEF_DTK(Bitmap_Scene2, TestLevel::L2, 20)
 
     // 5.设置视效效果，将效果添加到笔刷，  CreateMatrixColorFilter
     Drawing::ColorMatrix matrix;
-    float arr[] = {
-        1.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
     matrix.SetArray(arr);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();

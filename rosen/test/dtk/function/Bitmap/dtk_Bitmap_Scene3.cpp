@@ -79,7 +79,7 @@ DEF_DTK(Bitmap_Scene3, TestLevel::L2, 1)
         // 6.绘制结果
         playbackCanvas_->AttachBrush(brush);
         playbackCanvas_->DrawBitmap(bitmap, 200, 200); // 200，200 is bitmap position
-        playbackCanvas_->DrawImage(*image, 250, 300, SamplingOptions());  
+        playbackCanvas_->DrawImage(*image, 250, 300, SamplingOptions());
     }
     playbackCanvas_->DetachBrush();
 
@@ -526,17 +526,6 @@ DEF_DTK(Bitmap_Scene3, TestLevel::L2, 9)
         image.BuildFromBitmap(bitmap1);
 
         brush.SetColor(0xFFFF0000); // 红色
-        std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-            Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER,
-            Drawing::BlendMode::SRC_IN, Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT,
-            Drawing::BlendMode::DST_OUT, Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP,
-            Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS, Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN,
-            Drawing::BlendMode::OVERLAY, Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN,
-            Drawing::BlendMode::COLOR_DODGE, Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT,
-            Drawing::BlendMode::SOFT_LIGHT, Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION,
-            Drawing::BlendMode::MULTIPLY, Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION,
-            Drawing::BlendMode::COLOR_MODE, Drawing::BlendMode::LUMINOSITY };
-
         // 4.组合transform函数
         playbackCanvas_->Translate(200, 200); // 200 distance
 
@@ -1113,12 +1102,6 @@ DEF_DTK(Bitmap_Scene3, TestLevel::L2, 19)
 
     // 4.设置视效效果，将效果添加到笔刷
     Drawing::ColorMatrix matrix;
-    float arr[] = {
-        1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-    };
     matrix.SetArray(arr);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();

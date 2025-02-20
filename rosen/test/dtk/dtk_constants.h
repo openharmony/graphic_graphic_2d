@@ -23,25 +23,31 @@ namespace OHOS {
 namespace Rosen {
 
     // 循环坐标计算常量
-    constexpr static int left = 200; // 200 is the positions to draw rect
-    constexpr static int right = 350; // 350 is the positions to draw rect
-    constexpr static int variation = 5; // 5 is variables at fixed intervals
+    inline constexpr int left = 200; // 200 is the positions to draw rect
+    inline constexpr int right = 350; // 350 is the positions to draw rect
+    inline constexpr int variation = 5; // 5 is variables at fixed intervals
 
     // 数组常量
     // blendModes array
-    constexpr std::array<Drawing::BlendMode,29> blendModes = {Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT, Drawing::BlendMode::SRC_ATOP,
-        Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS, Drawing::BlendMode::MODULATE,
-        Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY, Drawing::BlendMode::DARKEN,
-        Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE, Drawing::BlendMode::COLOR_BURN,
-        Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT, Drawing::BlendMode::DIFFERENCE,
-        Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY, Drawing::BlendMode::HUE,
-        Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE, Drawing::BlendMode::LUMINOSITY};
+    constexpr std::array<Drawing::BlendMode, 29> blendModes = {Drawing::BlendMode::CLEAR, 
+        Drawing::BlendMode::SRC, Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, 
+        Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN, Drawing::BlendMode::DST_IN, 
+        Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT, Drawing::BlendMode::SRC_ATOP,
+        Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS, 
+        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY, 
+        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE, 
+        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT, 
+        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY, 
+        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE, 
+        Drawing::BlendMode::LUMINOSITY};
 
     // blurTypes array
-    constexpr std::array<Drawing::BlurType, 4> blurTypes = {Drawing::BlurType::NORMAL, Drawing::BlurType::SOLID,
-            Drawing::BlurType::OUTER, Drawing::BlurType::INNER};
+    constexpr std::array<Drawing::BlurType, 4> blurTypes = {
+        Drawing::BlurType::NORMAL,
+        Drawing::BlurSOLID,
+        Drawing::BlurType::OUTER,
+        Drawing::BlurType::INNER
+    };
     
     constexpr Drawing::CMSMatrix3x3 SRGBMatrix{{
             {0.436065674f, 0.385147095f, 0.143066406f},
@@ -50,10 +56,11 @@ namespace Rosen {
         }
     };
 
-    constexpr Drawing::CMSTransferFunction PQ =
-    { -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f };
+    constexpr Drawing::CMSTransferFunction PQ = {
+        -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f
+    };
     
-    constexpr static float arr[] = {
+    inline constexpr float arr[] = {
         1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
