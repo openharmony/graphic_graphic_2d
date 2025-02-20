@@ -363,7 +363,7 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     }
     std::string pkgName = pkgs[0].substr(0, pkgs[0].find(":"));
     auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
-    auto videoCallLayerName = videoCallLayerCofig.find(pkgName);
+    auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
     std::lock_guard<std::mutex> lock(videoCallLock_);
     videoCallLayerName_ = videoCallLayerName == videoCallLayerConfig.end() ? "" : videoCallLayerName->second;
 }
