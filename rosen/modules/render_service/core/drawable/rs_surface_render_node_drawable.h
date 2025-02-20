@@ -243,6 +243,7 @@ public:
         return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
     int GetTotalProcessedSurfaceCount() const;
+    void UpdateCacheSurfaceInfo();
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
@@ -303,6 +304,12 @@ private:
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
+    struct CacheSurfaceInfo {
+        int processedSurfaceCount = -1;
+        float alpha = -1.f;
+    };
+    CacheSurfaceInfo cacheSurfaceInfo_;
+    CacheSurfaceInfo cacheCompletedSurfaceInfo_;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

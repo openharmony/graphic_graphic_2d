@@ -938,8 +938,11 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",
-        name_.c_str(), surfaceParams.GetId(), enableType);
+    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d alpha:%{public}f", __func__, GetName().c_str(),
+            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.alpha);
+    }
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d", name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
