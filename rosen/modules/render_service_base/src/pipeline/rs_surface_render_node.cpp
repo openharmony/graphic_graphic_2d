@@ -1703,7 +1703,7 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
     auto contentStatic = false;
-    uifirstContentDirty_ = false;
+    auto uifirstContentDirty = false;
     if (IsLeashWindow()) {
         for (auto& child : *GetSortedChildren()) {
             if (!child) {
@@ -1714,7 +1714,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
                 continue;
             }
             if (child->IsDirty() || child->IsSubTreeDirty()) {
-                uifirstContentDirty_ = true;
+                uifirstContentDirty = true;
             }
         }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
@@ -1723,7 +1723,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     } else {
         contentStatic = surfaceCacheContentStatic_;
     }
-    uifirstContentDirty_ = uifirstContentDirty_ || HasRemovedChild();
+    uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
