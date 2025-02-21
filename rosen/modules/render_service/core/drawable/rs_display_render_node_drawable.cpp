@@ -637,10 +637,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (mirroredParams) {
             enableVisibleRect_ = screenInfo.enableVisibleRect;
-            const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
-            curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
-            RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect_);
-            RSUniRenderThread::Instance().SetEnableVisiableRect(enableVisibleRect_);
+            if (enableVisibleRect_) {
+                const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
+                curVisibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+                RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect_);
+                RSUniRenderThread::Instance().SetEnableVisiableRect(enableVisibleRect_);
+            }
             currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
             if (params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
@@ -648,6 +650,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 WiredScreenProjection(*params, processor);
                 lastVisibleRect_ = curVisibleRect_;
                 lastBlackList_ = currentBlackList_;
+                RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
                 return;
             }
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
@@ -657,6 +660,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             lastBlackList_ = currentBlackList_;
             lastSecExemption_ = curSecExemption_;
             lastVisibleRect_ = curVisibleRect_;
+            RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
             RSUniRenderThread::Instance().SetEnableVisiableRect(false);
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
@@ -1890,8 +1894,12 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
         // Use for mirror screen visible rect projection
+        auto rect = surfaceParams->GetLayerInfo().dstRect;
+        auto dstRect = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
         const auto &visibleRect = RSUniRenderThread::Instance().GetVisibleRect();
-        matrix.PostTranslate(-visibleRect.GetLeft(), -visibleRect.GetTop());
+        if (dstRect.Intersect(visibleRect)) {
+            matrix.PostTranslate(-visibleRect.GetLeft(), -visibleRect.GetTop());
+        }
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);
