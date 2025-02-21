@@ -359,6 +359,9 @@ public:
         return absRotation_;
     }
 
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC(bool flag);
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -410,6 +413,7 @@ private:
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
+    bool hasUnobscuredUEC_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

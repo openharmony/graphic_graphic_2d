@@ -67,6 +67,16 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
+}\
+
+bool RSRenderParams::HasUnobscuredUEC() const
+{
+    return hasUnobscuredUEC_;
+}
+
+void RSRenderParams::SetHasUnobscuredUEC(bool flag)
+{
+    hasUnobscuredUEC_ = flag;
 }
 
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
@@ -505,6 +515,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->cloneSourceDrawable_ = cloneSourceDrawable_;
     target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     target->absRotation_ = absRotation_;
+    target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
     needSync_ = false;
 }
 

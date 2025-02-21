@@ -3101,6 +3101,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     node.UpdateLocalDrawRect();
     node.UpdateAbsDrawRect();
     node.ResetChangeState();
+    node.SetHasUnobscuredUEC();
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoAfterChildren();
     }

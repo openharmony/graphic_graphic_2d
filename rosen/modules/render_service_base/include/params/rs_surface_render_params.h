@@ -592,6 +592,16 @@ public:
         return isBufferFlushed_;
     }
 
+    void SetIsUnobscuredUEC(bool flag)
+    {
+        IsUnobscuredUIExtension_ = flag;
+    }
+
+    bool IsUnobscuredUIExtension() const
+    {
+        return IsUnobscuredUIExtension_;
+    }
+
     void MarkSurfaceCapturePipeline()
     {
         isSurfaceCapturePipeline_ = true;
@@ -632,6 +642,8 @@ private:
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
+
+    bool IsUnobscuredUIExtension_ = false;
 
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 

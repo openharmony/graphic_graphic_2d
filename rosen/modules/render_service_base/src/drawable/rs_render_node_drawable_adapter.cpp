@@ -39,6 +39,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+std::unordered_map<NodeId, Drawing::Matrix> RSRenderNodeDrawableAdapter::unobscuredUECMatrixMap_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 #else
@@ -419,6 +420,20 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
         return;
     }
     curDrawingCacheRoot_->withoutFilterMatrixMap_[GetId()] = canvas.GetTotalMatrix();
+}
+
+void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas)
+{
+    if (!UECChildrenIds_ || UECChildrenIds_->empty()) {
+        return;
+    }
+    for (auto childId : *UECChildrenIds_) {
+        unobscuredUECMatrixMap_[childId] = canvas.GetTotalMatrix();
+        auto drawable = GetDrawableById(childId);
+        if (drawable) {
+            drawable->SetUIExtensionNeedToDraw(true);
+        }
+    }
 }
 
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(

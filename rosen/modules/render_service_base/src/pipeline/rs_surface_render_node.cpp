@@ -2977,6 +2977,12 @@ void RSSurfaceRenderNode::InitRenderParams()
         RS_LOGE("RSSurfaceRenderNode::InitRenderParams failed");
         return;
     }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::InitRenderParams surfaceParams is null");
+        return;
+    }
+    surfaceParams->SetIsUnobscuredUEC(IsUnobscuredUIExtensionNode());
 #endif
 }
 
