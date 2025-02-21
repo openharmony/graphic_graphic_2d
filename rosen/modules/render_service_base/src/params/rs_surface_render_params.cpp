@@ -423,7 +423,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        bufferSynced_ = true;
+        if (UNLIKELY(isSurfaceCapturePipeline_)) {
+            bufferSynced_ = false;
+            isSurfaceCapturePipeline_ = false;
+        } else {
+            bufferSynced_ = true;
+        }
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif

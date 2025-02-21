@@ -538,6 +538,11 @@ public:
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
 
+    void MarkSurfaceCapturePipeline()
+    {
+        isSurfaceCapturePipeline_ = true;
+    }
+
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -632,6 +637,8 @@ private:
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
+
+    bool isSurfaceCapturePipeline_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
