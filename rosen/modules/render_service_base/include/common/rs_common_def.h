@@ -304,6 +304,7 @@ enum class RSUIFirstSwitch {
     FORCE_DISABLE,      // force close uifirst
     FORCE_ENABLE,       // force open uifirst
     FORCE_ENABLE_LIMIT, // force open uifirst, but for limited
+    FORCE_DISABLE_NONFOCUS, // force close uifirst when only in nonfocus window
 };
 
 enum class SelfDrawingNodeType : uint8_t {
