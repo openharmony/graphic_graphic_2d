@@ -544,7 +544,8 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
 static void InitGLES()
 {
     g_tmpDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    EGLint major, minor;
+    EGLint major;
+    EGLint minor;
     eglInitialize(g_tmpDisplay, &major, &minor);
     EGLint numConfigs = INT_INIT_VAL;
     const EGLint configAttribs[] = {
