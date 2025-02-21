@@ -21,6 +21,9 @@ config("create_pixelmap_surface_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
+  if (use_video_processing_engine) {
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+  }
   defines = gpu_defines
 }
 
