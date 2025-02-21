@@ -283,15 +283,12 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
-    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
-    if (firstLevelNode) {
-        auto& appWindowNode = firstLevelNode->GetChildren()->front();
-        auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(appWindowNode);
-        if (appSurfaceNode && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
-            RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to colorgamut "
-                "%{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
-            return;
-        }
+    auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE && appSurfaceNode
+        && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to set new color "
+                "gamut %{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
+        return;
     }
     
     if (node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
@@ -1733,7 +1730,8 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         UpdateSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
     }
     // 4. Update color gamut for appNode
-    if (!node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PHONE ||
+        !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
         CheckColorSpace(node);
     }
     return true;
