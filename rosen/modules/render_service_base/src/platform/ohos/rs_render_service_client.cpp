@@ -1612,6 +1612,14 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
+void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyHgmConfigEvent(eventName, state);
+    }
+}
+
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
