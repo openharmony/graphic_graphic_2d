@@ -434,6 +434,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     RSUniRenderThread::SetCaptureParam(captureParam);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    uniParams->SetSecExemption(true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    uniParams->SetSecExemption(false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
 
     captureParam.isSnapshot_ = true;
