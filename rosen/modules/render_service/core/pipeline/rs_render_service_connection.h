@@ -321,6 +321,8 @@ private:
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;

@@ -281,6 +281,8 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+
     void ReportEventResponse(DataBaseRs info) override;
 
     void ReportEventComplete(DataBaseRs info) override;
