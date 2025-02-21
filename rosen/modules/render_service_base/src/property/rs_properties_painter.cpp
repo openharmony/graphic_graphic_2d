@@ -882,21 +882,28 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
     } else {
         foregroundFilter = properties.GetForegroundFilter();
     }
-    if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::FOREGROUND_EFFECT) {
+    if (!foregroundFilter) {
         return;
     }
-    float dirtyExtension =
-                std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
-    auto boundsRect = properties.GetBoundsRect();
-    auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
-    auto& geoPtr = properties.GetBoundsGeometry();
-    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
-    auto drawingRect = Rect2DrawingRect(scaledBounds);
-    matrix.MapRect(drawingRect, drawingRect);
-    dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
-    dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
-    dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
-    dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+
+    if (foregroundFilter->GetFilterType() == RSFilter::FOREGROUND_EFFECT) {
+        float dirtyExtension =
+            std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
+        auto boundsRect = properties.GetBoundsRect();
+        auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
+        auto& geoPtr = properties.GetBoundsGeometry();
+        Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+        auto drawingRect = Rect2DrawingRect(scaledBounds);
+        matrix.MapRect(drawingRect, drawingRect);
+        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
+        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
+        dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
+        dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+    } else if (foregroundFilter->GetFilterType() == RSFilter::COLORFUL_SHADOW) {
+        if (properties.IsShadowValid()) {
+            GetShadowDirtyRect(dirtyForegroundEffect, properties, nullptr, false, true);
+        }
+    }
 }
 
 // calculate the distortion effect's dirty area
