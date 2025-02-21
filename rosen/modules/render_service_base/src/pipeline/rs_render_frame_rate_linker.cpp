@@ -117,6 +117,11 @@ void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpec
     }
 }
 
+void RSRenderFrameRateLinker::SetVsyncName(const std::string& vsyncName)
+{
+    vsyncName_ = vsyncName;
+}
+
 void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
 {
     id_ = other.id_;

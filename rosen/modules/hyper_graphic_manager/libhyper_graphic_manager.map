@@ -57,6 +57,12 @@
       *HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig*;
       *HgmEnergyConsumptionPolicy::StartNewAnimation*;
       *HgmEnergyConsumptionPolicy::StatisticAnimationTime*;
+      *HgmEnergyConsumptionPolicy::GetVideoCallVsyncChange*;
+      *HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo*;
+      *HgmEnergyConsumptionPolicy::StatisticsVideoCallBufferCount*;
+      *HgmEnergyConsumptionPolicy::CheckOnlyVideoCallExist*;
+      *HgmEnergyConsumptionPolicy::GetVideoCallFrameRate*;
+      *HgmEnergyConsumptionPolicy::SetCurrentPkgName*;
 
       *HgmFrameRateManager::ChangePriority*;
       *HgmFrameRateManager::CleanVote*;

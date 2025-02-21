@@ -394,5 +394,125 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetTouchStateTest, TestSize.Level1)
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
 }
 
+/**
+ * @tc.name: SetVideoCallSceneInfoTest
+ * @tc.desc: test results of SetVideoCallSceneInfoTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetVideoCallSceneInfoTest, TestSize.Level1)
+{
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "flutterVsyncName");
+    EventInfo eventInfo2 = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = false,
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo2);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "");
+}
+
+/**
+ * @tc.name: StatisticsVideoCallBufferCountTest
+ * @tc.desc: test results of StatisticsVideoCallBufferCountTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticsVideoCallBufferCountTest, TestSize.Level1)
+{
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
+    std::string bufferNamePrefix = "buffer";
+    HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_ = bufferNamePrefix;
+    pid_t pid = 1234;
+    for (int i = 0; i < 100; i++) {
+        HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCount(
+            pid, std::string(bufferNamePrefix) + std::to_string(i));
+    }
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoBufferCount_.load(), 100);
+}
+
+/**
+ * @tc.name: CheckOnlyVideoCallExistTest
+ * @tc.desc: test results of CheckOnlyVideoCallExistTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, CheckOnlyVideoCallExistTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.isEnableVideoCall_.store(true);
+    hgmEnergyConsumptionPolicy.videoBufferCount_.store(1);
+    hgmEnergyConsumptionPolicy.CheckOnlyVideoCallExist();
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isSubmitDecisionTask_.load(), true);
+}
+
+/**
+ * @tc.name: GetVideoCallVsyncChangeTest
+ * @tc.desc: test results of GetVideoCallVsyncChangeTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetVideoCallVsyncChangeTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.store(true);
+    auto result = hgmEnergyConsumptionPolicy.GetVideoCallVsyncChange();
+    ASSERT_EQ(result, true);
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.load(), false);
+}
+
+/**
+ * @tc.name: GetVideoCallFrameRateTest
+ * @tc.desc: test results of GetVideoCallFrameRateTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetVideoCallFrameRateTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    hgmEnergyConsumptionPolicy.SetVideoCallSceneInfo(eventInfo);
+    std::string vsyncName = "flutterVsyncName";
+    pid_t pid = 1234;
+    FrameRateRange frameRateRange;
+    hgmEnergyConsumptionPolicy.GetVideoCallFrameRate(pid, vsyncName, frameRateRange);
+    ASSERT_EQ(frameRateRange.preferred_, 0);
+}
+
+/**
+ * @tc.name: SetCurrentPkgNameTest
+ * @tc.desc: test results of SetCurrentPkgNameTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level1)
+{
+    std::vector<std::string> pkgNames;
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
+}
+
 } // namespace Rosen
 } // namespace OHOS

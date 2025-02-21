@@ -2035,10 +2035,11 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
     bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
     bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
+    bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
 
     if (!vrateStatusChange && !setHgmTaskFlag &&
         HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
-        !needRefresh) {
+        !needRefresh && !isVideoCallVsyncChange) {
         return;
     }
 

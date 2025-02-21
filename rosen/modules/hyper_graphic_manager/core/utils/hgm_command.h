@@ -182,6 +182,7 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;

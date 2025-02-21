@@ -20,9 +20,12 @@
 #include <string>
 #include <unordered_map>
 
+#include "hgm_command.h"
 #include "hgm_touch_manager.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 
 #include "animation/rs_frame_rate_range.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
 class HgmEnergyConsumptionPolicy {
@@ -41,6 +44,15 @@ public:
     bool GetUiIdleFps(FrameRateRange& rsRange);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
+    void SetVideoCallSceneInfo(const EventInfo &eventInfo);
+    // called by RSMainThread
+    void StatisticsVideoCallBufferCount(pid_t pid, const std::string &surfaceName);
+    // called by RSMainThread
+    void CheckOnlyVideoCallExist();
+    // called by RSMainThread
+    bool GetVideoCallVsyncChange();
+    void GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
+    void SetCurrentPkgName(const std::vector<std::string> &pkgs);
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -57,6 +69,18 @@ private:
     std::string lastAssuranceLog_ = "";
     int32_t currentRefreshMode_ = -1;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
+    std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
+    std::string videoCallVsyncName_ = "";
+    int videoCallMaxFrameRate_ = 0;
+    std::atomic<bool> isEnableVideoCall_ = { false };
+    std::atomic<int32_t> videoBufferCount_ = { 0 };
+    std::atomic<bool> isSubmitDecisionTask_ = { false };
+    std::atomic<bool> isOnlyVideoCallExist_ = { false };
+    std::atomic<bool> isVideoCallVsyncChange_ = { false };
+    // concurrency protection >>>
+    mutable std::mutex videoCallLock_;
+    std::string videoCallLayerName_ = "";
+    // concurrency protection <<<
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

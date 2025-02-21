@@ -107,4 +107,18 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetAnimatorExpectedFrameRate, TestSize.Lev
     frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 }
+
+/**
+ * @tc.name: SetVsyncName
+ * @tc.desc: Test SetVsyncName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, SetVsyncName, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderFrameRateLinker> frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    std::string vsyncName = "flutterVsync";
+    frameRateLinker->SetVsyncName(vsyncName);
+    ASSERT_EQ(frameRateLinker->GetVsyncName(), vsyncName);
+}
 } // namespace OHOS::Rosen

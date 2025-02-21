@@ -483,12 +483,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer, name]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
+            linker->SetVsyncName(name);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
