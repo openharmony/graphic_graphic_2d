@@ -3775,6 +3775,30 @@ void RSRenderServiceConnectionProxy::NotifyDynamicModeEvent(bool enableDynamicMo
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifyDynamicModeEvent::NotifyHgmConfigEvent GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteString(eventName)) {
+        return;
+    }
+    if (!data.WriteBool(state)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyHgmConfigEvent: Send Request err.");
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;
