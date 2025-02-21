@@ -51,6 +51,14 @@ ohos_executable("dtk") {
     "function/font/dtk_Font_Scene_Transform_part8.cpp",
     "function/font/dtk_Font_Scene_Transform_part9.cpp",
     "function/font/dtk_font_fontstyleset_test.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene1.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene2.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene3.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene4.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene5.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene6.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene7.cpp",
+    "function/Pixmap/dtk_Pixmap_Scene8.cpp",
     "utils.cpp",
   ]
 
