@@ -1149,6 +1149,17 @@ bool DONotifyDynamicModeEvent()
     return true;
 }
 
+bool DONotifyHgmConfigEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string eventName = GetData<std::string>();
+    bool state = GetData<bool>();
+    rsConn_->NotifyHgmConfigEvent(eventName, state);
+    return true;
+}
+
 bool DOSetCacheEnabledForRotation()
 {
     if (rsConn_ == nullptr) {
@@ -1379,6 +1390,7 @@ void DoFuzzerTest2()
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
+    DONotifyHgmConfigEvent();
     DOSetCacheEnabledForRotation();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();
