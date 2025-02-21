@@ -204,6 +204,13 @@ public:
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
 
     /**
+     * @brief                         Register LeashWindow callback function
+     *                                provided callback function when gpu reset with device lost error.
+     * @param LeashWindowCallback     callback function for skia recall
+     */
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback);
+
+    /**
      * @brief                       Purge unlocked resources in every frame
      * @param scratchResourcesOnly  Whether to scratch the resources only or not.
      * @param exitedPidSet          GPU resource of exited PidSet used to purge unlocked resources.

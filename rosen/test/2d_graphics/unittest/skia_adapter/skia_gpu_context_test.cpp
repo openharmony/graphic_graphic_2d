@@ -250,6 +250,19 @@ HWTEST_F(SkiaGPUContextTest, DumpMemoryStatistics001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterVulkanErrorCallback001
+ * @tc.desc: Test RegisterVulkanErrorCallback
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->RegisterVulkanErrorCallback(nullptr);
+}
+
+/**
  * @tc.name: SetCurrentGpuResourceTag001
  * @tc.desc: Test SetCurrentGpuResourceTag
  * @tc.type: FUNC

@@ -3882,4 +3882,19 @@ HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
     EXPECT_FALSE(mainThread->GetMultiDisplayChange());
     mainThread->MultiDisplayChange(getMultiDisplayStatus);
 }
+
+/**
+ * @tc.name: InitVulkanErrorCallback001Test
+ * @tc.desc: test InitVulkanErrorCallback001Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBOLWU
+ */
+HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    Drawing::GPUContext gpuContext;
+    mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
 } // namespace OHOS::Rosen
