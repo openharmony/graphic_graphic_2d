@@ -862,7 +862,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption();
     // Draw White
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
-        ((isSecLayersNotExempted && !RSUniRenderThread::GetCaptureParam().isNeedBlur_) ||
+        (UNLIKELY(isSecLayersNotExempted && !RSUniRenderThread::GetCaptureParam().isNeedBlur_) ||
             specialLayerManager.Find(SpecialLayerType::SKIP))) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
@@ -884,7 +884,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     // Draw Black
     bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
         !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
-    if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || (isSecLayersNotExempted && isScreenshot)) {
+    if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || UNLIKELY(isSecLayersNotExempted && isScreenshot)) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
