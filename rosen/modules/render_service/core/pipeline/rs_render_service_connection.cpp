@@ -2345,7 +2345,7 @@ void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEve
     });
 }
 
-void RSRenderServiceConnection::NotifyHgmConfigEvent(Const std::string &eventName, bool state)
+void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
     HgmTaskHandleThread::Instance().PostTask([eventName, state] () {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
