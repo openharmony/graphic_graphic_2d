@@ -66,9 +66,13 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareChildren001, TestSize.Level1)
      * @tc.steps: step1. PrepareChildren
      */
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
-    rsRenderThreadVisitor->PrepareChildren(rsSurfaceRenderNode);
+    rsRenderThreadVisitor->PrepareChildren(*rsSurfaceRenderNode);
+    config.id = 1; // for test
+    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    rsSurfaceRenderNode->AddChild(surfaceRenderNode2, -1);
+    rsRenderThreadVisitor->PrepareChildren(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
@@ -446,13 +450,13 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode007, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, ProcessChildren001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
-    rsRenderThreadVisitor->ProcessChildren(rsSurfaceRenderNode);
+    rsRenderThreadVisitor->ProcessChildren(*rsSurfaceRenderNode);
     config.id = 1;
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsSurfaceRenderNode.AddChild(surfaceRenderNode, -1);
-    rsRenderThreadVisitor->ProcessChildren(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->AddChild(surfaceRenderNode, -1);
+    rsRenderThreadVisitor->ProcessChildren(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
@@ -862,13 +866,13 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
 
     config.id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    rsSurfaceRenderNode.AddChild(node, -1);
+    rsSurfaceRenderNode->AddChild(node, -1);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
-    rsRenderThreadVisitor->ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderThreadVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
