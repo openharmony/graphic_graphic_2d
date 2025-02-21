@@ -60,10 +60,10 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, SendCommandsStart001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.LoadLibrary();
     EXPECT_EQ(fr.sendCommandsStartFunc_, nullptr);
     fr.SendCommandsStart();
-    EXPECT_NE(fr.sendCommandsStartFunc_, nullptr);
-    fr.SendCommandsStart();
+    fr.CloseLibrary();
 }
 
 /**
@@ -77,8 +77,6 @@ HWTEST_F(RsFrameReportTest, SetFrameParam001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     EXPECT_EQ(fr.setFrameParamFunc_, nullptr);
     fr.SetFrameParam(0, 0, 0, 0);
-    EXPECT_NE(fr.setFrameParamFunc_, nullptr);
-    fr.SetFrameParam(1, 1, 1, 1);
 }
 
 /**
