@@ -385,7 +385,12 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #ifdef USE_GLFW_WINDOW
     int32_t glfwWidth = 0;
     int32_t glfwHeight = 0;
-    GlfwRenderContext::GetGlobal()->GetFrameBufferSize(glfwWidth, glfwHeight);
+    if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+        GlfwRenderContext::GetGlobal()->GetFrameBufferSize(glfwWidth, glfwHeight);
+    } else {
+        glfwWidth = node.GetSuggestedBufferWidth() * property.GetScaleX();
+        glfwHeight = node.GetSuggestedBufferHeight() * property.GetScaleY();
+    }
     const float bufferWidth = static_cast<float>(glfwWidth);
     const float bufferHeight = static_cast<float>(glfwHeight);
 #else

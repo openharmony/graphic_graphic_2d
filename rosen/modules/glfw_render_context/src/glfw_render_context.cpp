@@ -92,6 +92,7 @@ void GlfwRenderContext::Terminate()
 int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visible)
 {
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "CreateGlfwWindow");
+    isVisible_ = visible;
     if (external_) {
         return 0;
     }
@@ -113,7 +114,9 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
     glfwSetWindowUserPointer(window_, this);
 
 #ifdef __APPLE__
-    glfwGetFramebufferSize(window_, &framebufferWidth_, &framebufferHeight_);
+    if (isVisible_) {
+        glfwGetFramebufferSize(window_, &framebufferWidth_, &framebufferHeight_);
+    }
 #endif
     width_ = width;
     height_ = height;
@@ -121,7 +124,9 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
     glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
 
 #ifdef __APPLE__
-    CreateTexture();
+    if (isVisible_) {
+        CreateTexture();
+    }
 #endif
     return 0;
 }
@@ -158,7 +163,9 @@ void GlfwRenderContext::PollEvents()
 {
     glfwPollEvents();
 #ifdef __APPLE__
-    DrawTexture();
+    if (isVisible_) {
+        DrawTexture();
+    }
 #endif
 }
 
@@ -197,6 +204,9 @@ void GlfwRenderContext::MakeCurrent()
 #ifdef __APPLE__
 bool GlfwRenderContext::CreateRenderingContext()
 {
+    if (!isVisible_) {
+        return false;
+    }
     if (renderingWindow_ != nullptr) {
         glfwMakeContextCurrent(renderingWindow_);
         return true;
@@ -213,6 +223,9 @@ bool GlfwRenderContext::CreateRenderingContext()
 
 void GlfwRenderContext::CreateTexture()
 {
+    if (!isVisible_) {
+        return;
+    }
     glfwMakeContextCurrent(window_);
     gladLoadGL(glfwGetProcAddress);
     std::lock_guard<std::mutex> lock(renderingMutex);
@@ -226,7 +239,7 @@ void GlfwRenderContext::CreateTexture()
 
 void GlfwRenderContext::CopySnapshot(void* addr)
 {
-    if (addr == nullptr) {
+    if (addr == nullptr || !isVisible_) {
         return;
     }
     std::lock_guard<std::mutex> lock(renderingMutex);
@@ -240,7 +253,7 @@ void GlfwRenderContext::CopySnapshot(void* addr)
 void GlfwRenderContext::DrawTexture()
 {
     std::lock_guard<std::mutex> lock(renderingMutex);
-    if (!textureReady) {
+    if (!textureReady || !isVisible_) {
         return;
     }
 
