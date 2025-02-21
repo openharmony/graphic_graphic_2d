@@ -2354,7 +2354,7 @@ void RSRenderServiceConnection::NotifyHgmConfigEvent(Const std::string &eventNam
             return;
         }
         if (eventName == "HGMCONFIG_HIGH_TEMP") {
-            frameRateMgr->HandleThermalFrame(eventName, state);
+            frameRateMgr->HandleThermalFrameRate(state);
         }
     });
 }
