@@ -248,11 +248,6 @@ void RSProcessor::MultiLayersPerf(size_t layerNum)
             return;
         }
     }
-#ifdef FRAME_AWARE_TRACE
-    if (FrameAwareTraceBoost(layerNum)) {
-        return;
-    }
-#endif
     static uint32_t lastLayerLevel = 0;
     static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
     auto curLayerLevel = layerNum / PERF_LEVEL_INTERVAL;
