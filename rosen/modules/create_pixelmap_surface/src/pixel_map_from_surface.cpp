@@ -203,6 +203,8 @@ private:
     static void DeleteVkImage(void *context);
 #endif
     std::unique_ptr<OHOS::Media::PixelMap> CreateForVK(const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect);
+    void CanvasDrawImageRect(const Drawing::Paint& paint, const std::shared_ptr<Drawing::Image> &drawingImage,
+        const Drawing::Rect &srcDrawRect, const Drawing::Rect &dstRect, std::shared_ptr<Drawing::Canvas> &canvas);
     bool CanvasDrawImage(const std::shared_ptr<Drawing::Image> &drawingImage, const OHOS::Media::Rect &srcRect,
         std::shared_ptr<Drawing::Canvas> &canvas);
     bool DrawImageRectVK(const std::shared_ptr<Drawing::Image> &drawingImage,
@@ -360,6 +362,18 @@ void PixelMapFromSurface::DeleteVkImage(void *context)
 }
 #endif
 
+void PixelMapFromSurface::CanvasDrawImageRect(const Drawing::Paint& paint,
+    const std::shared_ptr<Drawing::Image> &drawingImage, const Drawing::Rect &srcDrawRect,
+    const Drawing::Rect &dstRect, std::shared_ptr<Drawing::Canvas> &canvas)
+{
+#if defined(RS_ENABLE_VK)
+    canvas->AttachPaint(paint);
+    canvas->DrawImageRect(*drawingImage, srcDrawRect, dstRect,
+        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+#endif
+}
+
 bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> &drawingImage,
     const OHOS::Media::Rect &srcRect, std::shared_ptr<Drawing::Canvas> &canvas)
 {
@@ -384,7 +398,8 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
             Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::NEAREST), matrix);
         if (!imageShader) {
             RS_LOGE("[PixelMapFromSurface] CanvasDrawImage CreateImageShader fail");
-            return false;
+            CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
+            return true;
         }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer_);
@@ -392,16 +407,14 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
         if (!RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint, targetColorSpace, 0,
             DynamicRangeMode::STANDARD)) {
             RS_LOGE("[PixelMapFromSurface] CanvasDrawImage ColorSpaceConvertor fail");
-            return false;
+            CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
+            return true;
         }
 #endif // USE_VIDEO_PROCESSING_ENGINE
         canvas->AttachPaint(paint);
         canvas->DrawRect(dstRect);
     } else {
-        canvas->AttachPaint(paint);
-        canvas->DrawImageRect(*drawingImage, srcDrawRect, dstRect,
-            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
-            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
     }
     return true;
 #else
