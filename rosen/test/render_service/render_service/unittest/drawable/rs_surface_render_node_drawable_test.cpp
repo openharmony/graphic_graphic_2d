@@ -418,10 +418,13 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     RSUniRenderThread::SetCaptureParam(captureParam);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     uniParams->SetSecExemption(true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
@@ -429,25 +432,33 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 
     captureParam.isNeedBlur_ = true;
     RSUniRenderThread::SetCaptureParam(captureParam);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     uniParams->SetSecExemption(true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     uniParams->SetSecExemption(false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 
     captureParam.isSnapshot_ = true;
     captureParam.isSingleSurface_ = false;
     RSUniRenderThread::SetCaptureParam(captureParam);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     uniParams->SetSecExemption(true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
@@ -455,6 +466,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, false);
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SNAPSHOT_SKIP));
+    ASSERT_FALSE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 
     RSUniRenderThread::SetCaptureParam(CaptureParam());
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
