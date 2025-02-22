@@ -169,9 +169,12 @@ CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus()
 
 void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
 {
-    uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
     if (cacheProcessStatus == CacheProcessStatus::DONE || cacheProcessStatus == CacheProcessStatus::SKIPPED) {
-        RSUiFirstProcessStateCheckerHelper::NotifyAll();
+        RSUiFirstProcessStateCheckerHelper::NotifyAll([this, cacheProcessStatus] {
+            uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
+        });
+    } else {
+        uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
     }
 }
 
