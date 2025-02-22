@@ -19,5 +19,6 @@ group("unittest") {
     "rosen_text/hm_symbol:hm_symbol_engine_test",
     "rosen_text/skia_test:unittest",
     "rosen_text/skia_txt:unittest",
+    "rosen_text/symbol_resource:unittest",
   ]
 }

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <fstream>
+
 #include "gtest/gtest.h"
 #include "font_collection.h"
 
@@ -22,6 +24,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 class OH_Drawing_FontCollectionTest : public testing::Test {
+private:
+    const char* symbolFile = "/system/fonts/HMSymbolVF.ttf";
 };
 
 /*
@@ -76,5 +80,40 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSi
     std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
     EXPECT_EQ(fontMgr != nullptr, true);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest004
+ * @tc.desc: test for LoadSymbolFont
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSize.Level1)
+{
+    std::ifstream fileStream(symbolFile);
+    fileStream.seekg(0, std::ios::end);
+    uint32_t bufferSize = fileStream.tellg();
+    fileStream.seekg(0, std::ios::beg);
+    std::unique_ptr buffer = std::make_unique<uint8_t[]>(bufferSize);
+    fileStream.read(reinterpret_cast<char*>(buffer.get()), bufferSize);
+    fileStream.close();
+
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    LoadSymbolErrorCode res = fontCollection->LoadSymbolFont("testCustomSymbol", nullptr, 0);
+    EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
+
+    uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };
+    res = fontCollection->LoadSymbolFont("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
+    EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
+
+    res = fontCollection->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
+    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection.get());
+    EXPECT_EQ(adaptFontCollection->typefaces_.size(), 1);
+
+    // When loading the same data repeatedly, return success without increasing the count;
+    res = fontCollection->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
+    EXPECT_EQ(adaptFontCollection->typefaces_.size(), 1);
+}
+
 } // namespace Rosen
 } // namespace OHOS
