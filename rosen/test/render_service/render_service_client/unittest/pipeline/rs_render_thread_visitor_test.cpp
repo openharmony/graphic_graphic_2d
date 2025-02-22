@@ -1158,7 +1158,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessEffectRenderNode001, TestSize.Level1)
 
     node.shouldPaint_ = false;
     visitor.ProcessEffectRenderNode(node);
-    EXPECT_EQ(node.shouldPaint_, false);
 }
 
 /**

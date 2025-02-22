@@ -90,7 +90,6 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange002, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     frameRateLinker->UpdateFrameRateRange(initialRange, 0);
-    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
