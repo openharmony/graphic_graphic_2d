@@ -1086,24 +1086,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         curScreenStrategyId_ += HGM_CONFIG_TYPE_THERMAL_SUFFIX;
     }
 
-    multiAppStrategy_.UpdateXmlConfigCache();
-    GetLowBrightVec(configData);
-    GetStylusVec(configData);
-    UpdateEnergyConsumptionConfig();
-
-    multiAppStrategy_.CalcVote();
-    hgmCore.SetLtpoConfig();
-    MarkVoteChange();
-    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
-
-    // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
-    if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
-        DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
-    }
-
-    if (!IsCurrentScreenSupportAS()) {
-        isAdaptive_.store(false);
-    }
+    UpdateScreenFrameRate();
 }
 
 void HgmFrameRateManager::HandleThermalFrameRate(bool status)
@@ -1132,6 +1115,17 @@ void HgmFrameRateManager::HandleThermalFrameRate(bool status)
     RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleThermalFrameRate type:%s, status:%d", curScreenStrategyId.c_str(),
         status);
     curScreenStrategyId_ = curScreenStrategyId;
+    UpdateScreenFrameRate();
+}
+
+void HgmFrameRateManager::UpdateScreenFrameRate()
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
+        return;
+    }
+
     multiAppStrategy_.UpdateXmlConfigCache();
     GetLowBrightVec(configData);
     GetStylusVec(configData);
@@ -1141,7 +1135,7 @@ void HgmFrameRateManager::HandleThermalFrameRate(bool status)
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
- 
+
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
     if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
         DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
