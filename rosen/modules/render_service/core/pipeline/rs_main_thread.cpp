@@ -4718,40 +4718,31 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         return;
     }
     bool isNeedRefreshAll{false};
-    auto& rsLuminance = RSLuminanceControl::Get();
-    auto& rsColorTemp = RSColorTemp::Get();
-    for (const auto& child : *rootNode->GetSortedChildren()) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-        if (displayNode == nullptr) {
-            continue;
-        }
-        auto screenId = displayNode->GetScreenId();
-        if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
-            static std::function<void()> task = [screenId]() -> void {
-                uint32_t newLevel = RSLuminanceControl::Get().GetNewHdrLuminance(screenId);
-                auto screenManager = CreateOrGetScreenManager();
-                if (screenManager == nullptr) {
-                    return;
-                }
-                screenManager->SetScreenBacklight(screenId, newLevel);
-                RSLuminanceControl::Get().SetNowHdrLuminance(screenId, newLevel);
-            };
-            RSBackgroundThread::Instance().PostSyncTask(task);
-        }
-        if (rsLuminance.IsDimmingOn(screenId)) {
-            rsLuminance.DimmingIncrease(screenId);
-            isNeedRefreshAll = true;
-            SetLuminanceChangingStatus(screenId, true);
-        }
-        if (rsColorTemp.IsDimmingOn(screenId)) {
-            std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
-            auto screenManager = CreateOrGetScreenManager();
-            if (screenManager == nullptr) {
-                return;
+    if (auto screenManager = CreateOrGetScreenManager()) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        auto& rsColorTemp = RSColorTemp::Get();
+        for (const auto& child : *rootNode->GetSortedChildren()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+            if (displayNode == nullptr) {
+                continue;
             }
-            screenManager->SetScreenLinearMatrix(screenId, matrix);
-            rsColorTemp.DimmingIncrease(screenId);
-            isNeedRefreshAll = true;
+            auto screenId = displayNode->GetScreenId();
+            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+                screenManager->SetScreenBacklight(screenId, newLevel);
+                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
+                SetLuminanceChangingStatus(screenId, true);
+            }
+            if (rsColorTemp.IsDimmingOn(screenId)) {
+                std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
+                screenManager->SetScreenLinearMatrix(screenId, matrix);
+                rsColorTemp.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
+            }
         }
     }
     if (isNeedRefreshAll) {

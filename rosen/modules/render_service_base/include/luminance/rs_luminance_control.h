@@ -80,7 +80,6 @@ private:
 
     bool initStatus_{false};
     void *extLibHandle_{nullptr};
-    HdrStatus lastHdrStatus_{HdrStatus::NO_HDR};
 
     using SetHdrStatusFunc = bool(*)(ScreenId, HdrStatus);
     using IsHdrOnFunc = bool(*)(ScreenId);
