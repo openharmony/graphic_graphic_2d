@@ -280,6 +280,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
     ASSERT_NE(appController, nullptr);
     frameRateMgr.Init(rsController, appController, vsyncGenerator);
+    frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
 
     ASSERT_NE(vsyncGenerator, nullptr);
     ASSERT_NE(rsController, nullptr);

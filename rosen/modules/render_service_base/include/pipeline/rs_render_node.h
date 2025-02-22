@@ -64,11 +64,11 @@ class VulkanCleanupHelper;
 struct SharedTransitionParam;
 
 struct CurFrameInfoDetail {
-    uint32_t curFramePrepareSeqNum;
-    uint32_t curFramePostPrepareSeqNum;
-    uint64_t curFrameVsyncId;
-    bool curFrameSubTreeSkipped;
-    bool curFrameReverseChildren;
+    uint32_t curFramePrepareSeqNum = 0;
+    uint32_t curFramePostPrepareSeqNum = 0;
+    uint64_t curFrameVsyncId = 0;
+    bool curFrameSubTreeSkipped = false;
+    bool curFrameReverseChildren = false;
 };
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
@@ -110,7 +110,8 @@ public:
     void SetIsCrossNode(bool isCrossNode);
 
     // Only used in PC extend screen
-    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1);
+    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1,
+        bool autoClearCloneNode = false);
     void RemoveCrossScreenChild(const SharedPtr& child);
     void ClearCloneCrossNode();
 
@@ -875,10 +876,10 @@ public:
         return absRotation_;
     }
 
-    CurFrameInfoDetail& GetCurFrameInfoDetail()
-    {
-        return curFrameInfoDetail_;
-    }
+    CurFrameInfoDetail& GetCurFrameInfoDetail() { return curFrameInfoDetail_; }
+
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC();
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -974,11 +975,13 @@ protected:
     ModifierDirtyTypes curDirtyTypes_;
 
     CurFrameInfoDetail curFrameInfoDetail_;
+
 private:
     // mark cross node in physical extended screen model
     bool isCrossNode_ = false;
     bool isCloneCrossNode_ = false;
     bool isFirstLevelCrossNode_ = false;
+    bool autoClearCloneNode_ = false;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
@@ -992,6 +995,7 @@ private:
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
     bool drawableVecNeedClear_ = false;
+    bool unobscuredUECChildrenNeedSync_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
@@ -1097,7 +1101,7 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> originUECChildren_ =
+    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     WeakPtr sourceCrossNode_;
     WeakPtr curCloneNodeParent_;

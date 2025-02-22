@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -147,6 +147,34 @@ HWTEST_F(SkiaTextBlobTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
     ASSERT_TRUE(points[0].GetY() == 0);
     ASSERT_TRUE(points[1].GetX() == 1);
     ASSERT_TRUE(points[1].GetY() == 1);
+}
+
+/**
+ * @tc.name: GetIntercepts001
+ * @tc.desc: Test GetIntercepts
+ * @tc.type: FUNC
+ * @tc.require:IAKGJ7
+ */
+HWTEST_F(SkiaTextBlobTest, GetIntercepts001, TestSize.Level1)
+{
+    const char* str = "asdf";
+    Font font;
+    font.SetSize(100);
+    Point p1 { 100, 100 }; // 100, 100 means point coordinate
+    Point p2 { 300, 300 }; // 300, 300 means point coordinate
+    Point pos[] = { p1, p2 };
+    auto textBlob = SkiaTextBlob::MakeFromPosText(str, strlen(str), pos, font, TextEncoding::UTF8);
+    ASSERT_TRUE(textBlob != nullptr);
+    auto skiaBlobImpl = textBlob->GetImpl<SkiaTextBlob>();
+    ASSERT_TRUE(skiaBlobImpl != nullptr);
+    float bounds[2] = {100, 300}; // 100, 300 means lower and upper line parallel to the advance
+    float intervals[5] = {0.f}; // 5 means intervals array size
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    paint.SetPathEffect(PathEffect::CreateCornerPathEffect(10)); // 10 means radius
+    int retIntercepts = 0;
+    retIntercepts = skiaBlobImpl->GetIntercepts(bounds, intervals, &paint);
+    ASSERT_TRUE(retIntercepts != 0);
 }
 } // namespace Drawing
 } // namespace Rosen

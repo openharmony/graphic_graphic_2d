@@ -27,15 +27,12 @@
 #include "drm_param.h"
 #include "hdr_param_parse.h"
 #include "hdr_param.h"
-#include "hwc_param_parse.h"
-#include "hwc_param.h"
 #include "hfbc_param_parse.h"
 #include "hfbc_param.h"
+#include "hwc_param_parse.h"
+#include "hwc_param.h"
 
 namespace OHOS::Rosen {
-#define DEFINE_MOD(x) {FEATURE_CONFIGS[x], [] {return std::make_unique<x##ParamParse>(); }, \
-    [] {return std::make_unique<x##Param>(); }}
-
 struct ModuleConfig {
     std::string name;
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
@@ -44,10 +41,11 @@ struct ModuleConfig {
 
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
-    DEFINE_MOD(HDR),
-    DEFINE_MOD(DRM),
-    DEFINE_MOD(HWC),
-    DEFINE_MOD(HFBC),
+    {FEATURE_CONFIGS[HDR], [] {return std::make_unique<HDRParamParse>(); }, [] {return std::make_unique<HDRParam>(); }},
+    {FEATURE_CONFIGS[DRM], [] {return std::make_unique<DRMParamParse>(); }, [] {return std::make_unique<DRMParam>(); }},
+    {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
+    {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },
+        [] {return std::make_unique<HFBCParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

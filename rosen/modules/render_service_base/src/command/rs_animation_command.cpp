@@ -41,6 +41,22 @@ void AnimationCommandHelper::AnimationCallback(
     }
 }
 
+AnimationCommandHelper::NodeAndAnimationPair AnimationCommandHelper::GetNodeAndAnimation(
+    RSContext& context, NodeId& nodeId, AnimationId& animId, const char* funcName)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        RS_LOGE("%{public}s, node is nullptr", funcName);
+        return {nullptr, nullptr};
+    }
+    auto animation = node->GetAnimationManager().GetAnimation(animId);
+    if (animation == nullptr) {
+        RS_LOGE("%{public}s, animation is nullptr", funcName);
+        return {node, nullptr};
+    }
+    return {node, animation};
+}
+
 void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor processor)
 {
     animationCallbackProcessor = processor;

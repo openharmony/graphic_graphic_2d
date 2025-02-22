@@ -133,7 +133,10 @@ ohos_shared_library("librender_service") {
   ]
 
   #blurPredict
-  sources += [ "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp" ]
+  sources += [
+    "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp",
+    "$rosen_root/modules/frame_load/src/rs_frame_deadline_predict.cpp",
+  ]
 
   #dfx
   sources += [ "core/drawable/dfx/rs_skp_capture_dfx.cpp" ]

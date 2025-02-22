@@ -55,9 +55,9 @@ private:
     MemorySnapshot& operator=(const MemorySnapshot&) = delete;
     MemorySnapshot& operator=(const MemorySnapshot&&) = delete;
     
-    void findMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
+    void FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
         size_t& maxCpu, size_t& maxGpu, size_t& maxSum);
-    float calculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
+    float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;

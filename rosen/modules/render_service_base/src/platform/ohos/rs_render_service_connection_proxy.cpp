@@ -3142,7 +3142,8 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
     }
 }
 
-bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(
+    SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3154,6 +3155,10 @@ bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(SystemAnimatedScene
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint32(static_cast<uint32_t>(systemAnimatedScenes))) {
         ROSEN_LOGE("SetSystemAnimatedScenes: WriteUint32 systemAnimatedScenes err.");
+        return false;
+    }
+    if (!data.WriteBool(isRegularAnimation)) {
+        ROSEN_LOGE("SetSystemAnimatedScenes: WriteBool isRegularAnimation err.");
         return false;
     }
     uint32_t code = static_cast<uint32_t>(

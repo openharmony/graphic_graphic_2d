@@ -21,6 +21,7 @@
 #include "common/rs_common_hook.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
+#include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
@@ -466,6 +467,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
     if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
     }

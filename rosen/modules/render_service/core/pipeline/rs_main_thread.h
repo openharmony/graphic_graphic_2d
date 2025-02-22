@@ -225,8 +225,9 @@ public:
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     SystemAnimatedScenes GetSystemAnimatedScenes();
+    bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
     void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     // Save marks, and use it for DisplayNode later.
@@ -570,8 +571,6 @@ private:
     // Used for CommitAndReleaseLayers task
     void SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag);
 
-    void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
-
     // Record change status of multi or single display
     void MultiDisplayChange(bool isMultiDisplay);
 
@@ -648,6 +647,7 @@ private:
     pid_t desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
+    bool isRegularAnimation_ = false;
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;
@@ -662,8 +662,6 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     uint64_t focusLeashWindowId_ = 0;
     uint64_t lastFocusNodeId_ = 0;
-    int64_t preIdealPeriod_ = 0;
-    int64_t preExtraReserve_ = 0;
     ScreenId displayNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;

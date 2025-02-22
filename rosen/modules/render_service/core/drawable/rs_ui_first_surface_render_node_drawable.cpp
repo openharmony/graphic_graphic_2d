@@ -393,6 +393,7 @@ void RSSurfaceRenderNodeDrawable::UpdateCompletedCacheSurface()
     // renderthread not use, subthread done not use
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+    std::swap(cacheSurfaceInfo_, cacheCompletedSurfaceInfo_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
@@ -416,6 +417,7 @@ void RSSurfaceRenderNodeDrawable::SetTextureValidFlag(bool isValid)
 void RSSurfaceRenderNodeDrawable::ClearCacheSurface(bool isClearCompletedCacheSurface)
 {
     cacheSurface_ = nullptr;
+    cacheSurfaceInfo_ = { -1, -1.f };
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -425,6 +427,7 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurface(bool isClearCompletedCacheSu
     if (isClearCompletedCacheSurface) {
         std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
         cacheCompletedSurface_ = nullptr;
+        cacheCompletedSurfaceInfo_ = { -1, -1.f };
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -574,5 +577,14 @@ uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
 void RSSurfaceRenderNodeDrawable::SetUifirstPostOrder(uint32_t order)
 {
     uifirstPostOrder_ = order;
+}
+
+void RSSurfaceRenderNodeDrawable::UpdateCacheSurfaceInfo()
+{
+    const auto& params = GetRenderParams();
+    if (params) {
+        cacheSurfaceInfo_.processedSurfaceCount = GetTotalProcessedSurfaceCount();
+        cacheSurfaceInfo_.alpha = params->GetGlobalAlpha();
+    }
 }
 } // namespace OHOS::Rosen

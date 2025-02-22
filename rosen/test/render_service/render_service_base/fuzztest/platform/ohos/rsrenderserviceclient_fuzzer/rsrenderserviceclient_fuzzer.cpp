@@ -1385,7 +1385,7 @@ bool DoSetSystemAnimatedScenes(const uint8_t* data, size_t size)
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     SystemAnimatedScenes systemAnimatedScenes = SystemAnimatedScenes::ENTER_MISSION_CENTER;
-    client->SetSystemAnimatedScenes(systemAnimatedScenes);
+    client->SetSystemAnimatedScenes(systemAnimatedScenes, false);
     return true;
 }
 
@@ -2346,7 +2346,7 @@ bool DoRegisterOcclusionChangeCallback002(const uint8_t *data, size_t size)
     client->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
     client->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
     client->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);
-    client->SetSystemAnimatedScenes(systemAnimatedScenes);
+    client->SetSystemAnimatedScenes(systemAnimatedScenes, false);
     client->ResizeVirtualScreen(screenId, width, height);
     return true;
 }

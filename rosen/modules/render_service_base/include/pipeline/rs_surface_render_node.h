@@ -336,7 +336,7 @@ public:
     {
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
-        if (specialLayerManager_.Find(SpecialLayerType::PROTECTED) && IsOnTheTree()) {
+        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }

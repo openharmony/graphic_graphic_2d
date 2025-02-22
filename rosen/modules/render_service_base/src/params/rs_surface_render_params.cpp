@@ -485,7 +485,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        bufferSynced_ = true;
+        if (UNLIKELY(isSurfaceCapturePipeline_)) {
+            bufferSynced_ = false;
+            isSurfaceCapturePipeline_ = false;
+        } else {
+            bufferSynced_ = true;
+        }
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -557,6 +562,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;

@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSColorfulShadowFilter : public RSForegroundEffectFilter {
 public:
-    RSColorfulShadowFilter(float blurRadius, float offsetX, float offsetY);
+    RSColorfulShadowFilter(float blurRadius, float offsetX, float offsetY, Drawing::Path path, bool isFill);
     RSColorfulShadowFilter(const RSColorfulShadowFilter &) = delete;
     RSColorfulShadowFilter operator=(const RSColorfulShadowFilter &) = delete;
     ~RSColorfulShadowFilter() override = default;
@@ -39,6 +39,8 @@ private:
     float blurRadius_{};
     float offsetX_{};
     float offsetY_{};
+    Drawing::Path path_;
+    bool isFilled_;
 };
 }  // namespace Rosen
 }  // namespace OHOS

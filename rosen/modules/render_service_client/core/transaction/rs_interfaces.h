@@ -273,8 +273,13 @@ public:
 
     void SetAppWindowNum(uint32_t num);
 
-    // Set the system overload Animated Scenes to RS for special load shedding
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+    /*
+    * @brief Set the system overload Animated Scenes to RS for special load shedding
+    * @param systemAnimatedScenes indicates the system animation scene
+    * @param isRegularAnimation indicates irregular windows in the animation scene
+    * @return true if succeed, otherwise false
+    */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 

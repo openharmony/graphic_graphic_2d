@@ -27,6 +27,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -353,10 +354,9 @@ void RSJankStats::ReportJankStats()
     RS_TRACE_NAME("RSJankStats::ReportJankStats receive notification: reportTime " + std::to_string(reportTime) +
                   ", lastJankFrame6FreqTime " + std::to_string(lastJankFrame6FreqTime));
     RSBackgroundThread::Instance().PostTask([reportDuration, lastReportTime, rsJankStats]() {
-        auto reportName = "JANK_STATS_RS";
         RS_TRACE_NAME("RSJankStats::ReportJankStats in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime),
+        RSHiSysEvent::EventWrite(RSEventName::JANK_STATS_RS, RSEventType::RS_STATISTIC,
+            "STARTTIME", static_cast<uint64_t>(lastReportTime),
             "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsJankStats, "PID", DEFAULT_INT_VALUE,
             "BUNDLE_NAME", DEFAULT_STRING_VALUE, "PROCESS_NAME", DEFAULT_STRING_VALUE,
             "VERSION_NAME", DEFAULT_STRING_VALUE, "VERSION_CODE", DEFAULT_INT_VALUE,
@@ -394,10 +394,9 @@ void RSJankStats::ReportSceneJankStats(const AppInfo& appInfo)
                   ", lastJankFrame6FreqTime " + std::to_string(lastJankFrame6FreqTime));
 
     RSBackgroundThread::Instance().PostTask([reportDuration, lastReportTime, rsSceneJankStats, appInfo]() {
-        auto reportName = "JANK_STATS_RS";
         RS_TRACE_NAME("RSJankStats::ReportSceneJankStats in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime),
+        RSHiSysEvent::EventWrite(RSEventName::JANK_STATS_RS, RSEventType::RS_STATISTIC,
+            "STARTTIME", static_cast<uint64_t>(lastReportTime),
             "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsSceneJankStats, "PID", appInfo.pid,
             "BUNDLE_NAME", appInfo.bundleName, "PROCESS_NAME", appInfo.processName,
             "VERSION_NAME", appInfo.versionName, "VERSION_CODE", appInfo.versionCode,
@@ -433,10 +432,9 @@ void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
     RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs()));
     const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
     RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime]() {
-        auto reportName = "JANK_FRAME_RS";
         RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT, "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
+        RSHiSysEvent::EventWrite(RSEventName::JANK_FRAME_RS, RSEventType::RS_FAULT,
+            "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
             "PROCESS_NAME", appInfo.processName, "VERSION_NAME", appInfo.versionName,
             "VERSION_CODE", appInfo.versionCode, "FILTER_TYPE", FILTER_TYPE,
             "SKIPPED_FRAME_TIME", skipFrameTime, "REAL_SKIPPED_FRAME_TIME", realSkipFrameTime);
@@ -602,10 +600,9 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventResponse responseLatency is %" PRId64 "ms: %s",
                       responseLatency, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([info, inputTime, beginVsyncTime, responseLatency, rtEndTime]() {
-        auto reportName = "INTERACTION_RESPONSE_LATENCY";
         RS_TRACE_NAME("RSJankStats::ReportEventResponse in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RESPONSE_LATENCY, RSEventType::RS_BEHAVIOR,
+            "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
             "VERSION_CODE", info.versionCode, "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName,
             "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl,
             "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
@@ -627,10 +624,9 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
                       completedLatency, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         info, inputTime, animationStartLatency, animationEndLatency, completedLatency]() {
-        auto reportName = "INTERACTION_COMPLETED_LATENCY";
         RS_TRACE_NAME("RSJankStats::ReportEventComplete in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_COMPLETED_LATENCY, RSEventType::RS_BEHAVIOR,
+            "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
             "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
             "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
@@ -669,10 +665,9 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
         GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration]() {
-        auto reportName = "INTERACTION_RENDER_JANK";
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
+            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
             "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PAGE_URL", info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES",
             jankFrames.totalMissedFrames_, "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.maxFrameTimeSteady_),
@@ -708,10 +703,8 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
         GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration]() {
-        auto reportName = "INTERACTION_RENDER_JANK";
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RENDER_JANK, RSEventType::RS_STATISTIC,
             "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
             "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PAGE_URL", info.pageUrl, "TOTAL_FRAMES", jankFrames.lastTotalFrames_,
@@ -782,10 +775,9 @@ void RSJankStats::ReportEventHitchTimeRatioWithoutDelay(const JankFrames& jankFr
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventHitchTimeRatio hitch time ratio is %g ms/s: %s",
         hitchTimeRatio, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([jankFrames, info, beginVsyncTime, hitchTimeRatio]() {
-        auto reportName = "INTERACTION_HITCH_TIME_RATIO";
         RS_TRACE_NAME("RSJankStats::ReportEventHitchTimeRatio in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_HITCH_TIME_RATIO, RSEventType::RS_STATISTIC,
+            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
             "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PAGE_URL", info.pageUrl, "UI_START_TIME", static_cast<uint64_t>(beginVsyncTime),
             "RS_START_TIME", static_cast<uint64_t>(jankFrames.startTime_), "DURATION",
@@ -808,10 +800,9 @@ void RSJankStats::ReportEventHitchTimeRatioWithDelay(const JankFrames& jankFrame
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventHitchTimeRatio hitch time ratio is %g ms/s: %s",
         hitchTimeRatio, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([jankFrames, info, beginVsyncTime, hitchTimeRatio]() {
-        auto reportName = "INTERACTION_HITCH_TIME_RATIO";
         RS_TRACE_NAME("RSJankStats::ReportEventHitchTimeRatio in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
+        RSHiSysEvent::EventWrite(RSEventName::INTERACTION_HITCH_TIME_RATIO, RSEventType::RS_STATISTIC,
+            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId,
             "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PAGE_URL", info.pageUrl, "UI_START_TIME", static_cast<uint64_t>(beginVsyncTime),
             "RS_START_TIME", static_cast<uint64_t>(jankFrames.startTime_), "DURATION",
@@ -834,10 +825,9 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
 {
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventFirstFrame app pid %d", appPid);
     RSBackgroundThread::Instance().PostTask([appPid]() {
-        auto reportName = "FIRST_FRAME_DRAWN";
         RS_TRACE_NAME("RSJankStats::ReportEventFirstFrame in RSBackgroundThread");
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", static_cast<int32_t>(appPid));
+        RSHiSysEvent::EventWrite(RSEventName::FIRST_FRAME_DRAWN, RSEventType::RS_BEHAVIOR,
+            "APP_PID", static_cast<int32_t>(appPid));
     });
 }
 

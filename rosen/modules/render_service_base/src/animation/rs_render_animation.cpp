@@ -16,6 +16,7 @@
 #include "animation/rs_render_animation.h"
 
 #include "command/rs_animation_command.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "command/rs_message_processor.h"
 #include "platform/common/rs_log.h"
@@ -134,6 +135,7 @@ void RSRenderAnimation::Start()
 
 void RSRenderAnimation::Finish()
 {
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received finish", id_);
     if (!IsPaused() && !IsRunning()) {
         ROSEN_LOGD("Failed to finish animation, animation is not running!");
         return;
@@ -171,6 +173,7 @@ void RSRenderAnimation::FinishOnCurrentPosition()
 
 void RSRenderAnimation::Pause()
 {
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received pause", id_);
     if (!IsRunning()) {
         ROSEN_LOGE("Failed to pause animation, animation is not running!");
         return;
@@ -181,6 +184,7 @@ void RSRenderAnimation::Pause()
 
 void RSRenderAnimation::Resume()
 {
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received resume", id_);
     if (!IsPaused()) {
         ROSEN_LOGE("Failed to resume animation, animation is not paused!");
         return;
@@ -267,6 +271,7 @@ bool RSRenderAnimation::Animate(int64_t time)
 
     if (!IsRunning()) {
         ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
+        RS_OPTIONAL_TRACE_NAME_FMT("Animation[%llu] animate not running, state is [%d]", id_, state_);
         return state_ == AnimationState::FINISHED;
     }
 

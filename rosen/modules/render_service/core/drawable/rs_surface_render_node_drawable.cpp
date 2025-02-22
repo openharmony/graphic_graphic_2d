@@ -362,6 +362,25 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
         GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
 }
 
+void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC params is nullptr");
+        return;
+    }
+    if (!surfaceParams->IsUnobscuredUIExtension()) {
+        return;
+    }
+    canvas.ResetMatrix();
+    auto& unobscuredUECMatrixMap = GetUnobscuredUECMatrixMap();
+    if (unobscuredUECMatrixMap.find(GetId()) == unobscuredUECMatrixMap.end()) {
+        RS_LOGE("PreprocessUnobscuredUEC can't find matrix of cached node in unobscuredMatrixMap");
+        return;
+    }
+    canvas.ConcatMatrix(unobscuredUECMatrixMap.at(GetId()));
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -391,6 +410,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!surfaceParams) {
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+        return;
+    }
+    if (surfaceParams->IsUnobscuredUIExtension() && !UIExtensionNeedToDraw()) {
+        RS_LOGE("Current Unobsucred UEC[%{public}s,%{public}" PRIu64 "] needn't to draw",
+            name_.c_str(), surfaceParams->GetId());
         return;
     }
     auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
@@ -561,7 +585,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
         }
     }
-
+    PreprocessUnobscuredUEC(*curCanvas_);
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*curCanvas_, !needOffscreen);
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
@@ -637,6 +661,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     curCanvas_->SetDisableFilterCache(isDisableFilterCache);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
+    SetUIExtensionNeedToDraw(false);
 }
 
 void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
@@ -795,6 +820,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         rscanvas->MultiplyAlpha(surfaceParams->GetAlpha());
         RSUniRenderThread::GetCaptureParam().isFirstNode_ = false;
     } else {
+        PreprocessUnobscuredUEC(*rscanvas);
         surfaceParams->ApplyAlphaAndMatrixToCanvas(*rscanvas);
     }
 
@@ -1181,8 +1207,11 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d",
-        name_.c_str(), surfaceParams.GetId(), enableType);
+    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d alpha:%{public}f", __func__, GetName().c_str(),
+            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.alpha);
+    }
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d", name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);

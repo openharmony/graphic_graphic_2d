@@ -882,7 +882,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallbac
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
     proxy->SetAppWindowNum(1);
-    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER));
+    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false));
 }
 
 /**

@@ -170,10 +170,12 @@ public:
     static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
+    static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
+        const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
+    static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
-    static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,

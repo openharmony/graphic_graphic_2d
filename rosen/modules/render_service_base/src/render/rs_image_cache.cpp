@@ -163,19 +163,9 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
     pixelMap.reset();
 }
 
-bool RSImageCache::CheckRefCntAndReleaseImageCache(
-    uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn, const std::shared_ptr<Drawing::Image>& image)
+bool RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn)
 {
     if (!pixelMapIn) {
-        return false;
-    }
-    auto imageCount = image.use_count();
-    auto pixelMapCount = pixelMapIn.use_count();
-    /*
-     * Image will at least be hold by RSImage, RSImageCache.pixelMapIdRelatedDrawingImageCache_
-     * PixelMap will be at least be hold by RSImage, RSImageCache.pixelMapCache_, Image.ReleaseContext
-    */
-    if (!(imageCount = 2 && pixelMapCount == 3) && !(imageCount = 0 && pixelMapCount == 2)) {
         return false;
     }
     {
@@ -185,21 +175,10 @@ bool RSImageCache::CheckRefCntAndReleaseImageCache(
         if (it == pixelMapCache_.end()) {
             return false;
         }
-        if (it->second.first != pixelMapIn) {
+        if (it->second.first != pixelMapIn || it->second.second > 1) {
             return false; // skip purge if pixelMap mismatch
         }
         ReleaseDrawingImageCacheByPixelMapId(uniqueId);
-        imageCount = image.use_count();
-        pixelMapCount = pixelMapIn.use_count();
-#ifdef ROSEN_OHOS
-        /*
-        * Image will only be hold by RSImage
-        * PixelMap will be be hold by RSImage, RSImageCache.pixelMapCache_, Image.ReleaseContext
-        */
-        if ((imageCount = 1 && pixelMapCount == 3) || (imageCount = 0 && pixelMapCount == 2)) {
-            pixelMapIn->UnMap();
-        }
-#endif
     }
     return true;
 }

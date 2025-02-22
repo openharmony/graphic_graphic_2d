@@ -41,6 +41,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "platform/common/rs_hisysevent.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -77,6 +78,7 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
+constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
 }
 
 static int64_t SystemTime()
@@ -128,6 +130,16 @@ void RSHardwareThread::Start()
     if (hdiBackend_ != nullptr) {
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
+    auto changeDssRefreshRateCb = [this] (ScreenId screenId, uint32_t refreshRate, bool followPipline) {
+        PostTask([this, screenId, refreshRate, followPipline] () {
+            ChangeDssRefreshRate(screenId, refreshRate, followPipline);
+        });
+    };
+    HgmTaskHandleThread::Instance().PostTask([changeDssRefreshRateCb] () {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
+            frameRateMgr->SetChangeDssRefreshRateCb(changeDssRefreshRateCb);
+        }
+    });
 }
 
 int RSHardwareThread::GetHardwareTid() const
@@ -200,6 +212,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
+    refreshRateParam_ = param;
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId curScreenId = hgmCore.GetActiveScreenId();
     uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(curScreenId);
@@ -273,9 +286,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 " %{public}s",
                 frameTime, missedFrames, frameRate, surfaceName.c_str());
             intervalTimePoints_ = endTime;
-            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
-                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
-                missedFrames, "FRAME_TIME", frameTime);
+            RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers HiSysEventWrite in RSHardwareThread");
+            RSHiSysEvent::EventWrite(RSEventName::RS_HARDWARE_THREAD_LOAD_WARNING, RSEventType::RS_STATISTIC,
+                "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
         }
     };
     RSBaseRenderUtil::IncAcquiredBufferCount();
@@ -654,6 +667,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
         return;
     }
     ScreenId id = output->GetScreenId();
+    outputMap_[id] = output;
     auto screen = hgmCore.GetScreen(id);
     if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
@@ -721,6 +735,33 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         if (hdiBackend_) {
             hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
             hdiBackend_->StartSample(output);
+        }
+    }
+}
+
+void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshRate, bool followPipline)
+{
+    if (followPipline) {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
+            if (vsyncId != refreshRateParam_.vsyncId) {
+                return;
+            }
+            // switch hardware vsync
+            ChangeDssRefreshRate(screenId, refreshRate, false);
+        };
+        int64_t period = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(screenId));
+        PostDelayTask(task, period / NS_MS_UNIT_CONVERSION + delayTime_ + DELAY_TIME_OFFSET);
+    } else {
+        auto outputIter = outputMap_.find(screenId);
+        if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+            return;
+        }
+        ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
+        PerformSetActiveMode(
+            outputIter->second, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
+        if (outputIter->second->IsDeviceValid()) {
+            hdiBackend_->Repaint(outputIter->second);
         }
     }
 }
@@ -802,6 +843,11 @@ void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
         if (layer == nullptr) {
             continue;
         }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            continue;
+        }
         auto layerSurface = layer->GetSurface();
         if (layerSurface != nullptr) {
             auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
@@ -834,10 +880,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
+    bool isDefaultScreen = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
+    }
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled()) {
+        if (RSSystemProperties::GetDrmEnabled() && isDefaultScreen) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

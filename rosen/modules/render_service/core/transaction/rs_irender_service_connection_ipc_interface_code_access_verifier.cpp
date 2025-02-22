@@ -473,6 +473,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WINDOW_CONTAINER");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_IDENTIFICATION_DATA): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_IDENTIFICATION_DATA");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP_BY_PROCESSID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXELMAP_BY_PROCESSID");
             break;

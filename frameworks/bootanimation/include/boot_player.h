@@ -23,7 +23,7 @@
 #include "util.h"
 
 namespace OHOS {
-static const int MAX_WAIT_MEDIA_CREATE_TIME = 5000000; // 5S
+static const int64_t MAX_WAIT_MEDIA_CREATE_TIME = 5000; // 5S
 #ifdef PLAYER_FRAMEWORK_ENABLE
 static const int CONTENT_TYPE_UNKNOWN = 0;
 static const int STREAM_USAGE_ENFORCED_TONE = 15;

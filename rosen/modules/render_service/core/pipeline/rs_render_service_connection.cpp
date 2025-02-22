@@ -157,6 +157,9 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
 
 void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
 {
+    if (mainThread_ == nullptr) {
+        return;
+    }
     auto& context = mainThread_->GetContext();
     auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
     frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
@@ -480,12 +483,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer, name]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
+            linker->SetVsyncName(name);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
@@ -2193,7 +2197,8 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
     mainThread_->PostTask(task);
 }
 
-bool RSRenderServiceConnection::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceConnection::SetSystemAnimatedScenes(
+    SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!mainThread_) {
@@ -2201,7 +2206,7 @@ bool RSRenderServiceConnection::SetSystemAnimatedScenes(SystemAnimatedScenes sys
     }
 #ifdef RS_ENABLE_GPU
     RSUifirstManager::Instance().OnProcessAnimateScene(systemAnimatedScenes);
-    return mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes);
+    return mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
 #else
     return false;
 #endif

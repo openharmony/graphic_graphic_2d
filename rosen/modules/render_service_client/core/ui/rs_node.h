@@ -100,7 +100,7 @@ public:
     void SetIsCrossNode(bool isCrossNode);
 
     // PC extend screen use this
-    void AddCrossScreenChild(SharedPtr child, int index);
+    void AddCrossScreenChild(SharedPtr child, int index, bool autoClearCloneNode = false);
     void RemoveCrossScreenChild(SharedPtr child);
 
     NodeId GetId() const

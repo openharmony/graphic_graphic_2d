@@ -44,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
 
 #include "text/font_mgr.h"
@@ -165,6 +166,8 @@ bool RSRenderService::Init()
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
+	
+    RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);
 
@@ -313,60 +316,6 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
 
         surfaceConsumer->Dump(dumpString);
     });
-}
-
-void RSRenderService::DumpHelpInfo(std::string& dumpString) const
-{
-    dumpString.append("------Graphic2D--RenderSerice ------\n")
-        .append("Usage:\n")
-        .append(" h                             ")
-        .append("|help text for the tool\n")
-        .append("screen                         ")
-        .append("|dump all screen infomation in the system\n")
-        .append("surface                        ")
-        .append("|dump all surface information\n")
-        .append("composer fps                   ")
-        .append("|dump the fps info of composer\n")
-        .append("[surface name] fps             ")
-        .append("|dump the fps info of surface\n")
-        .append("composer fpsClear              ")
-        .append("|clear the fps info of composer\n")
-        .append("[windowname] fps               ")
-        .append("|dump the fps info of window\n")
-        .append("[windowname] hitchs            ")
-        .append("|dump the hitchs info of window\n")
-        .append("[surface name] fpsClear        ")
-        .append("|clear the fps info of surface\n")
-        .append("nodeNotOnTree                  ")
-        .append("|dump nodeNotOnTree info\n")
-        .append("allSurfacesMem                 ")
-        .append("|dump surface mem info\n")
-        .append("RSTree                         ")
-        .append("|dump RSTree info\n")
-        .append("EventParamList                 ")
-        .append("|dump EventParamList info\n")
-        .append("allInfo                        ")
-        .append("|dump all info\n")
-        .append("client                         ")
-        .append("|dump client ui node trees\n")
-        .append("dumpMem                        ")
-        .append("|dump Cache\n")
-        .append("trimMem cpu/gpu/shader         ")
-        .append("|release Cache\n")
-        .append("surfacenode [id]               ")
-        .append("|dump node info\n")
-        .append("fpsCount                       ")
-        .append("|dump the refresh rate counts info\n")
-        .append("clearFpsCount                  ")
-        .append("|clear the refresh rate counts info\n")
-#ifdef RS_ENABLE_VK
-        .append("vktextureLimit                 ")
-        .append("|dump vk texture limit info\n")
-#endif
-        .append("flushJankStatsRs")
-        .append("|flush rs jank stats hisysevent\n")
-        .append("gles                           ")
-        .append("|inquire gpu info\n");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -766,145 +715,258 @@ void RSRenderService::DumpExistPidMem(std::unordered_set<std::u16string>& argSet
 
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
-    if (!mainThread_ || !screenManager_) {
-        RS_LOGE("RSRenderService::DoDump failed, mainThread or screenManager is nullptr");
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::DoDump failed, args is empty");
         return;
     }
-    std::u16string arg1(u"screen");
-    std::u16string arg2(u"surface");
-    std::u16string arg3(u"fps");
-    std::u16string arg4(u"nodeNotOnTree");
-    std::u16string arg5(u"allSurfacesMem");
-    std::u16string arg6(u"RSTree");
-    std::u16string arg6_1(u"MultiRSTrees");
-    std::u16string arg7(u"EventParamList");
-    std::u16string arg8(u"h");
-    std::u16string arg9(u"allInfo");
-    std::u16string arg10(u"trimMem");
-    std::u16string arg11(u"dumpMem");
-    std::u16string arg12(u"surfacenode");
-    std::u16string arg13(u"fpsClear");
-    std::u16string arg14(u"dumpNode");
-    std::u16string arg15(u"fpsCount");
-    std::u16string arg16(u"clearFpsCount");
-    std::u16string arg17(u"hitchs");
-    std::u16string arg18(u"rsLogFlag");
-    std::u16string arg19(u"flushJankStatsRs");
-    std::u16string arg20(u"client");
-#ifdef RS_ENABLE_VK
-    std::u16string arg22(u"vktextureLimit");
-#endif
-    std::u16string arg23(u"gles");
-    std::u16string arg24(u"dumpExistPidMem");
-    if (argSets.count(arg9) || argSets.count(arg1) != 0) {
+
+    std::string cmdStr;
+    for (const std::u16string &cmd : argSets) {
+        cmdStr += std::string(cmd.begin(), cmd.end()) + " ";
+    }
+    RS_TRACE_NAME("RSRenderService::DoDump args is [ " + cmdStr + " ]");
+
+    if (!mainThread_ || !screenManager_) {
+        RS_LOGE("RSRenderService::DoDump failed, mainThread, screenManager is nullptr");
+        return;
+    }
+
+    RSDumpManager::GetInstance().CmdExec(argSets, dumpString);
+}
+
+void RSRenderService::RSGfxDumpInit()
+{
+    RegisterRSGfxFuncs();
+    RegisterRSTreeFuncs();
+    RegisterMemFuncs();
+    RegisterFpsFuncs();
+    RegisterGpuFuncs();
+}
+
+void RSRenderService::RegisterRSGfxFuncs()
+{
+    // screen info
+    RSDumpFunc screenInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                              std::string &dumpString) -> void {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
+            RSHardwareThread::Instance()
+                .ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); })
+                .wait();
 #endif
         } else {
-            mainThread_->ScheduleTask(
-                [this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
+            mainThread_->ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
         }
-    }
-    if (argSets.count(arg9) || argSets.count(arg2) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { return screenManager_->SurfaceDump(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg4) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg5) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg6) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg6_1) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() {DumpRenderServiceTree(dumpString, false); }).wait();
-    }
-    if (argSets.count(arg9) ||argSets.count(arg7) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpRSEvenParam(dumpString); }).wait();
-    }
-    if (argSets.count(arg10)) {
-        mainThread_->ScheduleTask(
-            [this, &argSets, &dumpString]() { return mainThread_->TrimMem(argSets, dumpString); }).wait();
-    }
-    if (argSets.count(arg11)) {
-        DumpMem(argSets, dumpString);
-    }
-    if (auto iter = argSets.find(arg12) != argSets.end()) {
-        argSets.erase(arg12);
+    };
+
+    // Event Param List
+    RSDumpFunc rsEventParamFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                                std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpRSEvenParam(dumpString); }).wait();
+    };
+
+    // rs log flag
+    RSDumpFunc rsLogFlagFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                             std::string &dumpString) -> void {
+        argSets.erase(cmd);
         if (!argSets.empty()) {
-            NodeId id = static_cast<NodeId>(std::atoll(std::wstring_convert<
-                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin()).c_str()));
-            mainThread_->ScheduleTask(
-                [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
-        }
-    }
-    if (argSets.count(arg14)) {
-        DumpNode(argSets, dumpString);
-    }
-    FPSDUMPProcess(argSets, dumpString, arg3);
-    FPSDUMPClearProcess(argSets, dumpString, arg13);
-    WindowHitchsDump(argSets, dumpString, arg17);
-    if (auto iter = argSets.find(arg18) != argSets.end()) {
-        argSets.erase(arg18);
-        if (!argSets.empty()) {
-            std::string logFlag = std::wstring_convert<
-                std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin());
+            std::string logFlag =
+                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(*argSets.begin());
             if (RSLogManager::GetInstance().SetRSLogFlag(logFlag)) {
                 dumpString.append("Successed to set flag: " + logFlag + "\n");
             } else {
                 dumpString.append("Failed to set flag: " + logFlag + "\n");
             }
         }
-    }
-    if (argSets.count(arg24) != 0) {
-        argSets.erase(arg24);
-        DumpExistPidMem(argSets, dumpString);
-    }
-    if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg15) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpRefreshRateCounts(dumpString); }).wait();
-    }
-    if (argSets.count(arg16) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); }).wait();
-    }
-    if (argSets.count(arg19) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
-    }
-    if (argSets.count(arg9) || argSets.count(arg20)) {
+    };
+
+    // flush Jank Stats
+    RSDumpFunc flushJankStatsRsFunc = [this](const std::u16string &cmd,
+                                                    std::unordered_set<std::u16string> &argSets,
+                                                    std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::SCREEN_INFO, screenInfoFunc },
+        { RSDumpID::EVENT_PARAM_LIST, rsEventParamFunc },
+        { RSDumpID::RS_LOG_FLAG, rsLogFlagFunc },
+        { RSDumpID::RS_FLUSH_JANK_STATS, flushJankStatsRsFunc },
+    };
+    RSDumpManager::GetInstance().Register(handers);
+}
+
+void RSRenderService::RegisterRSTreeFuncs()
+{
+    // RS not on Tree
+    RSDumpFunc rsNotOnTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); }).wait();
+    };
+
+    // RS Tree
+    RSDumpFunc rsTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                          std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString); }).wait();
+    };
+
+    // RS SurfaceNode
+    RSDumpFunc surfaceNodeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        argSets.erase(cmd);
+        if (!argSets.empty()) {
+            NodeId id =
+                static_cast<NodeId>(std::atoll(std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}
+                                                   .to_bytes(*argSets.begin())
+                                                   .c_str()));
+            mainThread_->ScheduleTask([this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
+        }
+    };
+
+    // Multi RS Trees
+    RSDumpFunc multiRSTreesFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                                std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpRenderServiceTree(dumpString, false); }).wait();
+    };
+
+    // client tree
+    RSDumpFunc rsClientFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                            std::string &dumpString) -> void {
         auto taskId = GenerateTaskId();
-        mainThread_->ScheduleTask(
-            [this, taskId]() {
-                mainThread_->SendClientDumpNodeTreeCommands(taskId);
-            }).wait();
+        mainThread_->ScheduleTask([this, taskId]() { mainThread_->SendClientDumpNodeTreeCommands(taskId); }).wait();
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
-    }
-#ifdef RS_ENABLE_GPU
-    if (argSets.count(arg23) != 0) {
+    };
+
+    // Dump Node
+    RSDumpFunc dumpNodeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                                std::string &dumpString) -> void {
+        DumpNode(argSets, dumpString);
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::RS_NOT_ON_TREE_INFO, rsNotOnTreeFunc },
+        { RSDumpID::RENDER_NODE_INFO, rsTreeFunc, RS_MAIN_THREAD_TAG },
+        { RSDumpID::SURFACENODE_INFO, surfaceNodeFunc },
+        { RSDumpID::MULTI_RSTREES_INFO, multiRSTreesFunc },
+        { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_TAG },
+        { RSDumpID::RS_RENDER_NODE_INFO, dumpNodeFunc },
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
+}
+
+void RSRenderService::RegisterMemFuncs()
+{
+    // surface info
+    RSDumpFunc surfaceInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { return screenManager_->SurfaceDump(dumpString); }).wait();
+    };
+
+    // surface mem
+    RSDumpFunc surfaceMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                              std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
+    };
+
+    // trim mem
+    RSDumpFunc trimMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                           std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &argSets, &dumpString]() { return mainThread_->TrimMem(argSets, dumpString); })
+            .wait();
+    };
+
+    // Mem
+    RSDumpFunc memDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                           std::string &dumpString) -> void {
+        DumpMem(argSets, dumpString);
+    };
+
+    // pid mem
+    RSDumpFunc existPidMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        argSets.erase(cmd);
+        DumpExistPidMem(argSets, dumpString);
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
+        { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
+        { RSDumpID::TRIM_MEM_INFO, trimMemFunc },
+        { RSDumpID::MEM_INFO, memDumpFunc },
+        { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
+}
+
+void RSRenderService::RegisterFpsFuncs()
+{
+    // fps info cmd, [windowname]/composer fps
+    RSDumpFunc fpsInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                           std::string &dumpString) -> void {
+        FPSDUMPProcess(argSets, dumpString, cmd);
+    };
+
+    // fps clear cmd : [surface name]/composer fpsClear
+    RSDumpFunc fpsClearFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                            std::string &dumpString) -> void {
+        FPSDUMPClearProcess(argSets, dumpString, cmd);
+    };
+
+    // fps count
+    RSDumpFunc fpsCountFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                            std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpRefreshRateCounts(dumpString); }).wait();
+    };
+
+    // clear fps Count
+    RSDumpFunc clearFpsCountFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                                 std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); }).wait();
+    };
+
+    // [windowname] hitchs
+    RSDumpFunc hitchsFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                          std::string &dumpString) -> void {
+        WindowHitchsDump(argSets, dumpString, cmd);
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::FPS_INFO, fpsInfoFunc },   { RSDumpID::FPS_CLEAR, fpsClearFunc },
+        { RSDumpID::FPS_COUNT, fpsCountFunc }, { RSDumpID::CLEAR_FPS_COUNT, clearFpsCountFunc },
+        { RSDumpID::HITCHS, hitchsFunc },
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
+}
+
+void RSRenderService::RegisterGpuFuncs()
+{
+    // gpu info
+    RSDumpFunc gpuInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                           std::string &dumpString) -> void {
         mainThread_->ScheduleTask([this, &dumpString]() { DumpGpuInfo(dumpString); }).wait();
-    }
-#endif
+    };
+
 #ifdef RS_ENABLE_VK
-    if (argSets.count(arg22) != 0) {
-        mainThread_->ScheduleTask(
-            [this, &dumpString]() { DumpVkTextureLimit(dumpString); }).wait();
-    }
+    // vk texture Limit
+    RSDumpFunc vktextureLimitFunc = [this](const std::u16string &cmd,
+                                                  std::unordered_set<std::u16string> &argSets,
+                                                  std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpVkTextureLimit(dumpString); }).wait();
+    };
 #endif
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::GPU_INFO, gpuInfoFunc },
+#ifdef RS_ENABLE_VK
+        { RSDumpID::VK_TEXTURE_LIMIT, vktextureLimitFunc },
+#endif
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
 }
 } // namespace Rosen
 } // namespace OHOS

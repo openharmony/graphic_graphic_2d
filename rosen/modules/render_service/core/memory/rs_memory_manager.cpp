@@ -45,6 +45,7 @@
 #include "app_mgr_client.h"
 #include "hisysevent.h"
 #include "image/gpu_context.h"
+#include "platform/common/rs_hisysevent.h"
 
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
@@ -701,7 +702,7 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
                 }
             }
             if (needReport) {
-                MemoryOverReport(pid, memoryInfo, bundleName, "RENDER_MEMORY_OVER_WARNING");
+                MemoryOverReport(pid, memoryInfo, bundleName, RSEventName::RENDER_MEMORY_OVER_WARNING);
             }
         }
     };
@@ -720,6 +721,7 @@ static void KillProcessByPid(const pid_t pid, const std::string& processName, co
         int32_t eventWriteStatus = -1;
         int32_t killStatus = ResourceSchedule::ResSchedClient::GetInstance().KillProcess(killInfo);
         if (killStatus == 0) {
+            RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
             eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
                 HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
                 "MSG", reason, "FOREGROUND", false);
@@ -760,7 +762,7 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
         + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
         + std::to_string(info.TotalMemory()) + "]";
-    MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    MemoryOverReport(pid, info, bundleName, RSEventName::RENDER_MEMORY_OVER_ERROR);
     KillProcessByPid(pid, bundleName, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
@@ -785,8 +787,9 @@ void MemoryManager::CheckIsClearApp()
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
     const std::string& reportName)
 {
-    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid,
+    RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
+    int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
+        "PID", pid,
         "BUNDLE_NAME", bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,

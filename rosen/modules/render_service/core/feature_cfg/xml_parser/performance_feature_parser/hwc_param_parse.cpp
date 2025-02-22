@@ -55,16 +55,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
-    if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
-        bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "HwcEnabled") {
-            hwcParam_->SetHwcEnable(isEnabled);
-            RS_LOGI("HWCParamParse parse HwcEnabled %{public}d", hwcParam_->IsHwcEnable());
-        } else if (name == "HwcMirrorEnabled") {
-            hwcParam_->SetHwcMirrorEnable(isEnabled);
-            RS_LOGI("HWCParamParse parse HwcMirrorEnabled %{public}d", hwcParam_->IsHwcMirrorEnable());
-        }
-    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+    if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("HWCParamParse parse MultiParam fail");
         }
@@ -99,6 +90,7 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &
             return PARSE_NO_PARAM;
         }
     }
+    hwcParam_->MoveDataToHgmCore();
     return PARSE_EXEC_SUCCESS;
 }
 } // namespace OHOS::Rosen

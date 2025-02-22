@@ -146,18 +146,18 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
     size_t maxCpu;
     size_t maxGpu;
     size_t maxSum;
-    findMaxValues(memorySnapshotsList, maxCpu, maxGpu, maxSum);
+    FindMaxValues(memorySnapshotsList, maxCpu, maxGpu, maxSum);
 
     // Sort by risk in descending order
     std::sort(memorySnapshotsList.begin(), memorySnapshotsList.end(),
         [=](const MemorySnapshotInfo& a, const MemorySnapshotInfo& b) {
-            float scoreA = calculateRiskScore(a, maxCpu, maxGpu, maxSum);
-            float scoreB = calculateRiskScore(b, maxCpu, maxGpu, maxSum);
+            float scoreA = CalculateRiskScore(a, maxCpu, maxGpu, maxSum);
+            float scoreB = CalculateRiskScore(b, maxCpu, maxGpu, maxSum);
             return scoreA > scoreB;
         });
 
     std::string hilogInfo = "[";
-    for (int i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
+    for (size_t i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
         MemorySnapshotInfo info = memorySnapshotsList[i];
         hilogInfo += "pid[" + std::to_string(info.pid) +
             "] cpu[" + std::to_string(info.cpuMemory / MEMUNIT_RATE) +
@@ -170,7 +170,7 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
     memorySnapshotHilogTime_ = currentTime + MEMORY_SNAPSHOT_INTERVAL;
 }
 
-void MemorySnapshot::findMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
+void MemorySnapshot::FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
     size_t& maxCpu, size_t& maxGpu, size_t& maxSum)
 {
     maxCpu = maxGpu = maxSum = 0;
@@ -192,7 +192,7 @@ void MemorySnapshot::findMaxValues(std::vector<MemorySnapshotInfo>& memorySnapsh
     }
 }
 
-float MemorySnapshot::calculateRiskScore(const MemorySnapshotInfo snapshotInfo,
+float MemorySnapshot::CalculateRiskScore(const MemorySnapshotInfo snapshotInfo,
     size_t maxCpu, size_t maxGpu, size_t maxSum)
 {
     float normCpu = (maxCpu == 0) ? 0 : static_cast<float>(snapshotInfo.cpuMemory) / maxCpu;

@@ -46,10 +46,10 @@ public:
     static void DrawingFontMetricsCastToSkFontMetrics(const FontMetrics& fontMetrics, SkFontMetrics& skFontMetrics)
     {
         // Tell the compiler there is no alias and to select wider load/store instructions.
-        uint32_t fFlags = skFontMetrics.fFlags;
-        scalar fTop = skFontMetrics.fTop;
-        scalar fAscent = skFontMetrics.fAscent;
-        scalar fDescent = skFontMetrics.fDescent;
+        uint32_t fFlags = fontMetrics.fFlags;
+        scalar fTop = fontMetrics.fTop;
+        scalar fAscent = fontMetrics.fAscent;
+        scalar fDescent = fontMetrics.fDescent;
         scalar fBottom = fontMetrics.fBottom;
         scalar fLeading = fontMetrics.fLeading;
         scalar fAvgCharWidth = fontMetrics.fAvgCharWidth;

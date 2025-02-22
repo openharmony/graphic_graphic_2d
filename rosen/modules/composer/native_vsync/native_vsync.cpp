@@ -71,11 +71,13 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
         return nullptr;
     }
     std::string vsyncName(name, length);
-    auto receiver = CreateAndInitVSyncReceiver(vsyncName);
+    NativeVSync* nativeVSync = new NativeVSync;
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName, 0, true, nativeVSync);
     if (receiver == nullptr) {
+        VLOGE("receiver is nullptr, please check");
+        delete nativeVSync;
         return nullptr;
     }
-    NativeVSync* nativeVSync = new NativeVSync;
     nativeVSync->receiver_ = receiver;
     return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
 }

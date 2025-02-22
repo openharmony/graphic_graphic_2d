@@ -26,23 +26,14 @@ public:
     HWCParam() = default;
     ~HWCParam() = default;
 
-    bool IsHwcEnable() const;
-    bool IsHwcMirrorEnable() const;
-    int GetSourceTuningForApp(std::string appName) const;
-    int GetSolidColorLayerForApp(std::string appName) const;
-
 protected:
-    void SetHwcEnable(bool isEnable);
-    void SetHwcMirrorEnable(bool isEnable);
     void SetSourceTuningForApp(std::string appName, std::string val);
     void SetSolidColorLayerForApp(std::string appName, std::string val);
+    void MoveDataToHgmCore();
 
 private:
-    bool isHwcEnable_ = false;
-    bool isHwcMirrorEnable_ = false;
-
-    std::unordered_map<std::string, int> sourceTuningMap_;
-    std::unordered_map<std::string, int> solidColorLayerMap_;
+    std::unordered_map<std::string, std::string> sourceTuningMap_;
+    std::unordered_map<std::string, std::string> solidColorLayerMap_;
 
     friend class HWCParamParse;
 };

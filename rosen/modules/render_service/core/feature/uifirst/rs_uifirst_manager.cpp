@@ -1329,11 +1329,12 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
-    if (focus && (node.GetHasSharedTransitionNode() ||
+    bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
+    if (optFocus && (node.GetHasSharedTransitionNode() ||
         RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) ||
         !animation || modalAnimation)) {
-        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] is MainThread, foceus:%d, animation:%d, switch:%d",
-            surfaceName.c_str(), focus, animation, node.GetUIFirstSwitch());
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
+            surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
         return false;
     }
     return node.QuerySubAssignable(isDisplayRotation);
@@ -1342,7 +1343,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE ||
-        !node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
+        node.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         // This branch will be discarded
         if (!node.isUifirstNode_) {
@@ -1399,7 +1400,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
 
             // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
             node.SetHwcChildrenDisabledState();
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: namne:%s id:%" PRIu64 " children disabled by uifirst first frame",
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst first frame",
                 node.GetName().c_str(), node.GetId());
         } else {
             UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
@@ -1427,7 +1428,7 @@ void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const 
     }
     node.SetHardwareForcedDisabledState(intersect);
     if (intersect) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: namne:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
             node.GetName().c_str(), node.GetId());
     }
     Drawing::Matrix totalMatrix;

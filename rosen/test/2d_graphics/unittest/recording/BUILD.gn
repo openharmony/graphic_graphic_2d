@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,6 +20,7 @@ ohos_unittest("2d_graphics_recording_test") {
 
   sources = [
     "cmd_list_helper_test.cpp",
+    "draw_cmd_list_test.cpp",
     "draw_cmd_test.cpp",
     "recording_canvas_test.cpp",
   ]
@@ -36,6 +37,11 @@ ohos_unittest("2d_graphics_recording_test") {
     "graphic_2d:2d_graphics",
     "hilog:libhilog",
     "image_framework:image_native",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   part_name = "graphic_2d"

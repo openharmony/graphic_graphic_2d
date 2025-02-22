@@ -46,7 +46,7 @@ public:
     static void RemoveCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, NodeId newParentId);
     static void SetIsCrossNode(RSContext& context, NodeId nodeId, bool isCrossNode);
     static void AddCrossScreenChild(RSContext& context, NodeId nodeId, NodeId childNodeId, NodeId cloneNodeId,
-        int32_t index);
+        int32_t index, bool autoClearCloneNode = false);
     static void RemoveCrossScreenChild(RSContext& context, NodeId nodeId, NodeId childNodeId);
     static void RemoveFromTree(RSContext& context, NodeId nodeId);
     static void ClearChildren(RSContext& context, NodeId nodeId);
@@ -75,7 +75,7 @@ ADD_COMMAND(RSBaseNodeSetIsCrossNode,
         BaseNodeCommandHelper::SetIsCrossNode, NodeId, bool))
 ADD_COMMAND(RSBaseNodeAddCrossScreenChild,
     ARG(PERMISSION_APP, BASE_NODE, BASE_NODE_ADD_CROSS_SCREEN_CHILD,
-        BaseNodeCommandHelper::AddCrossScreenChild, NodeId, NodeId, NodeId, int32_t))
+        BaseNodeCommandHelper::AddCrossScreenChild, NodeId, NodeId, NodeId, int32_t, bool))
 ADD_COMMAND(RSBaseNodeRemoveCrossScreenChild,
     ARG(PERMISSION_APP, BASE_NODE, BASE_NODE_REMOVE_CROSS_SCREEN_CHILD,
         BaseNodeCommandHelper::RemoveCrossScreenChild, NodeId, NodeId))

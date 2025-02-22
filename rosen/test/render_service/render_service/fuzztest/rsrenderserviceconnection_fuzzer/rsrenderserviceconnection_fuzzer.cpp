@@ -943,7 +943,7 @@ bool DOSetSystemAnimatedScenes()
         return false;
     }
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
-    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
+    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes), false);
     return true;
 }
 

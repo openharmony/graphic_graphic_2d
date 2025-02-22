@@ -392,6 +392,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     nodeDrawable->SubDraw(*rscanvas);
     bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
+    nodeDrawable->UpdateCacheSurfaceInfo();
     nodeDrawable->UpdateBackendTexture();
 
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
@@ -438,6 +439,7 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RS_TRACE_BEGIN("FlushFrame");
     RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
+    nodeDrawable->UpdateCacheSurfaceInfo();
     renderFrame->Flush();
     RS_TRACE_END();
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:

@@ -75,19 +75,16 @@ public:
 
     /*
      * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
-     * Only the pixelMap_ held by at most one RSImage and one Image can be purged.
-     * More information can be found in RSImageCahe::CheckRefCntAndReleaseImageCache.
+     * Only the pixelMap_ with one RefCount and one UseCount can be purged.
     */
     void Purge();
 
 protected:
     void GenUniqueId(uint32_t id);
     /*
-     * This is the reverse process of Purge, which will call ReMap() of pixelMap_. To avoid Upmap() being called
-     * after ReMap() and before pixelMap_ is used, use_count of pixelMap_ will be increased by return value.
-     * Use the return temporary and do not store it to avoid memory leak.
+     * This is the reverse process of Purge, which will call ReMap() of pixelMap_.
     */
-    std::shared_ptr<Media::PixelMap> DePurge();
+    void DePurge();
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
@@ -128,6 +125,17 @@ protected:
         ENABLED = 1,
     };
     CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
+#ifdef ROSEN_OHOS
+    /* This class is used to avoid Unmap is being called after ReMap and before pixelMap is used. */
+    class PixelMapUseCountGuard {
+    public:
+        PixelMapUseCountGuard(CanPurgeFlag flag, std::shared_ptr<Media::PixelMap> pixelMap);
+        ~PixelMapUseCountGuard();
+    private:
+        CanPurgeFlag flag_ = CanPurgeFlag::UNINITED;
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+    };
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

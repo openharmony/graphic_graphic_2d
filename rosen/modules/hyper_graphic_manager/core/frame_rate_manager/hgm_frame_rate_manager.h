@@ -131,6 +131,7 @@ struct VoteInfo {
 
 class HgmFrameRateManager {
 public:
+    using ChangeDssRefreshRateCbType = std::function<void(ScreenId, uint32_t, bool)>;
     HgmFrameRateManager();
     ~HgmFrameRateManager() = default;
 
@@ -210,6 +211,11 @@ public:
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
+    HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
+    void SetChangeDssRefreshRateCb(ChangeDssRefreshRateCbType changeDssRefreshRateCb)
+    {
+        changeDssRefreshRateCb_ = changeDssRefreshRateCb;
+    }
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -220,6 +226,8 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void UpdateSoftVSync(bool followRs);
+    void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
@@ -259,7 +267,6 @@ private:
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitRsIdleTimer();
-    void InitPowerTouchManager();
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
     void SetGameNodeName(std::string nodeName)
@@ -279,6 +286,7 @@ private:
     uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
+    HgmSimpleTimer changeGeneratorRateValidTimer_;
     // current game app's self drawing node name
     std::string curGameNodeName_;
     // if current game's self drawing node is on tree,default false
@@ -291,7 +299,7 @@ private:
     std::vector<uint32_t> stylusVec_;
 
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
-    HgmSimpleTimer voterLtpoTimer_;
+    HgmSimpleTimer rsFrameRateTimer_;
 
     std::vector<std::string> voters_;
     // FORMAT: <sceneName, pid>
@@ -326,7 +334,6 @@ private:
     std::atomic<bool> voterTouchEffective_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
-    HgmTouchManager powerTouchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
     // only called by RSMainThread
@@ -346,6 +353,7 @@ private:
     FrameRateLinkerMap appFrameRateLinkers_;
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
+    ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
 };
 } // namespace Rosen
 } // namespace OHOS

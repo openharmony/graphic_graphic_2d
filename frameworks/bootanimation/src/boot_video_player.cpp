@@ -19,17 +19,21 @@
 #include <media_errors.h>
 #include "transaction/rs_interfaces.h"
 #include <parameters.h>
+#include <util.h>
 
 using namespace OHOS;
 
-const std::vector<std::string> NORMAL_REBOOT_REASON_ARR = {"AP_S_COLDBOOT", "bootloader", "recovery", "fastbootd",
-    "resetfactory", "at2resetfactory", "atfactoryreset0", "resetuser", "sdupdate", "chargereboot", "resize",
-    "erecovery", "usbupdate", "cust", "oem_rtc", "UNKNOWN", "mountfail", "hungdetect", "COLDBOOT", "updatedataimg",
-    "AP_S_FASTBOOTFLASH", "gpscoldboot", "AP_S_COMBINATIONKEY", "CP_S_NORMALRESET", "IOM3_S_USER_EXCEPTION",
-    "BR_UPDATE_USB", "BR_UPDATA_SD_FORCE", "BR_KEY_VOLUMN_UP", "BR_PRESS_1S", "BR_CHECK_RECOVERY",
-    "BR_CHECK_ERECOVERY", "BR_CHECK_SDUPDATE", "BR_CHECK_USBUPDATE", "BR_CHECK_RESETFACTORY", "BR_CHECK_HOTAUPDATE",
-    "BR_POWERONNOBAT", "BR_NOGUI", "BR_FACTORY_VERSION", "BR_RESET_HAPPEN", "BR_POWEROFF_ALARM", "BR_POWEROFF_CHARGE",
-    "BR_POWERON_BY_SMPL", "BR_CHECK_UPDATEDATAIMG", "BR_POWERON_CHARGE", "AP_S_PRESS6S", "BR_PRESS_10S"};
+namespace {
+    const std::vector<std::string> NORMAL_REBOOT_REASON_ARR = {"AP_S_COLDBOOT", "bootloader", "recovery", "fastbootd",
+        "resetfactory", "at2resetfactory", "atfactoryreset0", "resetuser", "sdupdate", "chargereboot", "resize",
+        "erecovery", "usbupdate", "cust", "oem_rtc", "UNKNOWN", "mountfail", "hungdetect", "COLDBOOT", "updatedataimg",
+        "AP_S_FASTBOOTFLASH", "gpscoldboot", "AP_S_COMBINATIONKEY", "CP_S_NORMALRESET", "IOM3_S_USER_EXCEPTION",
+        "BR_UPDATE_USB", "BR_UPDATA_SD_FORCE", "BR_KEY_VOLUMN_UP", "BR_PRESS_1S", "BR_CHECK_RECOVERY",
+        "BR_CHECK_ERECOVERY", "BR_CHECK_SDUPDATE", "BR_CHECK_USBUPDATE", "BR_CHECK_RESETFACTORY",
+        "BR_CHECK_HOTAUPDATE", "BR_POWERONNOBAT", "BR_NOGUI", "BR_FACTORY_VERSION", "BR_RESET_HAPPEN",
+        "BR_POWEROFF_ALARM", "BR_POWEROFF_CHARGE", "BR_POWERON_BY_SMPL", "BR_CHECK_UPDATEDATAIMG",
+        "BR_POWERON_CHARGE", "AP_S_PRESS6S", "BR_PRESS_10S"};
+}
 
 BootVideoPlayer::BootVideoPlayer(const PlayerParams& params)
 {
@@ -46,12 +50,13 @@ void BootVideoPlayer::Play()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlayVideo begin");
-    int waitMediaCreateTime = 0;
-    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
-        && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
-        LOGI("mediaPlayer is nullptr, try create again");
+    int64_t startTime = GetSystemCurrentTime();
+    int64_t endTime = startTime;
+    while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+        && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
+        endTime = GetSystemCurrentTime();
         usleep(SLEEP_TIME_US);
-        waitMediaCreateTime += SLEEP_TIME_US;
+        LOGI("mediaPlayer is nullptr, try create again");
     }
 
     if (mediaPlayer_ == nullptr) {

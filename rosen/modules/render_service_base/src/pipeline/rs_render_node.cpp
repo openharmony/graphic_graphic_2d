@@ -264,6 +264,9 @@ void RSRenderNode::AddUIExtensionChild(SharedPtr child)
         return;
     }
     realParent->AddChild(child, -1);
+    RS_LOGI("RSRenderNode::AddUIExtensionChild parent:%{public}" PRIu64 ",child:%{public}" PRIu64 ".",
+        realParent->GetId(), child->GetId());
+    AddToPendingSyncList();
 }
 
 // when child is UnobscuredUIExtension and parent is not main window, Mark Need, Rout to main window.
@@ -281,7 +284,8 @@ bool RSRenderNode::NeedRoutedBasedOnUIExtension(SharedPtr child)
 void RSRenderNode::AddChild(SharedPtr child, int index)
 {
     if (NeedRoutedBasedOnUIExtension(child)) {
-        originUECChildren_->insert(child);
+        stagingUECChildren_->insert(child);
+        unobscuredUECChildrenNeedSync_ = true;
         return AddUIExtensionChild(child);
     }
     // sanity check, avoid loop
@@ -378,12 +382,16 @@ void RSRenderNode::RemoveUIExtensionChild(SharedPtr child)
         return;
     }
     parent->RemoveChild(child);
+    RS_LOGI("RSRenderNode::RemoveUIExtensionChild parent:%{public}" PRIu64 ",child:%{public}" PRIu64 ".",
+        parent->GetId(), child->GetId());
+    AddToPendingSyncList();
 }
 
 void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
 {
     if (NeedRoutedBasedOnUIExtension(child)) {
-        originUECChildren_->erase(child);
+        stagingUECChildren_->erase(child);
+        unobscuredUECChildrenNeedSync_ = true;
         return RemoveUIExtensionChild(child);
     }
     if (child == nullptr) {
@@ -415,6 +423,28 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     isFullChildrenListValid_ = false;
 }
 
+bool RSRenderNode::HasUnobscuredUEC() const
+{
+    return stagingRenderParams_->HasUnobscuredUEC();
+}
+
+void RSRenderNode::SetHasUnobscuredUEC()
+{
+    bool hasUnobscuredUEC = stagingUECChildren_ && !stagingUECChildren_->empty();
+    if (hasUnobscuredUEC) {
+        return stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
+    }
+    for (auto childWeakPtr : children_) {
+        if (auto child = childWeakPtr.lock()) {
+            hasUnobscuredUEC |= child->HasUnobscuredUEC();
+            if (hasUnobscuredUEC) {
+                break;
+            }
+        }
+    }
+    stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
+}
+
 void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId)
 {
     auto context = GetContext().lock();
@@ -443,6 +473,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     // We do not need to label a child when the child is removed from a parent that is not on the tree
     if (flag == isOnTheTree_) {
         return;
+    }
+
+    if (autoClearCloneNode_ && !flag) {
+        ClearCloneCrossNode();
     }
 
     SetPurgeStatus(flag);
@@ -631,7 +665,8 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index)
+void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index,
+    bool autoClearCloneNode)
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
@@ -639,6 +674,8 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
             child == nullptr, context == nullptr);
         return;
     }
+
+    child->autoClearCloneNode_ = autoClearCloneNode;
 
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::AddCrossScreenChild cloneNodeId=%" PRIu64 "", cloneNodeId);
     RSSurfaceRenderNodeConfig config = {
@@ -1417,6 +1454,10 @@ void RSRenderNode::FallbackAnimationsToRoot()
     context->RegisterAnimatingRenderNode(target);
 
     for (auto& [unused, animation] : animationManager_.animations_) {
+        if (animation->IsPaused()) {
+            animation->Resume();
+        }
+
         animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
@@ -3750,8 +3791,8 @@ void RSRenderNode::OnTreeStateChanged()
     if (!isOnTheTree_) {
         UpdateBlurEffectCounter(-curBlurDrawableCnt);
         startingWindowFlag_ = false;
-        if (originUECChildren_ && !originUECChildren_->empty()) {
-            for (auto uiExtension : *originUECChildren_) {
+        if (stagingUECChildren_ && !stagingUECChildren_->empty()) {
+            for (auto uiExtension : *stagingUECChildren_) {
                 uiExtension->RemoveFromTree();
             }
         }
@@ -3761,8 +3802,8 @@ void RSRenderNode::OnTreeStateChanged()
         // Set dirty and force add to active node list, re-generate children list if needed
         SetDirty(true);
         SetParentSubTreeDirty();
-        if (originUECChildren_ && !originUECChildren_->empty()) {
-            for (auto uiExtension : *originUECChildren_) {
+        if (stagingUECChildren_ && !stagingUECChildren_->empty()) {
+            for (auto uiExtension : *stagingUECChildren_) {
                 AddChild(uiExtension);
             }
         }
@@ -4626,6 +4667,13 @@ void RSRenderNode::OnSync()
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
 #endif
+    if (unobscuredUECChildrenNeedSync_) {
+        renderDrawable_->UECChildrenIds_->clear();
+        for (auto childUEC : *stagingUECChildren_) {
+            renderDrawable_->UECChildrenIds_->insert(childUEC->GetId());
+        }
+        unobscuredUECChildrenNeedSync_ = false;
+    }
     if (!uifirstSkipPartialSync_) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {

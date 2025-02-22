@@ -149,6 +149,7 @@
 #include "c/ffrt_cpu_boost.h"
 // blur predict
 #include "rs_frame_blur_predict.h"
+#include "rs_frame_deadline_predict.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -193,9 +194,6 @@ constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr int64_t FIXED_EXTRA_DRAWING_TIME = 3000000; // 3ms
-constexpr int64_t SINGLE_SHIFT = 2700000; // 2.7ms
-constexpr int64_t DOUBLE_SHIFT = 5400000; // 5.4ms
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -2006,10 +2004,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
     // Start of DVSync
-    bool isUiDvsyncOn = false;
-    if (rsVSyncDistributor_ != nullptr) {
-        isUiDvsyncOn = rsVSyncDistributor_->IsUiDvsyncOn();
-    }
+    bool isUiDvsyncOn = rsVSyncDistributor_ != nullptr ? rsVSyncDistributor_->IsUiDvsyncOn() : false;
     // End of DVSync
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
@@ -2023,8 +2018,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         }
     });
     // Check and processing refresh rate task.
-    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
-    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, isUiDvsyncOn);
+    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsVSyncDistributor_->GetRefreshRate(), isUiDvsyncOn);
 
     if (rsFrameRateLinker_ != nullptr) {
         auto rsCurrRange = rsCurrRange_;
@@ -2034,13 +2028,19 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
 
+    if (rsCurrRange_.IsValid()) {
+        frameRateMgr->GetRsFrameRateTimer().Start();
+    } else {
+        frameRateMgr->GetRsFrameRateTimer().Stop();
+    }
+
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
     bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
     bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
+    bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
 
-    if (!vrateStatusChange && !setHgmTaskFlag &&
-        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
-        !needRefresh) {
+    if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
+        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;
     }
 
@@ -2048,12 +2048,9 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                         linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            return;
-        }
-        // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
-        if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr &&
+            frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+            // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });
@@ -2258,23 +2255,25 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 #ifdef RES_SCHED_ENABLE
         const auto& nodeMapForFrameReport = GetContext().GetNodeMap();
         uint32_t frameRatePidFromRSS = ResschedEventListener::GetInstance()->GetCurrentPid();
-        nodeMapForFrameReport.TraverseSurfaceNodesBreakOnCondition(
-            [this, frameRatePidFromRSS](
-                const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-                if (surfaceNode == nullptr) {
-                    return false;
-                }
-                uint32_t pidFromNode = ExtractPid(surfaceNode->GetId());
-                if (frameRatePidFromRSS != pidFromNode) {
-                    return false;
-                }
-                auto dirtyManager = surfaceNode->GetDirtyManager();
-                if (dirtyManager == nullptr || dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty()) {
-                    return false;
-                }
-                ResschedEventListener::GetInstance()->ReportFrameCountAsync(pidFromNode);
-                return true;
-        });
+        if (frameRatePidFromRSS != 0) {
+            nodeMapForFrameReport.TraverseSurfaceNodesBreakOnCondition(
+                [this, frameRatePidFromRSS](
+                    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+                    if (surfaceNode == nullptr) {
+                        return false;
+                    }
+                    uint32_t pidFromNode = ExtractPid(surfaceNode->GetId());
+                    if (frameRatePidFromRSS != pidFromNode) {
+                        return false;
+                    }
+                    auto dirtyManager = surfaceNode->GetDirtyManager();
+                    if (dirtyManager == nullptr || dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty()) {
+                        return false;
+                    }
+                    ResschedEventListener::GetInstance()->ReportFrameCountAsync(pidFromNode);
+                    return true;
+            });
+        }
 #endif // RES_SCHED_ENABLE
 
         if (deviceType_ != DeviceType::PHONE) {
@@ -3157,12 +3156,18 @@ void RSMainThread::ConnectChipsetVsyncSer()
 void RSMainThread::SetVsyncInfo(uint64_t timestamp)
 {
     int64_t vsyncPeriod = 0;
+    bool allowFramerateChange = false;
     if (receiver_) {
         receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, vsyncPeriod);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld",
-        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod));
+    if (context_) {
+        // framerate not vote at animation and mult-window scenario
+        allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
+            context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    }
+    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, vsyncPeriod, allowFramerateChange);
+    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld, allowFramerateChange = %{public}d",
+        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod), allowFramerateChange);
 }
 #endif
 
@@ -3575,10 +3580,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             return;
         }
         rootNode->DumpTree(0, dumpString);
-#ifdef RS_ENABLE_GPU
-        dumpString += "\n====================================\n";
-        RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
-#endif
+        
         if (needUpdateJankStats) {
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
@@ -4003,13 +4005,16 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
+    uint64_t unsignedNowTime = static_cast<uint64_t>(nowTime);
+    uint64_t unsignedLastFlushedDesiredPresentTimeStamp = static_cast<uint64_t>(lastFlushedDesiredPresentTimeStamp);
     int64_t vsyncPeriod = 0;
     VsyncError ret = VSYNC_ERROR_UNKOWN;
     if (receiver_) {
         ret = receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    if (ret != VSYNC_ERROR_OK || static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
-    	static_cast<uint64_t>(vsyncPeriod) < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
+    uint64_t unsignedVsyncPeriod = static_cast<uint64_t>(vsyncPeriod);
+    if (ret != VSYNC_ERROR_OK || unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
+    	unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
         RequestNextVSync();
         return;
     }
@@ -4019,20 +4024,19 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     } else {
         lastVsyncTime = timestamp_;
     }
-    lastVsyncTime = (uint64_t)nowTime - (((uint64_t)nowTime - lastVsyncTime) % (uint64_t)vsyncPeriod);
+    lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
-        ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, nowTime, lastVsyncTime, timestamp_);
+        ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, unsignedNowTime, lastVsyncTime, timestamp_);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && (uint64_t)nowTime - timestamp_ > (uint64_t)vsyncPeriod &&
-        (uint64_t)lastFlushedDesiredPresentTimeStamp > lastVsyncTime - (uint64_t)vsyncPeriod &&
-        (uint64_t)lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
-        (uint64_t)nowTime - lastVsyncTime <
-        (uint64_t)(REFRESH_PERIOD / 2)) { // invoke when late less than 1/2 refresh period
+    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod &&
+        unsignedLastFlushedDesiredPresentTimeStamp > lastVsyncTime - unsignedVsyncPeriod &&
+        unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
+        unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
         RS_LOGD("RSMainThread::CheckFastCompose fastcompose start"
-            ", buffer late for %{public}" PRIu64, nowTime - lastVsyncTime);
+            ", buffer late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
         ForceRefreshForUni(true);
     } else {
         RequestNextVSync();
@@ -4179,17 +4183,18 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%d] "
-        "systemAnimatedScenesListSize_[%d]", __func__, systemAnimatedScenes,
-        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size());
+        "systemAnimatedScenesListSize_[%d] isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
+        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size(), isRegularAnimation);
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
         RS_LOGD("RSMainThread::SetSystemAnimatedScenes Out of range.");
         return false;
     }
     systemAnimatedScenes_ = systemAnimatedScenes;
+    isRegularAnimation_ = isRegularAnimation;
     if (!systemAnimatedScenesEnabled_) {
         return true;
     }
@@ -4221,6 +4226,12 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
         }
     }
     return true;
+}
+bool RSMainThread::GetIsRegularAnimation() const
+{
+    return (isRegularAnimation_ &&
+        systemAnimatedScenes_ < SystemAnimatedScenes::OTHERS &&
+        RSSystemParameters::GetAnimationOcclusionEnabled()) || IsPCThreeFingerScenesListScene();
 }
 
 SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()
@@ -4845,40 +4856,9 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
-    ReportRSFrameDeadline(hgmCore, forceRefreshFlag);
-}
 
-void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag)
-{
-    int64_t extraReserve = 0;
-    int64_t vsyncOffset = 0;
-    uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
-    int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
-    int64_t drawingTime = idealPeriod;
-
-    if (currentRate == OLED_120_HZ) {
-        if (hgmCore.GetLtpoEnabled()) {
-            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
-            if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
-                extraReserve = SINGLE_SHIFT;
-            } else if (vsyncOffset > DOUBLE_SHIFT && vsyncOffset < idealPeriod) {
-                extraReserve = DOUBLE_SHIFT;
-            }
-        } else {
-            extraReserve = FIXED_EXTRA_DRAWING_TIME;
-        }
-    }
-
-    if (idealPeriod == preIdealPeriod_ && (extraReserve == preExtraReserve_ || currentRate != OLED_120_HZ)) {
-        return;
-    }
-    drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
-    preIdealPeriod_ = idealPeriod;
-    preExtraReserve_ = extraReserve;
-    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
-        currentRate, vsyncOffset, drawingTime);
-
-    RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime);
+    auto &frameDeadline = OHOS::Rosen::RsFrameDeadlinePredict::GetInstance();
+    frameDeadline.ReportRsFrameDeadline(hgmCore, forceRefreshFlag);
 }
 
 void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
