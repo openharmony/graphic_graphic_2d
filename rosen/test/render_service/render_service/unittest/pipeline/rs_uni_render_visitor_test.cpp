@@ -954,6 +954,22 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode, TestSize.Level1)
     rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
 }
 
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo001
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo
+ * @tc.type:FUNC
+ * @tc.require:issuesIB035y
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*rsSurfaceRenderNode, false);
+}
+
 /*
  * @tc.name: SetSurfafaceGlobalDirtyRegion
  * @tc.desc: Add two surfacenode child to test global dirty region

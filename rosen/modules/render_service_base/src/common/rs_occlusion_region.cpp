@@ -23,6 +23,29 @@
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {
+namespace {
+inline int Align(int num, int alignmentSize, bool upward)
+{
+    if (alignmentSize <= 1) {
+        return num;
+    }
+    int remainder = num % alignmentSize;
+    if (remainder == 0) {
+        return num;
+    }
+    return (num > 0 && upward) ? (num + (alignmentSize - remainder)) : (num - remainder);
+}
+
+inline int AlignUp(int num, int alignmentSize)
+{
+    return Align(num, alignmentSize, true);
+}
+
+inline int AlignDown(int num, int alignmentSize)
+{
+    return Align(num, alignmentSize, false);
+}
+}
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
@@ -214,6 +237,18 @@ void Region::MakeBound()
         bound_.right_ = right;
         bound_.bottom_ = bottom;
     }
+}
+
+Region Region::GetAlignedRegion(int alignmentSize) const
+{
+    Region alignedRegion;
+    for (const auto& rect : rects_) {
+        Rect alignedRect(AlignDown(rect.left_, alignmentSize), AlignDown(rect.top_, alignmentSize),
+            AlignUp(rect.right_, alignmentSize), AlignUp(rect.bottom_, alignmentSize));
+        Region alignedSubRegion{alignedRect};
+        alignedRegion.OrSelf(alignedSubRegion);
+    }
+    return alignedRegion;
 }
 
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
