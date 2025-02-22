@@ -248,6 +248,8 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextSplitRatio(txt.textSplitRatio);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
+    skStyle.setParagraphStyleSpacing(txt.paragraphStyleSpacing);
+    skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
 
     return skStyle;
 }

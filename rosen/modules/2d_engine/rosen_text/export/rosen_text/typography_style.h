@@ -75,6 +75,8 @@ struct TypographyStyle {
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     float textSplitRatio = 0.5f;
+    float paragraphStyleSpacing { 0.0f };
+    bool isEndAddParagraphSpacing { false };
 
     bool operator==(const TypographyStyle &rhs) const
     {
