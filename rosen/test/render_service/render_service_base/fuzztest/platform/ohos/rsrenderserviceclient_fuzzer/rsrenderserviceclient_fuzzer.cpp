@@ -1654,7 +1654,7 @@ bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    std::string eventName = GetData<std::string>();
+    std::string eventName = "eventName";
     bool state = GetData<bool>();
     client->NotifyHgmConfigEvent(eventName, state);
     return true;
