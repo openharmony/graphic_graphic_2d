@@ -226,7 +226,7 @@ void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool n
     if (!node.HasRemovedChild()) {
         return;
     }
-    RectI dirtyRect = node.GetChildrenRect();
+    RectI dirtyRect = node.GetRemovedChildrenRect();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     if (dirtyManager == nullptr || dirtyRect.IsEmpty()) {
         node.ResetHasRemovedChild();

@@ -304,6 +304,8 @@ public:
     static bool GetHwcDirtyRegionEnabled();
     static bool GetHveFilterEnabled();
     static bool GetDmaReclaimParam();
+    static bool GetOptimizeParentNodeRegionEnabled();
+    static bool GetOptimizeHwcComposeAreaEnabled();
 private:
     RSSystemProperties() = default;
 
