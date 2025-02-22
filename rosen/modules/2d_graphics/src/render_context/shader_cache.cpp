@@ -239,5 +239,24 @@ void ShaderCache::CleanAllShaders() const
         cacheData_->Clear();
     }
 }
+
+bool ShaderCache::CheckShaderCacheOverSoftLimit() const
+{
+    if (!cacheData_) {
+        LOGD("CheckShaderCacheOverSoftLimit: cachedata has been destructed");
+        return false;
+    }
+    return cacheData_->CheckShaderCacheOverSoftLimit();
+}
+
+void ShaderCache::PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    OptionalLockGuard lock(mutex_);
+    if (!cacheData_) {
+        LOGD("PurgeShaderCacheAfterAnimate: cachedata has been destructed");
+        return;
+    }
+    cacheData_->PurgeShaderCacheAfterAnimate(nextFrameHasArrived);
+}
 }   // namespace Rosen
 }   // namespace OHOS
