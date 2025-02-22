@@ -415,7 +415,7 @@ void RSRenderService::DumpRenderServiceTree(std::string& dumpString, bool forceD
 {
     dumpString.append("\n");
     dumpString.append("-- RenderServiceTreeDump: \n");
-    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame);
+    mainThread_->RenderServiceTreeDump(dumpString, forceDumpSingleFrame, true);
 }
 
 void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
