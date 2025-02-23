@@ -69,6 +69,8 @@ public:
 
     virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
 
+    virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
+
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;
     
