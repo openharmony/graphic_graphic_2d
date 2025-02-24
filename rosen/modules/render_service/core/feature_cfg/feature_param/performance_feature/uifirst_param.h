@@ -31,7 +31,7 @@ public:
     int GetUIFirstEnableWindowThreshold() const;
 
 protected:
-    void SetUIFirstEnable(bool isUIFirstEnable);
+    void SetUIFirstEnable(bool isEnable);
     void SetCardUIFirstEnable(bool isCardUIFirstEnable);
     void SetCacheOptimizeRotateEnable(bool isCacheOptimizeRotateEnable);
     void SetFreeMultiWindowEnable(bool isFreeMultiWindowEnable);

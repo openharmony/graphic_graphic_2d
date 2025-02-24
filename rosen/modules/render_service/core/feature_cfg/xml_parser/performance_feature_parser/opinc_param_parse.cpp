@@ -20,7 +20,6 @@ namespace OHOS::Rosen {
 
 int32_t OPIncParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
-    RS_LOGI("OPIncParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
         RS_LOGD("OPIncParamParse stop parsing, no children nodes");
@@ -46,11 +45,11 @@ int32_t OPIncParamParse::ParseOPIncInternal(FeatureParamMapType &featureMap, xml
     xmlNode *currNode = &node;
 
     auto iter = featureMap.find(FEATURE_CONFIGS[OPInc]);
-    if (iter != featureMap.end()) {
-        opincParam_ = std::static_pointer_cast<OPIncParam>(iter->second);
-    } else {
+    if (iter == featureMap.end()) {
         RS_LOGD("OPIncParamParse stop parsing, no initializing param map");
+        return PARSE_INTERNAL_FAIL;
     }
+    opincParam_ = std::static_pointer_cast<OPIncParam>(iter->second);
 
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
