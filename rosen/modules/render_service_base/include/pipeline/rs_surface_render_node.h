@@ -157,9 +157,7 @@ public:
 
     bool NeedBilinearInterpolation() const
     {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_.find("oh_flutter") != std::string::npos ||
-            name_.find("HwStylusFeature") != std::string::npos);
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_;
     }
 
     void SetSubNodeShouldPaint()

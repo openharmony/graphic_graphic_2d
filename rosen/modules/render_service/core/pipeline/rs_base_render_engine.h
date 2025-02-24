@@ -297,6 +297,8 @@ private:
     static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
         BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
+    static bool NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix);
+
 #if defined(NEW_RENDER_CONTEXT)
     std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
     std::shared_ptr<DrawingContext> drawingContext_ = nullptr;
