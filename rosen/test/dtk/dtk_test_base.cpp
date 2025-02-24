@@ -288,7 +288,7 @@ void TestBase::ClipRect(bool doAntiAlias)
 }
 
 // ClipRoundRect(G2))
-void TestBase::ClipRoundRect_G2(bool doAntiAlias)
+void TestBase::ClipRoundRectG2(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
     auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
@@ -299,7 +299,7 @@ void TestBase::ClipRoundRect_G2(bool doAntiAlias)
 }
 
 // ClipRoundRect(G2_capsule))
-void TestBase::ClipRoundRect_G2capsule(bool doAntiAlias)
+void TestBase::ClipRoundRectG2capsule(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
     auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
@@ -310,7 +310,7 @@ void TestBase::ClipRoundRect_G2capsule(bool doAntiAlias)
 }
 
 // ClipRoundRect(·ÇG2))
-void TestBase::ClipRoundRect_notG2(bool doAntiAlias)
+void TestBase::ClipRoundRectnotG2(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
     auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
