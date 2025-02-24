@@ -108,11 +108,6 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
             image->ReadPixels(bitmap, 0, 0);
         }
     }
-#ifdef USE_GLFW_WINDOW
-    if (GlfwRenderContext::GetGlobal()->IsVisible() && frameDarwin->surface_ != nullptr) {
-        YInvert(addr, frameDarwin->width_, frameDarwin->height_);
-    }
-#endif
 
     int32_t width = frameDarwin->width_;
     int32_t height = frameDarwin->height_;
@@ -133,32 +128,6 @@ RenderContext* RSSurfaceDarwin::GetRenderContext()
 void RSSurfaceDarwin::SetRenderContext(RenderContext* context)
 {
     renderContext_ = context;
-}
-
-void RSSurfaceDarwin::YInvert(void *addr, int32_t width, int32_t height)
-{
-    const auto &pixels = reinterpret_cast<uint32_t *>(addr);
-    const auto &halfHeight = height / 0x2;
-    const auto &tmpPixels = std::make_unique<uint32_t[]>(width * halfHeight);
-    for (int32_t i = 0; i < halfHeight; i++) {
-        for (int32_t j = 0; j < width; j++) {
-            tmpPixels[i * width + j] = pixels[i * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[i * width + j] = pixels[r * width + j];
-        }
-    }
-
-    for (int32_t i = 0; i < halfHeight; i++) {
-        const auto &r = height - 1 - i;
-        for (int32_t j = 0; j < width; j++) {
-            pixels[r * width + j] = tmpPixels[i * width + j];
-        }
-    }
 }
 
 bool RSSurfaceDarwin::SetupGrContext()

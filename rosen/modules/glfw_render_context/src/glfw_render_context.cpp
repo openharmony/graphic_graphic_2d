@@ -267,16 +267,16 @@ void GlfwRenderContext::DrawTexture()
     glPixelStorei(GL_UNPACK_ROW_LENGTH, framebufferWidth_);
 
     glTexCoord2f(0, 0);
-    glVertex2f(-1, -1);
+    glVertex2f(-1, 1);
 
     glTexCoord2f(1, 0);
-    glVertex2f(1, -1);
-
-    glTexCoord2f(1, 1);
     glVertex2f(1, 1);
 
+    glTexCoord2f(1, 1);
+    glVertex2f(1, -1);
+
     glTexCoord2f(0, 1);
-    glVertex2f(-1, 1);
+    glVertex2f(-1, -1);
 
     glEnd();
     glDisable(GL_TEXTURE_2D);
