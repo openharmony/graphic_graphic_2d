@@ -57,6 +57,7 @@ enum RSNodeCommandType : uint16_t {
     SET_DRAW_REGION,
     SET_OUT_OF_PARENT,
     SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
+    SET_UIFIRST_SWITCH,
 
     REGISTER_GEOMETRY_TRANSITION,
     UNREGISTER_GEOMETRY_TRANSITION,
@@ -142,6 +143,7 @@ public:
 
     static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
     static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
+    static void SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
 
@@ -270,6 +272,10 @@ ADD_COMMAND(RSMarkUifirstNode,
 
 ADD_COMMAND(RSForceUifirstNode,
     ARG(RS_NODE, MARK_UIFIRST_NODE_FORCE, RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
+
+ADD_COMMAND(RSSetUIFirstSwitch,
+    ARG(RS_NODE, SET_UIFIRST_SWITCH,
+        RSNodeCommandHelper::SetUIFirstSwitch, NodeId, RSUIFirstSwitch))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,

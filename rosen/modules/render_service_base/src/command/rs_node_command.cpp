@@ -115,6 +115,14 @@ void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bo
     }
 }
 
+void RSNodeCommandHelper::SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->SetUIFirstSwitch(uiFirstSwitch);
+    }
+}
+
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();
