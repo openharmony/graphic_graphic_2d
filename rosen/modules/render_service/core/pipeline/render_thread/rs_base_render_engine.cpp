@@ -785,8 +785,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
