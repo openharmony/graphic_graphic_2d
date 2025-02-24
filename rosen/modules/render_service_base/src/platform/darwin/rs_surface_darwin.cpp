@@ -55,7 +55,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
     }
 
 #ifdef USE_GLFW_WINDOW
-    GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+    if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+        GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+    }
 #endif
 
     auto frame = std::make_unique<RSSurfaceFrameDarwin>(width, height);
@@ -107,7 +109,7 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
         }
     }
 #ifdef USE_GLFW_WINDOW
-    if (frameDarwin->surface_ != nullptr) {
+    if (GlfwRenderContext::GetGlobal()->IsVisible() && frameDarwin->surface_ != nullptr) {
         YInvert(addr, frameDarwin->width_, frameDarwin->height_);
     }
 #endif
@@ -165,7 +167,11 @@ bool RSSurfaceDarwin::SetupGrContext()
         return true;
     }
 
-#ifndef USE_GLFW_WINDOW
+#ifdef USE_GLFW_WINDOW
+    if (!GlfwRenderContext::GetGlobal()->IsVisible()) {
+        GlfwRenderContext::GetGlobal()->MakeCurrent();
+    }
+#else
     GlfwRenderContext::GetGlobal()->MakeCurrent();
 #endif
     auto grContext = std::make_shared<Drawing::GPUContext>();

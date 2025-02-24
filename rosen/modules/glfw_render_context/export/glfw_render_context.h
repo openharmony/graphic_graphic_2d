@@ -58,6 +58,11 @@ public:
     /* gl operation */
     void MakeCurrent();
     void SwapBuffers();
+
+    bool IsVisible()
+    {
+        return isVisible_;
+    }
 #ifdef __APPLE__
     bool CreateRenderingContext();
     void CreateTexture();
@@ -91,6 +96,7 @@ private:
 
     int32_t width_ = 0;
     int32_t height_ = 0;
+    bool isVisible_;
 #ifdef __APPLE__
     int32_t framebufferWidth_ = 0;
     int32_t framebufferHeight_ = 0;
