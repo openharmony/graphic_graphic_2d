@@ -881,6 +881,10 @@ void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node
 // private method, curDisplayNode_ or curSurfaceNode_ will not be nullptr
 void RSUniRenderVisitor::CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty)
 {
+    if (curDisplayNode_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::CheckMergeFilterDirtyByIntersectWithDirty: curDisplayNode_ is nullptr");
+        return;
+    }
     // Recursively traverses until the globalDirty do not change
     auto dirtyManager = isGlobalDirty ? curDisplayNode_->GetDirtyManager() : curSurfaceNode_->GetDirtyManager();
     if (dirtyManager == nullptr) {

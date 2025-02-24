@@ -542,11 +542,15 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
-    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
+    if (boundsWidth == 0 || boundsHeight == 0) {
+        RS_LOGE("RSUniRenderUtil::SrcRectScaleDown: boundsWidth or boundsHeight is 0");
+        return;
+    }
+    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
 
     uint32_t newWidthBoundsHeight = newWidth * boundsHeight;
     uint32_t newHeightBoundsWidth = newHeight * boundsWidth;

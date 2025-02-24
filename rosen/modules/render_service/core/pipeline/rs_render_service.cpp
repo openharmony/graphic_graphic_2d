@@ -246,7 +246,12 @@ void RSRenderService::RemoveConnection(sptr<IRemoteObject> token)
     if (connections_.count(token) == 0) {
         return;
     }
-
+    auto iter = connections_.find(token);
+    if (iter == connections_.end()) {
+        RS_LOGE("RSRenderService::RemoveConnection: connections_ cannot find token");
+        return;
+    }
+    
     auto tmp = connections_.at(token);
     connections_.erase(token);
     lock.unlock();

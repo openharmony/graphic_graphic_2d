@@ -106,6 +106,24 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSRenderServiceConnection: Failed to set death recipient.");
     }
+    if (renderService_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: renderService_ is nullptr");
+    }
+    if (mainThread_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: mainThread_ is nullptr");
+    }
+    if (screenManager_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: screenManager_ is nullptr");
+    }
+    if (connDeathRecipient_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: connDeathRecipient_ is nullptr");
+    }
+    if (ApplicationDeathRecipient_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: ApplicationDeathRecipient_ is nullptr");
+    }
+    if (appVSyncDistributor_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: appVSyncDistributor_ is nullptr");
+    }
 }
 
 RSRenderServiceConnection::~RSRenderServiceConnection() noexcept
