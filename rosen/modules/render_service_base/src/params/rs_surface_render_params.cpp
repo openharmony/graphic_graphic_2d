@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetNeedMakeImage(bool enabled)
+{
+    if (needMakeImage_ == enabled) {
+        return;
+    }
+    needMakeImage_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedMakeImage() const
+{
+    return needMakeImage_;
+}
+
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
 {
     if (isLastFrameHardwareEnabled_ == enabled) {
@@ -431,6 +445,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;

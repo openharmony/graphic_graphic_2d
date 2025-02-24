@@ -2457,6 +2457,18 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
         if (!surfaceNode) {
             return;
         }
+
+        if (RSSystemProperties::GetHveFilterEnabled()) {
+            const auto &preHwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+            for (const auto& preHwcNode : preHwcNodes) {
+                auto hwcNodePtr = preHwcNode.lock();
+                if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
+                    continue;
+                }
+                hwcNodePtr->ResetMakeImageState();
+            }
+        }
+
         UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
@@ -3523,6 +3535,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNodePtr)
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    bool intersectedWithAIBar = false;
+    bool checkDrawAIBar = false;
     for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
         auto geo = hwcNodePtr.GetRenderProperties().GetBoundsGeometry();
         if (!geo) {
@@ -3535,10 +3549,17 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 continue;
             }
 
-            if (rendernode->IsAIBarFilterCacheValid()) {
-                ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
-                continue;
+            if (rendernode->IsAIBarFilter()) {
+                intersectedWithAIBar = true;
+                if (rendernode->IsAIBarFilterCacheValid()) {
+                    ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
+                    continue;
+                } else if (RSSystemProperties::GetHveFilterEnabled()) {
+                    checkDrawAIBar = true;
+                    continue;
+                }
             }
+
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by transparentCleanFilter",
                 hwcNodePtr.GetName().c_str(), hwcNodePtr.GetId());
             hwcNodePtr.SetHardwareForcedDisabledState(true);
@@ -3546,6 +3567,14 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_CLEAN_FLITER, hwcNodePtr.GetName());
             break;
         }
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64", checkDrawAIBar:%d, intersectedWithAIBar:%d",
+        hwcNodePtr.GetName().c_str(), hwcNodePtr.GetId(), checkDrawAIBar, intersectedWithAIBar);
+    if (checkDrawAIBar) {
+        hwcNodePtr.SetHardwareNeedMakeImage(checkDrawAIBar);
+    }
+    if (intersectedWithAIBar) {
+        hwcNodePtr.SetIntersectWithAIBar(intersectedWithAIBar);
     }
 }
 

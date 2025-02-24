@@ -1410,6 +1410,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                         preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
                 }
+                if (surfaceNode->GetIntersectWithAIBar()) {
+                    doDirectComposition_ = false;
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode intersect with AIBar",
+                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                }
             }
             if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceHandler->IsCurrentFrameBufferConsumed()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
