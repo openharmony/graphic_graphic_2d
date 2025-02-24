@@ -154,7 +154,7 @@ DEF_DTK(Pixmap_Scene2, TestLevel::L2, 2)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    TestBase::ClipRoundRect_notG2(true);
+    TestBase::ClipRoundRectnotG2(true);
 }
 
 // Pixmap_Scene_0033
@@ -615,7 +615,7 @@ DEF_DTK(Pixmap_Scene2, TestLevel::L2, 9)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    TestBase::ClipRoundRect_G2(true);
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0040
@@ -1142,7 +1142,7 @@ DEF_DTK(Pixmap_Scene2, TestLevel::L2, 18)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    TestBase::ClipRoundRect_G2(true);
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0049

@@ -265,7 +265,6 @@ std::shared_ptr<Drawing::RuntimeEffect> TestBase::GetTestRuntimeEffectForBlender
     return runtimeEffect;
 }
 
-// ClipPath
 void TestBase::ClipPath(bool doAntiAlias)
 {
     Drawing::Path path;
@@ -277,7 +276,6 @@ void TestBase::ClipPath(bool doAntiAlias)
     playbackCanvas_->Restore();
 }
 
-// ClipRect
 void TestBase::ClipRect(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
@@ -287,7 +285,6 @@ void TestBase::ClipRect(bool doAntiAlias)
     playbackCanvas_->Restore();
 }
 
-// ClipRoundRect(G2))
 void TestBase::ClipRoundRectG2(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
@@ -298,7 +295,6 @@ void TestBase::ClipRoundRectG2(bool doAntiAlias)
     playbackCanvas_->Restore();
 }
 
-// ClipRoundRect(G2_capsule))
 void TestBase::ClipRoundRectG2capsule(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
@@ -309,7 +305,6 @@ void TestBase::ClipRoundRectG2capsule(bool doAntiAlias)
     playbackCanvas_->Restore();
 }
 
-// ClipRoundRect(·ÇG2))
 void TestBase::ClipRoundRectnotG2(bool doAntiAlias)
 {
     auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
