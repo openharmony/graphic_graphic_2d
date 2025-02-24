@@ -24,7 +24,7 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHWcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
-    ":RSVBlankIdleCorrectorTest"
+    ":RSVBlankIdleCorrectorTest",
   ]
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
