@@ -157,7 +157,7 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
         });
 
     std::string hilogInfo = "[";
-    for (int i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
+    for (size_t i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
         MemorySnapshotInfo info = memorySnapshotsList[i];
         hilogInfo += "pid[" + std::to_string(info.pid) +
             "] cpu[" + std::to_string(info.cpuMemory / MEMUNIT_RATE) +
