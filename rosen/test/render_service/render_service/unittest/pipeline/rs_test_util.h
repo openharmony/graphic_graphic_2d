@@ -26,7 +26,7 @@ namespace Rosen {
 
 class RSTestUtil {
 public:
-    static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNode();
+    static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNode(const RSSurfaceRenderNodeConfig surfaceConfig = {});
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNodeWithBuffer();
     static void InitRenderNodeGC();
 private:
