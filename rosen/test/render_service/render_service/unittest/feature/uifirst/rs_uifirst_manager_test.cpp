@@ -671,35 +671,146 @@ HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation003, TestSize.Level1)
 
 /**
  * @tc.name: UpdateUifirstNodes
- * @tc.desc: Test UpdateUifirstNodes, with different nodes
+ * @tc.desc: Test UpdateUifirstNodes, with deviceType is Phone
  * @tc.type: FUNC
- * @tc.require: #I9UNQP
+ * @tc.require: #IBOBU1
  */
-HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
 {
+    uifirstManager_.isUiFirstOn_ = true;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode1, nullptr);
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    surfaceNode1->isChildSupportUifirst_ = true;
+    surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
+    // 1. surfaceNode1 only has animation.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
+    // 2. surfaceNode1 not has animation.
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 3. surfaceNode1 has animation and filter.
+    surfaceNode1->SetHasFilter(true);
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 4. surfaceNode1 has animation, filter and rotation.
+    uifirstManager_.rotationChanged_ = true;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+
+    // 5. surfaceNode2 has animation, WindowType is scb.
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode2->firstLevelNodeId_ = surfaceNode2->GetId();
+    uifirstManager_.rotationChanged_ = false;
+    const_cast<SurfaceWindowType&>(surfaceNode2->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+
+    // 6. surfaceNode3 has animation, nodeType is self_drawing.
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode3->firstLevelNodeId_ = surfaceNode3->GetId();
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode3, true);
+    ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+}
+
+/**
+ * @tc.name: UpdateUifirstNodes
+ * @tc.desc: Test UpdateUifirstNodes, with deviceType is Phone
+ * @tc.type: FUNC
+ * @tc.require: #IBOBU1
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
+{
+    // 1. RecentTaskScene
+    // 2. surfaceNode1 not has animation, has scale, children is surfaceNdoe2
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
+    uifirstManager_.isRecentTaskScene_ = true;
+    surfaceNode1->SetIsScale(true);
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode1->UpdateChildSubSurfaceNodes(surfaceNode2, true);
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
+    uifirstManager_.isRecentTaskScene_ = false;
+
+    // 3. cardNode
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = ++RSTestUtil::id;
+    surfaceConfig.name = "ArkTSCardNode";
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    surfaceNode3->firstLevelNodeId_ = surfaceNode3->GetId();
+    surfaceNode3->SetAncestorDisplayNode(displayNode);
+    uifirstManager_.entryViewNodeId_ = 1;
+    uifirstManager_.negativeScreenNodeId_ = 1;
+    surfaceNode3->instanceRootNodeId_ = 1;
+    surfaceNode3->shouldPaint_ = true;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
+    ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
+}
+
+/**
+ * @tc.name: UpdateUifirstNodes
+ * @tc.desc: Test UpdateUifirstNodes, with deviceType is PC
+ * @tc.type: FUNC
+ * @tc.require: #IBOBU1
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
+{
+    mainThread_->deviceType_ = DeviceType::PC;
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
+    // 1. surfaceNode1 is focus window, not has animation and filter and rotation.
+    mainThread_->focusNodeId_ = surfaceNode1->GetId();
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 2. surfaceNode1 is focus window, has animation. first frame
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 3. second frame
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    // 4. surfaceNode1 is focus window, has animation and transparent, not has filter.
+    surfaceNode1->hasTransparentSurface_ = true;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    // 5. surfaceNode1 is focus window, has animation and filter, not has transparent.
+    surfaceNode1->hasTransparentSurface_ = false;
+    surfaceNode1->SetHasFilter(true);
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    mainThread_->focusNodeId_ = 0;
 
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode2, nullptr);
-    surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
-    surfaceNode2->isChildSupportUifirst_ = true;
+    surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode2->firstLevelNodeId_ = surfaceNode2->GetId();
+    // 5. surfaceNode2 is not focus window, not has filter and transparent. first frame
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 6. second frame
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    // 7. surfaceNode2 is not focus window, has transparent.
+    surfaceNode2->hasTransparentSurface_ = true;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    // 8. surfaceNode2 is not focus window, has filter and transparent.
+    surfaceNode2->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-
-    auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode3, nullptr);
-    surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
-    surfaceNode3->isChildSupportUifirst_ = true;
-    uifirstManager_.UpdateUifirstNodes(*surfaceNode3, true);
-
-    auto surfaceNode4 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode4, nullptr);
-    surfaceNode4->SetSurfaceNodeType(RSSurfaceNodeType::SCB_SCREEN_NODE);
-    surfaceNode4->isChildSupportUifirst_ = true;
-    uifirstManager_.UpdateUifirstNodes(*surfaceNode4, true);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    // 9. surfaceNode2 is not focus window, not has filter and transparent, has display rotation.
+    surfaceNode2->hasTransparentSurface_ = false;
+    surfaceNode2->SetHasFilter(false);
+    uifirstManager_.rotationChanged_ = true;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    mainThread_->deviceType_ = DeviceType::PHONE;
+    uifirstManager_.isUiFirstOn_ = false;
+    uifirstManager_.rotationChanged_ = false;
 }
 
 /**
