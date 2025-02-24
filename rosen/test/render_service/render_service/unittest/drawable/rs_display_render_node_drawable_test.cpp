@@ -455,27 +455,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
 }
 
 /**
- * @tc.name: HardCursorCreateLayer
- * @tc.desc: Test HardCursorCreateLayer
- * @tc.type: FUNC
- * @tc.require: #IAX2SN
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    ASSERT_NE(processor, nullptr);
-
-    auto result = displayDrawable_->HardCursorCreateLayer(processor);
-    ASSERT_EQ(result, false);
-}
-
-/**
  * @tc.name: RequestFrame
  * @tc.desc: Test RequestFrame
  * @tc.type: FUNC

@@ -1246,11 +1246,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->GetHardwareEnabled());
 
-    surfaceParams->isHardCursor_ = true;
-    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->GetHardCursorStatus());
-    ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabledTopSurface());
-
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     surfaceDrawable_->name_ = "pointer window";

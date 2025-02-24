@@ -495,14 +495,6 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return static_cast<HgmRefreshRateModes>(ConvertToInt(enable, 0));
 }
 
-bool RSSystemProperties::GetHardCursorEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hardCursor.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
-}
-
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.skipForAlphaZero.enabled", "1");
