@@ -21,6 +21,9 @@ config("create_pixelmap_surface_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
+  if (use_video_processing_engine) {
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+  }
   defines = gpu_defines
 }
 
@@ -47,6 +50,11 @@ ohos_source_set("create_pixelmap_surface_src") {
   ]
 
   external_deps = [ "graphic_surface:sync_fence" ]
+
+  if (use_video_processing_engine) {
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
