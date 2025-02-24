@@ -977,6 +977,15 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::PROTECTED, isProtectedLayer);
 }
 
+void RSSurfaceRenderNode::SetIsOutOfScreen(bool isOutOfScreen)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetIsOutOfScreen(isOutOfScreen);
+        AddToPendingSyncList();
+    }
+}
+
 bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
 {
     return privacyContentLayerIds_.size() != 0;
@@ -1904,10 +1913,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
             }
         }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
-    } else if (IsAbilityComponent()) {
-        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     } else {
-        contentStatic = surfaceCacheContentStatic_;
+        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
     uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();

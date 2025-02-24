@@ -1019,5 +1019,27 @@ HWTEST_F(RSSystemPropertiesTest, IsSuperFoldDisplay, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::IsSuperFoldDisplay());
 }
+
+/**
+ * @tc.name: GetOptimizeParentNodeRegionEnabled
+ * @tc.desc: GetOptimizeParentNodeRegionEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeParentNodeRegionEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetOptimizeParentNodeRegionEnabled());
+}
+
+/**
+ * @tc.name: GetOptimizeHwcComposeAreaEnabled
+ * @tc.desc: GetOptimizeHwcComposeAreaEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS

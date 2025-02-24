@@ -446,6 +446,7 @@ public:
     void ClearUnmappedCache();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -661,7 +662,11 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
     uint64_t focusLeashWindowId_ = 0;
+    std::string focusLeashWindowName_ = "";
+    std::string appWindowName_ = "";
+    uint32_t appPid_ = 0;
     uint64_t lastFocusNodeId_ = 0;
+    uint64_t appWindowId_ = 0;
     ScreenId displayNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;

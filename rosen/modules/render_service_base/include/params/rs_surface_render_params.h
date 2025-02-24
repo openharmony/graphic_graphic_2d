@@ -138,6 +138,18 @@ public:
     {
         return animateState_;
     }
+    void SetIsOutOfScreen(bool isOutOfScreen)
+    {
+        if (isOutOfScreen_ == isOutOfScreen) {
+            return;
+        }
+        isOutOfScreen_ = isOutOfScreen;
+        needSync_ = true;
+    }
+    bool GetIsOutOfScreen()
+    {
+        return isOutOfScreen_;
+    }
     bool GetIsRotating() const
     {
         return isRotating_;
@@ -676,6 +688,7 @@ private:
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;
+    bool isOutOfScreen_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;

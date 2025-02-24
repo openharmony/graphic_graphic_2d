@@ -587,5 +587,15 @@ bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

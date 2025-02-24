@@ -1271,5 +1271,21 @@ bool RSSystemProperties::GetDmaReclaimParam()
 {
     return system::GetBoolParameter("resourceschedule.memmgr.dma.reclaimable", false);
 }
+
+bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.optimizeParentNodeRegion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.optimizeHwcComposeArea.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

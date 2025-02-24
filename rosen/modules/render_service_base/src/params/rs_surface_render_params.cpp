@@ -536,6 +536,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;

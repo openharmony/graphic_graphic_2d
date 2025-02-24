@@ -525,6 +525,7 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
+    void SetIsOutOfScreen(bool isOutOfScreen);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;

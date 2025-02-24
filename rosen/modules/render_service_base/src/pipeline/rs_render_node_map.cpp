@@ -44,7 +44,6 @@ RSRenderNodeMap::RSRenderNodeMap()
 void RSRenderNodeMap::Initialize(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
-    renderNodeMap_[0][0]->OnRegister(context_);
 }
 
 void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)

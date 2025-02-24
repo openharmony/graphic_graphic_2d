@@ -226,7 +226,7 @@ void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool n
     if (!node.HasRemovedChild()) {
         return;
     }
-    RectI dirtyRect = node.GetChildrenRect();
+    RectI dirtyRect = node.GetRemovedChildrenRect();
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     if (dirtyManager == nullptr || dirtyRect.IsEmpty()) {
         node.ResetHasRemovedChild();
@@ -283,6 +283,14 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
+    auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE && appSurfaceNode
+        && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to set new color "
+                "gamut %{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
+        return;
+    }
+    
     if (node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
         newColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) set new colorgamut %{public}d",
@@ -1070,6 +1078,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager "
+            "is set to nullptr by QuickPrepareChildren", node.GetName().c_str());
+        node.OpincSetInAppStateEnd(unchangeMarkInApp_);
+        return;
+    }
     if (!node.IsFirstLevelCrossNode()) {
         curSurfaceDirtyManager_->ClipDirtyRectWithinSurface();
     }
@@ -1666,8 +1680,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (autoCacheEnable_ && node.IsAppWindow()) {
         node.OpincSetInAppStateStart(unchangeMarkInApp_);
     }
-    // 3. check color space pixelFormat and update RelMatrix
-    CheckColorSpace(node);
+    // 3. check pixelFormat and update RelMatrix
     CheckPixelFormat(node);
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
@@ -1721,6 +1734,11 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     UpdateHwcNodeInfoForAppNode(node);
     if (node.IsHardwareEnabledTopSurface()) {
         UpdateSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
+    }
+    // 4. Update color gamut for appNode
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PHONE ||
+        !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
+        CheckColorSpace(node);
     }
     return true;
 }

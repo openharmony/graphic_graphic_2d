@@ -339,6 +339,49 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     return allSurfaceVisibleDirtyRegion;
 }
 
+std::vector<RectI> RSUniRenderUtil::GetCurrentFrameVisibleDirty(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenInfo& screenInfo, RSDisplayRenderParams& params)
+{
+    Occlusion::Region damageRegions;
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    // update all child surfacenode history
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGI("GetCurrentFrameVisibleDirty surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceParams || !surfaceDirtyManager) {
+            RS_LOGI("RSUniRenderUtil::GetCurrentFrameVisibleDirty node(%{public}" PRIu64") params or "
+                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
+            continue;
+        }
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        // for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
+        if (surfaceParams->IsFirstLevelCrossNode() &&
+            !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
+            continue;
+        }
+        auto visibleRegion = surfaceParams->GetVisibleRegion();
+        auto surfaceCurrentFrameDirtyRegion = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
+        Occlusion::Region currentFrameDirtyRegion { Occlusion::Rect {
+            surfaceCurrentFrameDirtyRegion.left_, surfaceCurrentFrameDirtyRegion.top_,
+            surfaceCurrentFrameDirtyRegion.GetRight(), surfaceCurrentFrameDirtyRegion.GetBottom() } };
+        Occlusion::Region damageRegion = currentFrameDirtyRegion.And(visibleRegion);
+        damageRegions.OrSelf(damageRegion);
+    }
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
+    RectI rect = displayDrawable.GetSyncDirtyManager()->GetDirtyRegionFlipWithinSurface();
+    if (!rect.IsEmpty()) {
+        rects.emplace_back(rect);
+    }
+    return rects;
+}
+
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
     const Occlusion::Region& globalDirtyRegion)
@@ -1914,7 +1957,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
         RS_LOGE("surface or buffer is nullptr");
         return;
     }
-
+    node.SetIsOutOfScreen(false);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
@@ -1936,6 +1979,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
                 absBoundsRect.GetLeft() + absBoundsRect.GetWidth() > screenInfo.width ||
                 absBoundsRect.GetTop() + absBoundsRect.GetHeight() > screenInfo.height) {
                 node.SetHardwareForcedDisabledState(true);
+                node.SetIsOutOfScreen(true);
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s id %llu disabled by scale fit bounds out of screen. "
                     "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
                     node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,

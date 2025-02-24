@@ -1894,10 +1894,16 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStaticFlag, TestSize.
     EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 
     node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node->surfaceCacheContentStatic_ = false;
+    node->UpdateSurfaceCacheContentStaticFlag(true);
+    EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
+
+    node->isSubTreeDirty_ = true;
+    node->isContentDirty_ = true;
     node->UpdateSurfaceCacheContentStaticFlag(false);
     EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
-    node->surfaceCacheContentStatic_ = true;
+
+    node->isSubTreeDirty_ = false;
+    node->isContentDirty_ = false;
     node->UpdateSurfaceCacheContentStaticFlag(false);
     EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 }

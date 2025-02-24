@@ -737,10 +737,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     UpdateSlrScale(screenInfo);
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
+    std::vector<RectI> curFrameVisibleRegionRects;
     Drawing::Region clipRegion;
     if (uniParam->IsPartialRenderEnabled()) {
         damageRegionrects = RSUniRenderUtil::MergeDirtyHistory(
             *this, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx, *params);
+        curFrameVisibleRegionRects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
         uniParam->Reset();
         clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
@@ -920,7 +922,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     HardCursorCreateLayer(processor);
     if (screenInfo.activeRect.IsEmpty() ||
         screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height)) {
-        SetDirtyRects(damageRegionrects);
+        if (uniParam->IsRegionDebugEnabled()) {
+            std::vector<RectI> emptyRegionRects = {};
+            SetDirtyRects(emptyRegionRects);
+        } else {
+            SetDirtyRects(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled() ?
+                curFrameVisibleRegionRects : damageRegionrects);
+        }
     } else {
         SetDirtyRects({GetSyncDirtyManager()->GetRectFlipWithinSurface(screenInfo.activeRect)});
     }

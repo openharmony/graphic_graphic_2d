@@ -26,30 +26,53 @@
 
 class SymbolConfigParser {
 public:
-    bool ParseSymbolLayersGrouping(const Json::Value& root,
+    static bool ParseSymbolLayersGrouping(const Json::Value& root,
         std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig);
+    static void ParseSymbolAnimations(const Json::Value& root,
+        std::unordered_map<RSAnimationType, RSAnimationInfo>& animationInfos);
 
 private:
-    void ParseOneSymbolNativeCase(const char* key, const Json::Value& root, uint16_t& nativeGlyphId);
-    void ParseComponets(const Json::Value& root, std::vector<size_t>& components);
-    void SymbolGlyphCase(const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups);
-    void ParseLayers(const Json::Value& root, std::vector<std::vector<size_t>>& layers);
-    void ParseOneSymbolLayerCase(const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups);
-    void ParseOneSymbolRenderCase(const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups);
-    void ParseRenderModes(const Json::Value& root, std::map<RSSymbolRenderingStrategy,
+    static bool ParseOneSymbolNativeCase(const char* key, const Json::Value& root, uint16_t& nativeGlyphId);
+    static void ParseComponets(const Json::Value& root, std::vector<size_t>& components);
+    static void SymbolGlyphCase(const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups);
+    static void ParseLayers(const Json::Value& root, std::vector<std::vector<size_t>>& layers);
+    static void ParseOneSymbolLayerCase(const char* key, const Json::Value& root,
+        RSSymbolLayersGroups& symbolLayersGroups);
+    static void ParseOneSymbolRenderCase(const char* key, const Json::Value& root,
+        RSSymbolLayersGroups& symbolLayersGroups);
+    static void ParseRenderModes(const Json::Value& root, std::map<RSSymbolRenderingStrategy,
         std::vector<RSRenderGroup>>& renderModesGroups);
-    void ParseRenderGroups(const Json::Value& root, std::vector<RSRenderGroup>& renderGroups);
-    void ParseDefaultColor(const char* defaultColor, RSRenderGroup& renderGroup);
-    void ParseGroupIndexes(const Json::Value& root, std::vector<RSGroupInfo>& groupInfos);
-    void ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<size_t>& indexes);
-    void ParseOneSymbolAnimateCase(const char* key, const Json::Value& root, RSSymbolLayersGroups& symbolLayersGroups);
-    void ParseAnimationSettings(const Json::Value& root, std::vector<RSAnimationSetting>& animationSettings);
-    void ParseAnimationSetting(const Json::Value& root, RSAnimationSetting& animationSetting);
-    void ParseAnimationTypes(const Json::Value& root, std::vector<RSAnimationType>& animationTypes);
-    void ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType);
-    void ParseGroupSettings(const Json::Value& root, std::vector<RSGroupSetting>& groupSettings);
-    void ParseGroupSetting(const Json::Value& root, RSGroupSetting& groupSetting);
-    void ParseOneSymbol(const Json::Value& root, std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig);
+    static void ParseRenderGroups(const Json::Value& root, std::vector<RSRenderGroup>& renderGroups);
+    static void ParseDefaultColor(const char* defaultColor, RSRenderGroup& renderGroup);
+    static void ParseGroupIndexes(const Json::Value& root, std::vector<RSGroupInfo>& groupInfos);
+    static void ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<size_t>& indexes);
+    static void ParseOneSymbolAnimateCase(const char* key, const Json::Value& root,
+        RSSymbolLayersGroups& symbolLayersGroups);
+    static void ParseAnimationSettings(const Json::Value& root, std::vector<RSAnimationSetting>& animationSettings);
+    static void ParseAnimationSetting(const Json::Value& root, RSAnimationSetting& animationSetting);
+    static void ParseAnimationTypes(const Json::Value& root, std::vector<RSAnimationType>& animationTypes);
+    static void ParseAnimationType(const std::string& animationTypeStr, RSAnimationType& animationType);
+    static void ParseGroupSettings(const Json::Value& root, std::vector<RSGroupSetting>& groupSettings);
+    static void ParseGroupSetting(const Json::Value& root, RSGroupSetting& groupSetting);
+    static void ParseOneSymbol(const Json::Value& root,
+        std::unordered_map<uint16_t, RSSymbolLayersGroups>& symbolConfig);
+    static uint32_t EncodeAnimationAttribute(uint16_t groupSum, uint16_t animationMode, RSCommonSubType commonSubType);
+    static void ParseSymbolAnimationParas(const Json::Value& root,
+        std::map<uint32_t, RSAnimationPara>& animationParas);
+    static void ParseSymbolAnimationPara(const Json::Value& root, RSAnimationPara& animationPara);
+    static void ParseSymbolCommonSubType(const char* key, const Json::Value& root, RSAnimationPara& animationPara);
+    static void ParseSymbolGroupParas(const char* key, const Json::Value& root, RSAnimationPara& animationPara);
+    static void ParseSymbolPiecewisePara(const Json::Value& root, RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaCurveCase(const char* key, const Json::Value& root,
+        RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaDurationCase(const char* key, const Json::Value& root,
+        RSPiecewiseParameter& piecewiseParameter);
+    static void PiecewiseParaDelayCase(const char* key, const Json::Value& root,
+        RSPiecewiseParameter& piecewiseParameter);
+    static void ParseSymbolCurveArgs(const char* key, const Json::Value& root,
+        RSPiecewiseParameter& piecewiseParameter);
+    static void ParseSymbolProperties(const char* key, const Json::Value& root,
+        RSPiecewiseParameter& piecewiseParameter);
 };
 
 #endif // SYMBOL_CONFIG_PARSER_H
