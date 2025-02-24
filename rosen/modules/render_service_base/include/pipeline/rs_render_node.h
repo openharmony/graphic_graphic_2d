@@ -725,6 +725,9 @@ public:
     void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
     bool GetUifirstNodeForceFlag() const;
 
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
+    RSUIFirstSwitch GetUIFirstSwitch() const;
+
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
     virtual bool EffectNodeShouldPaint() const { return true; };
@@ -852,6 +855,7 @@ protected:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     int isUifirstDelay_ = 0;
     bool lastFrameHasAnimation_ = false;
 

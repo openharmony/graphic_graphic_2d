@@ -289,6 +289,11 @@ enum class SelfDrawingNodeType : uint8_t {
     XCOM,
 };
 
+enum class RSUIFirstSwitch {
+    NONE,               // follow RS rules
+    MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
+};
+
 enum class SurfaceWindowType : uint8_t {
     DEFAULT_WINDOW = 0,
     SYSTEM_SCB_WINDOW = 1,
