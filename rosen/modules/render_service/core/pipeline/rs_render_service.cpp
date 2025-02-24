@@ -720,8 +720,8 @@ void RSRenderService::DumpExistPidMem(std::unordered_set<std::u16string>& argSet
 
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
-    if (argSets.empty()) {
-        RS_LOGE("RSRenderService::DoDump failed, args is empty");
+    if (!mainThread_ || !screenManager_) {
+        RS_LOGE("RSRenderService::DoDump failed, mainThread, screenManager is nullptr");
         return;
     }
 
@@ -730,11 +730,6 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         cmdStr += std::string(cmd.begin(), cmd.end()) + " ";
     }
     RS_TRACE_NAME("RSRenderService::DoDump args is [ " + cmdStr + " ]");
-
-    if (!mainThread_ || !screenManager_) {
-        RS_LOGE("RSRenderService::DoDump failed, mainThread, screenManager is nullptr");
-        return;
-    }
 
     RSDumpManager::GetInstance().CmdExec(argSets, dumpString);
 }
