@@ -28,7 +28,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "DrmConfig",
     "HwcConfig",
     "HfbcConfig",
-    "OPIncConfig"
+    "OPIncConfig",
     "UIFirstConfig"
 };
 
