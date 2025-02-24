@@ -42,7 +42,7 @@ class DRAWING_API PathIterator {
 public:
     PathIterator(const Path &path) noexcept;
     virtual ~PathIterator();
-    scalar conicWeight() const;
+    scalar ConicWeight() const;
     PathVerb Next(Point* points);
     PathVerb Peek();
 
