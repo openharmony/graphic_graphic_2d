@@ -290,9 +290,9 @@ private:
     float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     RectI activeRect_ = {};
-
     RectI maskRect_ = {};
     RectI reviseRect_ = {};
+
     std::atomic<VirtualScreenStatus> screenStatus_ = VIRTUAL_SCREEN_PLAY;
 
     bool isVirtual_ = true;

@@ -300,11 +300,13 @@ RectI RSScreen::GetActiveRect() const
 
 RectI RSScreen::GetMaskRect() const
 {
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
     return maskRect_;
 }
 
 RectI RSScreen::GetReviseRect() const
 {
+    std::shared_lock<std::shared_mutex> lock(screenMutex_);
     return reviseRect_;
 }
 
@@ -394,10 +396,9 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
             __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
         return StatusCode::INVALID_ARGUMENTS;
     }
-    {
-        std::lock_guard<std::shared_mutex> lock(screenMutex_);
-        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    }
+
+    std::unique_lock<std::shared_mutex> lock(screenMutex_);
+    activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     RS_LOGI("%{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     GraphicIRect reviseRect = activeRect;
@@ -405,6 +406,8 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         RS_LOGW("CalculateMaskRect failed or not need");
     }
     reviseRect_ = RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+    lock.unlock();
+
     if (hdiScreen_->SetScreenActiveRect(reviseRect) < 0) {
         RS_LOGE("%{public}s failed: hdi SetScreenActiveRect failed, activeRect with revise:"
             "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
@@ -443,15 +446,16 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return;
     }
-    {
-        std::shared_lock<std::shared_mutex> lock(screenMutex_);
-        if ((width == 0 || height == 0) ||
-            (width == width_ && height == height_) ||
-            (width > phyWidth_ || height > phyHeight_)) {
-            RS_LOGD("%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
-            return;
-        }
+
+    std::shared_lock<std::shared_mutex> sharedLock(screenMutex_);
+    if ((width == 0 || height == 0) ||
+        (width == width_ && height == height_) ||
+        (width > phyWidth_ || height > phyHeight_)) {
+        RS_LOGD("%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
+        return;
     }
+    sharedLock.unlock();
+
     if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
         RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
     }
