@@ -604,6 +604,7 @@ private:
     bool qosPidCal_ = false;
 
     std::atomic<bool> isDirty_ = false;
+    bool prevHdrSwitchStatus_ = true;
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
