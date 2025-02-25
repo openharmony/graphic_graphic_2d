@@ -4387,6 +4387,19 @@ bool RSRenderNode::GetUifirstNodeForceFlag() const
     return isForceFlag_;
 }
 
+void RSRenderNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
+{
+    uiFirstSwitch_ = uiFirstSwitch;
+    if (auto& firstNode = GetFirstLevelNode()) {
+        firstNode->uiFirstSwitch_ = uiFirstSwitch;
+    }
+}
+
+RSUIFirstSwitch RSRenderNode::GetUIFirstSwitch() const
+{
+    return uiFirstSwitch_;
+}
+
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 {
     childrenHasSharedTransition_ = hasSharedTransition;
