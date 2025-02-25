@@ -18,6 +18,7 @@
 
 #include "event_runner.h"
 #include "dumper.h"
+#include "eventhandler_macros.h"
 
 #ifndef __has_builtin
 #define __has_builtin(x) 0
@@ -60,7 +61,7 @@ struct Caller {
 template<typename T>
 class ThreadLocalData;
 
-class EventHandler : public std::enable_shared_from_this<EventHandler> {
+class IMPL_EVENTHANDELER_EXPORT EventHandler : public std::enable_shared_from_this<EventHandler> {
 public:
     using CallbackTimeout = std::function<void()>;
     using Callback = InnerEvent::Callback;
@@ -953,8 +954,6 @@ private:
     std::shared_ptr<EventRunner> eventRunner_;
     CallbackTimeout deliveryTimeoutCallback_;
     CallbackTimeout distributeTimeoutCallback_;
-
-    static thread_local std::weak_ptr<EventHandler> currentEventHandler;
 };
 }  // namespace AppExecFwk
 namespace EventHandling = AppExecFwk;

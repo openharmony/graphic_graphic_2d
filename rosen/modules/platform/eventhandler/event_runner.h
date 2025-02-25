@@ -21,12 +21,13 @@
 #include "event_queue.h"
 #include "dumper.h"
 #include "logger.h"
+#include "eventhandler_macros.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 class EventInnerRunner;
 
-class EventRunner final {
+class IMPL_EVENTHANDELER_EXPORT EventRunner final {
 public:
     EventRunner() = delete;
     ~EventRunner();
