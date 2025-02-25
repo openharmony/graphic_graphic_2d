@@ -142,6 +142,7 @@ group("test") {
     "render_service_client/fuzztest/ui/rsuidirector_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
+    "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/jank_detector:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
