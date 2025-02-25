@@ -349,9 +349,7 @@ ohos_unittest("RSAncoManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "anco_manager/rs_anco_manager_test.cpp",
   ]
-  deps = [
-    ":rs_test_common",
-  ]
+  deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
