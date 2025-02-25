@@ -31,6 +31,8 @@ ohos_unittest("feature_cfg_test") {
     "hdr_param_test.cpp",
     "hfbc_param_test.cpp",
     "hwc_param_test.cpp",
+    "opinc_param_test.cpp",
+    "uifirst_param_test.cpp",
     "xml_parser_base_test.cpp",
   ]
 
