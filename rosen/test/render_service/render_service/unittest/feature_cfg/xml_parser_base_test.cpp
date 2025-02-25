@@ -30,8 +30,8 @@ public:
     void SetUp();
     void TearDown();
 
-    static constexpr char config[] = "/sys_prod/etc/graphic/graphic_config.xml";
-    static constexpr char invalidConfig[] = "/sys_prod/etc/graphic/invalid_config.xml";
+    std::string graphicConfigPath = "etc/graphic/graphic_config.xml";
+    std::string invalidConfig = "/sys_prod/etc/graphic/invalid_config.xml";
 };
 
 void XmlParserBaseTest::SetUpTestCase() {}
@@ -56,9 +56,8 @@ HWTEST_F(XmlParserBaseTest, LoadGraphicConfiguration, Function | SmallTest | Lev
         STEP("2. check the result of configuration") {
             int32_t load = parser->LoadGraphicConfiguration(invalidConfig);
             STEP_ASSERT_EQ(load, static_cast<int32_t>(PARSE_FILE_LOAD_FAIL));
-            STEP_ASSERT_EQ(parser->xmlDocument_, nullptr);
-            STEP_ASSERT_EQ(parser->Parse(), static_cast<int32_t>(PARSE_FILE_LOAD_FAIL));
-            load = parser->LoadGraphicConfiguration(config);
+            STEP_ASSERT_EQ(parser->ParseSysDoc(), static_cast<int32_t>(PARSE_FILE_LOAD_FAIL));
+            load = parser->LoadGraphicConfiguration(graphicConfigPath);
             STEP_ASSERT_GE(load, 0);
         }
     }
@@ -73,8 +72,10 @@ HWTEST_F(XmlParserBaseTest, LoadGraphicConfiguration, Function | SmallTest | Lev
 HWTEST_F(XmlParserBaseTest, Parse, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParserBase> parser = std::make_unique<XMLParserBase>();
-    parser->LoadGraphicConfiguration(config);
-    int parseSuccess = parser->Parse();
+    parser->LoadGraphicConfiguration(graphicConfigPath);
+    int parseSuccess = parser->ParseSysDoc();
+    EXPECT_GE(parseSuccess, PARSE_EXEC_SUCCESS);
+    parseSuccess = parser->ParseProdDoc();
     EXPECT_GE(parseSuccess, PARSE_EXEC_SUCCESS);
 }
 } // namespace Rosen
