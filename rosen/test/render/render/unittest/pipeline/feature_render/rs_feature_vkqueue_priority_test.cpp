@@ -43,11 +43,8 @@ void RSFeatureVkQueuePriorityTest::TearDown() {}
 HWTEST_F(RSFeatureVkQueuePriorityTest, Init_001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
-    auto ret1 = rsVulkanInterface.CreateDrawingContext(false);
+    auto ret1 = rsVulkanInterface.CreateDrawingContext();
     EXPECT_TRUE(ret1 != nullptr);
-
-    auto ret2 = rsVulkanInterface.CreateDrawingContext(true);
-    EXPECT_TRUE(ret2 != nullptr);
 
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
