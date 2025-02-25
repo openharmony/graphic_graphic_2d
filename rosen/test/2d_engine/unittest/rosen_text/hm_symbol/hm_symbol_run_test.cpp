@@ -238,7 +238,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     bool check = false;
-    hmSymbolRun.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     check = hmSymbolRun.SymbolAnimation(symbol, offset);
     EXPECT_FALSE(check);
 }
@@ -260,7 +260,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level1)
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    hmSymbolRun.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     bool flag = hmSymbolRun.GetAnimationGroups(effectStrategy, animationOut);
     EXPECT_TRUE(flag);
 }
@@ -282,7 +282,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    hmSymbolRun.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     bool flag = hmSymbolRun.GetAnimationGroups(effectStrategy, animationOut);
     EXPECT_FALSE(flag);
 }
@@ -305,7 +305,7 @@ HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
     auto symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
     EXPECT_TRUE(symbolLayer.renderGroups.empty());
 
-    hmSymbolRun.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
     EXPECT_EQ(symbolLayer.symbolGlyphId, glyphId);
 
@@ -575,11 +575,11 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level1)
 }
 
 /*
- * @tc.name: UpdataSymbolLayersGroups001
- * @tc.desc: test UpdataSymbolLayersGroups
+ * @tc.name: UpdateSymbolLayersGroups001
+ * @tc.desc: test UpdateSymbolLayersGroups
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, UpdataSymbolLayersGroups001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, UpdateSymbolLayersGroups001, TestSize.Level1)
 {
     HMSymbolTxt symbolTxt;
     symbolTxt.SetSymbolType(SymbolType::SYSTEM);
@@ -588,17 +588,17 @@ HWTEST_F(OHHmSymbolRunTest, UpdataSymbolLayersGroups001, TestSize.Level1)
     std::shared_ptr<RSTextBlob> textBlob = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textBlob, animationFunc);
     uint16_t glyphId = 3; // 3 is an existing GlyphID
-    hmSymbolRun.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     EXPECT_EQ(hmSymbolRun.symbolLayersGroups_.symbolGlyphId, glyphId);
 
     glyphId = 0; // 0 is a nonexistent GlyphID
     HMSymbolRun hmSymbolRun1 = HMSymbolRun(0, symbolTxt, textBlob, animationFunc);
-    hmSymbolRun1.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun1.UpdateSymbolLayersGroups(glyphId);
     EXPECT_TRUE(hmSymbolRun1.symbolLayersGroups_.renderModeGroups.empty());
 
     symbolTxt.SetSymbolType(SymbolType::CUSTOM);
     HMSymbolRun hmSymbolRun2 = HMSymbolRun(0, symbolTxt, textBlob, animationFunc);
-    hmSymbolRun2.UpdataSymbolLayersGroups(glyphId);
+    hmSymbolRun2.UpdateSymbolLayersGroups(glyphId);
     EXPECT_TRUE(hmSymbolRun2.symbolLayersGroups_.renderModeGroups.empty());
 }
 } // namespace SPText
