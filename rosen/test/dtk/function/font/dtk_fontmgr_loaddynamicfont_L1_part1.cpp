@@ -769,5 +769,478 @@ DEF_DTK(fontmgr_loaddynamicfont_1, TestLevel::L1, 43)
     DrawTexts(playbackCanvas_, typeface);
 }
 
+//对应用例 FontMgr_LoadDynamicFont_3044
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 44)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3045
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 45)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3046
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 46)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "abcd";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3047
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 47)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3048
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 48)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3049
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 49)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3050
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 50)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3051
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 51)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3052
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 52)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3053
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 53)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3054
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 54)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "abcd";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3055
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 55)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "abcd";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3056
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 56)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3057
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 57)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3058
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 58)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3059
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 59)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3060
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 60)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3061
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 61)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3062
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 62)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "abcd";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3063
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 63)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3064
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 64)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3065
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 65)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3066
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 66)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3067
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 67)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3068
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 68)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3069
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 69)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, emoji_data->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3070
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 70)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "abcd";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)emoji_data->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3071
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 71)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDynamicFontMgr());
+    std::string familyName = "";
+    fontMgr->GetFamilyName(0, familyName);
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, nullptr, 0
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
+//对应用例 FontMgr_LoadDynamicFont_3072
+DEF_DTK(fontmgr_loaddynamicfont_2, TestLevel::L1, 72)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "";
+	
+    auto emoji_data = MakeData(fontMgr, false);
+    auto data1 = MakeData(fontMgr, true);
+	
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontMgr->LoadDynamicFont(
+        familyName, std::move((uint8_t *)data1->GetData()), data1->GetSize()
+    ));
+
+    DrawTexts(playbackCanvas_, typeface);
+}
+
 }
 }
