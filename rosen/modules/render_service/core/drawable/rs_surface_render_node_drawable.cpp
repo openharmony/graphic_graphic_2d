@@ -50,6 +50,7 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#include "render/rs_high_performance_visual_engine.h"
 
 #include "luminance/rs_luminance_control.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -805,6 +806,27 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
+        }
+        if (surfaceParams.GetNeedMakeImage()) {
+            RS_TRACE_NAME_FMT("DealWithSelfDrawingNodeBuffer Id:%" PRIu64 "", surfaceParams.GetId());
+            RSAutoCanvasRestore arc(&canvas);
+            surfaceParams.SetGlobalAlpha(1.0f);
+            pid_t threadId = gettid();
+            auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
+
+            Drawing::Matrix rotateMatrix = canvas.GetTotalMatrix();
+            rotateMatrix.PreConcat(params.matrix);
+
+            auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+            if (!renderEngine) {
+                RS_LOGE("DealWithSelfDrawingNodeBuffer renderEngine is nullptr");
+                return;
+            }
+            VideoInfo videoInfo;
+            auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
+
+            SurfaceNodeInfo surfaceNodeInfo = {surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect};
+            HveFilter::GetHveFilter().PushSurfaceNodeInfo(surfaceNodeInfo);
         }
         return;
     }

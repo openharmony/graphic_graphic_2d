@@ -1127,5 +1127,11 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
         std::atoi((system::GetParameter("persist.rosen.graphic.hwcdirtyregion.enabled", "1")).c_str()) != 0;
     return hwcDirtyRegionEnabled;
 }
+
+bool RSSystemProperties::GetHveFilterEnabled()
+{
+    static bool hveFilterEnabled = system::GetBoolParameter("const.graphic.HveFilterEnable", false);
+    return hveFilterEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS
