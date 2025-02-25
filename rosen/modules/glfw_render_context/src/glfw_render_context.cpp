@@ -353,7 +353,9 @@ void GlfwRenderContext::OnSizeChanged(GLFWwindow *window, int32_t width, int32_t
     if (that->width_ != width || that->height_ != height) {
         glfwSetWindowSize(window, that->width_, that->height_);
     }
-    that->onSizeChanged_(that->width_, that->height_);
+    if (that->onSizeChanged_) {
+        that->onSizeChanged_(that->width_, that->height_);
+    }
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged done %{public}d %{public}d", width, height);
 }
 } // namespace OHOS::Rosen
