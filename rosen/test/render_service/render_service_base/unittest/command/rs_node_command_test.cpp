@@ -326,12 +326,12 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 0;
-    EXPECT_EQ(0, nodeId);
     auto func = [] (NodeId, pid_t, uint32_t) {};
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
     RSNodeCommandHelper::DumpClientNodeTree(context, nodeId, 0, 0);
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
     RSNodeCommandHelper::DumpClientNodeTree(context, nodeId, 0, 0);
+    EXPECT_NE(nodeId, -3);
     SUCCEED();
 }
 } // namespace OHOS::Rosen

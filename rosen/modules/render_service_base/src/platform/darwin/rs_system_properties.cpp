@@ -218,11 +218,6 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetHardCursorEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSLRScaleEnabled()
 {
     return false;

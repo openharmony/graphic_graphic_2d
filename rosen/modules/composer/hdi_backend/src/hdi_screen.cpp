@@ -21,7 +21,6 @@
 #include <hdf_base.h>
 #include <rs_trace.h>
 #include <mutex>
-#include "v1_2/include/idisplay_composer_interface.h"
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \
@@ -33,9 +32,6 @@
 
 namespace OHOS {
 namespace Rosen {
-using namespace OHOS::HDI::Display::Composer::V1_0;
-using namespace OHOS::HDI::Display::Composer::V1_1;
-using namespace OHOS::HDI::Display::Composer::V1_2;
 
 std::unique_ptr<HdiScreen> HdiScreen::CreateHdiScreen(uint32_t screenId)
 {
@@ -259,22 +255,5 @@ int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uin
     return device_->SetScreenConstraint(screenId_, frameId, timestamp, type);
 }
 
-bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
-{
-    if (device_ == nullptr) {
-        HLOGE("[%{public}s]: HdiDevice is nullptr.", __func__);
-        return false;
-    }
-    uint64_t propertyValue = 0;
-    if (device_->GetDisplayProperty(screenId,
-        HDI::Display::Composer::V1_2::DISPLAY_CAPBILITY_HARDWARE_CURSOR, propertyValue)
-        != HDI::Display::Composer::V1_2::DISPLAY_SUCCESS) {
-        return false;
-    }
-    if (propertyValue) {
-        return true;
-    }
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

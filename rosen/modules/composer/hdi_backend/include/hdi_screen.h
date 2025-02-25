@@ -58,7 +58,6 @@ public:
     int32_t GetHDRCapabilityInfos(GraphicHDRCapability &info) const;
     int32_t GetSupportedMetaDataKey(std::vector<GraphicHDRMetadataKey> &keys) const;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uint32_t type);
-    bool GetDisplayPropertyForHardCursor(uint32_t screenId);
 
     static void OnVsync(uint32_t sequence, uint64_t ns, void *data);
 

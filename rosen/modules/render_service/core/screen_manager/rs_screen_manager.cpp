@@ -613,10 +613,6 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
 
     auto vsyncSampler = CreateVSyncSampler();
-
-    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
-        screens_[id]->SetDisplayPropertyForHardCursor();
-    }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RegSetScreenVsyncEnabledCallbackForMainThread(id);
@@ -1525,6 +1521,10 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
             RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
             return;
         }
+        if (screenBacklight_[id] == level) {
+            RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d",
+                __func__, id, level);
+        }
         screenBacklight_[id] = level;
         screen = screensIt->second;
     }
@@ -2187,17 +2187,6 @@ int RSScreenManager::GetDisableRenderControlScreensCount() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return disableRenderControlScreens_.size();
-}
-
-bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(screenId);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGD("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu32 ".", __func__, screenId);
-        return false;
-    }
-    return screensIt->second->GetDisplayPropertyForHardCursor();
 }
 } // namespace impl
 

@@ -147,10 +147,9 @@ HWTEST_F(RSAnimationRateDeciderTest, MakeDecision, TestSize.Level1)
  */
 HWTEST_F(RSAnimationRateDeciderTest, GetFrameRateRange, TestSize.Level1)
 {
-    RSAnimationRateDecider rsAnimationRateDecider;
-    FrameRateRange frame;
-    frame = rsAnimationRateDecider.GetFrameRateRange();
-    EXPECT_EQ(frame, frame);
+    auto rsAnimationRateDecider = std::make_shared<RSAnimationRateDecider>();
+    rsAnimationRateDecider->GetFrameRateRange();
+    EXPECT_NE(rsAnimationRateDecider, nullptr);
 }
 
 /**
