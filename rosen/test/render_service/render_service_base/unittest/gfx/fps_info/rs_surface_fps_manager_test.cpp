@@ -106,20 +106,20 @@ HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearDump, TestSize.Level1)
 {
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     NodeId id = 1000;
+    NodeId uid = 1001;
     std::string name = "surfacefps0";
-    std::string uname = "surfacefps";
     surfaceFpsManager.RegisterSurfaceFps(id, name);
     std::string result("");
-    surfaceFpsManager.Dump(result, name);
+    surfaceFpsManager.Dump(result, id);
     EXPECT_TRUE(result.find("surface") != std::string::npos);
     result.clear();
-    surfaceFpsManager.Dump(result, uname);
+    surfaceFpsManager.Dump(result, uid);
     EXPECT_FALSE(result.find("surface") != std::string::npos);
     result.clear();
-    surfaceFpsManager.ClearDump(result, name);
+    surfaceFpsManager.ClearDump(result, id);
     EXPECT_TRUE(result.find("surface") != std::string::npos);
     result.clear();
-    surfaceFpsManager.ClearDump(result, uname);
+    surfaceFpsManager.ClearDump(result, uid);
     EXPECT_FALSE(result.find("surface") != std::string::npos);
     surfaceFpsManager.UnregisterSurfaceFps(id);
 }

@@ -442,7 +442,7 @@ std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
 {
     for (auto &t : surfaceNodeMap_) {
-        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType()) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType() && !t.second->IsRosenWeb()) {
             return t.second->GetName();
         }
     }
