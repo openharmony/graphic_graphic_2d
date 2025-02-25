@@ -143,7 +143,8 @@ std::string VisibleDataToString(const VisibleData& val)
 } // namespace
 
 RSUniRenderVisitor::RSUniRenderVisitor()
-    : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    : rsUniHwcVisitor_(std::make_unique<RSUniHwcVisitor>(*this)),
+      curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     PartialRenderOptionInit();
     auto mainThread = RSMainThread::Instance();
