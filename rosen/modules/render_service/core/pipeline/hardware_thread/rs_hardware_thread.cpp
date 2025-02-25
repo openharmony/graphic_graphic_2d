@@ -42,6 +42,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "platform/common/rs_hisysevent.h"
+#include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -884,10 +885,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
         isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
     }
+    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+    bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
+
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled() && isDefaultScreen) {
+        if (isDrmEnabled && isDefaultScreen) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

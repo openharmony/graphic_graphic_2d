@@ -64,7 +64,7 @@ void GraphicFeatureParamManager::FeatureParamParseEntry()
 
 std::shared_ptr<FeatureParam> GraphicFeatureParamManager::GetFeatureParam(std::string featureName)
 {
-    RS_LOGI("GraphicFeatureParamManager %{public}s : %{public}s", __func__, featureName.c_str());
+    RS_LOGD("GraphicFeatureParamManager %{public}s : %{public}s", __func__, featureName.c_str());
 
     auto iter = featureParamMap_.find(featureName);
     if (iter == featureParamMap_.end()) {
