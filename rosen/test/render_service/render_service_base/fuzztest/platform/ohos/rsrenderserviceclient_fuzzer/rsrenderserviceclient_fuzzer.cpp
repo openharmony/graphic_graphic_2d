@@ -295,8 +295,20 @@ bool DoTriggerSurfaceCaptureCallback(const uint8_t* data, size_t size)
     opts.editable = GetData<bool>();
     opts.useSourceIfMatch = GetData<bool>();
     std::shared_ptr<Media::PixelMap>  pixelmap = Media::PixelMap::Create(opts);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
 
-    client->TriggerSurfaceCaptureCallback(id, pixelmap);
+    client->TriggerSurfaceCaptureCallback(id, captureConfig, pixelmap);
     return true;
 }
 

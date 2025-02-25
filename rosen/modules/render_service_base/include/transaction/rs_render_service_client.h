@@ -436,9 +436,27 @@ public:
     void SetWindowContainer(NodeId nodeId, bool value);
 
 private:
-    void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
+    void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
+    struct RectFHash {
+        std::size_t operator()(const Drawing::Rect& rect) const {
+            std::size_t h1 = std::hash<float>()(rect.left_);
+            std::size_t h2 = std::hash<float>()(rect.top_);
+            std::size_t h3 = std::hash<float>()(rect.right_);
+            std::size_t h4 = std::hash<float>()(rect.bottom_);
+            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
+        }
+    };
+
+    struct PairHash {
+        std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const {
+            std::size_t h1 = std::hash<NodeId>()(p.first);
+            std::size_t h2 = RectFHash()(p.second.mainScreenRect);
+            return h1 ^ (h2 << 1);
+        }
+    };
 
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
@@ -446,7 +464,8 @@ private:
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
-    std::map<NodeId, std::vector<std::shared_ptr<SurfaceCaptureCallback>>> surfaceCaptureCbMap_;
+    std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>,
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>>> surfaceCaptureCbMap_;
 
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;

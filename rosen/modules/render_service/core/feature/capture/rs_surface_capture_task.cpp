@@ -109,7 +109,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
     RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
     if (callback) {
-        callback->OnSurfaceCapture(nodeId_, pixelmap.get());
+        callback->OnSurfaceCapture(nodeId_, captureConfig_, pixelmap.get());
     }
     return true;
 }

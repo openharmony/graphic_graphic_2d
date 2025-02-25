@@ -79,7 +79,7 @@ class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
         return nullptr;
     }
 
-    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
     {
         // DO NOTHING
     }
@@ -643,13 +643,15 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncC
     mainThread->context_->nodeMap.RegisterRenderNode(node);
 
     auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    RSSurfaceCaptureConfig captureConfig;
     auto pixelMap = std::make_unique<Media::PixelMap>();
     ASSERT_NE(pixelMap, nullptr);
     auto surface = std::make_shared<Drawing::Surface>();
     ASSERT_NE(surface, nullptr);
 #ifdef RS_ENABLE_UNI_RENDER
     auto copytask =
-        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap), node->GetId(), mockCallback);
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap),
+            node->GetId(), captureConfig, mockCallback);
 
     ASSERT_FALSE(copytask);
     mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
