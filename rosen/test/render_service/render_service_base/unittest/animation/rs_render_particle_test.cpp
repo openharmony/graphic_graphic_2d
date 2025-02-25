@@ -309,7 +309,7 @@ HWTEST_F(RSRenderParticleTest, GetPositionTest, Level1)
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
     v = rsRenderParticle.GetPosition();
-    EXPECT_EQ(v, v);
+    EXPECT_NE(particleParams, nullptr);
 }
 
 /**
@@ -323,7 +323,7 @@ HWTEST_F(RSRenderParticleTest, GetVelocityTest, Level1)
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
     v = rsRenderParticle.GetVelocity();
-    EXPECT_EQ(v, v);
+    EXPECT_NE(particleParams, nullptr);
 }
 
 /**
@@ -337,7 +337,7 @@ HWTEST_F(RSRenderParticleTest, GetAccelerationTest, Level1)
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
     v = rsRenderParticle.GetAcceleration();
-    EXPECT_EQ(v, v);
+    EXPECT_NE(particleParams, nullptr);
 }
 
 /**
