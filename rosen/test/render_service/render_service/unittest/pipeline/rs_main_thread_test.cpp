@@ -4876,4 +4876,19 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
     mainThread->receiver_ = receiver;
 }
+
+/**
+ * @tc.name: InitVulkanErrorCallback001Test
+ * @tc.desc: test InitVulkanErrorCallback001Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBOLWU
+ */
+HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    Drawing::GPUContext gpuContext;
+    mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
 } // namespace OHOS::Rosen
