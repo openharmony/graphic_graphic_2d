@@ -14,8 +14,21 @@
  */
 #include "memory/rs_memory_snapshot.h"
 
+#include "platform/common/rs_log.h"
+#include <vector>
+
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr uint32_t MEMUNIT_RATE = 1024;
+constexpr uint32_t MEMORY_SNAPSHOT_INTERVAL = 3 * 60 * 1000; // EachProcess can print at most once per 3 minute.
+// Threshold for hilog in rs mem.
+constexpr uint32_t MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT = 1300 * MEMUNIT_RATE * MEMUNIT_RATE;
+constexpr uint32_t HILOG_INFO_COUNT = 5; // The number of info printed each time.
+constexpr float WEIGHT_CPU = 0.3; // Weight of CPU.
+constexpr float WEIGHT_GPU = 0.3; // Weight of GPU.
+constexpr float WEIGHT_SUM = 0.4; // Weight of CPU+GPU.
+}
 
 MemorySnapshot& MemorySnapshot::Instance()
 {
@@ -30,6 +43,7 @@ void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
+        mInfo.pid = pid;
         mInfo.cpuMemory += size;
         totalMemory_ += size;
         if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_) {
@@ -81,6 +95,9 @@ void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>
         pidForReport = appMemorySnapshots_;
         isTotalOver = true;
     }
+    if (totalMemory_ > MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT) {
+        PrintMemorySnapshotToHilog();
+    }
 }
 
 void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
@@ -110,6 +127,78 @@ void MemorySnapshot::GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotI
 {
     std::lock_guard<std::mutex> lock(mutex_);
     map = appMemorySnapshots_;
+}
+
+size_t MemorySnapshot::GetTotalMemory()
+{
+    return totalMemory_;
+}
+
+void MemorySnapshot::PrintMemorySnapshotToHilog()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    if (currentTime < memorySnapshotHilogTime_) {
+        return;
+    }
+
+    std::vector<MemorySnapshotInfo> memorySnapshotsList;
+    size_t maxCpu;
+    size_t maxGpu;
+    size_t maxSum;
+    FindMaxValues(memorySnapshotsList, maxCpu, maxGpu, maxSum);
+
+    // Sort by risk in descending order
+    std::sort(memorySnapshotsList.begin(), memorySnapshotsList.end(),
+        [=](const MemorySnapshotInfo& a, const MemorySnapshotInfo& b) {
+            float scoreA = CalculateRiskScore(a, maxCpu, maxGpu, maxSum);
+            float scoreB = CalculateRiskScore(b, maxCpu, maxGpu, maxSum);
+            return scoreA > scoreB;
+        });
+
+    std::string hilogInfo = "[";
+    for (size_t i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
+        MemorySnapshotInfo info = memorySnapshotsList[i];
+        hilogInfo += "pid[" + std::to_string(info.pid) +
+            "] cpu[" + std::to_string(info.cpuMemory / MEMUNIT_RATE) +
+            "KB] gpu[" + std::to_string(info.gpuMemory / MEMUNIT_RATE) + "KB], ";
+    }
+    hilogInfo += "]";
+    RS_LOGE("TotalMemoryOverReport. TotalMemory:[%{public}zuKB], memorySnapshots:%{public}s",
+        totalMemory_ / MEMUNIT_RATE, hilogInfo.c_str());
+
+    memorySnapshotHilogTime_ = currentTime + MEMORY_SNAPSHOT_INTERVAL;
+}
+
+void MemorySnapshot::FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
+    size_t& maxCpu, size_t& maxGpu, size_t& maxSum)
+{
+    maxCpu = maxGpu = maxSum = 0;
+    for (const auto& [pid, snapshotInfo] : appMemorySnapshots_) {
+        memorySnapshotsList.push_back(snapshotInfo);
+
+        if (snapshotInfo.cpuMemory > maxCpu) {
+            maxCpu = snapshotInfo.cpuMemory;
+        }
+
+        if (snapshotInfo.gpuMemory > maxGpu) {
+            maxGpu = snapshotInfo.gpuMemory;
+        }
+
+        size_t totalMemory = snapshotInfo.TotalMemory();
+        if (totalMemory > maxSum) {
+            maxSum = totalMemory;
+        }
+    }
+}
+
+float MemorySnapshot::CalculateRiskScore(const MemorySnapshotInfo snapshotInfo,
+    size_t maxCpu, size_t maxGpu, size_t maxSum)
+{
+    float normCpu = (maxCpu == 0) ? 0 : static_cast<float>(snapshotInfo.cpuMemory) / maxCpu;
+    float normGpu = (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory) / maxGpu;
+    float normSum = (maxSum == 0) ? 0 : static_cast<float>(snapshotInfo.TotalMemory()) / maxSum;
+    return WEIGHT_CPU * normCpu + WEIGHT_GPU * normGpu + WEIGHT_SUM * normSum;
 }
 }
 } // namespace OHOS::Rosen
