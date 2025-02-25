@@ -1256,9 +1256,14 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
-    if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
-        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
-        (node.GetHasSharedTransitionNode() || !animation)) {
+    bool focus = node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId());
+    // open app with modal window animation, close uifirst
+    bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
+    if (focus && (node.GetHasSharedTransitionNode() ||
+        !animation || modalAnimation)) {
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] is MainThread, foceus:%d, animation:%d, switch:%d",
+            surfaceName.c_str(), focus, animation, node.GetUIFirstSwitch());
         return false;
     }
     return node.QuerySubAssignable(isDisplayRotation);

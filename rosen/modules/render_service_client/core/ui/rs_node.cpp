@@ -2397,6 +2397,19 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     }
 }
 
+void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
+{
+    if (uiFirstSwitch_ == uiFirstSwitch) {
+        return;
+    }
+    uiFirstSwitch_ = uiFirstSwitch;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIFirstSwitch>(GetId(), uiFirstSwitch);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
