@@ -44,7 +44,6 @@ public:
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
-    void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -184,8 +183,6 @@ private:
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
-    bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
-    void FindHardCursorNodes(RSDisplayRenderParams& params);
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
 

@@ -273,12 +273,6 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
-bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
-{
-    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
-}
-
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -342,10 +336,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         (surfaceParams->GetIsSecurityLayer() && !uniParam->GetSecExemption()) || surfaceParams->GetIsSkipLayer();
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
-    }
-    if (surfaceParams->GetHardCursorStatus()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
-        return;
     }
 
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
@@ -598,14 +588,6 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    if (surfaceParams->GetHardCursorStatus() &&
-        (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
-            RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
-        SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
-        return;
-    }
-
     if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
@@ -801,8 +783,7 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
-        !RSUniRenderThread::IsInCaptureProcess()) {
+    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }

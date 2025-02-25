@@ -288,7 +288,6 @@ public:
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
-    virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
     virtual void SetLayerCreated(bool layerCreated) {}
