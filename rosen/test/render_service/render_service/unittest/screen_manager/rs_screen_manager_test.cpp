@@ -2867,7 +2867,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_002, TestSize.Level1
 
 /*
  * @tc.name: TrySimpleProcessHotPlugEvents_003
- * @tc.desc: Test TrySimpleProcessHotPlugEvents when connectedIds_ is not empty, expect false.
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents when pendingConnectedIds_ is not empty, expect false.
  * @tc.type: FUNC
  * @tc.require: issueIAJ6B9
  */
@@ -2881,7 +2881,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_003, TestSize.Level1
     screenManagerImpl.isHwcDead_ = false;
     screenManagerImpl.pendingHotPlugEvents_.clear();
     ScreenId screenId = SCREEN_ID;
-    screenManagerImpl.connectedIds_.push_back(screenId);
+    screenManagerImpl.pendingConnectedIds_.push_back(screenId);
     ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 
@@ -2900,7 +2900,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_004, TestSize.Level1
 
     screenManagerImpl.isHwcDead_ = false;
     screenManagerImpl.pendingHotPlugEvents_.clear();
-    screenManagerImpl.connectedIds_.clear();
+    screenManagerImpl.pendingConnectedIds_.clear();
     ASSERT_TRUE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 
