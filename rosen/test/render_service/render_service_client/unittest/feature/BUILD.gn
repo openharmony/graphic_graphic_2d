@@ -39,8 +39,8 @@ ohos_unittest("RSExtNodeOperationTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "googletest:gtest_main",
+    "hilog:libhilog",
   ]
 }
 
