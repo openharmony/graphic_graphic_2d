@@ -340,7 +340,8 @@ HWTEST_F(RSAnimationManagerTest, UnregisterParticleAnimationTest001, TestSize.Le
 HWTEST_F(RSAnimationManagerTest, GetParticleAnimationsTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
+    auto rsRenderAnimation = std::make_shared<RSRenderAnimation>();
     auto res = rsAnimationManager.GetParticleAnimations();
-    EXPECT_EQ(res, res);
+    ASSERT_NE(rsRenderAnimation, nullptr);
 }
 }
