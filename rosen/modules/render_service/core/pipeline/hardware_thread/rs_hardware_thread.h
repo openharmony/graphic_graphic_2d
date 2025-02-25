@@ -22,7 +22,7 @@
 #include "event_handler.h"
 #include "hdi_backend.h"
 #include "hgm_core.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"

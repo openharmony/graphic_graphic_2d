@@ -31,9 +31,9 @@
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "rs_trace.h"
 
 #ifdef RES_SCHED_ENABLE

@@ -14,8 +14,8 @@
  */
 
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/rs_divided_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "string_utils.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"

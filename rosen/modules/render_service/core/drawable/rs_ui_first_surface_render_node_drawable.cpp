@@ -31,7 +31,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/sk_resource_manager.h"

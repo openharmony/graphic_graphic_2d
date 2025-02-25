@@ -19,11 +19,11 @@
 #include "rs_trace.h"
 
 #include "platform/common/rs_system_properties.h"
-#include "pipeline/rs_divided_ui_capture.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "feature/ui_capture/rs_divided_ui_capture.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"

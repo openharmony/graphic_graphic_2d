@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_uni_render_listener.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 
 #include "common/rs_common_def.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {

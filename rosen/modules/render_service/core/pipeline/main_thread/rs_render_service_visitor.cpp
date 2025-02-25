@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_render_service_visitor.h"
+#include "pipeline/main_thread/rs_render_service_visitor.h"
 
-#include "rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "rs_trace.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"

@@ -23,7 +23,7 @@
 #include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"

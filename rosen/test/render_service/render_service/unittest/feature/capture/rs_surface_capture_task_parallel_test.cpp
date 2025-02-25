@@ -18,7 +18,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 

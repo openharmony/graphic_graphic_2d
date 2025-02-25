@@ -25,7 +25,7 @@
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"

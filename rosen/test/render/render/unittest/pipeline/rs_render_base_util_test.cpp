@@ -17,7 +17,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;

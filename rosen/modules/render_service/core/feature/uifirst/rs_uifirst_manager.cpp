@@ -23,7 +23,7 @@
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 // use in mainthread, post subthread, not affect renderthread

@@ -24,7 +24,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "vsync_distributor.h"

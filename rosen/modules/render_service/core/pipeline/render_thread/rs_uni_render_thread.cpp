@@ -37,7 +37,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"

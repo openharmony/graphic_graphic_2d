@@ -17,7 +17,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 using namespace testing;

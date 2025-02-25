@@ -145,6 +145,7 @@ group("test") {
     "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
+    "render_service_client/unittest/render_thread:unittest",
     "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",

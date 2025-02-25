@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
 #include "screen_manager/rs_screen_manager.h"

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include <memory>
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"

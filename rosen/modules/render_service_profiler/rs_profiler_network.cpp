@@ -28,7 +28,7 @@
 #include "rs_profiler_socket.h"
 #include "rs_profiler_utils.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 

@@ -15,7 +15,7 @@
 
 #define EGL_EGLEXT_PROTOTYPES
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -70,20 +70,19 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#include "pipeline/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/rs_render_service_visitor.h"
+#include "pipeline/main_thread/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
-#include "pipeline/rs_unmarshal_thread.h"
 #ifdef RS_ENABLE_VK
 #include "pipeline/rs_vk_pipeline_config.h"
 #endif
@@ -107,6 +106,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_metric_collector.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/rs_unmarshal_thread.h"
 
 #ifdef RS_ENABLE_GPU
 #include "feature/capture/rs_ui_capture_task_parallel.h"
@@ -116,7 +116,7 @@
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/rs_uni_render_visitor.h"
+#include "pipeline/main_thread/rs_uni_render_visitor.h"
 #endif
 
 #ifdef RS_ENABLE_GL

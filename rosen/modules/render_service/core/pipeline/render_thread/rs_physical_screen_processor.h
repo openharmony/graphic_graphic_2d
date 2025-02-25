@@ -16,8 +16,8 @@
 #ifndef RS_CORE_PIPELINE_PHYSICAL_SCREEN_PROCESSOR_H
 #define RS_CORE_PIPELINE_PHYSICAL_SCREEN_PROCESSOR_H
 
-#include "render_thread/rs_composer_adapter.h"
-#include "rs_processor.h"
+#include "rs_composer_adapter.h"
+#include "pipeline/rs_processor.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -21,7 +21,7 @@
 #include "src/gpu/gl/GrGLDefines.h"
 #endif
 
-#include "pipeline/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "common/rs_optional_trace.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_uni_render_judgement.h"

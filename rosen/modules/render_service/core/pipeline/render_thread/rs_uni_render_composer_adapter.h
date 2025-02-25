@@ -19,7 +19,7 @@
 #include "hdi_backend.h"
 #include "rs_composer_adapter.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_map.h"

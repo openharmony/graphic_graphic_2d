@@ -17,7 +17,7 @@
 
 #include <cfloat>
 #include "rs_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS {
 namespace Rosen {

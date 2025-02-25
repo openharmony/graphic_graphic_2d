@@ -20,9 +20,8 @@
 #include <unordered_set>
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {

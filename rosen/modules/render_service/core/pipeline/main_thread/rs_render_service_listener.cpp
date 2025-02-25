@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
 
 #include "platform/common/rs_log.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "frame_report.h"
 #include "sync_fence.h"
 #include "rs_trace.h"

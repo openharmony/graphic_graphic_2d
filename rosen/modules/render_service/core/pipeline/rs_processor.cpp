@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "render_thread/rs_base_render_util.h"
-#include "rs_main_thread.h"
+#include "main_thread/rs_main_thread.h"
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_display_render_node_drawable.h"

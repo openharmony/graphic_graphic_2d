@@ -37,7 +37,7 @@
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "memory/rs_tag_tracker.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"

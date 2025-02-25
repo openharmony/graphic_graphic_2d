@@ -20,13 +20,13 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 
 #include "command/rs_base_node_command.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_innovation.h"

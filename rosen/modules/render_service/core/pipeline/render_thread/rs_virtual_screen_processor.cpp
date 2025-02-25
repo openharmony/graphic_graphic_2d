@@ -20,7 +20,7 @@
 
 #include "draw/color.h"
 #include "platform/common/rs_log.h"
-#include "render_thread/rs_base_render_util.h"
+#include "rs_base_render_util.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"

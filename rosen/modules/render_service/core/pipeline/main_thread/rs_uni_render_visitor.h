@@ -22,7 +22,7 @@
 #include <parameters.h>
 #include <set>
 
-#include "render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
@@ -31,7 +31,7 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"

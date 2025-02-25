@@ -26,7 +26,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {

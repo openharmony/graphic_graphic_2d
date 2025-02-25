@@ -33,7 +33,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_proxy_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_render_node_gc.h"

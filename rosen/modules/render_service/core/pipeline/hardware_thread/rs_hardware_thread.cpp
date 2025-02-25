@@ -31,7 +31,7 @@
 #include "common/rs_singleton.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"

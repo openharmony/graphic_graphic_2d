@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_divided_render_util.h"
-#include "rs_test_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;

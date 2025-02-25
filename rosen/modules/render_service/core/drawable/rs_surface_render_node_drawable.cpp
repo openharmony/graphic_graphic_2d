@@ -46,7 +46,7 @@
 #include "utils/rect.h"
 #include "utils/region.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "static_factory.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"

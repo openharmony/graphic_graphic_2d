@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_unmarshal_thread.h"
+#include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
 #include "hisysevent.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"

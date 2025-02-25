@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/rs_unmarshal_thread.h"
+#include "transaction/rs_unmarshal_thread.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing;

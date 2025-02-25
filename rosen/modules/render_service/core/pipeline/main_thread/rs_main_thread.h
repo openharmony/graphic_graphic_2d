@@ -25,8 +25,8 @@
 #include <thread>
 
 #include "refbase.h"
-#include "render_thread/rs_base_render_engine.h"
-#include "render_thread/rs_draw_frame.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_draw_frame.h"
 #include "vsync_distributor.h"
 #include "vsync_receiver.h"
 

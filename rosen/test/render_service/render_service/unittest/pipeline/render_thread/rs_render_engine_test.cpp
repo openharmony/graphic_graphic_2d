@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pipeline/rs_uni_render_judgement.h"

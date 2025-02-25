@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_divided_ui_capture.h"
+#include "rs_divided_ui_capture.h"
 
 #include <memory>
 #include <mutex>

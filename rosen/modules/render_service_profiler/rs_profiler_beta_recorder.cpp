@@ -22,7 +22,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 
