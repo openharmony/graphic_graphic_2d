@@ -1525,6 +1525,10 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
             RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
             return;
         }
+        if (screenBacklight_[id] == level) {
+            RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d",
+                __func__, id, level);
+        }
         screenBacklight_[id] = level;
         screen = screensIt->second;
     }
