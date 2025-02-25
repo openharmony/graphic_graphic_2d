@@ -1683,11 +1683,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStaticFlag, TestSize.
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     node->InitRenderParams();
     node->addedToPendingSyncList_ = true;
-    node->UpdateSurfaceCacheContentStaticFlag();
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
 
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     node->UpdateSurfaceCacheContentStaticFlag();
     EXPECT_EQ(node->nodeType_, RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node->isSubTreeDirty_ = true;
+    node->isContentDirty_ = true;
+    node->UpdateSurfaceCacheContentStaticFlag();
+    EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
+
+    node->isSubTreeDirty_ = false;
+    node->isContentDirty_ = false;
+    node->UpdateSurfaceCacheContentStaticFlag();
+    EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 }
 
 /**

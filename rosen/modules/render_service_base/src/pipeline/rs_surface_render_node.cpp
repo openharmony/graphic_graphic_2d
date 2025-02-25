@@ -1718,10 +1718,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
             }
         }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
-    } else if (IsAbilityComponent()) {
-        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     } else {
-        contentStatic = surfaceCacheContentStatic_;
+        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
