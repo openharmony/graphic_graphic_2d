@@ -29,6 +29,7 @@
 #endif
 #include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
+#include "ui/rs_ui_director.h"
 #include "util.h"
 
 namespace OHOS {
@@ -73,6 +74,7 @@ private:
 
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
+    std::shared_ptr<OHOS::Rosen::RSUIDirector> rsUIDirector_;
 
     std::shared_ptr<BootPlayer> picPlayer_;
     std::shared_ptr<BootPlayer> soundPlayer_;

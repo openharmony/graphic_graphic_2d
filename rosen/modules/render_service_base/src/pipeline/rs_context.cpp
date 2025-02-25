@@ -83,9 +83,9 @@ void RSContext::Initialize()
     globalRootRenderNode_->OnRegister(weak_from_this());
 }
 
-void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId)
+void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId, uint64_t token)
 {
-    needSyncFinishAnimationList_.push_back({nodeId, animationId});
+    needSyncFinishAnimationList_.push_back({nodeId, animationId, token});
 }
 
 void RSContext::InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag)

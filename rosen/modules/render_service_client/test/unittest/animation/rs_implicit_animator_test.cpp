@@ -370,7 +370,8 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 start";
     RSAnimationTimingProtocol timingProtocol;
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<RSCanvasNode> node = nullptr;
     auto prop_start = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
@@ -393,7 +394,7 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
 
     std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->AddPropertyToPendingSyncList(prop);
-    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->SyncProperties();
+    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->SyncProperties(rsUIContext);
 
     prop->isCustom_ = true;
     prop->id_ = 1;

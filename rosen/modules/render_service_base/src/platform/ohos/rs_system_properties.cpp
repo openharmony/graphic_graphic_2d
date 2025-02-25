@@ -196,6 +196,12 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return isNeedTrace;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    static bool isMultiInstance = system::GetParameter("persist.rosen.rsclientmultiinstance.enabled", "1") != "0";
+    return isMultiInstance;
+}
+
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
     static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";

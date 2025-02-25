@@ -32,7 +32,8 @@ public:
         return Type;
     }
 
-    static SharedPtr Create(NodeId targetNodeId, std::string name = "ProxyNode");
+    static SharedPtr Create(
+        NodeId targetNodeId, std::string name = "ProxyNode", std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     ~RSProxyNode() override;
 
     void ResetContextVariableCache() const;
@@ -57,7 +58,7 @@ public:
     void SetFramePositionY(float positionY) override {}
 
 protected:
-    explicit RSProxyNode(NodeId targetNodeId, std::string name);
+    explicit RSProxyNode(NodeId targetNodeId, std::string name, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     // when add/remove/update child, construct command using proxy node id, not target node id
     NodeId GetHierarchyCommandNodeId() const override
@@ -67,6 +68,7 @@ protected:
 
 private:
     void CreateProxyRenderNode();
+    void RegisterNodeMap() override;
     NodeId proxyNodeId_;
     std::string name_;
 };

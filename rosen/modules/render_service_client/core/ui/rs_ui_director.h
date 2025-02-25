@@ -27,6 +27,7 @@ class Surface;
 namespace Rosen {
 class RSSurfaceNode;
 class RSTransactionData;
+class RSUIContext;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 
@@ -37,7 +38,7 @@ public:
     ~RSUIDirector();
     void GoBackground(bool isTextureExport = false);
     void GoForeground(bool isTextureExport = false);
-    void Init(bool shouldCreateRenderThread = true);
+    void Init(bool shouldCreateRenderThread = true, bool isMultiInstance = false);
     void StartTextureExport();
     void Destroy(bool isTextureExport = false);
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
@@ -52,7 +53,8 @@ public:
     void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback);
 
     void SetRoot(NodeId root);
-    void SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId = INSTANCE_ID_UNDEFINED);
+    void SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId = INSTANCE_ID_UNDEFINED,
+        bool useMultiInstance = false); // plan to del
     void SendMessages(); // post messages to render thread
 
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
@@ -68,23 +70,26 @@ public:
 
     void SetRequestVsyncCallback(const std::function<void()>& callback);
 
-    static void PostFrameRateTask(const std::function<void()>& task);
+    static void PostFrameRateTask(const std::function<void()>& task, bool useMultiInstance = false);
 
     int32_t GetCurrentRefreshRateMode();
     int32_t GetAnimateExpectedRate() const;
 
     uint32_t GetIndex() const;
 
+    std::shared_ptr<RSUIContext> GetRSUIContext() const;
 private:
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
-    static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event);
-    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId);
-    static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED);
+    static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
+    static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
+        AnimationCallbackEvent event);
+    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId); // DFX to do
+    static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
-        const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED);
+        const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;
@@ -92,8 +97,8 @@ private:
     RSUIDirector& operator=(const RSUIDirector&) = delete;
     RSUIDirector& operator=(const RSUIDirector&&) = delete;
 
-    inline static std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners;
-    inline static std::mutex uiTaskRunnersVisitorMutex;
+    inline static std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners_;
+    inline static std::mutex uiTaskRunnersVisitorMutex_;
 
     std::mutex mutex_;
     NodeId root_ = 0;
@@ -111,6 +116,7 @@ private:
     std::string cacheDir_;
     static std::function<void()> requestVsyncCallback_;
     bool isHgmConfigChangeCallbackReg_ = false;
+    std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

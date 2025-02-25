@@ -239,6 +239,20 @@ struct RSSurfaceCapturePermissions {
     bool selfCapture = false;
 };
 
+#define CHECK_FALSE_RETURN(var)      \
+    do {                             \
+        if (!(var)) {                \
+            return;                  \
+        }                            \
+    } while (0)                      \
+
+#define CHECK_FALSE_RETURN_VALUE(var, value)     \
+    do {                                         \
+        if (!(var)) {                            \
+            return value;                        \
+        }                                        \
+    } while (0)
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -460,6 +474,12 @@ inline constexpr pid_t ExtractPid(uint64_t id)
 {
     // extract high 32 bits of nodeid/animationId/propertyId as pid
     return static_cast<pid_t>(id >> 32);
+}
+
+inline constexpr int32_t ExtractTid(uint64_t token)
+{
+    // extract high 32 bits of token as tid
+    return static_cast<int32_t>(token >> 32);
 }
 
 template<class Container, class Predicate>

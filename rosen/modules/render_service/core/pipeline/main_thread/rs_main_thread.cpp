@@ -3673,11 +3673,11 @@ void RSMainThread::SendCommands()
     RS_OPTIONAL_TRACE_FUNC();
     RsFrameReport::GetInstance().SendCommandsStart();
     if (!context_->needSyncFinishAnimationList_.empty()) {
-        for (const auto& [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+        for (const auto& [nodeId, animationId, token] : context_->needSyncFinishAnimationList_) {
             RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
-                std::make_unique<RSAnimationCallback>(nodeId, animationId, FINISHED);
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, FINISHED);
             RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
         }
         context_->needSyncFinishAnimationList_.clear();

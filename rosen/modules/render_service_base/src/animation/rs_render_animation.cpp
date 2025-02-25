@@ -46,6 +46,7 @@ void RSRenderAnimation::DumpAnimation(std::string& out) const
     out += ", FrameRateRange_max:" + std::to_string(animationFraction_.GetFrameRateRange().max_);
     out += ", FrameRateRange_prefered:" + std::to_string(animationFraction_.GetFrameRateRange().preferred_);
     out += ", FrameRateRange_componentScene:" + animationFraction_.GetFrameRateRange().GetComponentName();
+    out += ", Token:" + std::to_string(token_);
     out += "]";
 }
 
@@ -260,7 +261,7 @@ void RSRenderAnimation::ProcessFillModeOnFinish(float endFraction)
 void RSRenderAnimation::ProcessOnRepeatFinish()
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(targetId_, id_, REPEAT_FINISHED);
+        std::make_unique<RSAnimationCallback>(targetId_, id_, token_, REPEAT_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
 }
 

@@ -190,7 +190,7 @@ public:
     }
 
     // save some need sync finish to client animations in list
-    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId, uint64_t token);
 
     void AddSubSurfaceCntUpdateInfo(SubSurfaceCntUpdateInfo info)
     {
@@ -225,7 +225,7 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
-    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
+    std::vector<std::tuple<NodeId, AnimationId, uint64_t>> needSyncFinishAnimationList_;
 
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void(const std::function<void()>&)> rttaskRunner_;
