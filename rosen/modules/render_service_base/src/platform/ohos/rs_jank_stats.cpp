@@ -89,6 +89,12 @@ void RSJankStats::SetStartTime(bool doDirectComposition)
     isFirstSetStart_ = false;
 }
 
+bool RSJankStats::IsAnimationEmpty()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return implicitAnimationTotal_ + explicitAnimationTotal_ == 0;
+}
+
 void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames, uint32_t dynamicRefreshRate,
                              bool doDirectComposition, bool isReportTaskDelayed)
 {

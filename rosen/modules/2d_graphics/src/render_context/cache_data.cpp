@@ -30,13 +30,18 @@ const char* RS_CACHE_MAGIC_HEAD = "OHRS";
 const int RS_CACHE_MAGIC_HEAD_LEN = 4;
 const int RS_CACHE_HEAD_LEN = 8;
 const int RS_BYTE_SIZE = 8;
+const int SHADER_CACHE_CLEAR_LEVEL = 2;
+const int CHECK_FRAME_FREQUENCY = 10;
 namespace Rosen {
 CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
     : maxKeySize_(maxKeySize),
     maxValueSize_(maxValueSize),
     maxTotalSize_(maxTotalSize),
-    cacheDir_(fileName) {}
+    cacheDir_(fileName)
+{
+    softLimit_ = static_cast<size_t>(SHADER_CACHE_SOFT_LIMIT * maxTotalSize);
+}
 
 CacheData::~CacheData() {}
 
@@ -469,38 +474,52 @@ void CacheData::RandClean(const size_t cleanThreshold)
         return;
     }
     if (cleanThreshold_ == 0) {
-        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-        if (now < 0) {
-            LOGD("abandon, illegal negative now value");
+        if (!CleanInit()) {
             return;
-        }
-        unsigned long currentTime = static_cast<unsigned long>(now);
-        for (int indexRand = 0; indexRand < randLength_; ++indexRand) {
-            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
-            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
-            cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
         }
     }
     cleanThreshold_ = cleanThreshold;
 
     while (totalSize_ > cleanThreshold_) {
-        long int randIndex = nrand48(cleanInit_);
-        if (randIndex < 0) {
-            LOGD("abandon, illegal negative randIndex value");
-            break;
-        }
-        size_t sizeRandIndex = static_cast<size_t>(randIndex);
-        size_t currentSize = shaderPointers_.size();
-        if (currentSize == 0) {
-            LOGD("abandon, shader is empty, nothing to clean");
-            break;
-        }
-        size_t removeIndex = sizeRandIndex % (currentSize);
-        if (!Clean(removeIndex)) {
-            LOGD("abandon, cleaned nothing");
+        if (!StepClean()) {
             break;
         }
     }
+}
+
+bool CacheData::CleanInit()
+{
+    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+    if (now < 0) {
+        LOGD("abandon, illegal negative now value");
+        return false;
+    }
+    unsigned long currentTime = static_cast<unsigned long>(now);
+    for (int indexRand = 0; indexRand < randLength_; ++indexRand) {
+        cleanInit_[indexRand] = (currentTime >> (indexRand * randShift_)) & 0xFFFF;
+    }
+    return true;
+}
+
+bool CacheData::StepClean()
+{
+    long int randIndex = nrand48(cleanInit_);
+    if (randIndex < 0) {
+        LOGD("abandon, illegal negative randIndex value");
+        return false;
+    }
+    size_t sizeRandIndex = static_cast<size_t>(randIndex);
+    size_t currentSize = shaderPointers_.size();
+    if (currentSize == 0) {
+        LOGD("abandon, shader is empty, nothing to clean");
+        return false;
+    }
+    size_t removeIndex = sizeRandIndex % (currentSize);
+    if (!Clean(removeIndex)) {
+        LOGD("abandon, cleaned nothing");
+        return false;
+    }
+    return true;
 }
 
 size_t CacheData::Clean(const size_t removeIndex)
@@ -514,6 +533,30 @@ size_t CacheData::Clean(const size_t removeIndex)
     totalSize_ -= reducedSize;
     shaderPointers_.erase(shaderPointers_.begin() + removeIndex);
     return reducedSize;
+}
+
+bool CacheData::CheckShaderCacheOverSoftLimit() const
+{
+    return totalSize_ >= softLimit_;
+}
+
+void CacheData::PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    if (!CleanInit()) {
+        return;
+    }
+    if (!nextFrameHasArrived) {
+        LOGD("nextFrame Func is Empty");
+        return;
+    }
+    const size_t cleanTarget = maxTotalSize_ / SHADER_CACHE_CLEAR_LEVEL;
+    int cleanTimes = 0;
+    while (totalSize_ > cleanTarget && (cleanTimes % CHECK_FRAME_FREQUENCY != 0 || !nextFrameHasArrived())) {
+        if (!StepClean()) {
+            break;
+        }
+        cleanTimes++;
+    }
 }
 
 CacheData::DataPointer::DataPointer(const void *data, size_t size, bool ifOccupy)
