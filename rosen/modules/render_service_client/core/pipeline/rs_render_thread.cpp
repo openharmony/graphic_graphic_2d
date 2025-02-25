@@ -408,7 +408,11 @@ void RSRenderThread::ProcessCommands()
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %{public}lu\n", (unsigned long)cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
+#ifdef CROSS_PLATFORM
+    PrepareCommandForCrossPlatform(cmds);
+#else
     std::swap(cmds, cmds_);
+#endif
     cmdLock.unlock();
 
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
@@ -430,6 +434,34 @@ void RSRenderThread::ProcessCommands()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
 }
+
+#ifdef CROSS_PLATFORM
+void RSRenderThread::PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds)
+{
+    if (cmds_.empty()) {
+        return;
+    }
+    int index = 0;
+    uint64_t firstCmdTimestamp = cmds_[0]->GetTimestamp();
+    uint64_t lastCmdTimestamp = cmds_.back()->GetTimestamp();
+    while (index < cmds_.size()) {
+        if (cmds_[index]->GetTimestamp() <
+            std::max({timestamp_, firstCmdTimestamp + 1, lastCmdTimestamp})) {
+            index++;
+        } else {
+            break;
+        }
+    }
+    for (int i = 0; i < index; i++) {
+        cmds.emplace_back(std::move(cmds_[i]));
+    }
+
+    cmds_.erase(cmds_.begin(), cmds_.begin() + index);
+    if (!cmds_.empty()) {
+        RequestNextVSync();
+    }
+}
+#endif
 
 void RSRenderThread::Animate(uint64_t timestamp)
 {
