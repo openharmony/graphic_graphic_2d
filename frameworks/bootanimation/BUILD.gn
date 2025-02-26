@@ -100,6 +100,17 @@ ohos_executable("bootanimation") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    cfi_vcall_icall_only = true
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+  }
+  branch_protector_ret = "pac_ret"
 }
 
 ## Build bootanimation }}}
