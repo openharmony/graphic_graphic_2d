@@ -57,6 +57,8 @@ public:
         ScreenId screenId, uint32_t dynamicRangeMode);
     void GetHDRMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
         std::vector<uint8_t>& hdrStaticMetadata, std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret);
+    void GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer, std::vector<uint8_t>& adaptiveFOVMetadata,
+        GSError& ret);
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
         GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode);
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
