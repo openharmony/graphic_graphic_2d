@@ -59,6 +59,7 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
@@ -1812,8 +1813,10 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
+    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     auto itr = std::find_if(children->begin(), children->end(),
-        [deviceType = deviceType_](const std::shared_ptr<RSRenderNode>& child) -> bool {
+        [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
             if (child == nullptr) {
                 return false;
             }
@@ -1825,7 +1828,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            if (deviceType != DeviceType::PC) {
+            if (hwcFeature->IsHwcExpandingScreenEnabled()) {
                 return displayNodeSp->GetCompositeType() ==
                     RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
             }
