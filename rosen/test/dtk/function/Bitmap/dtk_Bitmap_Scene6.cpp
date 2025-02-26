@@ -987,16 +987,6 @@ DEF_DTK(Bitmap_Scene6, TestLevel::L2, 17)
         playbackCanvas_->DrawBackground(0xFF675800);
     }
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     // 4.组合transform函数
     // null
@@ -1766,16 +1756,6 @@ DEF_DTK(Bitmap_Scene6, TestLevel::L2, 30)
         playbackCanvas_->DrawBackground(0xFF675800);
     }
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     // 4.组合transform函数
     playbackCanvas_->Scale(10100.0f, 1.0f);

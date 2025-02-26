@@ -54,16 +54,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 1)
         playbackCanvas_->DrawBackground(0xFF675800); // 深棕榈
     }
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0xFFFF0000);
 
@@ -119,16 +109,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 2)
     bitmap1.Build(bitmap.GetWidth(), 500, bitmap.GetFormat()); // 500 is height
     bitmap1.ClearWithColor(0xFF4567FA);                        // 不透明效果，粉蓝色
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0xFFFF0000); // 红色
 
@@ -472,16 +452,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 8)
     bitmap1.SetInfo(bitmap.GetImageInfo());
     bitmap1.ClearWithColor(0x004567FA); // 透明效果，粉蓝色
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0x4CB21933);
 
@@ -551,16 +521,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 9)
         playbackCanvas_->DrawBackground(0xFF675800); // 深棕榈
     }
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0xFFFF0000);
 
@@ -1170,16 +1130,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 20)
         // 4.组合transform函数
         playbackCanvas_->Scale(10100.0f, 1.0f); // ratio
 
-        std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-            Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER,
-            Drawing::BlendMode::SRC_IN, Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT,
-            Drawing::BlendMode::DST_OUT, Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP,
-            Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS, Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN,
-            Drawing::BlendMode::OVERLAY, Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN,
-            Drawing::BlendMode::COLOR_DODGE, Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT,
-            Drawing::BlendMode::SOFT_LIGHT, Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION,
-            Drawing::BlendMode::MULTIPLY, Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION,
-            Drawing::BlendMode::COLOR_MODE, Drawing::BlendMode::LUMINOSITY };
 
         brush.SetColor(0xFFFF0000); // 红色
         for (auto blendMode : blendModes) {
@@ -1678,16 +1628,6 @@ DEF_DTK(Bitmap_Scene24, TestLevel::L2, 28)
     // 4.组合transform函数
     playbackCanvas_->Shear(10.0f, 10.0f); // slope
 
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0xFFFF0000); // 红色
     for (auto blendMode : blendModes) {

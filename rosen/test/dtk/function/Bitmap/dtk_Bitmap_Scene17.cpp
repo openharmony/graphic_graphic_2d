@@ -104,16 +104,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 2)
 
     // 5.视效：CreateBlendImageFilter
     brush.SetColor(0x4CB21933);
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     for (auto blendMode : blendModes) {
         auto background = Drawing::ImageFilter::CreateBlurImageFilter(
@@ -183,16 +173,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 3)
         // 5.视效：CreateBlendShader
         Drawing::Brush brush;
         brush.SetColor(0xFFFF0000);
-        std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-            Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER,
-            Drawing::BlendMode::SRC_IN, Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT,
-            Drawing::BlendMode::DST_OUT, Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP,
-            Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS, Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN,
-            Drawing::BlendMode::OVERLAY, Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN,
-            Drawing::BlendMode::COLOR_DODGE, Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT,
-            Drawing::BlendMode::SOFT_LIGHT, Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION,
-            Drawing::BlendMode::MULTIPLY, Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION,
-            Drawing::BlendMode::COLOR_MODE, Drawing::BlendMode::LUMINOSITY };
 
         auto dst = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_RED);
         auto src = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_GREEN);
@@ -315,16 +295,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 5)
     playbackCanvas_->Translate(200, 200); // 200 distance
 
     // 5.视效：CreateComposeColorFilter
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
     brush.SetColor(0xFFFF0000); // 红色
 
     for (auto blendMode1 : blendModes) {
@@ -611,16 +581,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 10)
 
     // 5.视效：CreateBlendImageFilter
     brush.SetColor(0x4CB21933);
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     for (auto blendMode : blendModes) {
         auto background = Drawing::ImageFilter::CreateBlurImageFilter(
@@ -681,16 +641,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 11)
 
     // 5.视效：CreateBlendShader
     brush.SetColor(0xFFFF0000);
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     auto dst = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_RED);
     auto src = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_GREEN);
@@ -1018,16 +968,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 17)
     bitmap1.ClearWithColor(0x004567FA); // 透明，粉蓝色
 
     // 4.视效：CreateBlendModeColorFilter
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     brush.SetColor(0xFFFF0000); // 红色
 
@@ -1302,16 +1242,6 @@ DEF_DTK(Bitmap_Scene17, TestLevel::L2, 22)
 
     // 5.设置视效效果
     brush.SetColor(0xFFFF0000);
-    std::vector<Drawing::BlendMode> blendModes = { Drawing::BlendMode::CLEAR, Drawing::BlendMode::SRC,
-        Drawing::BlendMode::DST, Drawing::BlendMode::SRC_OVER, Drawing::BlendMode::DST_OVER, Drawing::BlendMode::SRC_IN,
-        Drawing::BlendMode::DST_IN, Drawing::BlendMode::SRC_OUT, Drawing::BlendMode::DST_OUT,
-        Drawing::BlendMode::SRC_ATOP, Drawing::BlendMode::DST_ATOP, Drawing::BlendMode::XOR, Drawing::BlendMode::PLUS,
-        Drawing::BlendMode::MODULATE, Drawing::BlendMode::SCREEN, Drawing::BlendMode::OVERLAY,
-        Drawing::BlendMode::DARKEN, Drawing::BlendMode::LIGHTEN, Drawing::BlendMode::COLOR_DODGE,
-        Drawing::BlendMode::COLOR_BURN, Drawing::BlendMode::HARD_LIGHT, Drawing::BlendMode::SOFT_LIGHT,
-        Drawing::BlendMode::DIFFERENCE, Drawing::BlendMode::EXCLUSION, Drawing::BlendMode::MULTIPLY,
-        Drawing::BlendMode::HUE, Drawing::BlendMode::STATURATION, Drawing::BlendMode::COLOR_MODE,
-        Drawing::BlendMode::LUMINOSITY };
 
     for (auto blendMode : blendModes) {
         std::shared_ptr<Drawing::ColorFilter> colorFilter =
