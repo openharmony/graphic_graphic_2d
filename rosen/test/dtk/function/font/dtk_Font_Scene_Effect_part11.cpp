@@ -85,7 +85,7 @@ static std::vector<Drawing::BlendMode> MakeBlendModes()
 }
 
 // 用例 Font_Scene_Effect_0168
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 168)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 168)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -135,7 +135,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 168)
 }
 
 // 用例 Font_Scene_Effect_0169
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 169)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 169)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -195,7 +195,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 169)
 }
 
 // 用例 Font_Scene_Effect_0170
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 170)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 170)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -230,7 +230,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 170)
 }
 
 // 用例 Font_Scene_Effect_0171
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 171)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 171)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -276,7 +276,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 171)
 }
 
 // 用例 Font_Scene_Effect_0172
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 172)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 172)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -320,7 +320,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 172)
 }
 
 // 用例 Font_Scene_Effect_0173
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 173)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 173)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -371,7 +371,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 173)
 }
 
 // 用例 Font_Scene_Effect_0174
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 174)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 174)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -425,7 +425,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 174)
 }
 
 // 用例 Font_Scene_Effect_0175
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 175)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 175)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -474,7 +474,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 175)
 }
 
 // 用例 Font_Scene_Effect_0176
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 176)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 176)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -517,7 +517,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 176)
 }
 
 // 用例 Font_Scene_Effect_0177
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 177)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 177)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -554,7 +554,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 177)
 }
 
 // 用例 Font_Scene_Effect_0178
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 178)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 178)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -589,7 +589,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 178)
 }
 
 // 用例 Font_Scene_Effect_0179
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 179)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 179)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -637,7 +637,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 179)
 }
 
 // 用例 Font_Scene_Effect_0180
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 180)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 180)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -698,7 +698,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 180)
 }
 
 // 用例 Font_Scene_Effect_0181
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 181)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 181)
 {
     // 1.创建typeface
     auto typeface = Drawing::Typeface::MakeDefault();
@@ -744,7 +744,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 181)
 }
 
 // 用例 Font_Scene_Effect_0182
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 182)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 182)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -792,7 +792,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 182)
 }
 
 // 用例 Font_Scene_Effect_0183
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 183)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 183)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -838,7 +838,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 183)
 }
 
 // 用例 Font_Scene_Effect_0184
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 184)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 184)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -891,7 +891,7 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 184)
 }
 
 // 用例 Font_Scene_Effect_0185
-DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 185)
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 185)
 {
     // 1.创建typeface
     std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
@@ -943,6 +943,887 @@ DEF_DTK(Font_Scene_Effect_11, TestLevel::L2, 185)
         Drawing::ShaderEffect::CreateLinearGradient({0, 0}, {1000, 1000}, colors, pos, Drawing::TileMode::CLAMP);
     brush.SetShaderEffect(linearGradient);
     DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0186
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 186)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string str = "CPAL";
+    reverse(str.begin(), str.end());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(str.c_str())));
+    std::string typefacestr = "GetTableSize = " + std::to_string(typeface->GetTableSize(tagid));
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetEmbolden(false);
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+    font1.SetEmbolden(font.IsEmbolden());
+
+    // 4.创建TextBlob
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunRSXform(font1, 20);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
+        buffer.pos[i * 4] = cos(i * 18);
+        buffer.pos[i * 4 + 1] = sin(18 * i);
+        buffer.pos[i * 4 + 2] = 100;
+        buffer.pos[i * 4 + 3] = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string textinfo1 = "Deserialize @Hello World";
+    Drawing::TextBlob::Context* Ctx = new (std::nothrow) Drawing::TextBlob::Context(typeface, false);
+    auto data2 = textBlob->Serialize(Ctx);
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob2 =
+        Drawing::TextBlob::Deserialize(data2->GetData(), data2->GetSize(), Ctx);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    Drawing::ColorMatrix matrix;
+    float arr[] = {
+        1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    };
+    matrix.SetArray(arr);
+    auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
+    auto filter = Drawing::Filter();
+    filter.SetImageFilter(Drawing::ImageFilter::CreateColorFilterImageFilter(*cf, nullptr));
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0187
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 187)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string str = "CPAL";
+    reverse(str.begin(), str.end());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(str.c_str())));
+    std::string typefacestr = "GetTableSize = " + std::to_string(typeface->GetTableSize(tagid));
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    int glyphCount = font1.CountText(text0.c_str(), text0.length(), Drawing::TextEncoding::UTF8);
+    float widths[glyphCount];
+    uint16_t glyphs[glyphCount];
+    font1.TextToGlyphs(text0.c_str(), text0.length(), Drawing::TextEncoding::UTF8, glyphs, glyphCount);
+    font1.GetWidths(glyphs, glyphCount, widths);
+    std::string text4 = "Getwidths = " + std::to_string(widths[0]);
+
+    // 4.创建TextBlob
+    Drawing::TextBlobBuilder builder;
+    auto buffer = builder.AllocRunRSXform(font1, 20);
+    for (int i = 0; i < 20; i++) {
+        buffer.glyphs[i] = font1.UnicharToGlyph(0x30);
+        buffer.pos[i * 4] = cos(i * 18);
+        buffer.pos[i * 4 + 1] = sin(18 * i);
+        buffer.pos[i * 4 + 2] = 100;
+        buffer.pos[i * 4 + 3] = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = builder.Make();
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    Drawing::Paint paint;
+    paint.SetColor(0xFFFF0000);
+    float boundsx[] = {1, 2, 3};
+    int intercepts = textBlob->GetIntercepts(boundsx, nullptr, &paint);
+    std::string text2 = "intercepts = " + std::to_string(intercepts);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    std::vector<Drawing::BlurType> blurTypes = {Drawing::BlurType::NORMAL, Drawing::BlurType::SOLID,
+        Drawing::BlurType::OUTER, Drawing::BlurType::INNER};
+    int rectPos = 0;
+    for (auto & blurType : blurTypes) {
+        auto filter = Drawing::Filter();
+        filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(blurType, 10.0f, true));
+        brush.SetFilter(filter);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
+}
+
+// 用例 Font_Scene_Effect_0188
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 188)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    typeface->SetHash(100);
+    std::string  typefacestr = "GetHash = " + std::to_string(typeface->GetHash());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetForceAutoHinting(false);
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+    font1.SetForceAutoHinting(font.IsForceAutoHinting());
+
+    // 4.创建TextBlob
+    std::string textInfo = "😊😂🤣😍😒💕😘😁👍🙌👌";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromText(
+        textInfo.c_str(), textInfo.size(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    Drawing::Paint paint;
+    paint.SetColor(0xFFFF0000);
+    float boundsx[] = {1, 2, 3};
+    int intercepts = textBlob->GetIntercepts(boundsx, nullptr, &paint);
+    std::string text2 = "intercepts = " + std::to_string(intercepts);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    std::vector<Drawing::BlurType> blurTypes = {Drawing::BlurType::NORMAL, Drawing::BlurType::SOLID,
+        Drawing::BlurType::OUTER, Drawing::BlurType::INNER};
+    int rectPos = 0;
+    for (auto & blurType : blurTypes) {
+        auto filter = Drawing::Filter();
+        filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(blurType, 10.0f, true));
+        brush.SetFilter(filter);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
+}
+
+// 用例 Font_Scene_Effect_0189
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 189)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string s = "011c50";
+    int a;
+    std::stringstream ss;
+    ss<<std::hex<<s;
+    ss>>a;
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(s.c_str())));
+    std::string typefacestr = "GetTableData = "
+        + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetScaleX(1);
+    auto font1 = Drawing::Font(typeface, 50.f, font.GetScaleX(), 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+
+    // 4.创建TextBlob
+    std::string textInfo = "😊😂🤣😍😒💕😘😁👍🙌👌";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromText(
+        textInfo.c_str(), textInfo.size(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string name1 = "HMOS Color Emoji";
+    std::string textInfo1 = "😊😂🤣😍😒💕😘😁👍🙌👌";
+    std::shared_ptr<Drawing::TextBlob> textBlob1 = Drawing::TextBlob::MakeFromText(textInfo1.c_str(),
+                                                      textInfo1.size(), font1, Drawing::TextEncoding::UTF8);
+    if (textBlob1->IsEmoji()) {
+        playbackCanvas_->DrawBackground(0xFF0000FF);
+    } else {
+        playbackCanvas_->DrawBackground(0xFFFF0000);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFF4F7091);
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(Drawing::ColorFilter::CreateLinearToSrgbGamma());
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0190
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 190)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    auto familyNamex = typeface->GetFamilyName();
+    std::string typefacestr = "GetFamilyName = " + familyNamex;
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    auto scalar = font1.UnicharToGlyph(0x44);
+    std::string text4 = "Glyphs = " + std::to_string(scalar);
+
+    // 4.创建TextBlob
+    std::string textInfo = "😊😂🤣😍😒💕😘😁👍🙌👌";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromText(
+        textInfo.c_str(), textInfo.size(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    std::string text2 = "";
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        text2 += std::string(1, text[row]) + "：" + std::to_string(glyphid[row]);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2, text4};
+
+    //7.组合视效接口并绘制
+}
+
+// 用例 Font_Scene_Effect_0191
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 191)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    auto data = typeface->Serialize();
+    uint32_t size = 10;
+    typeface->SetSize(size);
+    std::shared_ptr<Drawing::Typeface> typeface1 = Drawing::Typeface::Deserialize(data->GetData(), typeface->GetSize());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface1, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetHinting(Drawing::FontHinting::NORMAL);
+    auto font1 = Drawing::Font(typeface1, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+    font1.SetHinting(font.GetHinting());
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100 + 50 * i);
+        p[i].SetY(1000 - 50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(), 10, p, font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    std::string text2 = "";
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        text2 += std::string(1, text[row]) + "：" + std::to_string(glyphid[row]);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {text2};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFF4F7091);
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(Drawing::ColorFilter::CreateSrgbGammaToLinear());
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0192
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 192)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetItalic = " + std::to_string(typeface->GetItalic());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetSkewX(1.0f);
+    auto font1 = Drawing::Font(typeface, 50.f, font.GetSkewX(), 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100 + 50 * i);
+        p[i].SetY(1000 - 50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(), 10, p, font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    Drawing::Paint paint;
+    paint.SetColor(0xFFFF0000);
+    float boundsx[] = {1, 2, 3};
+    int intercepts = textBlob->GetIntercepts(boundsx, nullptr, &paint);
+    std::string text2 = "intercepts = " + std::to_string(intercepts);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2};
+
+    //7.组合视效接口并绘制
+    std::vector<Drawing::BlendMode> blendModes = MakeBlendModes();
+
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+
+    int rectPos = 0;
+    for (auto blendMode : blendModes) {
+        std::shared_ptr<Drawing::ColorFilter> colorFilter
+            = Drawing::ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, blendMode);
+        auto filter = Drawing::Filter();
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
+}
+
+// 用例 Font_Scene_Effect_0193
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 193)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string s = "011c50";
+    int a;
+    std::stringstream ss;
+    ss<<std::hex<<s;
+    ss>>a;
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(s.c_str())));
+    std::string typefacestr = "GetTableData = "
+        + std::to_string(typeface->GetTableData(tagid, a, typeface->GetTableSize(tagid), nullptr));
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    int glyphCount = font1.CountText(text0.c_str(), text0.length(), Drawing::TextEncoding::UTF16);
+    uint16_t glyphs[glyphCount - 1];
+    int count = font1.TextToGlyphs(text0.c_str(), text0.length(), Drawing::TextEncoding::UTF16, glyphs, glyphCount + 1);
+    std::string text4 = "TextToGlyphs = " + std::to_string(count);
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100 + 50 * i);
+        p[i].SetY(1000 - 50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(), 10, p, font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    playbackCanvas_->Translate(200, 200);
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        auto path = Drawing::TextBlob::GetDrawingPathforTextBlob(glyphid[row], textBlob.get());
+        playbackCanvas_->DrawPath(path);
+        playbackCanvas_->Translate(0, 100);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    std::shared_ptr<ColorFilter> colorFilter1 = ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, BlendMode::SRC_IN);
+    std::shared_ptr<ColorFilter> colorFilter2 =
+        ColorFilter::CreateBlendModeColorFilter(0xFFFF00FF, BlendMode::MODULATE);
+    std::shared_ptr<ColorFilter> colorFilter3 = ColorFilter::CreateComposeColorFilter(*colorFilter1, *colorFilter2);
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(colorFilter3);
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0194
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 194)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    typeface->SetHash(100);
+    std::string  typefacestr = "GetHash = " + std::to_string(typeface->GetHash());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetEmbeddedBitmaps(true);
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+    font1.SetEmbeddedBitmaps(font.IsEmbeddedBitmaps());
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(
+        textInfo.c_str(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    playbackCanvas_->Translate(200, 200);
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        auto path = Drawing::TextBlob::GetDrawingPathforTextBlob(glyphid[row], textBlob.get());
+        playbackCanvas_->DrawPath(path);
+        playbackCanvas_->Translate(0, 100);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    auto colorShader = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_RED);
+    brush.SetShaderEffect(colorShader);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0195
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 195)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetUniqueID = " + std::to_string(typeface->GetUniqueID());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetLinearMetrics(false);
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+    font1.SetLinearMetrics(font.IsLinearMetrics());
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(
+        textInfo.c_str(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    std::string text2 = "";
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        text2 += std::string(1, text[row]) + "：" + std::to_string(glyphid[row]);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    auto filter = Drawing::Filter();
+    filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(
+        10.0f, 10.0f, Drawing::TileMode::CLAMP, nullptr, Drawing::ImageBlurType::GAUSS));
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0196
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 196)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetUniqueID = " + std::to_string(typeface->GetUniqueID());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    Drawing::Rect bounds;
+    auto scalar = font1.MeasureText(text0.c_str(), text0.length(), Drawing::TextEncoding::UTF32, &bounds);
+    std::string text4 = "MeasureTextWidths = " + std::to_string(scalar);
+
+    // 4.创建TextBlob
+    std::string textInfo = "harmony_os";
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(
+        textInfo.c_str(), font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::vector<Drawing::Point> points;
+    Drawing::TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), points);
+    std::string text2 = "";
+    for (int i = 0; i < points.size(); i++) {
+        text2 += std::to_string(i) + "-- X：" + std::to_string(points[i].GetX())
+                     + "Y：" + std::to_string(points[i].GetY());
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFF0000FF);
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(Drawing::ColorFilter::CreateLumaColorFilter());
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0197
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 197)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    auto data = typeface->Serialize();
+    uint32_t size = 10;
+    typeface->SetSize(size);
+    std::shared_ptr<Drawing::Typeface> typeface1 = Drawing::Typeface::Deserialize(data->GetData(), typeface->GetSize());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface1, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetTypeface(typeface1);
+    auto font1 = Drawing::Font(font.GetTypeface(), 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+
+    // 4.创建TextBlob
+    std::string textInfo = "1111111111111111111111111111111111";
+    int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
+    Drawing::RSXform xform[maxGlyphCount];
+    for (int i = 0; i < maxGlyphCount; ++i) {
+        xform[i].cos_ = cos(10 * i) + 0.1 * i;
+        xform[i].sin_ = sin(10 * i);
+        xform[i].tx_ = 40 * i + 100;
+        xform[i].ty_ = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
+        textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::vector<Drawing::Point> points;
+    Drawing::TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), points);
+    std::string text2 = "";
+    for (int i = 0; i < points.size(); i++) {
+        text2 += std::to_string(i) + "-- X：" + std::to_string(points[i].GetX())
+                     + "Y：" + std::to_string(points[i].GetY());
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {text2};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    auto filter = Drawing::Filter();
+    filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(
+        10.0f, 10.0f, Drawing::TileMode::CLAMP, nullptr, Drawing::ImageBlurType::GAUSS));
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0198
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 198)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetItalic = " + std::to_string(typeface->GetItalic());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    auto SpaceLine = font1.MeasureSingleCharacter(0x44);
+    std::string text4 = "Recommended spacing between lines = " + std::to_string(SpaceLine);
+
+    // 4.创建TextBlob
+    std::string textInfo = "1111111111111111111111111111111111";
+    int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
+    Drawing::RSXform xform[maxGlyphCount];
+    for (int i = 0; i < maxGlyphCount; ++i) {
+        xform[i].cos_ = cos(10 * i) + 0.1 * i;
+        xform[i].sin_ = sin(10 * i);
+        xform[i].tx_ = 40 * i + 100;
+        xform[i].ty_ = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
+        textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    auto rect = textBlob->Bounds();
+    playbackCanvas_->DrawRect(*rect);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0x4CB21933);
+    std::vector<Drawing::BlendMode> blendModes = MakeBlendModes();
+    
+    int rectPos = 0;
+    for (auto blendMode : blendModes) {
+        auto background = Drawing::ImageFilter::CreateBlurImageFilter(
+            1.0f, 1.0f, Drawing::TileMode::REPEAT, nullptr, Drawing::ImageBlurType::GAUSS);
+        auto foreground = Drawing::ImageFilter::CreateBlurImageFilter(
+            1.0f, 1.0f, Drawing::TileMode::REPEAT, nullptr, Drawing::ImageBlurType::GAUSS);
+        auto filter = Drawing::Filter();
+        filter.SetImageFilter(Drawing::ImageFilter::CreateBlendImageFilter(blendMode, background, foreground));
+        brush.SetFilter(filter);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
+}
+
+// 用例 Font_Scene_Effect_0199
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 199)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetUnitsPerEm = " + std::to_string(typeface->GetUnitsPerEm());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    auto glyphsCount = font1.CountText(text0.c_str(), text0.length(), Drawing::TextEncoding::GLYPH_ID);
+    std::string text4 = "glyphsCount = " + std::to_string(glyphsCount);
+
+    // 4.创建TextBlob
+    std::string textInfo = "1111111111111111111111111111111111";
+    int maxGlyphCount = font1.CountText(textInfo.c_str(), textInfo.size(), Drawing::TextEncoding::UTF8);
+    Drawing::RSXform xform[maxGlyphCount];
+    for (int i = 0; i < maxGlyphCount; ++i) {
+        xform[i].cos_ = cos(10 * i) + 0.1 * i;
+        xform[i].sin_ = sin(10 * i);
+        xform[i].tx_ = 40 * i + 100;
+        xform[i].ty_ = 100;
+    }
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromRSXform(
+        textInfo.c_str(), textInfo.size(), &xform[0], font1, Drawing::TextEncoding::UTF8);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    playbackCanvas_->Translate(200, 200);
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        auto path = Drawing::TextBlob::GetDrawingPathforTextBlob(glyphid[row], textBlob.get());
+        playbackCanvas_->DrawPath(path);
+        playbackCanvas_->Translate(0, 100);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    std::vector<Drawing::ColorQuad> colors =
+        {Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE};
+    std::vector<Drawing::scalar> pos = {0.00f, 0.50f, 1.00f};
+    auto linearGradient =
+        Drawing::ShaderEffect::CreateLinearGradient({0, 0}, {1000, 1000}, colors, pos, Drawing::TileMode::CLAMP);
+    brush.SetShaderEffect(linearGradient);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0200
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 200)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->MatchStyle({
+        Drawing::FontStyle::INVISIBLE_WEIGHT,
+        Drawing::FontStyle::ULTRA_CONDENSED_WIDTH,
+        Drawing::FontStyle::Slant::OBLIQUE_SLANT}));
+    // 2.组合typeface操作接口
+    std::string str = "CPAL";
+    reverse(str.begin(), str.end());
+    uint32_t tagid = *(reinterpret_cast<uint32_t*>(const_cast<char*>(str.c_str())));
+    std::string typefacestr = "GetTableSize = " + std::to_string(typeface->GetTableSize(tagid));
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font.SetSubpixel(false);
+    font.SetTypeface(typeface);
+    auto font1 = Drawing::Font(font.GetTypeface(), 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(font.IsSubpixel());
+
+    // 4.创建TextBlob
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob(font1);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    auto rect = textBlob->Bounds();
+    playbackCanvas_->DrawRect(*rect);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFF0000FF);
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(Drawing::ColorFilter::CreateLumaColorFilter());
+    brush.SetFilter(filter);
+    DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+}
+
+// 用例 Font_Scene_Effect_0201
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 201)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->MatchStyle({
+        Drawing::FontStyle::INVISIBLE_WEIGHT,
+        Drawing::FontStyle::ULTRA_CONDENSED_WIDTH,
+        Drawing::FontStyle::Slant::OBLIQUE_SLANT}));
+    // 2.组合typeface操作接口
+    auto familyNamex = typeface->GetFamilyName();
+    std::string typefacestr = "GetFamilyName = " + familyNamex;
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    Drawing::FontMetrics metrics;
+    auto SpaceLine = font1.GetMetrics(&metrics);
+    std::string text4 = "Recommended spacing between lines = " + std::to_string(SpaceLine);
+
+    // 4.创建TextBlob
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob(font1);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string text = "harmony_os";
+    std::vector<uint16_t> glyphid;
+    Drawing::TextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphid);
+    std::string text2 = "";
+    for (int row = 0; row < text.size() && row < glyphid.size(); row++) {
+        text2 += std::string(1, text[row]) + "：" + std::to_string(glyphid[row]);
+    }
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text2, text4};
+
+    //7.组合视效接口并绘制
+    std::vector<Drawing::BlendMode> blendModes = MakeBlendModes();
+
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+
+    int rectPos = 0;
+    for (auto blendMode : blendModes) {
+        std::shared_ptr<Drawing::ColorFilter> colorFilter
+            = Drawing::ColorFilter::CreateBlendModeColorFilter(0xFFFF0000, blendMode);
+        auto filter = Drawing::Filter();
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
+}
+
+// 用例 Font_Scene_Effect_0202
+DEF_DTK(Font_Scene_Effect_6, TestLevel::L2, 202)
+{
+    // 1.创建typeface
+    std::shared_ptr<Drawing::FontMgr> fontMgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string familyName = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(fontMgr->MatchFamily(familyName.c_str()));
+    auto typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->MatchStyle({
+        Drawing::FontStyle::INVISIBLE_WEIGHT,
+        Drawing::FontStyle::ULTRA_CONDENSED_WIDTH,
+        Drawing::FontStyle::Slant::OBLIQUE_SLANT}));
+    // 2.组合typeface操作接口
+    std::string typefacestr = "GetUnitsPerEm = " + std::to_string(typeface->GetUnitsPerEm());
+    // 3.组合Font类接口,如果是操作类有返回值的接口,获取接口返回值加入vector容器
+    auto font1 = Drawing::Font(typeface, 50.f, 1.0f, 1.0f);
+    font1.SetSubpixel(false);
+    std::string text0 = "DDGR ddgr 鸿蒙 !@#￥%^&*; : , 。";
+    auto glyphsCount = font1.CountText(text0.c_str(), text0.length(), Drawing::TextEncoding::GLYPH_ID);
+    std::string text4 = "glyphsCount = " + std::to_string(glyphsCount);
+
+    // 4.创建TextBlob
+    std::shared_ptr<Drawing::TextBlob> textBlob = MakeTextBlob(font1);
+
+    // 5.组合textBlob类接口,如果有返回值则获取上一步创建的textBlob返回值打印
+    std::string textinfo1 = "Deserialize @Hello World";
+    Drawing::TextBlob::Context* Ctx = new (std::nothrow) Drawing::TextBlob::Context(typeface, false);
+    auto data2 = textBlob->Serialize(Ctx);
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob2 =
+        Drawing::TextBlob::Deserialize(data2->GetData(), data2->GetSize(), Ctx);
+
+    //6. 得到需要绘制的所有返回值text,全部适应固定的textBlob构造方式打印
+    std::vector<std::string> texts = {typefacestr, text4};
+
+    //7.组合视效接口并绘制
+    Drawing::Brush brush;
+    brush.SetColor(0xFFFF0000);
+    std::vector<Drawing::BlendMode> blendModes = MakeBlendModes();
+    
+    int rectPos = 0;
+
+    auto dst = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_RED);
+    auto src = Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_GREEN);
+    for (auto blendMode : blendModes) {
+        auto blendShader = Drawing::ShaderEffect::CreateBlendShader(*dst, *src, blendMode);
+        brush.SetShaderEffect(blendShader);
+        DrawTextBlob(brush, texts, textBlob, font1, playbackCanvas_);
+        rectPos += 200;
+    }
 }
 
 }
