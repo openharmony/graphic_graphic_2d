@@ -36,6 +36,8 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature_cfg/feature_param/extend_feature/mem_param.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -600,6 +602,17 @@ uint64_t ParseMemoryLimit(const cJSON* json, const char* name)
 
 void MemoryManager::InitMemoryLimit()
 {
+    auto featureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MEM]);
+    if (!featureParam) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not get mem featureParam");
+        return;
+    }
+    std::string rsWatchPointParamName = std::static_pointer_cast<MEMParam>(featureParam)->GetRSWatchPoint();
+    if (rsWatchPointParamName.empty()) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
+        return;
+    }
+
     std::ifstream configFile;
     configFile.open(KERNEL_CONFIG_PATH);
     if (!configFile.is_open()) {
@@ -628,7 +641,7 @@ void MemoryManager::InitMemoryLimit()
         cJSON_Delete(root);
         return;
     }
-    cJSON* rsWatchPoint = cJSON_GetObjectItem(version, "rs_watchpoint");
+    cJSON* rsWatchPoint = cJSON_GetObjectItem(version, rsWatchPointParamName.c_str());
     if (rsWatchPoint == nullptr) {
         RS_LOGE("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
         cJSON_Delete(root);

@@ -27,7 +27,7 @@ int32_t XMLParserBase::LoadGraphicConfiguration(const char* fileDir)
     RS_LOGI("XMLParserBase opening xml file");
     xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
     if (!xmlDocument_) {
-        RS_LOGE("XMLParser xmlReadFile failed");
+        RS_LOGE("XMLParserBase xmlReadFile failed");
         return PARSE_FILE_LOAD_FAIL;
     }
 
@@ -38,12 +38,12 @@ int32_t XMLParserBase::Parse()
 {
     RS_LOGI("XMLParserBase Parse Start");
     if (!xmlDocument_) {
-        RS_LOGE("XMLParser xmlDocument_ is empty, should do LoadGraphicConfiguration first");
+        RS_LOGE("XMLParserBase xmlDocument_ is empty, should do LoadGraphicConfiguration first");
         return PARSE_FILE_LOAD_FAIL;
     }
     xmlNode *root = xmlDocGetRootElement(xmlDocument_);
     if (root == nullptr) {
-        RS_LOGE("XMLParser xmlDocGetRootElement failed");
+        RS_LOGE("XMLParserBase xmlDocGetRootElement failed");
         return PARSE_GET_ROOT_FAIL;
     }
 
@@ -101,7 +101,7 @@ std::string XMLParserBase::ExtractPropertyValue(const std::string &propName, xml
     }
 
     if (tempValue != nullptr) {
-        RS_LOGD("XMLParser not a empty tempValue");
+        RS_LOGD("XMLParserBase not a empty tempValue");
         propValue = reinterpret_cast<const char*>(tempValue);
         xmlFree(tempValue);
         tempValue = nullptr;
