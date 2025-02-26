@@ -1817,10 +1817,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     auto itr = std::find_if(children->begin(), children->end(),
         [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
-            if (child == nullptr) {
-                return false;
-            }
-            if (child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+            if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
                 return false;
             }
             auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);

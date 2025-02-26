@@ -72,7 +72,7 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require: #IBOLM8
  */
-HWTEST_F(HwcParamTest, SetHwcExpandingScreenEnabled, Funcition | SmallTest | Level1)
+HWTEST_F(HwcParamTest, SetHwcExpandingScreenEnabled, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
     hwcParam.SetHwcExpandingScreenEnabled(true);
@@ -87,7 +87,7 @@ HWTEST_F(HwcParamTest, SetHwcExpandingScreenEnabled, Funcition | SmallTest | Lev
  * @tc.type: FUNC
  * @tc.require: #IBOLM8
  */
-HWTEST_F(HwcParamTest, IsHwcExpandingScreenEnabled, Funcition | SmallTest | Level1)
+HWTEST_F(HwcParamTest, IsHwcExpandingScreenEnabled, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
     hwcParam.isHwcExpandingScreenEnabled_ = true;
