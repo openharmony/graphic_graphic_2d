@@ -131,6 +131,15 @@ void RSColorSpaceConvert::GetHDRMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
     }
 }
 
+void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& adaptiveFOVMetadata, GSError& ret)
+{
+    ret = MetadataHelper::GetAdaptiveFOVMetadata(surfaceBuffer, adaptiveFOVMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetFOVMetadata( failed with ret: %{public}u.", ret);
+    }
+}
+
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
     VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode)
 {
@@ -153,6 +162,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
     GetHDRMetadata(surfaceBuffer, parameter.staticMetadata, parameter.dynamicMetadata, ret);
+    GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
 
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();
