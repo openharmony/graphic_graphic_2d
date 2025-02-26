@@ -823,6 +823,11 @@ void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
     renderServiceClient_->NotifyDynamicModeEvent(enableDynamicMode);
 }
 
+void RSInterfaces::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+    renderServiceClient_->NotifyHgmConfigEvent(eventName, state);
+}
+
 void RSInterfaces::DisableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(false);

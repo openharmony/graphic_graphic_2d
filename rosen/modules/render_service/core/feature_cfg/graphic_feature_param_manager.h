@@ -31,6 +31,10 @@
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
+#include "opinc_param_parse.h"
+#include "opinc_param.h"
+#include "uifirst_param_parse.h"
+#include "uifirst_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -46,6 +50,10 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
     {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },
         [] {return std::make_unique<HFBCParam>(); }},
+    {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
+        [] {return std::make_unique<OPIncParam>(); }},
+    {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
+        [] {return std::make_unique<UIFirstParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

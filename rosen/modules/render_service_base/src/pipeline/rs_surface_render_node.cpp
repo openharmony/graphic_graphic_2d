@@ -259,6 +259,11 @@ void RSSurfaceRenderNode::ResetRenderParams()
     renderDrawable_->renderParams_.reset();
 }
 
+void RSSurfaceRenderNode::SetStencilVal(int64_t stencilVal)
+{
+    stencilVal_ = stencilVal;
+}
+
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
@@ -975,6 +980,15 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
         specialLayerManager_.RemoveIds(SpecialLayerType::PROTECTED, GetId());
     }
     UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::PROTECTED, isProtectedLayer);
+}
+
+void RSSurfaceRenderNode::SetIsOutOfScreen(bool isOutOfScreen)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetIsOutOfScreen(isOutOfScreen);
+        AddToPendingSyncList();
+    }
 }
 
 bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
@@ -1789,7 +1803,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
     const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
 {
-    Occlusion::Rect absRectR { absRect };
+    Occlusion::Region absRegion { absRect };
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
 
     // The transparent region of surfaceNode should include shadow area
@@ -1807,7 +1821,8 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
             RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] has container: inR:[%d], outR:[%d], innerRect:[%s], "
                 "isFocus:[%d]", GetName().c_str(), containerConfig_.inR_, containerConfig_.outR_,
                 containerConfig_.innerRect_.ToString().c_str(), isFocusWindow);
-            opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
+            opaqueRegion_ = ResetOpaqueRegion(GetAbsDrawRect(), screenRotation, isFocusWindow);
+            opaqueRegion_.AndSelf(absRegion);
         } else {
             if (!cornerRadius.IsZero()) {
                 Vector4<int> dstCornerRadius((cornerRadius.x_ > 0 ? maxRadius : 0),
@@ -1818,7 +1833,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
                     GetName().c_str(), dstCornerRadius.x_, dstCornerRadius.y_, dstCornerRadius.z_, dstCornerRadius.w_);
                 SetCornerRadiusOpaqueRegion(absRect, dstCornerRadius);
             } else {
-                opaqueRegion_ = Occlusion::Region{absRectR};
+                opaqueRegion_ = absRegion;
                 roundedCornerRegion_ = Occlusion::Region();
             }
         }
@@ -1904,10 +1919,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
             }
         }
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
-    } else if (IsAbilityComponent()) {
-        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     } else {
-        contentStatic = surfaceCacheContentStatic_;
+        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
     uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
@@ -2279,7 +2292,7 @@ void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerR
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
-    auto absRect = GetAbsDrawRect();
+    auto absRect = GetInnerAbsDrawRect();
     Vector4f tmpCornerRadius;
     Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), tmpCornerRadius);
     Vector4<int> cornerRadius(static_cast<int>(std::round(tmpCornerRadius.x_)),
@@ -2977,6 +2990,12 @@ void RSSurfaceRenderNode::InitRenderParams()
         RS_LOGE("RSSurfaceRenderNode::InitRenderParams failed");
         return;
     }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::InitRenderParams surfaceParams is null");
+        return;
+    }
+    surfaceParams->SetIsUnobscuredUEC(IsUnobscuredUIExtensionNode());
 #endif
 }
 
@@ -2998,6 +3017,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
+    surfaceParams->stencilVal_ = stencilVal_;
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();

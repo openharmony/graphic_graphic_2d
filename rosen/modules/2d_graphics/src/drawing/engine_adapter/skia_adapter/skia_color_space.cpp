@@ -55,6 +55,8 @@ static inline skcms_TransferFunction ConvertToSkCMSTransferFunction(const CMSTra
             return SkNamedTransferFn::kLinear;
         case CMSTransferFuncType::REC2020:
             return SkNamedTransferFn::kRec2020;
+        default:
+            return SkNamedTransferFn::kSRGB;
     }
 }
 
@@ -71,6 +73,8 @@ static inline skcms_Matrix3x3 ConvertToSkCMSMatrix3x3(const CMSMatrixType& matri
             return SkNamedGamut::kRec2020;
         case CMSMatrixType::XYZ:
             return SkNamedGamut::kXYZ;
+        default:
+            return SkNamedGamut::kSRGB;
     }
 }
 
@@ -115,7 +119,12 @@ std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 
     auto skData = colorSpace_->serialize();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->GetImpl<SkiaData>()->SetSkData(skData);
+    auto dataImpl = data->GetImpl<SkiaData>();
+    if (dataImpl == nullptr) {
+        LOGD("SkiaColorSpace::Serialize, dataImpl is nullptr!");
+        return nullptr;
+    }
+    dataImpl->SetSkData(skData);
     return data;
 }
 

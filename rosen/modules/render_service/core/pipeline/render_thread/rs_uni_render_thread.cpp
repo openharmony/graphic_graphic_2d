@@ -72,11 +72,13 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* PURGE_SHADER_CACHE_AFTER_ANIMATE = "PurgeShaderCacheAfterAnimate";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* RECLAIM_MEMORY = "ReclaimMemory";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
+constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
@@ -176,6 +178,7 @@ void RSUniRenderThread::InitGrContext()
     if (!grContext) {
         return;
     }
+    RSMainThread::Instance()->InitVulkanErrorCallback(grContext);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
@@ -1068,6 +1071,48 @@ void RSUniRenderThread::MemoryManagementBetweenFrames()
     if (RSSystemProperties::GetGpuCacheSuppressWindowEnabled()) {
         SuppressGpuCacheBelowCertainRatioBetweenFrames();
     }
+}
+
+void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
+{
+#ifdef RS_ENABLE_VK
+    if (hasPurgeShaderCacheTask_) {
+        RemoveTask(PURGE_SHADER_CACHE_AFTER_ANIMATE); // ensure only one task
+        hasPurgeShaderCacheTask_ = false;
+    }
+    if (!RSJankStats::GetInstance().IsAnimationEmpty()) {
+        return;
+    }
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    if (renderContext->CheckShaderCacheOverSoftLimit()) {
+        RS_TRACE_NAME("ShaderCache OverSize, Posting Purge Task");
+        hasPurgeShaderCacheTask_ = true;
+        PostTask(
+            [this]() {
+                auto& shaderCache = ShaderCache::Instance();
+                if (!shaderCache.IfInitialized()) {
+                    RS_LOGD("PurgeShaderCacheAfterAnimate shaderCache not Initialized");
+                    return;
+                }
+                RS_TRACE_NAME("PurgeShaderCacheAfterAnimate");
+                shaderCache.PurgeShaderCacheAfterAnimate([this]() -> bool {
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+                });
+                hasPurgeShaderCacheTask_ = false;
+            },
+            PURGE_SHADER_CACHE_AFTER_ANIMATE,
+            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_SIX_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+            AppExecFwk::EventQueue::Priority::LOW);
+    }
+#else
+    return;
+#endif
 }
 
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)

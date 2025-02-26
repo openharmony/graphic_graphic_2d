@@ -106,6 +106,24 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSRenderServiceConnection: Failed to set death recipient.");
     }
+    if (renderService_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: renderService_ is nullptr");
+    }
+    if (mainThread_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: mainThread_ is nullptr");
+    }
+    if (screenManager_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: screenManager_ is nullptr");
+    }
+    if (connDeathRecipient_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: connDeathRecipient_ is nullptr");
+    }
+    if (ApplicationDeathRecipient_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: ApplicationDeathRecipient_ is nullptr");
+    }
+    if (appVSyncDistributor_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection: appVSyncDistributor_ is nullptr");
+    }
 }
 
 RSRenderServiceConnection::~RSRenderServiceConnection() noexcept
@@ -468,13 +486,15 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
         return nullptr;
     }
     if (fromXcomponent) {
-        auto& node = RSMainThread::Instance()->GetContext().GetNodeMap()
-                    .GetRenderNode<RSRenderNode>(windowNodeId);
-        if (node == nullptr) {
-            RS_LOGE("RSRenderServiceConnection::CreateVSyncConnection:node is nullptr");
-            return nullptr;
-        }
-        windowNodeId = node->GetInstanceRootNodeId();
+        mainThread_->ScheduleTask([&windowNodeId]() {
+            auto& node = RSMainThread::Instance()->GetContext().GetNodeMap()
+                        .GetRenderNode<RSRenderNode>(windowNodeId);
+            if (node == nullptr) {
+                RS_LOGE("RSRenderServiceConnection::CreateVSyncConnection:node is nullptr");
+                return;
+            }
+            windowNodeId = node->GetInstanceRootNodeId();
+        }).wait();
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
@@ -483,12 +503,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer, name]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
+            linker->SetVsyncName(name);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
@@ -2342,6 +2363,20 @@ void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEve
             return;
         }
         frameRateMgr->HandleDynamicModeEvent(enableDynamicModeEvent);
+    });
+}
+
+void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+    HgmTaskHandleThread::Instance().PostTask([eventName, state] () {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            RS_LOGW("RSRenderServiceConnection::NotifyHgmConfigEvent: frameRateMgr is nullptr.");
+            return;
+        }
+        if (eventName == "HGMCONFIG_HIGH_TEMP") {
+            frameRateMgr->HandleThermalFrameRate(state);
+        }
     });
 }
 

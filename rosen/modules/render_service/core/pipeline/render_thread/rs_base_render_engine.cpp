@@ -71,7 +71,7 @@ void RSBaseRenderEngine::Init(bool independentContext)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         vkImageManager_ = std::make_shared<RSVkImageManager>();
         renderContext_->SetUpGpuContext(skContext_);
     } else {
@@ -116,7 +116,7 @@ void RSBaseRenderEngine::InitCapture(bool independentContext)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         captureRenderContext_->SetUpGpuContext(captureSkContext_);
     } else {
         captureRenderContext_->SetUpGpuContext();
@@ -258,8 +258,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(
-            frameContextConfig.independentContext);
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (renderContext_ == nullptr) {
             return nullptr;
         }
@@ -785,8 +784,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);

@@ -38,6 +38,7 @@
 #include "rs_frame_report.h"
 #include "rs_profiler.h"
 #include "rs_trace.h"
+#include "hisysevent.h"
 #include "v2_1/cm_color_space.h"
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
@@ -194,6 +195,8 @@ constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
+constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
+constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -731,6 +734,64 @@ void RSMainThread::UpdateGpuContextCacheSize()
 #endif
 }
 
+void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
+{
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSMainThread::InitVulkanErrorCallback gpuContext is nullptr");
+        return;
+    }
+
+    gpuContext->RegisterVulkanErrorCallback([this]() {
+        RS_LOGE("FocusLeashWindowName:[%{public}s]", this->focusLeashWindowName_.c_str());
+
+        char appWindowName[EVENT_NAME_MAX_LENGTH];
+        char focusLeashWindowName[EVENT_NAME_MAX_LENGTH];
+        char extinfodefault[EVENT_NAME_MAX_LENGTH] = "ext_info_default";
+
+        auto cpyresult = strcpy_s(appWindowName, EVENT_NAME_MAX_LENGTH, appWindowName_.c_str());
+        if (cpyresult != 0) {
+            RS_LOGE("Copy appWindowName_ error, AppWindowName:%{public}s", appWindowName_.c_str());
+        }
+        cpyresult = strcpy_s(focusLeashWindowName, EVENT_NAME_MAX_LENGTH, focusLeashWindowName_.c_str());
+        if (cpyresult != 0) {
+            RS_LOGE("Copy focusLeashWindowName error, focusLeashWindowName:%{public}s", focusLeashWindowName_.c_str());
+        }
+
+        HiSysEventParam pPID = { .name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = appPid_ }, .arraySize = 0 };
+
+        HiSysEventParam pAppNodeId = {
+            .name = "AppNodeId", .t = HISYSEVENT_UINT64, .v = { .ui64 = appWindowId_ }, .arraySize = 0
+        };
+
+        HiSysEventParam pAppNodeName = {
+            .name = "AppNodeName", .t = HISYSEVENT_STRING, .v = { .s = appWindowName }, .arraySize = 0
+        };
+
+        HiSysEventParam pLeashWindowId = {
+            .name = "LeashWindowId", .t = HISYSEVENT_UINT64, .v = { .ui64 = focusLeashWindowId_ }, .arraySize = 0
+        };
+
+        HiSysEventParam pLeashWindowName = {
+            .name = "LeashWindowName", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
+        };
+
+        HiSysEventParam pExtInfo = {
+            .name = "ExtInfo", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
+        };
+
+        HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
+            pExtInfo };
+
+        int ret = OH_HiSysEvent_Write("GRPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
+            sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
+        if (ret == 0) {
+            RS_LOGE("Successed to upload hebc fault event.");
+        } else {
+            RS_LOGE("Faild to upload rs_vulkan_error event, ret = %{publid}d", ret);
+        }
+    });
+}
+
 void RSMainThread::RsEventParamDump(std::string& dumpString)
 {
     rsEventManager_.DumpAllEventParam(dumpString);
@@ -790,6 +851,10 @@ void RSMainThread::SetFocusLeashWindowId()
         auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
         if (node->IsAppWindow() && parent && parent->IsLeashWindow()) {
             focusLeashWindowId_ = parent->GetId();
+            focusLeashWindowName_ = parent->GetName();
+            appWindowId_ = node->GetId();
+            appWindowName_ = node->GetName();
+            appPid_ = appWindowId_ >> HIGH_32BIT;
         }
     }
 }
@@ -2004,10 +2069,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
     // Start of DVSync
-    bool isUiDvsyncOn = false;
-    if (rsVSyncDistributor_ != nullptr) {
-        isUiDvsyncOn = rsVSyncDistributor_->IsUiDvsyncOn();
-    }
+    bool isUiDvsyncOn = rsVSyncDistributor_ != nullptr ? rsVSyncDistributor_->IsUiDvsyncOn() : false;
     // End of DVSync
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
@@ -2021,8 +2083,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         }
     });
     // Check and processing refresh rate task.
-    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
-    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, isUiDvsyncOn);
+    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsVSyncDistributor_->GetRefreshRate(), isUiDvsyncOn);
 
     if (rsFrameRateLinker_ != nullptr) {
         auto rsCurrRange = rsCurrRange_;
@@ -2032,13 +2093,19 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
 
+    if (rsCurrRange_.IsValid()) {
+        frameRateMgr->GetRsFrameRateTimer().Start();
+    } else {
+        frameRateMgr->GetRsFrameRateTimer().Stop();
+    }
+
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
     bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
     bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
+    bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
 
-    if (!vrateStatusChange && !setHgmTaskFlag &&
-        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
-        !needRefresh) {
+    if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
+        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;
     }
 
@@ -2046,12 +2113,9 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                         linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            return;
-        }
-        // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
-        if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr &&
+            frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+            // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });
@@ -4719,40 +4783,31 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         return;
     }
     bool isNeedRefreshAll{false};
-    auto& rsLuminance = RSLuminanceControl::Get();
-    auto& rsColorTemp = RSColorTemp::Get();
-    for (const auto& child : *rootNode->GetSortedChildren()) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
-        if (displayNode == nullptr) {
-            continue;
-        }
-        auto screenId = displayNode->GetScreenId();
-        if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
-            static std::function<void()> task = [screenId]() -> void {
-                uint32_t newLevel = RSLuminanceControl::Get().GetNewHdrLuminance(screenId);
-                auto screenManager = CreateOrGetScreenManager();
-                if (screenManager == nullptr) {
-                    return;
-                }
-                screenManager->SetScreenBacklight(screenId, newLevel);
-                RSLuminanceControl::Get().SetNowHdrLuminance(screenId, newLevel);
-            };
-            RSBackgroundThread::Instance().PostSyncTask(task);
-        }
-        if (rsLuminance.IsDimmingOn(screenId)) {
-            rsLuminance.DimmingIncrease(screenId);
-            isNeedRefreshAll = true;
-            SetLuminanceChangingStatus(screenId, true);
-        }
-        if (rsColorTemp.IsDimmingOn(screenId)) {
-            std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
-            auto screenManager = CreateOrGetScreenManager();
-            if (screenManager == nullptr) {
-                return;
+    if (auto screenManager = CreateOrGetScreenManager()) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        auto& rsColorTemp = RSColorTemp::Get();
+        for (const auto& child : *rootNode->GetSortedChildren()) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
+            if (displayNode == nullptr) {
+                continue;
             }
-            screenManager->SetScreenLinearMatrix(screenId, matrix);
-            rsColorTemp.DimmingIncrease(screenId);
-            isNeedRefreshAll = true;
+            auto screenId = displayNode->GetScreenId();
+            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+                screenManager->SetScreenBacklight(screenId, newLevel);
+                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
+                SetLuminanceChangingStatus(screenId, true);
+            }
+            if (rsColorTemp.IsDimmingOn(screenId)) {
+                std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
+                screenManager->SetScreenLinearMatrix(screenId, matrix);
+                rsColorTemp.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
+            }
         }
     }
     if (isNeedRefreshAll) {

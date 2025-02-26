@@ -157,6 +157,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
         setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
     } else if (paraName == "rs_solid_color_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
+    } else if (paraName == "video_call_layer_config") {
+        setResult = ParseSimplex(node, mParsedData_->videoCallLayerConfig_);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -331,6 +333,15 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         }
         screenConfig[id] = screenSetting;
         HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
+    }
+    if (size_t pos = type.find(HGM_CONFIG_TYPE_THERMAL_SUFFIX); pos != std::string::npos) {
+        auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
+        if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
+            ReplenishMissThermalConfig(defaultScreenConfig->second, screenConfig);
+        } else {
+            HGM_LOGE("XMLParser failed to ReplenishMissThermalConfig %{public}s", type.c_str());
+            return EXEC_SUCCESS;
+        }
     }
     mParsedData_->screenConfigs_[type] = screenConfig;
     return EXEC_SUCCESS;
@@ -592,6 +603,19 @@ int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std:
         auto strategy = ExtractPropertyValue("strategy", *currNode);
         appTypes[std::stoi(name)] = strategy;
         HGM_LOGI("HgmXMLParser ParseAppTypes name=%{public}s strategy=%{public}s", name.c_str(), strategy.c_str());
+    }
+
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig &screenConfigDefault,
+                                              PolicyConfigData::ScreenConfig &screenConfig)
+{
+    HGM_LOGD("HgmXMLParser ReplenishMissThermalConfig");
+    for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
+        if (screenConfig.find(id) == screenConfig.end()) {
+            screenConfig[id] = screenSettingDefalut;
+        }
     }
 
     return EXEC_SUCCESS;

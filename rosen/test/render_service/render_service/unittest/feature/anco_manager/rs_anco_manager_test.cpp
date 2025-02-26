@@ -14,10 +14,10 @@
  */
 
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/mock/mock_anco_manager.h"
 #include "gtest/gtest.h"
 #include "parameters.h"
 #include "params/rs_surface_render_params.h"
-#include "mock/mock_anco_manager.h"
 
 using namespace testing;
 using namespace testing::ext;

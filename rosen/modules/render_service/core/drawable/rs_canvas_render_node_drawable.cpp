@@ -67,7 +67,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
-        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw) {
+        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC()) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }

@@ -367,6 +367,8 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);

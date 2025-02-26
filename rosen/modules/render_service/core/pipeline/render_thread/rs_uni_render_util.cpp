@@ -73,6 +73,7 @@ constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
+constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
@@ -107,9 +108,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
 #endif
-    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() }};
+    allDirtyRegion.OrSelf(dirtyRegion);
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
-        Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
         Occlusion::Region expandedAllDirtyRegion;
         constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
         int expandSize = static_cast<int>(std::ceil(
@@ -119,22 +120,21 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             Occlusion::Region expandedRegion{rect};
             expandedAllDirtyRegion.OrSelf(expandedRegion);
         }
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            expandedAllDirtyRegion);
-        rsDirtyRectsDfx.SetExpandedDirtyRegion(expandedAllDirtyRegion);
-    } else {
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            dirtyRegion.Or(globalDirtyRegion));
+        allDirtyRegion = expandedAllDirtyRegion;
     }
+    if (params.IsDirtyAlignEnabled()) {
+        allDirtyRegion = allDirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    }
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
 
     // DFX START
-    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
+    rsDirtyRectsDfx.SetDirtyRegion(allDirtyRegion);
+    rsDirtyRectsDfx.SetExpandedDirtyRegion(allDirtyRegion);
     // DFX END
 
     RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(allDirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
-        rects.emplace_back(rect);
         RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
@@ -339,6 +339,49 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     return allSurfaceVisibleDirtyRegion;
 }
 
+std::vector<RectI> RSUniRenderUtil::GetCurrentFrameVisibleDirty(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenInfo& screenInfo, RSDisplayRenderParams& params)
+{
+    Occlusion::Region damageRegions;
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    // update all child surfacenode history
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGI("GetCurrentFrameVisibleDirty surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceParams || !surfaceDirtyManager) {
+            RS_LOGI("RSUniRenderUtil::GetCurrentFrameVisibleDirty node(%{public}" PRIu64") params or "
+                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
+            continue;
+        }
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        // for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
+        if (surfaceParams->IsFirstLevelCrossNode() &&
+            !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
+            continue;
+        }
+        auto visibleRegion = surfaceParams->GetVisibleRegion();
+        auto surfaceCurrentFrameDirtyRegion = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
+        Occlusion::Region currentFrameDirtyRegion { Occlusion::Rect {
+            surfaceCurrentFrameDirtyRegion.left_, surfaceCurrentFrameDirtyRegion.top_,
+            surfaceCurrentFrameDirtyRegion.GetRight(), surfaceCurrentFrameDirtyRegion.GetBottom() } };
+        Occlusion::Region damageRegion = currentFrameDirtyRegion.And(visibleRegion);
+        damageRegions.OrSelf(damageRegion);
+    }
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
+    RectI rect = displayDrawable.GetSyncDirtyManager()->GetDirtyRegionFlipWithinSurface();
+    if (!rect.IsEmpty()) {
+        rects.emplace_back(rect);
+    }
+    return rects;
+}
+
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
     const Occlusion::Region& globalDirtyRegion)
@@ -499,11 +542,15 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
-    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
+    if (boundsWidth == 0 || boundsHeight == 0) {
+        RS_LOGE("RSUniRenderUtil::SrcRectScaleDown: boundsWidth or boundsHeight is 0");
+        return;
+    }
+    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
 
     uint32_t newWidthBoundsHeight = newWidth * boundsHeight;
     uint32_t newHeightBoundsWidth = newHeight * boundsWidth;
@@ -575,8 +622,12 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
     auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer);
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
+    auto& renderParams = const_cast<RSSurfaceRenderNode&>(node).GetStagingRenderParams();
+    auto surfaceRenderParams = renderParams == nullptr
+                            ? nullptr
+                            : static_cast<RSSurfaceRenderParams*>(renderParams.get());
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params,
-        static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get()));
+        surfaceRenderParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     return params.matrix;
 }
@@ -989,7 +1040,7 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
     return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
-        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
+        value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
 }
 
 float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)
@@ -1910,7 +1961,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
         RS_LOGE("surface or buffer is nullptr");
         return;
     }
-
+    node.SetIsOutOfScreen(false);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
@@ -1932,6 +1983,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
                 absBoundsRect.GetLeft() + absBoundsRect.GetWidth() > screenInfo.width ||
                 absBoundsRect.GetTop() + absBoundsRect.GetHeight() > screenInfo.height) {
                 node.SetHardwareForcedDisabledState(true);
+                node.SetIsOutOfScreen(true);
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s id %llu disabled by scale fit bounds out of screen. "
                     "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
                     node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,
@@ -2233,7 +2285,7 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     }
     // continue to traverse.
     for (const auto& child : *node->GetSortedChildren()) {
-        TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData);
+        TraverseAndCollectUIExtensionInfo(child, boundsGeo.GetAbsMatrix(), hostId, callbackData, isUnobscured);
     }
 }
 

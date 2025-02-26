@@ -33,6 +33,7 @@ constexpr int ADAPTIVE_SYNC_ENABLED = 1;
 constexpr int32_t SWITCH_SCREEN_SCENE = 1;
 constexpr int32_t STRING_BUFFER_MAX_SIZE = 256;
 constexpr int64_t IDEAL_PULSE = 2777778; // 2.777778ms
+const std::string HGM_CONFIG_TYPE_THERMAL_SUFFIX = "_THERMAL";
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -182,6 +183,7 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;

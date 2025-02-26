@@ -167,6 +167,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_DYNAMIC_MODE_EVENT = 1003,
     NOTIFY_SOFT_VSYNC_EVENT = 1004,
     NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 1005,
+    NOTIFY_HGMCONFIG_EVENT = 1006,
     NOTIFY_SCREEN_SWITCHED,
 };
 } // namespace Rosen

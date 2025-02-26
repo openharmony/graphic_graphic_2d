@@ -2823,4 +2823,33 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
     EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
 }
+
+/**
+ * @tc.name: GetCurrentFrameVisibleDirty001
+ * @tc.desc: test GetCurrentFrameVisibleDirty
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniRenderUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
+    EXPECT_EQ(rects.empty(), true);
+    displayDrawable = nullptr;
+}
 } // namespace OHOS::Rosen

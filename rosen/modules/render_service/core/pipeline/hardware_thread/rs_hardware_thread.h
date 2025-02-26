@@ -84,6 +84,7 @@ private:
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers);
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
+    void ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshRate, bool followPipline);
     void AddRefreshRateCount(const OutputPtr& output);
     void RecordTimestamp(const std::vector<LayerInfoPtr>& layers);
     int64_t GetCurTimeCount();
@@ -133,6 +134,9 @@ private:
     std::mutex surfaceMutex_;
 
     bool needRetrySetRate_ = false;
+
+    std::unordered_map<ScreenId, OutputPtr> outputMap_;
+    RefreshRateParam refreshRateParam_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

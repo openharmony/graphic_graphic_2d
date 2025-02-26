@@ -22,9 +22,9 @@ namespace Rosen {
 namespace Drawing {
 PathIterator::PathIterator(const Path& path) noexcept : impl_(ImplFactory::CreatePathIteratorImpl(path)) {}
 
-scalar PathIterator::conicWeight() const
+scalar PathIterator::ConicWeight() const
 {
-    return impl_->conicWeight();
+    return impl_->ConicWeight();
 }
 
 PathVerb PathIterator::Next(Point* points)

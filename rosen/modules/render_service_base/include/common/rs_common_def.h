@@ -44,6 +44,8 @@ constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 constexpr uint32_t RGBA_MAX = 255;
 constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
+constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
+constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -304,6 +306,7 @@ enum class RSUIFirstSwitch {
     FORCE_DISABLE,      // force close uifirst
     FORCE_ENABLE,       // force open uifirst
     FORCE_ENABLE_LIMIT, // force open uifirst, but for limited
+    FORCE_DISABLE_NONFOCUS, // force close uifirst when only in nonfocus window
 };
 
 enum class SelfDrawingNodeType : uint8_t {

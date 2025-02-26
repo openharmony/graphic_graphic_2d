@@ -215,6 +215,10 @@ private:
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
     bool IsVMSurfaceName(std::string surfaceName);
 
+    bool IsToSubByAppAnimation() const;
+    bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
+    bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
+
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
     bool hasForceUpdateNode_ = false;
@@ -277,6 +281,10 @@ private:
     const std::vector<std::string> screenshotAnimation_ = {
         { "SCREENSHOT_SCALE_ANIMATION" },
         { "SCREENSHOT_DISMISS_ANIMATION" },
+    };
+    const std::vector<std::string> toSubByAppAnimation_ = {
+        { "WINDOW_TITLE_BAR_MINIMIZED" },
+        { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
     };
 
     const std::vector<std::string> vmAppNameSet_ = {

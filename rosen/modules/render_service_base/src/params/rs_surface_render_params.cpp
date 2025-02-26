@@ -524,6 +524,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->stencilVal_ = stencilVal_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -536,6 +537,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
@@ -562,6 +564,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;

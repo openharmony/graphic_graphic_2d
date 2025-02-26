@@ -164,10 +164,6 @@ public:
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
-        if (IsRosenWeb() && !(RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType() ||
-            RSSystemProperties::IsPcType())) {
-            return false;
-        }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             IsLayerTop();
     }
@@ -525,6 +521,7 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
+    void SetIsOutOfScreen(bool isOutOfScreen);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -658,6 +655,8 @@ public:
     void OnAlphaChanged() override {
         alphaChanged_ = true;
     }
+
+    void SetStencilVal(int64_t stencilVal);
 
     void SetOcclusionVisible(bool visible);
 
@@ -1583,6 +1582,7 @@ private:
     int hdrNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
+    int64_t stencilVal_ = -1;
     float positionZ_ = 0.0f;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.

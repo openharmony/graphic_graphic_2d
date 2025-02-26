@@ -1381,6 +1381,21 @@ HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: NotifyHgmConfigEvent001
+ * @tc.desc: Notify hgm config event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyHgmConfigEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string eventName = "HGMCONFIG_HIGH_TEMP";
+    bool state = false;
+    rsInterfaces->NotifyHgmConfigEvent(eventName, state);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.type: FUNC

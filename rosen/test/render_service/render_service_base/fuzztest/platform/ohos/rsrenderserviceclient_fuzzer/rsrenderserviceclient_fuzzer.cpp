@@ -1642,6 +1642,24 @@ bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string eventName = "eventName";
+    bool state = GetData<bool>();
+    client->NotifyHgmConfigEvent(eventName, state);
+    return true;
+}
+
 bool DoSetCacheEnabledForRotation(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2464,6 +2482,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
+    OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
     OHOS::Rosen::DoSetOnRemoteDiedCallback(data, size);
     OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
     OHOS::Rosen::DoSetVmaCacheStatus(data, size);

@@ -278,6 +278,7 @@ public:
         childrenRect_.Clear();
     }
     RectI GetChildrenRect() const;
+    RectI GetRemovedChildrenRect() const;
 
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleFilter(bool val);
@@ -383,6 +384,11 @@ public:
     inline bool ShouldPaint() const
     {
         return shouldPaint_;
+    }
+
+    inline RectI GetInnerAbsDrawRect() const noexcept
+    {
+        return innerAbsDrawRect_;
     }
 
     // dirty rect of current frame after update dirty, last frame before update
@@ -716,7 +722,7 @@ public:
         return;
     }
 #ifdef RS_ENABLE_GPU
-    const std::unique_ptr<RSRenderParams>& GetStagingRenderParams() const;
+    std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
 
     // Deprecated! Do not use this interface.
     // This interface has crash risks and will be deleted in later versions.
@@ -878,6 +884,9 @@ public:
 
     CurFrameInfoDetail& GetCurFrameInfoDetail() { return curFrameInfoDetail_; }
 
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC();
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -917,6 +926,7 @@ protected:
     bool NeedRoutedBasedOnUIExtension(SharedPtr child);
 
     void UpdateDrawableVecV2();
+    void ClearDrawableVec2();
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -990,6 +1000,8 @@ private:
     // Test pipeline
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool drawableVecNeedClear_ = false;
+    bool unobscuredUECChildrenNeedSync_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
@@ -1095,7 +1107,7 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> originUECChildren_ =
+    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
     WeakPtr sourceCrossNode_;
     WeakPtr curCloneNodeParent_;
@@ -1110,11 +1122,15 @@ private:
     RectI localDistortionEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
+    RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
+    // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
+    RectI innerAbsDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;
     RectI oldChildrenRect_;
+    RectI removedChildrenRect_;
     RectI oldClipRect_;
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
@@ -1123,6 +1139,7 @@ private:
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectF selfDrawingNodeDirtyRect_;
     RectI selfDrawingNodeAbsDirtyRect_;
+    RectF selfDrawingNodeAbsDirtyRectF_;
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache

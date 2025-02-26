@@ -1149,6 +1149,17 @@ bool DONotifyDynamicModeEvent()
     return true;
 }
 
+bool DONotifyHgmConfigEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string eventName = GetData<std::string>();
+    bool state = GetData<bool>();
+    rsConn_->NotifyHgmConfigEvent(eventName, state);
+    return true;
+}
+
 bool DOSetCacheEnabledForRotation()
 {
     if (rsConn_ == nullptr) {
@@ -1395,6 +1406,7 @@ void DoFuzzerTest2()
 void DoFuzzerTest3()
 {
     DoNotifySoftVsyncEvent();
+    DONotifyHgmConfigEvent();
     DoCreatePixelMapFromSurface();
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();

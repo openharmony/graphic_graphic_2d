@@ -84,6 +84,7 @@ public:
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void PurgeShaderCacheAfterAnimate();
     void SetReclaimMemoryFinished(bool isFinished);
     bool IsReclaimMemoryFinished();
     void SetTimeToReclaim(bool isTimeToReclaim);
@@ -246,6 +247,7 @@ private:
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isDefaultCleanTaskFinished_ = true;
+    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
     bool isReclaimMemoryFinished_ = true;
     std::atomic<bool> isTimeToReclaim_ {false};

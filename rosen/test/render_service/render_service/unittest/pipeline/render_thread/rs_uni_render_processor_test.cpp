@@ -560,4 +560,28 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
     ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
     ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
 }
+
+/**
+ * @tc.name: GetForceClientForDRM005
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    params.animateState_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    // set drm out of screen
+    params.isOutOfScreen_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    params.isOutOfScreen_ = true;
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
+}
 }

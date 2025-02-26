@@ -636,6 +636,10 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
 }
 
+void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }

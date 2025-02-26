@@ -207,11 +207,6 @@ bool RSLuminanceControl::LoadTmoControl()
 
 bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
 {
-    if (hdrstatus != lastHdrStatus_) {
-        RS_LOGI("LumCtr::SetHdrStatus:DisplayHdrStatus:0x%{public}04X screenId:%{public}" PRIu64 "",
-            hdrstatus, screenId);
-        lastHdrStatus_ = hdrstatus;
-    }
     return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, hdrstatus) : false;
 }
 

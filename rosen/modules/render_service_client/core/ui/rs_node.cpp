@@ -2252,7 +2252,6 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
         SetDrawNode();
     }
-    ROSEN_LOGD("RSNode:Id: %{public}" PRIu64 ", AddModifier:%{public}d", id_, (int16_t)modifier->GetModifierType());
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {

@@ -305,6 +305,8 @@ public:
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
+    virtual void NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
+
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 
     virtual void ReportEventComplete(DataBaseRs info) = 0;
