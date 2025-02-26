@@ -20,7 +20,6 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
-const std::string GRAPHIC_CONFIG_PRODUCT_PATH = "/sys_prod/etc/graphic/graphic_config.xml";
 }
 
 void XMLParserBase::Destroy()
@@ -36,11 +35,9 @@ void XMLParserBase::Destroy()
     }
 }
 
-int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
+int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
 {
-    RS_LOGI("XMLParserBase opening xml file");
-    // System base config file read
-    for (const std::string& configPath : paths) {
+    for (const std::string& configPath : sysPaths_) {
         std::string graphicFilePath = configPath + fileDir;
         xmlSysDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
         if (xmlSysDocument_ != nullptr) {
@@ -50,16 +47,35 @@ int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
             RS_LOGE("XMLParserBase fail to get sys graphic config: %{public}s", graphicFilePath.c_str());
         }
     }
-    // For different feature settings in variant products
-    xmlProdDocument_ = xmlReadFile(GRAPHIC_CONFIG_PRODUCT_PATH.c_str(), nullptr, 0);
-    if (!xmlProdDocument_) {
-        RS_LOGD("XMLParserBase not have prod graphic config: %{public}s", GRAPHIC_CONFIG_PRODUCT_PATH.c_str());
-    }
     if (!xmlSysDocument_) {
         RS_LOGE("XMLParserBase read system file failed");
-        return PARSE_FILE_LOAD_FAIL;
+        return PARSE_SYS_FILE_LOAD_FAIL;
     }
+    return PARSE_EXEC_SUCCESS;
+}
 
+int32_t XMLParserBase::LoadProdConfiguration(std::string& fileDir)
+{
+    std::string graphicFilePath = prodPath_ + fileDir;
+    xmlProdDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
+    if (!xmlProdDocument_) {
+        RS_LOGD("XMLParserBase not have prod graphic config: %{public}s", graphicFilePath.c_str());
+        return PARSE_PROD_FILE_LOAD_FAIL;
+    }
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
+{
+    RS_LOGI("XMLParserBase opening xml file");
+    // System base config file read
+    if (LoadSysConfiguration(fileDir) != PARSE_EXEC_SUCCESS) {
+        return PARSE_SYS_FILE_LOAD_FAIL;
+    }
+    // For different feature settings in variant products
+    if (LoadProdConfiguration(fileDir) != PARSE_EXEC_SUCCESS) {
+        return PARSE_PROD_FILE_LOAD_FAIL;
+    }
     return PARSE_EXEC_SUCCESS;
 }
 
@@ -68,7 +84,7 @@ int32_t XMLParserBase::ParseSysDoc()
     RS_LOGI("XMLParserBase Parse SysDoc Start");
     if (!xmlSysDocument_) {
         RS_LOGE("XMLParser xmlSysDocument_ is empty, should do LoadGraphicConfiguration first");
-        return PARSE_FILE_LOAD_FAIL;
+        return PARSE_SYS_FILE_LOAD_FAIL;
     }
     xmlNode *root = xmlDocGetRootElement(xmlSysDocument_);
     if (root == nullptr) {
@@ -87,7 +103,7 @@ int32_t XMLParserBase::ParseProdDoc()
     RS_LOGI("XMLParserBase Parse ProdDoc Start");
     if (!xmlProdDocument_) {
         RS_LOGD("XMLParser xmlProdDocument_ is empty, check if need product config first");
-        return PARSE_FILE_LOAD_FAIL;
+        return PARSE_PROD_FILE_LOAD_FAIL;
     }
     xmlNode *root = xmlDocGetRootElement(xmlProdDocument_);
     if (root == nullptr) {

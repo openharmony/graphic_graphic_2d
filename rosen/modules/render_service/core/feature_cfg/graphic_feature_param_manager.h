@@ -73,7 +73,7 @@ private:
     GraphicFeatureParamManager();
     ~GraphicFeatureParamManager() noexcept override;
 
-    std::string graphicConfigPath = "etc/graphic/graphic_config.xml";
+    std::string graphicConfigPath_ = "etc/graphic/graphic_config.xml";
 
     std::unique_ptr<XMLParserBase> featureParser_ = nullptr;
 };

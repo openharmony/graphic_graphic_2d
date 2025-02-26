@@ -60,11 +60,15 @@ public:
     static bool IsNumber(const std::string& str);
 
 private:
+    int32_t LoadSysConfiguration(std::string& fileDir);
+    int32_t LoadProdConfiguration(std::string& fileDir);
     bool ParseInternal(xmlNode &node);
-    xmlDoc *xmlSysDocument_ = nullptr;
+    xmlDoc *xmlSysDocument_ = nullptr;  \
+
     xmlDoc *xmlProdDocument_ = nullptr;
-    std::vector<std::string> paths = {"/system/variant/phone/base/", "/system/variant/tablet/base/",
+    std::vector<std::string> sysPaths_ = {"/system/variant/phone/base/", "/system/variant/tablet/base/",
         "/system/variant/pc/base/", "/system/variant/watch/base/"};
+    std::string prodPath_ = "/sys_prod/";
 };
 } // namespace OHOS::Rosen
 #endif // XML_PARSER_BASE_H

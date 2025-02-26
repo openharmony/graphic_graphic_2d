@@ -52,7 +52,7 @@ void GraphicFeatureParamManager::FeatureParamParseEntry()
         featureParser_ = std::make_unique<XMLParserBase>();
     }
 
-    if (featureParser_->LoadGraphicConfiguration(graphicConfigPath) != PARSE_EXEC_SUCCESS) {
+    if (featureParser_->LoadGraphicConfiguration(graphicConfigPath_) != PARSE_EXEC_SUCCESS) {
         RS_LOGD("GraphicFeatureParamManager failed to load prod xml configuration file");
         return;
     }
