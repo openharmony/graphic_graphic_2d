@@ -156,5 +156,6 @@ HWTEST_F(UtilTest, UtilTest_004, TestSize.Level1)
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseBootDuration(jsonData3, duration);
     EXPECT_EQ(duration, 10);
+    /////
 }
 }
