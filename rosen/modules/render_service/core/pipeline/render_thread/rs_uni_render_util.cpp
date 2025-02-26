@@ -73,6 +73,7 @@ constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
+constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
@@ -107,9 +108,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
 #endif
-    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() }};
+    allDirtyRegion.OrSelf(dirtyRegion);
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
-        Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
         Occlusion::Region expandedAllDirtyRegion;
         constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
         int expandSize = static_cast<int>(std::ceil(
@@ -119,22 +120,21 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             Occlusion::Region expandedRegion{rect};
             expandedAllDirtyRegion.OrSelf(expandedRegion);
         }
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            expandedAllDirtyRegion);
-        rsDirtyRectsDfx.SetExpandedDirtyRegion(expandedAllDirtyRegion);
-    } else {
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            dirtyRegion.Or(globalDirtyRegion));
+        allDirtyRegion = expandedAllDirtyRegion;
     }
+    if (params.IsDirtyAlignEnabled()) {
+        allDirtyRegion = allDirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    }
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
 
     // DFX START
-    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
+    rsDirtyRectsDfx.SetDirtyRegion(allDirtyRegion);
+    rsDirtyRectsDfx.SetExpandedDirtyRegion(allDirtyRegion);
     // DFX END
 
     RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(allDirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
-        rects.emplace_back(rect);
         RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }

@@ -259,6 +259,11 @@ void RSSurfaceRenderNode::ResetRenderParams()
     renderDrawable_->renderParams_.reset();
 }
 
+void RSSurfaceRenderNode::SetStencilVal(int64_t stencilVal)
+{
+    stencilVal_ = stencilVal;
+}
+
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
@@ -3012,6 +3017,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
+    surfaceParams->stencilVal_ = stencilVal_;
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();

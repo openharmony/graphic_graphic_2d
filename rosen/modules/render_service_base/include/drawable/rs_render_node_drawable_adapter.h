@@ -264,6 +264,8 @@ protected:
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        bool isStencilPixelOcclusionCullingEnabled = false, int64_t stencilVal = -1) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;

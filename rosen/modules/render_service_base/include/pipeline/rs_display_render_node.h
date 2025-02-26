@@ -332,6 +332,7 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -600,6 +601,7 @@ private:
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::vector<std::string> windowsName_;

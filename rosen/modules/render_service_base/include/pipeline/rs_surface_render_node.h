@@ -656,6 +656,8 @@ public:
         alphaChanged_ = true;
     }
 
+    void SetStencilVal(int64_t stencilVal);
+
     void SetOcclusionVisible(bool visible);
 
     bool GetOcclusionVisible() const
@@ -1580,6 +1582,7 @@ private:
     int hdrNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
+    int64_t stencilVal_ = -1;
     float positionZ_ = 0.0f;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.

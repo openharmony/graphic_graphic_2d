@@ -96,6 +96,16 @@ public:
         isOpDropped_ = opDropped;
     }
 
+    bool IsDirtyAlignEnabled() const
+    {
+        return isDirtyAlignEnabled_;
+    }
+
+    bool IsStencilPixelOcclusionCullingEnabled() const
+    {
+        return isStencilPixelOcclusionCullingEnabled_;
+    }
+
     bool HasDisplayHdrOn() const
     {
         return hasDisplayHdrOn_;
@@ -477,6 +487,8 @@ private:
     bool isVisibleRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyAlignEnabled_ = false;
+    bool isStencilPixelOcclusionCullingEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;

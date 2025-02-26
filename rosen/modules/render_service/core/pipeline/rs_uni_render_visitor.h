@@ -165,6 +165,7 @@ private:
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
+    void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
@@ -366,6 +367,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
+    int16_t occlusionSurfaceOrder_ = -1;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
@@ -421,6 +423,8 @@ private:
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyAlignEnabled_ = false;
+    bool isStencilPixelOcclusionCullingEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;

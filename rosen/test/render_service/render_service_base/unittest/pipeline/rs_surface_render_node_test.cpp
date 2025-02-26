@@ -2300,6 +2300,20 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetStencilVal
+ * @tc.desc: test SetStencilVal
+ * @tc.type: FUNC
+ * @tc.require: issueIBO35Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetStencilVal, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->SetStencilVal(-1);
+}
+
+/**
  * @tc.name: CheckUpdateHwcNodeLayerInfo
  * @tc.desc: test results of CheckUpdateHwcNodeLayerInfo
  * @tc.type: FUNC
