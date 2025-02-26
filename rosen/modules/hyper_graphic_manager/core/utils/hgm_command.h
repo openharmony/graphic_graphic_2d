@@ -164,6 +164,7 @@ public:
         std::unordered_map<std::string, int32_t> componentPowerConfig;
         // <"pkgName", "UnityPlayerSurface">
         std::unordered_map<std::string, std::string> gameAppNodeList;
+        std::unordered_map<std::string, std::string> performanceConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

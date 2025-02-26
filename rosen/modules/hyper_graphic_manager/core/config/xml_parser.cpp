@@ -379,6 +379,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else if (name == "component_power_config") {
         setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
+    } else if (name == "performance_config") {
+        setResult = ParsePerformanceConfig(*thresholdNode, screenSetting.performanceConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -616,6 +618,32 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
         if (screenConfig.find(id) == screenConfig.end()) {
             screenConfig[id] = screenSettingDefalut;
         }
+    }
+
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParsePerformanceConfig(
+    xmlNode &node, std::unordered_map<std::string, std::string> &performanceConfig)
+{
+    HGM_LOGD("XMLParser parsing performanceConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing performanceConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    performanceConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        performanceConfig[name] = value;
+        HGM_LOGI("HgmXMLParser performanceConfig name=%{public}s strategy=%{public}s", name.c_str(), value.c_str());
     }
 
     return EXEC_SUCCESS;
