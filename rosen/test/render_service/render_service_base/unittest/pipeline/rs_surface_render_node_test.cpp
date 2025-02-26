@@ -1265,6 +1265,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
 
     testNode->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
     Drawing::Canvas canvasArgs;
     RSPaintFilterCanvas canvas(&canvasArgs);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
@@ -1277,7 +1278,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
     testNode->CollectSurface(node, vec, true, false);
     testNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     testNode->CollectSurface(node, vec, true, true);
-    ASSERT_FALSE(testNode->isSubSurfaceEnabled_);
 }
 
 /**

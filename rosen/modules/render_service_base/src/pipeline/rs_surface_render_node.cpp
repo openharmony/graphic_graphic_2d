@@ -346,20 +346,6 @@ void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>
         }
 #endif
     }
-
-    if (isSubSurfaceEnabled_) {
-        if (onlyFirstLevel) {
-            return;
-        }
-        for (auto &nodes : node->GetSubSurfaceNodes()) {
-            for (auto &node : nodes.second) {
-                auto surfaceNode = node.lock();
-                if (surfaceNode != nullptr) {
-                    surfaceNode->CollectSurface(surfaceNode, vec, isUniRender, onlyFirstLevel);
-                }
-            }
-        }
-    }
 }
 
 void RSSurfaceRenderNode::ClearChildrenCache()

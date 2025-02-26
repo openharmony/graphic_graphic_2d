@@ -963,34 +963,6 @@ HWTEST_F(RSRenderBastUtilTest, ResetParent, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddSubSurfaceNode
- * @tc.desc: test results of AddSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSRenderBastUtilTest, AddSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->AddSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: RemoveSubSurfaceNode
- * @tc.desc: test results of RemoveSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSRenderBastUtilTest, RemoveSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->RemoveSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: FallbackAnimationsToRoot
  * @tc.desc: test results of FallbackAnimationsToRoot
  * @tc.type:FUNC
