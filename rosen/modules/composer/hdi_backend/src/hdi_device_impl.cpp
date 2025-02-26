@@ -215,10 +215,7 @@ int32_t HdiDeviceImpl::SetScreenActiveRect(uint32_t screenId, const GraphicIRect
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    // to call SetDisplayActiveRegion, when HDI is ok
-    (void)screenId;
-    (void)hdiActiveRect;
-    return GRAPHIC_DISPLAY_SUCCESS;
+    return g_composer->SetDisplayActiveRegion(screenId, hdiActiveRect);
 }
 
 int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height)
