@@ -654,7 +654,7 @@ DEF_DTK(Bitmap_Scene5, TestLevel::L2, 12)
     playbackCanvas_->Scale(10100.0f, 1.0f); // scale极小值
 
     // 5.设置视效效果，将效果添加到笔刷
-    Drawing::ColorMatrix matrix;       
+    Drawing::ColorMatrix matrix;      
     matrix.SetArray(ARR);
     auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
     auto filter = Drawing::Filter();
