@@ -478,10 +478,9 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
     std::get<0>(*wrapper) = std::move(pixelMap);
     auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
     std::get<0>(*wrapperSf) = std::move(surface);
-    bool useDma = captureConfig.useDma;
     std::function<void()> copytask = [wrapper, captureConfig, callback, backendTexture, wrapperSf, id,
-        rotation, useDma]() -> void {
-        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
+        rotation]() -> void {
+        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", captureConfig.useDma);
         if (callback == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
             return;
@@ -519,7 +518,7 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
-        if (useDma &&
+        if (captureConfig.useDma &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);

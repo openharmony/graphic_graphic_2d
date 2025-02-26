@@ -53,6 +53,7 @@
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -440,12 +441,12 @@ private:
         std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
-    struct RectFHash {
+    struct RectHash {
         std::size_t operator()(const Drawing::Rect& rect) const {
-            std::size_t h1 = std::hash<scalar>()(rect.left_);
-            std::size_t h2 = std::hash<scalar>()(rect.top_);
-            std::size_t h3 = std::hash<scalar>()(rect.right_);
-            std::size_t h4 = std::hash<scalar>()(rect.bottom_);
+            std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
+            std::size_t h2 = std::hash<Drawing::scalar>()(rect.top_);
+            std::size_t h3 = std::hash<Drawing::scalar>()(rect.right_);
+            std::size_t h4 = std::hash<Drawing::scalar>()(rect.bottom_);
             return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
         }
     };
@@ -453,7 +454,7 @@ private:
     struct PairHash {
         std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const {
             std::size_t h1 = std::hash<NodeId>()(p.first);
-            std::size_t h2 = RectFHash()(p.second.mainScreenRect);
+            std::size_t h2 = RectHash()(p.second.mainScreenRect);
             return h1 ^ (h2 << 1);
         }
     };

@@ -387,10 +387,9 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::get<0>(*wrapper) = std::move(pixelMap);
     auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
     std::get<0>(*wrapperSf) = std::move(surface);
-    bool useDma = captureConfig.useDma;
     std::function<void()> copytask = [
-        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation, useDma]() -> void {
-        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
+        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation]() -> void {
+        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", captureConfig.useDma);
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSUiCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
             ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
@@ -421,7 +420,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
-        if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&
+        if (captureConfig.useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
