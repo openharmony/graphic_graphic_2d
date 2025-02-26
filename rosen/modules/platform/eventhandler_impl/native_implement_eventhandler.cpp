@@ -35,6 +35,9 @@ class NativeFileDescriptorListener : public OHOS::AppExecFwk::FileDescriptorList
 public:
     explicit NativeFileDescriptorListener(const struct FileDescriptorCallbacks *fileDescriptorCallbacks)
     {
+        if (!fileDescriptorCallbacks) {
+            return;
+        }
         if (fileDescriptorCallbacks->readableCallback_ != nullptr) {
             onReadableCallback_ = fileDescriptorCallbacks->readableCallback_;
         }
@@ -156,11 +159,17 @@ ErrCode EventRunnerNativeImplement::AddFileDescriptorListener(
     int32_t fileDescriptor, uint32_t events, const FileDescriptorCallbacks *fdCallbacks) const
 {
     auto nativeFileDescriptorListener = std::make_shared<NativeFileDescriptorListener>(fdCallbacks);
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
+        return OHOS::AppExecFwk::EVENT_HANDLER_ERR_NO_EVENT_RUNNER;
+    }
     return eventRunner_->GetEventQueue()->AddFileDescriptorListener(
         fileDescriptor, events, nativeFileDescriptorListener);
 }
 
 void EventRunnerNativeImplement::RemoveFileDescriptorListener(int32_t fileDescriptor) const
 {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
+        return;
+    }
     eventRunner_->GetEventQueue()->RemoveFileDescriptorListener(fileDescriptor);
 }
