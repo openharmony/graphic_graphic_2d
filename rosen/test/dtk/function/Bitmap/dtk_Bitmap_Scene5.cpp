@@ -841,12 +841,6 @@ DEF_DTK(Bitmap_Scene5, TestLevel::L2, 15)
 
         // 4.设置视效效果，将效果添加到笔刷
         Drawing::ColorMatrix matrix;
-        float arr[] = {
-            1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        };
         matrix.SetArray(ARR);
         auto cf = Drawing::ColorFilter::CreateMatrixColorFilter(matrix);
         auto filter = Drawing::Filter();
@@ -855,7 +849,7 @@ DEF_DTK(Bitmap_Scene5, TestLevel::L2, 15)
 
         // 5.绘制结果
         playbackCanvas_->AttachBrush(brush);
-        playbackCanvas_->DrawBitmap(bitmap, 200, 200);                   // 200，200 is bitmap position
+        playbackCanvas_->DrawBitmap(bitmap, 200, 200); // 200，200 is bitmap position
         playbackCanvas_->DrawImage(*image, 250, 300, SamplingOptions()); // 250，300 is bitmap position
         playbackCanvas_->DetachBrush();
 
