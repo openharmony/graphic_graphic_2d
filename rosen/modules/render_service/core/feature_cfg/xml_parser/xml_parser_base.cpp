@@ -52,15 +52,13 @@ int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t XMLParserBase::LoadProdConfiguration(std::string& fileDir)
+void XMLParserBase::LoadProdConfiguration(std::string& fileDir)
 {
     std::string graphicFilePath = prodPath_ + fileDir;
     xmlProdDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
     if (!xmlProdDocument_) {
         RS_LOGD("XMLParserBase not have prod graphic config: %{public}s", graphicFilePath.c_str());
-        return PARSE_PROD_FILE_LOAD_FAIL;
     }
-    return PARSE_EXEC_SUCCESS;
 }
 
 int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)

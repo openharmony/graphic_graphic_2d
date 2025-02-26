@@ -61,7 +61,7 @@ public:
 
 private:
     int32_t LoadSysConfiguration(std::string& fileDir);
-    int32_t LoadProdConfiguration(std::string& fileDir);
+    void LoadProdConfiguration(std::string& fileDir);
     bool ParseInternal(xmlNode &node);
     xmlDoc *xmlSysDocument_ = nullptr;
     xmlDoc *xmlProdDocument_ = nullptr;
