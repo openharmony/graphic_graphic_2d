@@ -168,7 +168,10 @@ bool BootVideoPlayer::IsNormalBoot()
 void VideoPlayerCallback::OnError(int32_t errorCode, const std::string &errorMsg)
 {
     LOGE("PlayerCallbackError received, errorMsg:%{public}s", errorMsg.c_str());
-    boot_->StopVideo();
+    auto boot = boot_.lock();
+    if (boot) {
+        boot->StopVideo();
+    }
 }
 #endif
 
@@ -185,39 +188,54 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
         case Media::INFO_TYPE_BITRATEDONE:
             LOGI("PlayerCallback: BitRateDone");
             break;
-        case Media::INFO_TYPE_EOS: {
-            LOGI("PlayerCallback: OnEndOfStream isLooping is: %{public}d", extra);
-            boot_->StopVideo();
-            break;
-        }
         case Media::INFO_TYPE_BUFFERING_UPDATE:
             LOGI("PlayerCallback: Buffering Update");
             break;
         case Media::INFO_TYPE_BITRATE_COLLECT:
             LOGI("PlayerCallback: Bitrate Collect");
             break;
-        case Media::INFO_TYPE_STATE_CHANGE:
-            LOGI("PlayerCallback: State Change, current state is: %{public}d", extra);
-            if (Media::PlayerStates::PLAYER_PREPARED == extra) {
-                LOGI("Begin to play");
-                boot_->GetMediaPlayer()->Play();
-            }
-            break;
-        case Media::INFO_TYPE_POSITION_UPDATE: {
+        case Media::INFO_TYPE_POSITION_UPDATE:
             LOGD("PlayerCallback: Position Update");
-            break;
-        }
-        case Media::INFO_TYPE_MESSAGE:
-            LOGI("PlayerCallback: OnMessage is: %{public}d", extra);
-            if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
-                system::SetParameter(BOOT_ANIMATION_STARTED, "true");
-            }
             break;
         case Media::INFO_TYPE_RESOLUTION_CHANGE:
             LOGI("PlayerCallback: Resolution Change");
             break;
         case Media::INFO_TYPE_VOLUME_CHANGE:
             LOGI("PlayerCallback: Volume Changed");
+            break;
+        default:
+            OnOperateInfo(type, extra);
+            break;
+    }
+}
+#endif
+
+#ifdef PLAYER_FRAMEWORK_ENABLE
+void VideoPlayerCallback::OnOperateInfo(Media::PlayerOnInfoType type, int32_t extra)
+{
+    auto boot = boot_.lock();
+    if (!boot) {
+        LOGI("PlayerCallback: boot error");
+        return;
+    }
+    switch (type) {
+        case Media::INFO_TYPE_EOS: {
+            LOGI("PlayerCallback: OnEndOfStream isLooping is: %{public}d", extra);
+            boot->StopVideo();
+            break;
+        }
+        case Media::INFO_TYPE_STATE_CHANGE:
+            LOGI("PlayerCallback: State Change, current state is: %{public}d", extra);
+            if (Media::PlayerStates::PLAYER_PREPARED == extra) {
+                LOGI("Begin to play");
+                boot->GetMediaPlayer()->Play();
+            }
+            break;
+        case Media::INFO_TYPE_MESSAGE:
+            LOGI("PlayerCallback: OnMessage is: %{public}d", extra);
+            if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
+                system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+            }
             break;
         default:
             LOGI("PlayerCallback: Default");
