@@ -331,6 +331,9 @@ void BootCompileProgress::UpdateCompileProgress()
             progress_ = ONE_HUNDRED_PERCENT;
             return;
         }
+        if (!timeLimitSec_) {
+            return;
+        }
         progress_ = (int32_t)((now - startTimeMs_) * ONE_HUNDRED_PERCENT / (timeLimitSec_ * SEC_MS));
         progress_ = progress_ < 0 ? 0 : progress_ > ONE_HUNDRED_PERCENT ? ONE_HUNDRED_PERCENT: progress_;
     } else {
