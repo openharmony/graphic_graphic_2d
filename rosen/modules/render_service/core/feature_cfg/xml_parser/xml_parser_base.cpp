@@ -43,8 +43,6 @@ int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
         if (xmlSysDocument_ != nullptr) {
             RS_LOGD("XMLParserBase success to get sys graphic config: %{public}s", graphicFilePath.c_str());
             break;
-        } else {
-            RS_LOGE("XMLParserBase fail to get sys graphic config: %{public}s", graphicFilePath.c_str());
         }
     }
     if (!xmlSysDocument_) {
@@ -73,9 +71,7 @@ int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
         return PARSE_SYS_FILE_LOAD_FAIL;
     }
     // For different feature settings in variant products
-    if (LoadProdConfiguration(fileDir) != PARSE_EXEC_SUCCESS) {
-        return PARSE_PROD_FILE_LOAD_FAIL;
-    }
+    LoadProdConfiguration(fileDir);
     return PARSE_EXEC_SUCCESS;
 }
 

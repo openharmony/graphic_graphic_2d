@@ -53,7 +53,7 @@ void GraphicFeatureParamManager::FeatureParamParseEntry()
     }
 
     if (featureParser_->LoadGraphicConfiguration(graphicConfigPath_) != PARSE_EXEC_SUCCESS) {
-        RS_LOGD("GraphicFeatureParamManager failed to load prod xml configuration file");
+        RS_LOGD("GraphicFeatureParamManager failed to load xml configuration file");
         return;
     }
 
