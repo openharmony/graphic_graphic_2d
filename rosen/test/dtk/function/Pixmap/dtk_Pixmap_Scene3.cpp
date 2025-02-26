@@ -77,12 +77,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 1)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
-    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2capsule(false);
 }
 
 // Pixmap_Scene_0062
@@ -130,12 +125,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 2)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectnotG2(true);
 }
 
 // Pixmap_Scene_0063
@@ -190,12 +180,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 3)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectnotG2(true);
 }
 
 // Pixmap_Scene_0064
@@ -437,11 +422,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 7)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 // Pixmap_Scene_0068
@@ -490,12 +471,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 8)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0069
@@ -547,12 +523,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 9)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0070
@@ -661,12 +632,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 11)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
-    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2capsule(true);
 }
 
 // Pixmap_Scene_0072
@@ -717,12 +683,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 12)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
-    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2capsule(false);
 }
 
 // Pixmap_Scene_0073
@@ -773,12 +734,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 13)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectnotG2(false);
 }
 
 // Pixmap_Scene_0074
@@ -829,12 +785,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 14)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectnotG2(true);
 }
 
 // Pixmap_Scene_0075
@@ -886,13 +837,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 15)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    Drawing::Path path;
-    path.AddRect({ 200, 300, 700, 800 }); // rect region (200, 300, 700, 800)
-    path.SetFillStyle(Drawing::PathFillType::INVERSE_WINDING);
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_GREEN);
-    playbackCanvas_->Restore();
+    TestBase::ClipPath(true);
 }
 
 // Pixmap_Scene_0076
@@ -1006,11 +951,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 17)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 // Pixmap_Scene_0078
@@ -1069,12 +1010,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 18)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0079
@@ -1129,12 +1065,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 19)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
-    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2capsule(false);
 }
 
 // Pixmap_Scene_0080
@@ -1181,12 +1112,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 20)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2(true);
 }
 
 // Pixmap_Scene_0081
@@ -1235,11 +1161,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 21)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 // Pixmap_Scene_0082
@@ -1286,12 +1208,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 22)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
-    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectG2capsule(false);
 }
 
 // Pixmap_Scene_0083
@@ -1341,12 +1258,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 23)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
-    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRoundRectnotG2(true);
 }
 
 // Pixmap_Scene_0084
@@ -1463,13 +1375,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 25)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    Drawing::Path path;
-    path.AddRect({ 200, 300, 700, 800 }); // rect region (200, 300, 700, 800)
-    path.SetFillStyle(Drawing::PathFillType::INVERSE_WINDING);
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_GREEN);
-    playbackCanvas_->Restore();
+    TestBase::ClipPath(true);
 }
 
 // Pixmap_Scene_0086
@@ -1533,11 +1439,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 26)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 // Pixmap_Scene_0087
@@ -1583,13 +1485,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 27)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    Drawing::Path path;
-    path.AddRect({ 200, 300, 700, 800 }); // rect region (200, 300, 700, 800)
-    path.SetFillStyle(Drawing::PathFillType::INVERSE_WINDING);
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_GREEN);
-    playbackCanvas_->Restore();
+    TestBase::ClipPath(true);
 }
 
 // Pixmap_Scene_0088
@@ -1640,13 +1536,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 28)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    Drawing::Path path;
-    path.AddRect({ 200, 300, 700, 800 }); // rect region (200, 300, 700, 800)
-    path.SetFillStyle(Drawing::PathFillType::INVERSE_WINDING);
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_GREEN);
-    playbackCanvas_->Restore();
+    TestBase::ClipPath(true);
 }
 
 // Pixmap_Scene_0089
@@ -1700,11 +1590,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 29)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 // Pixmap_Scene_0090
@@ -1764,11 +1650,7 @@ DEF_DTK(Pixmap_Scene3, TestLevel::L2, 30)
     playbackCanvas_->DetachBrush();
 
     // 7.组合Clip函数，cilp也有抗锯齿效果，默认和笔刷效果保持一致
-    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
-    playbackCanvas_->Save();
-    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, false);
-    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
-    playbackCanvas_->Restore();
+    TestBase::ClipRect(false);
 }
 
 } // namespace Rosen

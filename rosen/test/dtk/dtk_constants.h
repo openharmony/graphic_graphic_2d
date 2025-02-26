@@ -60,11 +60,7 @@ namespace Rosen {
     constexpr Drawing::CMSTransferFunction PQ = {
         -2.0f, -107 / 128.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f
     };
-
-    constexpr Drawing::CMSTransferFunction PQ1 = {
-        0.24f, 0.35f, 0.156f, 0.537f, 0.642f, 0.114f, 0.754f
-     };
-
+    
     constexpr float ARR[] = {
         1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
