@@ -2002,7 +2002,11 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
     uint8_t captureType { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
-        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync)) {
+        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadFloat(captureConfig.screenLeft) ||
+        !data.ReadFloat(captureConfig.screenTop) ||
+        !data.ReadFloat(captureConfig.screenWidth) ||
+        !data.ReadFloat(captureConfig.screenHeight)) {
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);

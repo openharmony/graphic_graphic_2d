@@ -214,6 +214,10 @@ bool RSSurfaceCaptureTaskParallel::Run(
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
+    if (captureConfig_.screenWidth > 0 && captureConfig_.screenHeight > 0) {
+        canvas.ClipRect({0, 0, captureConfig_.screenWidth, captureConfig_.screenHeight});
+        canvas.Translate(0 - captureConfig_.screenLeft, 0 - captureConfig_.screenTop);
+    }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     // Currently, capture do not support HDR display
@@ -289,6 +293,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
+    // Surface Node currently does not support regional screenshot
+    captureConfig_.screenLeft = 0.0f;
+    captureConfig_.screenTop = 0.0f;
+    captureConfig_.screenWidth = 0.0f;
+    captureConfig_.screenHeight = 0.0f;
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
@@ -320,14 +329,21 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
 
+    if (captureConfig_.screenWidth > 0 && captureConfig_.screenHeight > 0 &&
+        captureConfig_.screenWidth <= pixmapWidth && captureConfig_.screenHeight <= pixmapHeight) {
+        pixmapWidth = floor(captureConfig_.screenWidth);
+        pixmapHeight = floor(captureConfig_.screenHeight);
+    }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
+        " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
         " useDma: [%{public}d], screenRotation_: [%{public}d], screenCorrection_: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.screenLeft, captureConfig_.screenTop, captureConfig_.screenWidth, captureConfig_.screenHeight,
         captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }

@@ -1176,7 +1176,11 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
 {
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
-        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync)) {
+        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteFloat(captureConfig.screenLeft) ||
+        !data.WriteFloat(captureConfig.screenTop) ||
+        !data.WriteFloat(captureConfig.screenWidth) ||
+        !data.WriteFloat(captureConfig.screenHeight)) {
         return false;
     }
     return true;
