@@ -41,7 +41,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
     return true;
 }
 
-void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, RSSurfaceCaptureConfig& captureConfig,
+void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     Media::PixelMap* pixelmap)
 {
     MessageParcel data;
