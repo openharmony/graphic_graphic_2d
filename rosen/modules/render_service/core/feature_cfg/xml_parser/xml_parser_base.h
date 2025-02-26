@@ -63,8 +63,7 @@ private:
     int32_t LoadSysConfiguration(std::string& fileDir);
     int32_t LoadProdConfiguration(std::string& fileDir);
     bool ParseInternal(xmlNode &node);
-    xmlDoc *xmlSysDocument_ = nullptr;  \
-
+    xmlDoc *xmlSysDocument_ = nullptr;
     xmlDoc *xmlProdDocument_ = nullptr;
     std::vector<std::string> sysPaths_ = {"/system/variant/phone/base/", "/system/variant/tablet/base/",
         "/system/variant/pc/base/", "/system/variant/watch/base/"};
