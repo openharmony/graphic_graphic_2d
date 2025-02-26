@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "luminance/rs_luminance_control.h"
+#include "display_engine/rs_luminance_control.h"
 
 #include <dlfcn.h>
 #include <string_view>
@@ -67,6 +67,9 @@ void RSLuminanceControl::CloseLibrary()
 void RSLuminanceControl::Init()
 {
     initStatus_ = LoadLibrary();
+    if (!initStatus_) {
+        CloseLibrary();
+    }
 }
 
 bool RSLuminanceControl::LoadLibrary()

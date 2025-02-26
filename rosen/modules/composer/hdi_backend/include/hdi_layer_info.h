@@ -637,7 +637,8 @@ private:
     int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
-    std::vector<float> layerLinearMatrix_; // matrix_1 for nature tone
+    std::vector<float> layerLinearMatrix_
+        = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;

@@ -192,6 +192,33 @@ HWTEST(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
 #endif
 }
 
+/**
+ * @tc.name: CheckIsSurfaceBufferWithMetadata001
+ * @tc.desc: Test CheckIsSurfaceBufferWithMetadata
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, CheckIsSurfaceBufferWithMetadata001, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    if (node->GetRSSurfaceHandler() == nullptr) {
+        return;
+    }
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
+        return;
+    }
+    bool ret = renderEngine->CheckIsSurfaceBufferWithMetadata(buffer);
+    ASSERT_EQ(ret, false);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    std::vector<uint8_t> metadata = {1.0f, 1.0f, 1.0f};
+    buffer->SetMatadata(Media::VideoProcessingEngine::ATTRKEY_HDR_DYNAMIC_METADATA, metadata);
+    ret = renderEngine->CheckIsSurfaceBufferWithMetadata(buffer);
+    ASSERT_EQ(ret, true);
+#endif
+}
+
 #ifdef RS_ENABLE_EGLIMAGE
 /**
  * @tc.name: CreateEglImageFromBuffer001

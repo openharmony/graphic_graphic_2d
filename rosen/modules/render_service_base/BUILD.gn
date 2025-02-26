@@ -335,19 +335,19 @@ ohos_source_set("render_service_base_src") {
 
   if (rosen_is_ohos) {
     sources += [
-      #color_temp
-      "src/color_temp/rs_color_temp.cpp",
+      #color_temperature
+      "src/display_engine/rs_color_temperature.cpp",
 
       #luminance
-      "src/luminance/rs_luminance_control.cpp",
+      "src/display_engine/rs_luminance_control.cpp",
     ]
   } else {
     sources += [
-      #color_temp
-      "src/color_temp/mingw/rs_color_temp.cpp",
+      #color_temperature
+      "src/display_engine/mingw/rs_color_temperature.cpp",
 
       #luminance
-      "src/luminance/mingw/rs_luminance_control.cpp",
+      "src/display_engine/mingw/rs_luminance_control.cpp",
     ]
   }
 

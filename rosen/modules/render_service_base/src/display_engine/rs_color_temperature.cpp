@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "color_temp/rs_color_temp.h"
+#include "display_engine/rs_color_temperature.h"
 
 #include <dlfcn.h>
 #include <string_view>
@@ -27,13 +27,13 @@ constexpr std::string_view EXT_LIB_PATH = "system/lib64/libcct_ext.z.so";
 
 namespace OHOS {
 namespace Rosen {
-RSColorTemp& RSColorTemp::Get()
+RSColorTemperature& RSColorTemperature::Get()
 {
-    static RSColorTemp instance;
+    static RSColorTemperature instance;
     return instance;
 }
 
-RSColorTemp::~RSColorTemp()
+RSColorTemperature::~RSColorTemperature()
 {
     if (initStatus_ && destroy_ != nullptr) {
         destroy_();
@@ -41,7 +41,7 @@ RSColorTemp::~RSColorTemp()
     CloseLibrary();
 }
 
-void RSColorTemp::CloseLibrary()
+void RSColorTemperature::CloseLibrary()
 {
     if (extLibHandle_ != nullptr) {
         dlclose(extLibHandle_);
@@ -51,76 +51,83 @@ void RSColorTemp::CloseLibrary()
     destroy_ = nullptr;
 }
 
-void RSColorTemp::Init()
+void RSColorTemperature::Init()
 {
     initStatus_ = LoadLibrary();
-    if (initStatus_ && create_ != nullptr) {
+    if (!initStatus_) {
+        CloseLibrary();
+    }
+    if (create_ != nullptr) {
         rSCctInterface_ = create_();
+        if (rSCctInterface_ == nullptr) {
+            CloseLibrary();
+        }
     }
 }
 
-bool RSColorTemp::LoadLibrary()
+bool RSColorTemperature::LoadLibrary()
 {
     if (UNLIKELY(extLibHandle_ != nullptr)) {
         return false;
     }
-    bool loadResult{true};
     extLibHandle_ = dlopen(EXT_LIB_PATH.data(), RTLD_NOW);
     if (extLibHandle_ == nullptr) {
         RS_LOGI("ColorTemp dlopen error:%{public}s", dlerror());
-        loadResult = false;
+        return false;
     }
     create_ = reinterpret_cast<CreatFunc>(dlsym(extLibHandle_, "Create"));
     if (create_ == nullptr) {
         RS_LOGE("ColorTemp link create error!");
-        loadResult = false;
+        return false;
     }
     destroy_ = reinterpret_cast<DestroyFunc>(dlsym(extLibHandle_, "Destroy"));
     if (destroy_ == nullptr) {
         RS_LOGE("ColorTemp link destroy error!");
-        loadResult = false;
+        return false;
     }
-    RS_LOGI("ColorTemp init status:%{public}d", loadResult);
-    return loadResult;
+    RS_LOGI("ColorTemp LoadLibrary success");
+    return true;
 }
 
-void RSColorTemp::RegisterRefresh(std::function<void()> refresh)
+void RSColorTemperature::RegisterRefresh(std::function<void()>&& refresh)
 {
     if (rSCctInterface_ != nullptr) {
-        rSCctInterface_->RegisterRefresh(refresh);
+        rSCctInterface_->RegisterRefresh(std::forward<std::function<void()>>(refresh));
     }
 }
 
-void RSColorTemp::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status)
+void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status)
 {
     if (rSCctInterface_ != nullptr) {
         rSCctInterface_->UpdateScreenStatus(screenId, status);
     }
 }
 
-bool RSColorTemp::IsDimmingOn(ScreenId screenId)
+bool RSColorTemperature::IsDimmingOn(ScreenId screenId)
 {
     return (rSCctInterface_ != nullptr) ? rSCctInterface_->IsDimmingOn(screenId) : false;
 }
 
-void RSColorTemp::DimmingIncrease(ScreenId screenId)
+void RSColorTemperature::DimmingIncrease(ScreenId screenId)
 {
     if (rSCctInterface_ != nullptr) {
         rSCctInterface_->DimmingIncrease(screenId);
     }
 }
 
-std::vector<float> RSColorTemp::GetNewLinearCct(ScreenId screenId)
+std::vector<float> RSColorTemperature::GetNewLinearCct(ScreenId screenId)
 {
     return (rSCctInterface_ != nullptr) ?
-        rSCctInterface_->GetNewLinearCct(screenId) : std::vector<float>();
+        rSCctInterface_->GetNewLinearCct(screenId) :
+            std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 }
 
-std::vector<float> RSColorTemp::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata,
-    const CM_Matrix targetMatrix)
+std::vector<float> RSColorTemperature::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata,
+    const CM_Matrix srcColorMatrix)
 {
     return (rSCctInterface_ != nullptr) ?
-        rSCctInterface_->GetLayerLinearCct(screenId, metadata, targetMatrix) : std::vector<float>();
+        rSCctInterface_->GetLayerLinearCct(screenId, metadata, srcColorMatrix) :
+            std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 }
 } // Rosen
 } // OHOS

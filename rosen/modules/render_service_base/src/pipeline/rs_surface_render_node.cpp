@@ -15,11 +15,11 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
-#include "color_temp/rs_color_temp.h"
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
+#include "display_engine/rs_color_temperature.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -58,6 +58,7 @@ constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr uint32_t DEFAULT_DYNAMIC_METADATA_SIZE = 50;
+constexpr size_t MATRIX_SIZE = 9;
 #endif
 
 namespace {
@@ -3250,6 +3251,29 @@ void RSSurfaceRenderNode::SetLayerLinearMatrix(const std::vector<float>& layerLi
 #endif
 }
 
+void RSSurfaceRenderNode::SetSdrHasMetadata(bool hasMetadata)
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetSdrHasMetadata(hasMetadata);
+    }
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+#endif
+}
+
+bool RSSurfaceRenderNode::GetSdrHasMetadata() const
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    return stagingSurfaceParams ? stagingSurfaceParams->GetSdrHasMetadata() : false;
+#else
+    return false;
+#endif
+}
+
 void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
     if (isEnabled) {
@@ -3476,6 +3500,10 @@ void RSSurfaceRenderNode::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode,
         surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
+        // color temperature
+        if (surfaceNode.GetSdrHasMetadata()) {
+            UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);
+        }
         return;
     }
 
@@ -3484,7 +3512,8 @@ void RSSurfaceRenderNode::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode,
     std::vector<uint8_t> hdrDynamicMetadataVec;
     GSError ret = GSERROR_OK;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    RSColorSpaceConvert::Instance().GetHDRMetadata(surfaceBuffer, hdrStaticMetadataVec, hdrDynamicMetadataVec, ret);
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec, ret);
+    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadataVec, ret);
 #endif
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();
@@ -3508,12 +3537,42 @@ void RSSurfaceRenderNode::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode,
     } else {
         surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
     }
-    std::vector<float> layerLinearMatrix = RSColorTemp::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK ?
-        hdrDynamicMetadataVec : std::vector<uint8_t>());
-    surfaceNode.SetLayerLinearMatrix(layerLinearMatrix);
+    // color temperature
+    UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);
     RS_LOGD("RSSurfaceRenderNode::UpdateSurfaceNodeNit layerNits: %{public}.2f, displayNits: %{public}.2f,"
         " sdrNits: %{public}.2f, scaler: %{public}.2f, HDRBrightness: %{public}f", layerNits, displayNits, sdrNits,
         scaler, surfaceNode.GetHDRBrightness());
+#endif
+}
+
+void RSSurfaceRenderNode::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    const sptr<SurfaceBuffer>& surfaceBuffer = surfaceNode.GetRSSurfaceHandler()->GetBuffer();
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
+        return;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo srcColorSpaceInfo;
+    CM_Matrix srcColorMatrix = CM_Matrix::MATRIX_P3;
+    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, srcColorSpaceInfo) == GSERROR_OK) {
+        srcColorMatrix = srcColorSpaceInfo.matrix;
+    }
+    std::vector<uint8_t> hdrDynamicMetadataVec;
+    GSError ret = GSERROR_OK;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadataVec, ret);
+#endif
+    std::vector<float> layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId,
+        ret == GSERROR_OK ? hdrDynamicMetadataVec : std::vector<uint8_t>(), srcColorMatrix);
+    surfaceNode.SetLayerLinearMatrix(layerLinearMatrix);
+    if (layerLinearMatrix.size() >= MATRIX_SIZE) {
+        // main diagonal indices of a 3x3 matrix are 0, 4 and 8
+        RS_LOGD("RSSurfaceRenderNode::UpdateSurfaceNodeLayerLinearMatrix "
+            "matrix[0]: %{public}.2f, matrix[4]: %{public}.2f, matrix[8]: %{public}.2f",
+            layerLinearMatrix[0], layerLinearMatrix[4], layerLinearMatrix[8]);
+    }
 #endif
 }
 } // namespace Rosen

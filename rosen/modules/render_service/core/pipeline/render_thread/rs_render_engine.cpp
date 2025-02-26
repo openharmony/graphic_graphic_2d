@@ -109,11 +109,17 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             }
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+            params.sdrNits = layer->GetSdrNit();
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+            // color temperature
+            params.layerLinearMatrix = layer->GetLayerLinearMatrix();
             if (node.GetRSSurfaceHandler() != nullptr &&
                 CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer()) == HdrStatus::NO_HDR) {
                 params.brightnessRatio = layer->GetBrightnessRatio();
+                if (CheckIsSurfaceBufferWithMetadata(node.GetRSSurfaceHandler()->GetBuffer())) {
+                    params.hasMetadata = true;
+                }
             } else {
                 params.isHdrRedraw = true;
             }

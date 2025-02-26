@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "luminance/rs_luminance_control.h"
+#include "display_engine/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
