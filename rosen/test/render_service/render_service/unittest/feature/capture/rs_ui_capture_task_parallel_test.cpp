@@ -93,6 +93,7 @@ public:
         InitRenderContext();
         rsInterfaces_ = &RSInterfaces::GetInstance();
 
+        RSTestUtil::InitRenderNodeGC();
         ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
         RSScreenModeInfo modeInfo = rsInterfaces_->GetScreenActiveMode(screenId);
         DisplayId virtualDisplayId = rsInterfaces_->CreateVirtualScreen("virtualDisplayTest",
