@@ -79,8 +79,8 @@ void NativePathEffectTest002(const uint8_t* data, size_t size)
     OH_Drawing_PathLineTo(path, x, y);
     float advance = GetObject<float>();
     float phase = GetObject<float>();
-    OH_Drawing_PathEffectType type =
-        static_cast<OH_Drawing_PathEffectType>(GetObject<uint32_t>() % PATH_EFFECT_TYPE_ENUM_SIZE);
+    OH_Drawing_PathDashStyle type =
+        static_cast<OH_Drawing_PathDashStyle>(GetObject<uint32_t>() % PATH_EFFECT_TYPE_ENUM_SIZE);
 
     OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreatePathDashEffect(path, advance, phase, type);
 
