@@ -276,7 +276,7 @@ public:
 
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
-
+    static bool GetHveFilterEnabled();
 private:
     RSSystemProperties() = default;
 

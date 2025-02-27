@@ -541,6 +541,7 @@ public:
     void CheckFilterCacheAndUpdateDirtySlots(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
 

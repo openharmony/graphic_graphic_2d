@@ -341,6 +341,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetNeedMakeImage(bool enabled);
+    bool GetNeedMakeImage() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -592,6 +594,7 @@ private:
     bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool needMakeImage_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;

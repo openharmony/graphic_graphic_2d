@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_skia_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
@@ -210,9 +211,16 @@ void RSFilterCacheManager::TakeSnapshot(
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
         snapshotIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
     }
+    std::shared_ptr<Drawing::Image> snapshot;
+    std::shared_ptr<RSShaderFilter> aibarShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::AIBAR);
 
-    // Take a screenshot.
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    if ((aibarShaderFilter != nullptr) && (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
+        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
+    } else {
+        // Take a screenshot
+        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    }
+
     if (snapshot == nullptr) {
         ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
