@@ -803,7 +803,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     changingPhaseOffset_ = listenerPhaseOffset;
     needChangePhaseOffset_ = true;
 
-    if (generatorRefreshRate != currRefreshRate_) {
+    if (generatorRefreshRate != currRefreshRate_ || generatorRefreshRate != changingGeneratorRefreshRate_) {
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
     } else {
