@@ -1514,11 +1514,6 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
             connection->mainThread_->RequestNextVSync();
         };
         mainThread_->PostTask(task);
-        if (!lastScreenBacklightWithHdr_) {
-            lastScreenBacklightWithHdr_ = true;
-            RS_LOGI("RSRenderServiceConnection::%{public}s IsHdrOn screenId:%{public}" PRIu64 " level:%{public}d",
-                __func__, id, level);
-		}
         return;
     }
 
@@ -1531,11 +1526,6 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenBacklight(id, level); }).wait();
     }
-    if (lastScreenBacklightWithHdr_) {
-        lastScreenBacklightWithHdr_ = false;
-        RS_LOGI("RSRenderServiceConnection::%{public}s without Hdr screenId:%{public}" PRIu64 " level:%{public}d",
-            __func__, id, level);
-	}
 }
 
 void RSRenderServiceConnection::RegisterBufferClearListener(
