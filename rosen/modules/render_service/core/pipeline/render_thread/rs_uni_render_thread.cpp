@@ -861,14 +861,6 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
-            auto purgeDrawables =
-                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
-            for (auto& drawable : purgeDrawables) {
-                drawable->Purge();
-            }
-        }
-        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
@@ -947,15 +939,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
+void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
 {
-    for (auto [nodeId, purgeFlag] : ids) {
-        if (purgeFlag) {
-            nodesNeedToBeClearMemory_.insert(nodeId);
-        } else {
-            nodesNeedToBeClearMemory_.erase(nodeId);
-        }
-    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         if (!isDoDirectComposition) {

@@ -982,4 +982,119 @@ HWTEST_F(RSImageTest, LifeCycle010, TestSize.Level1)
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
 }
+
+/**
+ * @tc.name: PurgeTest001
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242048;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    rsImage->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->Purge();
+    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
+    rsImage->DePurge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest002
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest002, TestSize.Level1)
+{
+    auto rsImage1 = std::make_shared<RSImage>();
+    auto rsImage2 = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242047;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+
+    rsImage1->SetPixelMap(pixelmap);
+    rsImage1->uniqueId_ = uniqueId;
+    rsImage1->MarkRenderServiceImage();
+    rsImage1->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    rsImage2->SetPixelMap(pixelmap);
+    rsImage2->uniqueId_ = uniqueId;
+    rsImage2->MarkRenderServiceImage();
+    rsImage2->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+
+    rsImage1->Purge();
+    EXPECT_FALSE(rsImage1->pixelMap_->IsUnMap());
+
+    rsImage1 = nullptr;
+    rsImage2 = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest003
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242046;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    rsImage->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->ConvertPixelMapToDrawingImage();
+    rsImage->Purge();
+    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
+    rsImage->DePurge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest004
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest004, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242045;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->Purge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
 } // namespace OHOS::Rosen

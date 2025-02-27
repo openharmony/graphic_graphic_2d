@@ -481,8 +481,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         ClearCloneCrossNode();
     }
 
-    SetPurgeStatus(flag);
-
     // Need to count upeer or lower trees of HDR nodes
     if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
@@ -4687,7 +4685,6 @@ void RSRenderNode::OnSync()
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
-        SyncPurgeFunc();
         drawCmdListNeedSync_ = false;
     }
     
@@ -4913,38 +4910,6 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
     std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
-void RSRenderNode::SetPurgeStatus(bool flag)
-{
-    if (!isPurgeable_) {
-        return;
-    }
-    if (auto context = GetContext().lock()) {
-        if (flag) {
-            context->GetMutableNodeMap().RemoveOffTreeNode(id_);
-        } else {
-            context->GetMutableNodeMap().AddOffTreeNode(id_);
-        }
-    }
-}
-
-void RSRenderNode::SyncPurgeFunc()
-{
-    if (!isPurgeable_) {
-        return;
-    }
-    std::shared_ptr<RSDrawable> drawable = drawableVec_[static_cast<int32_t>(RSDrawableSlot::CONTENT_STYLE)];
-    if (!drawable) {
-        return;
-    }
-    std::weak_ptr<RSDrawable> drawableWeakPtr = drawable;
-    renderDrawable_->purgeFunc_ = [drawableWeakPtr]() {
-        auto drawable = drawableWeakPtr.lock();
-        if (drawable) {
-            drawable->OnPurge();
-        }
-    };
-}
-
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
 SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
@@ -5148,6 +5113,9 @@ void RSRenderNode::ClearDrawableVec2()
     if (drawableVecNeedClear_) {
         if (GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE &&
             drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]) {
+            if (isPurgeable_) {
+                drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]->OnPurge();
+            }
             drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)].reset();
             dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
         }

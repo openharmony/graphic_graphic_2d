@@ -150,7 +150,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                                 fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
 #ifdef ROSEN_OHOS
-    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
     if (!isDrawn_ || rect != lastRect_) {
