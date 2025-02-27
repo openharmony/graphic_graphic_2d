@@ -77,6 +77,7 @@ public:
     bool CreateUIFirstLayerInfo(
         RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
     bool IsPrevalidateEnable();
+    bool GetPrevalidateEnabled();
     void CollectSurfaceNodeLayerInfo(
         std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
