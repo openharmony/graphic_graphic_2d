@@ -980,7 +980,7 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
             strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
             HGM_LOGD("[pointer manager] active");
             pointerManager_.HandleTimerReset();
-            pointerManager_.handlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+            pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
         }
     }
 }
