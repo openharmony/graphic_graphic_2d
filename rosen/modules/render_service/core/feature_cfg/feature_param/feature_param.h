@@ -27,6 +27,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",
+    "FilterConfig",
     "HfbcConfig",
     "SpecialLayerConfig",
     "OPIncConfig",
@@ -43,6 +44,7 @@ enum FeatureModule {
     OPInc,
     PREVALIDATE,
     UIFirst,
+    FILTER,
 };
 
 enum ParseErrCode {

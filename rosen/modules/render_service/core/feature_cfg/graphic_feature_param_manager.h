@@ -39,6 +39,8 @@
 #include "speciallayer_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
+#include "filter_param_parse.h"
+#include "filter_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -62,6 +64,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
         [] {return std::make_unique<UIFirstParam>(); }},
+    {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
+        [] { return std::make_unique<FilterParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {
