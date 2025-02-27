@@ -1297,6 +1297,8 @@ public:
     }
     bool GetUIExtensionUnobscured() const;
 
+    bool IsUIBufferAvailable();
+
 protected:
     void OnSync() override;
 
