@@ -137,8 +137,8 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
             lastGlobalPositionEnabled_ = false;
         }
     }
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%" PRIu64 "] "
-        "offsetX=%d offsetY=%d", curDisplayScreenId_, offsetX_, offsetY_);
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::%s Translate screenId=[%" PRIu64 "] "
+        "offsetX=%d offsetY=%d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
 
     // 1. draw background
     DrawBackground(canvas, bounds);
