@@ -133,7 +133,7 @@ HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Le
         const int32_t activeTimeoutUs = 1300000;
         const int32_t handleTimerResetTime = 1000000;
 
-        STEP("handleMoveTimeOut") {
+        STEP("HandleMoveTimeOut") {
             pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
             usleep(waitTaskFinishNs);
             ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
