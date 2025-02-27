@@ -229,6 +229,9 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     texture_info.SetHeight(height);
     std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
     vkTextureInfo->vkImage = image;
+    vkTextureInfo->vkAlloc.memory = memory;
+    vkTextureInfo->vkAlloc.size = npProps.allocationSize;
+    vkTextureInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     vkTextureInfo->format = nbFormatProps.format;
@@ -332,8 +335,9 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     std::shared_ptr<Drawing::VKTextureInfo> imageInfo = std::make_shared<Drawing::VKTextureInfo>();
     imageInfo->vkImage = image;
     imageInfo->vkAlloc.memory = memory;
+    imageInfo->vkAlloc.size = npProps.allocationSize;
+    imageInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     imageInfo->vkProtected = isProtected ? true : false;
-    imageInfo->vkAlloc.size = nbProps.allocationSize;
     imageInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo->format = nbFormatProps.format;
@@ -404,6 +408,9 @@ std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUConte
     texture_info.SetHeight(imageInfo.GetHeight());
     std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
     vkTextureInfo->vkImage = image;
+    vkTextureInfo->vkAlloc.memory = memory;
+    vkTextureInfo->vkAlloc.size = npProps.allocationSize;
+    vkTextureInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     vkTextureInfo->format = nbFormatProps.format;
