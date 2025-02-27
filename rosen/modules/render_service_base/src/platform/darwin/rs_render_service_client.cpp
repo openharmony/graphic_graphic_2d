@@ -738,5 +738,10 @@ void RSRenderServiceClient::NotifyScreenSwitched()
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

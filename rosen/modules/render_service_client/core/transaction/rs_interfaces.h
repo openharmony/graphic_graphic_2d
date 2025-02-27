@@ -367,6 +367,8 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

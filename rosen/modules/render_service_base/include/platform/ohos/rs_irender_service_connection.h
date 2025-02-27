@@ -376,6 +376,8 @@ public:
     virtual void NotifyScreenSwitched() = 0;
 
     virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
+
+    virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

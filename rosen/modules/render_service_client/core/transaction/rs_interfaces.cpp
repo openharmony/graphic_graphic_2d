@@ -966,5 +966,16 @@ int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
     return renderServiceClient_->SetOverlayDisplayMode(mode);
 }
 #endif
+
+void RSInterfaces::NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter)
+{
+    auto pageNameList = RSFrameRatePolicy::GetInstance()->GetPageNameList();
+    auto item = pageNameList.find(pageName);
+    if (item != pageNameList.end()) {
+        ROSEN_LOGI("RSInterfaces packageName = %{public}s pageName = %{public}s isEnter = %{public}d",
+            packageName.c_str(), pageName.c_str(), isEnter);
+        renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

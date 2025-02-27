@@ -22,6 +22,7 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
@@ -61,6 +62,7 @@ enum CleanPidCallbackType : uint32_t {
     TOUCH_EVENT,
     GAMES,
     APP_STRATEGY_CONFIG_EVENT,
+    PAGE_URL,
 };
 
 enum LightFactorStatus : int32_t {
@@ -217,6 +219,9 @@ public:
     {
         changeDssRefreshRateCb_ = changeDssRefreshRateCb;
     }
+    void CleanPageUrlVote(pid_t pid);
+    void HandlePageUrlEvent();
+    void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -357,6 +362,7 @@ private:
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
     ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
+    HgmAppPageUrlStrategy appPageUrlStrategy_;
 };
 } // namespace Rosen
 } // namespace OHOS

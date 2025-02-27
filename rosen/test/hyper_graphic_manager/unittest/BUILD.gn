@@ -37,6 +37,7 @@ ohos_unittest("hyper_graphic_manager_test") {
   }
 
   sources = [
+    "hgm_app_page_url_strategy_test.cpp",
     "hgm_energy_consumption_policy_test.cpp",
     "hgm_frame_rate_manager_test.cpp",
     "hgm_hfbc_config_test.cpp",

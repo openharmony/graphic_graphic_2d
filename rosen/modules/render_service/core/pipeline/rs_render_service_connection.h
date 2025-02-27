@@ -369,6 +369,8 @@ private:
     int32_t SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

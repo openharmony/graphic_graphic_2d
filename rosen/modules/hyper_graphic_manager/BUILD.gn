@@ -64,6 +64,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   sources = [
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
+    "core/frame_rate_manager/hgm_app_page_url_strategy.cpp",
     "core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
     "core/frame_rate_manager/hgm_hfbc_config.cpp",

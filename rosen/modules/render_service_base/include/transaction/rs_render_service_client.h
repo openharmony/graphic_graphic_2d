@@ -436,6 +436,7 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

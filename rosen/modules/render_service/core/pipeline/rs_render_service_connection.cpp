@@ -2755,5 +2755,16 @@ int32_t RSRenderServiceConnection::SetOverlayDisplayMode(int32_t mode)
     return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode);
 }
 #endif
+
+void RSRenderServiceConnection::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, packageName, pageName, isEnter]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->NotifyPageName(pid, packageName, pageName, isEnter);
+        }
+    });
+}
 } // namespace Rosen
 } // namespace OHOS

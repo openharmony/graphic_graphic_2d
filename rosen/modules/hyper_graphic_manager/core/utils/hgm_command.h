@@ -136,6 +136,16 @@ public:
     // <"translate", DynamicSetting>
     using DynamicSettingMap = std::unordered_map<std::string, DynamicSetting>;
 
+    struct PageUrlFps {
+        int32_t min;
+        int32_t max;
+    };
+    struct PageUrlConfig {
+        std::unordered_map<std::string, PageUrlFps> pageUrl;
+    };
+    using PageUrlConfigMap = std::unordered_map<std::string, PageUrlConfig>;
+    std::vector<std::string> pageNameList_;
+
     struct ScreenSetting {
         std::string strategy;
         // <"switch", "1">
@@ -164,6 +174,8 @@ public:
         std::unordered_map<std::string, int32_t> componentPowerConfig;
         // <"pkgName", "UnityPlayerSurface">
         std::unordered_map<std::string, std::string> gameAppNodeList;
+        // <"pageName", min, max>
+        PageUrlConfigMap pageUrlConfig;
         std::unordered_map<std::string, std::string> performanceConfig;
     };
     // <"-1", ScreenSetting>

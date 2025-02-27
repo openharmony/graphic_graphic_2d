@@ -39,6 +39,7 @@ public:
     int32_t GetRefreshRateModeName() const;
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
 
+    const std::unordered_set<std::string>& GetPageNameList() const;
 private:
     RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
@@ -49,6 +50,7 @@ private:
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
+    std::unordered_set<std::string> pageNameList_;
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
     std::mutex mutex_;

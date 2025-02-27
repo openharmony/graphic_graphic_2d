@@ -46,6 +46,11 @@ void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
     }
 }
 
+const std::unordered_set<std::string>& RSFrameRatePolicy::GetPageNameList() const
+{
+    return pageNameList_;
+}
+
 void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
 {
     if (configData == nullptr) {
@@ -53,6 +58,7 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
         return;
     }
 
+    pageNameList_ = configData->GetPageNameList();
     auto data = configData->GetConfigData();
     if (data.empty()) {
         return;
