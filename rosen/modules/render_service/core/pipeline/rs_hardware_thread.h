@@ -123,8 +123,8 @@ namespace OHOS {
 namespace AppExecFwk {
 class RSHardwareDumper : public Dumper {
 public:
-    virtual void Dump(const std::string& message) override;
-    virtual std::string GetTag() override;
+    void Dump(const std::string& message) override;
+    std::string GetTag() override;
     void PrintDumpInfo();
 private:
     std::string dumpInfo_;
