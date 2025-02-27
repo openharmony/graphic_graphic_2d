@@ -1181,23 +1181,6 @@ HWTEST_F(RSMainThreadTest, CheckIfNodeIsBundle, TestSize.Level1)
 }
 
 /**
- * @tc.name: InformHgmNodeInfo
- * @tc.desc: Test RSMainThreadTest.InformHgmNodeInfo
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, InformHgmNodeInfo, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->currentBundleName_ = "test";
-    mainThread->InformHgmNodeInfo();
-    mainThread->currentBundleName_ = "";
-    mainThread->noBundle_ = true;
-    mainThread->InformHgmNodeInfo();
-}
-
-/**
  * @tc.name: CheckParallelSubThreadNodesStatus
  * @tc.desc: Test RSMainThreadTest.CheckParallelSubThreadNodesStatus
  * @tc.type: FUNC

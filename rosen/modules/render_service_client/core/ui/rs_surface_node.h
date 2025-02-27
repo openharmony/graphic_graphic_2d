@@ -127,11 +127,6 @@ public:
         return name_;
     }
 
-    const std::string GetBundleName() const
-    {
-        return bundleName_;
-    }
-
     void ResetContextAlpha() const;
 
     void SetContainerWindow(bool hasContainerWindow, float density);
