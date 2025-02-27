@@ -3211,7 +3211,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
-    if (node.GetRenderProperties().GetUseEffect() || node.ChildHasVisibleEffect()) {
+    if ((node.GetRenderProperties().GetUseEffect() && node.ShouldPaint()) || node.ChildHasVisibleEffect()) {
         nodeParent->SetChildHasVisibleEffect(true);
         nodeParent->UpdateVisibleEffectChild(node);
     }
