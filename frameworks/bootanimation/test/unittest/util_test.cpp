@@ -186,19 +186,19 @@ HWTEST_F(UtilTest, UtilTest_005, TestSize.Level1)
 HWTEST_F(UtilTest, UtilTest_006, TestSize.Level1)
 {
     std::string filePath = "";
-    std::vector<BootAnimationConfig> animationConfigs_;
-    bool isMultiDisplay_ = false;
-    bool isCompatible_ = false;
-    int32_t duration_ = 60;
-    bool parseResult = OHOS::ParseBootConfig(filePath, duration_, isCompatible_, isMultiDisplay_, animationConfigs_);
+    std::vector<BootAnimationConfig> animationConfigs;
+    bool isMultiDisplay = false;
+    bool isCompatible = false;
+    int32_t duration = 60;
+    bool parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
     EXPECT_EQ(false, parseResult);
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
-    parseResult = OHOS::ParseBootConfig(filePath, duration_, isCompatible_, isMultiDisplay_, animationConfigs_);
+    parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
     EXPECT_EQ(false, parseResult);
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
-    parseResult = OHOS::ParseBootConfig(filePath, duration_, isCompatible_, isMultiDisplay_, animationConfigs_);
+    parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
     EXPECT_EQ(true, parseResult);
 }
 
