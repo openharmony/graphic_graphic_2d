@@ -26,6 +26,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -58,7 +59,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
-    isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled();
+    isPrevalidateHwcNodeEnable_ = RSUniHwcPrevalidateUtil::GetPrevalidateEnabled();
     arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
 }
 
@@ -68,6 +69,16 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
     }
+}
+
+bool RSUniHwcPrevalidateUtil::GetPrevalidateEnabled()
+{
+    auto prevalidateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam("PrevalidateConfig");
+    auto prevalidateFeature = std::static_pointer_cast<PrevalidateParam>(prevalidateFeatureParam);
+    if (prevalidateFeature != nullptr) {
+        return prevalidateFeature->IsPrevalidateEnable();
+    }
+    return true;
 }
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()

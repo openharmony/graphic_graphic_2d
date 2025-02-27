@@ -33,6 +33,10 @@ bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device
                                      VkNativeBufferFormatPropertiesOHOS* nbFormatProps,
                                      VkNativeBufferPropertiesOHOS* nbProps)
 {
+    if (!nbFormatProps || !nbProps) {
+        RS_LOGE("GetNativeBufferFormatProperties failed!");
+        return false;
+    }
     nbFormatProps->sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS;
     nbFormatProps->pNext = nullptr;
 
@@ -88,10 +92,11 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
         VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    if (imageSize.width * imageSize.height * imageSize.depth > VKIMAGE_LIMIT_SIZE) {
+    if (imageSize.width != 0 && imageSize.height != 0 &&
+        imageSize.depth > VKIMAGE_LIMIT_SIZE / imageSize.width / imageSize.height) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u,"
-                   "depth::%{public}u", imageSize.width,
-            imageSize.height, imageSize.depth);
+                   "depth::%{public}u",
+            imageSize.width, imageSize.height, imageSize.depth);
         return false;
     }
 

@@ -77,6 +77,10 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameOhosRaster::GetSurface()
 
 void RSSurfaceFrameOhosRaster::CreateSurface()
 {
+    if (buffer_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceFrameOhosRaster::CreateSurface buffer is invalid");
+        return;
+    }
     auto addr = static_cast<uint32_t*>(buffer_->GetVirAddr());
     if (addr == nullptr) {
         ROSEN_LOGW("buffer addr is invalid");

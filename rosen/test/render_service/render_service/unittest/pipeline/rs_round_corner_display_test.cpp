@@ -1049,8 +1049,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
 
     rcdInstance.showResourceType_ = 4;
     rcdInstance.RcdChooseHardwareResource();
-    int type = 4;
-    EXPECT_EQ(rcdInstance.showResourceType_, type);
+    EXPECT_EQ(nullptr, rcdInstance.hardInfo_.bottomLayer->curBitmap);
 
     rs_rcd::RogPortrait rogPortrait{};
     rcdInstance.rog_->portraitMap[rs_rcd::NODE_PORTRAIT] = rogPortrait;
@@ -1069,7 +1068,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
     rcdInstance.showResourceType_ = 4;
     rcdInstance.RcdChooseHardwareResource();
 
-    EXPECT_EQ(rcdInstance.showResourceType_, type);
+    EXPECT_EQ(&rcdInstance.bitmapBottomPortrait_, rcdInstance.hardInfo_.bottomLayer->curBitmap);
     rcdInstance.rog_ = nullptr;
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
 }
