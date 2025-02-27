@@ -385,8 +385,8 @@ void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode
     auto screenId = curDisplayNode_->GetScreenId();
     RSSurfaceRenderNode::UpdateSurfaceNodeNit(node, screenId);
     curDisplayNode_->CollectHdrStatus(node.GetVideoHdrStatus());
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && RSLuminanceControl::Get().IsForceCloseHdr()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr in PC.",
+    if (RSLuminanceControl::Get().IsForceCloseHdr()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
             node.GetName().c_str());
         return;
     }
@@ -473,7 +473,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     if (!RSSystemProperties::GetHDRImageEnable()) {
         curDisplayNode_->SetHasUniRenderHdrSurface(false);
     }
-    SetHdrWhenMultiDisplayChangeInPC();
+    SetHdrWhenMultiDisplayChange();
     ScreenId screenId = node.GetScreenId();
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
     RSLuminanceControl::Get().SetHdrStatus(screenId, node.GetDisplayHdrStatus());
@@ -3990,18 +3990,15 @@ void RSUniRenderVisitor::CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNod
     node.SetGpuOverDrawBufferOptimizeNode(false);
 }
 
-void RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC()
+void RSUniRenderVisitor::SetHdrWhenMultiDisplayChange()
 {
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        return;
-    }
     auto mainThread = RSMainThread::Instance();
     if (!mainThread->GetMultiDisplayChange()) {
         return;
     }
     auto isMultiDisplay = mainThread->GetMultiDisplayStatus();
-    RS_LOGI("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %{public}d.", isMultiDisplay);
-    RS_TRACE_NAME_FMT("RSUniRenderVisitor::SetHdrWhenMultiDisplayChangeInPC closeHdrStatus: %d", isMultiDisplay);
+    RS_LOGI("RSUniRenderVisitor::SetHdrWhenMultiDisplayChange closeHdrStatus: %{public}d.", isMultiDisplay);
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::SetHdrWhenMultiDisplayChange closeHdrStatus: %d", isMultiDisplay);
     RSLuminanceControl::Get().ForceCloseHdr(CLOSEHDR_SCENEID::MULTI_DISPLAY, isMultiDisplay);
 }
 
