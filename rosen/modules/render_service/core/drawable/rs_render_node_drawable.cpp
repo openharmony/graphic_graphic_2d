@@ -317,6 +317,10 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
     }
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!curCanvas) {
+        RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
+        return;
+    }
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
         DrawCachedImage(*curCanvas, params.GetCacheSize());
@@ -342,7 +346,7 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
     if (withoutFilterMatrixMap.find(GetId()) == withoutFilterMatrixMap.end()) {
         RS_LOGE("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of cached node in "
-                "withoutFilterMatrixMap");
+                "withoutFilterMatrixMap, id:%{public}" PRIu64 "", GetId());
         return;
     }
     auto matrix = withoutFilterMatrixMap.at(GetId());

@@ -227,6 +227,11 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
     curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
+void RSDisplayRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
+{
+    topSurfaceOpaqueRects_.push_back(rect);
+}
+
 void RSDisplayRenderNode::UpdateRenderParams()
 {
 #ifdef RS_ENABLE_GPU

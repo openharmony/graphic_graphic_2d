@@ -143,7 +143,8 @@ std::string VisibleDataToString(const VisibleData& val)
 } // namespace
 
 RSUniRenderVisitor::RSUniRenderVisitor()
-    : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    : rsUniHwcVisitor_(std::make_unique<RSUniHwcVisitor>(*this)),
+      curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     PartialRenderOptionInit();
     auto mainThread = RSMainThread::Instance();
@@ -210,6 +211,8 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     currentFocusedNodeId_ = visitor.currentFocusedNodeId_;
     prepareClipRect_ = visitor.prepareClipRect_;
     isOpDropped_ = visitor.isOpDropped_;
+    isDirtyAlignEnabled_ = visitor.isDirtyAlignEnabled_;
+    isStencilPixelOcclusionCullingEnabled_ = visitor.isStencilPixelOcclusionCullingEnabled_;
     isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
     isAllSurfaceVisibleDebugEnabled_ = visitor.isAllSurfaceVisibleDebugEnabled_;
     isHardwareForcedDisabled_ = visitor.isHardwareForcedDisabled_;
@@ -353,15 +356,14 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
-    } else if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
-        (RSMainThread::Instance()->HasWiredMirrorDisplay() || RSMainThread::Instance()->HasVirtualMirrorDisplay())) {
-        // wired and virtual mirror screen close P3
+    }
+
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
+        (RSMainThread::Instance()->HasWiredMirrorDisplay() || RSMainThread::Instance()->HasVirtualMirrorDisplay() ||
+        (node.GetScreenId() != 0 && screenType != VIRTUAL_TYPE_SCREEN))) {
+        RS_LOGD("RSUniRenderVisitor::HandleColorGamuts close multi-screen P3.");
+        // wired screen and virtual mirror screen close P3
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-    } else if (node.GetScreenId() != 0) {
-        if (!IsScreenSupportedWideColorGamut(node.GetScreenId(), screenManager)) {
-            node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-            RS_LOGD("RSUniRenderVisitor::HandleColorGamuts physical extended screen not support wide color gamut.");
-        }
     }
 }
 
@@ -1200,6 +1202,40 @@ bool RSUniRenderVisitor::CheckSkipCrossNode(RSSurfaceRenderNode& node)
     return false;
 }
 
+void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion)
+{
+    if (!isStencilPixelOcclusionCullingEnabled_) {
+        return;
+    }
+    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+    if (!parent || !parent->IsLeashWindow()) {
+        return;
+    }
+    auto stencilVal = occlusionSurfaceOrder_ * OCCLUSION_ENABLE_SCENE_NUM;
+    if (!isParticipateInOcclusion) {
+        if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM) {
+            parent->SetStencilVal(stencilVal);
+        }
+        return;
+    }
+    parent->SetStencilVal(stencilVal);
+    if (occlusionSurfaceOrder_ > 0) {
+        auto opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
+        if (curDisplayNode_ == nullptr) {
+            RS_LOGE("RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo curDisplayNode_ is nullptr");
+            return;
+        }
+        if (!opaqueRegionRects.empty()) {
+            auto maxOpaqueRect = std::max_element(opaqueRegionRects.begin(), opaqueRegionRects.end(),
+                [](Occlusion::Rect a, Occlusion::Rect b) ->bool { return a.Area() < b.Area(); });
+            curDisplayNode_->RecordTopSurfaceOpaqueRects(*maxOpaqueRect);
+            parent->SetStencilVal(stencilVal);
+            RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo record name[%s] rect[%s]",
+                node.GetName().c_str(), (*maxOpaqueRect).GetRectInfo().c_str());
+        }
+    }
+}
+
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
 {
     MultiThreadCacheType lastFlag = node.GetLastFrameUifirstFlag();
@@ -1280,7 +1316,10 @@ void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode
     node.SetOcclusionInSpecificScenes(mainThread->GetDeviceType() == DeviceType::PC &&
         mainThread->GetIsRegularAnimation());
     bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
-    if (node.CheckParticipateInOcclusion() && occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_) {
+    bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
+        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
+    CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
+    if (isParticipateInOcclusion) {
         RS_OPTIONAL_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
             node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
@@ -1569,11 +1608,11 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     hasFingerprint_.emplace(currentVisitDisplay_, false);
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
-    curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     if (!curDisplayDirtyManager_ || !curDisplayNode_) {
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curDisplayDirtyManager_->Clear();
     transparentCleanFilter_.clear();
     transparentDirtyFilter_.clear();
@@ -3746,6 +3785,8 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
     renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
     renderThreadParams->isOpDropped_ = isOpDropped_;
+    renderThreadParams->isDirtyAlignEnabled_ = isDirtyAlignEnabled_;
+    renderThreadParams->isStencilPixelOcclusionCullingEnabled_ = isStencilPixelOcclusionCullingEnabled_;
     renderThreadParams->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     renderThreadParams->isUIFirstDebugEnable_ = isUIFirstDebugEnable_;
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);

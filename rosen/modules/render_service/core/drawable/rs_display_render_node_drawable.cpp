@@ -575,6 +575,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCurrentVisitDisplayDrawableId(GetId());
     uniParam->SetIsFirstVisitCrossNodeDisplay(params->IsFirstVisitCrossNodeDisplay());
     uniParam->SetCompositeType(params->GetCompositeType());
+    params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
     offsetX_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetX();
     offsetY_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetY();
@@ -794,8 +795,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
 
             if (uniParam->IsOpDropped()) {
-                uniParam->SetClipRegion(clipRegion);
-                ClipRegion(*curCanvas_, clipRegion);
+                if (uniParam->IsDirtyAlignEnabled()) {
+                    curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+                } else {
+                    uniParam->SetClipRegion(clipRegion);
+                    ClipRegion(*curCanvas_, clipRegion);
+                }
             } else if (params->GetNeedOffscreen()) {
                 // draw black background in rotation for camera
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
@@ -943,6 +948,26 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
     }
 #endif
+}
+
+void RSDisplayRenderNodeDrawable::ClearCanvasStencil(RSPaintFilterCanvas& canvas,
+    RSDisplayRenderParams& params, RSRenderThreadParams& uniParam)
+{
+    if (!uniParam.IsStencilPixelOcclusionCullingEnabled()) {
+        return;
+    }
+    auto topSurfaceOpaqueRects = params.GetTopSurfaceOpaqueRects();
+    if (topSurfaceOpaqueRects.empty()) {
+        return;
+    }
+    std::reverse(topSurfaceOpaqueRects.begin(), topSurfaceOpaqueRects.end());
+    for (size_t i = 0; i < topSurfaceOpaqueRects.size(); i++) {
+        Drawing::RectI rect {topSurfaceOpaqueRects[i].left_,
+            topSurfaceOpaqueRects[i].top_,
+            topSurfaceOpaqueRects[i].right_,
+            topSurfaceOpaqueRects[i].bottom_};
+        // [planning] enable clearStencil
+    }
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorScreen(

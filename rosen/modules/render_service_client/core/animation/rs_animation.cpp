@@ -214,6 +214,9 @@ void RSAnimation::OnPause()
             transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
         }
     }
+    if (finishCallback_) {
+        finishCallback_->SetAnimationBeenPaused();
+    }
 }
 
 bool RSAnimation::IsUiAnimation() const

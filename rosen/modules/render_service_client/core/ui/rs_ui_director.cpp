@@ -416,11 +416,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
                 }
                 if (counter->fetch_sub(1) == 1) {
                     std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-                    if (requestVsyncCallback_ != nullptr) {
-                        requestVsyncCallback_();
-                    } else {
-                        RSTransaction::FlushImplicitTransaction();
-                    }
+                    RSTransaction::FlushImplicitTransaction();
                     ROSEN_LOGD("ProcessMessages end");
                 }
             }, instanceId);

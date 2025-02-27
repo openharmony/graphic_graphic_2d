@@ -495,5 +495,72 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     EXPECT_EQ(std::get<0>(returnData), std::get<0>(testData));
     EXPECT_EQ(std::get<1>(returnData), std::get<1>(testData));
 }
+
+/**
+ * @tc.name: CleanInitTest_001
+ * @tc.desc: Purge Shader Cache at Free Time
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+ HWTEST_F(CacheDataTest, CleanInitTest_001, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
+    EXPECT_EQ(cacheData->CleanInit(), true);
+}
+
+/**
+ * @tc.name: CleanInitTest_002
+ * @tc.desc: Purge Shader Cache at Free Time
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+ HWTEST_F(CacheDataTest, CleanInitTest_002, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
+    std::vector<unsigned short> originValues(cacheData->cleanInit_, cacheData->cleanInit_ + cacheData->randLength_);
+    cacheData->CleanInit();
+    bool isChanged = false;
+    for (int i = 0; i < cacheData->randLength_; ++i) {
+        if (cacheData->cleanInit_[i] != originValues[i]) {
+            isChanged = true;
+            break;
+        }
+    }
+    EXPECT_EQ(isChanged, true);
+}
+
+/**
+ * @tc.name: CheckShaderCacheOverSoftLimitTest
+ * @tc.desc: Purge Shader Cache at Free Time
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+ HWTEST_F(CacheDataTest, CheckShaderCacheOverSoftLimitTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
+    bool check = cacheData->totalSize_ > cacheData->softLimit_;
+    EXPECT_EQ(cacheData->CheckShaderCacheOverSoftLimit(), check);
+}
+
+/**
+ * @tc.name: PurgeShaderCacheAfterAnimateTest
+ * @tc.desc: Purge Shader Cache at Free Time
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+ HWTEST_F(CacheDataTest, PurgeShaderCacheAfterAnimateTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
+    cacheData->PurgeShaderCacheAfterAnimate([]() { return true; });
+    EXPECT_GE(6, cacheData->totalSize_);
+}
 } // namespace Rosen
 } // namespace OHOS

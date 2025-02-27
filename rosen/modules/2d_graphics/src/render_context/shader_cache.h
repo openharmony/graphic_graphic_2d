@@ -67,6 +67,10 @@ public:
 
     void CleanAllShaders() const;
 
+    bool CheckShaderCacheOverSoftLimit() const;
+
+    void PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived);
+
 private:
     ShaderCache() = default;
     ~ShaderCache();

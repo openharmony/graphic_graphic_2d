@@ -40,8 +40,19 @@ public:
     ~AnimationFinishCallback() override = default;
     // Execute the callback function immediately, can only be called once.
     void Execute();
+    bool IsValid();
+    void SetAnimationBeenPaused()
+    {
+        hasAnimationBeenPaused = true;
+    }
+    bool HasAnimationBeenPaused()
+    {
+        return hasAnimationBeenPaused;
+    }
 
     const FinishCallbackType finishCallbackType_;
+private:
+    bool hasAnimationBeenPaused = false;
 };
 
 class RSC_EXPORT AnimationRepeatCallback {

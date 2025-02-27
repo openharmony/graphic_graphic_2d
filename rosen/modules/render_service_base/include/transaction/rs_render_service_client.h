@@ -463,8 +463,8 @@ private:
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
-    sptr<RSIScreenChangeCallback> screenChangeCb_;
-    sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
+    sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
+    sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
     std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>,
         std::vector<std::shared_ptr<SurfaceCaptureCallback>>, PairHash> surfaceCaptureCbMap_;
 

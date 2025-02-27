@@ -38,6 +38,8 @@ public:
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
+    void SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects);
+    const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetDisplayOffsetX() const
     {
         return offsetX_;
@@ -62,6 +64,17 @@ public:
     {
         return mirrorSourceId_;
     }
+
+    bool IsDirtyAlignEnabled() const
+    {
+        return isDirtyAlignEnabled_;
+    }
+
+    void SetDirtyAlignEnabled(bool isDirtyAlignEnabled)
+    {
+        isDirtyAlignEnabled_ = isDirtyAlignEnabled;
+    }
+
     RSDisplayRenderNode::CompositeType GetCompositeType() const
     {
         return compositeType_;
@@ -176,6 +189,7 @@ private:
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     int32_t offsetX_ = -1;
     int32_t offsetY_ = -1;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
@@ -185,6 +199,7 @@ private:
     bool isSecurityExemption_ = false;
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
+    bool isDirtyAlignEnabled_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;

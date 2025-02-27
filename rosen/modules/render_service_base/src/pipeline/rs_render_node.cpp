@@ -1000,6 +1000,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (!oldDirty_.IsEmpty()) {
         out += ", oldDirty: " + oldDirty_.ToString();
     }
+    if (!innerAbsDrawRect_.IsEmpty()) {
+        out += ", innerAbsDrawRect: " + innerAbsDrawRect_.ToString();
+    }
     if (!localShadowRect_.IsEmpty()) {
         out += ", localShadowRect: " + localShadowRect_.ToString();
     }
@@ -1714,6 +1717,12 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         dirtyManager.MergeDirtyRect(dirtyRect);
         isDirtyRegionUpdated_ = true;
     }
+    // compute inward-rounding abs draw rect, used for opaque region calculations
+    auto dirtyRectF = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRectF_ : absDrawRectF_;
+    innerAbsDrawRect_ = RSObjAbsGeometry::DeflateToRectI(dirtyRectF);
+    if (!IsFirstLevelCrossNode()) {
+        innerAbsDrawRect_ = innerAbsDrawRect_.IntersectRect(clipRect);
+    }
 }
 
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty,
@@ -1749,9 +1758,12 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // selfdrawing node's geo may not dirty when its dirty region changes
         if (geoPtr && (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
             isSelfDrawingNode_ || selfDrawRectChanged)) {
-            absDrawRect_ = geoPtr->MapAbsRect(selfDrawRect_);
+            absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
+            absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
             if (isSelfDrawingNode_) {
-                selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
+                selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
+                    selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
+                selfDrawingNodeAbsDirtyRect_ = geoPtr->InflateToRectI(selfDrawingNodeAbsDirtyRectF_);
             }
             UpdateSrcOrClipedAbsDrawRectChangeState(clipRect);
         }

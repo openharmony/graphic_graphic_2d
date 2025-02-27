@@ -29,7 +29,12 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE): {
-            NodeId id = data.ReadUint64();
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSSurfaceCaptureCallbackStub::ON_SURFACE_CAPTURE read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSSurfaceCaptureConfig captureConfig;
             if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
                 ret = ERR_INVALID_DATA;

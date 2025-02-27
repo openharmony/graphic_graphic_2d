@@ -109,11 +109,17 @@ public:
 
     static bool Marshalling(Parcel& parcel, const std::string& val)
     {
-        return parcel.WriteString(val);
+        if (!parcel.WriteString(val)) {
+            return false;
+        }
+        return true;
     }
     static bool Unmarshalling(Parcel& parcel, std::string& val)
     {
-        return parcel.ReadString(val);
+        if (!parcel.ReadString(val)) {
+            return false;
+        }
+        return true;
     }
 
     template<typename T>
@@ -372,10 +378,14 @@ public:
     static bool Marshalling(Parcel& parcel, const std::optional<T>& val)
     {
         if (!val.has_value()) {
-            parcel.WriteBool(false);
+            if (!parcel.WriteBool(false)) {
+                return false;
+            }
             return true;
         }
-        parcel.WriteBool(true);
+        if (!parcel.WriteBool(true)) {
+            return false;
+        }
         return Marshalling(parcel, val.value());
     }
     template<typename T>

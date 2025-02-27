@@ -832,6 +832,35 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearCanvasStencilTest001
+ * @tc.desc: Test ClearCanvasStencilTest
+ * @tc.type: FUNC
+ * @tc.require: #IBO35Y
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearCanvasStencilTest001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    ASSERT_NE(uniParam, nullptr);
+
+    ASSERT_NE(displayDrawable_, nullptr);
+    displayDrawable_->ClearCanvasStencil(canvas, *params, *uniParam);
+
+    displayDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
+    ASSERT_NE(displayDrawable_->syncDirtyManager_, nullptr);
+    auto dirtyManager = displayDrawable_->GetSyncDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    auto alignedRegion = allDirtyRegion.GetAlignedRegion(128);
+    ASSERT_TRUE(alignedRegion.IsEmpty());
+}
+
+/**
  * @tc.name: WiredScreenProjection
  * @tc.desc: Test WiredScreenProjection
  * @tc.type: FUNC

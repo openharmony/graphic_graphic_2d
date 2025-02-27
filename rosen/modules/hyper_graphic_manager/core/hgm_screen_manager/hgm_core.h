@@ -231,6 +231,10 @@ public:
         maxTE_ = maxTE;
     }
 
+    int32_t GetPluseNum() const
+    {
+        return pluseNum_;
+    }
     // called by RSMainThread/RSUniRenderThread
     bool GetDirectCompositionFlag() const
     {
@@ -272,6 +276,7 @@ public:
     // for LTPO
     void SetLtpoConfig();
     void SetScreenConstraintConfig();
+    void SetPerformanceConfig();
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
@@ -352,11 +357,12 @@ private:
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
     std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
-    bool isDelayMode_ = false;
+    bool isDelayMode_ = true;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;
+    int32_t pluseNum_ = -1;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };

@@ -29,6 +29,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
@@ -41,6 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
+class RSUniHwcVisitor;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -165,6 +167,7 @@ private:
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
+    void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
@@ -339,6 +342,8 @@ private:
 
     void TryNotifyUIBufferAvailable();
 
+    friend class RSUniHwcVisitor;
+    std::unique_ptr<RSUniHwcVisitor> rsUniHwcVisitor_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -366,6 +371,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
+    int16_t occlusionSurfaceOrder_ = -1;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
@@ -421,6 +427,8 @@ private:
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyAlignEnabled_ = false;
+    bool isStencilPixelOcclusionCullingEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;

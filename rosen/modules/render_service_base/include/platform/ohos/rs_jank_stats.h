@@ -141,6 +141,7 @@ public:
     void SetAppFirstFrame(pid_t appPid);
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
+    bool IsAnimationEmpty();
 
 private:
     RSJankStats() = default;

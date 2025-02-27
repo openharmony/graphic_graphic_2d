@@ -524,6 +524,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->stencilVal_ = stencilVal_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;

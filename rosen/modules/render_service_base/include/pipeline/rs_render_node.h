@@ -386,6 +386,11 @@ public:
         return shouldPaint_;
     }
 
+    inline RectI GetInnerAbsDrawRect() const noexcept
+    {
+        return innerAbsDrawRect_;
+    }
+
     // dirty rect of current frame after update dirty, last frame before update
     RectI GetOldDirty() const;
     // dirty rect in display of current frame after update dirty, last frame before update
@@ -1117,7 +1122,10 @@ private:
     RectI localDistortionEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
+    RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
+    // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
+    RectI innerAbsDrawRect_;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
     RectI childrenRect_;
@@ -1131,6 +1139,7 @@ private:
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectF selfDrawingNodeDirtyRect_;
     RectI selfDrawingNodeAbsDirtyRect_;
+    RectF selfDrawingNodeAbsDirtyRectF_;
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache

@@ -67,6 +67,11 @@ std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
         return nullptr;
     }
 
+    if (Drawing::IsScalarAlmostEqual(0, src_.GetWidth()) || Drawing::IsScalarAlmostEqual(0, src_.GetHeight())) {
+        RS_LOGW("RSImage::GenerateImageShaderForDrawRect src_ width or height is equal 0");
+        return nullptr;
+    }
+
     Drawing::Matrix matrix;
     auto sx = dstRect_.GetWidth() / src_.GetWidth();
     auto sy = dstRect_.GetHeight() / src_.GetHeight();

@@ -331,9 +331,6 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         mReservedFlushFd = -1;
     }
     auto queue = vkContext.GetQueue();
-    if (vkContext.GetHardWareGrContext().get() == mSkContext.get()) {
-        queue = vkContext.GetHardwareQueue();
-    }
     auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {

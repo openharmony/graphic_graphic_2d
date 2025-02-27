@@ -23,7 +23,7 @@ namespace Rosen {
 using TestPlaybackCanvas = Drawing::Canvas;
 inline std::shared_ptr<Drawing::Surface> CreateDrawingSurface(int width, int height)
 {
-    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext(true);
+    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext(drawingContext);
     Drawing::ImageInfo info = Drawing::ImageInfo { width, height, Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };

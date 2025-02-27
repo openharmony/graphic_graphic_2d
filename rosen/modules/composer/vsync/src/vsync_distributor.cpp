@@ -849,17 +849,7 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
     for (auto refreshRate : refreshRates) {
-        bool found = false;
-        for (auto it = changingConnsRefreshRates_.begin(); it != changingConnsRefreshRates_.end(); it++) {
-            if ((*it).first == refreshRate.first) { // first is linkerId
-                (*it).second = refreshRate.second; // second is refreshRate
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            changingConnsRefreshRates_.push_back(refreshRate);
-        }
+        changingConnsRefreshRates_[refreshRate.first] = refreshRate.second;
     }
 }
 
@@ -1254,22 +1244,21 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
 void VSyncDistributor::ChangeConnsRateLocked(uint32_t vsyncMaxRefreshRate)
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
-    for (auto connRefreshRate : changingConnsRefreshRates_) {
-        for (auto conn : connections_) {
-            if (conn->id_ != connRefreshRate.first) {
-                continue;
-            }
-            uint32_t refreshRate = connRefreshRate.second;
-            if ((generatorRefreshRate_ == 0) || (refreshRate == 0) ||
-                (vsyncMaxRefreshRate % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
-                conn->refreshRate_ = 0;
-                conn->vsyncPulseFreq_ = 1;
-                continue;
-            }
-            conn->refreshRate_ = refreshRate;
-            conn->vsyncPulseFreq_ = vsyncMaxRefreshRate / refreshRate;
-            conn->referencePulseCount_ = event_.vsyncPulseCount;
+    for (auto conn : connections_) {
+        auto it = changingConnsRefreshRates_.find(conn->id_);
+        if (it == changingConnsRefreshRates_.end()) {
+            continue;
         }
+        uint32_t refreshRate = it->second;
+        if ((generatorRefreshRate_ == 0) || (refreshRate == 0) ||
+            (vsyncMaxRefreshRate % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
+            conn->refreshRate_ = 0;
+            conn->vsyncPulseFreq_ = 1;
+            continue;
+        }
+        conn->refreshRate_ = refreshRate;
+        conn->vsyncPulseFreq_ = vsyncMaxRefreshRate / refreshRate;
+        conn->referencePulseCount_ = event_.vsyncPulseCount;
     }
     changingConnsRefreshRates_.clear();
 }
