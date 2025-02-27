@@ -163,7 +163,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         } else {
             RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") end SetScreenPowerStatus to On",
                 __func__, id_);
-		}
+        }
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
