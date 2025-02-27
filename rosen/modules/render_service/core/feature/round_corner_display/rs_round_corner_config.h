@@ -177,7 +177,8 @@ struct RCDConfig {
     static void PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer);
     static void PrintParseRog(rs_rcd::ROGSetting* rog);
     LCDModel* GetLcdModel(const std::string& name) const;
-    bool Load(const std::string& configFile);
+    bool Load(const std::string &configFile);
+    bool IsDataLoaded() const;
 private:
     void CloseXML();
     void Clear();
