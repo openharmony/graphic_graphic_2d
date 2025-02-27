@@ -31,8 +31,14 @@
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
+#include "mem_param_parse.h"
+#include "mem_param.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
+#include "prevalidate_param_parse.h"
+#include "prevalidate_param.h"
+#include "speciallayer_param.h"
+#include "speciallayer_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 
@@ -52,8 +58,12 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<HFBCParam>(); }},
     {FEATURE_CONFIGS[MEM], [] { return std::make_unique<MEMParamParse>(); },
         [] { return std::make_unique<MEMParam>(); }},
+    {FEATURE_CONFIGS[SPECIALLAYER], [] {return std::make_unique<SpecialLayerParamParse>(); },
+        [] {return std::make_unique<SpecialLayerParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
+    {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
+        [] {return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
         [] {return std::make_unique<UIFirstParam>(); }},
 };
@@ -75,7 +85,7 @@ private:
     GraphicFeatureParamManager();
     ~GraphicFeatureParamManager() noexcept override;
 
-    static constexpr char GRAPHIC_CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/graphic_config.xml";
+    std::string graphicConfigPath_ = "etc/graphic/graphic_config.xml";
 
     std::unique_ptr<XMLParserBase> featureParser_ = nullptr;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,18 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H
-#define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H
+#include "speciallayer_param.h"
 
-#include "common/rs_macros.h"
+namespace OHOS::Rosen {
 
-namespace OHOS {
-namespace Rosen {
-class RSB_EXPORT RSAnimationReport {
-public:
-    static void ReportFinishCallbackMissing(int type, float duration);
-};
-} // namespace Rosen
-} // namespace OHOS
+bool SpecialLayerParam::IsSpecialLayerEnable() const
+{
+    return isSpecialLayerEnable_;
+}
 
-#endif // ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H
+void SpecialLayerParam::SetSpecialLayerEnable(bool isEnable)
+{
+    isSpecialLayerEnable_ = isEnable;
+}
+} // namespace OHOS::Rosen

@@ -59,6 +59,7 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
@@ -1539,11 +1540,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                         preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
                 }
-                if (surfaceNode->GetIntersectWithAIBar()) {
-                    doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode intersect with AIBar",
-                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
 #endif
             }
             if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceHandler->IsCurrentFrameBufferConsumed()
@@ -1810,12 +1806,11 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
+    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     auto itr = std::find_if(children->begin(), children->end(),
-        [deviceType = deviceType_](const std::shared_ptr<RSRenderNode>& child) -> bool {
-            if (child == nullptr) {
-                return false;
-            }
-            if (child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
+            if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
                 return false;
             }
             auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
@@ -1823,7 +1818,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            if (deviceType != DeviceType::PC) {
+            if (hwcFeature->IsHwcExpandingScreenEnabled()) {
                 return displayNodeSp->GetCompositeType() ==
                     RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
             }
@@ -2298,8 +2293,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
-        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
+        RSUniRenderThread::Instance().PostTask([] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask();
         });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         RSPointerWindowManager::Instance().UpdatePointerInfo();
@@ -2613,8 +2608,8 @@ void RSMainThread::OnUniRenderDraw()
     }
     // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
     if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
-        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids), true);
+        RSUniRenderThread::Instance().PostTask([] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(true);
         });
         isNeedResetClearMemoryTask_ = false;
     }

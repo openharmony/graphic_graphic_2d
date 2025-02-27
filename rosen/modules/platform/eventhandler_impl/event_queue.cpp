@@ -230,6 +230,9 @@ bool EventQueue::HasInnerEvent(const std::shared_ptr<EventHandler> &owner, uint3
         return false;
     }
     auto filter = [&owner, innerEventId](const InnerEvent::Pointer &p) {
+        if (!p) {
+            return false;
+        }
         return (!p->HasTask()) && (p->GetOwner() == owner) && (p->GetInnerEventId() == innerEventId);
     };
     return HasInnerEvent(filter);
@@ -242,6 +245,9 @@ bool EventQueue::HasInnerEvent(const std::shared_ptr<EventHandler> &owner, int64
         return false;
     }
     auto filter = [&owner, param](const InnerEvent::Pointer &p) {
+        if (!p) {
+            return false;
+        }
         return (!p->HasTask()) && (p->GetOwner() == owner) && (p->GetParam() == param);
     };
     return HasInnerEvent(filter);

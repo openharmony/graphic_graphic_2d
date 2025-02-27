@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,17 @@
  * limitations under the License.
  */
 
-#include "animation/rs_animation_report.h"
+#include "prevalidate_param.h"
 
-#ifdef ROSEN_OHOS
-#include "hisysevent.h"
-#endif
+namespace OHOS::Rosen {
 
-namespace OHOS {
-namespace Rosen {
-
-void RSAnimationReport::ReportFinishCallbackMissing(int type, float duration)
+bool PrevalidateParam::IsPrevalidateEnable() const
 {
-#ifdef ROSEN_OHOS
-    auto reportName = "ANIMATION_CALLBACK_MISSING";
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "CURVE_TYPE", type, "DURATION", duration);
-#endif
+    return isPrevalidateEnable_;
 }
-} // namespace Rosen
-} // namespace OHOS
+    
+void PrevalidateParam::SetPrevalidateEnable(bool isEnable)
+{
+    isPrevalidateEnable_ = isEnable;
+}
+} // namespace OHOS::Rosen

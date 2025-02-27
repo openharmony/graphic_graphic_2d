@@ -114,12 +114,12 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     if (captureHandle == nullptr) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture captureHandle is nullptr!");
-        ProcessUiCaptureCallback(callback, id, nullptr);
+        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
         return;
     }
     if (!captureHandle->CreateResources(specifiedAreaRect)) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture CreateResources failed");
-        ProcessUiCaptureCallback(callback, id, nullptr);
+        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
         return;
     }
     Drawing::Rect chosenRect;
@@ -131,10 +131,10 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         chosenRect = specifiedAreaRect;
     }
     auto taskName = UICAPTURE_TASK_PREFIX + std::to_string(id);
-    std::function<void()> captureTask = [captureHandle, id, callback, chosenRect]() -> void {
+    std::function<void()> captureTask = [captureHandle, id, captureConfig, callback, chosenRect]() -> void {
         RSSystemProperties::SetForceHpsBlurDisabled(true);
         if (!captureHandle->Run(callback, chosenRect)) {
-            ProcessUiCaptureCallback(callback, id, nullptr);
+            ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
         }
         RSSystemProperties::SetForceHpsBlurDisabled(false);
     };
@@ -270,7 +270,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
         auto copytask =
-            RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_), nodeId_, callback);
+            RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
+                surface, std::move(pixelMap_), nodeId_, captureConfig_, callback);
         if (!copytask) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: create capture task failed!");
             return false;
@@ -296,7 +297,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     RS_LOGI("RSUiCaptureTaskParallel::Capture DMADisable capture success nodeId:[%{public}" PRIu64
             "], pixelMap width: %{public}d, height: %{public}d",
         nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight());
-    ProcessUiCaptureCallback(callback, nodeId_, pixelMap_.get());
+    ProcessUiCaptureCallback(callback, nodeId_, captureConfig_, pixelMap_.get());
     return true;
 }
 
@@ -374,7 +375,8 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
 #ifdef RS_ENABLE_UNI_RENDER
 std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, int32_t rotation, bool useDma)
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
+    int32_t rotation)
 {
     Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
@@ -385,11 +387,12 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::get<0>(*wrapper) = std::move(pixelMap);
     auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
     std::get<0>(*wrapperSf) = std::move(surface);
-    std::function<void()> copytask = [wrapper, callback, backendTexture, wrapperSf, id, rotation, useDma]() -> void {
-        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
+    std::function<void()> copytask = [
+        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation]() -> void {
+        RS_TRACE_NAME_FMT("copy and send capture useDma:%d", captureConfig.useDma);
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSUiCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
-            ProcessUiCaptureCallback(callback, id, nullptr);
+            ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
@@ -397,7 +400,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         auto pixelmap = std::move(std::get<0>(*wrapper));
         if (pixelmap == nullptr) {
             RS_LOGE("RSUiCaptureTaskParallel: pixelmap == nullptr");
-            ProcessUiCaptureCallback(callback, id, nullptr);
+            ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
@@ -412,19 +415,19 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
             RS_LOGE("RSUiCaptureTaskParallel: SharedGPUContext get failed");
-            ProcessUiCaptureCallback(callback, id, nullptr);
+            ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
-        if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&
+        if (captureConfig.useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
             surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);
             if (surface == nullptr) {
                 RS_LOGE("RSUiCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
-                ProcessUiCaptureCallback(callback, id, nullptr);
+                ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
                 RSUniRenderUtil::ClearNodeCacheSurface(
                     std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
                 return;
@@ -440,7 +443,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 textureOrigin, bitmapFormat, nullptr);
             if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
                 RS_LOGE("RSUiCaptureTaskParallel: CopyDataToPixelMap failed");
-                ProcessUiCaptureCallback(callback, id, nullptr);
+                ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
                 RSUniRenderUtil::ClearNodeCacheSurface(
                     std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
                 return;
@@ -455,7 +458,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         RS_LOGI("RSUiCaptureTaskParallel::Capture capture success nodeId:[%{public}" PRIu64
                 "], pixelMap width: %{public}d, height: %{public}d",
             id, pixelmap->GetWidth(), pixelmap->GetHeight());
-        ProcessUiCaptureCallback(callback, id, pixelmap.get());
+        ProcessUiCaptureCallback(callback, id, captureConfig, pixelmap.get());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(
             std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
@@ -464,10 +467,10 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
 }
 #endif
 
-void RSUiCaptureTaskParallel::ProcessUiCaptureCallback(
-    sptr<RSISurfaceCaptureCallback> callback, NodeId id, Media::PixelMap* pixelmap)
+void RSUiCaptureTaskParallel::ProcessUiCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, NodeId id,
+    const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap)
 {
-    callback->OnSurfaceCapture(id, pixelmap);
+    callback->OnSurfaceCapture(id, captureConfig, pixelmap);
     RSUiCaptureTaskParallel::captureCount_--;
     RSMainThread::Instance()->RequestNextVSync();
 }

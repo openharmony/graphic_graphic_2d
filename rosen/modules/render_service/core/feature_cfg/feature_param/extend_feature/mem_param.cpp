@@ -16,7 +16,6 @@
 #include "mem_param.h"
 
 namespace OHOS::Rosen {
-
 std::string MEMParam::GetRSWatchPoint() const
 {
     return rsWatchPoint_;

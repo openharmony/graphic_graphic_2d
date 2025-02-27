@@ -57,7 +57,7 @@ EventHandler::EventHandler(const std::shared_ptr<EventRunner> &runner) : eventRu
 
 EventHandler::~EventHandler()
 {
-    if (eventRunner_) {
+    if (eventRunner_ && eventRunner_->GetEventQueue()) {
         /*
          * This handler is finishing, need to remove all events belong to it.
          * But events only have weak pointer of this handler,
@@ -74,7 +74,7 @@ bool EventHandler::SendEvent(InnerEvent::Pointer &event, int64_t delayTime, Prio
         return false;
     }
 
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("SendEvent: MUST Set event runner before sending events");
         return false;
     }
@@ -133,6 +133,9 @@ bool EventHandler::SendSyncEvent(InnerEvent::Pointer &event, Priority priority)
         return false;
     }
     // Wait until event is processed(recycled).
+    if (!waiter) {
+        return false;
+    }
     waiter->Wait();
 
     return true;
@@ -140,7 +143,7 @@ bool EventHandler::SendSyncEvent(InnerEvent::Pointer &event, Priority priority)
 
 void EventHandler::RemoveAllEvents()
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveAllEvents: MUST Set event runner before removing all events");
         return;
     }
@@ -150,7 +153,7 @@ void EventHandler::RemoveAllEvents()
 
 void EventHandler::RemoveEvent(uint32_t innerEventId)
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveEvent: MUST Set event runner before removing events by id");
         return;
     }
@@ -160,7 +163,7 @@ void EventHandler::RemoveEvent(uint32_t innerEventId)
 
 void EventHandler::RemoveEvent(uint32_t innerEventId, int64_t param)
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveEvent: MUST Set event runner before removing events by id and param");
         return;
     }
@@ -170,7 +173,7 @@ void EventHandler::RemoveEvent(uint32_t innerEventId, int64_t param)
 
 void EventHandler::RemoveTask(const std::string &name)
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveTask: MUST Set event runner before removing events by task name");
         return;
     }
@@ -189,7 +192,7 @@ ErrCode EventHandler::AddFileDescriptorListener(
         return EVENT_HANDLER_ERR_INVALID_PARAM;
     }
 
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("AddFileDescriptorListener: MUST Set event runner before adding fd listener");
         return EVENT_HANDLER_ERR_NO_EVENT_RUNNER;
     }
@@ -200,7 +203,7 @@ ErrCode EventHandler::AddFileDescriptorListener(
 
 void EventHandler::RemoveAllFileDescriptorListeners()
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveAllFileDescriptorListeners: MUST Set event runner before removing all fd listener");
         return;
     }
@@ -215,7 +218,7 @@ void EventHandler::RemoveFileDescriptorListener(int32_t fileDescriptor)
         return;
     }
 
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("RemoveFileDescriptorListener: MUST Set event runner before removing fd listener by fd");
         return;
     }
@@ -248,6 +251,9 @@ void EventHandler::DeliveryTimeAction(const InnerEvent::Pointer &event, InnerEve
     if (!HiChecker::NeedCheckSlowEvent()) {
         return;
     }
+    if (!eventRunner_ || !event) {
+        return;
+    }
     int64_t deliveryTimeout = eventRunner_->GetDeliveryTimeout();
     if (deliveryTimeout > 0) {
         std::string threadName = eventRunner_->GetRunnerThreadName();
@@ -274,6 +280,9 @@ void EventHandler::DistributeTimeAction(const InnerEvent::Pointer &event, InnerE
 {
 #ifdef HAS_HICHECKER_NATIVE_PART
     if (!HiChecker::NeedCheckSlowEvent()) {
+        return;
+    }
+    if (!eventRunner_ || !event) {
         return;
     }
     int64_t distributeTimeout = eventRunner_->GetDistributeTimeout();
@@ -345,7 +354,7 @@ void EventHandler::Dump(Dumper &dumper)
 
 bool EventHandler::HasInnerEvent(uint32_t innerEventId)
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("event runner uninitialized!");
         return false;
     }
@@ -354,7 +363,7 @@ bool EventHandler::HasInnerEvent(uint32_t innerEventId)
 
 bool EventHandler::HasInnerEvent(int64_t param)
 {
-    if (!eventRunner_) {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
         HILOGE("event runner uninitialized!");
         return false;
     }
@@ -378,6 +387,9 @@ std::string EventHandler::GetEventName(const InnerEvent::Pointer &event)
 
 bool EventHandler::IsIdle()
 {
+    if (!eventRunner_ || !eventRunner_->GetEventQueue()) {
+        return false;
+    }
     return eventRunner_->GetEventQueue()->IsIdle();
 }
 

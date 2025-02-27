@@ -21,8 +21,8 @@ int32_t MEMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
 {
     RS_LOGI("MEMParamParse start");
     xmlNode *currNode = &node;
-    if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("MEMParamParse stop parsing, no children nodes");
+    if (currNode == nullptr || currNode->xmlChildrenNode == nullptr) {
+        RS_LOGD("MEMParamParse stop parsing, no nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 

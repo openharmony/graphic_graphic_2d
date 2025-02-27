@@ -651,7 +651,7 @@ int32_t RSRenderServiceConnectionProxy::AddVirtualScreenBlackList(ScreenId id, s
         return WRITE_PARCEL_ERR;
     }
     if (!data.WriteUInt64Vector(blackListVector)) {
-        ROSEN_LOGE("AddVirtualScreenBlackList: WriteUint64 id err.");
+        ROSEN_LOGE("AddVirtualScreenBlackList: WriteUInt64Vector id err.");
         return WRITE_PARCEL_ERR;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST);

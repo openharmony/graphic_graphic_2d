@@ -143,7 +143,8 @@ std::string VisibleDataToString(const VisibleData& val)
 } // namespace
 
 RSUniRenderVisitor::RSUniRenderVisitor()
-    : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    : rsUniHwcVisitor_(std::make_unique<RSUniHwcVisitor>(*this)),
+      curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     PartialRenderOptionInit();
     auto mainThread = RSMainThread::Instance();
@@ -355,15 +356,14 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
-    } else if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
-        (RSMainThread::Instance()->HasWiredMirrorDisplay() || RSMainThread::Instance()->HasVirtualMirrorDisplay())) {
-        // wired and virtual mirror screen close P3
+    }
+
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
+        (RSMainThread::Instance()->HasWiredMirrorDisplay() || RSMainThread::Instance()->HasVirtualMirrorDisplay() ||
+        (node.GetScreenId() != 0 && screenType != VIRTUAL_TYPE_SCREEN))) {
+        RS_LOGD("RSUniRenderVisitor::HandleColorGamuts close multi-screen P3.");
+        // wired screen and virtual mirror screen close P3
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-    } else if (node.GetScreenId() != 0) {
-        if (!IsScreenSupportedWideColorGamut(node.GetScreenId(), screenManager)) {
-            node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-            RS_LOGD("RSUniRenderVisitor::HandleColorGamuts physical extended screen not support wide color gamut.");
-        }
     }
 }
 
@@ -1608,11 +1608,11 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     hasFingerprint_.emplace(currentVisitDisplay_, false);
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
-    curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     if (!curDisplayDirtyManager_ || !curDisplayNode_) {
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curDisplayDirtyManager_->Clear();
     transparentCleanFilter_.clear();
     transparentDirtyFilter_.clear();

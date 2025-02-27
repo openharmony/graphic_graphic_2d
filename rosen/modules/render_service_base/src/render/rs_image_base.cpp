@@ -47,6 +47,7 @@ bool PixelMapCanBePurge(std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     return RSSystemProperties::GetRSImagePurgeEnabled() && pixelMap &&
         pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC &&
+        !RSPixelMapUtil::IsYUVFormat(pixelMap) &&
         !pixelMap->IsEditable() && !pixelMap->IsAstc() && !pixelMap->IsHdr();
 }
 #endif
@@ -55,9 +56,7 @@ RSImageBase::~RSImageBase()
 {
     if (pixelMap_) {
 #ifdef ROSEN_OHOS
-        if (canPurgeShareMemFlag_ == CanPurgeFlag::ENABLED) {
-            pixelMap_->DecreaseUseCount();
-        }
+        pixelMap_->DecreaseUseCount();
 #endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
@@ -120,7 +119,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
     Drawing::SrcRectConstraint constraint)
 {
 #ifdef ROSEN_OHOS
-    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -144,7 +143,7 @@ void RSImageBase::DrawImageNine(Drawing::Canvas& canvas, const Drawing::RectI& c
     Drawing::FilterMode filterMode)
 {
 #ifdef ROSEN_OHOS
-    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -166,7 +165,7 @@ void RSImageBase::DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Latti
     Drawing::FilterMode filterMode)
 {
 #ifdef ROSEN_OHOS
-    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -215,13 +214,11 @@ void RSImageBase::MarkYUVImage()
 void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
 #ifdef ROSEN_OHOS
-    if (canPurgeShareMemFlag_ == CanPurgeFlag::ENABLED) {
-        if (pixelMap_) {
-            pixelMap_->DecreaseUseCount();
-        }
-        if (pixelmap) {
-            pixelmap->IncreaseUseCount();
-        }
+    if (pixelMap_) {
+        pixelMap_->DecreaseUseCount();
+    }
+    if (pixelmap) {
+        pixelmap->IncreaseUseCount();
     }
 #endif
     pixelMap_ = pixelmap;
@@ -295,6 +292,13 @@ void RSImageBase::Purge()
         return;
     }
 
+    constexpr int USE_COUNT_FOR_PURGE = 2; // one in this RSImage, one in RSImageCache
+    auto imageUseCount = image_.use_count();
+    auto pixelMapCount = pixelMap_.use_count();
+    if (!(imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount == USE_COUNT_FOR_PURGE + 1) &&
+        !(imageUseCount == 0 && pixelMapCount == USE_COUNT_FOR_PURGE)) {
+        return;
+    }
     // skip purge if multi RsImage Holds this PixelMap
     if (!RSImageCache::Instance().CheckRefCntAndReleaseImageCache(uniqueId_, pixelMap_)) {
         return;
@@ -302,9 +306,8 @@ void RSImageBase::Purge()
     isDrawn_ = false;
     image_ = nullptr;
     bool unmapResult = pixelMap_->UnMap();
-    constexpr int PIXEL_MAP_REAL_USE_COUNT_FOR_PURGE = 2; // one in this RSImage, one in RSImageCache
-    if (unmapResult && pixelMap_.use_count() > PIXEL_MAP_REAL_USE_COUNT_FOR_PURGE) {
-        RS_LOGW("UNMAP_LOG Purge while use_count > 2");
+    if (unmapResult && pixelMap_.use_count() > USE_COUNT_FOR_PURGE) {
+        RS_LOGW("UNMAP_LOG Purge while use_count > USE_COUNT_FOR_PURGE");
     }
 #endif
 }
@@ -328,11 +331,20 @@ void RSImageBase::DePurge()
 void RSImageBase::MarkRenderServiceImage()
 {
     renderServiceImage_ = true;
+}
+
+void RSImageBase::MarkPurgeable()
+{
 #ifdef ROSEN_OHOS
-    if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED && PixelMapCanBePurge(pixelMap_)) {
+    if (renderServiceImage_ && canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED && PixelMapCanBePurge(pixelMap_)) {
         canPurgeShareMemFlag_ = CanPurgeFlag::ENABLED;
     }
 #endif
+}
+
+bool RSImageBase::IsPurgeable() const
+{
+    return canPurgeShareMemFlag_ == CanPurgeFlag::ENABLED;
 }
 
 #ifdef ROSEN_OHOS
@@ -557,11 +569,8 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
 }
 #endif
 
-std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap()
+std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
 {
-#ifdef ROSEN_OHOS
-    DePurge();
-#endif
     return pixelMap_;
 }
 
@@ -632,17 +641,17 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 #endif
 
 #ifdef ROSEN_OHOS
-RSImageBase::PixelMapUseCountGuard::PixelMapUseCountGuard(
-    RSImageBase::CanPurgeFlag flag, std::shared_ptr<Media::PixelMap> pixelMap) : flag_(flag), pixelMap_(pixelMap)
+RSImageBase::PixelMapUseCountGuard::PixelMapUseCountGuard(std::shared_ptr<Media::PixelMap> pixelMap, bool purgeable)
+    : pixelMap_(pixelMap), purgeable_(purgeable)
 {
-    if (flag_ == CanPurgeFlag::ENABLED) {
+    if (purgeable_) {
         pixelMap_->IncreaseUseCount();
     }
 }
 
 RSImageBase::PixelMapUseCountGuard::~PixelMapUseCountGuard()
 {
-    if (flag_ == CanPurgeFlag::ENABLED) {
+    if (purgeable_) {
         pixelMap_->DecreaseUseCount();
     }
 }

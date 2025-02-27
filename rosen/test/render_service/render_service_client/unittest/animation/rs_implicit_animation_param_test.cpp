@@ -113,7 +113,12 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     auto animation1 = std::make_shared<RSCurveAnimation>(property1, startProperty1, endProperty1);
     animation1->SetDuration(1000);
     animation1->SetTimingCurve(curve);
-    animation1->SetFinishCallback([&]() { node1->SetBoundsWidth(200); });
+    animation1->SetFinishCallback([weakNode1 = std::weak_ptr<RSCanvasNode>(node1)]() {
+        auto node1_lock = weakNode1.lock();
+        if (node1_lock) {
+            node1_lock->SetBoundsWidth(200);
+        }
+    });
     node1->AddAnimation(animation1);
     animation1->Start(node1);
 

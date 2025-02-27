@@ -461,6 +461,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     for (auto index = 0; index < backgroundIndex; ++index) {
         if (index == drawCmdIndex_.shadowIndex_) {
+            CollectInfoForNodeWithoutFilter(canvas);
             if (!params.GetShadowRect().IsEmpty()) {
                 auto shadowRect = params.GetShadowRect();
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),

@@ -609,7 +609,7 @@ void MemoryManager::InitMemoryLimit()
     }
     std::string rsWatchPointParamName = std::static_pointer_cast<MEMParam>(featureParam)->GetRSWatchPoint();
     if (rsWatchPointParamName.empty()) {
-        RS_LOGE("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
+        RS_LOGI("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
         return;
     }
 

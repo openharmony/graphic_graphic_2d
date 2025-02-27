@@ -24,7 +24,6 @@ class MEMParamParse : public XMLParserBase {
 public:
     MEMParamParse() = default;
     ~MEMParamParse() = default;
-
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
