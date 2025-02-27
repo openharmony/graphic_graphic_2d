@@ -129,10 +129,10 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         canvas.ConcatMatrix(matrix);
         if (!lastGlobalPositionEnabled_) {
             lastGlobalPositionEnabled_ = true;
-            RS_LOGI("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%{public}" PRIu64 "] "
-                "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
+            RS_LOGI("RSSurfaceRenderNodeDrawable::%{public}s Translate screenId=[%{public}" PRIu64 "] "
+                "offsetX=%{public}d offsetY=%{public}d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
         }
-    } esle {
+    } else {
         if (lastGlobalPositionEnabled_) {
             lastGlobalPositionEnabled_ = false;
         }
