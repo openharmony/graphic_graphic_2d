@@ -82,7 +82,7 @@ constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
-constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 12000;
+constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 25000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
@@ -903,7 +903,7 @@ void RSUniRenderThread::ReclaimMemory()
         return;
     }
 
-    // Reclaim memory when no render in 12s.
+    // Reclaim memory when no render in 25s.
     PostReclaimMemoryTask(ClearMemoryMoment::RECLAIM_CLEAN, true);
 }
 
