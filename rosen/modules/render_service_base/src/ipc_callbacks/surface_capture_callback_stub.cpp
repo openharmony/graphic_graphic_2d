@@ -35,8 +35,14 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            RSSurfaceCaptureConfig captureConfig;
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSSurfaceCaptureCallbackStub: ReadSurfaceCaptureConfig failed");
+                break;
+            }
             auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
-            OnSurfaceCapture(id, pixelmap);
+            OnSurfaceCapture(id, captureConfig, pixelmap);
             break;
         }
         default: {
@@ -46,6 +52,22 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
     }
 
     return ret;
+}
+
+bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    uint8_t captureType { 0 };
+    if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
+        !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
+        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.bottom_)) {
+        return false;
+    }
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
