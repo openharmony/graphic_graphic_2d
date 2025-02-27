@@ -28,10 +28,15 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED): {
-            ScreenId id = data.ReadUint64();
-            ScreenEvent event = static_cast<ScreenEvent>(data.ReadUint8());
-            ScreenChangeReason reason = static_cast<ScreenChangeReason>(data.ReadUint8());
-            OnScreenChanged(id, event, reason);
+            ScreenId id{0};
+            uint8_t event{0};
+            uint8_t reason{0};
+            if (!data.ReadUint64(id) || !data.ReadUint8(event) || !data.ReadUint8(reason)) {
+                RS_LOGE("RSScreenChangeCallbackStub::ON_SCREEN_CHANGED read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnScreenChanged(id, static_cast<ScreenEvent>(event), static_cast<ScreenChangeReason>(reason));
             break;
         }
         default: {

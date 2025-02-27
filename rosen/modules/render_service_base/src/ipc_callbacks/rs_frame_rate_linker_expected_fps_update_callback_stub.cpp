@@ -33,8 +33,14 @@ int RSFrameRateLinkerExpectedFpsUpdateCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(
             RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE): {
-            pid_t dstPid = data.ReadInt32();
-            int32_t expectedFps = data.ReadInt32();
+            int32_t dstPid{0};
+            int32_t expectedFps{0};
+            if (!data.ReadInt32(dstPid) || !data.ReadInt32(expectedFps)) {
+                RS_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackStub::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE read "
+                        "parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnFrameRateLinkerExpectedFpsUpdate(dstPid, expectedFps);
             break;
         }
