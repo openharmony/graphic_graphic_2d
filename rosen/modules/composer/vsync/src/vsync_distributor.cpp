@@ -1617,16 +1617,16 @@ void VSyncDistributor::PrintConnectionsStatus()
 {
     std::unique_lock<std::mutex> locker(mutex_);
     for (uint32_t i = 0; i < connections_.size(); i++) {
-        VLOGI("PrintConnectionsStatus, i:%{public}d, name:%{public}s, proxyPid:%{public}d"
+        VLOGW("[Info]PrintConnectionsStatus, i:%{public}d, name:%{public}s, proxyPid:%{public}d"
             ", highPriorityRate:%{public}d, rate:%{public}d, vsyncPulseFreq:%{public}u",
             i, connections_[i]->info_.name_.c_str(), connections_[i]->proxyPid_, connections_[i]->highPriorityRate_,
             connections_[i]->rate_, connections_[i]->vsyncPulseFreq_);
     }
-    VLOGI("PrintVSyncInfo, beforeWaitRnvTime %{public}" PRId64 " afterWaitRnvTime %{public}" PRId64
+    VLOGW("[Info]PrintVSyncInfo, beforeWaitRnvTime %{public}" PRId64 " afterWaitRnvTime %{public}" PRId64
         " lastNotifyTime %{public}" PRId64 " beforePostEvent %{public}" PRId64 " startPostEvent %{public}" PRId64,
         beforeWaitRnvTime_, afterWaitRnvTime_, lastNotifyTime_, beforePostEvent_.load(), startPostEvent_.load());
 #if defined(RS_ENABLE_DVSYNC)
-    VLOGI("DVSync featureEnable %{public}d on %{public}d needDVSyncRnv %{public}d, needDVSyncTrigger %{public}d",
+    VLOGW("[Info]DVSync featureEnable %{public}d on %{public}d needDVSyncRnv %{public}d, needDVSyncTrigger %{public}d",
         dvsync_->IsFeatureEnabled(), IsDVsyncOn(), dvsync_->NeedDVSyncRNV(), dvsync_->NeedDVSyncTrigger());
 #endif
 }
