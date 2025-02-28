@@ -41,8 +41,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
         ~SurfaceBufferEntry() noexcept
         {
-            if (buffer != nullptr && bufferDeleteCb_ != nullptr) {
-                bufferDeleteCb_(buffer->GetSeqNum());
+            if (bufferDeleteCb_ != nullptr) {
+                bufferDeleteCb_(seqNum);
             }
         }
 
@@ -75,6 +75,7 @@ public:
         sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
         Rect damageRect = {0, 0, 0, 0};
         OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
+        uint32_t seqNum = 0;
 #endif
         int64_t timestamp = 0;
     };
@@ -123,6 +124,9 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         preBuffer_.Reset();
         preBuffer_ = buffer_;
+        if (buffer_.buffer != nullptr) {
+            buffer_.seqNum = buffer->GetSeqNum();
+        }
         buffer_.buffer = buffer;
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;
