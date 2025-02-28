@@ -155,8 +155,13 @@ void RSScreen::PhysicalScreenInit() noexcept
                    [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC || id_ == 0) {
+        RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
+            __func__, id_);
         if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
             RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
+                __func__, id_);
+        } else {
+            RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") end SetScreenPowerStatus to On",
                 __func__, id_);
         }
     }

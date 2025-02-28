@@ -69,15 +69,7 @@ public:
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
-    void SetScreenId(uint64_t screenId)
-    {
-        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
-            releaseScreenDmaBufferTask_(screenId_);
-        }
-        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
-            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
-        screenId_ = screenId;
-    }
+    void SetScreenId(uint64_t screenId);
 
     uint64_t GetScreenId() const
     {
