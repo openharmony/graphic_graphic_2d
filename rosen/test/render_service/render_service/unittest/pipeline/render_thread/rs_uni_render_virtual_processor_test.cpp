@@ -74,6 +74,7 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     ASSERT_NE(displayDrawable_, nullptr);
     displayDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown() {}
 
