@@ -2177,6 +2177,18 @@ void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool i
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::NotifyScreenSwitched()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        RS_LOGE("RSRenderServiceConnection::NotifyScreenSwitched screenManager_ is nullptr");
+        return;
+    }
+    RS_LOGI("RSRenderServiceConnection::NotifyScreenSwitched SetScreenSwitchStatus true");
+    RS_TRACE_NAME_FMT("NotifyScreenSwitched");
+    screenManager_->SetScreenSwitchStatus(true);
+}
+
 void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 {
     if (!mainThread_) {

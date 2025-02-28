@@ -627,6 +627,10 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+}
+
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }

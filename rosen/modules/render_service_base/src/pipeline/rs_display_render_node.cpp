@@ -505,6 +505,20 @@ void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> c
     }
 }
 
+void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
+{
+    screenStatusNotifyTask_ = task;
+}
+
+void RSDisplayRenderNode::NotifyScreenNotSwitching()
+{
+    if (screenStatusNotifyTask_) {
+        screenStatusNotifyTask_(false);
+        ROSEN_LOGI("RSDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus true");
+        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
+    }
+}
+
 std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
 {
     return windowContainer_;

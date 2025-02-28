@@ -370,6 +370,12 @@ public:
 
     bool IsZoomStateChange() const;
 
+    using ScreenStatusNotifyTask = std::function<void(bool)>;
+
+    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
+
+    void NotifyScreenNotSwitching();
+
     // Window Container
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
@@ -440,6 +446,7 @@ private:
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
     friend class DisplayNodeCommandHelper;
+    static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
     int64_t lastRefreshTime_ = 0;
 
     bool curZoomState_ = false;

@@ -312,6 +312,8 @@ private:
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+    void NotifyScreenSwitched() override;
+
     void SetWindowContainer(NodeId nodeId, bool value) override;
 
     pid_t remotePid_;

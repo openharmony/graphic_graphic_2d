@@ -2188,6 +2188,16 @@ int RSScreenManager::GetDisableRenderControlScreensCount() const
     std::lock_guard<std::mutex> lock(mutex_);
     return disableRenderControlScreens_.size();
 }
+
+void RSScreenManager::SetScreenSwitchStatus(bool flag)
+{
+    isScreenSwitching_ = flag;
+}
+
+bool RSScreenManager::IsScreenSwitching() const
+{
+    return isScreenSwitching_;
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

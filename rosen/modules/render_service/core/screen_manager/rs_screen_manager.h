@@ -238,6 +238,10 @@ public:
     virtual void ClearFrameBufferIfNeed() = 0;
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
+
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
+
+    virtual bool IsScreenSwitching() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -457,6 +461,10 @@ public:
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
 
+    void SetScreenSwitchStatus(bool flag) override;
+
+    bool IsScreenSwitching() const override;
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -544,6 +552,7 @@ private:
     uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
+    std::atomic<bool> isScreenSwitching_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;
