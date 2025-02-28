@@ -586,7 +586,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
     const auto& activeSurfaceRect = GetSyncDirtyManager()->GetActiveSurfaceRect();
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "][%" PRIu64
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64
         "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
         dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
