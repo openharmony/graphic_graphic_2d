@@ -195,7 +195,9 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
 }
 void RSUnmarshalThread::SetFrameParam(int requestId, int load, int frameNum, int value)
 {
-    RsFrameReport::GetInstance().SetFrameParam(requestId, load, frameNum, value);
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().SetFrameParam(requestId, load, frameNum, value);
+    }
 }
 void RSUnmarshalThread::SetFrameLoad(int load)
 {
