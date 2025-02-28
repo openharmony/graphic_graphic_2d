@@ -179,6 +179,16 @@ public:
 
     bool IsMirrorDisplay() const;
 
+    inline bool HasMirroredDisplayChanged() const noexcept
+    {
+        return hasMirroredDisplayChanged_;
+    }
+
+    inline void ResetMirroredDisplayChangedFlag() noexcept
+    {
+        hasMirroredDisplayChanged_ = false;
+    }
+
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
     void SetForceSoftComposite(bool flag);
@@ -555,6 +565,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
+    bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
