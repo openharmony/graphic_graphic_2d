@@ -3673,7 +3673,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             return;
         }
         rootNode->DumpTree(0, dumpString);
-        
+
         if (needUpdateJankStats) {
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
@@ -3992,6 +3992,9 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
         "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
     dumpString.append(log.GetString());
+
+    RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
+    RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
 #else
     dumpString.append("No GPU in this device");
 #endif

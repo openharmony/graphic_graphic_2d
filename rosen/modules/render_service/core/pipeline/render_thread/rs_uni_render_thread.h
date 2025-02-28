@@ -233,6 +233,7 @@ public:
         return enableVisiableRect_.load();
     }
 
+    void DumpVkImageInfo(std::string &dumpString);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

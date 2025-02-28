@@ -1165,5 +1165,15 @@ void RSUniRenderThread::SetVmaCacheStatus(bool flag)
     std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
     vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
+
+void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
+}
 } // namespace Rosen
 } // namespace OHOS
