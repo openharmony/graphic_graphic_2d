@@ -150,6 +150,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
                 RSMainThread::Instance()->RequestNextVSync("UI", time);
             }
         }
+        RSMainThread::Instance()->NotifyUnmarshalTask(time);
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {

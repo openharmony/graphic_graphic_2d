@@ -1539,6 +1539,23 @@ HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level
 }
 
 /**
+ * @tc.name: NotifyUnmarshalTask001
+ * @tc.desc: NotifyUnmarshalTask test, divided render, the func call will return immediately.
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, NotifyUnmarshalTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    int64_t ts = 10000000;
+    mainThread->NotifyUnmarshalTask(ts);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
  * @tc.name: MergeToEffectiveTransactionDataMap
  * @tc.desc: MergeToEffectiveTransactionDataMap test
  * @tc.type: FUNC

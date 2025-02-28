@@ -217,6 +217,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr size_t MEMUNIT_RATE = 1024;
 constexpr size_t MAX_GPU_CONTEXT_CACHE_SIZE = 1024 * MEMUNIT_RATE * MEMUNIT_RATE;   // 1G
 constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 1000;
+const std::string DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME = "DVSyncNotifyUnmarshalTask";
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -552,6 +553,7 @@ void RSMainThread::Init()
             {
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
+                waitForDVSyncFrame_.store(false);
             }
             unmarshalTaskCond_.notify_all();
         };
@@ -699,6 +701,22 @@ void RSMainThread::Init()
 #endif
 }
 
+void RSMainThread::NotifyUnmarshalTask(int64_t uiTimestamp)
+{
+    if (isUniRender_ && rsVSyncDistributor_->IsUiDvsyncOn() && static_cast<uint64_t>(uiTimestamp) +
+        static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) >= dvsyncRsTimestamp_.load()
+        && waitForDVSyncFrame_.load()) {
+        auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
+        MergeToEffectiveTransactionDataMap(cachedTransactionData);
+        {
+            std::lock_guard<std::mutex> lock(unmarshalMutex_);
+            ++unmarshalFinishedCount_;
+            waitForDVSyncFrame_.store(false);
+            RSUnmarshalThread::Instance().RemoveTask(DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
+        }
+        unmarshalTaskCond_.notify_all();
+    }
+}
 
 void RSMainThread::UpdateGpuContextCacheSize()
 {
@@ -1988,6 +2006,11 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
         MergeToEffectiveTransactionDataMap(cachedTransactionData);
     } else {
         std::unique_lock<std::mutex> lock(unmarshalMutex_);
+        if (unmarshalFinishedCount_ > 0) {
+            waitForDVSyncFrame_.store(false);
+        } else {
+            waitForDVSyncFrame_.store(true);
+        }
         if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
             [this]() { return unmarshalFinishedCount_ > 0; })) {
             if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
@@ -3112,6 +3135,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
+    dvsyncRsTimestamp_.store(timestamp_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -3128,7 +3152,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
             needWaitUnmarshalFinished_ = false;
         } else {
             if (!RSSystemProperties::GetUnmarshParallelFlag()) {
-                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_, DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
             }
         }
 #endif
@@ -4121,6 +4145,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
             timestamp_ = timestamp_ + (now - curTime_);
+            dvsyncRsTimestamp_.store(timestamp_);
             int64_t vsyncPeriod = 0;
             VsyncError ret = VSYNC_ERROR_UNKOWN;
             if (receiver_) {

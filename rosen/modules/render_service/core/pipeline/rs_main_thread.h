@@ -447,6 +447,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+    void NotifyUnmarshalTask(int64_t uiTimestamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -832,6 +833,8 @@ private:
     uint64_t lastFastComposeTimeStampDiff_ = 0;
     // last frame game self-drawing node is on tree or not
     bool isLastGameNodeOnTree_ = false;
+    std::atomic<bool> waitForDVSyncFrame_ = false;
+    std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

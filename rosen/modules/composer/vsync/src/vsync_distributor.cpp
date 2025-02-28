@@ -1315,7 +1315,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
             conns.push_back(connections_[i]);
         }
 
-        if (!waitForVsync) {
+        if (!waitForVsync && !IsUiDvsyncOn()) {
             DisableDVSyncController();
             return;
         }
