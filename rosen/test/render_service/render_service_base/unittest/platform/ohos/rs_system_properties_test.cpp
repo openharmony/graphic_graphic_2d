@@ -999,7 +999,6 @@ HWTEST_F(RSSystemPropertiesTest, GetSingleFrameComposerCanvasNodeEnabled, TestSi
  */
 HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetSubSurfaceEnabled());
     EXPECT_FALSE(RSSystemProperties::GetSecurityPermissionCheckEnabled());
     EXPECT_TRUE(RSSystemProperties::GetEffectMergeEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUICaptureEnabled());

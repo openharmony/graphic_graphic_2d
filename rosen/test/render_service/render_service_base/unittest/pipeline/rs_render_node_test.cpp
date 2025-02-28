@@ -2075,45 +2075,6 @@ HWTEST_F(RSRenderNodeTest, ClearChildrenTest011, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawSurfaceNodesTest012
- * @tc.desc: IsFirstLevelNode SubSurfaceNodeNeedDraw test
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-    nodeTest->firstLevelNodeId_ = 0;
-    EXPECT_TRUE(nodeTest->IsFirstLevelNode());
-
-    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest1;
-    std::shared_ptr<RSSurfaceRenderNode> surfaceTest1 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(surfaceTest1, nullptr);
-    surfaceTest1->SetOldDirtyInSurface(RectI { 0, 0, 1, 1 });
-    surfaceTest1->visibleRegion_.rects_.emplace_back(RectI { 0, 0, 2, 2 });
-    subSurfaceNodesTest1.emplace_back(surfaceTest1);
-    nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest1);
-    nodeTest->subSurfaceNodes_.clear();
-
-    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest2;
-    std::shared_ptr<RSSurfaceRenderNode> surfaceTest2 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(surfaceTest2, nullptr);
-    surfaceTest2->SetOldDirtyInSurface(RectI { 0, 0, 1, 1 });
-    surfaceTest2->visibleRegion_.rects_.clear();
-    std::vector<std::weak_ptr<RSRenderNode>> subSurfaceNodesTest3;
-    std::shared_ptr<RSSurfaceRenderNode> surfaceTest3 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(surfaceTest3, nullptr);
-    surfaceTest3->SetOldDirtyInSurface(RectI { 0, 0, 1, 1 });
-    surfaceTest3->visibleRegion_.rects_.emplace_back(RectI { 0, 0, 2, 2 });
-    subSurfaceNodesTest3.emplace_back(surfaceTest3);
-    surfaceTest2->subSurfaceNodes_.emplace(0, subSurfaceNodesTest3);
-    subSurfaceNodesTest2.emplace_back(surfaceTest2);
-    nodeTest->subSurfaceNodes_.emplace(0, subSurfaceNodesTest2);
-    nodeTest->subSurfaceNodes_.clear();
-}
-
-/**
  * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest013
  * @tc.desc: CheckDrawingCacheType and UpdateDrawingCacheInfoBeforeChildren test
  * @tc.type: FUNC

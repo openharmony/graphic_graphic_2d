@@ -460,11 +460,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
     return true;
