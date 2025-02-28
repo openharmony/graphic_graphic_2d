@@ -590,8 +590,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
         dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
-        activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_,
-        activeSurfaceRect.height_);
+        activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_);
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     ScreenId activeScreenId = HgmCore::Instance().GetActiveScreenId();
