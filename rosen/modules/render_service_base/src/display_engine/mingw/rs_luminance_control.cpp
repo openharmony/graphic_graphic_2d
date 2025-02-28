@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "luminance/rs_luminance_control.h"
+#include "display_engine/rs_luminance_control.h"
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;

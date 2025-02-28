@@ -17,8 +17,8 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
-#include "luminance/rs_luminance_control.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"

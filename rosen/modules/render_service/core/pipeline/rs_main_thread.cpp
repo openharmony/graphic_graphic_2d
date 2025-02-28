@@ -45,13 +45,14 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
-#include "color_temp/rs_color_temp.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_color_temperature.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -61,7 +62,6 @@
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
-#include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -364,6 +364,14 @@ HdrStatus RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode
         return HdrStatus::NO_HDR;
     }
     return RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
+}
+
+bool RSMainThread::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    return RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
 RSMainThread* RSMainThread::Instance()
@@ -692,7 +700,7 @@ void RSMainThread::Init()
     PrintCurrentStatus();
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
-    RSColorTemp::Get().Init();
+    RSColorTemperature::Get().Init();
 #ifdef RS_ENABLE_GPU
     MemoryManager::InitMemoryLimit();
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
@@ -1618,6 +1626,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             needRequestNextVsync = true;
         }
         surfaceNode->SetVideoHdrStatus(CheckIsHdrSurface(*surfaceNode));
+        if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
+            surfaceNode->SetSdrHasMetadata(CheckIsSurfaceWithMetadata(*surfaceNode));
+        }
     });
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (needRequestNextVsync) {
@@ -4803,7 +4814,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
     bool isNeedRefreshAll{false};
     if (auto screenManager = CreateOrGetScreenManager()) {
         auto& rsLuminance = RSLuminanceControl::Get();
-        auto& rsColorTemp = RSColorTemp::Get();
+        auto& rsColorTemperature = RSColorTemperature::Get();
         for (const auto& child : *rootNode->GetSortedChildren()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
             if (displayNode == nullptr) {
@@ -4820,10 +4831,10 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
                 isNeedRefreshAll = true;
                 SetLuminanceChangingStatus(screenId, true);
             }
-            if (rsColorTemp.IsDimmingOn(screenId)) {
-                std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
+            if (rsColorTemperature.IsDimmingOn(screenId)) {
+                std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
                 screenManager->SetScreenLinearMatrix(screenId, matrix);
-                rsColorTemp.DimmingIncrease(screenId);
+                rsColorTemperature.DimmingIncrease(screenId);
                 isNeedRefreshAll = true;
             }
         }

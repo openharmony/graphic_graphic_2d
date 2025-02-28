@@ -99,6 +99,7 @@ struct BufferDrawParam {
     std::vector<float> layerLinearMatrix;
     bool isHdrRedraw = false;
     bool isHdrToSdr = false;
+    bool hasMetadata = false; // SDR has metadata
 #endif
     bool preRotation = false;
 };

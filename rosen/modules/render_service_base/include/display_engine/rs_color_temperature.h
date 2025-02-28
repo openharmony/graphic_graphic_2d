@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_RS_COLOR_TEMP_H
-#define ROSEN_RENDER_SERVICE_BASE_RS_COLOR_TEMP_H
+#ifndef RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_COLOR_TEMPERATURE_H
+#define RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_COLOR_TEMPERATURE_H
 
 #include <cinttypes>
 #include <functional>
@@ -36,40 +36,41 @@ using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 class RSCctInterface {
 public:
     virtual ~RSCctInterface() = default;
-    virtual void RegisterRefresh(std::function<void()>) = 0;
+    virtual bool Init() = 0;
+    virtual void RegisterRefresh(std::function<void()>&&) = 0;
     virtual void UpdateScreenStatus(ScreenId, ScreenPowerStatus) = 0;
     virtual bool IsDimmingOn(ScreenId) = 0;
     virtual void DimmingIncrease(ScreenId) = 0;
     virtual std::vector<float> GetNewLinearCct(ScreenId) = 0;
 #ifndef ROSEN_CROSS_PLATFORM
     virtual std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>&,
-        const CM_Matrix targetMatrix) = 0;
+        const CM_Matrix srcColorMatrix) = 0;
 #endif
 };
 
-class RSB_EXPORT RSColorTemp {
+class RSB_EXPORT RSColorTemperature {
 public:
-    RSColorTemp(const RSColorTemp&) = delete;
-    RSColorTemp& operator=(const RSColorTemp&) = delete;
-    RSColorTemp(RSColorTemp&) = delete;
-    RSColorTemp& operator=(RSColorTemp&&) = delete;
+    RSColorTemperature(const RSColorTemperature&) = delete;
+    RSColorTemperature& operator=(const RSColorTemperature&) = delete;
+    RSColorTemperature(RSColorTemperature&) = delete;
+    RSColorTemperature& operator=(RSColorTemperature&&) = delete;
 
-    RSB_EXPORT static RSColorTemp& Get();
+    RSB_EXPORT static RSColorTemperature& Get();
     RSB_EXPORT void Init();
 
-    RSB_EXPORT void RegisterRefresh(std::function<void()> refreshFunc);
+    RSB_EXPORT void RegisterRefresh(std::function<void()>&& refreshFunc);
     RSB_EXPORT void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);
     RSB_EXPORT std::vector<float> GetNewLinearCct(ScreenId screenId);
 #ifndef ROSEN_CROSS_PLATFORM
     RSB_EXPORT std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>& metadata,
-        const CM_Matrix targetMatrix = CM_Matrix::MATRIX_P3);
+        const CM_Matrix srcColorMatrix = CM_Matrix::MATRIX_P3);
 #endif
 
 private:
-    RSColorTemp() = default;
-    ~RSColorTemp();
+    RSColorTemperature() = default;
+    ~RSColorTemperature();
 
 #ifdef ROSEN_OHOS
     bool LoadLibrary();
@@ -90,4 +91,4 @@ private:
 } // Rosen
 } // OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_RS_COLOR_TEMP_H
+#endif // RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_COLOR_TEMPERATURE_H

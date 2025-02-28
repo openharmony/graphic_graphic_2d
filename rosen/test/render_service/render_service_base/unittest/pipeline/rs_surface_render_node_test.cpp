@@ -22,6 +22,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
 #include "pipeline/rs_context.h"
@@ -30,7 +31,6 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
-#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1450,6 +1450,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::NO_HDR);
     testNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO);
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::AI_HDR_VIDEO);
+}
+
+/**
+ * @tc.name: MetadataTest
+ * @tc.desc: test results of SetHasMetadata, GetSdrHadMetadata
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MetadataTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetSdrHasMetadata(true);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), true);
+    testNode->SetSdrHasMetadata(false);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), false);
 }
 
 /**

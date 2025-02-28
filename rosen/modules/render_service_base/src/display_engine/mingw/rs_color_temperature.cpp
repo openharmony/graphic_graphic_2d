@@ -13,29 +13,29 @@
  * limitations under the License.
  */
 
-#include "color_temp/rs_color_temp.h"
+#include "display_engine/rs_color_temperature.h"
 
 namespace OHOS {
 namespace Rosen {
-RSColorTemp& RSColorTemp::Get()
+RSColorTemperature& RSColorTemperature::Get()
 {
-    static RSColorTemp instance;
+    static RSColorTemperature instance;
     return instance;
 }
 
-RSColorTemp::~RSColorTemp() {}
+RSColorTemperature::~RSColorTemperature() {}
 
-void RSColorTemp::Init() {}
+void RSColorTemperature::Init() {}
 
-void RSColorTemp::RegisterRefresh(std::function<void()> refresh) {}
+void RSColorTemperature::RegisterRefresh(std::function<void()>&& refresh) {}
 
-void RSColorTemp::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status) {}
+void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status) {}
 
-bool RSColorTemp::IsDimmingOn(ScreenId screenId) { return false; }
+bool RSColorTemperature::IsDimmingOn(ScreenId screenId) { return false; }
 
-void RSColorTemp::DimmingIncrease(ScreenId screenId) {}
+void RSColorTemperature::DimmingIncrease(ScreenId screenId) {}
 
-std::vector<float> RSColorTemp::GetNewLinearCct(ScreenId screenId) { return {}; }
+std::vector<float> RSColorTemperature::GetNewLinearCct(ScreenId screenId) { return {}; }
 
 } // namespace Rosen
 } // namespace OHOS
