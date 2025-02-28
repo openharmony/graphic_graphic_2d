@@ -1091,6 +1091,8 @@ private:
     void UpdateDrawableVec();
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     void UpdateDrawableVecV2();
+    void ClearDrawableVec2();
+
     void UpdateDisplayList();
     void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
@@ -1105,6 +1107,7 @@ private:
     // Test pipeline
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool drawableVecNeedClear_ = false;
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;

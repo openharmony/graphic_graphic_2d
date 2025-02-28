@@ -3489,6 +3489,7 @@ void RSRenderNode::OnTreeStateChanged()
             pairedNode->SetDirty(true);
         }
     }
+    drawableVecNeedClear_ = !isOnTheTree_;
     if (!isOnTheTree_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] off the tree", GetId());
         MarkForceClearFilterCacheWithInvisible();
@@ -4246,6 +4247,10 @@ void RSRenderNode::OnSync()
         drawCmdListNeedSync_ = false;
     }
 
+    if (drawableVecNeedClear_) {
+        ClearDrawableVec2();
+    }
+
     renderDrawable_->backgroundFilterDrawable_ = GetFilterDrawable(false);
     renderDrawable_->compositingFilterDrawable_ = GetFilterDrawable(true);
 
@@ -4573,5 +4578,34 @@ void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
         rootNode->RemoveChildBlurBehindWindow(GetId());
     }
 }
+
+void RSRenderNode::ClearDrawableVec2()
+{
+    if (drawableVecNeedClear_) {
+        if (GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE &&
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]) {
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)].reset();
+            dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+        }
+        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::TRANSITION)]) {
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::TRANSITION)].reset();
+            dirtyTypes_.set(static_cast<int>(RSModifierType::TRANSITION), true);
+        }
+        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)]) {
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)].reset();
+            dirtyTypes_.set(static_cast<int>(RSModifierType::BACKGROUND_STYLE), true);
+        }
+        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)]) {
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)].reset();
+            dirtyTypes_.set(static_cast<int>(RSModifierType::FOREGROUND_STYLE), true);
+        }
+        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::OVERLAY)]) {
+            drawableVec_[static_cast<int8_t>(RSDrawableSlot::OVERLAY)].reset();
+            dirtyTypes_.set(static_cast<int>(RSModifierType::OVERLAY_STYLE), true);
+        }
+        drawableVecNeedClear_ = false;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
