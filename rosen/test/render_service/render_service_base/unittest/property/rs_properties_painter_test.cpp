@@ -28,6 +28,7 @@
 #include "skia_image.h"
 #include "skia_image_info.h"
 #include "skia_runtime_effect.h"
+#include "render/rs_colorful_shadow_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -521,6 +522,30 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Leve
     properties.foregroundFilterCache_->type_ = RSFilter::FOREGROUND_EFFECT;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilterCache());
+}
+
+/**
+ * @tc.name: GetForegroundEffectDirtyRect002
+ * @tc.desc: test results of GetForegroundEffectDirtyRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Level1)
+{
+    RectI dirtyForegroundEffect;
+    RSProperties properties;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
+
+    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+    properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    RSShadow shadow;
+    RRect rrect({ 0.0f, 0.0f, 10.0f, 10.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+    shadow.SetMask(true);
+    shadow.SetRadius(1.0f);
+    properties.shadow_ = shadow;
+    properties.rrect_ = rrect;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
 }
 
 /**

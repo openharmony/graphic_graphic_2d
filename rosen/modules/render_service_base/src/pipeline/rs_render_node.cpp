@@ -2479,8 +2479,17 @@ void RSRenderNode::ApplyModifiers()
         auto paramCopy = sharedTransitionParam_;
         paramCopy->InternalUnregisterSelf();
     }
-    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::FOREGROUND_EFFECT_RADIUS))) {
-        GetMutableRenderProperties().SetForegroundEffectDirty(true);
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::FOREGROUND_EFFECT_RADIUS)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BOUNDS))) {
+        std::shared_ptr<RSFilter> foregroundFilter = nullptr;
+        if (RSProperties::IS_UNI_RENDER) {
+            foregroundFilter = GetRenderProperties().GetForegroundFilterCache();
+        } else {
+            foregroundFilter = GetRenderProperties().GetForegroundFilter();
+        }
+        if (foregroundFilter) {
+            GetMutableRenderProperties().SetForegroundEffectDirty(true);
+        }
     }
 
     // Temporary code, copy matrix into render params
