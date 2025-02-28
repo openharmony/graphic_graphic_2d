@@ -1364,7 +1364,6 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_EQ(surfaceNode->GetBundleName(), std::string(""));
     surfaceNode->ResetContextAlpha();
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 }

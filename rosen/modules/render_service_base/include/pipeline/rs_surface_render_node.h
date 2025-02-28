@@ -392,11 +392,6 @@ public:
         return name_;
     }
 
-    const std::string& GetBundleName() const
-    {
-        return bundleName_;
-    }
-
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -1398,7 +1393,6 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
-    std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;

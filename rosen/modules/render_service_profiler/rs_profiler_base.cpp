@@ -477,11 +477,6 @@ void RSProfiler::MarshalNode(const RSRenderNode* node, std::stringstream& data)
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(name.c_str()), size);
 
-        const std::string bundleName = surfaceNode->GetBundleName();
-        size = bundleName.size();
-        data.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        data.write(reinterpret_cast<const char*>(bundleName.c_str()), size);
-
         const RSSurfaceNodeType type = surfaceNode->GetSurfaceNodeType();
         data.write(reinterpret_cast<const char*>(&type), sizeof(type));
 
