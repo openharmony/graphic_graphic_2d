@@ -804,7 +804,7 @@ void RSEffectDataGenerateDrawable::Draw(const RSRenderContent& content, RSPaintF
 {
     const auto& properties = content.GetRenderProperties();
     if (properties.GetHaveEffectRegion() && properties.GetBackgroundFilter() &&
-        RSSystemProperties::GetEffectMergeEnabled()) {
+        (RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
         RSPropertiesPainter::DrawBackgroundEffect(content.GetRenderProperties(), canvas);
     }
 }

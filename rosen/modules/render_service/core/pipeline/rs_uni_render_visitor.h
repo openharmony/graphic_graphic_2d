@@ -29,6 +29,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
@@ -41,6 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
+class RSUniHwcVisitor;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -340,6 +342,8 @@ private:
 
     void TryNotifyUIBufferAvailable();
 
+    friend class RSUniHwcVisitor;
+    std::unique_ptr<RSUniHwcVisitor> rsUniHwcVisitor_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;

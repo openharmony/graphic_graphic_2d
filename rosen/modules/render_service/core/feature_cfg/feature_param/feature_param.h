@@ -27,8 +27,12 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",
+    "FilterConfig",
     "HfbcConfig",
+    "MemConfig",
+    "SpecialLayerConfig",
     "OPIncConfig",
+    "PrevalidateConfig",
     "UIFirstConfig"
 };
 
@@ -37,8 +41,12 @@ enum FeatureModule {
     DRM,
     HWC,
     HFBC,
+    MEM,
+    SPECIALLAYER,
     OPInc,
+    PREVALIDATE,
     UIFirst,
+    FILTER,
 };
 
 enum ParseErrCode {
@@ -48,7 +56,8 @@ enum ParseErrCode {
 
     PARSE_NO_PARAM = 100,
 
-    PARSE_FILE_LOAD_FAIL = 200,
+    PARSE_SYS_FILE_LOAD_FAIL = 200,
+    PARSE_PROD_FILE_LOAD_FAIL,
     PARSE_GET_ROOT_FAIL,
     PARSE_GET_CHILD_FAIL,
     PARSE_INTERNAL_FAIL,

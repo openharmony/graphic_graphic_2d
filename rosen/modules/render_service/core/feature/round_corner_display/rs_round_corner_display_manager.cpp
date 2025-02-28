@@ -287,7 +287,16 @@ rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id
 
 bool RoundCornerDisplayManager::GetRcdEnable() const
 {
-    return RSSystemProperties::GetRSScreenRoundCornerEnable();
+    auto &rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
+    // assume support rcd before rcd cfg loaded
+    bool rcdSupport = !rcdCfg.IsDataLoaded();
+    if (!rcdSupport) {
+        auto lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+        if (lcdModel != nullptr) {
+            rcdSupport = lcdModel->surfaceConfig.topSurface.support || lcdModel->surfaceConfig.bottomSurface.support;
+        }
+    }
+    return RSSystemProperties::GetRSScreenRoundCornerEnable() && rcdSupport;
 }
 
 bool RoundCornerDisplayManager::IsNotchNeedUpdate(NodeId id, bool notchStatus)

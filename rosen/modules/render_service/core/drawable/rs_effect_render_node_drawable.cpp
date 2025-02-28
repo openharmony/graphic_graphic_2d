@@ -86,7 +86,8 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
     if (drawCmdIndex_.childrenIndex_ == -1) {
         // case 0: No children, skip
         return false;
-    } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
+    } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
+        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
         !effectParams->GetHasEffectChildren()) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {

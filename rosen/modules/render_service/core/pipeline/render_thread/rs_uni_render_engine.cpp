@@ -14,8 +14,8 @@
  */
 
 #include "common/rs_singleton.h"
+#include "display_engine/rs_luminance_control.h"
 #include "info_collection/rs_layer_compose_collection.h"
-#include "luminance/rs_luminance_control.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
 #ifdef RS_ENABLE_GPU
@@ -110,10 +110,14 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.sdrNits = layer->GetSdrNit();
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
+            // color temperature
             params.layerLinearMatrix = layer->GetLayerLinearMatrix();
         }
         if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
             params.brightnessRatio = layer->GetBrightnessRatio();
+            if (CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
+                params.hasMetadata = true;
+            }
         } else {
             params.isHdrRedraw = true;
         }

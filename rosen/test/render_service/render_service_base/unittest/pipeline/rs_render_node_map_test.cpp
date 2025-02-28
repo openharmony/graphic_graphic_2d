@@ -216,24 +216,6 @@ HWTEST_F(RSRenderNodeMapTest, GetRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAndClearPurgeableNodeIds
- * @tc.desc: test results of GetAndClearPurgeableNodeIds
- * @tc.type:FUNC
- * @tc.require: issueI9H4AD
- */
-HWTEST_F(RSRenderNodeMapTest, GetAndClearPurgeableNodeIds, TestSize.Level1)
-{
-    NodeId id = 0;
-    NodeId idOther = 1;
-    auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
-    RSRenderNodeMap rsRenderNodeMap;
-    rsRenderNodeMap.AddOffTreeNode(id);
-    rsRenderNodeMap.RemoveOffTreeNode(idOther);
-    std::unordered_map<NodeId, bool> nodeInfo = rsRenderNodeMap.GetAndClearPurgeableNodeIds();
-    EXPECT_NE(nodeInfo.size(), 0);
-}
-
-/**
  * @tc.name: GetAnimationFallbackNode
  * @tc.desc: test results of GetAnimationFallbackNode
  * @tc.type:FUNC

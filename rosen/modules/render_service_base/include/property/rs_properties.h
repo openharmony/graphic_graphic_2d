@@ -571,6 +571,8 @@ public:
 
     void OnApplyModifiers();
 
+    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
+
 private:
     inline float DecreasePrecision(float value)
     {
@@ -738,7 +740,7 @@ private:
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static const bool FilterCacheEnabled;
+    static bool FilterCacheEnabled;
 #endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;

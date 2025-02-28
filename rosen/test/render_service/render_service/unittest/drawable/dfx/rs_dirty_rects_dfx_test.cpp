@@ -210,42 +210,291 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRegionForDFX, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawAllSurfaceOpaqueRegionForDFX
- * @tc.desc: Test If DrawAllSurfaceOpaqueRegionForDFX Can Run
+ * @tc.name: DrawAndTraceSingleDirtyRegionTypeForDFX001
+ * @tc.desc: Test when surfaceParams is nullptr then DrawAndTraceSingleDirtyRegionTypeForDFX returns
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IBPBDT
  */
-HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX, TestSize.Level1)
+HWTEST_F(RSDirtyRectsDFXTest, DrawAndTraceSingleDirtyRegionTypeForDFX001, TestSize.Level1)
 {
+    DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    bool isDrawn = true;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    RSSurfaceRenderNodeDrawable* surfaceNodeDrawable = nullptr;
+    surfaceNodeDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceNodeDrawable, nullptr);
+    ASSERT_NE(canvas_, nullptr);
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
-    auto& targetDrawable = rsDirtyRectsDfx_->targetDrawable_;
-    ASSERT_NE(targetDrawable.GetRenderParams(), nullptr);
+    rsDirtyRectsDfx_->DrawAndTraceSingleDirtyRegionTypeForDFX(*canvas_, *surfaceNodeDrawable, dirtyType, isDrawn);
 }
 
 /**
- * @tc.name: DrawTargetSurfaceDirtyRegionForDFX
- * @tc.desc: Test If DrawTargetSurfaceDirtyRegionForDFX Can Run
+ * @tc.name: DrawAndTraceSingleDirtyRegionTypeForDFX002
+ * @tc.desc: Test when surfaceParams is not Appwindow then DrawAndTraceSingleDirtyRegionTypeForDFX returns
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IBPBDT
  */
-HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFX, TestSize.Level1)
+HWTEST_F(RSDirtyRectsDFXTest, DrawAndTraceSingleDirtyRegionTypeForDFX002, TestSize.Level1)
+{
+    DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    bool isDrawn = true;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = false;
+    drawable->renderParams_ = std::move(surfaceParams);
+    RSSurfaceRenderNodeDrawable* surfaceNodeDrawable = nullptr;
+    surfaceNodeDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceNodeDrawable, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->DrawAndTraceSingleDirtyRegionTypeForDFX(*canvas_, *surfaceNodeDrawable, dirtyType, isDrawn);
+}
+
+/**
+ * @tc.name: DrawAndTraceSingleDirtyRegionTypeForDFX003
+ * @tc.desc: Test when dirtyType is not in map then DrawAndTraceSingleDirtyRegionTypeForDFX returns
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAndTraceSingleDirtyRegionTypeForDFX003, TestSize.Level1)
+{
+    DirtyRegionType dirtyType = DirtyRegionType::TYPE_AMOUNT;
+    bool isDrawn = true;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = true;
+    drawable->renderParams_ = std::move(surfaceParams);
+    RSSurfaceRenderNodeDrawable* surfaceNodeDrawable = nullptr;
+    surfaceNodeDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceNodeDrawable, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->DrawAndTraceSingleDirtyRegionTypeForDFX(*canvas_, *surfaceNodeDrawable, dirtyType, isDrawn);
+}
+
+/**
+ * @tc.name: DrawAndTraceSingleDirtyRegionTypeForDFX004
+ * @tc.desc: Test when dirtyType is not in map then DrawAndTraceSingleDirtyRegionTypeForDFX returns
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAndTraceSingleDirtyRegionTypeForDFX004, TestSize.Level1)
+{
+    DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    bool isDrawn = true;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = true;
+    drawable->renderParams_ = std::move(surfaceParams);
+    RSSurfaceRenderNodeDrawable* surfaceNodeDrawable = nullptr;
+    surfaceNodeDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceNodeDrawable, nullptr);
+    auto dirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+    dirtyManager->dirtySurfaceNodeInfo_[dirtyType].emplace(std::make_pair(0, RectI()));
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->DrawAndTraceSingleDirtyRegionTypeForDFX(*canvas_, *surfaceNodeDrawable, dirtyType, isDrawn);
+}
+
+/**
+ * @tc.name: DrawAndTraceSingleDirtyRegionTypeForDFX005
+ * @tc.desc: Test when isDrawn is false then DrawDirtyRectForDFX is not called
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAndTraceSingleDirtyRegionTypeForDFX005, TestSize.Level1)
+{
+    DirtyRegionType dirtyType = DirtyRegionType::UPDATE_DIRTY_REGION;
+    bool isDrawn = false;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = true;
+    drawable->renderParams_ = std::move(surfaceParams);
+    RSSurfaceRenderNodeDrawable* surfaceNodeDrawable = nullptr;
+    surfaceNodeDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceNodeDrawable, nullptr);
+    auto dirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+    dirtyManager->dirtySurfaceNodeInfo_[dirtyType].emplace(std::make_pair(0, RectI()));
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->DrawAndTraceSingleDirtyRegionTypeForDFX(*canvas_, *surfaceNodeDrawable, dirtyType, isDrawn);
+}
+
+/**
+ * @tc.name: DrawSurfaceOpaqueRegionForDFX001
+ * @tc.desc: Test If DrawSurfaceOpaqueRegionForDFX should or shoud not draw
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawSurfaceOpaqueRegionForDFX001, TestSize.Level1)
+{
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isFirstLevelCrossNode_ = false;
+    ASSERT_NE(canvas_, nullptr);
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->DrawSurfaceOpaqueRegionForDFX(*canvas_, *surfaceParams);
+
+    surfaceParams->isFirstLevelCrossNode_ = true;
+    auto params = static_cast<RSDisplayRenderParams*>(rsDirtyRectsDfx_->displayParams_.get());
+    ASSERT_NE(params, nullptr);
+    params->isFirstVisitCrossNodeDisplay_ = true;
+    rsDirtyRectsDfx_->DrawSurfaceOpaqueRegionForDFX(*canvas_, *surfaceParams);
+
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    rsDirtyRectsDfx_->DrawSurfaceOpaqueRegionForDFX(*canvas_, *surfaceParams);
+}
+
+/**
+ * @tc.name: DrawAllSurfaceDirtyRegionForDFX
+ * @tc.desc: Test If DrawAllSurfaceDirtyRegionForDFX should draw
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceDirtyRegionForDFX001, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    ASSERT_NE(canvas_, nullptr);
+    rsDirtyRectsDfx_->DrawAllSurfaceDirtyRegionForDFX(*canvas_);
+}
+
+/**
+ * @tc.name: DrawAllSurfaceOpaqueRegionForDFX001
+ * @tc.desc: Test when renderParams_ is null then DrawAllSurfaceOpaqueRegionForDFX is return
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX001, TestSize.Level1)
+{
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableSharedPtr(drawable);
+    drawableSharedPtr->renderParams_ = nullptr;
+    curAllSurfaceDrawables.push_back(drawableSharedPtr);
+    ASSERT_NE(canvas_, nullptr);
+    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
+    curAllSurfaceDrawables.clear();
+}
+
+/**
+ * @tc.name: DrawAllSurfaceOpaqueRegionForDFX002
+ * @tc.desc: Test when not main window type then DrawAllSurfaceOpaqueRegionForDFX is not called
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX002, TestSize.Level1)
+{
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableSharedPtr(drawable);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isMainWindowType_ = false;
+    drawableSharedPtr->renderParams_ = std::move(surfaceParams);
+    curAllSurfaceDrawables.push_back(drawableSharedPtr);
+    ASSERT_NE(canvas_, nullptr);
+    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
+    curAllSurfaceDrawables.clear();
+}
+
+/**
+ * @tc.name: DrawAllSurfaceOpaqueRegionForDFX003
+ * @tc.desc: Test when main window type then DrawAllSurfaceOpaqueRegionForDFX can run
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFX003, TestSize.Level1)
+{
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableSharedPtr(drawable);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isMainWindowType_ = true;
+    drawableSharedPtr->renderParams_ = std::move(surfaceParams);
+    curAllSurfaceDrawables.push_back(drawableSharedPtr);
+    ASSERT_NE(canvas_, nullptr);
+    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX(*canvas_);
+    curAllSurfaceDrawables.clear();
+}
+
+/**
+ * @tc.name: DrawTargetSurfaceDirtyRegionForDFX001
+ * @tc.desc: Test If surfaceparams is null or not app window then DrawTargetSurfaceDirtyRegionForDFX Return
+ * @tc.type: FUNC
+ * @tc.require: #IBPBDT
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFX001, TestSize.Level1)
+{
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableSharedPtr(drawable);
+    drawableSharedPtr->renderParams_ = nullptr;
+    curAllSurfaceDrawables.push_back(drawableSharedPtr);
+    ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX(*canvas_);
+
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = false;
+    drawableSharedPtr->renderParams_ = std::move(surfaceParams);
+    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX(*canvas_);
+    curAllSurfaceDrawables.clear();
     ASSERT_NE(rsDirtyRectsDfx_->targetDrawable_.GetRenderParams(), nullptr);
 }
 
 /**
- * @tc.name: DrawTargetSurfaceVisibleRegionForDFX
- * @tc.desc: Test If DrawTargetSurfaceVisibleRegionForDFX Can Run
+ * @tc.name: DrawTargetSurfaceVisibleRegionForDFX001
+ * @tc.desc: Test If surfaceparams is null or not app window then DrawTargetSurfaceVisibleRegionForDFX Return
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IBPBDT
  */
-HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceVisibleRegionForDFX, TestSize.Level1)
+HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceVisibleRegionForDFX001, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    auto& curAllSurfaceDrawables = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSRenderNodeDrawableAdapter* drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableSharedPtr(drawable);
+    drawableSharedPtr->renderParams_ = nullptr;
+    curAllSurfaceDrawables.push_back(drawableSharedPtr);
+    ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->DrawTargetSurfaceVisibleRegionForDFX(*canvas_);
+
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(0);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isAppWindow_ = false;
+    drawableSharedPtr->renderParams_ = std::move(surfaceParams);
+    rsDirtyRectsDfx_->DrawTargetSurfaceVisibleRegionForDFX(*canvas_);
+    curAllSurfaceDrawables.clear();
+    ASSERT_NE(rsDirtyRectsDfx_->targetDrawable_.GetRenderParams(), nullptr);
 }
 
 /**

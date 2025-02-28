@@ -30,13 +30,13 @@
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
-#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {

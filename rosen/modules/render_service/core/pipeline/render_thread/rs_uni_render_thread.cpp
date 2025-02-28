@@ -82,7 +82,7 @@ constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
-constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 12000;
+constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 25000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
@@ -861,14 +861,6 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
-            auto purgeDrawables =
-                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
-            for (auto& drawable : purgeDrawables) {
-                drawable->Purge();
-            }
-        }
-        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
@@ -903,7 +895,7 @@ void RSUniRenderThread::ReclaimMemory()
         return;
     }
 
-    // Reclaim memory when no render in 12s.
+    // Reclaim memory when no render in 25s.
     PostReclaimMemoryTask(ClearMemoryMoment::RECLAIM_CLEAN, true);
 }
 
@@ -947,15 +939,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
+void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
 {
-    for (auto [nodeId, purgeFlag] : ids) {
-        if (purgeFlag) {
-            nodesNeedToBeClearMemory_.insert(nodeId);
-        } else {
-            nodesNeedToBeClearMemory_.erase(nodeId);
-        }
-    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         if (!isDoDirectComposition) {
@@ -1174,11 +1159,21 @@ void RSUniRenderThread::SetVmaCacheStatus(bool flag)
 {
     static constexpr int MAX_VMA_CACHE_COUNT = 600;
     RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
-    if (!vmaOptimizeFlag_ || !RSSystemProperties::GetVmaPreAllocEnabled()) {
+    if (!vmaOptimizeFlag_) {
         return;
     }
     std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
     vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
+}
+
+void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

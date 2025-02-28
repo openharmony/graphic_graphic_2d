@@ -271,7 +271,7 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    const bool isForegroundFilter, bool shouldClearFilteredCache)
+    const bool isForegroundFilter)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -336,8 +336,8 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, shouldClearFilteredCache);
-        cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
+        cacheManager->DrawFilter(*paintFilterCanvas, filter);
+        cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         return;
     }
 #endif
@@ -437,7 +437,7 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache,
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager,
     Drawing::RectI& bounds, bool behindWindow)
 {
     if (rsFilter == nullptr) {
@@ -468,7 +468,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
             g_blurCnt--;
         }
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
-        cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
+        cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
         return;
     }
@@ -1005,7 +1005,8 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
 {
     const auto& effectData = useEffectType == UseEffectType::EFFECT_COMPONENT ?
         canvas->GetEffectData() : canvas->GetBehindWindowData();
-    if (effectData == nullptr || effectData->cachedImage_ == nullptr || !RSSystemProperties::GetEffectMergeEnabled()) {
+    if (effectData == nullptr || effectData->cachedImage_ == nullptr ||
+        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
         return;
     }
     RS_TRACE_FUNC();

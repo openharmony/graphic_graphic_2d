@@ -202,12 +202,6 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
-bool RSSystemProperties::GetVmaPreAllocEnabled()
-{
-    static bool isPreAlloc = system::GetParameter("persist.rosen.isprealloc.enabled", "0") != "0";
-    return isPreAlloc;
-}
-
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";

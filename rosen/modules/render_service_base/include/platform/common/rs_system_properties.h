@@ -178,7 +178,6 @@ public:
     static bool GetReleaseResourceEnabled();
     static bool GetReclaimMemoryEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetVmaPreAllocEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();

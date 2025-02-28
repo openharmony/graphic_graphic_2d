@@ -1539,6 +1539,23 @@ HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level
 }
 
 /**
+ * @tc.name: NotifyUnmarshalTask001
+ * @tc.desc: NotifyUnmarshalTask test, divided render, the func call will return immediately.
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, NotifyUnmarshalTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    int64_t ts = 10000000;
+    mainThread->NotifyUnmarshalTask(ts);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
  * @tc.name: MergeToEffectiveTransactionDataMap
  * @tc.desc: MergeToEffectiveTransactionDataMap test
  * @tc.type: FUNC
@@ -4876,4 +4893,19 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
     mainThread->receiver_ = receiver;
 }
+
+/**
+ * @tc.name: InitVulkanErrorCallback001Test
+ * @tc.desc: test InitVulkanErrorCallback001Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBOLWU
+ */
+HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    Drawing::GPUContext gpuContext;
+    mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
 } // namespace OHOS::Rosen

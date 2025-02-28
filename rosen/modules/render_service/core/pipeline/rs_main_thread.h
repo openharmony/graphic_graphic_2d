@@ -118,6 +118,7 @@ public:
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
+    static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -447,6 +448,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+    void NotifyUnmarshalTask(int64_t uiTimestamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -832,6 +834,8 @@ private:
     uint64_t lastFastComposeTimeStampDiff_ = 0;
     // last frame game self-drawing node is on tree or not
     bool isLastGameNodeOnTree_ = false;
+    std::atomic<bool> waitForDVSyncFrame_ = false;
+    std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
