@@ -19,12 +19,12 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSSurfaceFpsFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer"
   module_out_path = module_output_path
 
   sources = [ "rssurfacefps_fuzzer.cpp" ]
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
   deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
 
