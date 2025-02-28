@@ -82,6 +82,8 @@ public:
 
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) override;
 
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) override;
+
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag &tag) override;

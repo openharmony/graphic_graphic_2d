@@ -355,6 +355,19 @@ HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
     gpuContext->ReleaseByTag(tag);
 }
 
+/**
+ * @tc.name: RegisterVulkanErrorCallbackTest001
+ * @tc.desc: Test for register vulkan error callback.
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(GpuContextTest, RegisterVulkanErrorCallbackTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->RegisterVulkanErrorCallback(nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

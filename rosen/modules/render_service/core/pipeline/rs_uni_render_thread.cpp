@@ -160,6 +160,7 @@ void RSUniRenderThread::InitGrContext()
     if (!grContext) {
         return;
     }
+    RSMainThread::Instance()->InitVulkanErrorCallback(grContext);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(

@@ -418,6 +418,7 @@ public:
     }
 
     void ClearUnmappedCache();
+    void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -635,7 +636,11 @@ private:
     std::string focusAppAbilityName_ = "";
     std::atomic<uint64_t> focusNodeId_ = 0;
     uint64_t focusLeashWindowId_ = 0;
+    std::string focusLeashWindowName_ = "";
+    std::string appWindowName_ = "";
+    uint32_t appPid_ = 0;
     uint64_t lastFocusNodeId_ = 0;
+    uint64_t appWindowId_ = 0;
     uint32_t appWindowNum_ = 0;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;

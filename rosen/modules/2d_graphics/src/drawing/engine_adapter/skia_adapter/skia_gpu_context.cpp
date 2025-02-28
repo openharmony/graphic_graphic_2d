@@ -251,6 +251,15 @@ void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, cons
     grContext_->purgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
 }
 
+void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
+        return;
+    }
+    grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
+}
+
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     if (!grContext_) {
