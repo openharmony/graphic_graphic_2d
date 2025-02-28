@@ -622,7 +622,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         curDisplayNode_->GetIsLuminanceStatusChange() ||
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
-        IsAccessibilityConfigChanged();
+        IsAccessibilityConfigChanged() ||
+        curDisplayNode_->HasMirroredDisplayChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ret = ret || RSOverlayDisplayManager::Instance().CheckStatusChanged();
@@ -866,6 +867,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     containerFilter_.clear();
     globalFilter_.clear();
     curSurfaceNoBelowDirtyFilter_.clear();
+    curDisplayNode_->ResetMirroredDisplayChangedFlag();
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)
