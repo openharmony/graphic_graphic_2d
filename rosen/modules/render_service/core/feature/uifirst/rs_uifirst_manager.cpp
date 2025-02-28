@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"

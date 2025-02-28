@@ -205,7 +205,7 @@ private:
     bool vsyncEnabled_;
     std::string name_;
     bool vsyncThreadRunning_ = false;
-    std::vector<std::pair<uint64_t, uint32_t>> changingConnsRefreshRates_; // std::pair<id, refresh rate>
+    std::unordered_map<uint64_t, uint32_t> changingConnsRefreshRates_; // std::pair<id, refresh rate>
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
     uint32_t generatorRefreshRate_ = 0;

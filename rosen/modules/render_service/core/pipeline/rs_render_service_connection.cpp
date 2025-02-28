@@ -20,7 +20,6 @@
 #include "hgm_command.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
-#include "luminance/rs_luminance_control.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
@@ -32,6 +31,7 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "feature/capture/rs_surface_capture_task.h"
@@ -1123,7 +1123,7 @@ void TakeSurfaceCaptureForUiParallel(
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (!node) {
         RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, nullptr);
+        callback->OnSurfaceCapture(id, captureConfig, nullptr);
         return;
     }
 
@@ -1145,7 +1145,7 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCaptureForUIWithUni");
         std::shared_ptr<RSUniUICapture> rsUniUICapture = std::make_shared<RSUniUICapture>(id, captureConfig);
         std::shared_ptr<Media::PixelMap> pixelmap = rsUniUICapture->TakeLocalCapture();
-        callback->OnSurfaceCapture(id, pixelmap.get());
+        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     };
     if (!captureConfig.isSync) {
@@ -1184,7 +1184,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
                         "], isSystemCalling: %{public}u, selfCapture: %{public}u",
                     id, isSystemCalling, selfCapture);
-                callback->OnSurfaceCapture(id, nullptr);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr);
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
@@ -1197,7 +1197,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node is nullptr");
-            callback->OnSurfaceCapture(id, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr);
             return;
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
@@ -1207,7 +1207,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node type: %{public}u, "
                 "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
                 node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
-            callback->OnSurfaceCapture(id, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr);
             return;
         }
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
@@ -1215,7 +1215,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
             RSSurfaceCaptureTask task(id, captureConfig);
             if (!task.Run(callback)) {
-                callback->OnSurfaceCapture(id, nullptr);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr);
             }
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
@@ -1241,7 +1241,7 @@ void RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool isFre
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::SetWindowFreezeImmediately failed, node is nullptr");
             if (callback) {
-                callback->OnSurfaceCapture(id, nullptr);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr);
             }
             return;
         }

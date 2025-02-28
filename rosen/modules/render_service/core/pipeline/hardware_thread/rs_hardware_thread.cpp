@@ -154,11 +154,28 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSHardwareThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSHardwareThread::PostDelayTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {
         handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSHardwareThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 
 uint32_t RSHardwareThread::GetunExecuteTaskNum()

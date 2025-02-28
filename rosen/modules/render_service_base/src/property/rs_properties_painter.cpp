@@ -648,7 +648,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
         // (see RSPropertyDrawableUtils::DrawFilter())
-        cacheManager->DrawFilter(canvas, filter, false);
+        cacheManager->DrawFilter(canvas, filter, true, false);
         return;
     }
 #endif
@@ -836,7 +836,7 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
 {
     const auto& effectData = canvas.GetEffectData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr
-        || !RSSystemProperties::GetEffectMergeEnabled()) {
+        || !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
         // no effectData available, draw background filter in fallback method
         ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffect: effectData null, try fallback method.");
         ApplyBackgroundEffectFallback(properties, canvas);

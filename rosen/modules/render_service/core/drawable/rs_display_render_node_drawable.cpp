@@ -19,7 +19,6 @@
 #include <parameters.h>
 #include <string>
 
-#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
@@ -28,6 +27,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"

@@ -16,9 +16,9 @@
 
 #include <dlfcn.h>
 
-#include "color_temp/rs_color_temp.h"
+#include "display_engine/rs_color_temperature.h"
+#include "display_engine/rs_luminance_control.h"
 #include "effect/image_filter.h"
-#include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
@@ -29,6 +29,7 @@ namespace Rosen {
 namespace {
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr uint32_t DEFAULT_DYNAMIC_METADATA_SIZE = 50;
+constexpr size_t MATRIX_SIZE = 9;
 }; // namespace
 
 RSColorSpaceConvert::RSColorSpaceConvert()
@@ -118,13 +119,18 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     return true;
 }
 
-void RSColorSpaceConvert::GetHDRMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
-    std::vector<uint8_t>& hdrStaticMetadata, std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret)
+void RSColorSpaceConvert::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& hdrStaticMetadata, GSError& ret)
 {
     ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadata);
     if (ret != GSERROR_OK) {
         RS_LOGD("RSColorSpaceConvert::GetHDRStaticMetadata failed with ret: %{public}u.", ret);
     }
+}
+
+void RSColorSpaceConvert::GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret)
+{
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadata);
     if (ret != GSERROR_OK) {
         RS_LOGD("RSColorSpaceConvert::GetHDRDynamicMetadata failed with ret: %{public}u.", ret);
@@ -165,7 +171,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    GetHDRMetadata(surfaceBuffer, parameter.staticMetadata, parameter.dynamicMetadata, ret);
+    GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata, ret);
+    GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata, ret);
     GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
 
     float scaler = DEFAULT_SCALER;
@@ -187,8 +194,14 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
-    parameter.layerLinearMatrix = RSColorTemp::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK?
-        parameter.dynamicMetadata : std::vector<uint8_t>(), parameter.outputColorSpace.colorSpaceInfo.matrix);
+    // color temperature
+    parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK ?
+        parameter.dynamicMetadata : std::vector<uint8_t>(), parameter.inputColorSpace.colorSpaceInfo.matrix);
+    if (parameter.layerLinearMatrix.size() >= MATRIX_SIZE) {
+        // main diagonal indices of a 3x3 matrix are 0, 4 and 8
+        RS_LOGD("bhdr Matrix[0]:%{public}.2f. Matrix[4]:%{public}.2f. Matrix[8]:%{public}.2f",
+            parameter.layerLinearMatrix[0], parameter.layerLinearMatrix[4], parameter.layerLinearMatrix[8]);
+    }
     RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u",
         parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
     return true;

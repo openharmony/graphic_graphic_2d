@@ -47,8 +47,14 @@ HWTEST_F(AnimationCallbackTest, Execute001, TestSize.Level1)
     bool flag = false;
     std::function<void()> func = [&]() { flag = true; };
     auto finishCallback = std::make_shared<AnimationFinishCallback>(func);
+    auto isValid = finishCallback->IsValid();
+    EXPECT_TRUE(isValid);
     finishCallback->Execute();
     EXPECT_TRUE(flag);
+    isValid = finishCallback->IsValid();
+    EXPECT_FALSE(isValid);
+    finishCallback->SetAnimationBeenPaused();
+    EXPECT_TRUE(finishCallback->HasAnimationBeenPaused());
 
     std::function<void()> func1 = nullptr;
     auto finishCallback1 = std::make_shared<AnimationFinishCallback>(func1);

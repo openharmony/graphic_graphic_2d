@@ -28,10 +28,11 @@ public:
     explicit RSSurfaceCaptureCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSSurfaceCaptureCallbackProxy() noexcept = default;
 
-    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) override;
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override;
 
 private:
     static inline BrokerDelegator<RSSurfaceCaptureCallbackProxy> delegator_;
+    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 };
 } // namespace Rosen
 } // namespace OHOS

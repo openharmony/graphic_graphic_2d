@@ -19,13 +19,13 @@
 
 #include "hdi_layer.h"
 #include "hdi_layer_info.h"
-#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"

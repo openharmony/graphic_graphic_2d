@@ -45,13 +45,14 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
-#include "color_temp/rs_color_temp.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_color_temperature.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -59,8 +60,8 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
-#include "luminance/rs_luminance_control.h"
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -216,6 +217,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr size_t MEMUNIT_RATE = 1024;
 constexpr size_t MAX_GPU_CONTEXT_CACHE_SIZE = 1024 * MEMUNIT_RATE * MEMUNIT_RATE;   // 1G
 constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 1000;
+const std::string DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME = "DVSyncNotifyUnmarshalTask";
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -362,6 +364,14 @@ HdrStatus RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode
         return HdrStatus::NO_HDR;
     }
     return RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
+}
+
+bool RSMainThread::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    return RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
 RSMainThread* RSMainThread::Instance()
@@ -551,6 +561,7 @@ void RSMainThread::Init()
             {
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
+                waitForDVSyncFrame_.store(false);
             }
             unmarshalTaskCond_.notify_all();
         };
@@ -689,15 +700,29 @@ void RSMainThread::Init()
     PrintCurrentStatus();
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
-    RSColorTemp::Get().Init();
+    RSColorTemperature::Get().Init();
 #ifdef RS_ENABLE_GPU
-    if (deviceType_ == DeviceType::PHONE || deviceType_ == DeviceType::TABLET) {
-        MemoryManager::InitMemoryLimit();
-        MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-    }
+    MemoryManager::InitMemoryLimit();
+    MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
 }
 
+void RSMainThread::NotifyUnmarshalTask(int64_t uiTimestamp)
+{
+    if (isUniRender_ && rsVSyncDistributor_->IsUiDvsyncOn() && static_cast<uint64_t>(uiTimestamp) +
+        static_cast<uint64_t>(rsVSyncDistributor_->GetUiCommandDelayTime()) >= dvsyncRsTimestamp_.load()
+        && waitForDVSyncFrame_.load()) {
+        auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
+        MergeToEffectiveTransactionDataMap(cachedTransactionData);
+        {
+            std::lock_guard<std::mutex> lock(unmarshalMutex_);
+            ++unmarshalFinishedCount_;
+            waitForDVSyncFrame_.store(false);
+            RSUnmarshalThread::Instance().RemoveTask(DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
+        }
+        unmarshalTaskCond_.notify_all();
+    }
+}
 
 void RSMainThread::UpdateGpuContextCacheSize()
 {
@@ -1541,11 +1566,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                         preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
                 }
-                if (surfaceNode->GetIntersectWithAIBar()) {
-                    doDirectComposition_ = false;
-                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode intersect with AIBar",
-                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                }
 #endif
             }
             if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceHandler->IsCurrentFrameBufferConsumed()
@@ -1606,6 +1626,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             needRequestNextVsync = true;
         }
         surfaceNode->SetVideoHdrStatus(CheckIsHdrSurface(*surfaceNode));
+        if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
+            surfaceNode->SetSdrHasMetadata(CheckIsSurfaceWithMetadata(*surfaceNode));
+        }
     });
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (needRequestNextVsync) {
@@ -1812,12 +1835,11 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
+    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     auto itr = std::find_if(children->begin(), children->end(),
-        [deviceType = deviceType_](const std::shared_ptr<RSRenderNode>& child) -> bool {
-            if (child == nullptr) {
-                return false;
-            }
-            if (child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
+            if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
                 return false;
             }
             auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
@@ -1825,7 +1847,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            if (deviceType != DeviceType::PC) {
+            if (hwcFeature->IsHwcExpandingScreenEnabled()) {
                 return displayNodeSp->GetCompositeType() ==
                     RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
             }
@@ -1993,6 +2015,11 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
         MergeToEffectiveTransactionDataMap(cachedTransactionData);
     } else {
         std::unique_lock<std::mutex> lock(unmarshalMutex_);
+        if (unmarshalFinishedCount_ > 0) {
+            waitForDVSyncFrame_.store(false);
+        } else {
+            waitForDVSyncFrame_.store(true);
+        }
         if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
             [this]() { return unmarshalFinishedCount_ > 0; })) {
             if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
@@ -2300,8 +2327,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
-        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
+        RSUniRenderThread::Instance().PostTask([] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask();
         });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         RSPointerWindowManager::Instance().UpdatePointerInfo();
@@ -2615,8 +2642,8 @@ void RSMainThread::OnUniRenderDraw()
     }
     // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
     if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
-        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids), true);
+        RSUniRenderThread::Instance().PostTask([] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(true);
         });
         isNeedResetClearMemoryTask_ = false;
     }
@@ -3117,6 +3144,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
+    dvsyncRsTimestamp_.store(timestamp_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -3133,7 +3161,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
             needWaitUnmarshalFinished_ = false;
         } else {
             if (!RSSystemProperties::GetUnmarshParallelFlag()) {
-                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_, DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
             }
         }
 #endif
@@ -3645,7 +3673,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
             return;
         }
         rootNode->DumpTree(0, dumpString);
-        
+
         if (needUpdateJankStats) {
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
@@ -3964,6 +3992,9 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
         "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
     dumpString.append(log.GetString());
+
+    RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
+    RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
 #else
     dumpString.append("No GPU in this device");
 #endif
@@ -4126,6 +4157,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
             timestamp_ = timestamp_ + (now - curTime_);
+            dvsyncRsTimestamp_.store(timestamp_);
             int64_t vsyncPeriod = 0;
             VsyncError ret = VSYNC_ERROR_UNKOWN;
             if (receiver_) {
@@ -4785,7 +4817,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
     bool isNeedRefreshAll{false};
     if (auto screenManager = CreateOrGetScreenManager()) {
         auto& rsLuminance = RSLuminanceControl::Get();
-        auto& rsColorTemp = RSColorTemp::Get();
+        auto& rsColorTemperature = RSColorTemperature::Get();
         for (const auto& child : *rootNode->GetSortedChildren()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(child);
             if (displayNode == nullptr) {
@@ -4802,10 +4834,10 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
                 isNeedRefreshAll = true;
                 SetLuminanceChangingStatus(screenId, true);
             }
-            if (rsColorTemp.IsDimmingOn(screenId)) {
-                std::vector<float> matrix = rsColorTemp.GetNewLinearCct(screenId);
+            if (rsColorTemperature.IsDimmingOn(screenId)) {
+                std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
                 screenManager->SetScreenLinearMatrix(screenId, matrix);
-                rsColorTemp.DimmingIncrease(screenId);
+                rsColorTemperature.DimmingIncrease(screenId);
                 isNeedRefreshAll = true;
             }
         }

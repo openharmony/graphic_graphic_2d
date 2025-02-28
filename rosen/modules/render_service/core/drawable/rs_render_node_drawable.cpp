@@ -17,8 +17,8 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
-#include "luminance/rs_luminance_control.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -45,6 +45,7 @@ namespace {
 constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
 constexpr float CACHE_FILL_ALPHA = 0.2f;
 constexpr float CACHE_UPDATE_FILL_ALPHA = 0.8f;
+constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 }
 RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawableAdapter(std::move(node))
@@ -240,6 +241,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", nodeId_);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
@@ -258,6 +260,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     if (params.GetForegroundFilterCache() == nullptr && drawBlurForCache_ && curDrawingCacheRoot_ &&
         curDrawingCacheRoot_->GetFilterNodeSize() == 0) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
@@ -268,6 +271,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
             DrawContent(canvas, params.GetFrameRect());
             DrawChildren(canvas, params.GetBounds());
             DrawForeground(canvas, params.GetBounds());
+            RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
             return;
         }
         CollectInfoForNodeWithoutFilter(canvas);
@@ -285,6 +289,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         default:
             break;
     }
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(

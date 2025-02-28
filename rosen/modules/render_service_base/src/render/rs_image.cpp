@@ -67,6 +67,11 @@ std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
         return nullptr;
     }
 
+    if (Drawing::IsScalarAlmostEqual(0, src_.GetWidth()) || Drawing::IsScalarAlmostEqual(0, src_.GetHeight())) {
+        RS_LOGW("RSImage::GenerateImageShaderForDrawRect src_ width or height is equal 0");
+        return nullptr;
+    }
+
     Drawing::Matrix matrix;
     auto sx = dstRect_.GetWidth() / src_.GetWidth();
     auto sy = dstRect_.GetHeight() / src_.GetHeight();
@@ -145,7 +150,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                                 fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
 #ifdef ROSEN_OHOS
-    auto pixelMapUseCountGuard = PixelMapUseCountGuard(canPurgeShareMemFlag_, pixelMap_);
+    auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
     if (!isDrawn_ || rect != lastRect_) {

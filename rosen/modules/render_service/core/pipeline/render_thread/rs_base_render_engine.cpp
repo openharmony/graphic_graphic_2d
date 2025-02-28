@@ -568,8 +568,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    RSColorSpaceConvert::Instance().GetHDRMetadata(params.buffer,
-        parameter.staticMetadata, parameter.dynamicMetadata, ret);
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(params.buffer, parameter.staticMetadata, ret);
+    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
     RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer,
         parameter.adaptiveFOVMetadata, ret);
 #endif
@@ -579,6 +579,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.tmoNits = params.tmoNits;
     parameter.currentDisplayNits = params.displayNits;
     parameter.sdrNits = params.sdrNits;
+    // color temperature
     parameter.layerLinearMatrix = params.layerLinearMatrix;
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
@@ -610,7 +611,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isHdrToSdr) {
         parameter.tmoNits = parameter.sdrNits;
-        parameter.layerLinearMatrix.clear();
+        parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
@@ -808,15 +809,15 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc ==
-        outClrInfo.transfunc && !canvas.GetHdrOn()) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
+    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc &&
+        !params.hasMetadata) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
-    // HDR to SDR, tmoNits equal sdrNits
-    params.isHdrToSdr = canvas.IsOnMultipleScreen() || !canvas.GetHdrOn();
+    // HDR to SDR, tmoNits equal sdrNits, layerLinearMatrix reset to 3x3 Identity matrix
+    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata);
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
@@ -911,6 +912,33 @@ HdrStatus RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> 
         }
     }
     return HdrStatus::NO_HDR;
+}
+
+bool RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer)
+{
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) != GSERROR_OK) {
+        RS_LOGD("RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata failed to get ColorSpaceInfo");
+        return false;
+    }
+    // only primaries P3_D65 and BT2020 has metadata
+    if (colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_P3_D65 &&
+        colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_BT2020) {
+        RS_LOGD("RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata colorSpaceInfo.primaries not satisfied");
+        return false;
+    }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    std::vector<uint8_t> dynamicMetadata{};
+    if (MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadata) ==
+        GSERROR_OK && dynamicMetadata.size() > 0) {
+        return true;
+    }
+#endif
+    return false;
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

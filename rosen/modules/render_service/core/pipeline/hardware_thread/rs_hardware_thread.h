@@ -50,6 +50,7 @@ public:
     static RSHardwareThread& Instance();
     void Start();
     void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
@@ -71,6 +72,7 @@ public:
     void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
     void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
+    void DumpVkImageInfo(std::string &dumpString);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;

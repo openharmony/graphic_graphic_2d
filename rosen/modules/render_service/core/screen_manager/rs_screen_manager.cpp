@@ -15,7 +15,7 @@
 
 #include "rs_screen_manager.h"
 
-#include "color_temp/rs_color_temp.h"
+#include "display_engine/rs_color_temperature.h"
 #include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
@@ -427,6 +427,8 @@ void RSScreenManager::OnHwcDeadEvent()
 
 void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
 {
+    RS_LOGI("RSScreenManager::OnScreenVBlankIdle devId:%{public}u, ns:" RSPUBU64, devId, ns);
+    RS_TRACE_NAME_FMT("OnScreenVBlankIdle devId:%u, ns:%lu", devId, ns);
     CreateVSyncSampler()->StartSample(true);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
@@ -1522,7 +1524,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 
         RS_LOGI("[UL_POWER] %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
-    RSColorTemp::Get().UpdateScreenStatus(id, status);
+    RSColorTemperature::Get().UpdateScreenStatus(id, status);
     screenPowerStatus_[id] = status;
 }
 

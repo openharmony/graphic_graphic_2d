@@ -144,9 +144,17 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
         return;
     }
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    bool isPurgeable = rsImage_->IsPurgeable();
+    RSImageBase::PixelMapUseCountGuard guard = {pixelmap, isPurgeable};
+    if (isPurgeable) {
+        rsImage_->DePurge();
+    }
     if (pixelmap && pixelmap->IsAstc()) {
         if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
             Drawing::AdaptiveImageInfo imageInfo = rsImage_->GetAdaptiveImageInfoWithCustomizedFrameRect(rect);
+            if (isPurgeable) {
+                pixelmap->IncreaseUseCount();
+            }
             recordingCanvas->DrawPixelMapWithParm(pixelmap, imageInfo, sampling);
             return;
         }
@@ -181,6 +189,7 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
         delete object;
         return nullptr;
     }
+    object->rsImage_->MarkPurgeable();
     return object;
 }
 
@@ -490,6 +499,7 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
         delete object;
         return nullptr;
     }
+    object->rsImage_->MarkPurgeable();
     return object;
 }
 
