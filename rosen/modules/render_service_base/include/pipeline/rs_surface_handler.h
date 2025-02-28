@@ -124,7 +124,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         preBuffer_.Reset();
         preBuffer_ = buffer_;
-        if (buffer_.buffer != nullptr) {
+        if (buffer != nullptr) {
             buffer_.seqNum = buffer->GetSeqNum();
         }
         buffer_.buffer = buffer;
