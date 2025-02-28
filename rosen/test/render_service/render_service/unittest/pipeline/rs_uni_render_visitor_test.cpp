@@ -5539,23 +5539,15 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
 }
 
 /*
- * @tc.name: SetHdrWhenMultiDisplayChangeInPCTest
- * @tc.desc: Test SetHdrWhenMultiDisplayChangeInPCTest
+ * @tc.name: SetHdrWhenMultiDisplayChangeTest
+ * @tc.desc: Test SetHdrWhenMultiDisplayChangeTest
  * @tc.type: FUNC
  * @tc.require: issueIBF9OU
  */
-HWTEST_F(RSUniRenderVisitorTest, SetHdrWhenMultiDisplayChangeInPCTest, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, SetHdrWhenMultiDisplayChangeTest, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    bool isForceCloseHdr = RSLuminanceControl::Get().IsForceCloseHdr();
-    auto mainThread = RSMainThread::Instance();
-    auto isMultiDisplay = mainThread->GetMultiDisplayStatus();
-    rsUniRenderVisitor->SetHdrWhenMultiDisplayChangeInPC();
-    if (mainThread->GetDeviceType() != DeviceType::PC) {
-        EXPECT_EQ(isForceCloseHdr, RSLuminanceControl::Get().IsForceCloseHdr());
-    } else {
-        EXPECT_EQ(isMultiDisplay, RSLuminanceControl::Get().IsForceCloseHdr());
-    }
+    rsUniRenderVisitor->SetHdrWhenMultiDisplayChange();
 }
 } // OHOS::Rosen

@@ -338,7 +338,7 @@ private:
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
     // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
-    void SetHdrWhenMultiDisplayChangeInPC();
+    void SetHdrWhenMultiDisplayChange();
 
     void TryNotifyUIBufferAvailable();
 
