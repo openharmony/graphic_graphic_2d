@@ -781,6 +781,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
+    if (curSurfaceDirtyManager_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager "
+            "is set to nullptr by QuickPrepareChildren", node.GetName().c_str());
+        node.OpincSetInAppStateEnd(unchangeMarkInApp_);
+        return;
+    }
     curSurfaceDirtyManager_->ClipDirtyRectWithinSurface();
 
     // Update whether leash window's visible region is empty after prepare children
