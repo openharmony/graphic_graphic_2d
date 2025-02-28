@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_POLICY_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_POLICY_H
 
+#include <chrono>
 #include <mutex>
 #include <unordered_map>
 #include <memory>
@@ -23,6 +24,19 @@
 namespace OHOS {
 namespace Rosen {
 enum class RSPropertyUnit : int16_t;
+
+enum TouchStatus : uint32_t {
+    TOUCH_CANCEL = 1,
+    TOUCH_DOWN = 2,
+    TOUCH_MOVE = 3,
+    TOUCH_UP = 4,
+    TOUCH_BUTTON_DOWN = 8,
+    TOUCH_BUTTON_UP = 9,
+    TOUCH_PULL_DOWN = 12,
+    TOUCH_PULL_MOVE = 13,
+    TOUCH_PULL_UP = 14,
+};
+
 struct AnimDynamicAttribute {
     int32_t minSpeed = 0;
     int32_t maxSpeed = 0;
@@ -38,6 +52,7 @@ public:
     int32_t GetPreferredFps(const std::string& scene, float speed);
     int32_t GetRefreshRateModeName() const;
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
+    bool GetTouchOrPointerAction(int32_t pointerAction);
 
     const std::unordered_set<std::string>& GetPageNameList() const;
 private:
@@ -54,6 +69,7 @@ private:
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
     std::mutex mutex_;
+    std::chrono::steady_clock::time_point sendMoveTime_ = std::chrono::steady_clock::now();
 };
 } // namespace Rosen
 } // namespace OHOS

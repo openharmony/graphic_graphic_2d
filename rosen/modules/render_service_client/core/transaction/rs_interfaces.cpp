@@ -815,6 +815,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 
 void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
+    if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {
+        return;
+    }
     renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 

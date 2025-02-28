@@ -167,6 +167,12 @@
       *HgmTouchManager::HgmTouchManager*;
       *HgmTouchManager::State2String*;
 
+      *HgmPointerManager::CheckChangeStateValid*;
+      *HgmPointerManager::HandleRsFrame*;
+      *HgmPointerManager::HandleTimerReset*;
+      *HgmPointerManager::HgmPointerManager*;
+      *HgmPointerManager::State2String*;
+
       *HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime*;
       *HgmVSyncGeneratorController::ChangeGeneratorRate*;
       *HgmVSyncGeneratorController::GetAppOffset*;

@@ -70,6 +70,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/frame_rate_manager/hgm_hfbc_config.cpp",
     "core/frame_rate_manager/hgm_idle_detector.cpp",
     "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
+    "core/frame_rate_manager/hgm_pointer_manager.cpp",
     "core/frame_rate_manager/hgm_task_handle_thread.cpp",
     "core/frame_rate_manager/hgm_touch_manager.cpp",
     "core/frame_rate_manager/hgm_vsync_generator_controller.cpp",

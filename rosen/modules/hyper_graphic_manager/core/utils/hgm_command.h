@@ -78,6 +78,11 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
+enum PointerModeType : int32_t {
+    POINTER_DISENABLED = 0,
+    POINTER_ENABLED = 1,
+};
+
 enum DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
@@ -99,6 +104,7 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        PointerModeType pointerMode;
         int32_t idleFps;
         bool isFactor;
         int32_t drawMin;

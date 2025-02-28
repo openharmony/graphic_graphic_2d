@@ -44,6 +44,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "hgm_idle_detector_test.cpp",
     "hgm_lru_cache_test.cpp",
     "hgm_multi_app_strategy_test.cpp",
+    "hgm_pointer_manager_test.cpp",
     "hgm_screen_info_test.cpp",
     "hgm_task_handle_thread_test.cpp",
     "hgm_touch_manager_test.cpp",

@@ -189,5 +189,45 @@ HWTEST_F(RSFrameRatePolicyTest, GetExpectedFrameRate, TestSize.Level1)
     res = instance->GetExpectedFrameRate(unit, 1.f);
     EXPECT_TRUE(res == 0);
 }
+
+/**
+ * @tc.name: GetTouchOrPointerAction
+ * @tc.desc: test results of GetTouchOrPointerAction
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    int32_t undefinedPointerAc = -1;
+    int32_t sendMoveDuration = 1100000;
+
+    EXPECT_FALSE(instance->GetTouchOrPointerAction(undefinedPointerAc));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_CANCEL));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_DOWN));
+
+    usleep(sendMoveDuration);
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_MOVE));
+
+    EXPECT_FALSE(instance->GetTouchOrPointerAction(TOUCH_MOVE));
+
+    usleep(sendMoveDuration);
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_MOVE));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_UP));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_BUTTON_DOWN));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_BUTTON_UP));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_DOWN));
+
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_UP));
+
+    usleep(sendMoveDuration);
+    EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_MOVE));
+}
 } // namespace Rosen
 } // namespace OHOS

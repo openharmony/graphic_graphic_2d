@@ -231,6 +231,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto pointerMode = ExtractPropertyValue("pointerMode", *currNode);
         auto idleFps = ExtractPropertyValue("idleFps", *currNode);
         auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
@@ -245,6 +246,9 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.pointerMode = IsNumber(pointerMode) ?
+            static_cast<PointerModeType>(std::stoi(pointerMode)) :
+            PointerModeType::POINTER_DISENABLED;
         strategy.idleFps = IsNumber(idleFps) ?
             std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
             std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
