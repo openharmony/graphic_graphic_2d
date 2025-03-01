@@ -35,6 +35,8 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature_cfg/feature_param/feature_param.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -836,6 +838,7 @@ private:
     bool isLastGameNodeOnTree_ = false;
     std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
+    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

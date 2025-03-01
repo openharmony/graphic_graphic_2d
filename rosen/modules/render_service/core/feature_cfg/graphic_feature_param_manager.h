@@ -23,6 +23,8 @@
 #include "refbase.h"
 #include "xml_parser_base.h"
 
+#include "accessibility_param_parse.h"
+#include "accessibility_param.h"
 #include "drm_param_parse.h"
 #include "drm_param.h"
 #include "hdr_param_parse.h"
@@ -70,6 +72,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<UIFirstParam>(); }},
     {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
         [] { return std::make_unique<FilterParam>(); }},
+    {FEATURE_CONFIGS[Accessibility], [] {return std::make_unique<AccessibilityParamParse>(); },
+        [] {return std::make_unique<AccessibilityParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

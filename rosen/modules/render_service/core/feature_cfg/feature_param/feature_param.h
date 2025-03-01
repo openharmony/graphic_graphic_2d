@@ -33,7 +33,8 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SpecialLayerConfig",
     "OPIncConfig",
     "PrevalidateConfig",
-    "UIFirstConfig"
+    "UIFirstConfig",
+    "AccessibilityConfig"
 };
 
 enum FeatureModule {
@@ -47,6 +48,7 @@ enum FeatureModule {
     PREVALIDATE,
     UIFirst,
     FILTER,
+    Accessibility,
 };
 
 enum ParseErrCode {

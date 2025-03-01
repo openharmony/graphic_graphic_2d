@@ -309,6 +309,12 @@ public:
     {
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsColorCorrectionEnabled()) {
+                RS_LOGE("RSAccessibility ColorCorrectionEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility DALTONIZATION_COLOR_FILTER: %{public}d",
                 static_cast<int>(value.daltonizationColorFilter));
             switch (value.daltonizationColorFilter) {
@@ -329,11 +335,23 @@ public:
             }
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsColorReverseEnabled()) {
+                RS_LOGE("RSAccessibility ColorReverseEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility INVERT_COLOR: %{public}d", static_cast<int>(value.invertColor));
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsHighContrastEnabled()) {
+                RS_LOGE("RSAccessibility HighContrastEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility HIGH_CONTRAST: %{public}d", static_cast<int>(value.highContrastText));
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         } else {
@@ -344,6 +362,14 @@ public:
             RSMainThread::Instance()->RequestNextVSync();
         });
     }
+
+    void SetAccessiblityParamConfig(std::shared_ptr<AccessibilityParam>& config)
+    {
+        accessibilityParamConfig_ = config;
+    }
+
+private:
+    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 };
 #endif
 static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
@@ -649,8 +675,13 @@ void RSMainThread::Init()
     }
 #endif
 
+auto accessibilityFeatureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[Accessibility]);
+    accessibilityParamConfig_ = std::static_pointer_cast<AccessibilityParam>(accessibilityFeatureParam);
+
 #if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
+    accessibilityObserver_->SetAccessiblityParamConfig(accessibilityParamConfig_);
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
@@ -4731,6 +4762,12 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
 
 void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
+    if (accessibilityParamConfig_ != nullptr
+        && !accessibilityParamConfig_->IsCurtainScreenEnabled()) {
+        RS_LOGE("RSMainThread::SetCurtainScreenUsingStatus CurtainScreenEnabled is not supported");
+        return;
+    }
+    
 #ifdef RS_ENABLE_GPU
     if (isCurtainScreenOn_ == isCurtainScreenOn) {
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
