@@ -35,6 +35,7 @@ ohos_unittest("feature_cfg_test") {
     "opinc_param_test.cpp",
     "prevalidate_param_test.cpp",
     "speciallayer_param_test.cpp",
+    "stencil_pixel_occlusion_culling_param_test.cpp",
     "uifirst_param_test.cpp",
     "xml_parser_base_test.cpp",
   ]

@@ -59,6 +59,7 @@
 #include <v1_0/buffer_handle_meta_key_type.h>
 #include <v1_0/cm_color_space.h>
 
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 
@@ -3367,6 +3368,20 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     clipRect = {std::floor(absClipRect.left_), std::floor(absClipRect.top_),
         std::ceil(absClipRect.GetWidth()), std::ceil(absClipRect.GetHeight())};
     clipRect = clipRect.IntersectRect(prepareClipRect_);
+}
+
+bool RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable() const
+{
+    static auto stencilPixelOcclusionCullingParam =
+            GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig");
+    auto stencilPixelOcclusionCullingFeature =
+        std::static_pointer_cast<StencilPixelOcclusionCullingParam>(stencilPixelOcclusionCullingParam);
+    if (stencilPixelOcclusionCullingFeature == nullptr) {
+        ROSEN_LOGE("RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable "
+        "stencilPixelOcclusionCullingFeature is nullptr");
+        return false;
+    }
+    return stencilPixelOcclusionCullingFeature->IsStencilPixelOcclusionCullingEnable();
 }
 
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(

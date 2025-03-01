@@ -31,6 +31,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "HfbcConfig",
     "MemConfig",
     "SpecialLayerConfig",
+    "SpocConfig",
     "OPIncConfig",
     "PrevalidateConfig",
     "UIFirstConfig"
@@ -43,6 +44,7 @@ enum FeatureModule {
     HFBC,
     MEM,
     SPECIALLAYER,
+    SPOC,
     OPInc,
     PREVALIDATE,
     UIFirst,

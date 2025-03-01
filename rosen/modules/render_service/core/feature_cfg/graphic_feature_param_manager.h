@@ -39,6 +39,8 @@
 #include "prevalidate_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
+#include "stencil_pixel_occlusion_culling_param.h"
+#include "stencil_pixel_occlusion_culling_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "filter_param_parse.h"
@@ -62,6 +64,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<MEMParam>(); }},
     {FEATURE_CONFIGS[SPECIALLAYER], [] {return std::make_unique<SpecialLayerParamParse>(); },
         [] {return std::make_unique<SpecialLayerParam>(); }},
+    {FEATURE_CONFIGS[SPOC], [] {return std::make_unique<StencilPixelOcclusionCullingParamParse>(); },
+        [] {return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
     {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
