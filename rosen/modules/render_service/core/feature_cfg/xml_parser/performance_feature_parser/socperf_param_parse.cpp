@@ -61,15 +61,15 @@ int32_t SOCPerfParamParse::ParseSOCPerfInternal(FeatureParamMapType &featureMap,
         if (name == "MultilayersSocperfEnabled") {
             socPerfParam_->SetMultilayersSOCPerfEnable(isEnabled);
             RS_LOGI("SOCPerfParamParse parse MultilayersSocperfEnabled %{public}d", 
-                socPerfParam_->IsMultilayersSocperfEnable());
+                socPerfParam_->IsMultilayersSOCPerfEnable());
         } else if (name == "UnlockSocperfEnabled") {
             socPerfParam_->SetUnlockSOCPerfEnable(isEnabled);
             RS_LOGI("SOCPerfParamParse parse UnlockSocperfEnabled %{public}d", 
-                socPerfParam_->IsUnlockSocperfEnable());
+                socPerfParam_->IsUnlockSOCPerfEnable());
         } else if (name == "BlurSocperfEnabled") {
             socPerfParam_->SetBlurSOCPerfEnable(isEnabled);
             RS_LOGI("SOCPerfParamParse parse BlurSocperfEnabled %{public}d", 
-                socPerfParam_->IsBlurSocperfEnable());
+                socPerfParam_->IsBlurSOCPerfEnable());
         }
     }
     return PARSE_EXEC_SUCCESS;
