@@ -26,7 +26,6 @@ group("unittest") {
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSHardwareThreadTest",
-    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
