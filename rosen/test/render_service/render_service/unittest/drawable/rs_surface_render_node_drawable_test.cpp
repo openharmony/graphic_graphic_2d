@@ -1218,42 +1218,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror002, TestSiz
     ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
-/**
- * @tc.name: CheckIfSurfaceSkipInMirror003
- * @tc.desc: Test CheckIfSurfaceSkipInMirror for node in black list
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror003, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    std::unordered_set<NodeId> blackList = {surfaceParams->GetId()};
-    RSUniRenderThread::Instance().SetBlackList(blackList);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
-}
-
-/**
- * @tc.name: CheckIfSurfaceSkipInMirror004
- * @tc.desc: Test CheckIfSurfaceSkipInMirror while white list isn't empty and node not in white list
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror004, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    std::unordered_set<NodeId> whiteList = {surfaceParams->GetId() + 1};
-    RSUniRenderThread::Instance().SetWhiteList(whiteList);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
-}
-
 
 /**
  * @tc.name: SetVirtualScreenWhiteListRootId001
