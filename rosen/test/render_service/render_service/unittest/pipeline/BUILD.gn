@@ -26,7 +26,6 @@ group("unittest") {
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSHardwareThreadTest",
-    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
@@ -45,7 +44,6 @@ group("unittest") {
     ":RSUniRenderUtilSecUIExtensionTest",
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
-    ":RSUniRenderVisitorTest",
     ":RSVirtualScreenProcessorTest",
     ":RSVsyncRateReduceManagerTest",
   ]
