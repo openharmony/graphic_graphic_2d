@@ -57,6 +57,8 @@ public:
 
     virtual void FreeGpuResources() = 0;
 
+    virtual void ReclaimResources() = 0;
+
     virtual void DumpGpuStats(std::string& out) = 0;
 
     virtual void DumpAllResource(std::stringstream& dump) = 0;
