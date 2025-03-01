@@ -216,9 +216,8 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
 constexpr size_t MEMUNIT_RATE = 1024;
 constexpr size_t MAX_GPU_CONTEXT_CACHE_SIZE = 1024 * MEMUNIT_RATE * MEMUNIT_RATE;   // 1G
-constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 1000;
+constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 100;
 const std::string DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME = "DVSyncNotifyUnmarshalTask";
-
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -3102,11 +3101,23 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
             RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
-            if (requestNextVsyncNum_ > REQUEST_VSYNC_DUMP_NUMBER) {
+            if ((requestNextVsyncNum_ - currentNum_) >= REQUEST_VSYNC_DUMP_NUMBER) {
                 RS_LOGW("RSMainThread::RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
                 RSEventDumper dumper;
                 handler_->Dump(dumper);
-                RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s", dumper.GetOutput().c_str());
+                dumpInfo_ = dumper.GetOutput().c_str();
+                size_t dumpBegin = dumpInfo_.find("Current Running: start");
+                size_t compareStrSize = sizeof("\n");
+                if (dumpBegin != std::string::npos) {
+                    size_t dumpEnd = dumpInfo_.find("RSEventDumper No. 9", dumpBegin);
+                    if (dumpEnd != std::string::npos) {
+                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
+                            dumpInfo_.substr(dumpBegin, dumpEnd - dumpBegin - compareStrSize).c_str());
+                    } else {
+                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
+                            dumper.GetOutput().c_str());
+                    }
+                }
             }
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);

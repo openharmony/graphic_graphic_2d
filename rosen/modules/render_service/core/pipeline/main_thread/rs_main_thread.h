@@ -836,6 +836,8 @@ private:
     bool isLastGameNodeOnTree_ = false;
     std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
+    std::string dumpInfo_;
+    std::atomic<uint32_t> currentNum_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
