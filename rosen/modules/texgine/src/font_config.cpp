@@ -187,7 +187,7 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
         fname = FONT_FILE_MAP_CONFIG;
     }
 
-    TEXT_LOGI("file name: %{public}s", fname);
+    TEXT_LOGI("File name: %{public}s", fname);
     fontFileMap = std::make_shared<FontFileMap>();
     int err = ParseConfigListPath(fname);
     if (err != 0) {
@@ -370,7 +370,7 @@ int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>
 int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList)
 {
     if (fontPath == nullptr) {
-        TEXT_LOGE("Font path is null");
+        TEXT_LOGE("Null font path");
         return FAILED;
     }
 

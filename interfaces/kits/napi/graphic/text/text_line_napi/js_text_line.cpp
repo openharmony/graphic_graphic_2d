@@ -440,7 +440,7 @@ napi_value JsTextLine::OnGetStringIndexForPosition(napi_env env, napi_callback_i
     }
     status = napi_get_named_property(env, argv[0], "y", &tempValue);
     if (status != napi_ok || tempValue == nullptr) {
-        TEXT_LOGE("Failed to y, ret %{public}d", static_cast<int>(status));
+        TEXT_LOGE("Failed to get y, ret %{public}d", static_cast<int>(status));
         return NapiGetUndefined(env);
     }
     if (!ConvertFromJsValue(env, tempValue, y)) {

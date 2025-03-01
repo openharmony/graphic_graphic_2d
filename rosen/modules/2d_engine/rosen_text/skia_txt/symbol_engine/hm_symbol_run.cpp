@@ -51,7 +51,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
     symbolInfo.symbolGlyphId = glyphId;
     auto& symbolInfoOrign = symbolLayersGroups_;
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
-        TEXT_LOGD("Invalid symbol layer groups, glyphId: %{public}hu.", glyphId);
+        TEXT_LOGD("Invalid symbol layer groups, glyph id %{public}hu.", glyphId);
         return symbolInfo;
     }
 
@@ -114,7 +114,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
     if (symbolTxt_.GetSymbolType() == SymbolType::SYSTEM) {
         auto groups = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
         if (groups.renderModeGroups.empty()) {
-            TEXT_LOGD("Failed to get system symbol layer groups, glyphId: %{public}hu", glyphId);
+            TEXT_LOGD("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }
@@ -122,7 +122,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
     } else {
         auto groups = CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(symbolTxt_.familyName_, glyphId);
         if (!groups.has_value()) {
-            TEXT_LOGD("Failed to get custom symbol layer groups, glyphId: %{public}hu", glyphId);
+            TEXT_LOGD("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }

@@ -99,7 +99,7 @@ void TextBundleConfigParser::InitTextBundleConfig()
     initStatus_ = true;
     bundleApiVersion_ = bundleInfo.targetVersion % VERSION_DIVISOR;
     adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA, bundleInfo);
-    TEXT_LOGI("Text height enabled:%{public}d", adapterTextHeightEnable_);
+    TEXT_LOGI("Adapter text height enabled %{public}d", adapterTextHeightEnable_);
 }
 #endif
 

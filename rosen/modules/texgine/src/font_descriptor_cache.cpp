@@ -188,7 +188,7 @@ bool FontDescriptorCache::ProcessSystemFontType(int32_t systemFontType, int32_t&
         TextEngine::FontParser::SystemFontType::STYLISH |
         TextEngine::FontParser::SystemFontType::INSTALLED |
         TextEngine::FontParser::SystemFontType::CUSTOMIZED)) != systemFontType) {
-        TEXT_LOGE("Invalid system font type: %{public}d", systemFontType);
+        TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return false;
     }
     fontType = systemFontType;
@@ -514,7 +514,7 @@ bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result)
 {
     if (desc == nullptr) {
-        TEXT_LOGE("Desc is nullptr");
+        TEXT_LOGE("Null desc");
         return;
     }
     ParserSystemFonts();
@@ -525,12 +525,12 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     desc->weight = (desc->weight > 0) ? WeightAlignment(desc->weight) : desc->weight;
     std::set<FontDescSharedPtr> finishRet;
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fontFamily, fontFamilyMap_), return,
-        "Failed to match fontFamily");
+        "Failed to match font family");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fullName, fullNameMap_), return, "Failed to match fullName");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->postScriptName, postScriptNameMap_), return,
-        "Failed to match postScriptName");
+        "Failed to match post script name");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fontSubfamily, fontSubfamilyNameMap_), return,
-        "Failed to match fontSubfamily");
+        "Failed to match font subfamily");
 
     TEXT_CHECK(FilterBoldCache(desc->weight, finishRet), return);
     TEXT_CHECK(FilterWidthCache(desc->width, finishRet), return);
