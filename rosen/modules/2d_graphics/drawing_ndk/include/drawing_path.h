@@ -37,6 +37,7 @@
  * @version 1.0
  */
 
+#include "drawing_error_code.h"
 #include "drawing_types.h"
 
 #ifdef __cplusplus
@@ -643,6 +644,27 @@ bool OH_Drawing_PathIsClosed(OH_Drawing_Path* path, bool forceClosed);
  */
 bool OH_Drawing_PathGetPositionTangent(OH_Drawing_Path* path, bool forceClosed,
     float distance, OH_Drawing_Point2D* position, OH_Drawing_Point2D* tangent);
+
+/**
+ * @brief Gets the path between the start and end points.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param forceClosed Whether to close the path.
+ * @param start The distance from the starting point of the segment to the starting point of the path.
+ * @param stop The distance from the end point of the segment to the starting point of the path.
+ * @param startWithMoveTo Whether the path obtained moveTo to the starting segment.
+ * @param dst The path obtained.
+ * @param result Indicates the result of getting the path segment.
+ *               The value is false if the segment is zero-length or start >= stop, and true otherwise.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of path, dst and result is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathGetSegment(OH_Drawing_Path* path, bool forceClosed,
+    float start, float stop, bool startWithMoveTo, OH_Drawing_Path* dst, bool* result);
 
 /**
  * @brief Combines two paths.

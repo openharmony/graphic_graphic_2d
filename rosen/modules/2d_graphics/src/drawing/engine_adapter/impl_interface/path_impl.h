@@ -100,6 +100,7 @@ public:
 
     virtual scalar GetLength(bool forceClosed) = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) = 0;
+    virtual bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) = 0;
     virtual bool IsClosed(bool forceClosed) = 0;
     virtual bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
