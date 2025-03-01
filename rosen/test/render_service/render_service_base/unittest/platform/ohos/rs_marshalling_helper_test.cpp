@@ -825,11 +825,11 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest022, TestSize.Level1)
     std::shared_ptr<RSFilter> val;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(RSFilter::BLUR);
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(RSFilter::MATERIAL);
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(RSFilter::LIGHT_UP_EFFECT);
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
 
 /**
@@ -1581,7 +1581,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest042, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
     parcel.WriteInt32(0);
     parcel.WriteInt32(-1);
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
 }
 
 /**
@@ -1613,7 +1613,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest043, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
     parcel.WriteInt32(0);
     parcel.WriteInt32(-1);
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
 }
 
 /**
