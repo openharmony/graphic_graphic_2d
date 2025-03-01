@@ -1979,5 +1979,13 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
 }
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->TestLoadFileSubTreeToNode(nodeId, filePath);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

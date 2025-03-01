@@ -4398,5 +4398,31 @@ void RSRenderServiceConnectionProxy::NotifyPageName(const std::string &packageNa
         ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: write data err.");
     }
 }
+
+void RSRenderServiceConnectionProxy::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TestLoadFileSubTreeToNode: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TestLoadFileSubTreeToNode: write node val err.");
+        return;
+    }
+    if (!data.WriteString(filePath)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TestLoadFileSubTreeToNode: write file path val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TestLoadFileSubTreeToNode: Send Request err.");
+        return;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
