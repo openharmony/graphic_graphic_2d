@@ -249,7 +249,7 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
             TEXT_LOGE("Failed to get blur radius, ret %{public}d", static_cast<int>(status));
             return;
         }
-        stauts = napi_get_value_double(env, radius, &runTimeRadius);
+        status = napi_get_value_double(env, radius, &runTimeRadius);
         if (status != napi_ok) {
             TEXT_LOGE("Failed to get radius, ret %{public}d", static_cast<int>(status));
             return;
@@ -839,7 +839,7 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
 
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
-        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}ld, end %{public}ld",
+        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}lld, end %{public}lld",
             isStartOk, isEndOk, start, end);
         return false;
     }
