@@ -396,5 +396,108 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
     // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
     ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE));
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest013
+ * @tc.desc: test for height with paragraphspacing01
+ * @tc.type: FUNC
+ */
+ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
+ {
+    double maxWidth = 1000;
+    std::u16string text = u"testParagraphSpacing"; // 仅一段文本且只包含一个run的时候设置段落间距
+
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = true;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+
+    EXPECT_EQ(typography0->GetHeight() + 40, typography1->GetHeight());
+}
+
+ 
+/*
+ * @tc.name: OH_Drawing_TypographyTest014
+ * @tc.desc: test for height with paragraphspacing02
+ * @tc.type: FUNC
+ */
+ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level1)
+ {
+    double maxWidth = 100;
+    std::u16string text = u"test ParagraphSpacing. 不是一个run."; // 仅一段文本且设置不止一行文本的场景
+
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+    // EXPECT_EQ(typography0->GetHeight(), 0);
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = true;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+
+    EXPECT_EQ(typography0->GetHeight() + 40, typography1->GetHeight());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest015
+ * @tc.desc: test for height with paragraphspacing03
+ * @tc.type: FUNC
+ */
+ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level1)
+ {
+    double maxWidth = 500;
+    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
+                          u"false, paragraph spacing should not take effect at this time.";
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = false;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+
+    EXPECT_EQ(typography0->GetHeight(), typography1->GetHeight());
+}
 } // namespace Rosen
 } // namespace OHOS
