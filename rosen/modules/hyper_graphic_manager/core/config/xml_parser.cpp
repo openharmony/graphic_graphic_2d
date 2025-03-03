@@ -742,7 +742,6 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode &node,
             mParsedData_->pageNameList_.push_back(name);
             pageUrlConfig[name] = strategy;
         }
-        PolicyConfigData::PageUrlConfig pageUrlConfig;
         auto packageName = ExtractPropertyValue("name", *currNode);
         pageUrlConfigMap[packageName] = pageUrlConfig;
     }
