@@ -423,7 +423,16 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_, followRs);
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
+        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
+            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
+        }
+    } else {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
+            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
+        }
     }
     ReportHiSysEvent(lastVoteInfo_);
 }
