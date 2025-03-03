@@ -43,7 +43,7 @@ int32_t SurfaceWatermarkParamParse::ParseFeatureParam(FeatureParamMapType &featu
 int32_t SurfaceWatermarkParamParse::ParseSurfaceWatermarkInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[SURFACE_WATERMARK]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[SURFACE_WATERMARK_CCM]);
     if (iter!= featureMap.end()) {
         surfaceWatermarkParam_ = std::static_pointer_cast<SurfaceWatermarkParam>(iter->second);
     } else {

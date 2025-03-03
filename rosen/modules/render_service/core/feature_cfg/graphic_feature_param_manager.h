@@ -96,17 +96,17 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<SOCPerfParam>(); }},
     {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
         [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
-    {FEATURE_CONFIGS[NODE_GROUP], [] {return std::make_unique<NodeGroupParamParse>(); },
+    {FEATURE_CONFIGS[NODE_GROUP_CCM], [] {return std::make_unique<NodeGroupParamParse>(); },
         [] {return std::make_unique<NodeGroupParam>(); }},
-    {FEATURE_CONFIGS[SURFACE_WATERMARK], [] {return std::make_unique<SurfaceWatermarkParamParse>(); },
+    {FEATURE_CONFIGS[SURFACE_WATERMARK_CCM], [] {return std::make_unique<SurfaceWatermarkParamParse>(); },
         [] {return std::make_unique<SurfaceWatermarkParam>(); }},
-    {FEATURE_CONFIGS[SURFACE_CAPTURE], [] {return std::make_unique<SurfaceCaptureParamParse>(); },
+    {FEATURE_CONFIGS[SURFACE_CAPTURE_CCM], [] {return std::make_unique<SurfaceCaptureParamParse>(); },
         [] {return std::make_unique<SurfaceCaptureParam>(); }},
-    {FEATURE_CONFIGS[UI_CAPTURE], [] {return std::make_unique<UICaptureParamParse>(); },
-        [] {return std::make_unique<UICaptureParamParam>(); }},
-    {FEATURE_CONFIGS[CAPTURE], [] {return std::make_unique<CaptureBaseParamParse>(); },
+    {FEATURE_CONFIGS[UI_CAPTURE_CCM], [] {return std::make_unique<UICaptureParamParse>(); },
+        [] {return std::make_unique<UICaptureParam>(); }},
+    {FEATURE_CONFIGS[CAPTURE_CCM], [] {return std::make_unique<CaptureBaseParamParse>(); },
         [] {return std::make_unique<CaptureBaseParam>(); }},
-    {FEATURE_CONFIGS[BACKGROUND_DRAWABLE], [] {return std::make_unique<BackgroundDrawableParamParse>(); },
+    {FEATURE_CONFIGS[BACKGROUND_DRAWABLE_CCM], [] {return std::make_unique<BackgroundDrawableParamParse>(); },
         [] {return std::make_unique<BackgroundDrawableParam>(); }},
     {FEATURE_CONFIGS[Accessibility], [] {return std::make_unique<AccessibilityParamParse>(); },
         [] {return std::make_unique<AccessibilityParam>(); }},
@@ -134,16 +134,17 @@ private:
     std::unique_ptr<XMLParserBase> featureParser_ = nullptr;
 };
 
-template<class Ty>
-bool GetFeatureParam(const std::string& featureName, Ty& param)
+template<class Ret, class Cls, class... Args>
+std::optional<Ret> GetFeatureParamValue(const std::string& featureName,
+    Ret (Cls::*func)(Args...) const, Args&&... args)
 {
-    static_assert(std::is_base_of_v<FeatureParam, Ty>, "Invalid Param Type");
+    static_assert(std::is_base_of_v<FeatureParam, Cls>, "Invalid Param Type");
     auto pParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(featureName);
     if (pParam == nullptr) {
-        return false; 
+        return std::nullopt;
     }
-    param = *std::static_pointer_cast<Ty>(pParam);
-    return true;
+    auto pCls = std::static_pointer_cast<Cls>(pParam);
+    return ((pCls.get())->*func)(std::forward<Args>(args)...);
 }
 
 template<class Ret, class Cls, class... Args>
@@ -156,7 +157,7 @@ std::optional<Ret> GetFeatureParamValue(const std::string& featureName,
         return std::nullopt;
     }
     auto pCls = std::static_pointer_cast<Cls>(pParam);
-    return (pCls->*func)(std::forward<Args>(args)...);
+    return ((pCls.get())->*func)(std::forward<Args>(args)...);
 }
 } // namespace OHOS::Rosen
 #endif // GRAPHIC_FEATURE_PARAM_MANAGER_H

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "capture_param_parse.h"
+#include "capture_base_param_parse.h"
 
 namespace OHOS::Rosen {
 int32_t CaptureBaseParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
@@ -43,7 +43,7 @@ int32_t CaptureBaseParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
 int32_t CaptureBaseParamParse::ParseCaptureInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[CAPTURE]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[CAPTURE_CCM]);
     if (iter != featureMap.end()) {
         captureParam_ = std::static_pointer_cast<CaptureBaseParam>(iter->second);
     } else {

@@ -12,3 +12,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <gtest/gtest.h>
+#include <test_header.h>
+
+#include "background_drawable_param.h"
+
+using namespace testing;
+using namespace testing::ext;
+
+namespace OHOS::Rosen {
+class BackgroundDrawableParamTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp();
+    void TearDown();
+};
+
+void BackgroundDrawableParamTest::SetUpTestCase() {}
+void BackgroundDrawableParamTest::TearDownTestCase() {}
+void BackgroundDrawableParamTest::SetUp() {}
+void BackgroundDrawableParamTest::TearDown() {}
+
+/*
+ * @tc.name: IsDrawRRectEnabled
+ * @tc.desc: Test IsDrawRRectEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BackgroundDrawableParamTest, IsDrawRRectEnabled, Function | SmallTest | Level1)
+{
+    std::shared_ptr<BackgroundDrawableParam> backgroundDrawableParam = std::make_shared<BackgroundDrawableParam>();
+    backgroundDrawableParam->SetDrawRRectEnabled(true);
+    EXPECT_EQ(backgroundDrawableParam->IsDrawRRectEnabled(), true);
+    backgroundDrawableParam->SetDrawRRectEnabled(false);
+}
+} // namespace OHOS::Rosen

@@ -41,7 +41,7 @@ int32_t BackgroundDrawableParamParse::ParseFeatureParam(FeatureParamMapType &fea
 int32_t BackgroundDrawableParamParse::ParseBackgroundDrawableInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[BACKGROUND_DRAWABLE]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[BACKGROUND_DRAWABLE_CCM]);
     if (iter!= featureMap.end()) {
         backgroundDrawableParam_ = std::static_pointer_cast<BackgroundDrawableParam>(iter->second);
     } else {

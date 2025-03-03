@@ -44,7 +44,7 @@ int32_t NodeGroupParamParse::ParseNodeGroupInternal(FeatureParamMapType &feature
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[NODE_GROUP]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[NODE_GROUP_CCM]);
     if (iter!= featureMap.end()) {
         nodeGroupParam_ = std::static_pointer_cast<NodeGroupParam>(iter->second);
     } else {
@@ -61,7 +61,7 @@ int32_t NodeGroupParamParse::ParseNodeGroupInternal(FeatureParamMapType &feature
         if (name == "NodeGroupGroupByUIEnabled") {
             nodeGroupParam_->SetGroupByUIEnabled(isEnabled);
             RS_LOGI("NodeGroupParamParse parse NodeGroupGroupByUIEnabled %{public}d",
-                NodeGroupParam_->IsGroupByUIEnabled());
+                nodeGroupParam_->IsGroupByUIEnabled());
         }
     }
 

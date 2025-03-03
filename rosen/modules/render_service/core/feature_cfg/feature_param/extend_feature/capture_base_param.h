@@ -29,7 +29,7 @@ protected:
     void SetSnapshotWithDMAEnabled(bool enabled);
 
 private:
-    bool snapshotWithDMAEnabled_;
+    bool isSnapshotWithDMAEnabled_;
     
     friend class CaptureBaseParamParse;
 };

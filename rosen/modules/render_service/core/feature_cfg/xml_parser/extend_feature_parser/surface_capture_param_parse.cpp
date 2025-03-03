@@ -43,7 +43,7 @@ int32_t SurfaceCaptureParamParse::ParseFeatureParam(FeatureParamMapType &feature
 int32_t SurfaceCaptureParamParse::ParseSurfaceCaptureInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[SURFACE_CAPTURE]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[SURFACE_CAPTURE_CCM]);
     if (iter!= featureMap.end()) {
         surfaceCaptureParam_ = std::static_pointer_cast<SurfaceCaptureParam>(iter->second);
     } else {
@@ -65,3 +65,4 @@ int32_t SurfaceCaptureParamParse::ParseSurfaceCaptureInternal(FeatureParamMapTyp
 
     return PARSE_EXEC_SUCCESS;
 }
+} // namespace OHOS::Rosen

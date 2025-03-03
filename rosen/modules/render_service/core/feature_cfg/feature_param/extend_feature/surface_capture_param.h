@@ -23,7 +23,7 @@ class SurfaceCaptureParam : public FeatureParam {
 public:
     SurfaceCaptureParam() = default;
     ~SurfaceCaptureParam() = default;
-    bool IsUseOptimizedFlushAndSubmitEnabled() const
+    bool IsUseOptimizedFlushAndSubmitEnabled() const;
 
 protected:
     void SetUseOptimizedFlushAndSubmitEnabled(bool enabled);
@@ -32,4 +32,6 @@ private:
     bool useOptimizedFlushAndSubmitEnabled_ = true;
 
     friend class SurfaceCaptureParamParse;
-}
+};
+} // namespace OHOS::Rosen
+#endif // SURFACE_CAPTURE_PARAM_H

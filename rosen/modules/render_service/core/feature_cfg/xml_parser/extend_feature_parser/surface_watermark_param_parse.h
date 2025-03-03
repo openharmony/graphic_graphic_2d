@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SURFACE_WATERMARK_PARSE_H
-#define SURFACE_WATERMARK_PARSE_H
+#ifndef SURFACE_WATERMARK_PARAM_PARSE_H
+#define SURFACE_WATERMARK_PARAM_PARSE_H
 
 #include "xml_parser_base.h"
 #include "surface_watermark_param.h"
@@ -32,3 +32,4 @@ private:
     std::shared_ptr<SurfaceWatermarkParam> surfaceWatermarkParam_;
 };
 } // namespace OHOS::Rosen
+#endif // SURFACE_WATERMARK_PARAM_PARSE_H

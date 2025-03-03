@@ -40,7 +40,7 @@ void SurfaceWatermarkParamTest::TearDown() {}
  * @tc.name: SetSurfaceWatermarkEnable
  * @tc.desc: Verify the SetSurfaceWatermarkEnable function
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(SurfaceWatermarkParamTest, SetSurfaceWatermarkEnable, Function | SmallTest | Level1)
 {
@@ -54,7 +54,7 @@ HWTEST_F(SurfaceWatermarkParamTest, SetSurfaceWatermarkEnable, Function | SmallT
  * @tc.name: IsSurfaceWatermarkEnable
  * @tc.desc: Verify the IsSurfaceWatermarkEnable function
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(SurfaceWatermarkParamTest, IsSurfaceWatermarkEnable, Function | SmallTest | Level1)
 {

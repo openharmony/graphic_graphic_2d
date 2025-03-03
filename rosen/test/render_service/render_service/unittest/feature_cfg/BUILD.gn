@@ -44,8 +44,8 @@ ohos_unittest("feature_cfg_test") {
     "speciallayer_param_test.cpp",
     "surface_capture_param_test.cpp",
     "surface_watermark_param_test.cpp",
-    "uifirst_param_test.cpp",
     "ui_capture_param_test.cpp",
+    "uifirst_param_test.cpp",
     "xml_parser_base_test.cpp",
   ]
 

@@ -64,3 +64,4 @@ HWTEST_F(UICaptureParamTest, IsUseDMAProcessEnabled, Function | SmallTest | Leve
     uiCaptureParam->SetUseDMAProcessEnabled(false);
     EXPECT_EQ(uiCaptureParam->IsUseDMAProcessEnabled(), false);
 }
+} // namespace OHOS::Rosen

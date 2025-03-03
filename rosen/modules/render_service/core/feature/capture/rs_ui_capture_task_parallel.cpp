@@ -274,9 +274,9 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && GetFeatureParamValue("CaptureConfig",
-        CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false)) {
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false)) {
         RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, GetFeatureParamValue("UICaptureConfig",
-            UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
+            &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 surface, std::move(pixelMap_), nodeId_, captureConfig_, callback);
@@ -431,7 +431,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
         if (captureConfig.useDma && GetFeatureParamValue("UICaptureConfig",
-            UICaptureParam::IsUseDMAProcessEnabled).value_or(false) &&
+            &UICaptureParam::IsUseDMAProcessEnabled).value_or(false) &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);

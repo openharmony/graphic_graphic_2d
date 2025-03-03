@@ -34,7 +34,7 @@ int32_t UICaptureParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, 
         if (ParseUICaptureInternal(featureMap, *currNode)!= PARSE_EXEC_SUCCESS) {
             RS_LOGD("UICaptureParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
-        }   
+        }
     }
     return PARSE_EXEC_SUCCESS;
 }
@@ -42,7 +42,7 @@ int32_t UICaptureParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, 
 int32_t UICaptureParamParse::ParseUICaptureInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[UI_CAPTURE]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[UI_CAPTURE_CCM]);
     if (iter!= featureMap.end()) {
         uiCaptureParam_ = std::static_pointer_cast<UICaptureParam>(iter->second);
     } else {

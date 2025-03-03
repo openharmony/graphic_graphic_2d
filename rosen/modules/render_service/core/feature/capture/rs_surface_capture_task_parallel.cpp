@@ -258,12 +258,12 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
     }
     if (RSSystemProperties::GetSnapshotWithDMAEnabled() && GetFeatureParamValue("UICaptureConfig",
-            UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false)) {
+        &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false)) {
         auto copytask = CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, captureConfig_, callback, finalRotationAngle_);
         if (!copytask) {

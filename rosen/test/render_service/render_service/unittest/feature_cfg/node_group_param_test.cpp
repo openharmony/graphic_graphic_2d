@@ -39,7 +39,7 @@ void NodeGroupParamTest::TearDown() {}
  * @tc.name: SetGroupByUIEnabled
  * @tc.desc: Test SetGroupByUIEnabled
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(NodeGroupParamTest, SetGroupByUIEnabled, Function | SmallTest | Level1)
 {
@@ -54,7 +54,7 @@ HWTEST_F(NodeGroupParamTest, SetGroupByUIEnabled, Function | SmallTest | Level1)
  * @tc.name: IsGroupByUIEnabled
  * @tc.desc: Test IsGroupByUIEnabled
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(NodeGroupParamTest, IsGroupByUIEnabled, Function | SmallTest | Level1)
 {

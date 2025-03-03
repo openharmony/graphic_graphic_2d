@@ -610,7 +610,8 @@ bool RSRenderServiceConnection::SetWatermark(const std::string& name, std::share
         return false;
     }
     if (GetFeatureParamValue("SurfaceWatermarkConfig",
-        SurfaceWatermarkParam::IsSurfaceWatermarkEnable).value_or(false)) {
+        &SurfaceWatermarkParam::IsSurfaceWatermarkEnable).value_or(false)) {
+        RS_LOGW("RSRenderServiceConnection::SetWatermark, SurfaceWatermarkConfig is not enabled");
         return false;
     }
     mainThread_->SetWatermark(name, watermark);
