@@ -33,15 +33,15 @@ void HgmAppPageUrlStrategy::ProcessRemoveVoter(pid_t pid)
 {
     HGM_LOGI("HgmAppPageUrlStrategy: Remove Voter pid = %{public}d", pid);
     if (pageUrlVoterCallback_ != nullptr) {
-        pageUrlVoterCallback_(pid, 0, 0, false);
+        pageUrlVoterCallback_(pid, "", false);
     }
 }
 
-void HgmAppPageUrlStrategy::ProcessAddVoter(pid_t pid, int32_t min, int32_t max)
+void HgmAppPageUrlStrategy::ProcessAddVoter(pid_t pid, std::string strategy)
 {
     HGM_LOGI("HgmAppPageUrlStrategy: Add Voter pid = %{public}d", pid);
     if (pageUrlVoterCallback_ != nullptr) {
-        pageUrlVoterCallback_(pid, min, max, true);
+        pageUrlVoterCallback_(pid, strategy, true);
     }
 }
 
@@ -74,11 +74,11 @@ void HgmAppPageUrlStrategy::NotifyScreenSettingChange()
                 continue;
             }
             PolicyConfigData::PageUrlConfig pageUrlConfig = pageUrlConfig_[packageName];
-            if (pageUrlConfig.pageUrl.count(pageName) <= 0) {
+            if (pageUrlConfig.count(pageName) <= 0) {
                 continue;
             }
-            PolicyConfigData::PageUrlFps pageUrlFps = pageUrlConfig.pageUrl[pageName];
-            ProcessAddVoter(pid, pageUrlFps.min, pageUrlFps.max);
+            auto strategy = pageUrlConfig[pageName];
+            ProcessAddVoter(pid, strategy);
             pageUrlVoterInfo_[pid].hasVoter = true;
         }
     }
@@ -101,14 +101,14 @@ void HgmAppPageUrlStrategy::NotifyPageName(pid_t pid, const std::string &package
     }
 
     PolicyConfigData::PageUrlConfig pageUrlConfig = pageUrlConfig_[packageName];
-    if (pageUrlConfig.pageUrl.count(pageName) <= 0) {
+    if (pageUrlConfig.count(pageName) <= 0) {
         HGM_LOGD("HgmAppPageUrlStrategy: not pageUrl config");
         return;
     }
 
-    PolicyConfigData::PageUrlFps pageUrlFps = pageUrlConfig.pageUrl[pageName];
+    auto strategy = pageUrlConfig[pageName];
     if (isEnter && !pageUrlVoterInfo_[pid].hasVoter) {
-        ProcessAddVoter(pid, pageUrlFps.min, pageUrlFps.max);
+        ProcessAddVoter(pid, strategy);
         pageUrlVoterInfo_[pid].hasVoter = true;
     } else if (!isEnter && pageUrlVoterInfo_[pid].hasVoter) {
         ProcessRemoveVoter(pid);

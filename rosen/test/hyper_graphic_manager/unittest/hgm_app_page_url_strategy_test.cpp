@@ -30,6 +30,7 @@ namespace {
     constexpr int32_t DEF_PID = 1000;
     constexpr int32_t MIN_FPS = 60;
     constexpr int32_t MAX_FPS = 90;
+    const std::string STRATEGY = "5";
     const std::string PKG_NAME = "com.pkg.other";
     const std::string PAGE_NAME = "other";
 }
@@ -49,11 +50,8 @@ public:
 void HgmAppPageUrlStrategyTest::SetUp()
 {
     appPageUrlStrategy_ = std::make_shared<HgmAppPageUrlStrategy>();
-    std::unordered_map<std::string, PolicyConfigData::PageUrlFps> pageUrl;
-    PolicyConfigData::PageUrlFps pageUrlFps = {MIN_FPS, MAX_FPS};
-    pageUrl[PAGE_NAME] = pageUrlFps;
     PolicyConfigData::PageUrlConfig pageUrlConfig;
-    pageUrlConfig.pageUrl = pageUrl;
+    pageUrlConfig[PAGE_NAME] = STRATEGY;
     screenSetting_.pageUrlConfig[PKG_NAME] = pageUrlConfig;
 }
 

@@ -148,12 +148,17 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     hgmCore.SetLtpoConfig();
     multiAppStrategy_.CalcVote();
     appPageUrlStrategy_.RegisterPageUrlVoterCallback([this] (int32_t pid,
-        int32_t min, int32_t max, const bool isAddVoter) {
+        std::string strategy, const bool isAddVoter) {
         if (isAddVoter) {
+            auto configData = HgmCore::Instance().GetPolicyConfigData();
+            if (configData->strategyConfig_.find(strategy) != configData->strategyConfig_.end()) {
+                auto min = static_cast<uint32_t>(configData->strategyConfig_[strategy].min);
+                auto max = static_cast<uint32_t>(configData->strategyConfig_[strategy].max);
+                DeliverRefreshRateVote({"VOTER_PAGE_URL", min, max, pid}, ADD_VOTE);
+            }
             if (pid != DEFAULT_PID) {
                 cleanPidCallback_[pid].insert(CleanPidCallbackType::PAGE_URL);
             }
-            DeliverRefreshRateVote({"VOTER_PAGE_URL", min, max, pid}, ADD_VOTE);
         } else {
             DeliverRefreshRateVote({"VOTER_PAGE_URL", 0, 0, pid}, REMOVE_VOTE);
         }
