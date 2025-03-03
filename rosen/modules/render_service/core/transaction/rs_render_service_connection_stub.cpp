@@ -423,7 +423,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFdWorker, ashmemFlowControlUnit,
                     callingPid);
                 if (parsedParcel) {
-                    parcelNumber = RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
+                    RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
                 }
             }
             if (parsedParcel == nullptr) {

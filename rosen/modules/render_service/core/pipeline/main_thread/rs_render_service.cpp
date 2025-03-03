@@ -140,8 +140,28 @@ bool RSRenderService::Init()
         appVSyncController_ = new VSyncController(generator, 0);
         generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
-    rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
-    appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
+    std::shared_ptr<FeatureParam> featureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
+    std::vector<bool> switchParams = {};
+    std::vector<uint32_t> bufferCountParams = {};
+    if (featureParam != nullptr) {
+        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
+        switchParams = {
+            dvsyncFeatureParam->IsDVSyncEnable(),
+            dvsyncFeatureParam->IsUiDVSyncEnable(),
+            dvsyncFeatureParam->IsNativeDVSyncEnable(),
+            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
+        };
+        bufferCountParams = {
+            dvsyncFeatureParam->GetUiBufferCount(),
+            dvsyncFeatureParam->GetRsBufferCount(),
+            dvsyncFeatureParam->GetNativeBufferCount(),
+            dvsyncFeatureParam->GetWebBufferCount(),
+        };
+    }
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams };
+    rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
+    appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
 
     generator->SetRSDistributor(rsVSyncDistributor_);
     generator->SetAppDistributor(appVSyncDistributor_);
