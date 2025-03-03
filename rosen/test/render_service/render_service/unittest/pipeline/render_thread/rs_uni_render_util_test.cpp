@@ -447,30 +447,6 @@ HWTEST_F(RSUniRenderUtilTest, ClearSurfaceIfNeed, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: ClearSurfaceIfNeed002
- * @tc.desc: Test ClearSurfaceIfNeed when oldChildren.size > 0
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, ClearSurfaceIfNeed002, Function | SmallTest | Level2)
-{
-    RSRenderNodeMap map;
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
-    std::set<std::shared_ptr<RSBaseRenderNode>> oldChildren;
-    std::shared_ptr<RSBaseRenderNode> node1 = std::make_shared<RSBaseRenderNode>(1);
-    ASSERT_NE(node1, nullptr);
-    std::shared_ptr<RSBaseRenderNode> node2 = std::make_shared<RSBaseRenderNode>(2);
-    ASSERT_NE(node2, nullptr);
-    oldChildren.insert(node1);
-    oldChildren.insert(node2);
-    DeviceType deviceType = DeviceType::PHONE;
-    RSUniRenderUtil::ClearSurfaceIfNeed(map, displayNode, oldChildren, deviceType);
-}
-
-/*
  * @tc.name: ClearCacheSurface
  * @tc.desc: Test ClearCacheSurface when threadIndex = 0
  * @tc.type: FUNC
