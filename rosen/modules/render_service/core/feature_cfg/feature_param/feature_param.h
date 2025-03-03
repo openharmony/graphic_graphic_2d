@@ -34,6 +34,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "OPIncConfig",
     "PrevalidateConfig",
     "UIFirstConfig",
+    "DvsyncConfig",
     "SocperfConfig",
     "DeeplyReleaseGpuResourceConfig"
 };
@@ -49,6 +50,7 @@ enum FeatureModule {
     PREVALIDATE,
     UIFirst,
     FILTER,
+    DVSYNC,
     SOC_PERF,
     DEEPLY_REL_GPU_RES,
 };
