@@ -1867,7 +1867,7 @@ void HgmFrameRateManager::ProcessPageUrlVote(pid_t pid, std::string strategy, co
 {
     if (isAddVoter) {
         PolicyConfigData::StrategyConfig strategyConfig;
-        if (multiAppStrategy_.GetStrategyConfig(strategy, strategyConfig)) {
+        if (multiAppStrategy_.GetStrategyConfig(strategy, strategyConfig) == EXEC_SUCCESS) {
             auto min = strategyConfig.min;
             auto max = strategyConfig.max;
             DeliverRefreshRateVote({"VOTER_PAGE_URL", min, max, pid}, ADD_VOTE);
