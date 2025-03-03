@@ -97,14 +97,12 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     surfaceFpsManager.RegisterSurfaceFps(id, name);
     surfaceFpsManager.RecordPresentTime(id, timestamp, seqNum);
     surfaceFpsManager.RecordPresentTime(uid, timestamp, seqNum);
-    surfaceFpsManager.Dump(result, name);
-    surfaceFpsManager.Dump(result, uname);
-    surfaceFpsManager.ClearDump(result, name);
-    surfaceFpsManager.ClearDump(result, uname);
+    surfaceFpsManager.Dump(result, id);
+    surfaceFpsManager.Dump(result, uid);
+    surfaceFpsManager.ClearDump(result, id);
+    surfaceFpsManager.ClearDump(result, uid);
     surfaceFpsManager.GetSurfaceFps(id);
     surfaceFpsManager.GetSurfaceFps(uid);
-    surfaceFpsManager.GetSurfaceFps(name);
-    surfaceFpsManager.GetSurfaceFps(uname);
     surfaceFpsManager.UnregisterSurfaceFps(id);
     surfaceFpsManager.UnregisterSurfaceFps(uid);
 
