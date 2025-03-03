@@ -28,6 +28,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "memory/rs_memory_track.h"
@@ -40,7 +41,6 @@
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
-#include "luminance/rs_luminance_control.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -655,6 +655,8 @@ public:
     void OnAlphaChanged() override {
         alphaChanged_ = true;
     }
+
+    void SetStencilVal(int64_t stencilVal);
 
     void SetOcclusionVisible(bool visible);
 
@@ -1288,6 +1290,8 @@ public:
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
+    void SetSdrHasMetadata(bool hasMetadata);
+    bool GetSdrHasMetadata() const;
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1405,6 +1409,7 @@ public:
     {
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
+
     // use for updating hdr and sdr nit
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
@@ -1466,6 +1471,8 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+    // use for updating layerLineraMatrix
+    static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1580,6 +1587,7 @@ private:
     int hdrNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
+    int64_t stencilVal_ = -1;
     float positionZ_ = 0.0f;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.

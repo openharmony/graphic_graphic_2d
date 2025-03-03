@@ -178,7 +178,6 @@ public:
     static bool GetReleaseResourceEnabled();
     static bool GetReclaimMemoryEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetVmaPreAllocEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -257,7 +256,6 @@ public:
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
-    static bool GetSubSurfaceEnabled();
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();

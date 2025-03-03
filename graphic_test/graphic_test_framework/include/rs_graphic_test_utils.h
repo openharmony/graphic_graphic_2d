@@ -24,6 +24,10 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int64_t SEC_TO_NANOSEC = 1000000000;
+static constexpr int64_t UNIT_MS_TO_NS = 1000000;
+static constexpr int64_t ANIMATION_VSYNC_TIME_MS = 8;
+
 using WriteToPngParam = struct {
     uint32_t width;
     uint32_t height;

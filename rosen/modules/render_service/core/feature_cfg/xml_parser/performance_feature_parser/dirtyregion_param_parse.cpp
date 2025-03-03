@@ -77,6 +77,9 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &fea
         } else if (name == "TileBasedAlignEnabled") {
             dirtyRegionParam_->SetTileBasedAlignEnable(isEnabled);
             RS_LOGI("DirtyRegionParamParse parse SetTileBasedAlignEnable %{public}d", isEnabled);
+        } else {
+            RS_LOGE("DirtyRegionParamParse error occured during param parsing.");
+            return PARSE_ERROR;
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "TileBasedAlignBits" && IsNumber(val)) {
@@ -85,7 +88,15 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &fea
             if (iss >> num) {
                 dirtyRegionParam_->SetTileBasedAlignBits(num);
                 RS_LOGI("DirtyRegionParamParse parse SetTileBasedAlignBits %{public}d", num);
+            } else {
+                dirtyRegionParam_->SetTileBasedAlignEnable(false);
+                RS_LOGE("DirtyRegionParamParse error occured during param parsing.");
+                return PARSE_ERROR;
             }
+        } else {
+            dirtyRegionParam_->SetTileBasedAlignEnable(false);
+            RS_LOGE("DirtyRegionParamParse error occured during param parsing.");
+            return PARSE_ERROR;
         }
     } else {
         RS_LOGE("DirtyRegionParamParse error occured during param parsing.");

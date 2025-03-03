@@ -31,6 +31,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "utils/graphic_coretrace.h"
 
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -247,11 +248,28 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
 
 void RSRenderNodeDrawableAdapter::DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLEADAPTER_DRAWBACKGROUND);
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);
+}
+
+void RSRenderNodeDrawableAdapter::DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+    bool isStencilPixelOcclusionCullingEnabled, int64_t stencilVal) const
+{
+    if (!isStencilPixelOcclusionCullingEnabled) {
+        DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.backgroundEndIndex_);
+        return;
+    }
+    DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.shadowIndex_);
+    // [planning] enable limited to shadow
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.shadowIndex_, drawCmdIndex_.shadowIndex_ + 1);
+    DrawRangeImpl(canvas, rect, drawCmdIndex_.shadowIndex_ + 1, drawCmdIndex_.backgroundEndIndex_);
 }
 
 void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLEADAPTER_DRAWCONTENT);
     if (drawCmdList_.empty()) {
         return;
     }
@@ -265,6 +283,8 @@ void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Dra
 
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLEADAPTER_DRAWCHILDREN);
     if (drawCmdList_.empty()) {
         return;
     }
@@ -278,6 +298,8 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
 
 void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLEADAPTER_DRAWUIFIRSTCONTENTCHILDREN);
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
@@ -309,6 +331,8 @@ void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const 
 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLEADAPTER_DRAWALL);
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.endIndex_);
 }
 
@@ -448,6 +472,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     for (auto index = 0; index < backgroundIndex; ++index) {
         if (index == drawCmdIndex_.shadowIndex_) {
+            CollectInfoForNodeWithoutFilter(canvas);
             if (!params.GetShadowRect().IsEmpty()) {
                 auto shadowRect = params.GetShadowRect();
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),

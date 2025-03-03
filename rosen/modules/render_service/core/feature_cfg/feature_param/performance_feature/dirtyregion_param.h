@@ -22,20 +22,34 @@ namespace OHOS::Rosen {
 class DirtyRegionParam : public FeatureParam {
 public:
     DirtyRegionParam() = default;
+
     ~DirtyRegionParam() = default;
+
     bool IsDirtyRegionEnable() const;
+
     bool IsExpandScreenDirtyRegionEnable() const;
+
     bool IsMirrorScreenDirtyRegionEnable() const;
+
     bool IsAdvancedDirtyRegionEnable() const;
+
     bool IsTileBasedAlignEnable() const;
+
     int GetTileBasedAlignBits() const;
+
 protected:
     void SetDirtyRegionEnable(bool isEnable);
+
     void SetExpandScreenDirtyRegionEnable(bool isEnable);
+
     void SetMirrorScreenDirtyRegionEnable(bool isEnable);
+
     void SetAdvancedDirtyRegionEnable(bool isEnable);
+
     void SetTileBasedAlignEnable(bool isEnable);
+
     void SetTileBasedAlignBits(int tileBasedAlignBits);
+
 private:
     bool isDirtyRegionEnable_ = true;
     bool isExpandScreenDirtyRegionEnable_ = true;

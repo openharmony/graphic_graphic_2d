@@ -14,6 +14,7 @@
  */
 
 #include "dirtyregion_param.h"
+
 namespace OHOS::Rosen {
 bool DirtyRegionParam::IsDirtyRegionEnable() const
 {

@@ -489,6 +489,11 @@ bool RCDConfig::Load(const std::string& configFile)
     return true;
 }
 
+bool RCDConfig::IsDataLoaded() const
+{
+    return isLoadData;
+}
+
 LCDModel* RCDConfig::GetLcdModel(const std::string& name) const
 {
     if (name.empty()) {

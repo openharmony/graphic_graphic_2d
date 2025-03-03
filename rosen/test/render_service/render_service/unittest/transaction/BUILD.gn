@@ -25,6 +25,7 @@ group("unittest") {
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
     ":RSRenderServiceConnectionStubTest",
     ":RSRenderServiceStubTest",
+    ":RSUnmarshalThreadTest",
   ]
 }
 
@@ -117,6 +118,30 @@ config("rs_test_common_public_config") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
+}
+
+## Build RSUnmarshalThreadTest
+ohos_unittest("RSUnmarshalThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_unmarshal_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+  }
 }
 
 ohos_static_library("rs_test_common") {

@@ -82,7 +82,6 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_marshalling.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
-    "src/animation/rs_animation_report.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
@@ -335,19 +334,19 @@ ohos_source_set("render_service_base_src") {
 
   if (rosen_is_ohos) {
     sources += [
-      #color_temp
-      "src/color_temp/rs_color_temp.cpp",
+      #color_temperature
+      "src/display_engine/rs_color_temperature.cpp",
 
       #luminance
-      "src/luminance/rs_luminance_control.cpp",
+      "src/display_engine/rs_luminance_control.cpp",
     ]
   } else {
     sources += [
-      #color_temp
-      "src/color_temp/mingw/rs_color_temp.cpp",
+      #color_temperature
+      "src/display_engine/mingw/rs_color_temperature.cpp",
 
       #luminance
-      "src/luminance/mingw/rs_luminance_control.cpp",
+      "src/display_engine/mingw/rs_luminance_control.cpp",
     ]
   }
 
@@ -494,6 +493,7 @@ ohos_source_set("render_service_base_src") {
   external_deps = [
     "graphic_surface:surface_headers",
     "hilog:libhilog",
+    "lz4:liblz4_shared",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

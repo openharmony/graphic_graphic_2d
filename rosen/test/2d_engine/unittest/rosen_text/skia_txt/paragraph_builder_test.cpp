@@ -244,4 +244,28 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
 {
     EXPECT_EQ(paragraphBuilder_->BuildLineFetcher(), nullptr);
 }
+
+/*
+ * @tc.name: ParagraphBuilderTest015
+ * @tc.desc: test for TextStyleToSkStyle ParagraphSpacing
+ * @tc.type: FUNC
+ */
+ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest015, TestSize.Level1)
+ {
+     skia::textlayout::ParagraphStyle skStyle;
+     ParagraphStyle txt;
+     txt.paragraphSpacing = 100.0f;
+     txt.isEndAddParagraphSpacing = true;
+     skStyle.setParagraphSpacing(txt.paragraphSpacing);
+     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+     EXPECT_EQ(skStyle.getParagraphSpacing(), txt.paragraphSpacing);
+     EXPECT_EQ(skStyle.getIsEndAddParagraphSpacing(), txt.isEndAddParagraphSpacing);
+
+     txt.paragraphSpacing = 0.0f;
+     txt.isEndAddParagraphSpacing = true;
+     skStyle.setParagraphSpacing(txt.paragraphSpacing);
+     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+     EXPECT_EQ(skStyle.getParagraphSpacing(), txt.paragraphSpacing);
+     EXPECT_EQ(skStyle.getIsEndAddParagraphSpacing(), txt.isEndAddParagraphSpacing);
+ }
 } // namespace txt

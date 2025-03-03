@@ -45,7 +45,10 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
             return nullptr;
         }
     }
-    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
+    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
+        ", isMirrored=%{public}d, mirrorNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
+        node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored,
+        displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync);
     return node;
 }
 

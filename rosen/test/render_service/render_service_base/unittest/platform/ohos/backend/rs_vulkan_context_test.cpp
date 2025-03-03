@@ -95,7 +95,7 @@ HWTEST_F(RSVulkanContextTest, CreateDevice001, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, CreateSkiaBackendContext001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
-    EXPECT_FALSE(rsVulkanInterface.CreateSkiaBackendContext(nullptr, true, true));
+    EXPECT_FALSE(rsVulkanInterface.CreateSkiaBackendContext(nullptr, true));
 }
 
 /**
@@ -166,28 +166,7 @@ HWTEST_F(RSVulkanContextTest, CreateSkiaGetProc001, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
-    auto ret = rsVulkanInterface.CreateDrawingContext(true, true);
-    EXPECT_TRUE(ret != nullptr);
-
-    ret = rsVulkanInterface.CreateDrawingContext(false, true);
-    EXPECT_TRUE(ret != nullptr);
-}
-
-/**
- * @tc.name: CreateDrawingContext002
- * @tc.desc: test results of CreateDrawingContext
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level1)
-{
-    RsVulkanInterface rsVulkanInterface;
-    auto ret = rsVulkanInterface.CreateDrawingContext(true);
-    EXPECT_TRUE(ret != nullptr);
-    
-    RsVulkanContext::protectedDrawingContext_ = rsVulkanInterface.CreateDrawingContext(false, true);
-    RsVulkanContext::drawingContext_ = rsVulkanInterface.CreateDrawingContext();
-    ret = rsVulkanInterface.CreateDrawingContext(false);
+    auto ret = rsVulkanInterface.CreateDrawingContext();
     EXPECT_TRUE(ret != nullptr);
 }
 } // namespace Rosen

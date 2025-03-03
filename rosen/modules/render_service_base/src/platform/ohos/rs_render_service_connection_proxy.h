@@ -343,6 +343,7 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value) override;
 
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

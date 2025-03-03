@@ -51,6 +51,16 @@ void RSDisplayRenderParams::SetMainAndLeashSurfaceDirty(bool isDirty)
     needSync_ = true;
 }
 
+const std::vector<Occlusion::Rect>& RSDisplayRenderParams::GetTopSurfaceOpaqueRects() const
+{
+    return topSurfaceOpaqueRects_;
+}
+
+void RSDisplayRenderParams::SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+{
+    std::swap(topSurfaceOpaqueRects_, topSurfaceOpaqueRects);
+}
+
 bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
 {
     return isMainAndLeashSurfaceDirty_;
@@ -195,6 +205,8 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         allMainAndLeashSurfaceDrawables_.push_back(ptr);
     }
     targetDisplayParams->allMainAndLeashSurfaceDrawables_ = allMainAndLeashSurfaceDrawables_;
+    targetDisplayParams->topSurfaceOpaqueRects_.clear();
+    targetDisplayParams->topSurfaceOpaqueRects_.assign(topSurfaceOpaqueRects_.begin(), topSurfaceOpaqueRects_.end());
     targetDisplayParams->specialLayerManager_ = specialLayerManager_;
     targetDisplayParams->displaySpecailSurfaceChanged_ = displaySpecailSurfaceChanged_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;

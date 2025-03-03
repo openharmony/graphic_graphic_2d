@@ -2724,4 +2724,310 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest112, TestSize.Level
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTextStyle(txtStyle);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontParserGetSystemFontListTest001
+ * @tc.desc: test for the OH_Drawing_FontParserGetSystemFontList.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_FontParserGetSystemFontListTest001, TestSize.Level1)
+{
+    OH_Drawing_FontParser* fontParser = OH_Drawing_CreateFontParser();
+    ASSERT_NE(fontParser, nullptr);
+    size_t value = 100; // 100 for test
+    size_t* num = &value;
+    ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+    num = nullptr;
+    ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+    fontParser = nullptr;
+    ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_DestroySystemFontListTest001
+ * @tc.desc: test for the OH_Drawing_DestroySystemFontList.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_DestroySystemFontListTest001, TestSize.Level1)
+{
+    char** fontList = new char*[3]; // 3 means the number of font
+    std::string tempStr1 = "Test1";
+    std::string tempStr3 = "Test3";
+    fontList[0] = new char[tempStr1.size() + 1];
+    std::copy(tempStr1.begin(), tempStr1.end(), fontList[0]);
+    fontList[0][tempStr1.size()] = '\0';
+    fontList[1] = nullptr;
+    fontList[2] = new char[tempStr3.size() + 1]; // 2 means the index of font
+    std::copy(tempStr3.begin(), tempStr3.end(), fontList[2]); // 2 means the index of font
+    fontList[2][tempStr3.size()] = '\0'; // 2 means the index of font
+    size_t num = 3; // 3 means the number of font
+    ASSERT_NE(fontList, nullptr);
+    OH_Drawing_DestroySystemFontList(fontList, num);
+
+    fontList = nullptr;
+    OH_Drawing_DestroySystemFontList(fontList, num);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontParserGetFontByNameTest001
+ * @tc.desc: test for the OH_Drawing_FontParserGetFontByName.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_FontParserGetFontByNameTest001, TestSize.Level1)
+{
+    OH_Drawing_FontParser* fontParser = OH_Drawing_CreateFontParser();
+    ASSERT_NE(fontParser, nullptr);
+    const char* name = "test";
+    OH_Drawing_FontDescriptor* fontDescriptor = OH_Drawing_FontParserGetFontByName(fontParser, name);
+    ASSERT_EQ(fontDescriptor, nullptr);
+
+    OH_Drawing_FontDescriptor* fontDescriptor1 = OH_Drawing_FontParserGetFontByName(fontParser, nullptr);
+    ASSERT_EQ(fontDescriptor1, nullptr);
+
+    OH_Drawing_FontDescriptor* fontDescriptor2 = OH_Drawing_FontParserGetFontByName(nullptr, name);
+    ASSERT_EQ(fontDescriptor2, nullptr);
+    OH_Drawing_DestroyFontParser(fontParser);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyGetLineMetricsTest001
+ * @tc.desc: test for the OH_Drawing_TypographyGetLineMetrics.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineMetricsTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_LineMetrics* lineMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
+    ASSERT_EQ(lineMetrics, nullptr);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleGetShadowCountTest001
+ * @tc.desc: test for the OH_Drawing_TextStyleGetShadowCount.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowCountTest001, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(style, nullptr);
+    ASSERT_EQ(OH_Drawing_TextStyleGetShadowCount(style), 0);
+    OH_Drawing_TextShadow* textShadow = OH_Drawing_TextStyleGetShadows(style);
+    ASSERT_NE(textShadow, nullptr);
+
+    ASSERT_EQ(OH_Drawing_TextStyleGetShadowCount(nullptr), 0);
+    OH_Drawing_TextShadow* textShadow1 = OH_Drawing_TextStyleGetShadows(nullptr);
+    ASSERT_EQ(textShadow1, nullptr);
+    OH_Drawing_DestroyTextStyle(style);
+    OH_Drawing_DestroyTextShadows(textShadow);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTextShadowTest001
+ * @tc.desc: test for the OH_Drawing_SetTextShadow.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
+    ASSERT_NE(shadow, nullptr);
+    uint32_t color = 0;
+    OH_Drawing_Point* offset = OH_Drawing_PointCreate(0, 0);
+    ASSERT_NE(offset, nullptr);
+    double blurRadius = true;
+    OH_Drawing_SetTextShadow(shadow, color, offset, blurRadius);
+    OH_Drawing_SetTextShadow(shadow, color, nullptr, blurRadius);
+    OH_Drawing_SetTextShadow(nullptr, color, offset, blurRadius);
+
+    OH_Drawing_DestroyTextStyle(style);
+    OH_Drawing_PointDestroy(offset);
+    OH_Drawing_DestroyTextShadows(shadow);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleAddShadowTest001
+ * @tc.desc: test for the OH_Drawing_TextStyleAddShadow.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleAddShadowTest001, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
+    ASSERT_NE(shadow, nullptr);
+    OH_Drawing_TextStyleAddShadow(style, shadow);
+    EXPECT_NE(OH_Drawing_TextStyleGetShadows(style), nullptr);
+    OH_Drawing_TextStyleClearShadows(style);
+    OH_Drawing_TextStyleAddShadow(nullptr, shadow);
+    OH_Drawing_TextStyleClearShadows(nullptr);
+    OH_Drawing_TextStyleAddShadow(style, nullptr);
+    OH_Drawing_DestroyTextStyle(style);
+    OH_Drawing_DestroyTextShadows(shadow);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleGetShadowWithIndexTest001
+ * @tc.desc: test for the OH_Drawing_TextStyleGetShadowWithIndex.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowWithIndexTest001, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(style, nullptr);
+    OH_Drawing_TextShadow* textShadow = OH_Drawing_TextStyleGetShadowWithIndex(style, 0);
+    ASSERT_EQ(textShadow, nullptr);
+    // 2 for test
+    OH_Drawing_TextShadow* textShadow1 = OH_Drawing_TextStyleGetShadowWithIndex(style, 2);
+    ASSERT_EQ(textShadow1, nullptr);
+    // -1 for test
+    OH_Drawing_TextShadow* textShadow2 = OH_Drawing_TextStyleGetShadowWithIndex(style, -1);
+    ASSERT_EQ(textShadow2, nullptr);
+    // -1 for test
+    OH_Drawing_TextShadow* textShadow3 = OH_Drawing_TextStyleGetShadowWithIndex(nullptr, -1);
+    ASSERT_EQ(textShadow3, nullptr);
+    OH_Drawing_DestroyTextStyle(style);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleGetShadowsTest001
+ * @tc.desc: test for the OH_Drawing_DestroyTextShadows.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowsTest001, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
+    ASSERT_NE(shadow, nullptr);
+    OH_Drawing_DestroyTextShadows(shadow);
+    OH_Drawing_DestroyTextShadows(nullptr);
+    OH_Drawing_DestroyTextStyle(style);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTypographyTextEllipsisTest001
+ * @tc.desc: test for the OH_Drawing_SetTypographyTextLocale.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTypographyTextEllipsisTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* style = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(style, nullptr);
+    const char* locale = "test";
+    OH_Drawing_SetTypographyTextLocale(style, locale);
+    OH_Drawing_SetTypographyTextSplitRatio(style, 0.f);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_TypographyGetTextStyle(style);
+    ASSERT_NE(textStyle, nullptr);
+    ASSERT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(style), 0);
+    ASSERT_EQ(OH_Drawing_TypographyIsLineUnlimited(style), true);
+    ASSERT_EQ(OH_Drawing_TypographyIsEllipsized(style), false);
+    const char* ellipsis = "ellipsis";
+    OH_Drawing_SetTypographyTextEllipsis(style, ellipsis);
+
+    const char* ellipsisVal = nullptr;
+    OH_Drawing_SetTypographyTextEllipsis(style, ellipsisVal);
+
+    OH_Drawing_SetTypographyTextLocale(nullptr, locale);
+    OH_Drawing_SetTypographyTextSplitRatio(nullptr, 0.f);
+    OH_Drawing_TextStyle* textStyle1 = OH_Drawing_TypographyGetTextStyle(nullptr);
+    ASSERT_EQ(textStyle1, nullptr);
+    ASSERT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(nullptr), 0);
+    ASSERT_EQ(OH_Drawing_TypographyIsLineUnlimited(nullptr), false);
+    ASSERT_EQ(OH_Drawing_TypographyIsEllipsized(nullptr), false);
+    OH_Drawing_SetTypographyTextEllipsis(nullptr, ellipsisVal);
+    OH_Drawing_DestroyTypographyStyle(style);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontFamiliesTest001
+ * @tc.desc: test for the OH_Drawing_TypographyTextlineStyleDestroyFontFamilies.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_FontFamiliesTest001, TestSize.Level1)
+{
+    char** fontFamilies = new char*[3]; // 3 means the number of font
+    std::string tempStr1 = "Test1";
+    std::string tempStr3 = "Test3";
+    fontFamilies[0] = new char[tempStr1.size() + 1];
+    std::copy(tempStr1.begin(), tempStr1.end(), fontFamilies[0]);
+    fontFamilies[0][tempStr1.size()] = '\0';
+    fontFamilies[1] = nullptr;
+    fontFamilies[2] = new char[tempStr3.size() + 1]; // 2 means the index of font
+    std::copy(tempStr3.begin(), tempStr3.end(), fontFamilies[2]); // 2 means the index of font
+    fontFamilies[2][tempStr3.size()] = '\0'; // 2 means the index of font
+    size_t num = 3; // 3 means the number of font
+    ASSERT_NE(fontFamilies, nullptr);
+    OH_Drawing_TypographyTextlineStyleDestroyFontFamilies(fontFamilies, num);
+
+    fontFamilies = nullptr;
+    OH_Drawing_TypographyTextlineStyleDestroyFontFamilies(fontFamilies, num);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyGetLineFontMetricsTest001
+ * @tc.desc: test for the OH_Drawing_TypographyGetLineFontMetrics.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineFontMetricsTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    size_t lineNumber = 1;
+    size_t fontMetrics = 1;
+    size_t* fontMetricsSize = &fontMetrics;
+    ASSERT_NE(fontMetricsSize, nullptr);
+    OH_Drawing_Font_Metrics* metrics = OH_Drawing_TypographyGetLineFontMetrics(typography, lineNumber, fontMetricsSize);
+    ASSERT_EQ(metrics, nullptr);
+
+    OH_Drawing_Font_Metrics* metrics1 = OH_Drawing_TypographyGetLineFontMetrics(typography, 0, fontMetricsSize);
+    ASSERT_EQ(metrics1, nullptr);
+    OH_Drawing_Font_Metrics* metrics2 = OH_Drawing_TypographyGetLineFontMetrics(typography, lineNumber, nullptr);
+    ASSERT_EQ(metrics2, nullptr);
+    OH_Drawing_Font_Metrics* metrics3 = OH_Drawing_TypographyGetLineFontMetrics(nullptr, lineNumber, fontMetricsSize);
+    ASSERT_EQ(metrics3, nullptr);
+    OH_Drawing_TypographyDestroyLineFontMetrics(metrics);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleAddFontVariationTest001
+ * @tc.desc: test for the OH_Drawing_TextStyleAddFontVariation.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleAddFontVariationTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* style = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(style, nullptr);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_TypographyGetTextStyle(style);
+    ASSERT_NE(textStyle, nullptr);
+    const char* axis = "T";
+    const float value = 1.f;
+    OH_Drawing_TextStyleAddFontVariation(textStyle, axis, value);
+    OH_Drawing_TextStyleAddFontVariation(textStyle, nullptr, value);
+    OH_Drawing_TextStyleAddFontVariation(nullptr, axis, value);
+    OH_Drawing_DestroyTypographyStyle(style);
+}
 } // namespace OHOS

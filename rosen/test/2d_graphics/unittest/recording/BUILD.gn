@@ -22,10 +22,13 @@ ohos_unittest("2d_graphics_recording_test") {
     "cmd_list_helper_test.cpp",
     "draw_cmd_list_test.cpp",
     "draw_cmd_test.cpp",
+    "mask_cmd_list_test.cpp",
+    "mem_allocator_test.cpp",
     "recording_canvas_test.cpp",
   ]
 
   defines = [
+    "ACE_ENABLE_GPU",
     "RS_ENABLE_GPU",
     "ROSEN_OHOS",
     "SUPPORT_OHOS_PIXMAP",

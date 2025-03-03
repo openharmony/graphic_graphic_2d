@@ -33,7 +33,7 @@
 #include "ui/rs_proxy_node.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_test_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -79,7 +79,7 @@ class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
         return nullptr;
     }
 
-    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap) override
     {
         // DO NOTHING
     }
@@ -93,6 +93,7 @@ public:
         InitRenderContext();
         rsInterfaces_ = &RSInterfaces::GetInstance();
 
+        RSTestUtil::InitRenderNodeGC();
         ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
         RSScreenModeInfo modeInfo = rsInterfaces_->GetScreenActiveMode(screenId);
         DisplayId virtualDisplayId = rsInterfaces_->CreateVirtualScreen("virtualDisplayTest",
@@ -643,13 +644,15 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncC
     mainThread->context_->nodeMap.RegisterRenderNode(node);
 
     auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    RSSurfaceCaptureConfig captureConfig;
     auto pixelMap = std::make_unique<Media::PixelMap>();
     ASSERT_NE(pixelMap, nullptr);
     auto surface = std::make_shared<Drawing::Surface>();
     ASSERT_NE(surface, nullptr);
 #ifdef RS_ENABLE_UNI_RENDER
     auto copytask =
-        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap), node->GetId(), mockCallback);
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap),
+            node->GetId(), captureConfig, mockCallback);
 
     ASSERT_FALSE(copytask);
     mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());

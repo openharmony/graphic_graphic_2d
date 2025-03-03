@@ -15,7 +15,7 @@
 
 #include "rs_rcd_render_visitor.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_rcd_render_listener.h"
 #include "rs_trace.h"
 

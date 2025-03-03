@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_render_thread_visitor.cpp"
+#include "render_thread/rs_render_thread_visitor.cpp"
 #include "screen_manager/screen_types.h"
 #include "params/rs_display_render_params.h"
 

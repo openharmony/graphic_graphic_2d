@@ -16,8 +16,8 @@
 #ifndef DIRTYREGION_PARAM_PARSE_H
 #define DIRTYREGION_PARAM_PARSE_H
 
-#include "xml_parser_base.h"
 #include "dirtyregion_param.h"
+#include "xml_parser_base.h"
 
 namespace OHOS::Rosen {
 class DirtyRegionParamParse : public XMLParserBase {

@@ -67,11 +67,22 @@ public:
         threadIndex_ = threadIndex;
     }
 
+    void SetBufferDeleteFromCacheFlag(const bool &flag)
+    {
+        isBufferDeleteFromCache = flag;
+    }
+
+    bool GetBufferDeleteFromCacheFlag() const
+    {
+        return isBufferDeleteFromCache;
+    }
+
 private:
     NativeWindowBuffer* mNativeWindowBuffer;
     Drawing::BackendTexture mBackendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
     pid_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
+    bool isBufferDeleteFromCache = false;
 };
 
 class RSVkImageManager {
@@ -86,7 +97,7 @@ public:
     void ShrinkCachesIfNeeded();
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence);
-
+    void DumpVkImageInfo(std::string &dumpString);
 private:
     std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition,

@@ -16,6 +16,7 @@
 #include "skia_surface.h"
 
 #include "draw/surface.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 
 #include "skia_bitmap.h"
@@ -221,6 +222,8 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     TextureOrigin origin, int sampleCnt, ColorType colorType,
     std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIASURFACE_MAKEFROMBACKENDTEXTURE);
     sk_sp<GrDirectContext> grContext = nullptr;
     if (gpuContext) {
         auto skiaGpuContext = gpuContext->GetImpl<SkiaGPUContext>();
@@ -463,6 +466,8 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
 
 void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIASURFACE_FLUSH);
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         // handle exception such as skia

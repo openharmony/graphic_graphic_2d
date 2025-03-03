@@ -23,6 +23,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "draw/brush.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -43,10 +44,11 @@
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "static_factory.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -55,8 +57,6 @@
 #endif
 #include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_pixel_map_util.h"
-
-#include "luminance/rs_luminance_control.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
@@ -121,15 +121,24 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_ONGENERALPROCESS);
     auto bounds = surfaceParams.GetFrameRect();
 
     if (surfaceParams.GetGlobalPositionEnabled()) {
         auto matrix = surfaceParams.GetTotalMatrix();
         matrix.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
-        RS_LOGD("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%{public}" PRIu64 "] "
-            "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
+        if (!lastGlobalPositionEnabled_) {
+            lastGlobalPositionEnabled_ = true;
+            RS_LOGI("RSSurfaceRenderNodeDrawable::%{public}s Translate screenId=[%{public}" PRIu64 "] "
+                "offsetX=%{public}d offsetY=%{public}d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
+        }
+    } else if (lastGlobalPositionEnabled_) {
+        lastGlobalPositionEnabled_ = false;
     }
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::%s Translate screenId=[%" PRIu64 "] "
+        "offsetX=%d offsetY=%d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
 
     // 1. draw background
     DrawBackground(canvas, bounds);
@@ -383,6 +392,8 @@ void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& c
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_ONDRAW, GetId());
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -728,6 +739,8 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
     if (!ShouldPaint()) {
         return;
     }
@@ -879,6 +892,8 @@ void RSSurfaceRenderNodeDrawable::ResetVirtualScreenWhiteListRootId(NodeId id)
 
 void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_CAPTURESURFACE);
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParams)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
@@ -1024,6 +1039,8 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_DEALWITHSELFDRAWINGNODEBUFFER);
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
         RSUniRenderThread::IsExpandScreenMode()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
@@ -1074,7 +1091,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();
     params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    // color temperature
     params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
+    params.hasMetadata = surfaceParams.GetSdrHasMetadata();
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {
@@ -1168,6 +1187,8 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_DRAWSELFDRAWINGNODEBUFFER);
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
     } else {
@@ -1214,6 +1235,8 @@ bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& s
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACERENDERNODEDRAWABLE_DEALWITHUIFIRSTCACHE);
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
     auto cacheState = GetCacheSurfaceProcessedStatus();
     if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&

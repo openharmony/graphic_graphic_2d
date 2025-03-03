@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "limit_number.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "rs_test_util.h"
 #include "system/rs_system_parameters.h"

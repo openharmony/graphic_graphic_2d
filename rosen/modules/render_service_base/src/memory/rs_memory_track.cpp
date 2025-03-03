@@ -136,9 +136,9 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
     if (nodeInfoOfPid.empty()) {
         memNodeOfPidMap_.erase(pid);
     } else {
-        int totalMemSize = 0;
+        uint64_t totalMemSize = 0;
         std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(), [&totalMemSize](MemoryNodeOfPid& info) {
-            totalMemSize += info.GetMemSize();
+            totalMemSize += static_cast<uint64_t>(info.GetMemSize());
         });
 
         for (auto it = memPicRecord_.begin(); it != memPicRecord_.end(); it++) {
@@ -186,12 +186,12 @@ void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
 {
     log.AppendFormat("\nRSRenderNode:\n");
 
-    int totalSize = 0;
+    uint64_t totalSize = 0;
     int count = 0;
     //calculate by byte
     for (auto& [nodeId, info] : memNodeMap_) {
         //total of all
-        totalSize += static_cast<int>(info.size);
+        totalSize += static_cast<uint64_t>(info.size);
         count++;
     }
     log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
@@ -350,13 +350,13 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int arrCount[MEM_MAX_SIZE] = {0};
     int arrWithoutDMATotal[MEM_MAX_SIZE] = {0};
     int arrWithoutDMACount[MEM_MAX_SIZE] = {0};
-    int totalSize = 0;
+    uint64_t totalSize = 0;
     int count = 0;
     int totalWithoutDMASize = 0;
     int countWithoutDMA = 0;
     //calculate by byte
     for (auto& info : memPicRecord) {
-        int size = static_cast<int>(info.size / BYTE_CONVERT); // k
+        int size = static_cast<uint64_t>(info.size / BYTE_CONVERT); // k
         //total of type
         arrTotal[info.type] += size;
         arrCount[info.type]++;

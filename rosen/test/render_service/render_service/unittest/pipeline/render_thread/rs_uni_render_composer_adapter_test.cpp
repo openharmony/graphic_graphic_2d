@@ -17,7 +17,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
-#include "pipeline/rs_uni_render_listener.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
 

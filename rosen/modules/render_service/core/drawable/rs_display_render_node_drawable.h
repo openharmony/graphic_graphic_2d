@@ -125,6 +125,8 @@ public:
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, RSDisplayRenderParams& params,
+        RSRenderThreadParams& uniParam);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void FindHardwareEnabledNodes(RSDisplayRenderParams& params);
     void AdjustZOrderAndDrawSurfaceNode(std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,

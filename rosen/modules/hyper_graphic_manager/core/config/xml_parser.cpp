@@ -231,6 +231,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto pointerMode = ExtractPropertyValue("pointerMode", *currNode);
         auto idleFps = ExtractPropertyValue("idleFps", *currNode);
         auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
@@ -245,6 +246,9 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.pointerMode = IsNumber(pointerMode) ?
+            static_cast<PointerModeType>(std::stoi(pointerMode)) :
+            PointerModeType::POINTER_DISENABLED;
         strategy.idleFps = IsNumber(idleFps) ?
             std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
             std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
@@ -379,6 +383,10 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else if (name == "component_power_config") {
         setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
+    } else if (name == "app_page_url_config") {
+        setResult = ParsePageUrlStrategy(*thresholdNode, screenSetting.pageUrlConfig);
+    } else if (name == "performance_config") {
+        setResult = ParsePerformanceConfig(*thresholdNode, screenSetting.performanceConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -621,6 +629,32 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParsePerformanceConfig(
+    xmlNode &node, std::unordered_map<std::string, std::string> &performanceConfig)
+{
+    HGM_LOGD("XMLParser parsing performanceConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing performanceConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    performanceConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        performanceConfig[name] = value;
+        HGM_LOGI("HgmXMLParser performanceConfig name=%{public}s strategy=%{public}s", name.c_str(), value.c_str());
+    }
+
+    return EXEC_SUCCESS;
+}
+
 std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
@@ -676,4 +710,49 @@ std::vector<uint32_t> XMLParser::StringToVector(const std::string &str, const st
     return vec;
 }
 
+int32_t XMLParser::ParsePageUrlStrategy(xmlNode &node,
+    std::unordered_map<std::string, PolicyConfigData::PageUrlConfig> &pageUrlConfigMap)
+{
+    pageUrlConfigMap.clear();
+    HGM_LOGD("XMLParser parsing PageUrlConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGE("XMLParser stop parsing PageUrlConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        if (currNode->xmlChildrenNode == nullptr) {
+            HGM_LOGE("XMLParser stop parsing Package, no children nodes");
+            return HGM_ERROR;
+        }
+
+        xmlNode *childNode = currNode->xmlChildrenNode;
+        std::unordered_map<std::string, PolicyConfigData::PageUrlFps> pageUrl;
+        for (; childNode; childNode = childNode->next) {
+            if (childNode->type != XML_ELEMENT_NODE) {
+                continue;
+            }
+            auto name = ExtractPropertyValue("name", *childNode);
+            auto min = ExtractPropertyValue("min", *childNode);
+            auto max = ExtractPropertyValue("max", *childNode);
+            if (!IsNumber(min) && !IsNumber(max)) {
+                HGM_LOGE("XMLParser stop parsing PageUrl, fps is not number");
+                return HGM_ERROR;
+            }
+            mParsedData_->pageNameList_.push_back(name);
+            PolicyConfigData::PageUrlFps pageUrlFps = {std::stoi(min), std::stoi(max)};
+            pageUrl[name] = pageUrlFps;
+        }
+        PolicyConfigData::PageUrlConfig pageUrlConfig;
+        auto packageName = ExtractPropertyValue("name", *currNode);
+        pageUrlConfig.pageUrl = pageUrl;
+        pageUrlConfigMap[packageName] = pageUrlConfig;
+    }
+    return EXEC_SUCCESS;
+}
 } // namespace OHOS::Rosen

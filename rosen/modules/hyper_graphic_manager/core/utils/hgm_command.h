@@ -78,6 +78,11 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
+enum PointerModeType : int32_t {
+    POINTER_DISENABLED = 0,
+    POINTER_ENABLED = 1,
+};
+
 enum DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
@@ -99,6 +104,7 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        PointerModeType pointerMode;
         int32_t idleFps;
         bool isFactor;
         int32_t drawMin;
@@ -136,6 +142,16 @@ public:
     // <"translate", DynamicSetting>
     using DynamicSettingMap = std::unordered_map<std::string, DynamicSetting>;
 
+    struct PageUrlFps {
+        int32_t min;
+        int32_t max;
+    };
+    struct PageUrlConfig {
+        std::unordered_map<std::string, PageUrlFps> pageUrl;
+    };
+    using PageUrlConfigMap = std::unordered_map<std::string, PageUrlConfig>;
+    std::vector<std::string> pageNameList_;
+
     struct ScreenSetting {
         std::string strategy;
         // <"switch", "1">
@@ -164,6 +180,9 @@ public:
         std::unordered_map<std::string, int32_t> componentPowerConfig;
         // <"pkgName", "UnityPlayerSurface">
         std::unordered_map<std::string, std::string> gameAppNodeList;
+        // <"pageName", min, max>
+        PageUrlConfigMap pageUrlConfig;
+        std::unordered_map<std::string, std::string> performanceConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

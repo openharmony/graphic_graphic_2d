@@ -66,12 +66,15 @@ private:
     int32_t ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes);
     int32_t ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig &ScreenConfigDefalut,
                                        PolicyConfigData::ScreenConfig &screenConfig);
+    int32_t ParsePerformanceConfig(xmlNode &node, std::unordered_map<std::string, std::string> &performanceConfig);
     int32_t ParseVideoFrameVoteConfig(xmlNode &node);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
     static std::vector<uint32_t> StringToVector(const std::string &str, const std::string &pattern = " ");
     void ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy);
     int32_t ParseSubSequentParams(xmlNode &node, std::string &paraName);
     void ParseAppBufferList(xmlNode &node);
+    int32_t ParsePageUrlStrategy(xmlNode &node,
+        std::unordered_map<std::string, PolicyConfigData::PageUrlConfig> &pageUrlConfigMap);
     xmlDoc *xmlDocument_ = nullptr;
     std::unique_ptr<PolicyConfigData> mParsedData_ = nullptr;
 };

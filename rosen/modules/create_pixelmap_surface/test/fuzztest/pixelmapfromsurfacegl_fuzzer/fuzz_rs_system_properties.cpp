@@ -425,10 +425,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;

@@ -651,7 +651,7 @@ int32_t RSRenderServiceConnectionProxy::AddVirtualScreenBlackList(ScreenId id, s
         return WRITE_PARCEL_ERR;
     }
     if (!data.WriteUInt64Vector(blackListVector)) {
-        ROSEN_LOGE("AddVirtualScreenBlackList: WriteUint64 id err.");
+        ROSEN_LOGE("AddVirtualScreenBlackList: WriteUInt64Vector id err.");
         return WRITE_PARCEL_ERR;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST);
@@ -4347,5 +4347,28 @@ int32_t RSRenderServiceConnectionProxy::SetOverlayDisplayMode(int32_t mode)
     return result;
 }
 #endif
+
+void RSRenderServiceConnectionProxy::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (data.WriteString(packageName) && data.WriteString(pageName) && data.WriteBool(isEnter)) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME);
+        int32_t err = Remote()->SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: Send Request err.");
+            return;
+        }
+    } else {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: write data err.");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
