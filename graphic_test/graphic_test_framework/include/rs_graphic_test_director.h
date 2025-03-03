@@ -32,7 +32,6 @@ public:
     void Run();
     void FlushMessage();
     std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms);
-    void WaitForVSync(size_t count = 1);
     void ResetImagePath();
 
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
@@ -40,6 +39,12 @@ public:
     void SetSurfaceBounds(const Vector4f& bounds);
     void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
+
+    void StartRunUIAnimation();
+    bool HasUIRunningAnimation();
+    void FlushAnimation(int64_t time);
+    void RequestNextVSync();
+    void OnVSync(int64_t time);
 
     static RSGraphicTestDirector& Instance();
 
