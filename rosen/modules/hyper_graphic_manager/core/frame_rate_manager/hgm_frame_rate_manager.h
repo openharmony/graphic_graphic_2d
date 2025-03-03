@@ -224,6 +224,7 @@ public:
     {
         changeDssRefreshRateCb_ = changeDssRefreshRateCb;
     }
+    void ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter);
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
