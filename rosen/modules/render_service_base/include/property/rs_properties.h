@@ -43,7 +43,7 @@
 #include "render/rs_shadow.h"
 #include "render/rs_attraction_effect_filter.h"
 
-#include "property/rs_filter_cache_manager.h"
+#include "render/rs_filter_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -740,7 +740,7 @@ private:
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static bool FilterCacheEnabled;
+    static bool filterCacheEnabled_;
 #endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;

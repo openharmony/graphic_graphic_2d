@@ -100,12 +100,8 @@ bool RSRenderService::Init()
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
 
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    // need called after GraphicFeatureParamManager::GetInstance().Init();
+    FilterCCMInit();
 
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
@@ -994,6 +990,17 @@ void RSRenderService::RegisterGpuFuncs()
     };
 
     RSDumpManager::GetInstance().Register(handers);
+}
+
+// need called after GraphicFeatureParamManager::GetInstance().Init();
+void RSRenderService::FilterCCMInit()
+{
+    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
+    RSFilterCacheManager::isCCMFilterCacheEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <parameters.h>
 
-#include "property/rs_filter_cache_manager.h"
+#include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
@@ -568,6 +568,337 @@ HWTEST_F(RSFilterCacheManagerTest, ValidateParamsTest, TestSize.Level1)
     auto [src2, dst2] = rsFilterCacheManager->ValidateParams(filterCanvas, srcRect, dstRect);
     EXPECT_EQ(src2, srcRect);
     EXPECT_EQ(dst2, dstRect);
+}
+
+/**
+ * @tc.name: CompactFilterCache
+ * @tc.desc: test results of CompactFilterCache
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, CompactFilterCacheTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    rsFilterCacheManager->CompactFilterCache();
+}
+
+/**
+ * @tc.name: SwapDataAndInitStagingFlags
+ * @tc.desc: test results of SwapDataAndInitStagingFlags
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, SwapDataAndInitStagingFlagsTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_unique<RSFilterCacheManager>();
+    auto rsStagingFilterCacheManager = std::make_unique<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    EXPECT_NE(rsStagingFilterCacheManager, nullptr);
+
+    rsStagingFilterCacheManager->stagingFilterHashChanged_ = true;
+    rsStagingFilterCacheManager->SwapDataAndInitStagingFlags(rsFilterCacheManager);
+    EXPECT_FALSE(rsStagingFilterCacheManager->stagingFilterHashChanged_);
+    rsFilterCacheManager.reset();
+    rsStagingFilterCacheManager->SwapDataAndInitStagingFlags(rsFilterCacheManager);
+}
+
+/**
+ * @tc.name: WouldDrawLargeAreaBlur
+ * @tc.desc: test results of WouldDrawLargeAreaBlur
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, WouldDrawLargeAreaBlurTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    EXPECT_FALSE(rsFilterCacheManager->WouldDrawLargeAreaBlur());
+    rsFilterCacheManager->stagingIsLargeArea_ = true;
+    rsFilterCacheManager->canSkipFrame_ = false;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlur());
+    rsFilterCacheManager->canSkipFrame_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 1;
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlur());
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    EXPECT_FALSE(rsFilterCacheManager->WouldDrawLargeAreaBlur());
+}
+
+/**
+ * @tc.name: WouldDrawLargeAreaBlurPrecisely
+ * @tc.desc: test results of WouldDrawLargeAreaBlurPrecisely
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, WouldDrawLargeAreaBlurPrecisely, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    EXPECT_FALSE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->stagingIsLargeArea_ = true;
+    rsFilterCacheManager->stagingForceClearCache_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+    rsFilterCacheManager->canSkipFrame_ = false;
+    rsFilterCacheManager->stagingFilterHashChanged_ = false;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->canSkipFrame_ = true;
+    rsFilterCacheManager->stagingFilterRegionChanged_ = false;
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->cacheUpdateInterval_ = 1;
+    rsFilterCacheManager->stagingFilterHashChanged_ = true;
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    EXPECT_TRUE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+    rsFilterCacheManager->stagingFilterHashChanged_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->WouldDrawLargeAreaBlurPrecisely());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForOcclusion
+ * @tc.desc: test results of IsFilterCacheValidForOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusionTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    rsFilterCacheManager->IsFilterCacheValidForOcclusion();
+    // cacheType: FilterCacheType::NONE
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+    rsFilterCacheManager->renderClearType_ = FilterCacheType::SNAPSHOT;
+    rsFilterCacheManager->InvalidateFilterCache(rsFilterCacheManager->renderClearType_);
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::BOTH
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+    rsFilterCacheManager->renderClearType_ = FilterCacheType::BOTH;
+    rsFilterCacheManager->InvalidateFilterCache(rsFilterCacheManager->renderClearType_);
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::FILTERED_SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+    rsFilterCacheManager->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    rsFilterCacheManager->InvalidateFilterCache(rsFilterCacheManager->renderClearType_);
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsForceUseFilterCache
+ * @tc.desc: test results of IsForceUseFilterCache
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsForceUseFilterCacheTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->MarkFilterForceUseCache(true);
+    EXPECT_TRUE(rsFilterCacheManager->IsForceUseFilterCache());
+    rsFilterCacheManager->MarkFilterForceUseCache(false);
+    EXPECT_FALSE(rsFilterCacheManager->IsForceUseFilterCache());
+
+    rsFilterCacheManager->MarkFilterForceClearCache();
+    EXPECT_TRUE(rsFilterCacheManager->IsForceClearFilterCache());
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->IsForceClearFilterCache());
+
+    rsFilterCacheManager->stagingFilterRegionChanged_ = false;
+    rsFilterCacheManager->MarkFilterRegionChanged();
+    EXPECT_TRUE(rsFilterCacheManager->stagingFilterRegionChanged_);
+
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->MarkFilterRegionInteractWithDirty();
+    EXPECT_TRUE(rsFilterCacheManager->stagingFilterInteractWithDirty_);
+
+    rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
+    rsFilterCacheManager->MarkForceClearCacheWithLastFrame();
+    EXPECT_TRUE(rsFilterCacheManager->stagingForceClearCacheForLastFrame_);
+
+    rsFilterCacheManager->stagingIsLargeArea_ = false;
+    rsFilterCacheManager->MarkFilterRegionIsLargeArea();
+    EXPECT_TRUE(rsFilterCacheManager->stagingIsLargeArea_);
+
+    rsFilterCacheManager->stagingIsEffectNode_ = false;
+    rsFilterCacheManager->MarkEffectNode();
+    EXPECT_TRUE(rsFilterCacheManager->stagingIsEffectNode_);
+
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->pendingPurge_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->NeedPendingPurge());
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->pendingPurge_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->NeedPendingPurge());
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->pendingPurge_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->NeedPendingPurge());
+
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->stagingRotationChanged_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_=1;
+    EXPECT_TRUE(rsFilterCacheManager->IsSkippingFrame());
+    rsFilterCacheManager->cacheUpdateInterval_=0;
+    EXPECT_FALSE(rsFilterCacheManager->IsSkippingFrame());
+    rsFilterCacheManager->cacheUpdateInterval_=1;
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->stagingRotationChanged_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->IsSkippingFrame());
+
+    rsFilterCacheManager->stagingRotationChanged_ = false;
+    rsFilterCacheManager->MarkRotationChanged();
+    EXPECT_TRUE(rsFilterCacheManager->stagingRotationChanged_);
+
+    rsFilterCacheManager->MarkNodeIsOccluded(true);
+    EXPECT_TRUE(rsFilterCacheManager->stagingIsOccluded_);
+
+    rsFilterCacheManager->isFilterCacheValid_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValid());
+    rsFilterCacheManager->isFilterCacheValid_ = false;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValid());
+}
+
+/**
+ * @tc.name: RecordFilterInfos
+ * @tc.desc: test results of RecordFilterInfos
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
+    rsFilterCacheManager->RecordFilterInfos(rsFilter);
+    std::shared_ptr<RSShaderFilter> shaderFilter = std::make_shared<RSShaderFilter>();
+    EXPECT_NE(shaderFilter, nullptr);
+    rsFilterCacheManager->stagingCachedFilterHash_ = 1;
+    rsFilter = std::make_shared<RSDrawingFilter>(shaderFilter);
+    rsFilterCacheManager->RecordFilterInfos(rsFilter);
+    EXPECT_EQ(rsFilterCacheManager->stagingCachedFilterHash_, rsFilter->Hash());
+
+    // RSProperties::FilterCacheEnabled is true
+    rsFilterCacheManager->ClearFilterCache();
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->stagingIsOccluded_ = true;
+    rsFilterCacheManager->ClearFilterCache();
+    rsFilterCacheManager->renderIsEffectNode_ = true;
+    rsFilterCacheManager->ClearFilterCache();
+    rsFilterCacheManager->stagingIsOccluded_ = false;
+    rsFilterCacheManager->stagingFilterRegionChanged_ = true;
+    rsFilterCacheManager->stagingClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    rsFilterCacheManager->cachedFilteredSnapshot_ =
+    std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->ClearFilterCache();
+
+    rsFilterCacheManager->pendingPurge_ = true;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, false);
+    EXPECT_FALSE(rsFilterCacheManager->pendingPurge_);
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 3;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 2);
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->stagingRotationChanged_ = true;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 1);
+    rsFilterCacheManager->stagingRotationChanged_ = false;
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 1);
+    rsFilterCacheManager->stagingIsAIBarInteractWithHWC_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 0);
+    rsFilterCacheManager->cacheUpdateInterval_ = 3;
+    rsFilterCacheManager->stagingIsAIBarInteractWithHWC_ = true;
+    rsFilterCacheManager->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(rsFilterCacheManager->cacheUpdateInterval_, 2);
+}
+
+/**
+ * @tc.name: IsAIBarCacheValid
+ * @tc.desc: test results of IsAIBarCacheValid
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsAIBarCacheValidTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    rsFilterCacheManager->filterType_ = RSFilter::AIBAR;
+    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    rsFilterCacheManager->cacheUpdateInterval_ = 1;
+    rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
+    EXPECT_FALSE(rsFilterCacheManager->IsAIBarCacheValid());
+    rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
+    EXPECT_TRUE(rsFilterCacheManager->IsAIBarCacheValid());
+}
+
+/**
+ * @tc.name: MarkNeedClearFilterCache
+ * @tc.desc: test results of MarkNeedClearFilterCache
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkNeedClearFilterCacheTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->isFilterCacheValid_ = true;
+    rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    EXPECT_FALSE(rsFilterCacheManager->isFilterCacheValid_);
+    rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::NONE;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::SNAPSHOT;
+    rsFilterCacheManager->stagingForceUseCache_ = true;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->stagingForceUseCache_ = false;
+    rsFilterCacheManager->stagingForceClearCache_ = true;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+    rsFilterCacheManager->stagingFilterRegionChanged_ = true;
+    rsFilterCacheManager->stagingRotationChanged_ = false;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->stagingFilterRegionChanged_ = false;
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->pendingPurge_ = true;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
+    rsFilterCacheManager->pendingPurge_ = false;
+    rsFilterCacheManager->stagingRotationChanged_ = true;
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->cacheUpdateInterval_ = 1;
+    rsFilterCacheManager->MarkNeedClearFilterCache();
 }
 } // namespace Rosen
 } // namespace OHOS

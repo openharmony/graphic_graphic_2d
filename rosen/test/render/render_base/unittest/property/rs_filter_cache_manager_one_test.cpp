@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <parameters.h>
 
-#include "property/rs_filter_cache_manager.h"
+#include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
