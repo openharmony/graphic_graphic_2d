@@ -2176,9 +2176,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                         linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr &&
-            frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-            // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });
