@@ -2012,8 +2012,10 @@ void RSNode::SetNodeName(const std::string& nodeName)
 
 void RSNode::SetTakeSurfaceForUIFlag()
 {
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetTakeSurfaceForUIFlag>(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
         transactionProxy->FlushImplicitTransaction();
     }
 }
