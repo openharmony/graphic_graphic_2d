@@ -23,7 +23,7 @@ namespace Rosen {
 
 class HgmAppPageUrlStrategy final {
 public:
-    using PageUrlVoterCallback = std::function<void(int32_t pid, std::string strategy, const bool isAddVoter)>;
+    using PageUrlVoterCallback = std::function<void(pid_t pid, std::string strategy, const bool isAddVoter)>;
 
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
     void SetPageUrlConfig(PolicyConfigData::PageUrlConfigMap pageUrlConfig);
