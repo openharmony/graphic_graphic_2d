@@ -3291,8 +3291,11 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
-        RectI rect = {std::floor(absRect.left_), std::floor(absRect.top_),
-            std::ceil(absRect.GetWidth()), std::ceil(absRect.GetHeight())};
+        RectI rect;
+        rect.left_ = static_cast<int>(std::floor(absRect.GetLeft()));
+        rect.top_ = static_cast<int>(std::floor(absRect.GetTop()));
+        rect.width_ = static_cast<int>(std::ceil(absRect.GetRight() - rect.left_));
+        rect.height_ = static_cast<int>(std::ceil(absRect.GetBottom() - rect.top_));
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
         UpdateSrcRect(*hwcNodePtr, matrix, rect);
         UpdateHwcNodeByTransform(*hwcNodePtr, matrix);
@@ -3354,7 +3357,7 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
         }
         if (parentProperties.GetClipToRRect()) {
             RectF rectF = parentProperties.GetClipRRect().rect_;
-            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetWidth(), rectF.GetHeight());
+            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetRight(), rectF.GetBottom());
             Drawing::Rect clipRectMapped;
             parentGeoPtr->GetMatrix().MapRect(clipRectMapped, clipRect);
             childRectMapped.Intersect(clipRectMapped);
@@ -3364,9 +3367,13 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     Drawing::Rect absClipRect;
     rootNodeAbsMatrix.MapRect(absClipRect, childRectMapped);
-    clipRect = {std::floor(absClipRect.left_), std::floor(absClipRect.top_),
-        std::ceil(absClipRect.GetWidth()), std::ceil(absClipRect.GetHeight())};
-    clipRect = clipRect.IntersectRect(prepareClipRect_);
+    Drawing::Rect prepareClipRect(prepareClipRect_.left_, prepareClipRect_.top_,
+        prepareClipRect_.GetRight(), prepareClipRect_.GetBottom());
+    absClipRect.Intersect(prepareClipRect);
+    clipRect.left_ = static_cast<int>(std::floor(absClipRect.GetLeft()));
+    clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
+    clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
+    clipRect.height_ = static_cast<int>(std::ceil(absClipRect.GetBottom() - clipRect.top_));
 }
 
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
