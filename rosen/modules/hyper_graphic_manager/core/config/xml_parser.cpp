@@ -748,5 +748,4 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode &node,
     }
     return EXEC_SUCCESS;
 }
-
 } // namespace OHOS::Rosen
