@@ -1573,29 +1573,16 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            float scale = std::min(xScale, yScale);
-            srcRect.left_ = srcRect.left_ * scale;
-            srcRect.top_ = srcRect.top_ * scale;
-            if (ROSEN_EQ(scale, 0.f)) {
-                node.SetSrcRect(srcRect);
-                return;
-            }
-            srcRect.width_ = (bufferWidth / scale - (boundsWidth - srcRect.width_)) * scale;
-            srcRect.height_ = (bufferHeight / scale - (boundsHeight - srcRect.height_)) * scale;
+        if (absRect == node.GetDstRect()) {
+            // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+            // we do not need to crop the buffer.
+            srcRect.width_ = bufferWidth;
+            srcRect.height_ = bufferHeight;
         } else {
-            if (absRect == node.GetDstRect()) {
-                // If the SurfaceRenderNode is completely in the DisplayRenderNode,
-                // we do not need to crop the buffer.
-                srcRect.width_ = bufferWidth;
-                srcRect.height_ = bufferHeight;
-            } else {
-                srcRect.left_ = srcRect.left_ * xScale;
-                srcRect.top_ = srcRect.top_ * yScale;
-                srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
-                srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(srcRect.height_ * yScale)), bufferHeight);
-            }
+            srcRect.left_ = srcRect.left_ * xScale;
+            srcRect.top_ = srcRect.top_ * yScale;
+            srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
+            srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(srcRect.height_ * yScale)), bufferHeight);
         }
     }
     RectI bufferRect(0, 0, bufferWidth, bufferHeight);
