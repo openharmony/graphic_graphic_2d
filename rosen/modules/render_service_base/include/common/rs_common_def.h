@@ -411,6 +411,12 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
+}
+
 inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
