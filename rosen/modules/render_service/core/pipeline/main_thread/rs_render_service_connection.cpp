@@ -1117,8 +1117,13 @@ void TakeSurfaceCaptureForUiParallel(
     std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
-
+    auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
+        auto flagMap = context.GetUiCaptureCmdsExecutedFlagMap();
+        auto iter = flagMap.find(id);
+        if (iter == flagMap.end()) {
+            context.InsertUiCaptureCmdsExecutedFlag(id, false);
+        }
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
         return;
     }

@@ -196,6 +196,16 @@ public:
     {
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
+
+    std::unordered_map<NodeId, bool>& GetUiCaptureCmdsExecutedFlagMap()
+    {
+        return uiCaptureCmdsExecutedFlag_;
+    }
+
+    void InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag);
+    bool GetUiCaptureCmdsExecutedFlag(NodeId nodeId);
+    void EraseUiCaptureCmdsExecutedFlag(NodeId nodeId);
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -226,6 +236,9 @@ private:
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
+
+    std::unordered_map<NodeId, bool> uiCaptureCmdsExecutedFlag_;
+    mutable std::mutex uiCaptureCmdsExecutedMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;
