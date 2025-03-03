@@ -44,7 +44,7 @@ void RSUniRenderEngineTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
+HWTEST_F(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -62,7 +62,7 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
+HWTEST_F(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
@@ -80,7 +80,7 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
+HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     // Resources for Vulkan and DDGR API
@@ -133,7 +133,7 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
+HWTEST_F(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
     // Resources for Vulkan and DDGR API
