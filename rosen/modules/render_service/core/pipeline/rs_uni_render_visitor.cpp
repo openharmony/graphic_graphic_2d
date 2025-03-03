@@ -502,7 +502,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         CheckLuminanceStatusChange() ||
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
-        isNeedNotchUpdate;
+        isNeedNotchUpdate ||
+        curDisplayNode_->HasMirroredDisplayChanged();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -682,6 +683,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         ProcessUnpairedSharedTransitionNode();
     }
     node.RenderTraceDebug();
+    curDisplayNode_->ResetMirroredDisplayChangedFlag();
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)

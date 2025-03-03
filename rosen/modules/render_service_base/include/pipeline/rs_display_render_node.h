@@ -157,6 +157,16 @@ public:
 
     bool IsMirrorDisplay() const;
 
+    inline bool HasMirroredDisplayChanged() const noexcept
+    {
+        return hasMirroredDisplayChanged_;
+    }
+
+    inline void ResetMirroredDisplayChangedFlag() noexcept
+    {
+        hasMirroredDisplayChanged_ = false;
+    }
+
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
     void SetForceSoftComposite(bool flag);
@@ -400,6 +410,7 @@ private:
     uint32_t rogHeight_ = 0;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
+    bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;

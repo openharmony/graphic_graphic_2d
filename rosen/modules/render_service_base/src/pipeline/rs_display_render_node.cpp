@@ -140,6 +140,9 @@ bool RSDisplayRenderNode::GetSecurityDisplay() const
 
 void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
 {
+    if (isMirroredDisplay_ != isMirror) {
+        hasMirroredDisplayChanged_ = true;
+    }
     isMirroredDisplay_ = isMirror;
     RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
         GetId(), IsMirrorDisplay() ? "true" : "false");
