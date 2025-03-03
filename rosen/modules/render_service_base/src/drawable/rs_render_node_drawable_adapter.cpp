@@ -470,9 +470,12 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     auto backgroundIndex = drawCmdIndex_.backgroundEndIndex_;
     auto bounds = params.GetBounds();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (!curCanvas) {
+        RS_LOGD("RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect curCanvas is null");
+        return;
+    }
     for (auto index = 0; index < backgroundIndex; ++index) {
         if (index == drawCmdIndex_.shadowIndex_) {
-            CollectInfoForNodeWithoutFilter(canvas);
             if (!params.GetShadowRect().IsEmpty()) {
                 auto shadowRect = params.GetShadowRect();
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),
@@ -483,6 +486,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 UpdateFilterInfoForNodeGroup(curCanvas);
             } else {
+                CollectInfoForNodeWithoutFilter(canvas);
                 drawCmdList_[index](&canvas, &bounds);
             }
             continue;
