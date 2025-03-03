@@ -111,6 +111,7 @@
           "libpng",
           "ffrt",
           "libxml2",
+          "lz4",
           "skia",
           "graphic_2d_ext"
         ],

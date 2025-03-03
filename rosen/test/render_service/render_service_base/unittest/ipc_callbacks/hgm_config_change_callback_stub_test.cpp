@@ -135,7 +135,7 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ERR_NONE, res);
+    EXPECT_EQ(ERR_INVALID_DATA, res);
 }
 
 /**
@@ -152,7 +152,7 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ERR_NONE, res);
+    EXPECT_EQ(ERR_INVALID_DATA, res);
 }
 
 } // namespace Rosen

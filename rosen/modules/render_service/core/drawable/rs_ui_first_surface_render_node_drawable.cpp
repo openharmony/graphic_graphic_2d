@@ -504,11 +504,16 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
             return false; // draw nothing
         }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        RsFrameReport::GetInstance().SetFrameParam(
-            REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_AWARE_LOAD, 0, GetLastFrameUsedThreadIndex());
+        bool frameParamEnable = RsFrameReport::GetInstance().GetEnable();
+        if (frameParamEnable) {
+            RsFrameReport::GetInstance().SetFrameParam(
+                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_AWARE_LOAD, 0, GetLastFrameUsedThreadIndex());
+        }
         RSSubThreadManager::Instance()->WaitNodeTask(nodeId_);
-        RsFrameReport::GetInstance().SetFrameParam(
-            REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_STANDARD_LOAD, 0, GetLastFrameUsedThreadIndex());
+        if (frameParamEnable) {
+            RsFrameReport::GetInstance().SetFrameParam(
+                REQUEST_SET_FRAME_LOAD_ID, REQUEST_FRAME_STANDARD_LOAD, 0, GetLastFrameUsedThreadIndex());
+        }
         UpdateCompletedCacheSurface();
 #endif
     }

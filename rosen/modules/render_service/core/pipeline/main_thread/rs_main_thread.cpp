@@ -216,9 +216,8 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
 constexpr size_t MEMUNIT_RATE = 1024;
 constexpr size_t MAX_GPU_CONTEXT_CACHE_SIZE = 1024 * MEMUNIT_RATE * MEMUNIT_RATE;   // 1G
-constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 1000;
+constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 100;
 const std::string DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME = "DVSyncNotifyUnmarshalTask";
-
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -557,6 +556,8 @@ void RSMainThread::Init()
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
+    SetDeeplyRelGpuResSwitch();
+    SetSOCPerfSwitch();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -884,9 +885,41 @@ void RSMainThread::SetDeviceType()
     }
 }
 
+void RSMainThread::SetDeeplyRelGpuResSwitch()
+{
+    auto deeplyRelGpuResFeature = GraphicFeatureParamManager::GetInstance().
+        GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]);
+    auto deeplyRelGpuResObj = std::static_pointer_cast<DeeplyRelGpuResParam>(deeplyRelGpuResFeature);
+    if (deeplyRelGpuResObj != nullptr) {
+        isDeeplyRelGpuResEnable_ = deeplyRelGpuResObj->IsDeeplyRelGpuResEnable();
+        RS_LOGD("SetDeeplyRelGpuResSwitch: DeeplyRelGpuResEnable %{public}d", this->IsDeeplyRelGpuResEnable());
+    }
+}
+
+void RSMainThread::SetSOCPerfSwitch()
+{
+    auto socPerfFeature = GraphicFeatureParamManager::GetInstance().
+        GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]);
+    auto socPerfObj = std::static_pointer_cast<SOCPerfParam>(socPerfFeature);
+    if (socPerfObj != nullptr) {
+        isMultilayersSOCPerfEnable_ = socPerfObj->IsMultilayersSOCPerfEnable();
+        RS_LOGD("SetSOCPerfSwitch: MultilayersSOCPerfEnable %{public}d", this->IsMultilayersSOCPerfEnable());
+    }
+}
+
 DeviceType RSMainThread::GetDeviceType() const
 {
     return deviceType_;
+}
+
+bool RSMainThread::IsDeeplyRelGpuResEnable() const
+{
+    return isDeeplyRelGpuResEnable_;
+}
+
+bool RSMainThread::IsMultilayersSOCPerfEnable() const
+{
+    return isMultilayersSOCPerfEnable_;
 }
 
 uint64_t RSMainThread::GetFocusNodeId() const
@@ -1026,6 +1059,9 @@ void RSMainThread::ProcessCommand()
     }
 #endif
     context_->purgeType_ = RSContext::PurgeType::NONE;
+    if (RsFrameReport::GetInstance().GetEnable()) {
+        RsFrameReport::GetInstance().AnimateStart();
+    }
 }
 
 void RSMainThread::UpdateSubSurfaceCnt()
@@ -1998,7 +2034,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             SkGraphics::PurgeAllCaches(); // clear cpu cache
             auto pid = *(this->exitedPidSet_.begin());
             if (this->exitedPidSet_.size() == 1 && pid == -1) {  // no exited app, just clear scratch resource
-                if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                if (deeply || this->isDeeplyRelGpuResEnable_) {
                     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                 } else {
                     MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -2016,11 +2052,11 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
     if (refreshRate > 0) {
         if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
             PostTask(task, CLEAR_GPU_CACHE,
-                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         } else {
             RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
-                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         }
     }
@@ -2350,8 +2386,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+            RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
             renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
-            RsFrameReport::GetInstance().RenderEnd();
             return;
         }
     }
@@ -2399,7 +2435,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
 #endif // RES_SCHED_ENABLE
 
-        if (deviceType_ != DeviceType::PHONE) {
+        if (isMultilayersSOCPerfEnable_) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }
         CheckBlurEffectCountStatistics(rootNode);
@@ -2438,7 +2474,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         WaitUntilUploadTextureTaskFinished(isUniRender_);
     } else {
-        RsFrameReport::GetInstance().RenderEnd();
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     }
 
     PrepareUiCaptureTasks(uniVisitor);
@@ -2667,7 +2703,7 @@ void RSMainThread::OnUniRenderDraw()
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
-        RsFrameReport::GetInstance().CheckPostAndWaitPoint();
+        RsFrameReport::GetInstance().PostAndWait();
         drawFrame_.PostAndWait();
         return;
     }
@@ -3133,11 +3169,23 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
             RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
-            if (requestNextVsyncNum_ > REQUEST_VSYNC_DUMP_NUMBER) {
+            if ((requestNextVsyncNum_ - currentNum_) >= REQUEST_VSYNC_DUMP_NUMBER) {
                 RS_LOGW("RSMainThread::RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
                 RSEventDumper dumper;
                 handler_->Dump(dumper);
-                RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s", dumper.GetOutput().c_str());
+                dumpInfo_ = dumper.GetOutput().c_str();
+                size_t dumpBegin = dumpInfo_.find("Current Running: start");
+                size_t compareStrSize = sizeof("\n");
+                if (dumpBegin != std::string::npos) {
+                    size_t dumpEnd = dumpInfo_.find("RSEventDumper No. 9", dumpBegin);
+                    if (dumpEnd != std::string::npos) {
+                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
+                            dumpInfo_.substr(dumpBegin, dumpEnd - dumpBegin - compareStrSize).c_str());
+                    } else {
+                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
+                            dumper.GetOutput().c_str());
+                    }
+                }
             }
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
@@ -4297,12 +4345,24 @@ void RSMainThread::PerfMultiWindow()
 void RSMainThread::RenderFrameStart(uint64_t timestamp)
 {
     uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
-    RsFrameReport::GetInstance().ReportBufferCount(unExecuteTaskNum);
+    if (preUnExecuteTaskNum_ != unExecuteTaskNum) {
+        preUnExecuteTaskNum_ = unExecuteTaskNum;
+        std::unordered_map<std::string, std::string> payload = {};
+        payload["bufferCount"] = std::to_string(preUnExecuteTaskNum_);
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
+    }
 #ifdef RS_ENABLE_GPU
     int hardwareTid = RSHardwareThread::Instance().GetHardwareTid();
-    RsFrameReport::GetInstance().ReportHardwareInfo(hardwareTid);
+    if (preHardwareTid_ != hardwareTid) {
+        preHardwareTid_ = hardwareTid;
+        std::unordered_map<std::string, std::string> param = {};
+        param["hardwareTid"] = std::to_string(preHardwareTid_);
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, param);
+    }
 #endif
-    RsFrameReport::GetInstance().RenderStart(timestamp);
+    std::unordered_map<std::string, std::string> paramter = {};
+    paramter["vsyncTime"] = std::to_string(timestamp);
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, paramter);
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
 

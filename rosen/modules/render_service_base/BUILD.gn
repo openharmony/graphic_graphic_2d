@@ -493,6 +493,7 @@ ohos_source_set("render_service_base_src") {
   external_deps = [
     "graphic_surface:surface_headers",
     "hilog:libhilog",
+    "lz4:liblz4_shared",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

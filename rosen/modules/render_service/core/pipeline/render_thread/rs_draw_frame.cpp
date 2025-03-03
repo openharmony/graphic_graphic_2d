@@ -54,7 +54,7 @@ void RSDrawFrame::RenderFrame()
     RS_TRACE_NAME_FMT("RenderFrame");
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
     RSMainThread::GPUCompositonCacheGuard guard;
-    RsFrameReport::GetInstance().UniRenderStart();
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
     JankStatsRenderFrameStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
@@ -64,8 +64,9 @@ void RSDrawFrame::RenderFrame()
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
-    RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
+    RsFrameReport::GetInstance().UnblockMainThread();
     Render();
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
@@ -97,6 +98,12 @@ void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 void RSDrawFrame::PostAndWait()
 {
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    if (fr.GetEnable()) {
+        fr.SendCommandsStart();
+        fr.RenderEnd();
+    }
+ 
     uint32_t renderFrameNumber = RS_PROFILER_GET_FRAME_NUMBER();
     switch (rsParallelType_) {
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
