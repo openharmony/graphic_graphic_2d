@@ -28,54 +28,25 @@ using OHOS::Media::AllocatorType;
 
 using ImageData = std::vector<uint8_t>;
 
-struct ImageProperties {
-    explicit ImageProperties(PixelMap& map);
-
-    Media::PixelFormat format;
-
-    int32_t width;
-    int32_t height;
-
-    int32_t stride;
-};
-
-struct TextureHeader {
-    int32_t magicNumber;
-    ImageProperties properties;
-
-    int32_t totalOriginalSize;
-    int32_t rgbEncodedSize;
-
-    int32_t alphaOriginalSize;
-    int32_t alphaEncodedSize;
-};
-
-enum class EncodedType : int {
-    NONE = 0,
-    JPEG = 1,
-    XLZ4 = 2,
-};
-
 class PixelMapStorage final {
 public:
     static bool Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static bool Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
 
-    static bool Push(uint64_t id, PixelMap& map);
+    static bool Push(uint64_t id, const PixelMap& map);
 
 private:
     static bool Fits(size_t size);
 
     static bool PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static void PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
-    static void PushSharedMemory(uint64_t id, PixelMap& map);
+    static void PushSharedMemory(uint64_t id, const PixelMap& map);
 
     static bool PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static void PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
-    static void PushDmaMemory(uint64_t id, PixelMap& map);
+    static void PushDmaMemory(uint64_t id, const PixelMap& map);
 
-    static void PushImage(uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer = nullptr,
-                            const ImageProperties* properties = nullptr);
+    static void PushImage(uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer = nullptr);
 
     static bool IsSharedMemory(const PixelMap& map);
     static bool IsSharedMemory(const PixelMemInfo& memory);
@@ -83,8 +54,6 @@ private:
     static bool IsDmaMemory(const PixelMap& map);
     static bool IsDmaMemory(const PixelMemInfo& memory);
     static bool IsDmaMemory(AllocatorType type);
-
-    static EncodedType TryEncodeTexture(const ImageProperties* properties, const ImageData& data, Image& image);
 
     static bool ValidateBufferSize(const PixelMemInfo& memory);
     static uint32_t GetBytesPerPixel(const ImageInfo& info);
@@ -96,21 +65,9 @@ private:
 
     static bool IsDataValid(const void* data, size_t size);
 
-    static int32_t EncodeSeqLZ4(const ImageData& source, ImageData& dst);
-    static int32_t DecodeSeqLZ4(const char* source, ImageData& dst, int32_t sourceSize, int32_t originalSize);
-
-    static void ExtractAlpha(const ImageData& image, ImageData& alpha, const ImageProperties& properties);
-    static void ReplaceAlpha(ImageData& image, ImageData& alpha, const ImageProperties& properties);
-    static int32_t MakeStride(
-        ImageData& noPadding, ImageData& dst, const ImageProperties& properties, int32_t pixelBytes);
-
-    static int32_t EncodeJpeg(const ImageData& source, ImageData& dst, const ImageProperties& properties);
-    static int32_t DecodeJpeg(
-        const char* source, ImageData& dst, int32_t sourceSize, const ImageProperties& properties);
-
     static bool CopyImageData(const uint8_t* srcImage, size_t srcSize, uint8_t* dstImage, size_t dstSize);
     static bool CopyImageData(const ImageData& data, uint8_t* dstImage, size_t dstSize);
-    static bool CopyImageData(Image* image, uint8_t* dstImage, size_t dstSize);
+    static bool CopyImageData(const Image* image, uint8_t* dstImage, size_t dstSize);
 
     static ImageData GenerateRawCopy(const uint8_t* data, size_t size);
     static ImageData GenerateMiniatureAstc(const uint8_t* data, size_t size);
