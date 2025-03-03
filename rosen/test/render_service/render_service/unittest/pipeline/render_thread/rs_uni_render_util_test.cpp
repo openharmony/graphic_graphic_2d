@@ -1709,6 +1709,31 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
 }
 
+HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+
+    node->childrenHasUIExtension_ = true;
+    Drawing::Matrix parentMatrix = Drawing::Matrix();
+    parentMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    NodeId hostId = 1;
+    UIExtensionCallbackData callbackData;
+    rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
+
+    RSSurfaceRenderNodeConfig config = {.id = 2, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE};
+    std::shared_ptr<RSSurfaceRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node, nullptr);
+    childNode->SetUIExtensionUnobscured(true);
+    node->AddChild(childNode);
+    node->GenerateFullChildrenList();
+    UIExtensionCallbackData callbackData1;
+    rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData1, true);
+    ASSERT_EQ(callbackData1.size() == 1, true);
+}
+
 /*
  * @tc.name: AccumulateMatrixAndAlpha001
  * @tc.desc: AccumulateMatrixAndAlpha test when hwcNode is nullptr
