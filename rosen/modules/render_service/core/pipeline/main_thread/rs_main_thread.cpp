@@ -83,6 +83,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
+#include "rs_frame_rate_vote.h"
+#include "singleton.h"
 #ifdef RS_ENABLE_VK
 #include "pipeline/rs_vk_pipeline_config.h"
 #endif
@@ -1370,6 +1372,7 @@ void RSMainThread::ProcessCommandForUniRender()
         }
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
     if ((transactionDataEffective != nullptr && !transactionDataEffective->empty()) ||
         RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
         doDirectComposition_ = false;
