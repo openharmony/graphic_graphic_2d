@@ -44,6 +44,7 @@
 #ifdef RS_ENABLE_GPU
 #include "drawable/rs_display_render_node_drawable.h"
 #endif
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -255,6 +256,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
     const FrameContextConfig& frameContextConfig)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_REQUESTFRAME);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -416,6 +419,8 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
     BufferDrawParam& drawParam)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_DRAWDISPLAYNODEWITHPARAMS);
     if (drawParam.useCPU) {
         DrawBuffer(canvas, drawParam);
     } else {
@@ -755,6 +760,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_DRAWIMAGE);
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
     RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;

@@ -29,6 +29,7 @@
 #include "skia_adapter/skia_graphics.h"
 #include "memory/rs_memory_graphic.h"
 #include "include/gpu/GrDirectContext.h"
+#include "utils/graphic_coretrace.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 
@@ -511,6 +512,16 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
         while (std::getline(allResources, s, '\n')) {
             log.AppendFormat("%s\n", s.c_str());
         }
+    }
+#endif
+#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
+    static thread_local int tid = gettid();
+    log.AppendFormat("\n------------------\n[%s:%d] dumpAllCoreTrace:\n", GetThreadName(), tid);
+    std::stringstream allCoreTrace;
+    gpuContext->DumpAllCoreTrace(allCoreTrace);
+    std::string s;
+    while (std::getline(allCoreTrace, s, '\n')) {
+        log.AppendFormat("%s\n", s.c_str());
     }
 #endif
 }

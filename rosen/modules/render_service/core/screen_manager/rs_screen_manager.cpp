@@ -2489,13 +2489,18 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId scree
 
 int32_t RSScreenManager::SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screensIt->second->SetScreenLinearMatrix(matrix);
+    auto task = [this, id, matrix]() -> void {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            return;
+        }
+        screensIt->second->SetScreenLinearMatrix(matrix);
+    };
+    // SetScreenLinearMatrix is SMQ API, which can only be executed in RSHardwareThread.
+    RSHardwareThread::Instance().PostTask(task);
+    return StatusCode::SUCCESS;
 }
 } // namespace impl
 

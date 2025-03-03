@@ -188,7 +188,7 @@ bool FontDescriptorCache::ProcessSystemFontType(int32_t systemFontType, int32_t&
         TextEngine::FontParser::SystemFontType::STYLISH |
         TextEngine::FontParser::SystemFontType::INSTALLED |
         TextEngine::FontParser::SystemFontType::CUSTOMIZED)) != systemFontType) {
-        TEXT_LOGE("SystemFontType is invalid, systemFontType: %{public}d", systemFontType);
+        TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return false;
     }
     fontType = systemFontType;
@@ -205,7 +205,7 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
     int32_t systemFontType, std::unordered_set<std::string> &fontList)
 {
     if (systemFontType < 0) {
-        TEXT_LOGE("SystemFontType is an invalid value");
+        TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return;
     }
     int32_t fontType = 0;
@@ -255,7 +255,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Failed to parser installed fontDescriptor by name, fullName: %{public}s", fullName.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Failed to parser installed font descriptor by full name: %{public}s", fullName.c_str());
     return false;
 }
 
@@ -263,14 +263,14 @@ bool FontDescriptorCache::GetFontTypeFromParams(const std::string& fullName,
     int32_t systemFontType, int32_t& fontType)
 {
     if (fullName.empty()) {
-        TEXT_LOGE("Empty fullName is provided");
+        TEXT_LOGE("Empty full name");
         return false;
     }
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         return false;
     }
     if (systemFontType < 0) {
-        TEXT_LOGE("SystemFontType is an invalid value");
+        TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return false;
     }
     return true;
@@ -316,7 +316,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
             return;
         }
     }
-    TEXT_LOGD("Failed to get fontDescriptor by fullName: %{public}s", fullName.c_str());
+    TEXT_LOGD("Failed to get fontDescriptor by full name: %{public}s", fullName.c_str());
     result = nullptr;
 }
 
@@ -514,7 +514,7 @@ bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result)
 {
     if (desc == nullptr) {
-        TEXT_LOGE("Desc is nullptr");
+        TEXT_LOGE("Null desc");
         return;
     }
     ParserSystemFonts();
@@ -525,12 +525,12 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     desc->weight = (desc->weight > 0) ? WeightAlignment(desc->weight) : desc->weight;
     std::set<FontDescSharedPtr> finishRet;
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fontFamily, fontFamilyMap_), return,
-        "Failed to match fontFamily");
+        "Failed to match font family");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fullName, fullNameMap_), return, "Failed to match fullName");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->postScriptName, postScriptNameMap_), return,
-        "Failed to match postScriptName");
+        "Failed to match post script name");
     TEXT_INFO_CHECK(HandleMapIntersection(finishRet, desc->fontSubfamily, fontSubfamilyNameMap_), return,
-        "Failed to match fontSubfamily");
+        "Failed to match font subfamily");
 
     TEXT_CHECK(FilterBoldCache(desc->weight, finishRet), return);
     TEXT_CHECK(FilterWidthCache(desc->width, finishRet), return);

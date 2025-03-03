@@ -21,6 +21,7 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "recording/recording_canvas.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -66,11 +67,18 @@ void RSRenderEngineTest::SetUpTestCase()
         drawingRecordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(canvasWidth, canvasHeight);
         visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingRecordingCanvas_.get());
     }
+    RSTestUtil::InitRenderNodeGC();
 }
+
 void RSRenderEngineTest::TearDownTestCase()
 {
     visitor_ = nullptr;
     drawingCanvas_ = nullptr;
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread) {
+        mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
+        mainThread->context_->globalRootRenderNode_ = nullptr;
+    }
 }
 void RSRenderEngineTest::SetUp() {}
 

@@ -46,6 +46,7 @@
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
+#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -2125,6 +2126,8 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUNIRENDERUTIL_OPTIMIZEDFLUSHANDSUBMIT);
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
         return;

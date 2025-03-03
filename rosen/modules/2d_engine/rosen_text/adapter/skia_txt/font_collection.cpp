@@ -94,14 +94,14 @@ bool FontCollection::RegisterTypeface(std::shared_ptr<Drawing::Typeface> typefac
 
     std::unique_lock<std::shared_mutex> lock(mutex_);
     if (typefaces_.find(typeface->GetUniqueID()) != typefaces_.end()) {
-        TEXT_LOGI("Find same typeface:family name:%{public}s, uniqueid:%{public}u",
+        TEXT_LOGI("Find same typeface, family name:%{public}s, uniqueid:%{public}u",
             typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
         return true;
     }
     if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface)) {
         return false;
     }
-    TEXT_LOGI("Reg fontcollection typeface:family name:%{public}s, uniqueid:%{public}u",
+    TEXT_LOGI("Succeed in registering typeface, family name:%{public}s, uniqueid:%{public}u",
         typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     typefaces_.emplace(typeface->GetUniqueID(), typeface);
     return true;
@@ -162,7 +162,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
         std::shared_lock<std::shared_mutex> lock(mutex_);
         for (auto item : typefaces_) {
             if (faceHash == item.second->GetHash()) {
-                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",
+                TEXT_LOGI("Find same theme font, family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",
                     name.c_str(), item.second->GetUniqueID(), faceHash);
                 dfmanager_->LoadThemeFont(OHOS_THEME_FONT, item.second);
                 fontCollection_->ClearFontFamilyCache();

@@ -18,6 +18,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 
@@ -32,6 +33,8 @@ RSRenderNodeShadowDrawable::RSRenderNodeShadowDrawable(
 
 void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODESHADOWDRAWABLE_DRAW);
     // rect is not directly used, make a dummy rect
     static const Drawing::Rect rect;
 

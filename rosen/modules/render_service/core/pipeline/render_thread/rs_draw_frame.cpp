@@ -31,6 +31,7 @@
 #include "rs_uni_render_thread.h"
 
 #include "rs_profiler.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,6 +51,8 @@ bool RSDrawFrame::debugTraceEnabled_ =
 
 void RSDrawFrame::RenderFrame()
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSDRAWFRAME_RENDERFRAME);
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
@@ -97,6 +100,8 @@ void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 
 void RSDrawFrame::PostAndWait()
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSDRAWFRAME_POSTANDWAIT);
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {

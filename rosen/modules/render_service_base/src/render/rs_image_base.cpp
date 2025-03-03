@@ -33,6 +33,7 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
+#include "utils/graphic_coretrace.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "native_buffer_inner.h"
@@ -118,6 +119,8 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
     Drawing::SrcRectConstraint constraint)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSIMAGEBASE_DRAWIMAGE);
 #ifdef ROSEN_OHOS
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
