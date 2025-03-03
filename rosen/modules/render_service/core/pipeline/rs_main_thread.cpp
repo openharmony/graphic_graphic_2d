@@ -581,6 +581,15 @@ void RSMainThread::Init()
         RSRenderNodeGC::Instance().SetGCTaskEnable(isEnable);
     };
     conn->SetGCNotifyTask(GCNotifyTaskProxy);
+
+    RSDisplayRenderNode::SetScreenStatusNotifyTask([](bool status) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("RSMainThread::Init screenManager is nullptr");
+            return;
+        }
+        screenManager->SetScreenSwitchStatus(status);
+    });
 #ifdef RS_ENABLE_GL
     /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {

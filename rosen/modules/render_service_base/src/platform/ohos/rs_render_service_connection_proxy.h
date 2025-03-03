@@ -290,6 +290,8 @@ public:
 
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
+    void NotifyScreenSwitched() override;
+
     void SetWindowContainer(NodeId nodeId, bool value) override;
 private:
     bool FillParcelWithTransactionData(

@@ -3108,6 +3108,24 @@ void RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, b
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request error.", __func__);
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool value)
 {
     MessageParcel data;

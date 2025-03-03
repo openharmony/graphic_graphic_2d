@@ -319,6 +319,8 @@ public:
 
     virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
+    virtual void NotifyScreenSwitched() = 0;
+
     virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
 };
 } // namespace Rosen

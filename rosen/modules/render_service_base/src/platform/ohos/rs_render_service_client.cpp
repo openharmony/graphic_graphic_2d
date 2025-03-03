@@ -1692,6 +1692,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyScreenSwitched();
+    }
+}
+
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

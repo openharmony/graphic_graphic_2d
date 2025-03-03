@@ -1894,5 +1894,17 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
     std::string nodeIdStr = "123456";
     rsInterfaces->SetLayerTop(nodeIdStr, true);
 }
+
+/*
+ * @tc.name: NotifyScreenSwitched
+ * @tc.desc: Test NotifyScreenSwitched.
+ * @tc.type: FUNC
+ * @tc.require: issueIBH4PQ
+ */
+HWTEST_F(RSInterfacesTest, NotifyScreenSwitched, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->NotifyScreenSwitched();
+}
 } // namespace Rosen
 } // namespace OHOS

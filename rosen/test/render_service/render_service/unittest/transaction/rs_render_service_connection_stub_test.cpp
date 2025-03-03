@@ -503,4 +503,21 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
     int res = connectionStub_->OnRemoteRequest(-1, data, reply, option);
     ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
 }
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub013
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub013, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
 } // namespace OHOS::Rosen
