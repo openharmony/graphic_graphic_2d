@@ -1328,6 +1328,84 @@ HWTEST_F(RSUifirstManagerTest, IsScreenshotAnimation001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsToSubByAppAnimation01
+ * @tc.desc: Test IsToSubByAppAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueIBMDEJ
+ */
+HWTEST_F(RSUifirstManagerTest, IsToSubByAppAnimation01, TestSize.Level1)
+{
+    uifirstManager_.currentFrameEvent_.clear();
+    bool res = uifirstManager_.IsToSubByAppAnimation();
+    EXPECT_FALSE(res);
+
+    RSUifirstManager::EventInfo info;
+    info.sceneId = "WINDOW_TITLE_BAR_MINIMIZED"; // for test
+    uifirstManager_.currentFrameEvent_.push_back(info);
+    res = uifirstManager_.IsToSubByAppAnimation();
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: GetSubNodeIsTransparent
+ * @tc.desc: test results of GetSubNodeIsTransparent
+ * @tc.type: FUNC
+ * @tc.require: issueIBMDEJ
+ */
+HWTEST_F(RSUifirstManagerTest, GetSubNodeIsTransparent, TestSize.Level1)
+{
+    NodeId id = static_cast<uint64_t>(1);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    RSUifirstManager::EventInfo info;
+    info.sceneId = "WINDOW_TITLE_BAR_MINIMIZED"; // for test
+    uifirstManager_.currentFrameEvent_.push_back(info);
+
+    node->SetGlobalAlpha(1.0f);
+    node->SetAbilityBGAlpha(UINT8_MAX);
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    std::string dfxMsg;
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*node, dfxMsg), false);
+
+    node->SetGlobalAlpha(1.0f);
+    node->SetAbilityBGAlpha(0);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
+    rssNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    rssNode->SetGlobalAlpha(1.0f);
+    rssNode->SetAbilityBGAlpha(225);
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    children.push_back(rssNode);
+    node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*node, dfxMsg), true);
+}
+
+/**
+ * @tc.name: QuerySubAssignable
+ * @tc.desc: test results of QuerySubAssignable
+ * @tc.type: FUNC
+ * @tc.require: issueIBMDEJ
+ */
+HWTEST_F(RSUifirstManagerTest, QuerySubAssignable, TestSize.Level1)
+{
+    NodeId id = static_cast<uint64_t>(1);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+
+    node->firstLevelNodeId_ = id + 1;
+    ASSERT_EQ(uifirstManager_.QuerySubAssignable(*node, false), false);
+
+    node->firstLevelNodeId_ = id;
+    node->SetGlobalAlpha(1.0f);
+    node->SetAbilityBGAlpha(0);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    RSUifirstManager::EventInfo info;
+    info.sceneId = "WINDOW_TITLE_BAR_MINIMIZED"; // for test
+    uifirstManager_.currentFrameEvent_.push_back(info);
+    ASSERT_EQ(uifirstManager_.QuerySubAssignable(*node, false), true);
+}
+
+/**
  * @tc.name: UpdateUifirstNodes001
  * @tc.desc: Test UpdateUifirstNodes
  * @tc.type: FUNC

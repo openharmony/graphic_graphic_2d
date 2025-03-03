@@ -207,6 +207,10 @@ private:
     SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
 
+    bool IsToSubByAppAnimation() const;
+    bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
+    bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
+
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
@@ -264,6 +268,10 @@ private:
     const std::vector<std::string> screenshotAnimation_ = {
         { "SCREENSHOT_SCALE_ANIMATION" },
         { "SCREENSHOT_DISMISS_ANIMATION" },
+    };
+    const std::vector<std::string> toSubByAppAnimation_ = {
+        { "WINDOW_TITLE_BAR_MINIMIZED" },
+        { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
     };
 
     // use in MainThread & RT & subThread
