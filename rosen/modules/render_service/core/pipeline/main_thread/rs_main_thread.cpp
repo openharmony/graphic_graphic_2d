@@ -841,9 +841,9 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         int ret = OH_HiSysEvent_Write("GRPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
             sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
         if (ret == 0) {
-            RS_LOGE("Successed to upload hebc fault event.");
+            RS_LOGE("Successed to rs_vulkan_error fault event.");
         } else {
-            RS_LOGE("Faild to upload rs_vulkan_error event, ret = %{publid}d", ret);
+            RS_LOGE("Faild to upload rs_vulkan_error event, ret = %{public}d", ret);
         }
     });
 }
