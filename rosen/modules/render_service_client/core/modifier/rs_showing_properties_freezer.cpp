@@ -25,12 +25,15 @@
 
 namespace OHOS {
 namespace Rosen {
-RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id) : id_(id) {}
+RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
+    : id_(id), rsUIContext_(rsUIContext)
+{}
 
 template<typename T, RSModifierType Type>
 std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
 {
-    auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);
+    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);
     if (node == nullptr) {
         return std::nullopt;
     }

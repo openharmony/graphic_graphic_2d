@@ -115,13 +115,9 @@ public:
  */
 HWTEST_F(RSExtendedModifierTest, CreateDrawingContextTest, TestSize.Level1)
 {
-    NodeId nodeId = -1;
-    RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    EXPECT_EQ(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
-
-    nodeId = 0;
-    RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    EXPECT_NE(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
+    std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
+    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
+    EXPECT_TRUE(ctx.height == 0);
 }
 
 /**

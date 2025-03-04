@@ -82,6 +82,9 @@ private:
     void RegisterFpsFuncs();
     void RegisterGpuFuncs();
 
+    // RS Filter CCM init
+    void FilterCCMInit();
+
     RSMainThread* mainThread_ = nullptr;
     sptr<RSScreenManager> screenManager_;
 

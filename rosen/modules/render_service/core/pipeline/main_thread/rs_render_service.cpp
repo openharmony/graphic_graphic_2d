@@ -100,12 +100,8 @@ bool RSRenderService::Init()
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
 
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    // need called after GraphicFeatureParamManager::GetInstance().Init();
+    FilterCCMInit();
 
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
@@ -391,17 +387,27 @@ void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& f
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    NodeId nodeId = 0;
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
+            nodeId = surfaceNode->GetId();
+            return true;
+        }
+        return false;
+    });
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
     }
 }
@@ -451,17 +457,27 @@ void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& 
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    NodeId nodeId = 0;
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
+            nodeId = surfaceNode->GetId();
+            return true;
+        }
+        return false;
+    });
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
             }).wait();
     }
 }
@@ -994,6 +1010,20 @@ void RSRenderService::RegisterGpuFuncs()
     };
 
     RSDumpManager::GetInstance().Register(handers);
+}
+
+// need called after GraphicFeatureParamManager::GetInstance().Init();
+void RSRenderService::FilterCCMInit()
+{
+    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
+    if (filterParam == nullptr) {
+        return;
+    }
+    RSFilterCacheManager::isCCMFilterCacheEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
 }
 } // namespace Rosen
 } // namespace OHOS

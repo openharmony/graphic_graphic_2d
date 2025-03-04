@@ -64,7 +64,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CommitTransaction, TestSize.Level1)
     std::unique_ptr<RSTransactionData> transactionData;
     proxy->CommitTransaction(transactionData);
     transactionData = std::make_unique<RSTransactionData>();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     NodeId nodeId = 1;
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     transactionData->AddCommand(command, nodeId, followType);

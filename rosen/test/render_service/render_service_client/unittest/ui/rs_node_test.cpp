@@ -5168,15 +5168,20 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     PropertyCallback callback = nullptr;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr;
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_EQ(callback, nullptr);
 
     callback = []() {};
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_EQ(implicitAnimator, nullptr);
 
+    rsUIContext = std::make_shared<RSUIContext>();
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
+    EXPECT_NE(rsUIContext, nullptr);
+
     implicitAnimator = std::make_shared<RSImplicitAnimator>();
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(implicitAnimator, nullptr);
 }
 
@@ -6338,14 +6343,14 @@ HWTEST_F(RSNodeTest, NotifyTransition, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     bool isTransitionIn = true;
-    std::shared_ptr<const RSTransitionEffect> effect;
-    rsNode->implicitAnimator_ = nullptr;
+    std::shared_ptr<const RSTransitionEffect> effect = std::make_shared<const RSTransitionEffect>();
+    rsNode->rsUIContext_.reset();
     rsNode->NotifyTransition(effect, isTransitionIn);
     EXPECT_NE(isTransitionIn, false);
 
-    rsNode->implicitAnimator_ = std::make_shared<RSImplicitAnimator>();
+    rsNode->rsUIContext_ = std::make_shared<RSUIContext>();
     rsNode->NotifyTransition(effect, isTransitionIn);
-    EXPECT_NE(rsNode->implicitAnimator_, nullptr);
+    EXPECT_NE(isTransitionIn, false);
 }
 
 /**
@@ -6723,22 +6728,6 @@ HWTEST_F(RSNodeTest, UpdateModifierMotionPathOption, TestSize.Level1)
     rsNode->UpdateModifierMotionPathOption();
     EXPECT_EQ(rsNode->modifiers_.empty(), false);
     EXPECT_EQ(rsNode->propertyModifiers_.empty(), false);
-}
-
-/**
- * @tc.name: UpdateImplicitAnimator
- * @tc.desc: test results of UpdateImplicitAnimator
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, UpdateImplicitAnimator, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->UpdateImplicitAnimator();
-
-    rsNode->implicitAnimatorTid_ = gettid();
-    rsNode->UpdateImplicitAnimator();
-    EXPECT_TRUE(rsNode->implicitAnimatorTid_ == gettid());
 }
 
 /**

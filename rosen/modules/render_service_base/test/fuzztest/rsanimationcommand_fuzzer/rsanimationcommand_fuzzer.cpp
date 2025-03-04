@@ -68,12 +68,13 @@ namespace OHOS {
         NodeId targetId = GetData<NodeId>();
         AnimationId animId = GetData<AnimationId>();
         AnimationCallbackEvent event = GetData<AnimationCallbackEvent>();
+        uint64_t token = GetData<uint64_t>();
         PropertyId propertyId = GetData<PropertyId>();
 
         // AnimationCallBack
-        auto callback = [](NodeId nodeId, AnimationId animId, AnimationCallbackEvent event) {};
+        auto callback = [](NodeId nodeId, AnimationId animId, uint64_t token, AnimationCallbackEvent event) {};
         AnimationCommandHelper::SetAnimationCallbackProcessor(callback);
-        AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+        AnimationCommandHelper::AnimationCallback(context, targetId, animId, token, event);
 
         // test
         std::shared_ptr<RSRenderAnimation> animation = nullptr;

@@ -66,8 +66,8 @@ bool DoCreateDrawingContext(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    NodeId id = GetData<NodeId>();
-    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(id);
+    std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
+    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
     delete ctx.canvas;
     ctx.canvas = nullptr;
     return true;
@@ -85,8 +85,8 @@ bool DoCreateRenderModifier(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    NodeId id = GetData<NodeId>();
-    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(id);
+    std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
+    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
     PropertyId propertyId = GetData<PropertyId>();
     RSModifierType type = GetData<RSModifierType>();
     RSExtendedModifierHelper::CreateRenderModifier(ctx, propertyId, type);
@@ -105,8 +105,8 @@ bool DoFinishDrawing(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    NodeId id = GetData<NodeId>();
-    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(id);
+    std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
+    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
     RSExtendedModifierHelper::FinishDrawing(ctx);
     return true;
 }

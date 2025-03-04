@@ -731,6 +731,10 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
         ROSEN_LOGD("Invalid parameter input of scale.");
         return;
     }
+    if (rsNode == nullptr) {
+        ROSEN_LOGD("[%{public}s] : invalid input \n", __func__);
+        return;
+    }
 
     if (scaleProperty == nullptr) {
         SetNodePivot(rsNode);
@@ -753,7 +757,7 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     }
 
     // set animation
-    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
         scaleprotocol, scaleCurve, [&scaleProperty, &scaleValueEnd]() { scaleProperty->Set(scaleValueEnd); });
 
     if (animations1.size() > 0 && animations1[0] != nullptr) {
@@ -793,7 +797,7 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
     RSAnimationTimingCurve alphaCurve;
     SymbolAnimation::CreateAnimationTimingCurve(alphaParameter.curveType, alphaParameter.curveArgs, alphaCurve);
 
-    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
         alphaProtocol, alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
 
     if (animations1.size() > 0 && animations1[0] != nullptr) {

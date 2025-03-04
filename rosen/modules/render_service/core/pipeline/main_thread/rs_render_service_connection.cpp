@@ -37,6 +37,7 @@
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -949,6 +950,15 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
     auto& context = mainThread_->GetContext();
     auto& nodeMap = context.GetMutableNodeMap();
     std::string surfaceName = nodeMap.GetSelfDrawSurfaceNameByPid(pid);
+    NodeId nodeId = 0;
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [&nodeId, &surfaceName](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode->GetName() == surfaceName && surfaceNode->IsOnTheTree() == true) {
+            nodeId = surfaceNode->GetId();
+            return true;
+        }
+        return false;
+    });
     if (surfaceName.empty()) {
         return "";
     }
@@ -957,22 +967,22 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                connection->screenManager_->FpsDump(dumpString, surfaceName);
+                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                connection->screenManager_->FpsDump(dumpString, surfaceName);
+                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
     }
     return dumpString;
@@ -1117,8 +1127,13 @@ void TakeSurfaceCaptureForUiParallel(
     std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
-
+    auto& context = RSMainThread::Instance()->GetContext();
     if (captureConfig.isSync) {
+        auto flagMap = context.GetUiCaptureCmdsExecutedFlagMap();
+        auto iter = flagMap.find(id);
+        if (iter == flagMap.end()) {
+            context.InsertUiCaptureCmdsExecutedFlag(id, false);
+        }
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
         return;
     }

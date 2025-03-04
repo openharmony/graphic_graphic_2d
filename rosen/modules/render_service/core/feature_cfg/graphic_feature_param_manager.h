@@ -27,6 +27,8 @@
 #include "accessibility_param.h"
 #include "capture_base_param_parse.h"
 #include "capture_base_param.h"
+#include "dirtyregion_param.h"
+#include "dirtyregion_param_parse.h"
 #include "drm_param_parse.h"
 #include "drm_param.h"
 #include "hdr_param_parse.h"
@@ -45,6 +47,8 @@
 #include "speciallayer_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
+#include "vrate_param_parse.h"
+#include "vrate_param.h"
 #include "filter_param_parse.h"
 #include "filter_param.h"
 #include "dvsync_param_parse.h"
@@ -67,6 +71,8 @@ struct ModuleConfig {
 
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
+    {FEATURE_CONFIGS[DIRTYREGION], [] {return std::make_unique<DirtyRegionParamParse>(); },
+        [] {return std::make_unique<DirtyRegionParam>(); }},
     {FEATURE_CONFIGS[HDR], [] {return std::make_unique<HDRParamParse>(); }, [] {return std::make_unique<HDRParam>(); }},
     {FEATURE_CONFIGS[DRM], [] {return std::make_unique<DRMParamParse>(); }, [] {return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
@@ -98,6 +104,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[Accessibility], [] {return std::make_unique<AccessibilityParamParse>(); },
         [] {return std::make_unique<AccessibilityParam>(); }},
+    {FEATURE_CONFIGS[VRate], [] { return std::make_unique<VRateParamParse>(); },
+        [] { return std::make_unique<VRateParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

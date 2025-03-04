@@ -148,6 +148,7 @@ private:
     friend class RSNode;
     friend class RSImplicitAnimator;
     friend class RSInteractiveImplictAnimator;
+    friend class RSUIContext;
 };
 } // namespace Rosen
 } // namespace OHOS

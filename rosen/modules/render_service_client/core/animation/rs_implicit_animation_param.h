@@ -41,6 +41,7 @@ class RSPropertyBase;
 class RSMotionPathOption;
 class RSTransition;
 class RSTransitionEffect;
+class RSUIContext;
 
 class RSImplicitAnimationParam {
 public:
@@ -63,14 +64,15 @@ public:
     ~RSImplicitCancelAnimationParam() override = default;
 
     void AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property);
-    bool SyncProperties();
+    bool SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext);
 
     std::shared_ptr<RSAnimation> CreateEmptyAnimation(std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     bool ExecuteSyncPropertiesTask(
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService);
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService,
+        const std::shared_ptr<RSUIContext>& rsUIContext);
     std::vector<std::shared_ptr<RSPropertyBase>> pendingSyncList_;
 };
 

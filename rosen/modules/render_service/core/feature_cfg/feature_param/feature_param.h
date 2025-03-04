@@ -24,6 +24,7 @@
 
 namespace OHOS::Rosen {
 const std::vector<std::string> FEATURE_CONFIGS = {
+    "DirtyRegionConfig",
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",
@@ -40,11 +41,13 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SurfaceCaptureConfig",
     "UICaptureConfig",
     "DeeplyReleaseGpuResourceConfig",
-    "AccessibilityConfig"
+    "AccessibilityConfig",
+    "VRateConfig",
 };
 
 enum FeatureModule {
-    HDR = 0,
+    DIRTYREGION = 0,
+    HDR,
     DRM,
     HWC,
     HFBC,
@@ -61,6 +64,7 @@ enum FeatureModule {
     UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
     Accessibility,
+    VRate,
 };
 
 enum ParseErrCode {

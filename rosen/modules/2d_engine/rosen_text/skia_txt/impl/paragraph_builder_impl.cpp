@@ -130,7 +130,7 @@ void ParagraphBuilderImpl::Pop()
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    if (TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API16_VERSION)) {
+    if (TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API18_VERSION)) {
         std::u16string wideText = text;
         Utf16Utils::HandleIncompleteSurrogatePairs(wideText);
         builder_->addText(wideText);

@@ -38,7 +38,8 @@ public:
     }
 
     ~RSCanvasDrawingNode() override;
-    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     bool GetBitmap(Drawing::Bitmap& bitmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
@@ -46,12 +47,15 @@ public:
     bool ResetSurface(int width, int height);
 
 protected:
-    RSCanvasDrawingNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    RSCanvasDrawingNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasDrawingNode(const RSCanvasDrawingNode&) = delete;
     RSCanvasDrawingNode(const RSCanvasDrawingNode&&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&&) = delete;
     void CreateRenderNodeForTextureExportSwitch() override;
+private:
+    void RegisterNodeMap() override;
 };
 } // namespace Rosen
 } // namespace OHOS
