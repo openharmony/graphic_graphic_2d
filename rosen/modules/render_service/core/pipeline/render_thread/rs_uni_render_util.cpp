@@ -26,6 +26,7 @@
 #include "scene_board_judgement.h"
 
 #include "common/rs_optional_trace.h"
+#include "common/rs_rectangles_merger.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -83,16 +84,9 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 #endif
 }
 }
-
-std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
-    int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params)
+void RSUniRenderUtil::MergeDirtyRectAfterMergeHistory(
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion)
 {
-    // renderThreadParams/dirtyManager not null in caller
-    auto dirtyManager = displayDrawable.GetSyncDirtyManager();
-    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
-    RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
-    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
-        curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
     const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
     if (clipRectThreshold < 1.f) {
         Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
@@ -105,52 +99,98 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
+}
+
+Occlusion::Region RSUniRenderUtil::GetExpandedAllDirtyRegion(
+    ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion, Occlusion::Region& globalDirtyRegion)
+{
+    Occlusion::Region expandedAllDirtyRegion;
+    Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
+    constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
+    int expandSize = static_cast<int>(std::ceil(
+        (screenInfo.samplingDistance + expandSizeByFloatRounding) / screenInfo.samplingScale));
+    for (auto rect : allDirtyRegion.GetRegionRects()) {
+        rect.Expand(expandSize, expandSize, expandSize, expandSize);
+        Occlusion::Region expandedRegion{rect};
+        expandedAllDirtyRegion.OrSelf(expandedRegion);
+    }
+    return expandedAllDirtyRegion;
+}
+
+std::vector<RectI> RSUniRenderUtil::GetExpandedDamageRegion(ScreenInfo& screenInfo, std::vector<RectI>& rects)
+{
+    std::vector<RectI> dstDamageRegionrects;
+    for (const auto& rect : rects) {
+        Drawing::Matrix scaleMatrix;
+        scaleMatrix.SetScaleTranslate(screenInfo.samplingScale, screenInfo.samplingScale,
+            screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
+        RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
+        const Vector4<int> expandSize{screenInfo.samplingDistance, screenInfo.samplingDistance,
+            screenInfo.samplingDistance, screenInfo.samplingDistance};
+        dstDamageRegionrects.emplace_back(mappedRect.MakeOutset(expandSize));
+    }
+    return dstDamageRegionrects;
+}
+
+std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    // renderThreadParams/dirtyManager not null in caller
+    auto dirtyManager = displayDrawable.GetSyncDirtyManager();
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
+    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleAdvancedDirtyRegion(
+        curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec());
+    if (uniParam->GetAdvancedDirtyType() == AdvancedDirtyRegionType::DISABLED) {
+        MergeDirtyRectAfterMergeHistory(dirtyManager, dirtyRegion);
+    }
+    RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
 #endif
-    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() }};
-    allDirtyRegion.OrSelf(dirtyRegion);
-    if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
-        Occlusion::Region expandedAllDirtyRegion;
-        constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
-        int expandSize = static_cast<int>(std::ceil(
-            (screenInfo.samplingDistance + expandSizeByFloatRounding) / screenInfo.samplingScale));
-        for (auto rect : allDirtyRegion.GetRegionRects()) {
-            rect.Expand(expandSize, expandSize, expandSize, expandSize);
-            Occlusion::Region expandedRegion{rect};
-            expandedAllDirtyRegion.OrSelf(expandedRegion);
-        }
-        allDirtyRegion = expandedAllDirtyRegion;
-    }
-    if (params.IsDirtyAlignEnabled()) {
-        allDirtyRegion = allDirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
-    }
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
-
-    // DFX START
-    rsDirtyRectsDfx.SetDirtyRegion(allDirtyRegion);
-    rsDirtyRectsDfx.SetExpandedDirtyRegion(allDirtyRegion);
-    // DFX END
-
-    RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(allDirtyRegion, screenInfo);
-    if (!rect.IsEmpty()) {
-        RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
+    Occlusion::Region globalDirtyRegion = {};
+    Occlusion::Region damageRegion;
+    Occlusion::Region drawnRegion;
+    for (auto& rect : dirtyManager->GetAdvancedDirtyRegion()) {
+        Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
+        globalDirtyRegion.OrSelf(region);
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
-        std::vector<RectI> dstDamageRegionrects;
-        for (const auto& rect : rects) {
-            Drawing::Matrix scaleMatrix;
-            scaleMatrix.SetScaleTranslate(screenInfo.samplingScale, screenInfo.samplingScale,
-                screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
-            RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), scaleMatrix);
-            const Vector4<int> expandSize{screenInfo.samplingDistance, screenInfo.samplingDistance,
-                screenInfo.samplingDistance, screenInfo.samplingDistance};
-            dstDamageRegionrects.emplace_back(mappedRect.MakeOutset(expandSize));
-        }
-        return dstDamageRegionrects;
+        auto expandedAllDirtyRegion = GetExpandedAllDirtyRegion(screenInfo, dirtyRegion, globalDirtyRegion);
+        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(curAllSurfaceDrawables, expandedAllDirtyRegion);
+        rsDirtyRectsDfx.SetExpandedDirtyRegion(expandedAllDirtyRegion);
+    } else {
+        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(curAllSurfaceDrawables,
+            dirtyRegion.Or(globalDirtyRegion));
+    }
+    AdvancedDirtyRegionType dirtyRegionType = uniParam->GetAdvancedDirtyType();
+    switch (dirtyRegionType) {
+        case AdvancedDirtyRegionType::DISABLED:
+            damageRegion = dirtyRegion.Or(globalDirtyRegion);
+            break;
+        case AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY:
+            damageRegion = RSUniRenderUtil::MergeDirtyRects(dirtyRegion.Or(globalDirtyRegion));
+            break;
+        case AdvancedDirtyRegionType::SET_ADVANCED_DISPLAY:
+            damageRegion = RSUniRenderUtil::MergeDirtyRects(globalDirtyRegion);
+            damageRegion.OrSelf(dirtyRegion);
+            break;
+        default:
+            damageRegion = dirtyRegion.Or(globalDirtyRegion);
+            RS_LOGI("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
+            RS_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
+            break;
+    }
+    drawnRegion = uniParam->IsDirtyAlignEnabled() ?
+        damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
+    RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
+    rsDirtyRectsDfx.SetDirtyRegion(drawnRegion);
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
+    if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
+        return GetExpandedDamageRegion(screenInfo, rects);
     }
     return rects;
 }
@@ -279,6 +319,88 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
     return allSurfaceVisibleDirtyRegion;
 }
 
+Occlusion::Region RSUniRenderUtil::MergeVisibleAdvancedDirtyRegion(
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+    std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec)
+{
+    Occlusion::Region allSurfaceVisibleDirtyRegion;
+    for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceParams || !surfaceDirtyManager) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion node(%{public}" PRIu64") params or"
+                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
+            continue;
+        }
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        //for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
+        if (surfaceParams->IsFirstLevelCrossNode() &&
+            !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
+            continue;
+        }
+        Occlusion::Region surfaceAdvancedDirtyRegion = Occlusion::Region();
+        for (const auto& rect : surfaceDirtyManager->GetAdvancedDirtyRegion()) {
+            Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
+            surfaceAdvancedDirtyRegion.OrSelf(region);
+        }
+        auto visibleRegion = surfaceParams->GetVisibleRegion();
+        Occlusion::Region surfaceVisibleDirtyRegion = surfaceAdvancedDirtyRegion.And(visibleRegion);
+        surfaceNodeDrawable->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        if (!surfaceVisibleDirtyRegion.IsEmpty()) {
+            hasVisibleDirtyRegionSurfaceVec.emplace_back(surfaceParams->GetId());
+        }
+        allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
+        GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceParams->GetId(),
+            surfaceNodeDrawable->GetName(), surfaceVisibleDirtyRegion.GetRegionRectIs());
+    }
+    return allSurfaceVisibleDirtyRegion;
+}
+
+Occlusion::Region RSUniRenderUtil::MergeDirtyRects(Occlusion::Region dirtyRegion)
+{
+    RectsMerger merger(RSAdvancedDirtyConfig::RECT_NUM_MERGING_ALL, RSAdvancedDirtyConfig::RECT_NUM_MERGING_BY_LEVEL);
+    auto mergedRects = merger.MergeAllRects(dirtyRegion.GetRegionRects(),
+        RSAdvancedDirtyConfig::EXPECTED_OUTPUT_NUM, RSAdvancedDirtyConfig::MAX_TOLERABLE_COST);
+    Occlusion::Region results = {};
+    for (const auto& rect : mergedRects) {
+        Occlusion::Region region = Occlusion::Region(rect);
+        results.OrSelf(region);
+    }
+    return results;
+}
+
+void RSUniRenderUtil::SetDrawRegionForQuickReject(
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
+    const Occlusion::Region mergedDirtyRects)
+{
+    auto rectsForQuickReject = mergedDirtyRects.GetRegionRectIs();
+    for (const auto& rect : mergedDirtyRects.GetRegionRects()) {
+        rectsForQuickReject.push_back(rect.ToRectI());
+    }
+    for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (!surfaceParams || !surfaceParams->IsMainWindowType()) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            continue;
+        }
+        surfaceDirtyManager->SetDirtyRegionForQuickReject(rectsForQuickReject);
+    }
+}
+
 void RSUniRenderUtil::MergeDirtyHistoryInVirtual(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, bool renderParallel)
 {
@@ -383,7 +505,7 @@ std::vector<RectI> RSUniRenderUtil::GetCurrentFrameVisibleDirty(
     return rects;
 }
 
-void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
+void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
     const Occlusion::Region& globalDirtyRegion)
 {

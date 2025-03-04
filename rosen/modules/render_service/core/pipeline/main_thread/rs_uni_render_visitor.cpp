@@ -194,6 +194,8 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isVirtualDirtyEnabled_ = RSSystemProperties::GetVirtualDirtyEnabled() &&
         (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) && !isRegionDebugEnabled_;
     isExpandScreenDirtyEnabled_ = RSSystemProperties::GetExpandScreenDirtyEnabled();
+    advancedDirtyType_ = RSSystemProperties::GetAdvancedDirtyRegionEnabled();
+    isDirtyAlignEnabled_ = RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
@@ -216,6 +218,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
     isAllSurfaceVisibleDebugEnabled_ = visitor.isAllSurfaceVisibleDebugEnabled_;
     isHardwareForcedDisabled_ = visitor.isHardwareForcedDisabled_;
+    advancedDirtyType_ = visitor.advancedDirtyType_;
     doAnimate_ = visitor.doAnimate_;
     isDirty_ = visitor.isDirty_;
     layerNum_ = visitor.layerNum_;
@@ -3803,6 +3806,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isVirtualDirtyEnabled_ = isVirtualDirtyEnabled_;
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
     renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
+    renderThreadParams->advancedDirtyType_ = advancedDirtyType_;
     renderThreadParams->hasDisplayHdrOn_ = hasDisplayHdrOn_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     renderThreadParams->isForceCommitLayer_ |=

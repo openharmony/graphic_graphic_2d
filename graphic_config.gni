@@ -223,6 +223,11 @@ check_broker_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
 ]
+check_math_tools_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
+]
 check_hgm_ext_file_args = [
   "--filename",
   rebase_path(
@@ -289,6 +294,17 @@ if (exec_script(check_graphic_ext_file_script,
   graphic_2d_hgm_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
+  }
+}
+
+graphic_2d_math_tools_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_math_tools_ext_file_args,
+                "string") == "True") {
+  graphic_2d_math_tools_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
   }
 }
 
