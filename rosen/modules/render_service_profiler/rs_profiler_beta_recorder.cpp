@@ -205,7 +205,7 @@ void RSProfiler::UpdateBetaRecord(const RSContext& context)
     if (g_currentFrameDirtyRegion > 0) {
         g_inactiveTimestamp = Now();
     }
-    g_animationCount = context.animatingNodeList_.size();
+    g_animationCount = static_cast<int>(context.animatingNodeList_.size());
 }
 
 bool RSProfiler::OpenBetaRecordFile(RSFile& file)
