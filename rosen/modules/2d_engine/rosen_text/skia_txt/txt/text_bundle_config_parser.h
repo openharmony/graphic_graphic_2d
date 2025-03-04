@@ -28,7 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-constexpr uint32_t SINCE_API16_VERSION = 16;
+constexpr uint32_t SINCE_API18_VERSION = 18;
 
 class TextBundleConfigParser {
 public:

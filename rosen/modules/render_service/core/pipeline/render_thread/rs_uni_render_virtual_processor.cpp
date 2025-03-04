@@ -25,7 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "rs_uni_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "string_utils.h"
 
 namespace OHOS {

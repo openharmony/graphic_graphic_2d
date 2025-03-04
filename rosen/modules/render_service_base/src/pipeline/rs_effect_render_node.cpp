@@ -81,7 +81,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 2. Background filter is null
     // 3. Canvas is offscreen
     if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
-        !RSSystemProperties::GetEffectMergeEnabled() ||
+        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
         return;

@@ -106,6 +106,7 @@ public:
     void PathMeasureUpdate(bool forceClosed);
     scalar GetLength(bool forceClosed) override;
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) override;
+    bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) override;
     bool IsClosed(bool forceClosed) override;
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) override;
 

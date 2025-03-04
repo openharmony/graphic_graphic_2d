@@ -216,10 +216,15 @@ static_assert(g_propertyResetterLUT.back() != nullptr);
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
-const bool RSProperties::FilterCacheEnabled =
+bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
+void RSProperties::SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable)
+{
+    FilterCacheEnabled = (RSSystemProperties::GetFilterCacheEnabled() &&
+        isCCMFilterCacheEnable) && RSUniRenderJudgement::IsUniRender();
+}
 #else
-const bool RSProperties::FilterCacheEnabled = false;
+bool RSProperties::FilterCacheEnabled = false;
 #endif
 #endif
 

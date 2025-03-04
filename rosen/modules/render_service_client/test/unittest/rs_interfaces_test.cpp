@@ -2236,5 +2236,19 @@ HWTEST_F(RSInterfacesTest, NotifyScreenSwitched, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->NotifyScreenSwitched();
 }
+
+/*
+ * @tc.name: NotifyPageName
+ * @tc.desc: Test NotifyPageName
+ * @tc.type: FUNC
+ * @tc.require: issueIBPH63
+ */
+HWTEST_F(RSInterfacesTest, NotifyPageName, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->NotifyPageName("com.package.other", "page", true);
+    rsInterfaces->NotifyPageName("com.package.other", "page", false);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

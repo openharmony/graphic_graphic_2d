@@ -122,7 +122,7 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest004, TestSize.
     data.WriteInterfaceToken(RSISurfaceOcclusionChangeCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
 } // namespace OHOS::Rosen

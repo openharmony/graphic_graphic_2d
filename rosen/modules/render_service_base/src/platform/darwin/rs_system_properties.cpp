@@ -78,6 +78,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
@@ -456,11 +461,6 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
 }
 
 bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
 }

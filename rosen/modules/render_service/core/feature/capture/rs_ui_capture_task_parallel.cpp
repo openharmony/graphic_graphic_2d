@@ -31,9 +31,9 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -44,6 +44,7 @@
 #include "screen_manager/rs_screen_mode_info.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -104,6 +105,8 @@ bool RSUiCaptureTaskParallel::IsRectValid(NodeId nodeId, const Drawing::Rect& sp
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUICAPTURETASKPARALLEL_CAPTURE);
     if (callback == nullptr) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
         return;
@@ -214,6 +217,8 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
 
 bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, const Drawing::Rect& specifiedAreaRect)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUICAPTURETASKPARALLEL_RUN);
     RS_TRACE_NAME("RSUiCaptureTaskParallel::TakeSurfaceCapture");
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -378,6 +383,8 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
     int32_t rotation)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUICAPTURETASKPARALLEL_CREATESURFACESYNCCOPYTASK);
     Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
         RS_LOGE("RSUiCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");

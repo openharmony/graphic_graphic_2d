@@ -22,10 +22,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSNode;
+class RSUIContext;
 
 class RSC_EXPORT RSShowingPropertiesFreezer {
 public:
-    RSShowingPropertiesFreezer(NodeId id);
+    RSShowingPropertiesFreezer(NodeId id, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     virtual ~RSShowingPropertiesFreezer() = default;
 
     std::optional<Vector4f> GetBounds() const;
@@ -79,6 +80,7 @@ public:
 
 private:
     NodeId id_;
+    std::weak_ptr<RSUIContext> rsUIContext_;
     template<typename T, RSModifierType Type>
     std::optional<T> GetPropertyImpl() const;
 };

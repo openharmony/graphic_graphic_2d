@@ -45,7 +45,7 @@ namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 500;
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -522,16 +522,18 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
 #endif
 }
 
-void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
+void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type, size_t originCmdListSize)
 {
     bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
     if (overflow) {
-        RS_OPTIONAL_TRACE_NAME_FMT("AddDitryType id:[%llu] StateOnTheTree[%d] ModifierType[%d] ModifierCmdSize[%d]",
-            GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
+        RS_OPTIONAL_TRACE_NAME_FMT("AddDitryType id:[%llu] StateOnTheTree[%d] ModifierType[%d] ModifierCmdSize[%d]"
+            "originCmdListSize[%d], CmdCount[%d]", GetId(), IsOnTheTree(), type, drawCmdLists_[type].size(),
+            originCmdListSize, cmdCount_);
         if (overflow != lastOverflowStatus_) {
             RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d]",
-                    GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
+                    " CmdCount:[%{public}d]", GetId(), type, drawCmdLists_[type].size(), IsOnTheTree(),
+                    originCmdListSize, cmdCount_);
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
@@ -541,8 +543,9 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
         }
         if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGE("AddDirtyType Cmdlist Protect Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d]",
-                    GetId(), type, drawCmdLists_[type].size(), IsOnTheTree());
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
+                    " CmdCount:[%{public}d]", GetId(), type, drawCmdLists_[type].size(), IsOnTheTree(),
+                    originCmdListSize, cmdCount_);
         }
     }
     lastOverflowStatus_ = overflow;
@@ -560,6 +563,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
         return;
     }
 
+    size_t originCmdListSize = drawCmdLists_[modifierType].size();
     for (const auto& modifier : itr->second) {
         if (modifier == nullptr) {
             continue;
@@ -575,9 +579,10 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 
         cmd->SetCanvasDrawingOpLimitEnable(true);
         drawCmdLists_[modifierType].emplace_back(cmd);
+        ++cmdCount_;
         SetNeedProcess(true);
     }
-    CheckDrawCmdListSize(modifierType);
+    CheckDrawCmdListSize(modifierType, originCmdListSize);
 }
 
 void RSCanvasDrawingRenderNode::ClearOp()
@@ -589,6 +594,7 @@ void RSCanvasDrawingRenderNode::ClearOp()
 void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
 {
     std::lock_guard<std::mutex> lockTask(taskMutex_);
+    cmdCount_ = 0;
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }

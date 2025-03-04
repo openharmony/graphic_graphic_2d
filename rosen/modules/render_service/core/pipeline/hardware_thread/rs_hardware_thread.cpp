@@ -31,7 +31,7 @@
 #include "common/rs_singleton.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -154,11 +154,28 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSHardwareThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSHardwareThread::PostDelayTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {
         handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSHardwareThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 
 uint32_t RSHardwareThread::GetunExecuteTaskNum()

@@ -178,18 +178,9 @@ public:
         return id_;
     }
 
-    inline const std::map<NodeId, std::vector<WeakPtr>>& GetSubSurfaceNodes() const
-    {
-        return subSurfaceNodes_;
-    }
-
     bool IsFirstLevelNode();
-    void AddSubSurfaceNode(SharedPtr parent);
-    void RemoveSubSurfaceNode(SharedPtr parent);
     void UpdateChildSubSurfaceNode();
     bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
-    inline static const bool isSubSurfaceEnabled_ =
-        RSSystemProperties::GetSubSurfaceEnabled() && RSSystemProperties::IsPhoneType();
 
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
@@ -1175,7 +1166,6 @@ private:
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
 
-    std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis
@@ -1230,9 +1220,6 @@ private:
     void RecordCloneCrossNode(SharedPtr node);
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
-    // purge resource
-    inline void SetPurgeStatus(bool flag);
-    inline void SyncPurgeFunc();
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;

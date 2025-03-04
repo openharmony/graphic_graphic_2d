@@ -25,19 +25,32 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_ui_context.h"
 namespace OHOS {
 namespace Rosen {
 
-RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displayNodeConfig)
+RSDisplayNode::SharedPtr RSDisplayNode::Create(
+    const RSDisplayNodeConfig& displayNodeConfig, std::shared_ptr<RSUIContext> rsUIContext)
 {
-    SharedPtr node(new RSDisplayNode(displayNodeConfig));
-    RSNodeMap::MutableInstance().RegisterNode(node);
+    SharedPtr node(new RSDisplayNode(displayNodeConfig, rsUIContext));
+    if (rsUIContext != nullptr) {
+        rsUIContext->GetMutableNodeMap().RegisterNode(node);
+    } else {
+        RSNodeMap::MutableInstance().RegisterNode(node);
+    }
 
     if (LIKELY(!displayNodeConfig.isSync)) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, true);
+        if (node->GetRSUIContext() != nullptr) {
+            auto transaction = node->GetRSUIContext()->GetRSTransaction();
+            if (transaction != nullptr) {
+                transaction->AddCommand(command, true);
+            }
+        } else {
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->AddCommand(command, true);
+            }
         }
     } else {
         if (!node->CreateNode(displayNodeConfig, node->GetId())) {
@@ -45,7 +58,10 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
             return nullptr;
         }
     }
-    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
+    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
+        ", isMirrored=%{public}d, mirrorNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
+        node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored,
+        displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync);
     return node;
 }
 
@@ -55,23 +71,27 @@ bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, Nod
         CreateNode(displayNodeConfig, nodeId);
 }
 
+void RSDisplayNode::RegisterNodeMap()
+{
+    auto rsContext = GetRSUIContext();
+    if (rsContext == nullptr) {
+        return;
+    }
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterNode(shared_from_this());
+}
+
 void RSDisplayNode::AddDisplayNodeToTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeAddToTree>(GetId());
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGI("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
 }
 
 void RSDisplayNode::RemoveDisplayNodeFromTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeRemoveFromTree>(GetId());
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGI("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
 }
 
@@ -94,7 +114,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
 
-    if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+    if (auto prevNode = RSNodeMap::Instance().GetNode(id)) { // delete
         // if the node id is already in the map, we should not create a new node
         return prevNode->ReinterpretCastTo<RSDisplayNode>();
     }
@@ -102,7 +122,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
     RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirrored };
 
     SharedPtr displayNode(new RSDisplayNode(config, id));
-    RSNodeMap::MutableInstance().RegisterNode(displayNode);
+    RSNodeMap::MutableInstance().RegisterNode(displayNode); // ToDo
 
     // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
     displayNode->skipDestroyCommandInDestructor_ = true;
@@ -114,7 +134,8 @@ void RSDisplayNode::ClearChildren()
 {
     auto children = GetChildren();
     for (auto child : children) {
-        if (auto childPtr = RSNodeMap::Instance().GetNode(child)) {
+        if (auto childPtr = (GetRSUIContext() ? GetRSUIContext()->GetNodeMap().GetNode(child)
+                                              : RSNodeMap::Instance().GetNode(child))) {
             RemoveChild(childPtr);
         }
     }
@@ -123,10 +144,7 @@ void RSDisplayNode::ClearChildren()
 void RSDisplayNode::SetScreenId(uint64_t screenId)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenId>(GetId(), screenId);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
 #ifdef ROSEN_OHOS
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId HiSysEventWrite, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64,
         GetId(), screenId);
@@ -150,19 +168,13 @@ void RSDisplayNode::OnBoundsSizeChanged() const
     ROSEN_LOGD("RSDisplayNode::OnBoundsSizeChanged, w: %{public}d, h: %{public}d.",
         (uint32_t)bounds.z_, (uint32_t)bounds.w_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetRogSize>(GetId(), bounds.z_, bounds.w_);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
 }
 
 void RSDisplayNode::SetDisplayOffset(int32_t offsetX, int32_t offsetY)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayOffset>(GetId(), offsetX, offsetY);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGD("RSDisplayNode::SetDisplayOffset, offsetX:%{public}d, offsetY:%{public}d", offsetX, offsetY);
 }
 
@@ -170,10 +182,7 @@ void RSDisplayNode::SetSecurityDisplay(bool isSecurityDisplay)
 {
     isSecurityDisplay_ = isSecurityDisplay;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetSecurityDisplay>(GetId(), isSecurityDisplay);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGD("RSDisplayNode::SetSecurityDisplay, displayNodeId:[%{public}" PRIu64 "]"
         " isSecurityDisplay:[%{public}s]", GetId(), isSecurityDisplay ? "true" : "false");
 }
@@ -187,10 +196,7 @@ void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displa
 {
     isMirroredDisplay_ = displayNodeConfig.isMirrored;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetDisplayMode>(GetId(), displayNodeConfig);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGD("RSDisplayNode::SetDisplayNodeMirrorConfig, displayNodeId:[%{public}" PRIu64 "]"
         " isMirrored:[%{public}s]", GetId(), displayNodeConfig.isMirrored ? "true" : "false");
 }
@@ -216,10 +222,7 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
             break;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenRotation>(GetId(), screenRotation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     ROSEN_LOGI("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
                " screenRotation:[%{public}d]", GetId(), rotation);
 }
@@ -229,26 +232,25 @@ bool RSDisplayNode::IsMirrorDisplay() const
     return isMirroredDisplay_;
 }
 
-RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
-    : RSNode(true), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
+RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext)
+    : RSNode(true, false, rsUIContext), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+      isMirroredDisplay_(config.isMirrored)
 {
     (void)screenId_;
     (void)offsetX_;
     (void)offsetY_;
 }
 
-RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id)
-    : RSNode(true, id), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
+RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
+    : RSNode(true, id, false, rsUIContext), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+      isMirroredDisplay_(config.isMirrored)
 {}
 
 void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
 {
     isBootAnimation_ = isBootAnimation;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetBootAnimation>(GetId(), isBootAnimation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
 }
 
 bool RSDisplayNode::GetBootAnimation() const
@@ -259,10 +261,7 @@ bool RSDisplayNode::GetBootAnimation() const
 void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetNodePid>(GetId(), oldScbPids, currentScbPid);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    AddCommand(command, true);
     std::ostringstream oldPidsStr;
     oldPidsStr << " NodeId: " << GetId();
     oldPidsStr << " currentScbPid: " << currentScbPid;

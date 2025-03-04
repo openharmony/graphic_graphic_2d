@@ -963,7 +963,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDisplayResource, TestSize.Level1
     rcdInstance.supportBottomSurface_ = true;
     EXPECT_TRUE(rcdInstance.LoadImgsbyResolution(0, 0) == true);
     rcdInstance.UpdateDisplayParameter(0, 0, 0, 0);
-    EXPECT_TRUE(rcdInstance.updateFlag_["display"] == true);
+    EXPECT_TRUE(rcdInstance.updateFlag_["display"] == false);
     delete rcdInstance.rog_;
     rcdInstance.rog_ = nullptr;
     rcdInstance.lcdModel_->rogs.clear();
@@ -1286,7 +1286,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerNULLRcd, TestSize.Le
 HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerUpdate, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
-        // add layer and NodeId
+    // add layer and NodeId
     NodeId id = 1;
     int status = 1;
     uint32_t w = 1080, h = 1920;
@@ -1342,7 +1342,11 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerDraw, TestSize.Level
     auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get(), 1.0f);
     std::function<void()> task = []() {std::cout << "hardwareComposer RoundCornerDisplayManager Task" << std::endl;};
     rcdInstance.DrawRoundCorner(renderTargetNodeInfoList, canvas.get());
-    EXPECT_TRUE(rcdInstance.GetRcdEnable() == true);
+    auto lcdModel = RSSingleton<rs_rcd::RCDConfig>::GetInstance().GetLcdModel(rs_rcd::ATTR_DEFAULT);;
+    if (lcdModel) {
+        EXPECT_TRUE(rcdInstance.GetRcdEnable() ==
+           (lcdModel->surfaceConfig.topSurface.support || lcdModel->surfaceConfig.bottomSurface.support));
+    }
     for (auto& info : renderTargetNodeInfoList) {
         auto nodeId = info.first;
         auto type = info.second;

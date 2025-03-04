@@ -1932,5 +1932,16 @@ int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
     return renderService->SetOverlayDisplayMode(mode);
 }
 #endif
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::NotifyPageName renderService == nullptr!");
+        return;
+    }
+    renderService->NotifyPageName(packageName, pageName, isEnter);
+}
 } // namespace Rosen
 } // namespace OHOS

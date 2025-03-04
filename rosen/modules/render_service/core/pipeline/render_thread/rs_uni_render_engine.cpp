@@ -14,10 +14,11 @@
  */
 
 #include "common/rs_singleton.h"
+#include "display_engine/rs_luminance_control.h"
 #include "info_collection/rs_layer_compose_collection.h"
-#include "luminance/rs_luminance_control.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
+#include "utils/graphic_coretrace.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
@@ -45,6 +46,8 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
     PostProcessFunc postProcess)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUNIRENDERENGINE_DRAWSURFACENODEWITHPARAMS);
     canvas.Save();
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
@@ -110,10 +113,14 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.sdrNits = layer->GetSdrNit();
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
+            // color temperature
             params.layerLinearMatrix = layer->GetLayerLinearMatrix();
         }
         if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
             params.brightnessRatio = layer->GetBrightnessRatio();
+            if (CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
+                params.hasMetadata = true;
+            }
         } else {
             params.isHdrRedraw = true;
         }

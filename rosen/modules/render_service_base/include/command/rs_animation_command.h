@@ -103,9 +103,10 @@ public:
     static void CreateParticleAnimation(RSContext& context, NodeId targetId,
         const std::shared_ptr<RSRenderParticleAnimation>& animation);
 
-    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
+    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, uint64_t, AnimationCallbackEvent);
     static void AnimationCallback(RSContext& context,
-                                  NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
+                                  NodeId targetId, AnimationId animId, uint64_t token,
+                                  AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 
@@ -154,7 +155,7 @@ ADD_COMMAND(RSAnimationCancel,
 
 ADD_COMMAND(RSAnimationCallback,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CALLBACK,
-        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
+        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, uint64_t, AnimationCallbackEvent))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve,

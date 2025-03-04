@@ -155,6 +155,8 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level1)
     TypographyStyle typographyStyle;
     SPText::ParagraphStyle paragraphStyle = AdapterTxt::Convert(typographyStyle);
     EXPECT_EQ(paragraphStyle.fontSize, typographyStyle.fontSize);
+    EXPECT_EQ(paragraphStyle.paragraphSpacing, typographyStyle.paragraphSpacing);
+    EXPECT_EQ(paragraphStyle.isEndAddParagraphSpacing, typographyStyle.isEndAddParagraphSpacing);
 }
 
 /*

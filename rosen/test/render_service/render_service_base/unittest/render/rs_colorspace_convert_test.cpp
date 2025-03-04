@@ -17,8 +17,8 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "display_engine/rs_luminance_control.h"
 #include "effect/image_filter.h"
-#include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
 

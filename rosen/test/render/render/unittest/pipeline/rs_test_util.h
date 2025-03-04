@@ -18,7 +18,7 @@
 
 #include "iconsumer_surface.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
 #include "surface.h"
 
 namespace OHOS {

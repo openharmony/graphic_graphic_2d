@@ -31,10 +31,10 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_pointer_window_manager.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -43,6 +43,7 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -78,6 +79,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
     }
     std::function<void()> syncTask = []() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
+        RS_LOGI("RSSurfaceCaptureTaskParallel::SyncModifiers");
         RSPointerWindowManager::Instance().UpdatePointerInfo();
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
         int skipTimes = 0;
@@ -110,6 +112,8 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCall
     const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze,
     const RSSurfaceCaptureBlurParam& blurParam)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACECAPTURETASKPARALLEL_CAPTURE);
     if (callback == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
         return;
@@ -203,6 +207,8 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
 bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureBlurParam& blurParam, bool isSystemCalling, bool isFreeze)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACECAPTURETASKPARALLEL_RUN);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
     std::string nodeName("RSSurfaceCaptureTaskParallel");
@@ -465,6 +471,8 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
         const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
         int32_t rotation)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSURFACECAPTURETASKPARALLEL_CREATESURFACESYNCCOPYTASK);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], surface is nullptr", id);
         return {};

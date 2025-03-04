@@ -28,7 +28,7 @@ const struct PostTable* PostTableParser::Parse(const char* data, int32_t size)
 void PostTableParser::Dump() const
 {
     const auto& table = *reinterpret_cast<const struct PostTable*>(data_);
-    TEXT_LOGI("PostTable size: %{public}d, version: %{public}d, italicAngle: %{public}f, isFixedPitch: %{public}d",
+    TEXT_LOGI("PostTable size %{public}d, version %{public}d, italic angle %{public}f, is fixed pitch %{public}d",
         size_, table.version.Get(), table.italicAngle.Get(), table.isFixedPitch.Get());
 }
 } // namespace TextEngine

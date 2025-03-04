@@ -31,11 +31,11 @@
 #include "hgm_frame_rate_manager.h"
 #include "memory/rs_memory_flow_control.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_unmarshal_thread.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
@@ -186,6 +186,7 @@ static constexpr std::array descriptorCheckList = {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -2726,6 +2727,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME) : {
+            std::string packageName;
+            std::string pageName;
+            bool isEnter{false};
+            if (!data.ReadString(packageName) || !data.ReadString(pageName) || !data.ReadBool(isEnter)) {
+                RS_LOGE("NOTIFY_PAGE_NAME read data err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyPageName(packageName, pageName, isEnter);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {

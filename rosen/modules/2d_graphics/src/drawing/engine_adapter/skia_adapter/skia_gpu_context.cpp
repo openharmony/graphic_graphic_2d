@@ -202,6 +202,11 @@ void SkiaGPUContext::FreeGpuResources()
     grContext_->freeGpuResources();
 }
 
+void SkiaGPUContext::ReclaimResources()
+{
+    //Skia Not Implement ReclaimResources.
+}
+
 void SkiaGPUContext::DumpGpuStats(std::string& out)
 {
     if (!grContext_) {
@@ -221,6 +226,15 @@ void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
         return;
     }
     grContext_->dumpAllResource(dump);
+}
+
+void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllCoreTrace, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllCoreTrace(dump);
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()

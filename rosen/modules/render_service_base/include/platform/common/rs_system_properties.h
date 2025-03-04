@@ -145,6 +145,7 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
     static bool GetClosePixelMapFdEnabled();
@@ -178,7 +179,6 @@ public:
     static bool GetReleaseResourceEnabled();
     static bool GetReclaimMemoryEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetVmaPreAllocEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -257,7 +257,6 @@ public:
     static int GetSyncTransactionWaitDelay();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
-    static bool GetSubSurfaceEnabled();
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();

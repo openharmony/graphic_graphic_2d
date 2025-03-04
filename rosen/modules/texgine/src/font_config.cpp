@@ -43,7 +43,7 @@ FontConfig::FontConfig(const char* fname)
 {
     int err = ParseConfig(fname);
     if (err != 0) {
-        TEXT_LOGE("Parse config err");
+        TEXT_LOGE("Failed to parse config, ret %{public}d", err);
     }
 }
 
@@ -52,7 +52,7 @@ char* FontConfig::GetFileData(const char* fname, int& size)
 #ifdef BUILD_NON_SDK_VER
     char realPath[PATH_MAX] = {0};
     if (fname == nullptr || realpath(fname, realPath) == NULL) {
-        TEXT_LOGE("Path or realPath is NULL");
+        TEXT_LOGE("Invalid parameter");
         return nullptr;
     }
 #endif
@@ -94,7 +94,7 @@ cJSON* FontConfig::CheckConfigFile(const char* fname) const
     int size = 0;
     char* data = GetFileData(fname, size);
     if (data == nullptr) {
-        TEXT_LOGE("Data is NULL");
+        TEXT_LOGE("Null data");
         return nullptr;
     }
     cJSON_Minify(data);
@@ -161,7 +161,7 @@ std::vector<std::string> FontConfig::GetFontSet() const
 int FontConfigJson::ParseFile(const char* fname)
 {
     if (fname == nullptr) {
-        TEXT_LOGD("ParseFile fname is nullptr");
+        TEXT_LOGD("Null file name");
         fname = FONT_DEFAULT_CONFIG;
     }
 
@@ -183,15 +183,15 @@ int FontConfigJson::ParseFile(const char* fname)
 int FontConfigJson::ParseFontFileMap(const char* fname)
 {
     if (fname == nullptr) {
-        TEXT_LOGD("ParseFontFileMap fname is nullptr");
+        TEXT_LOGD("Null file name");
         fname = FONT_FILE_MAP_CONFIG;
     }
 
-    TEXT_LOGI("ParseFontFileMap fname is: %{public}s", fname);
+    TEXT_LOGI("File name: %{public}s", fname);
     fontFileMap = std::make_shared<FontFileMap>();
     int err = ParseConfigListPath(fname);
     if (err != 0) {
-        TEXT_LOGE("Failed to ParseFontFileMap ParseConfigList");
+        TEXT_LOGE("Failed to parse config path, ret %{public}d", err);
         return err;
     }
     return SUCCESSED;
@@ -280,12 +280,12 @@ int FontConfigJson::ParseFonts(const cJSON* root)
 int FontConfigJson::ParseConfigList(const char* fname)
 {
     if (fname == nullptr) {
-        TEXT_LOGE("ParseConfigList fname is nullptr");
+        TEXT_LOGE("Null file name");
         return FAILED;
     }
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("Failed to ParseConfigList CheckConfigFile");
+        TEXT_LOGE("Illegal file name %{public}s", fname);
         return FAILED;
     }
     // "font_dir", "fonts" - font attribute
@@ -305,12 +305,12 @@ int FontConfigJson::ParseConfigList(const char* fname)
 int FontConfigJson::ParseConfigListPath(const char* fname)
 {
     if (fname == nullptr) {
-        TEXT_LOGE("ParseConfigListPath fname is nullptr");
+        TEXT_LOGE("Null file name");
         return FAILED;
     }
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("Failed to ParseConfigListPath CheckConfigFile");
+        TEXT_LOGE("Illegal file name %{public}s", fname);
         return FAILED;
     }
     ParseFontMap(root, "font_file_map");
@@ -321,12 +321,12 @@ int FontConfigJson::ParseConfigListPath(const char* fname)
 int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
 {
     if (root == nullptr) {
-        TEXT_LOGE("Root is nullptr");
+        TEXT_LOGE("Null root");
         return FAILED;
     }
     cJSON* filters = cJSON_GetObjectItem(root, key);
     if (filters == nullptr || !cJSON_IsObject(filters)) {
-        TEXT_LOGE("Failed to cJSON_GetObjectItem");
+        TEXT_LOGE("Failed to get object");
         return FAILED;
     }
     cJSON* item = filters->child;
@@ -370,7 +370,7 @@ int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>
 int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList)
 {
     if (fontPath == nullptr) {
-        TEXT_LOGE("Font path is null");
+        TEXT_LOGE("Null font path");
         return FAILED;
     }
 

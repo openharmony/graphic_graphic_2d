@@ -34,9 +34,9 @@
 #include "rs_profiler_telemetry.h"
 
 #include "params/rs_display_render_params.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
 

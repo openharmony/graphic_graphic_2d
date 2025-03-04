@@ -251,7 +251,12 @@ HWTEST_F(RSAnimationTest, AnimationStatusTest001, TestSize.Level1)
     animation->SetDuration(1000);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::CreateCubicCurve(0.42f, 0.0f, 0.58f, 1.0f);
     animation->SetTimingCurve(curve);
-    animation->SetFinishCallback([&]() { node->SetBoundsWidth(200); });
+    animation->SetFinishCallback([weakNode = std::weak_ptr<RSCanvasNode>(node)]() {
+        auto node_lock = weakNode.lock();
+        if (node_lock) {
+            node_lock->SetBoundsWidth(200);
+        }
+    });
     /**
      * @tc.steps: step2. start animation test status
      */

@@ -386,6 +386,7 @@ private:
     uint32_t uifirstPostOrder_ = 0;
 
     static inline bool isInRotationFixed_ = false;
+    bool lastGlobalPositionEnabled_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -67,6 +67,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -459,10 +464,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;

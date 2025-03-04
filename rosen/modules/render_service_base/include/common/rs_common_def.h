@@ -239,6 +239,20 @@ struct RSSurfaceCapturePermissions {
     bool selfCapture = false;
 };
 
+#define CHECK_FALSE_RETURN(var)      \
+    do {                             \
+        if (!(var)) {                \
+            return;                  \
+        }                            \
+    } while (0)                      \
+
+#define CHECK_FALSE_RETURN_VALUE(var, value)     \
+    do {                                         \
+        if (!(var)) {                            \
+            return value;                        \
+        }                                        \
+    } while (0)
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -411,6 +425,12 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
+}
+
 inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
@@ -454,6 +474,12 @@ inline constexpr pid_t ExtractPid(uint64_t id)
 {
     // extract high 32 bits of nodeid/animationId/propertyId as pid
     return static_cast<pid_t>(id >> 32);
+}
+
+inline constexpr int32_t ExtractTid(uint64_t token)
+{
+    // extract high 32 bits of token as tid
+    return static_cast<int32_t>(token >> 32);
 }
 
 template<class Container, class Predicate>

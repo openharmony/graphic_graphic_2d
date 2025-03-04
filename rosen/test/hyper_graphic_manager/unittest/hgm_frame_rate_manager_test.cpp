@@ -152,7 +152,8 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     auto screenSetting = frameRateMgr.multiAppStrategy_.GetScreenSetting();
     frameRateMgr.HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
     strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
-        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = true };
+        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .pointerMode = PointerModeType::POINTER_ENABLED,
+        .isFactor = true };
     screenSetting.strategy = settingStrategyName;
     frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
     frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
@@ -256,6 +257,41 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest, Function | SmallTest
             hccMgr->UnRegisterHgmConfigChangeCallback(1);
         }
     }
+}
+
+/**
+ * @tc.name: HgmSetPointerActiveFPS
+ * @tc.desc: Verify the result of HgmSetPointerActiveFPS function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmSetPointerActiveFPS, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager frameRateMgr;
+    constexpr uint32_t delay_1100Ms = 1100;
+    constexpr uint32_t delay_1300Ms = 1300;
+    InitHgmFrameRateManager(frameRateMgr);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_DOWN, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
+
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
+
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_UP, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
+
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_1100Ms));
+    ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_1300Ms));
+    ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_IDLE_STATE);
+
+    frameRateMgr.pointerManager_.ChangeState(PointerState::POINTER_IDLE_STATE);
+    sleep(1); // wait for handler task finished
 }
 
 /**
@@ -560,26 +596,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
     timer.Start();
     timer.Reset();
     timer.Stop();
-    sleep(1); // wait for timer stop
-}
-
-/**
- * @tc.name: HgmRsIdleTimerTest
- * @tc.desc: Verify the result of HgmRsIdleTimerTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
-{
-    int32_t interval = 700; // 700ms waiting time
-    HgmFrameRateManager mgr;
-    mgr.rsIdleTimer_ = std::make_unique<HgmSimpleTimer>("rs_idle_timer",
-        std::chrono::milliseconds(600), nullptr, nullptr);
-    ASSERT_NE(mgr.rsIdleTimer_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-    mgr.HandleRsFrame();
-    mgr.minIdleFps_ = OLED_30_HZ;
-    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     sleep(1); // wait for timer stop
 }
 

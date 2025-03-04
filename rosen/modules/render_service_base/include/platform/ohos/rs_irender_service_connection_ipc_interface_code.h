@@ -160,6 +160,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     SET_OVERLAY_DISPLAY_MODE,
 #endif
+    NOTIFY_PAGE_NAME,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

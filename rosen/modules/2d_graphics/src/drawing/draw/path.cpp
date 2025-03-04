@@ -280,6 +280,11 @@ bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangen
     return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
 }
 
+bool Path::GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) const
+{
+    return impl_->GetSegment(start, stop, dst, startWithMoveTo, forceClosed);
+}
+
 bool Path::IsClosed(bool forceClosed) const
 {
     return impl_->IsClosed(forceClosed);

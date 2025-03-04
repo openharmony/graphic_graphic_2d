@@ -30,6 +30,7 @@
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
+#include "utils/graphic_coretrace.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -37,7 +38,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -342,6 +343,8 @@ void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRend
 
 void RSUniRenderThread::Render()
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUNIRENDERTHREAD_RENDER);
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
@@ -861,14 +864,6 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
-            auto purgeDrawables =
-                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
-            for (auto& drawable : purgeDrawables) {
-                drawable->Purge();
-            }
-        }
-        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
@@ -921,6 +916,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         if (UNLIKELY(!grContext)) {
             return;
         }
+        grContext->ReclaimResources();
+
         RS_LOGD("Clear memory cache %{public}d", moment);
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
@@ -947,15 +944,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
+void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
 {
-    for (auto [nodeId, purgeFlag] : ids) {
-        if (purgeFlag) {
-            nodesNeedToBeClearMemory_.insert(nodeId);
-        } else {
-            nodesNeedToBeClearMemory_.erase(nodeId);
-        }
-    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         if (!isDoDirectComposition) {
@@ -1174,11 +1164,21 @@ void RSUniRenderThread::SetVmaCacheStatus(bool flag)
 {
     static constexpr int MAX_VMA_CACHE_COUNT = 600;
     RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
-    if (!vmaOptimizeFlag_ || !RSSystemProperties::GetVmaPreAllocEnabled()) {
+    if (!vmaOptimizeFlag_) {
         return;
     }
     std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
     vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
+}
+
+void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

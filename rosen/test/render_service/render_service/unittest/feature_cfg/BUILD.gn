@@ -26,13 +26,19 @@ ohos_unittest("feature_cfg_test") {
   ]
 
   sources = [
+    "accessibility_param_test.cpp",
+    "dirtyregion_param_test.cpp",
     "drm_param_test.cpp",
+    "dvsync_param_test.cpp",
+    "filter_param_test.cpp",
+    "gpu_resource_release_test.cpp",
     "graphic_feature_param_manager_test.cpp",
     "hdr_param_test.cpp",
     "hfbc_param_test.cpp",
     "hwc_param_test.cpp",
     "opinc_param_test.cpp",
     "prevalidate_param_test.cpp",
+    "socperf_param_test.cpp",
     "speciallayer_param_test.cpp",
     "uifirst_param_test.cpp",
     "xml_parser_base_test.cpp",

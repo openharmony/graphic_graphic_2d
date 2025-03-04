@@ -196,16 +196,16 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return isNeedTrace;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    static bool isMultiInstance = system::GetParameter("persist.rosen.rsclientmultiinstance.enabled", "1") != "0";
+    return isMultiInstance;
+}
+
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 {
     static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
     return isNeedScreenRCD;
-}
-
-bool RSSystemProperties::GetVmaPreAllocEnabled()
-{
-    static bool isPreAlloc = system::GetParameter("persist.rosen.isprealloc.enabled", "0") != "0";
-    return isPreAlloc;
 }
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
@@ -1120,13 +1120,6 @@ bool RSSystemProperties::GetViewOcclusionCullingEnabled()
     return stackViewCullingEnabled;
 }
 #endif
-
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    static bool subSurfaceEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
-    return subSurfaceEnabled;
-}
 
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {

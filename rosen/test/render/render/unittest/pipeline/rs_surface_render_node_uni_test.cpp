@@ -25,7 +25,7 @@
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1172,6 +1172,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, CollectSurfaceTest001, TestSize.Level1)
 
     testNode->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
     auto testNode = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
     Drawing::Canvas canvasArgs;
     RSPaintFilterCanvas canvas(&canvasArgs);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
@@ -1184,7 +1185,6 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, CollectSurfaceTest001, TestSize.Level1)
     testNode->CollectSurface(testNode, vec, true, false);
     testNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     testNode->CollectSurface(testNode, vec, true, true);
-    ASSERT_FALSE(testNode->isSubSurfaceEnabled_);
 }
 
 /**

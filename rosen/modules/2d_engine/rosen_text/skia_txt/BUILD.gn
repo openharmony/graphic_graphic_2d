@@ -222,12 +222,14 @@ ohos_source_set("skia_paragraph") {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/icu/icu4c:static_icuuc",
       "//third_party/skia:skia_$platform",
     ]
   } else {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "hilog:libhilog",
+      "icu:shared_icuuc",
       "skia:skia_canvaskit",
     ]
   }
@@ -273,8 +275,10 @@ ohos_source_set("skia_unicode") {
   if (platform == "mingw") {
     platform = "windows"
   }
-  external_deps = [ "skia:skia_canvaskit" ]
-  public_deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+  external_deps = [
+    "icu:shared_icuuc",
+    "skia:skia_canvaskit",
+  ]
 }
 
 ohos_source_set("skia_shaper") {

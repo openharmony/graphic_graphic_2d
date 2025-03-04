@@ -28,6 +28,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "memory/rs_memory_track.h"
@@ -40,7 +41,6 @@
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
-#include "luminance/rs_luminance_control.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -615,6 +615,16 @@ public:
     const RectI& GetDstRect() const
     {
         return dstRect_;
+    }
+
+    void SetDstRectWithoutRenderFit(const RectI& rect)
+    {
+        dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
+    }
+
+    Drawing::Rect GetDstRectWithoutRenderFit() const
+    {
+        return dstRectWithoutRenderFit_;
     }
 
     const RectI& GetOriginalDstRect() const
@@ -1290,6 +1300,8 @@ public:
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
+    void SetSdrHasMetadata(bool hasMetadata);
+    bool GetSdrHasMetadata() const;
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1407,6 +1419,7 @@ public:
     {
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
+
     // use for updating hdr and sdr nit
     static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
@@ -1468,6 +1481,8 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+    // use for updating layerLineraMatrix
+    static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1626,6 +1641,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
+    Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;
     RectI drawBehindWindowRegion_;

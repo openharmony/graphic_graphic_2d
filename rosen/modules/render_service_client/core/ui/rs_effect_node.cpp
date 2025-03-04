@@ -21,19 +21,29 @@
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
 
+#include "ui/rs_ui_context.h"
 namespace OHOS {
 namespace Rosen {
-RSEffectNode::SharedPtr RSEffectNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
+RSEffectNode::SharedPtr RSEffectNode::Create(
+    bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
 {
-    SharedPtr node(new RSEffectNode(isRenderServiceNode, isTextureExportNode));
-    RSNodeMap::MutableInstance().RegisterNode(node);
-
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        return node;
+    SharedPtr node(new RSEffectNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
+    if (rsUIContext != nullptr) {
+        rsUIContext->GetMutableNodeMap().RegisterNode(node);
+    } else {
+        RSNodeMap::MutableInstance().RegisterNode(node);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(node->GetId(), isTextureExportNode);
-    transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+    auto transaction = node->GetRSTransaction();
+    if (transaction == nullptr) {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy == nullptr) {
+            return node;
+        }
+        transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+        return node;
+    }
+    transaction->AddCommand(command, node->IsRenderServiceNode());
     return node;
 }
 
@@ -44,14 +54,21 @@ void RSEffectNode::SetFreeze(bool isFreeze)
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
+    auto transaction = GetRSTransaction();
+    AddCommand(command, true);
 }
 
-RSEffectNode::RSEffectNode(bool isRenderServiceNode, bool isTextureExportNode)
-    : RSNode(isRenderServiceNode, isTextureExportNode) {}
+void RSEffectNode::RegisterNodeMap()
+{
+    auto rsContext = GetRSUIContext();
+    if (rsContext == nullptr) {
+        return;
+    }
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterNode(shared_from_this());
+}
 
+RSEffectNode::RSEffectNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
+    : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
 } // namespace Rosen
 } // namespace OHOS

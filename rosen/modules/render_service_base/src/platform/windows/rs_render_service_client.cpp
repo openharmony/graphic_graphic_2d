@@ -746,5 +746,10 @@ int32_t SetOverlayDisplayMode(int32_t mode)
     return {};
 }
 #endif
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

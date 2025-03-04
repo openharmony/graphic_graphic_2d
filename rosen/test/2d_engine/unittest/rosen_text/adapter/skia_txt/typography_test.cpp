@@ -353,7 +353,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
 
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
-        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+        OHOS::Rosen::SPText::SINCE_API18_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
 
@@ -386,7 +386,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
 
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
-        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+        OHOS::Rosen::SPText::SINCE_API18_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
 
@@ -395,6 +395,122 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
     typography->Layout(maxWidth);
     // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
     ASSERT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), ARC_FONT_SIZE));
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest013
+ * @tc.desc: test for one-run and one-line paragraph height with paragraphspacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
+{
+    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
+    double maxWidth = 1000;
+    std::u16string text = u"testParagraphSpacing";
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.isEndAddParagraphSpacing = false;
+    typographyStyle0.paragraphSpacing = 0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+    // 测试为只包含1个run的文本设置段落间距的场景
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = true;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight() + 40, typography1->GetHeight());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest014
+ * @tc.desc: test for multi-run paragraph height with paragraphspacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level1)
+{
+    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
+    double maxWidth = 100;
+    std::u16string text = u"test ParagraphSpacing. 不是一个run.";
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.isEndAddParagraphSpacing = false;
+    typographyStyle0.paragraphSpacing = 0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+    // 测试为包含多个run的文本设置段落间距的场景。
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = true;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight() + 40, typography1->GetHeight());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest015
+ * @tc.desc: test for height with paragraphspacing(ineffective)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level1)
+{
+    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
+    double maxWidth = 500;
+    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
+                          u"false, paragraph spacing should not take effect at this time.";
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.isEndAddParagraphSpacing = false;
+    typographyStyle0.paragraphSpacing = 0;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    typography0->Layout(maxWidth);
+    // 测试paragraphSpacing设为正值，但是段落中没有硬换行且isEndAddParagraphSpacing为false的场景：该场景下段落间距不生效。
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.isEndAddParagraphSpacing = false;
+    typographyStyle1.paragraphSpacing = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight(), typography1->GetHeight());
+
+    // 测试设置异常的paragraphSpacing，该场景下段落间距不生效。
+    OHOS::Rosen::TypographyStyle typographyStyle2;
+    typographyStyle2.isEndAddParagraphSpacing = true;
+    typographyStyle2.paragraphSpacing = -40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection2);
+    typographyCreate2->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    typography2->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight(), typography2->GetHeight());
 }
 } // namespace Rosen
 } // namespace OHOS

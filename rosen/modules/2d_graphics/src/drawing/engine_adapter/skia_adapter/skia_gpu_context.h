@@ -72,9 +72,13 @@ public:
 
     void FreeGpuResources() override;
 
+    void ReclaimResources() override;
+
     void DumpGpuStats(std::string& out) override;
 
     void DumpAllResource(std::stringstream& dump) override;
+
+    void DumpAllCoreTrace(std::stringstream& dump) override;
 
     void ReleaseResourcesAndAbandonContext() override;
 

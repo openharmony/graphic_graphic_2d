@@ -165,6 +165,10 @@ public:
         return lastValueFraction_;
     }
 
+    uint64_t GetToken() const
+    {
+        return token_;
+    }
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -241,6 +245,11 @@ private:
         return animationFraction_.GetRepeatCallbackEnable();
     }
 
+    void SetToken(uint64_t token)
+    {
+        token_ = token;
+    }
+
     AnimationId id_ = 0;
     NodeId targetId_ = 0;
     std::string targetName_ = "";
@@ -249,6 +258,7 @@ private:
     bool needInitialize_ { true };
     RSRenderNode* target_ { nullptr };
     float lastValueFraction_ { 0.0f };
+    uint64_t token_ = 0;
 
     friend class RSAnimation;
     friend class RSModifierManager;

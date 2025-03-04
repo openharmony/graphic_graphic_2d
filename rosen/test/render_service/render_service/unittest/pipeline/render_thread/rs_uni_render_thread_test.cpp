@@ -20,7 +20,7 @@
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
@@ -374,13 +374,11 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    std::unordered_map<NodeId, bool> ids1;
-    instance.ResetClearMemoryTask(std::move(ids1));
+    instance.ResetClearMemoryTask();
     EXPECT_FALSE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
-    std::unordered_map<NodeId, bool> ids2;
-    instance.ResetClearMemoryTask(std::move(ids2));
+    instance.ResetClearMemoryTask();
     EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 

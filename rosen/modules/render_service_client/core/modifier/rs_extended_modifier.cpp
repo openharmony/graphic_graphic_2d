@@ -170,9 +170,9 @@ static std::shared_ptr<Drawing::DrawCmdList> MakePiexlMapDrawCmdList(std::shared
 }
 #endif
 
-RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(NodeId nodeId)
+RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(std::weak_ptr<RSCanvasNode> canvasnode)
 {
-    auto node = RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId);
+    auto node = canvasnode.lock();
     if (!node) {
         return { nullptr };
     }

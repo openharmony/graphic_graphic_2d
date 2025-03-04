@@ -23,7 +23,7 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_processor.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_render_service_client.h"
 

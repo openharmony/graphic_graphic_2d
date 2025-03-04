@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_divided_ui_capture.h"
+#include "feature/ui_capture/rs_divided_ui_capture.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 

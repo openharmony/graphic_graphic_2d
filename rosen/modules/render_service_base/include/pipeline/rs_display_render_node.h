@@ -30,13 +30,13 @@
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
-#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,15 +69,7 @@ public:
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
-    void SetScreenId(uint64_t screenId)
-    {
-        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
-            releaseScreenDmaBufferTask_(screenId_);
-        }
-        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
-            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
-        screenId_ = screenId;
-    }
+    void SetScreenId(uint64_t screenId);
 
     uint64_t GetScreenId() const
     {
@@ -178,6 +170,16 @@ public:
     }
 
     bool IsMirrorDisplay() const;
+
+    inline bool HasMirroredDisplayChanged() const noexcept
+    {
+        return hasMirroredDisplayChanged_;
+    }
+
+    inline void ResetMirroredDisplayChangedFlag() noexcept
+    {
+        hasMirroredDisplayChanged_ = false;
+    }
 
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
@@ -555,6 +557,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
+    bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;

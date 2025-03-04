@@ -557,6 +557,29 @@ bool OH_Drawing_PathGetPositionTangent(OH_Drawing_Path* cPath, bool forceClosed,
     return path->GetPositionAndTangent(distance, *position, *tangent, forceClosed);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_PathGetSegment(OH_Drawing_Path* cPath, bool forceClosed,
+    float start, float stop, bool startWithMoveTo, OH_Drawing_Path* cDst, bool* result)
+{
+    Path* path = CastToPath(cPath);
+    Path* dst = CastToPath(cDst);
+    if (path == nullptr || dst == nullptr || result == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    float length = path->GetLength(forceClosed);
+    if (start < 0) {
+        start = 0;
+    }
+    if (stop > length) {
+        stop = length;
+    }
+    if (start >= stop) {
+        *result = false;
+        return OH_DRAWING_SUCCESS;
+    }
+    *result = path->GetSegment(start, stop, dst, startWithMoveTo, forceClosed);
+    return OH_DRAWING_SUCCESS;
+}
+
 bool OH_Drawing_PathOp(OH_Drawing_Path* cPath, const OH_Drawing_Path* src, OH_Drawing_PathOpMode op)
 {
     if (op < PATH_OP_MODE_DIFFERENCE || op > PATH_OP_MODE_REVERSE_DIFFERENCE) {

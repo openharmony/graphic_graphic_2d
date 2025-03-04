@@ -15,7 +15,7 @@
 
 #include "rs_ui_first_render_listener.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {

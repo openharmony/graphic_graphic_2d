@@ -77,12 +77,12 @@ int32_t XMLParserBase::ParseSysDoc()
 {
     RS_LOGI("XMLParserBase Parse SysDoc Start");
     if (!xmlSysDocument_) {
-        RS_LOGE("XMLParser xmlSysDocument_ is empty, should do LoadGraphicConfiguration first");
+        RS_LOGE("XMLParserBase xmlSysDocument_ is empty, should do LoadGraphicConfiguration first");
         return PARSE_SYS_FILE_LOAD_FAIL;
     }
     xmlNode *root = xmlDocGetRootElement(xmlSysDocument_);
     if (root == nullptr) {
-        RS_LOGE("XMLParser xmlDocGetRootElement failed");
+        RS_LOGE("XMLParserBase xmlDocGetRootElement failed");
         return PARSE_GET_ROOT_FAIL;
     }
 
@@ -96,12 +96,12 @@ int32_t XMLParserBase::ParseProdDoc()
 {
     RS_LOGI("XMLParserBase Parse ProdDoc Start");
     if (!xmlProdDocument_) {
-        RS_LOGD("XMLParser xmlProdDocument_ is empty, check if need product config first");
+        RS_LOGD("XMLParserBase xmlProdDocument_ is empty, check if need product config first");
         return PARSE_PROD_FILE_LOAD_FAIL;
     }
     xmlNode *root = xmlDocGetRootElement(xmlProdDocument_);
     if (root == nullptr) {
-        RS_LOGE("XMLParser xmlDocGetRootElement failed");
+        RS_LOGE("XMLParserBase xmlDocGetRootElement failed");
         return PARSE_GET_ROOT_FAIL;
     }
 
@@ -159,7 +159,7 @@ std::string XMLParserBase::ExtractPropertyValue(const std::string &propName, xml
     }
 
     if (tempValue != nullptr) {
-        RS_LOGD("XMLParser not a empty tempValue");
+        RS_LOGD("XMLParserBase not a empty tempValue");
         propValue = reinterpret_cast<const char*>(tempValue);
         xmlFree(tempValue);
         tempValue = nullptr;
