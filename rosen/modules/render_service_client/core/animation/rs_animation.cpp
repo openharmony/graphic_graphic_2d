@@ -23,6 +23,7 @@
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 #include "sandbox_utils.h"
@@ -204,6 +205,8 @@ void RSAnimation::OnPause()
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationPause>(target->GetId(), id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send pause", id_);
+        RS_TRACE_NAME_FMT("Animation[%llu] send pause", id_);
         transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote =
@@ -351,6 +354,8 @@ void RSAnimation::OnResume()
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationResume>(target->GetId(), id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send resume", id_);
+        RS_TRACE_NAME_FMT("Animation[%llu] send resume", id_);
         transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote =
@@ -393,6 +398,7 @@ void RSAnimation::OnFinish()
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationFinish>(target->GetId(), id_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send finish", id_);
         transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
         if (target->NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> commandForRemote =
