@@ -25,6 +25,8 @@
 
 #include "accessibility_param_parse.h"
 #include "accessibility_param.h"
+#include "dirtyregion_param.h"
+#include "dirtyregion_param_parse.h"
 #include "drm_param_parse.h"
 #include "drm_param.h"
 #include "hdr_param_parse.h"
@@ -61,6 +63,8 @@ struct ModuleConfig {
 
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
+    {FEATURE_CONFIGS[DIRTYREGION], [] {return std::make_unique<DirtyRegionParamParse>(); },
+        [] {return std::make_unique<DirtyRegionParam>(); }},
     {FEATURE_CONFIGS[HDR], [] {return std::make_unique<HDRParamParse>(); }, [] {return std::make_unique<HDRParam>(); }},
     {FEATURE_CONFIGS[DRM], [] {return std::make_unique<DRMParamParse>(); }, [] {return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},

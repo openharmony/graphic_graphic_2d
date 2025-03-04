@@ -24,6 +24,7 @@
 
 namespace OHOS::Rosen {
 const std::vector<std::string> FEATURE_CONFIGS = {
+    "DirtyRegionConfig",
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",
@@ -41,7 +42,8 @@ const std::vector<std::string> FEATURE_CONFIGS = {
 };
 
 enum FeatureModule {
-    HDR = 0,
+    DIRTYREGION = 0,
+    HDR,
     DRM,
     HWC,
     HFBC,
