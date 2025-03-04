@@ -47,7 +47,6 @@ private:
     napi_value OnGetFamilyName(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
-    static std::shared_ptr<Typeface> zhCnTypeface_;
     std::shared_ptr<Typeface> m_typeface = nullptr;
 };
 } // namespace Drawing

@@ -23,7 +23,5 @@ class DrawingFontUtils {
 public:
     static std::shared_ptr<OHOS::Rosen::Drawing::Typeface> GetZhCnTypeface();
     static std::shared_ptr<OHOS::Rosen::Drawing::Font> GetThemeFont(const OHOS::Rosen::Drawing::Font* font);
-private:
-    static std::shared_ptr<OHOS::Rosen::Drawing::Typeface> zhCnTypeface_;
 };
 #endif // DRAWING_FONT_H

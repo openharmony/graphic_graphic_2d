@@ -33,16 +33,15 @@ std::shared_ptr<Drawing::Typeface> LoadZhCnTypeface()
     return typeface;
 }
 
-std::shared_ptr<Drawing::Typeface> DrawingFontUtils::zhCnTypeface_ = LoadZhCnTypeface();
-
 std::shared_ptr<Drawing::Typeface> DrawingFontUtils::GetZhCnTypeface()
 {
-    return zhCnTypeface_;
+    static std::shared_ptr<OHOS::Rosen::Drawing::Typeface> zhCnTypeface = LoadZhCnTypeface();
+    return zhCnTypeface;
 }
 
 std::shared_ptr<Drawing::Font> DrawingFontUtils::GetThemeFont(const Drawing::Font* font)
 {
-    if (!font->IsThemeFontFollowed() || font->GetTypeface() != zhCnTypeface_) {
+    if (!font->IsThemeFontFollowed() || font->GetTypeface() != GetZhCnTypeface()) {
         return nullptr;
     }
     std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();

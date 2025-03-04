@@ -126,11 +126,10 @@ std::shared_ptr<Typeface> LoadZhCnTypeface()
     return typeface;
 }
 
-std::shared_ptr<Typeface> JsTypeface::zhCnTypeface_ = LoadZhCnTypeface();
-
 std::shared_ptr<Typeface> JsTypeface::GetZhCnTypeface()
 {
-    return zhCnTypeface_;
+    static std::shared_ptr<Typeface> zhCnTypeface = LoadZhCnTypeface();
+    return zhCnTypeface;
 }
 
 std::shared_ptr<Typeface> JsTypeface::GetTypeface()
