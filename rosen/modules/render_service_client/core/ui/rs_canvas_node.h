@@ -61,10 +61,10 @@ public:
     bool Marshalling(Parcel& parcel) const;
     static SharedPtr Unmarshalling(Parcel& parcel);
 protected:
-    RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode = false);
-    RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
     RSCanvasNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasNode(const RSCanvasNode&) = delete;
     RSCanvasNode(const RSCanvasNode&&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&) = delete;

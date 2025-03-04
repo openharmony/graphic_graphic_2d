@@ -65,8 +65,9 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode, s
     tid_ = gettid();
 }
 
-RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
-    : RSNode(isRenderServiceNode, id, isTextureExportNode)
+RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode,
+    std::shared_ptr<RSUIContext> rsUIContext)
+    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext)
 {
     tid_ = gettid();
 }
