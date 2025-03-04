@@ -23,6 +23,15 @@
 namespace OHOS {
 namespace Rosen {
 
+TaskPoolExecutor::~TaskPoolExecutor()
+{
+    running_ = false;
+    condition_.notify_all();
+    for (std::thread &thread: threads_) {
+        thread.join();
+    }
+}
+
 TaskPoolExecutor::TaskPoolExecutor()
 {
     InitThreadPool();
@@ -56,7 +65,7 @@ void TaskPoolExecutor::InitThreadPool()
             }
             pool->ThreadLoop();
         });
-        thread.detach();
+        threads_.push_back(std::move(thread));
     }
 }
 
