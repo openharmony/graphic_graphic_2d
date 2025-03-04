@@ -20,9 +20,8 @@
 #include <unordered_set>
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -45,7 +44,7 @@ constexpr float V_VAL_MAX = 1.0f;
 constexpr float WORKLOAD_TIMES[] = {1.0f, 1.5f, 2.0f, 2.5f};
 constexpr float V_VAL_INTERVALS[] = {V_VAL_MAX, 0.75f, 0.5f, 0.25f, V_VAL_MIN};
 constexpr int BALANCE_FRAME_COUNT = 3;
-constexpr int WORKLOAD_TIMES_SIZE = sizeof(WORKLOAD_TIMES);
+constexpr int WORKLOAD_TIMES_SIZE = sizeof(WORKLOAD_TIMES) / sizeof(WORKLOAD_TIMES[0]);
 constexpr int WORKLOAD_LEVEL_COUNT = sizeof(VSYNC_RATE_TABLE) / sizeof(VSYNC_RATE_TABLE[0]);
 // v_val of the v-rate result
 constexpr float V_VAL_LEVEL_1 = 1.0f;
@@ -186,9 +185,8 @@ int RSVsyncRateReduceManager::UpdateRatesLevel()
         frameDurations_.pop_front();
     }
     int plusLevel = -1;
-    float expectPeriod = BALANCE_FRAME_COUNT;
     for (int i = WORKLOAD_TIMES_SIZE; i > 0; --i) {
-        if (totalDuration > expectPeriod * WORKLOAD_TIMES[i - 1]) {
+        if (totalDuration > static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES[i - 1]) {
             plusLevel = i;
             break;
         }
@@ -278,7 +276,7 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
         RS_LOGE("GetRateByBalanceLevel curRatesLevel error");
         return DEFAULT_RATE;
     }
-    int minRate = rsRefreshRate_ / MIN_REFRESH_RATE;
+    int minRate = rsRefreshRate_ / static_cast<uint32_t>(MIN_REFRESH_RATE);
     auto& rates = VSYNC_RATE_TABLE[curRatesLevel_];
     size_t intervalsSize = sizeof(V_VAL_INTERVALS) / sizeof(float);
     for (size_t i = 1; i < intervalsSize; ++i) {
@@ -507,7 +505,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     if (!vRateConditionQualified_) {
         return;
     }
-    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / rsRefreshRate;
+    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate);
     rsRefreshRate_ = rsRefreshRate;
 }
 } // namespace Rosen

@@ -970,6 +970,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
 }
 
 /**
+ * @tc.name: NotifyHgmConfigEvent Test
+ * @tc.desc: NotifyHgmConfigEvent Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Level1)
+{
+    std::string eventName = "HGMCONFIG_HIGH_TEMP";
+    bool state = false;
+    proxy->NotifyHgmConfigEvent(eventName, state);
+    ASSERT_TRUE(proxy);
+}
+
+/**
  * @tc.name: RunOnRemoteDiedCallback Test
  * @tc.desc: RunOnRemoteDiedCallback Test
  * @tc.type:FUNC

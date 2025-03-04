@@ -31,11 +31,11 @@
 #include "hgm_frame_rate_manager.h"
 #include "memory/rs_memory_flow_control.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_unmarshal_thread.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
@@ -151,6 +151,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
@@ -185,6 +186,7 @@ static constexpr std::array descriptorCheckList = {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -452,7 +454,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
-            auto nodeId = data.ReadUint64();
+            uint64_t nodeId{0};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_NODE read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool isNonSystemCalling = false;
             bool isTokenTypeValid = true;
             RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
@@ -462,7 +469,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
-            auto surfaceName = data.ReadString();
+            std::string surfaceName;
+            if (!data.ReadString(surfaceName)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_NODE read surfaceName failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
             if (!reply.WriteBool(CreateNode(config))) {
                 ret = ERR_INVALID_REPLY;
@@ -470,27 +482,42 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
-            auto nodeId = data.ReadUint64();
+            uint64_t nodeId{0};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_NODE_AND_SURFACE read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
                 RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
-            auto surfaceName = data.ReadString();
-            auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
-            bool isTextureExportNode = data.ReadBool();
-            bool isSync = data.ReadBool();
-            auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
-            bool unobscured = data.ReadBool();
-            if (!CheckCreateNodeAndSurface(callingPid, type, surfaceWindowType)) {
+            std::string surfaceName;
+            uint8_t type { 0 };
+            bool isTextureExportNode { false };
+            bool isSync { false };
+            uint8_t surfaceWindowType { 0 };
+            bool unobscured { false };
+            if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
+                !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RSSurfaceRenderNodeConfig config = {
-                .id = nodeId, .name = surfaceName, .nodeType = type,
-                .isTextureExportNode = isTextureExportNode, .isSync = isSync,
-                .surfaceWindowType = surfaceWindowType};
+            if (!CheckCreateNodeAndSurface(callingPid, static_cast<RSSurfaceNodeType>(type),
+                                           static_cast<SurfaceWindowType>(surfaceWindowType))) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_NODE_AND_SURFACE CheckCreateNodeAndSurface failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RSSurfaceRenderNodeConfig config = { .id = nodeId,
+                .name = surfaceName,
+                .nodeType = static_cast<RSSurfaceNodeType>(type),
+                .isTextureExportNode = isTextureExportNode,
+                .isSync = isSync,
+                .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType) };
             sptr<Surface> surface = CreateNodeAndSurface(config, unobscured);
             if (surface == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -767,10 +794,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
-            float darkBuffer = data.ReadFloat();
-            float brightBuffer = data.ReadFloat();
-            int64_t interval = data.ReadInt64();
-            int32_t rangeSize = data.ReadInt32();
+            float darkBuffer { 0.f };
+            float brightBuffer { 0.f };
+            int64_t interval { 0 };
+            int32_t rangeSize { 0 };
+            if (!data.ReadFloat(darkBuffer) || !data.ReadFloat(brightBuffer) || !data.ReadInt64(interval) ||
+                !data.ReadInt32(rangeSize)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_POINTER_COLOR_INVERSION_CONFIG read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
@@ -778,7 +811,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED): {
-            bool enable = data.ReadBool();
+            bool enable { false };
+            if (!data.ReadBool(enable)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_POINTER_COLOR_INVERSION_ENABLED read enable failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t status = SetPointerColorInversionEnabled(enable);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
@@ -1141,12 +1179,22 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
-            NodeId id = data.ReadUint64();
+            NodeId id { 0 };
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_POINTER_POSITION read nodeId failed!");
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, id);
-            float positionX = data.ReadFloat();
-            float positionY = data.ReadFloat();
-            float positionZ = data.ReadFloat();
-            float positionW = data.ReadFloat();
+            float positionX { 0.f };
+            float positionY { 0.f };
+            float positionZ { 0.f };
+            float positionW { 0.f };
+            if (!data.ReadFloat(positionX) || !data.ReadFloat(positionY) || !data.ReadFloat(positionZ) ||
+                !data.ReadFloat(positionW)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_POINTER_POSITION read position failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetHwcNodeBounds(id, positionX, positionY, positionZ, positionW);
             break;
         }
@@ -1321,7 +1369,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
-            bool isFromRenderThread = data.ReadBool();
+            bool isFromRenderThread{false};
+            if (!data.ReadBool(isFromRenderThread)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER read isFromRenderThread failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -1530,10 +1583,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
-            std::string name = data.ReadString();
+            std::string name;
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_VSYNC_CONNECTION read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto remoteObj = data.ReadRemoteObject();
-            uint64_t id = data.ReadUint64();
-            NodeId windowNodeID = data.ReadUint64();
+            uint64_t id{0};
+            NodeId windowNodeID{0};
+            if (!data.ReadUint64(id) || !data.ReadUint64(windowNodeID)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CREATE_VSYNC_CONNECTION read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (remoteObj == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -1677,7 +1740,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(data.ReadInt32());
+            int32_t pixel{0};
+            if (!data.ReadInt32(pixel)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_PIXEL_FORMAT read pixelFormat failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(pixel);
             int32_t result = SetPixelFormat(id, pixelFormat);
             if (!reply.WriteInt32(result)) {
                 ret = ERR_INVALID_REPLY;
@@ -1787,7 +1856,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(data.ReadInt32());
+            int32_t color{0};
+            if (!data.ReadInt32(color)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_COLORSPACE read colorSpace failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(color);
             int32_t result = SetScreenColorSpace(id, colorSpace);
             if (!reply.WriteInt32(result)) {
                 ret = ERR_INVALID_REPLY;
@@ -1868,8 +1943,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
             bool result = false;
-            uint64_t uniqueId = data.ReadUint64();
-            uint32_t hash = data.ReadUint32();
+            uint64_t uniqueId{0};
+            uint32_t hash{0};
+            if (!data.ReadUint64(uniqueId) || !data.ReadUint32(hash)) {
+                RS_LOGE("RSRenderServiceConnectionStub::NEED_REGISTER_TYPEFACE read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
             if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                 result = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
@@ -1890,8 +1970,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 // timer: 3s
                 OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" +
                     std::to_string(callingPid), 3, TypefaceXcollieCallback, &xcollieFlag, 0);
-                uint64_t uniqueId = data.ReadUint64();
-                uint32_t hash = data.ReadUint32();
+                uint64_t uniqueId{0};
+                uint32_t hash{0};
+                if (!data.ReadUint64(uniqueId) || !data.ReadUint32(hash)) {
+                    RS_LOGE("RSRenderServiceConnectionStub::REGISTER_TYPEFACE read parcel failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
                 // safe check
                 if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                     result = RSMarshallingHelper::Unmarshalling(data, typeface);
@@ -1915,7 +2000,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
-            uint64_t uniqueId = data.ReadUint64();
+            uint64_t uniqueId{0};
+            if (!data.ReadUint64(uniqueId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::UNREGISTER_TYPEFACE read uniqueId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             // safe check
             if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                 RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
@@ -2262,7 +2352,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
                 break;
             }
-            auto needHidePrivacyContent = data.ReadBool();
+            bool needHidePrivacyContent{false};
+            if (!data.ReadBool(needHidePrivacyContent)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT read needHidePrivacyContent failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!reply.WriteUint32(SetHidePrivacyContent(id, needHidePrivacyContent))) {
                 ret = ERR_INVALID_REPLY;
             }
@@ -2379,6 +2474,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             NotifyTouchEvent(touchStatus, touchCnt);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT) : {
+            std::string eventName;
+            bool state{false};
+            if (!data.ReadString(eventName) || !data.ReadBool(state)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyHgmConfigEvent(eventName, state);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {
@@ -2624,8 +2729,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME) : {
+            std::string packageName;
+            std::string pageName;
+            bool isEnter{false};
+            if (!data.ReadString(packageName) || !data.ReadString(pageName) || !data.ReadBool(isEnter)) {
+                RS_LOGE("NOTIFY_PAGE_NAME read data err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyPageName(packageName, pageName, isEnter);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
-            bool flag = data.ReadBool();
+            bool flag{false};
+            if (!data.ReadBool(flag)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VMA_CACHE_STATUS read flag failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetVmaCacheStatus(flag);
             break;
         }

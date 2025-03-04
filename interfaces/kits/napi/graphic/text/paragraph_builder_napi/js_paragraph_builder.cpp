@@ -209,7 +209,7 @@ napi_value JsParagraphBuilder::AddPlaceholder(napi_env env, napi_callback_info i
 napi_value JsParagraphBuilder::OnAddPlaceholder(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("Typography creator is null");
+        TEXT_LOGE("Null typography creator");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
@@ -227,7 +227,7 @@ napi_value JsParagraphBuilder::OnAddPlaceholder(napi_env env, napi_callback_info
     PlaceholderSpan placeholderSpan;
     bool res = GetPlaceholderSpanFromJS(env, argv[0], placeholderSpan);
     if (!res) {
-        TEXT_LOGE("Failed to get placeholder from js");
+        TEXT_LOGE("Failed to get placeholder");
         return NapiGetUndefined(env);
     }
     typographyCreate_->AppendPlaceholder(placeholderSpan);
@@ -243,7 +243,7 @@ napi_value JsParagraphBuilder::Build(napi_env env, napi_callback_info info)
 napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("Typography builder is null");
+        TEXT_LOGE("Null typography builder");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -260,7 +260,7 @@ napi_value JsParagraphBuilder::BuildLineTypeset(napi_env env, napi_callback_info
 napi_value JsParagraphBuilder::OnBuildLineTypeset(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("Typography creator is null");
+        TEXT_LOGE("Null typography creator");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     std::unique_ptr<OHOS::Rosen::LineTypography> lineTypography = typographyCreate_->CreateLineTypography();
@@ -279,7 +279,7 @@ napi_value JsParagraphBuilder::AppendSymbol(napi_env env, napi_callback_info inf
 napi_value JsParagraphBuilder::OnAppendSymbol(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("Typography creator is null");
+        TEXT_LOGE("Null typography creator");
         return nullptr;
     }
     size_t argc = ARGC_ONE;

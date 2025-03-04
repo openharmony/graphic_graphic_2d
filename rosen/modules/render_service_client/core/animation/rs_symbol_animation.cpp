@@ -230,7 +230,7 @@ bool RSSymbolAnimation::SetReplaceDisappear(
             ROSEN_LOGD("[%{public}s] invalid initial parameter", __func__);
             continue;
         }
-        if (static_cast<int>(parameters.size()) <= config.symbolNode.animationIndex ||
+        if (parameters.size() <= static_cast<size_t>(config.symbolNode.animationIndex) ||
             parameters.at(config.symbolNode.animationIndex).empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter", __func__);
             continue;
@@ -271,7 +271,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         GroupDrawing(canvasNode, symbolNode, offsets);
         bool isInValid = !res || !isStartAnimation || symbolNode.animationIndex < 0 ||
-                         static_cast<int>(parameters.size()) <= symbolNode.animationIndex;
+                         parameters.size() <= static_cast<size_t>(symbolNode.animationIndex);
         if (isInValid) {
             ROSEN_LOGD("[%{public}s] invalid animationIndex or parameter", __func__);
             continue;
@@ -421,7 +421,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
         GroupDrawing(canvasNode, symbolNode, offsets);
 
         bool isInValid = !res || symbolNode.animationIndex < 0 ||
-                         static_cast<int>(parameters.size()) <= symbolNode.animationIndex;
+                         parameters.size() <= static_cast<size_t>(symbolNode.animationIndex);
         if (isInValid) {
             ROSEN_LOGD("[%{public}s] invalid animationIndex or parameter", __func__);
             continue;
@@ -728,7 +728,7 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
     if (properties.count(SCALE_PROP_X) <= 0 || properties.count(SCALE_PROP_Y) <= 0 ||
         properties[SCALE_PROP_X].size() < PROPERTIES ||
         properties[SCALE_PROP_Y].size() < PROPERTIES) {
-        ROSEN_LOGD("invalid scaleParameter input");
+        ROSEN_LOGD("Invalid parameter input of scale.");
         return;
     }
 
@@ -772,7 +772,7 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
     }
     auto& properties = alphaParameter.properties;
     if (properties.count(ALPHA_PROP) <= 0 || properties[ALPHA_PROP].size() < PROPERTIES) {
-        ROSEN_LOGD("invalid alphaParameter input");
+        ROSEN_LOGD("Invalid parameter input of alpha.");
         return;
     }
 

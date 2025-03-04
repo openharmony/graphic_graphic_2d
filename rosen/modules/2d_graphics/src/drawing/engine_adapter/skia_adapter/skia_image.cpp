@@ -25,6 +25,7 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/data.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/system_properties.h"
 
@@ -192,6 +193,8 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIAIMAGE_BUILDFROMCOMPRESSED);
     if (data == nullptr) {
         LOGD("SkiaImage::BuildFromCompressed, build failed, data is invalid");
         return false;
@@ -223,6 +226,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIAIMAGE_BUILDFROMTEXTURE);
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {
         LOGD("SkiaImage BuildFromTexture grContext_ is null");

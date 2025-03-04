@@ -37,7 +37,7 @@ PathVerb JsPathIterator::nextInternal()
     }
     PathVerb verb = m_iter->Next(m_points);
     if (verb == PathVerb::CONIC) {
-        float weight = m_iter->conicWeight();
+        float weight = m_iter->ConicWeight();
         m_points[MAX_PAIRS_PATHVERB-1].SetX(weight);
     } else if (verb == PathVerb::DONE) {
         m_done = true;

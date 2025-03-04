@@ -102,8 +102,6 @@ private:
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::list<std::pair<NativeWindowBuffer*, int>> protectedSurfaceBufferList_;
     std::mutex protectedSurfaceBufferListMutex_;
-    std::list<uint32_t> mSurfaceList2;
-    std::unordered_map<uint32_t, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap2;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
     void CreateVkSemaphore(VkSemaphore& semaphore,

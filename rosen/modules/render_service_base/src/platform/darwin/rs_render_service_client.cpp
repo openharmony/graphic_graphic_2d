@@ -618,6 +618,10 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
+void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+}
+
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 }
@@ -732,6 +736,11 @@ void RSRenderServiceClient::NotifyScreenSwitched()
 }
 
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
+{
+}
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
 {
 }
 } // namespace Rosen

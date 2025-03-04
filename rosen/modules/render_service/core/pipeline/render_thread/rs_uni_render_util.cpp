@@ -37,7 +37,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -46,6 +46,7 @@
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
+#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -73,6 +74,7 @@ constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
+constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE
@@ -107,9 +109,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     // overlay display expand dirty region
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(*dirtyManager, screenInfo, dirtyRegion);
 #endif
-    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() }};
+    allDirtyRegion.OrSelf(dirtyRegion);
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
-        Occlusion::Region allDirtyRegion{dirtyRegion.Or(globalDirtyRegion)};
         Occlusion::Region expandedAllDirtyRegion;
         constexpr int expandSizeByFloatRounding{1}; // Float rounding will additionally expand by 1 pixel
         int expandSize = static_cast<int>(std::ceil(
@@ -119,22 +121,21 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             Occlusion::Region expandedRegion{rect};
             expandedAllDirtyRegion.OrSelf(expandedRegion);
         }
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            expandedAllDirtyRegion);
-        rsDirtyRectsDfx.SetExpandedDirtyRegion(expandedAllDirtyRegion);
-    } else {
-        RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
-            dirtyRegion.Or(globalDirtyRegion));
+        allDirtyRegion = expandedAllDirtyRegion;
     }
+    if (params.IsDirtyAlignEnabled()) {
+        allDirtyRegion = allDirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    }
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
 
     // DFX START
-    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
+    rsDirtyRectsDfx.SetDirtyRegion(allDirtyRegion);
+    rsDirtyRectsDfx.SetExpandedDirtyRegion(allDirtyRegion);
     // DFX END
 
     RectI rect = dirtyManager->GetDirtyRegionFlipWithinSurface();
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(allDirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
-        rects.emplace_back(rect);
         RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
@@ -542,11 +543,15 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     if (buffer == nullptr || surface == nullptr) {
         return;
     }
-    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
-    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
+    if (boundsWidth == 0 || boundsHeight == 0) {
+        RS_LOGE("RSUniRenderUtil::SrcRectScaleDown: boundsWidth or boundsHeight is 0");
+        return;
+    }
+    uint32_t newWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
+    uint32_t newHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
 
     uint32_t newWidthBoundsHeight = newWidth * boundsHeight;
     uint32_t newHeightBoundsWidth = newHeight * boundsWidth;
@@ -1569,29 +1574,16 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
-            float scale = std::min(xScale, yScale);
-            srcRect.left_ = srcRect.left_ * scale;
-            srcRect.top_ = srcRect.top_ * scale;
-            if (ROSEN_EQ(scale, 0.f)) {
-                node.SetSrcRect(srcRect);
-                return;
-            }
-            srcRect.width_ = (bufferWidth / scale - (boundsWidth - srcRect.width_)) * scale;
-            srcRect.height_ = (bufferHeight / scale - (boundsHeight - srcRect.height_)) * scale;
+        if (absRect == node.GetDstRect()) {
+            // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+            // we do not need to crop the buffer.
+            srcRect.width_ = bufferWidth;
+            srcRect.height_ = bufferHeight;
         } else {
-            if (absRect == node.GetDstRect()) {
-                // If the SurfaceRenderNode is completely in the DisplayRenderNode,
-                // we do not need to crop the buffer.
-                srcRect.width_ = bufferWidth;
-                srcRect.height_ = bufferHeight;
-            } else {
-                srcRect.left_ = srcRect.left_ * xScale;
-                srcRect.top_ = srcRect.top_ * yScale;
-                srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
-                srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(srcRect.height_ * yScale)), bufferHeight);
-            }
+            srcRect.left_ = srcRect.left_ * xScale;
+            srcRect.top_ = srcRect.top_ * yScale;
+            srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
+            srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(srcRect.height_ * yScale)), bufferHeight);
         }
     }
     RectI bufferRect(0, 0, bufferWidth, bufferHeight);
@@ -1730,8 +1722,7 @@ bool RSUniRenderUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gra
     return true;
 }
 
-void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo,
-    const Drawing::Matrix& totalMatrix)
+void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     if (!surfaceHandler) {
@@ -1739,44 +1730,52 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     }
     const auto buffer = surfaceHandler->GetBuffer();
     const auto consumer = surfaceHandler->GetConsumer();
-    const auto& property = node.GetRenderProperties();
-    const std::shared_ptr<RSObjAbsGeometry>& hwcNodeGeo = property.GetBoundsGeometry();
-    if (!consumer || !buffer || !hwcNodeGeo) {
+    if (!consumer || !buffer) {
         return;
     }
-    float frameWidth = buffer->GetSurfaceBufferWidth();
-    float frameHeight = buffer->GetSurfaceBufferHeight();
-    const float boundsWidth = property.GetBoundsWidth();
-    const float boundsHeight = property.GetBoundsHeight();
-    const Gravity frameGravity = property.GetFrameGravity();
-    const GraphicTransformType consumerTransformType = (node.GetFixRotationByUser()) ?
+    float bufferWidth = buffer->GetSurfaceBufferWidth();
+    float bufferHeight = buffer->GetSurfaceBufferHeight();
+    const float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
+    const float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
+    const Gravity frameGravity = node.GetRenderProperties().GetFrameGravity();
+    const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
         GetRotateTransformForRotationFixed(node, consumer) : GetConsumerTransform(node, buffer, consumer);
     CheckForceHardwareAndUpdateDstRect(node);
-    Drawing::Matrix inverseTotalMatrix;
-    // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) ||
-        !totalMatrix.Invert(inverseTotalMatrix) || !IsHwcEnabledByGravity(node, frameGravity)) {
-        return;
-    }
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
-        std::swap(frameWidth, frameHeight);
+        std::swap(bufferWidth, bufferHeight);
     }
-    Drawing::Rect localIntersectRect = Drawing::Rect(0, 0, boundsWidth, boundsHeight);
-    localIntersectRect.Intersect(Drawing::Rect(0, 0, frameWidth, frameHeight));
+    Drawing::Matrix gravityMatrix;
+    RSPropertiesPainter::GetGravityMatrix(frameGravity,
+        {0.f, 0.f, boundsWidth, boundsHeight}, bufferWidth, bufferHeight, gravityMatrix);
+    Drawing::Matrix inverseTotalMatrix;
+    Drawing::Matrix inverseGravityMatrix;
+    // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
+    if (frameGravity == Gravity::RESIZE ||
+        (ROSEN_EQ(bufferWidth, boundsWidth) && ROSEN_EQ(bufferHeight, boundsHeight)) ||
+        !totalMatrix.Invert(inverseTotalMatrix) || !gravityMatrix.Invert(inverseGravityMatrix) ||
+        !IsHwcEnabledByGravity(node, frameGravity)) {
+        return;
+    }
+    Drawing::Rect bound = Drawing::Rect(0.f, 0.f, boundsWidth, boundsHeight);
+    Drawing::Rect frame = Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight);
+    Drawing::Rect localIntersectRect;
+    gravityMatrix.MapRect(localIntersectRect, frame);
+    localIntersectRect.Intersect(bound);
     Drawing::Rect absIntersectRect;
     totalMatrix.MapRect(absIntersectRect, localIntersectRect);
-    const RectI& dstRect = node.GetDstRect();
+    const RectI dstRect = node.GetDstRect();
     Drawing::Rect newDstRect(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
     newDstRect.Intersect(absIntersectRect);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
     inverseTotalMatrix.MapRect(newSrcRect, newDstRect);
+    inverseGravityMatrix.MapRect(newSrcRect, newSrcRect);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
-        std::swap(localIntersectRect.left_, localIntersectRect.top_);
-        std::swap(localIntersectRect.right_, localIntersectRect.bottom_);
+        std::swap(newSrcRect.left_, newSrcRect.top_);
+        std::swap(newSrcRect.right_, newSrcRect.bottom_);
     }
     newSrcRect = CalcSrcRectByBufferRotation(*buffer, consumerTransformType, newSrcRect);
     node.SetSrcRect({newSrcRect.GetLeft(), newSrcRect.GetTop(), newSrcRect.GetWidth(), newSrcRect.GetHeight()});
@@ -1949,178 +1948,117 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
     node.SetSrcRect(srcRect);
 }
 
-void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
+bool RSUniRenderUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode)
 {
-    const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
-    const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (surface == nullptr || buffer == nullptr) {
-        RS_LOGE("surface or buffer is nullptr");
-        return;
+    // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
+    if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int>(scalingMode));
+        node.SetHardwareForcedDisabledState(true);
+        return false;
     }
-    node.SetIsOutOfScreen(false);
-    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
-    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        RSUniRenderUtil::LayerScaleDown(node);
-    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        // For scale fit, when aspect ratios of buffer and bounds of node are "dramatically" different,
-        // moving node out of screen causes unexpected dstRect cropping problem. Disable HWC if this happens
-        float bufferAspectRatio = buffer->GetSurfaceBufferHeight() == 0 ? 0.f :
-            static_cast<float>(buffer->GetSurfaceBufferWidth()) / static_cast<float>(buffer->GetSurfaceBufferHeight());
-        float boundsAspectRatio = ROSEN_EQ(node.GetRenderProperties().GetBoundsHeight(), 0.f, 1e-6f) ? 0.f :
-            node.GetRenderProperties().GetBoundsWidth() / node.GetRenderProperties().GetBoundsHeight();
-        // Aspect ratios should be "dramatically" different
-        if (!ROSEN_EQ(bufferAspectRatio, boundsAspectRatio, 5e-3f)) {
-            Drawing::Rect bounds = Drawing::Rect(
-                0, 0, node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
-            Drawing::Rect absBoundsRect;
-            node.GetTotalMatrix().MapRect(absBoundsRect, bounds);
-            // Detect if node is out of screen by testing bounds
-            if (absBoundsRect.GetLeft() < 0 || absBoundsRect.GetTop() < 0 ||
-                absBoundsRect.GetLeft() + absBoundsRect.GetWidth() > screenInfo.width ||
-                absBoundsRect.GetTop() + absBoundsRect.GetHeight() > screenInfo.height) {
-                node.SetHardwareForcedDisabledState(true);
-                node.SetIsOutOfScreen(true);
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s id %llu disabled by scale fit bounds out of screen. "
-                    "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
-                    node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,
-                    screenInfo.height, bufferAspectRatio, boundsAspectRatio);
-            }
-        }
-
-        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
-            node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        if (degree % RS_ROTATION_90 == 0) {
-            RSUniRenderUtil::LayerScaleFit(node);
-        }
-    }
+    return true;
 }
 
-void RSUniRenderUtil::LayerScaleDown(RSSurfaceRenderNode& node)
+void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
 {
-    const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
-    const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (buffer == nullptr || surface == nullptr) {
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
         return;
     }
-    constexpr uint32_t FLAT_ANGLE = 180;
-    auto dstRect = node.GetDstRect();
-    auto srcRect = node.GetSrcRect();
-
-    uint32_t newWidth = static_cast<uint32_t>(srcRect.width_);
-    uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
-    uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
-    uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
-    if (newWidth == 0 || newHeight == 0 || dstWidth == 0 || dstHeight == 0) {
+    const auto buffer = surfaceHandler->GetBuffer();
+    const auto consumer = surfaceHandler->GetConsumer();
+    if (!consumer || !buffer) {
         return;
     }
-
-    // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
-    // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
-    int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
-                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
-    if (surfaceRotation % FLAT_ANGLE != 0) {
-        std::swap(dstWidth, dstHeight);
-    }
-
-    uint32_t newWidthDstHeight = newWidth * dstHeight;
-    uint32_t newHeightDstWidth = newHeight * dstWidth;
-
-    if (newWidthDstHeight > newHeightDstWidth) {
-        // too wide
-        newWidth = dstWidth * newHeight / dstHeight;
-    } else if (newWidthDstHeight < newHeightDstWidth) {
-        // too tall
-        newHeight = dstHeight * newWidth / dstWidth;
-    } else {
+    float bufferWidth = buffer->GetSurfaceBufferWidth();
+    float bufferHeight = buffer->GetSurfaceBufferHeight();
+    const float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
+    const float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
+    const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
+        GetRotateTransformForRotationFixed(node, consumer) : GetConsumerTransform(node, buffer, consumer);
+    const Gravity frameGravity = node.GetRenderProperties().GetFrameGravity();
+    const ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_TO_WINDOW || !IsHwcEnabledByScalingMode(node, scalingMode) ||
+        !IsHwcEnabledByGravity(node, frameGravity)) {
         return;
     }
-
-    uint32_t currentWidth = static_cast<uint32_t>(srcRect.width_);
-    uint32_t currentHeight = static_cast<uint32_t>(srcRect.height_);
-
-    if (newWidth < currentWidth) {
-        // the crop is too wide
-        uint32_t dw = currentWidth - newWidth;
-        auto halfdw = dw / 2;
-        srcRect.left_ += static_cast<int32_t>(halfdw);
-        srcRect.width_ = static_cast<int32_t>(newWidth);
-    } else {
-        // thr crop is too tall
-        uint32_t dh = currentHeight - newHeight;
-        auto halfdh = dh / 2;
-        srcRect.top_ += static_cast<int32_t>(halfdh);
-        srcRect.height_ = static_cast<int32_t>(newHeight);
+    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        std::swap(bufferWidth, bufferHeight);
     }
-    node.SetSrcRect(srcRect);
+    Drawing::Matrix gravityMatrix;
+    RSPropertiesPainter::GetGravityMatrix(frameGravity,
+        {0.f, 0.f, boundsWidth, boundsHeight}, bufferWidth, bufferHeight, gravityMatrix);
+    Drawing::Matrix rawScalingModeMatrix;
+    RSPropertiesPainter::GetScalingModeMatrix(scalingMode,
+        {0.f, 0.f, boundsWidth, boundsHeight}, bufferWidth, bufferHeight, rawScalingModeMatrix);
+    Drawing::Rect rawSrcRect;
+    rawScalingModeMatrix.MapRect(rawSrcRect, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
+    float xScale = ROSEN_EQ(boundsWidth, 0.f) ? 1.0f : rawSrcRect.GetWidth() / boundsWidth;
+    float yScale = ROSEN_EQ(boundsHeight, 0.f) ? 1.0f : rawSrcRect.GetHeight() / boundsHeight;
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.PostScale(xScale, yScale);
+    Drawing::Rect adjustedSrcRect;
+    scalingModeMatrix.MapRect(adjustedSrcRect, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
+    float xTranslate = (bufferWidth - adjustedSrcRect.GetWidth()) / 2.0f;
+    float yTranslate = (bufferHeight - adjustedSrcRect.GetHeight()) / 2.0f;
+    scalingModeMatrix.PostTranslate(xTranslate, yTranslate);
+    UpdateHwcNodeByScalingMode(node, totalMatrix, gravityMatrix, scalingModeMatrix);
 }
 
-void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
+void RSUniRenderUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
+    const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix)
 {
-    const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
-    const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (buffer == nullptr || surface == nullptr) {
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    const auto& property = node.GetRenderProperties();
+    const auto buffer = surfaceHandler->GetBuffer();
+    const auto consumer = surfaceHandler->GetConsumer();
+    float bufferWidth = buffer->GetSurfaceBufferWidth();
+    float bufferHeight = buffer->GetSurfaceBufferHeight();
+    const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
+        GetRotateTransformForRotationFixed(node, consumer) : GetConsumerTransform(node, buffer, consumer);
+    Drawing::Matrix inverseScalingModeMatrix;
+    Drawing::Matrix inverseGravityMatrix;
+    Drawing::Matrix inverseTotalMatrix;
+    if (!totalMatrix.Invert(inverseTotalMatrix) || !scalingModeMatrix.Invert(inverseScalingModeMatrix) ||
+        !gravityMatrix.Invert(inverseGravityMatrix)) {
         return;
     }
-    constexpr uint32_t FLAT_ANGLE = 180;
-    auto dstRect = node.GetDstRect();
-    auto srcRect = node.GetSrcRect();
-
-    // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
-    // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
-    int surfaceRotation =
-        RSUniRenderUtil::GetRotationFromMatrix(node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(
-            RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
-    if (surfaceRotation % FLAT_ANGLE != 0) {
-        std::swap(srcRect.width_, srcRect.height_);
+    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        std::swap(bufferWidth, bufferHeight);
     }
-
-    uint32_t newWidth = static_cast<uint32_t>(srcRect.width_);
-    uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
-    uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
-    uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
-
-    if (newWidth == 0 || newHeight == 0 || dstWidth == 0 || dstHeight == 0) {
-        return;
+    Drawing::Rect newDstRect;
+    scalingModeMatrix.MapRect(newDstRect, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
+    gravityMatrix.MapRect(newDstRect, newDstRect);
+    totalMatrix.MapRect(newDstRect, newDstRect);
+    Drawing::Rect dstRectWithoutScaling;
+    gravityMatrix.MapRect(dstRectWithoutScaling, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
+    totalMatrix.MapRect(dstRectWithoutScaling, dstRectWithoutScaling);
+    newDstRect.Intersect(dstRectWithoutScaling);
+    Drawing::Rect bounds = node.GetDstRectWithoutRenderFit();
+    newDstRect.Intersect(bounds);
+    node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
+        std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
+    Drawing::Rect newSrcRect;
+    inverseTotalMatrix.MapRect(newSrcRect, newDstRect);
+    inverseGravityMatrix.MapRect(newSrcRect, newSrcRect);
+    inverseScalingModeMatrix.MapRect(newSrcRect, newSrcRect);
+    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        std::swap(newSrcRect.left_, newSrcRect.top_);
+        std::swap(newSrcRect.right_, newSrcRect.bottom_);
     }
-
-    uint32_t newWidthDstHeight = newWidth * dstHeight;
-    uint32_t newHeightDstWidth = newHeight * dstWidth;
-
-    if (newWidthDstHeight > newHeightDstWidth) {
-        newHeight = newHeight * dstWidth / newWidth;
-        newWidth = dstWidth;
-    } else if (newWidthDstHeight < newHeightDstWidth) {
-        newWidth = newWidth * dstHeight / newHeight;
-        newHeight = dstHeight;
-    } else {
-        newHeight = dstHeight;
-        newWidth = dstWidth;
-    }
-
-    if (newWidth < dstWidth) {
-        uint32_t dw = dstWidth - newWidth;
-        auto halfdw = dw / 2;
-        dstRect.left_ += static_cast<int32_t>(halfdw);
-    } else if (newHeight < dstHeight) {
-        uint32_t dh = dstHeight - newHeight;
-        auto halfdh = dh / 2;
-        dstRect.top_ += static_cast<int32_t>(halfdh);
-    }
-    dstRect.height_ = static_cast<int32_t>(newHeight);
-    dstRect.width_ = static_cast<int32_t>(newWidth);
-    node.SetDstRect(dstRect);
-
-    RS_LOGD("RsDebug RSUniRenderUtil::LayerScaleFit layer has been scalefit dst[%{public}d %{public}d"
-        " %{public}d %{public}d] src[%{public}d %{public}d %{public}d %{public}d]",
-        dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_, srcRect.left_,
-        srcRect.top_, srcRect.width_, srcRect.height_);
+    newSrcRect = CalcSrcRectByBufferRotation(*buffer, consumerTransformType, newSrcRect);
+    node.SetSrcRect({newSrcRect.GetLeft(), newSrcRect.GetTop(), newSrcRect.GetWidth(), newSrcRect.GetHeight()});
 }
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUNIRENDERUTIL_OPTIMIZEDFLUSHANDSUBMIT);
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
         return;

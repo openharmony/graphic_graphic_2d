@@ -25,7 +25,8 @@ class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
 public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
-    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) override {};
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        Media::PixelMap* pixelmap) override {};
 };
 
 class RSSurfaceCaptureCallbackStubTest : public testing::Test {
@@ -85,6 +86,20 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: ReadSurfaceCaptureConfig
+ * @tc.desc: Verify the ReadSurfaceCaptureConfig error case
+ * @tc.type:FUNC
+ * @tc.require: issueIBOVQL
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfig, TestSize.Level1)
+{
+    MessageParcel data;
+    RSSurfaceCaptureConfig captureConfig;
+    int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
+    ASSERT_EQ(res, false);
 }
 
 } // namespace OHOS::Rosen

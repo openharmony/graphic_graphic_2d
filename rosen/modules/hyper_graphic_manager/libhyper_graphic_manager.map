@@ -14,6 +14,10 @@
 {
   global:
     extern "C++" {
+      *HgmAppPageUrlStrategy::NotifyPageName*;
+      *HgmAppPageUrlStrategy::NotifyScreenSettingChange*;
+      *HgmAppPageUrlStrategy::SetPageUrlConfig*;
+
       *HgmConfigCallbackManager::GetInstance*;
       *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
@@ -88,10 +92,12 @@
       *HgmFrameRateManager::HandleSceneEvent*;
       *HgmFrameRateManager::HandleScreenPowerStatus*;
       *HgmFrameRateManager::HandleScreenRectFrameRate*;
+      *HgmFrameRateManager::HandleThermalFrameRate*;
       *HgmFrameRateManager::HandleTouchEvent*;
       *HgmFrameRateManager::HgmFrameRateManager*;
       *HgmFrameRateManager::Init*;
       *HgmFrameRateManager::MergeRangeByPriority*;
+      *HgmFrameRateManager::NotifyPageName*;
       *HgmFrameRateManager::ProcessAdaptiveSync*;
       *HgmFrameRateManager::ProcessPendingRefreshRate*;
       *HgmFrameRateManager::ProcessRefreshRateVote*;
@@ -160,6 +166,12 @@
       *HgmTouchManager::HandleTouchEvent*;
       *HgmTouchManager::HgmTouchManager*;
       *HgmTouchManager::State2String*;
+
+      *HgmPointerManager::CheckChangeStateValid*;
+      *HgmPointerManager::HandleRsFrame*;
+      *HgmPointerManager::HandleTimerReset*;
+      *HgmPointerManager::HgmPointerManager*;
+      *HgmPointerManager::State2String*;
 
       *HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime*;
       *HgmVSyncGeneratorController::ChangeGeneratorRate*;

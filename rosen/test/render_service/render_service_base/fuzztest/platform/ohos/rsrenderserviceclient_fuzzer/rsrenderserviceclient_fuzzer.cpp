@@ -295,8 +295,20 @@ bool DoTriggerSurfaceCaptureCallback(const uint8_t* data, size_t size)
     opts.editable = GetData<bool>();
     opts.useSourceIfMatch = GetData<bool>();
     std::shared_ptr<Media::PixelMap>  pixelmap = Media::PixelMap::Create(opts);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
+    captureConfig.isSync = GetData<bool>();
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
 
-    client->TriggerSurfaceCaptureCallback(id, pixelmap);
+    client->TriggerSurfaceCaptureCallback(id, captureConfig, pixelmap);
     return true;
 }
 
@@ -1642,6 +1654,24 @@ bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string eventName = "eventName";
+    bool state = GetData<bool>();
+    client->NotifyHgmConfigEvent(eventName, state);
+    return true;
+}
+
 bool DoSetCacheEnabledForRotation(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2464,6 +2494,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
+    OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
     OHOS::Rosen::DoSetOnRemoteDiedCallback(data, size);
     OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
     OHOS::Rosen::DoSetVmaCacheStatus(data, size);

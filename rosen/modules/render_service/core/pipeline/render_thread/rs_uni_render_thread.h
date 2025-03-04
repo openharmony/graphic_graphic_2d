@@ -83,7 +83,8 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void ResetClearMemoryTask(bool isDoDirectComposition = false);
+    void PurgeShaderCacheAfterAnimate();
     void SetReclaimMemoryFinished(bool isFinished);
     bool IsReclaimMemoryFinished();
     void SetTimeToReclaim(bool isTimeToReclaim);
@@ -232,6 +233,7 @@ public:
         return enableVisiableRect_.load();
     }
 
+    void DumpVkImageInfo(std::string &dumpString);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -246,6 +248,7 @@ private:
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isDefaultCleanTaskFinished_ = true;
+    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
     bool isReclaimMemoryFinished_ = true;
     std::atomic<bool> isTimeToReclaim_ {false};
@@ -276,7 +279,6 @@ private:
     // used for stalling renderThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
-    std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;

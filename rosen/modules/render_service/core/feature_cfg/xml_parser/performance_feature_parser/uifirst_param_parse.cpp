@@ -36,7 +36,6 @@ UIFirstSwitchType UIFirstParamParse::GetUIFirstSwitchType(const std::string& inp
 
 int32_t UIFirstParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
-    RS_LOGI("UIFirstParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
         RS_LOGD("UIFirstParamParse stop parsing, no children nodes");
@@ -62,11 +61,11 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(FeatureParamMapType &featureMap,
     xmlNode *currNode = &node;
 
     auto iter = featureMap.find(FEATURE_CONFIGS[UIFirst]);
-    if (iter != featureMap.end()) {
-        uifirstParam_ = std::static_pointer_cast<UIFirstParam>(iter->second);
-    } else {
+    if (iter == featureMap.end()) {
         RS_LOGD("UIFirstParamParse stop parsing, no initializing param map");
+        return PARSE_INTERNAL_FAIL;
     }
+    uifirstParam_ = std::static_pointer_cast<UIFirstParam>(iter->second);
 
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);

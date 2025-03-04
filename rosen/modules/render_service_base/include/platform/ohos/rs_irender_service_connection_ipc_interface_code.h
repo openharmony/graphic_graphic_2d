@@ -160,6 +160,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     SET_OVERLAY_DISPLAY_MODE,
 #endif
+    NOTIFY_PAGE_NAME,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,
@@ -167,6 +168,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_DYNAMIC_MODE_EVENT = 1003,
     NOTIFY_SOFT_VSYNC_EVENT = 1004,
     NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 1005,
+    NOTIFY_HGMCONFIG_EVENT = 1006,
     NOTIFY_SCREEN_SWITCHED,
 };
 } // namespace Rosen

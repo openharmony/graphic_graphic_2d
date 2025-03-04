@@ -28,7 +28,12 @@ int RSPointerLuminanceChangeCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIPointerLuminanceChangeCallbackInterfaceCode::ON_POINTER_LUMINANCE_CHANGED): {
-            int32_t brightness = data.ReadInt32();
+            int32_t brightness{0};
+            if (!data.ReadInt32(brightness)) {
+                RS_LOGE("RSPointerLuminanceChangeCallbackStub::ON_POINTER_LUMINANCE_CHANGED read brightness failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnPointerLuminanceChanged(brightness);
             break;
         }

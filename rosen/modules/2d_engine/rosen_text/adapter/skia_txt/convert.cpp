@@ -91,6 +91,8 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .hintingIsOn = style.hintingIsOn,
         .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
         .tab = Convert(style.tab),
+        .paragraphSpacing = style.paragraphSpacing,
+        .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
     };
 }
 

@@ -64,23 +64,23 @@ public:
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);
 
+    bool GetAnimationGroups(const RSEffectStrategy effectStrategy, RSAnimationSetting& animationOut);
+
+    RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
+
+    void UpdateSymbolLayersGroups(uint16_t glyphId);
+
+    bool SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
+
+    void ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
+
+    RSSymbolLayersGroups symbolLayersGroups_;
     HMSymbolTxt symbolTxt_;
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
     std::shared_ptr<RSTextBlob> textBlob_ = nullptr;
     uint64_t symbolId_ = 0;
     bool currentAnimationHasPlayed_ = false;
-    RSSymbolLayersGroups symbolLayersGroups_;
-
-    bool GetAnimationGroups(const RSEffectStrategy effectStrategy, RSAnimationSetting& animationOut);
-
-    RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
-
-    void UpdataSymbolLayersGroups(uint16_t glyphId);
-
-    bool SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
-
-    void ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
 };
 }
 }

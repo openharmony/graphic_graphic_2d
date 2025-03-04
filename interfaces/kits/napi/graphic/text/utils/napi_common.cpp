@@ -149,21 +149,21 @@ void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
         if (napi_get_element(env, allFeatureValue, further, &singleElementValue) != napi_ok) {
-            TEXT_LOGE("This parameter of the font features is unvaild");
+            TEXT_LOGE("Failed to get font feature");
             break;
         }
         napi_value featureElement;
         std::string name;
         if (napi_get_named_property(env, singleElementValue, "name", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, name)) {
-            TEXT_LOGE("This time that the name of parameter in font features is unvaild");
+            TEXT_LOGE("Failed to get name");
             break;
         }
 
         int value = 0;
         if (napi_get_named_property(env, singleElementValue, "value", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, value)) {
-            TEXT_LOGE("This time that the value of parameter in font features is unvaild");
+            TEXT_LOGE("Failed to get value");
             break;
         }
         textStyle.fontFeatures.SetFeature(name, value);
@@ -176,30 +176,31 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
     napi_value allVariationValue = nullptr;
     napi_get_named_property(env, argValue, "fontVariations", &allVariationValue);
     uint32_t arrayLength = 0;
-    if (napi_get_array_length(env, allVariationValue, &arrayLength) != napi_ok ||
-        !arrayLength) {
-        TEXT_LOGD("Failed to get font variation");
+    auto status = napi_get_array_length(env, allVariationValue, &arrayLength);
+    if ((status != napi_ok) || (arrayLength == 0)) {
+        TEXT_LOGD("Failed to get variations, ret %{public}d", static_cast<int>(status));
         return;
     }
 
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
-        if (napi_get_element(env, allVariationValue, further, &singleElementValue) != napi_ok) {
-            TEXT_LOGE("This parameter of the font variations is unvaild");
+        status = napi_get_element(env, allVariationValue, further, &singleElementValue);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get variation, ret %{public}d", static_cast<int>(status));
             break;
         }
         napi_value variationElement;
         std::string axis;
-        if (napi_get_named_property(env, singleElementValue, "axis", &variationElement) != napi_ok ||
-            !ConvertFromJsValue(env, variationElement, axis)) {
-            TEXT_LOGE("This time that the axis of parameter in font variations is unvaild");
+        status = napi_get_named_property(env, singleElementValue, "axis", &variationElement);
+        if ((status != napi_ok) || !ConvertFromJsValue(env, variationElement, axis)) {
+            TEXT_LOGE("Failed to get axis, ret %{public}d", static_cast<int>(status));
             break;
         }
 
         int value = 0;
-        if (napi_get_named_property(env, singleElementValue, "value", &variationElement) != napi_ok ||
-            !ConvertFromJsValue(env, variationElement, value)) {
-            TEXT_LOGE("This time that the value of parameter in font variations is unvaild");
+        status = napi_get_named_property(env, singleElementValue, "value", &variationElement);
+        if ((status != napi_ok) || !ConvertFromJsValue(env, variationElement, value)) {
+            TEXT_LOGE("Failed to get value, ret %{public}d", static_cast<int>(status));
             break;
         }
         textStyle.fontVariations.SetAxisValue(axis, value);
@@ -227,23 +228,30 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
         Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
         Drawing::Point offset(0, 0);
         double runTimeRadius = 0;
-        if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
-            TEXT_LOGE("The parameter of as private text-shadow is unvaild");
+        auto status = napi_get_element(env, allShadowValue, further, &element);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get shadow, ret %{public}d", static_cast<int>(status));
             return;
         }
         SetColorFromJS(env, element, "color", colorSrc);
 
         napi_value pointValue = nullptr;
-        if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            TEXT_LOGE("The parameter of as private point is unvaild");
+        status = napi_get_named_property(env, element, "point", &pointValue);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get point, ret %{public}d", static_cast<int>(status));
             return;
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
-        if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
-            napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
-            TEXT_LOGE("The parameter of as private blur radius is unvaild");
+        status = napi_get_named_property(env, element, "blurRadius", &radius);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get blur radius, ret %{public}d", static_cast<int>(status));
+            return;
+        }
+        status = napi_get_value_double(env, radius, &runTimeRadius);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get radius, ret %{public}d", static_cast<int>(status));
             return;
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
@@ -259,8 +267,9 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
     }
 
     uint32_t arrayLength = 0;
-    if (napi_get_array_length(env, allShadowValue, &arrayLength) != napi_ok) {
-        TEXT_LOGE("The parameter of text shadow is not array");
+    auto status = napi_get_array_length(env, allShadowValue, &arrayLength);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get shadow array length, ret %{public}d", static_cast<int>(status));
         return;
     }
     ScanShadowValue(env, allShadowValue, arrayLength, textStyle);
@@ -810,22 +819,27 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
 {
     napi_valuetype valueType = napi_undefined;
     if (arg == nullptr || napi_typeof(env, arg, &valueType) != napi_ok || valueType != napi_object) {
-        TEXT_LOGE("Failed arg is invalid");
+        TEXT_LOGE("Invalid arg");
         return false;
     }
+
     napi_value tempValue = nullptr;
-    if (napi_get_named_property(env, arg, "start", &tempValue) != napi_ok) {
-        TEXT_LOGE("Failed start is invalid");
+    auto status = napi_get_named_property(env, arg, "start", &tempValue);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get start, ret %{public}d", static_cast<int>(status));
         return false;
     }
     bool isStartOk = ConvertFromJsValue(env, tempValue, start);
-    if (napi_get_named_property(env, arg, "end", &tempValue) != napi_ok) {
-        TEXT_LOGE("Failed end is invalid");
+
+    status = napi_get_named_property(env, arg, "end", &tempValue);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get end, ret %{public}d", static_cast<int>(status));
         return false;
     }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
-        TEXT_LOGE("Failed start or end is invalid");
+        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}lld, end %{public}lld",
+            isStartOk, isEndOk, start, end);
         return false;
     }
 

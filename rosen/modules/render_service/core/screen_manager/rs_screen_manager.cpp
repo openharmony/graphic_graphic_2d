@@ -15,10 +15,10 @@
 
 #include "rs_screen_manager.h"
 
-#include "color_temp/rs_color_temp.h"
+#include "display_engine/rs_color_temperature.h"
 #include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "platform/common/rs_log.h"
 #include "vsync_sampler.h"
@@ -427,6 +427,8 @@ void RSScreenManager::OnHwcDeadEvent()
 
 void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
 {
+    RS_LOGI("RSScreenManager::OnScreenVBlankIdle devId:%{public}u, ns:" RSPUBU64, devId, ns);
+    RS_TRACE_NAME_FMT("OnScreenVBlankIdle devId:%u, ns:%lu", devId, ns);
     CreateVSyncSampler()->StartSample(true);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
@@ -523,7 +525,7 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
         for (auto &cb : screenChangeCallbacks_) {
             if (!isHwcDead_) {
                 cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
-            } else if (id != 0 && RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+            } else if (id != 0 && RSSystemProperties::IsPcType()) {
                 cb->OnScreenChanged(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
             }
         }
@@ -1370,9 +1372,15 @@ bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    RemoveVirtualScreenLocked(id);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        RemoveVirtualScreenLocked(id);
+    }
+    // when virtual screen doesn't exist no more, render control can be recovered.
+    {
+        std::lock_guard<std::mutex> lock(renderControlMutex_);
+        disableRenderControlScreens_.erase(id);
+    }
 }
 
 void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
@@ -1399,8 +1407,6 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
     RS_LOGI("%{public}s: remove virtual screen(id %{public}" PRIu64 ").", __func__, id);
 
     ReuseVirtualScreenIdLocked(id);
-
-    disableRenderControlScreens_.erase(id);
 }
 
 uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -1522,7 +1528,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 
         RS_LOGI("[UL_POWER] %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
-    RSColorTemp::Get().UpdateScreenStatus(id, status);
+    RSColorTemperature::Get().UpdateScreenStatus(id, status);
     screenPowerStatus_[id] = status;
 }
 
@@ -1697,6 +1703,10 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
         if (screensIt == screens_.end() || screensIt->second == nullptr) {
             RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
             return;
+        }
+        if (screenBacklight_[id] == level) {
+            RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d",
+                __func__, id, level);
         }
         screenBacklight_[id] = level;
         screen = screensIt->second;
@@ -2389,7 +2399,7 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(renderControlMutex_);
     RS_LOGI("%{public}s: Add Screen_%{public}" PRIu64 " for"
         "disable power-off render control.", __func__, id);
     disableRenderControlScreens_.insert(id);
@@ -2397,7 +2407,7 @@ void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 
 int RSScreenManager::GetDisableRenderControlScreensCount() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(renderControlMutex_);
     return disableRenderControlScreens_.size();
 }
 
@@ -2483,13 +2493,18 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId scree
 
 int32_t RSScreenManager::SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screensIt->second->SetScreenLinearMatrix(matrix);
+    auto task = [this, id, matrix]() -> void {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            return;
+        }
+        screensIt->second->SetScreenLinearMatrix(matrix);
+    };
+    // SetScreenLinearMatrix is SMQ API, which can only be executed in RSHardwareThread.
+    RSHardwareThread::Instance().PostTask(task);
+    return StatusCode::SUCCESS;
 }
 } // namespace impl
 

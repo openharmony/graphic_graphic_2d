@@ -14,7 +14,7 @@
  */
 
 #include "rs_app_state_listener.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 RSAppStateListener::RSAppStateListener()

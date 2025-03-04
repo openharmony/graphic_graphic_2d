@@ -85,7 +85,8 @@ void RSDumpManager::CmdExec(std::unordered_set<std::u16string>& argSets, std::st
         MatchAndExecuteCommand(argSets, out);
     } else {
         // If the parameters are empty, output an error message
-        RS_LOGE("RSDumpManager::CmdExec, args is empty.");
+        RS_LOGW("RSDumpManager::CmdExec, args is empty.");
+        DumpHelpInfo(out);
     }
 }
 

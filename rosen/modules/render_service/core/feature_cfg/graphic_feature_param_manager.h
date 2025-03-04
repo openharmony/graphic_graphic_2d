@@ -23,6 +23,8 @@
 #include "refbase.h"
 #include "xml_parser_base.h"
 
+#include "accessibility_param_parse.h"
+#include "accessibility_param.h"
 #include "drm_param_parse.h"
 #include "drm_param.h"
 #include "hdr_param_parse.h"
@@ -31,8 +33,24 @@
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
+#include "mem_param_parse.h"
+#include "mem_param.h"
+#include "opinc_param_parse.h"
+#include "opinc_param.h"
+#include "prevalidate_param_parse.h"
+#include "prevalidate_param.h"
+#include "speciallayer_param.h"
+#include "speciallayer_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
+#include "filter_param_parse.h"
+#include "filter_param.h"
+#include "dvsync_param_parse.h"
+#include "dvsync_param.h"
+#include "socperf_param_parse.h"
+#include "socperf_param.h"
+#include "gpu_resource_release_param_parse.h"
+#include "gpu_resource_release_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -48,8 +66,26 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
     {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },
         [] {return std::make_unique<HFBCParam>(); }},
+    {FEATURE_CONFIGS[MEM], [] { return std::make_unique<MEMParamParse>(); },
+        [] { return std::make_unique<MEMParam>(); }},
+    {FEATURE_CONFIGS[SPECIALLAYER], [] {return std::make_unique<SpecialLayerParamParse>(); },
+        [] {return std::make_unique<SpecialLayerParam>(); }},
+    {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
+        [] {return std::make_unique<OPIncParam>(); }},
+    {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
+        [] {return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
         [] {return std::make_unique<UIFirstParam>(); }},
+    {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
+        [] { return std::make_unique<FilterParam>(); }},
+    {FEATURE_CONFIGS[DVSYNC], [] { return std::make_unique<DVSyncParamParse>(); },
+        [] { return std::make_unique<DVSyncParam>(); }},
+    {FEATURE_CONFIGS[SOC_PERF], [] { return std::make_unique<SOCPerfParamParse>(); },
+        [] { return std::make_unique<SOCPerfParam>(); }},
+    {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
+        [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
+    {FEATURE_CONFIGS[Accessibility], [] {return std::make_unique<AccessibilityParamParse>(); },
+        [] {return std::make_unique<AccessibilityParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {
@@ -69,7 +105,7 @@ private:
     GraphicFeatureParamManager();
     ~GraphicFeatureParamManager() noexcept override;
 
-    static constexpr char GRAPHIC_CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/graphic_config.xml";
+    std::string graphicConfigPath_ = "etc/graphic/graphic_config.xml";
 
     std::unique_ptr<XMLParserBase> featureParser_ = nullptr;
 };

@@ -138,6 +138,14 @@ public:
     {
         return animateState_;
     }
+    void SetStencilVal(int64_t stencilVal)
+    {
+        stencilVal_ = stencilVal;
+    }
+    int64_t GetStencilVal() const
+    {
+        return stencilVal_;
+    }
     void SetIsOutOfScreen(bool isOutOfScreen)
     {
         if (isOutOfScreen_ == isOutOfScreen) {
@@ -533,6 +541,20 @@ public:
         return layerLinearMatrix_;
     }
 
+    void SetSdrHasMetadata(bool hasMetadata)
+    {
+        if (hasMetadata_ == hasMetadata) {
+            return;
+        }
+        hasMetadata_ = hasMetadata;
+        needSync_ = true;
+    }
+
+    bool GetSdrHasMetadata() const
+    {
+        return hasMetadata_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
@@ -706,6 +728,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
@@ -718,8 +741,9 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
-    // color temp
-    std::vector<float> layerLinearMatrix_; // matrix_1
+    // color temperature
+    std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
+    bool hasMetadata_ = false; // SDR with metadata
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;

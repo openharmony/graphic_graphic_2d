@@ -24,7 +24,7 @@
 #endif
 #include "gtest/gtest.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
 #include "limit_number.h"
 #include "surface.h"
 #include "wm/window.h"

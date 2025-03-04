@@ -67,9 +67,11 @@ namespace {
         "VOTER_GAMES",
         "VOTER_ANCO",
 
+        "VOTER_PAGE_URL",
         "VOTER_PACKAGES",
         "VOTER_LTPO",
         "VOTER_TOUCH",
+        "VOTER_POINTER",
         "VOTER_SCENE",
         "VOTER_VIDEO",
         "VOTER_IDLE"
@@ -145,6 +147,10 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     InitTouchManager();
     hgmCore.SetLtpoConfig();
     multiAppStrategy_.CalcVote();
+    appPageUrlStrategy_.RegisterPageUrlVoterCallback([this] (pid_t pid,
+        std::string strategy, const bool isAddVoter) {
+        ProcessPageUrlVote(pid, strategy, isAddVoter);
+    });
 }
 
 void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
@@ -926,8 +932,16 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     if (voterGamesEffective_ && touchManager_.GetState() == TouchState::DOWN_STATE) {
         return;
     }
+    if (voterGamesEffective_ &&
+        (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP)) {
+        return;
+    }
     HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt] () {
-        HandleTouchTask(pid, touchStatus, touchCnt);
+        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP) {
+            HandlePointerTask(pid, touchStatus, touchCnt);
+        } else {
+            HandleTouchTask(pid, touchStatus, touchCnt);
+        }
     });
 }
 
@@ -959,6 +973,23 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
     }
 }
 
+void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt)
+{
+    if (pid != DEFAULT_PID) {
+        cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
+    }
+
+    if (pointerStatus ==  TOUCH_MOVE || pointerStatus ==  TOUCH_BUTTON_DOWN || pointerStatus ==  TOUCH_BUTTON_UP) {
+        PolicyConfigData::StrategyConfig strategyRes;
+        if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
+            strategyRes.pointerMode != PointerModeType::POINTER_DISENABLED) {
+            HGM_LOGD("[pointer manager] active");
+            pointerManager_.HandleTimerReset();
+            pointerManager_.HandlePointerEvent(PointerEvent::POINTER_ACTIVE_EVENT, "");
+        }
+    }
+}
+
 void HgmFrameRateManager::HandleDynamicModeEvent(bool enableDynamicModeEvent)
 {
     HGM_LOGE("HandleDynamicModeEvent status:%{public}u", enableDynamicModeEvent);
@@ -987,6 +1018,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
     UpdateEnergyConsumptionConfig();
+    HandlePageUrlEvent();
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
@@ -1025,6 +1057,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
 
     HandleScreenFrameRate(curScreenName);
+    HandlePageUrlEvent();
 }
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
@@ -1061,6 +1094,51 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
+    }
+
+    if (isEnableThermalStrategy_ && configData->screenConfigs_.find(
+        curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX) != configData->screenConfigs_.end()) {
+        curScreenStrategyId_ += HGM_CONFIG_TYPE_THERMAL_SUFFIX;
+    }
+
+    UpdateScreenFrameRate();
+}
+
+void HgmFrameRateManager::HandleThermalFrameRate(bool status)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
+        return;
+    }
+
+    if (isEnableThermalStrategy_ == status) {
+        return;
+    }
+    isEnableThermalStrategy_ = status;
+    std::string curScreenStrategyId;
+    if (isEnableThermalStrategy_) {
+        curScreenStrategyId = curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX;
+    } else {
+        curScreenStrategyId = curScreenStrategyId_.substr(
+            0, curScreenStrategyId_.length() - std::string(HGM_CONFIG_TYPE_THERMAL_SUFFIX).length());
+    }
+    if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end()) {
+        HGM_LOGE("HgmFrameRateManager::HandleThermalFrameRate not support thermal config");
+        return;
+    }
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleThermalFrameRate type:%s, status:%d", curScreenStrategyId.c_str(),
+        status);
+    curScreenStrategyId_ = curScreenStrategyId;
+    UpdateScreenFrameRate();
+}
+
+void HgmFrameRateManager::UpdateScreenFrameRate()
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
+        return;
     }
 
     multiAppStrategy_.UpdateXmlConfigCache();
@@ -1104,6 +1182,7 @@ void HgmFrameRateManager::HandleRsFrame()
         rsIdleTimer_->Start();
     }
     touchManager_.HandleRsFrame();
+    pointerManager_.HandleRsFrame();
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
@@ -1483,14 +1562,18 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(std::vector<std::string>::itera
         return false;
     }
     voteRecord_[voter].second = true;
-    if (voteRecord_[voter].first.empty()) {
+    auto& voteInfos = voteRecord_[voter].first;
+    auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this] (auto& voteInfo) {
+        if (!multiAppStrategy_.CheckPidValid(voteInfo.pid)) {
+            ProcessVoteLog(voteInfo, true);
+            return false;
+        }
+        return true;
+    });
+    if (firstValidVoteInfoIter == voteInfos.end()) {
         return false;
     }
-    VoteInfo curVoteInfo = voteRecord_[voter].first.back();
-    if (!multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
-        ProcessVoteLog(curVoteInfo, true);
-        return false;
-    }
+    auto curVoteInfo = *firstValidVoteInfoIter;
     if (voter == "VOTER_GAMES") {
         if (!gameScenes_.empty() || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid, true)) {
             ProcessVoteLog(curVoteInfo, true);
@@ -1651,6 +1734,9 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
                     HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
                     break;
+                case CleanPidCallbackType::PAGE_URL:
+                    CleanPageUrlVote(pid);
+                    break;
                 default:
                     break;
             }
@@ -1775,6 +1861,44 @@ void HgmFrameRateManager::SetChangeGeneratorRateValid(bool valid)
     if (!valid) {
         changeGeneratorRateValidTimer_.Start();
     }
+}
+
+void HgmFrameRateManager::ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter)
+{
+    if (isAddVoter) {
+        PolicyConfigData::StrategyConfig strategyConfig;
+        if (multiAppStrategy_.GetStrategyConfig(strategy, strategyConfig) == EXEC_SUCCESS) {
+            auto min = strategyConfig.min;
+            auto max = strategyConfig.max;
+            DeliverRefreshRateVote({"VOTER_PAGE_URL", min, max, pid}, ADD_VOTE);
+        }
+        if (pid != DEFAULT_PID) {
+            cleanPidCallback_[pid].insert(CleanPidCallbackType::PAGE_URL);
+        }
+    } else {
+        DeliverRefreshRateVote({"VOTER_PAGE_URL", 0, 0, pid}, REMOVE_VOTE);
+    }
+}
+
+void HgmFrameRateManager::CleanPageUrlVote(pid_t pid)
+{
+    DeliverRefreshRateVote({"VOTER_PAGE_URL", 0, 0, pid}, REMOVE_VOTE);
+    appPageUrlStrategy_.CleanPageUrlVote(pid);
+}
+
+void HgmFrameRateManager::HandlePageUrlEvent()
+{
+    auto screenSetting = multiAppStrategy_.GetScreenSetting();
+    appPageUrlStrategy_.SetPageUrlConfig(screenSetting.pageUrlConfig);
+    appPageUrlStrategy_.NotifyScreenSettingChange();
+}
+
+void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+    auto screenSetting = multiAppStrategy_.GetScreenSetting();
+    appPageUrlStrategy_.SetPageUrlConfig(screenSetting.pageUrlConfig);
+    appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
 }
 } // namespace Rosen
 } // namespace OHOS

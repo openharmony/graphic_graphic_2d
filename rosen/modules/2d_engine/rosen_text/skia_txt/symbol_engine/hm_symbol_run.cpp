@@ -14,11 +14,11 @@
  */
 
 #include "hm_symbol_run.h"
+#include "custom_symbol_config.h"
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
 #include "utils/text_log.h"
-#include "custom_symbol_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,12 +36,12 @@ HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     if (textBlob) {
         textBlob_ = textBlob;
     } else {
-        TEXT_LOGD("textBlob_ is nullptr");
+        TEXT_LOGD("Null text blob");
     }
     if (animationFunc) {
         animationFunc_ = animationFunc;
     } else {
-        TEXT_LOGD("animationFunc_ is nullptr");
+        TEXT_LOGD("Null animation func");
     }
 }
 
@@ -51,7 +51,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
     symbolInfo.symbolGlyphId = glyphId;
     auto& symbolInfoOrign = symbolLayersGroups_;
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
-        TEXT_LOGD("The SymbolLayersGroups is invalid.");
+        TEXT_LOGD("Invalid symbol layer groups, glyph id %{public}hu.", glyphId);
         return symbolInfo;
     }
 
@@ -107,14 +107,14 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
     }
 }
 
-void HMSymbolRun::UpdataSymbolLayersGroups(uint16_t glyphId)
+void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
 {
     symbolLayersGroups_.symbolGlyphId = glyphId;
     // Obtaining Symbol Preset LayerGroups Parameters
     if (symbolTxt_.GetSymbolType() == SymbolType::SYSTEM) {
         auto groups = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
         if (groups.renderModeGroups.empty()) {
-            TEXT_LOGD("System symbol GetSymbolLayersGroups of graphId %{public}hu failed", glyphId);
+            TEXT_LOGD("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }
@@ -122,7 +122,7 @@ void HMSymbolRun::UpdataSymbolLayersGroups(uint16_t glyphId)
     } else {
         auto groups = CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(symbolTxt_.familyName_, glyphId);
         if (!groups.has_value()) {
-            TEXT_LOGD("Custom symbol GetSymbolLayersGroups of graphId %{public}hu failed", glyphId);
+            TEXT_LOGD("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }
@@ -133,19 +133,19 @@ void HMSymbolRun::UpdataSymbolLayersGroups(uint16_t glyphId)
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
     if (!textBlob_) {
-        TEXT_LOGD("HmSymbol: the textBlob_ is nullptr");
+        TEXT_LOGD("Null text blob");
         return;
     }
 
     if (!canvas) {
-        TEXT_LOGD("HmSymbol: the canvas is nullptr");
+        TEXT_LOGD("Null canvas");
         return;
     }
 
     std::vector<uint16_t> glyphIds;
     RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
     if (glyphIds.size() != 1) {
-        TEXT_LOGD("HmSymbol: the size of glyphIds is not equal to 1");
+        TEXT_LOGD("Glyph isn't unique");
         canvas->DrawTextBlob(textBlob_.get(), offset.GetX(), offset.GetY());
         return;
     }
@@ -154,7 +154,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
     OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
     RSHMSymbolData symbolData;
 
-    UpdataSymbolLayersGroups(glyphId);
+    UpdateSymbolLayersGroups(glyphId);
     symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt_);
     if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
         path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, textBlob_.get());
@@ -238,7 +238,7 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     // 1.0 move path
     path.Offset(locate.GetX(), locate.GetY());
     if (symbolData.symbolInfo_.renderGroups.empty()) {
-        TEXT_LOGD("The symbolLayerGroups is empty!");
+        TEXT_LOGD("Empty render groups");
         canvas->DrawPath(path);
         return;
     }
@@ -280,13 +280,13 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     RSEffectStrategy effectMode = symbolTxt_.GetEffectStrategy();
     uint16_t animationMode = symbolTxt_.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
-        TEXT_LOGD("HmSymbol: the RSEffectStrategy is NONE");
+        TEXT_LOGD("Invalid effect mode");
         return false;
     }
     RSAnimationSetting animationSetting;
     if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
         if (!GetAnimationGroups(effectMode, animationSetting)) {
-            TEXT_LOGD("The animationSetting layers of SymbolLayersGroups is invalids.");
+            TEXT_LOGD("Invalid animation setting");
             return false;
         }
 

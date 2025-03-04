@@ -300,6 +300,8 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);
@@ -365,6 +367,8 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

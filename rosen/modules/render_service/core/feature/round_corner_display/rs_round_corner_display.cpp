@@ -247,7 +247,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t left, uint32_t top, uin
 {
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
     RectU displayRect(left, top, width, height);
-    if (displayRect != displayRect_) {
+    if (displayRect != lastRcvDisplayRect_) {
         RS_LOGI("[%{public}s] rcd last rect %{public}u, %{public}u, %{public}u, %{public}u"
             "rcv rect %{public}u, %{public}u, %{public}u, %{public}u \n", __func__,
             lastRcvDisplayRect_.GetLeft(), lastRcvDisplayRect_.GetTop(),
@@ -481,7 +481,7 @@ void RoundCornerDisplay::DrawBottomRoundCorner(RSPaintFilterCanvas* canvas)
 
 void RoundCornerDisplay::PrintRCDInfo()
 {
-    RS_LOGI("[%{public}s] begin \n", __func__);
+    RS_LOGD("[%{public}s] begin \n", __func__);
     if (lcdModel_ != nullptr) {
         RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
             "hardware->%{public}d rogListSize %{public}d\n", __func__, lcdModel_->name.c_str(),
@@ -493,13 +493,18 @@ void RoundCornerDisplay::PrintRCDInfo()
         RS_LOGI("[%{public}s] rog info : \n", __func__);
         rs_rcd::RCDConfig::PrintParseRog(rog_);
     }
-    RS_LOGI("[%{public}s] render target displayNode Id %{public}" PRIu64 " \n", __func__,
-        renderTargetId_);
-    RS_LOGI("[%{public}s] current rect, notch: %{public}u, %{public}u, %{public}u, %{public}u, %{public}d \n", __func__,
-        displayRect_.GetLeft(), displayRect_.GetTop(), displayRect_.GetWidth(), displayRect_.GetHeight(), notchStatus_);
-
-    RS_LOGI("[%{public}s] current hardware Info rcdchangeTag, rcdPreparingTag : %{public}d , %{public}d \n", __func__,
-        hardInfo_.resourceChanged, hardInfo_.resourcePreparing);
+    RS_LOGI("[%{public}s] render target id: %{public}" PRIu64
+            ", display rect: (%{public}u, %{public}u, %{public}u, %{public}u), notch: %{public}d, resource tag: "
+            "%{public}d , %{public}d\n",
+        __func__,
+        renderTargetId_,
+        displayRect_.GetLeft(),
+        displayRect_.GetTop(),
+        displayRect_.GetWidth(),
+        displayRect_.GetHeight(),
+        notchStatus_,
+        hardInfo_.resourceChanged,
+        hardInfo_.resourcePreparing);
     if (hardInfo_.topLayer != nullptr) {
         RS_LOGW("[%{public}s] current hardware Info toplayer w h : %{public}u , %{public}u\n", __func__,
             hardInfo_.topLayer->cldWidth, hardInfo_.topLayer->cldHeight);
@@ -508,7 +513,7 @@ void RoundCornerDisplay::PrintRCDInfo()
         RS_LOGW("[%{public}s] current hardware Info bottomlayer w h : %{public}u , %{public}u\n", __func__,
             hardInfo_.bottomLayer->cldWidth, hardInfo_.bottomLayer->cldHeight);
     }
-    RS_LOGI("[%{public}s] end \n", __func__);
+    RS_LOGD("[%{public}s] end \n", __func__);
 }
 } // namespace Rosen
 } // namespace OHOS
