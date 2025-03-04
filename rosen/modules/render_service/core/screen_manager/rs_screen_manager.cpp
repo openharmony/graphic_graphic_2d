@@ -1354,7 +1354,7 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
 {
     auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second != nullptr) {
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return;
     }
