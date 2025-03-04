@@ -38,7 +38,8 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "DvsyncConfig",
     "SocperfConfig",
     "DeeplyReleaseGpuResourceConfig",
-    "AccessibilityConfig"
+    "AccessibilityConfig",
+    "VRateConfig",
 };
 
 enum FeatureModule {
@@ -57,6 +58,7 @@ enum FeatureModule {
     SOC_PERF,
     DEEPLY_REL_GPU_RES,
     Accessibility,
+    VRate,
 };
 
 enum ParseErrCode {

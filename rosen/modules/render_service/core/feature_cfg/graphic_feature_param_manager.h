@@ -45,6 +45,8 @@
 #include "speciallayer_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
+#include "vrate_param_parse.h"
+#include "vrate_param.h"
 #include "filter_param_parse.h"
 #include "filter_param.h"
 #include "dvsync_param_parse.h"
@@ -90,6 +92,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[Accessibility], [] {return std::make_unique<AccessibilityParamParse>(); },
         [] {return std::make_unique<AccessibilityParam>(); }},
+    {FEATURE_CONFIGS[VRate], [] { return std::make_unique<VRateParamParse>(); },
+        [] { return std::make_unique<VRateParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {
