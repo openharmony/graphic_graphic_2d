@@ -957,6 +957,10 @@ bool RSSurfaceNode::GetSkipDraw() const
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
 #ifdef ROSEN_OHOS
+    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    if (!isEnableFeature) {
+        return false;
+    }
     if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {
         ROSEN_LOGE("SetWatermarkEnabled name[%{public}s] is error.", name.c_str());
         return;

@@ -334,9 +334,9 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
-        return;
+    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    if (!isEnableFeature) {
+        return false;
     }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);

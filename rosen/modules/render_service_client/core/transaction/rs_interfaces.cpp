@@ -151,6 +151,10 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
+    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    if (!isEnableFeature) {
+        return false;
+    }
     if (renderServiceClient_ == nullptr) {
         return false;
     }

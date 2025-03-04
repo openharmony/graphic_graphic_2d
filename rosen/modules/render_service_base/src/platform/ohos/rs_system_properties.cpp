@@ -958,12 +958,6 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
     return WatchParameter(name, func, context);
 }
 
-bool RSSystemProperties::GetSnapshotWithDMAEnabled()
-{
-    static bool isSupportDma = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
-    return isSupportDma;
-}
-
 bool RSSystemProperties::IsPhoneType()
 {
     static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";

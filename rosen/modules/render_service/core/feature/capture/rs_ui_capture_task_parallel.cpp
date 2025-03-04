@@ -273,8 +273,10 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
 
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
-    if (RSSystemProperties::GetSnapshotWithDMAEnabled() && GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false)) {
+    bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+    bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
+    if (snapshotDmaEnabled && isEnableFeature) {
         RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
         auto copytask =

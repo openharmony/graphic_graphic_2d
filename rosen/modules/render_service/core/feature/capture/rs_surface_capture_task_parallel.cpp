@@ -262,8 +262,10 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
     }
-    if (RSSystemProperties::GetSnapshotWithDMAEnabled() && GetFeatureParamValue("UICaptureConfig",
-        &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false)) {
+    bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+    bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
+    if (snapshotDmaEnabled && isEnableFeature) {
         auto copytask = CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, captureConfig_, callback, finalRotationAngle_);
         if (!copytask) {

@@ -915,17 +915,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSnapshotWithDMAEnabled
- * @tc.desc: GetSnapshotWithDMAEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetSnapshotWithDMAEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetSnapshotWithDMAEnabled());
-}
-
-/**
  * @tc.name: IsPhoneType
  * @tc.desc: IsPhoneType Test
  * @tc.type:FUNC

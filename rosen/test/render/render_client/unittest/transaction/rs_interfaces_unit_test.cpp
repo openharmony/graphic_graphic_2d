@@ -400,7 +400,8 @@ HWTEST_F(RsInterfaceTest, GetRefreshInfo01, TestSize.Level1)
  */
 HWTEST_F(RsInterfaceTest, SetWatermark01, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
+    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    if (!isEnableFeature) {
         return;
     }
     RSInterfaces& instance = RSInterfaces::GetInstance();
