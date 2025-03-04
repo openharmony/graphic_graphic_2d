@@ -404,9 +404,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 1000;
-    std::u16string text = u"testParagraphSpacing";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -414,10 +412,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"testParagraphSpacing";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 1000;
     typography0->Layout(maxWidth);
-    // 测试为只包含1个run的文本设置段落间距的场景
+
+    // Test the scenario of setting paragraph spacing for text containing one runs.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = true;
     typographyStyle1.paragraphSpacing = 40;
@@ -438,9 +439,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 100;
-    std::u16string text = u"test ParagraphSpacing. 不是一个run.";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -448,10 +447,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"test ParagraphSpacing. 不是一个run.";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 100;
     typography0->Layout(maxWidth);
-    // 测试为包含多个run的文本设置段落间距的场景。
+
+    // Test the scenario of setting paragraph spacing for text containing multiple runs.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = true;
     typographyStyle1.paragraphSpacing = 40;
@@ -472,10 +474,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 500;
-    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
-                          u"false, paragraph spacing should not take effect at this time.";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -483,10 +482,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
+                        u"false, paragraph spacing should not take effect at this time.";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 500;
     typography0->Layout(maxWidth);
-    // 测试paragraphSpacing设为正值，但是段落中没有硬换行且isEndAddParagraphSpacing为false的场景：该场景下段落间距不生效。
+    
+    // Test paragraphSpacing is positive, there is no hard break within the paragraph, and isEndAddParagraphSpacing
+    // is false: In this scenario, the paragraph spacing does not take effect.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = false;
     typographyStyle1.paragraphSpacing = 40;
@@ -499,7 +503,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
     typography1->Layout(maxWidth);
     EXPECT_EQ(typography0->GetHeight(), typography1->GetHeight());
 
-    // 测试设置异常的paragraphSpacing，该场景下段落间距不生效。
+    // Test paragraphSpacing is abnormal. In this scenario, the paragraph spacing does not take effect.
     OHOS::Rosen::TypographyStyle typographyStyle2;
     typographyStyle2.isEndAddParagraphSpacing = true;
     typographyStyle2.paragraphSpacing = -40;
