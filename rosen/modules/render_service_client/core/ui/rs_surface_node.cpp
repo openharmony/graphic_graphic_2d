@@ -18,11 +18,14 @@
 
 #include <algorithm>
 #include <string>
+
+#include <parameter.h>
+#include <parameters.h>
+
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
-#include "parameters.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"

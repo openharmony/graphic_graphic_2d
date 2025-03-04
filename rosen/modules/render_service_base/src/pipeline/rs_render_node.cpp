@@ -22,6 +22,9 @@
 #include <set>
 #include <utility>
 
+#include <parameter.h>
+#include <parameters.h>
+
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
@@ -33,7 +36,6 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
-#include "parameters.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
