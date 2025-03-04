@@ -186,7 +186,6 @@ constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
 constexpr uint32_t WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT = 4000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
-constexpr uint32_t WATCHDOG_TIMEVAL_FOR_PC = 10000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t NODE_DUMP_STRING_LEN = 8;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
@@ -598,7 +597,7 @@ void RSMainThread::Init()
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    uint32_t timeForWatchDog = deviceType_ == DeviceType::PC ? WATCHDOG_TIMEVAL_FOR_PC : WATCHDOG_TIMEVAL;
+    uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, timeForWatchDog);
     if (ret != 0) {
         RS_LOGW("Add watchdog thread failed");
