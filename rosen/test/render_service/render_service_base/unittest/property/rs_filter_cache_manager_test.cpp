@@ -764,11 +764,24 @@ HWTEST_F(RSFilterCacheManagerTest, IsForceUseFilterCacheTest, TestSize.Level1)
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
     rsFilterCacheManager->stagingRotationChanged_ = false;
     EXPECT_FALSE(rsFilterCacheManager->IsSkippingFrame());
+}
+
+/**
+ * @tc.name: MarkRotationChanged
+ * @tc.desc: test results of MarkRotationChanged
+ * @tc.type: FUNC
+ * @tc.require: issueIA5FLZ
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkRotationChangedTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
 
     rsFilterCacheManager->stagingRotationChanged_ = false;
     rsFilterCacheManager->MarkRotationChanged();
     EXPECT_TRUE(rsFilterCacheManager->stagingRotationChanged_);
 
+    rsFilterCacheManager->stagingIsOccluded_ = false;
     rsFilterCacheManager->MarkNodeIsOccluded(true);
     EXPECT_TRUE(rsFilterCacheManager->stagingIsOccluded_);
 
