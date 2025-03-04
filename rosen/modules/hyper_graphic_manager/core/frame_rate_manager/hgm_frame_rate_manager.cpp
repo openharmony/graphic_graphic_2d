@@ -415,28 +415,15 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    if (currRefreshRate_ != refreshRate) {
-        currRefreshRate_ = refreshRate;
+    if (currRefreshRate_.load() != refreshRate) {
+        currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
         needChangeDssRefreshRate = true;
         FrameRateReport();
     }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
-        }
-    } else {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
-        }
-    }
+    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
     ReportHiSysEvent(lastVoteInfo_);
 }
 
@@ -1856,6 +1843,24 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     appPageUrlStrategy_.SetPageUrlConfig(screenSetting.pageUrlConfig);
     appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
+}
+
+void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate)
+{
+    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
+    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
+    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
+        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
+            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
+        }
+    } else {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
+            changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
