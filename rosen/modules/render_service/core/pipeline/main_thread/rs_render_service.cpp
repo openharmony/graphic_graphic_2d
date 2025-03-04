@@ -996,6 +996,9 @@ void RSRenderService::RegisterGpuFuncs()
 void RSRenderService::FilterCCMInit()
 {
     auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
+    if (filterParam == nullptr) {
+        return;
+    }
     RSFilterCacheManager::isCCMFilterCacheEnable_ =
         std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
     RSFilterCacheManager::isCCMEffectMergeEnable_ =
