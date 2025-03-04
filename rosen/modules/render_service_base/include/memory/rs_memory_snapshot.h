@@ -67,7 +67,7 @@ private:
     uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
     size_t totalMemory_ = 0; // record the total memory of all processes
     MemoryOverflowCalllback callback_ = nullptr;
-    uint64_t memorySnapshotHilogTime_ = 0;
+    int64_t memorySnapshotHilogTime_ = 0;
 };
 } // namespace OHOS
 } // namespace Rosen
