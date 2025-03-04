@@ -42,7 +42,7 @@ int32_t UICaptureParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, 
 int32_t UICaptureParamParse::ParseUICaptureInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    auto iter = featureMap.find(FEATURE_CONFIGS[UI_CAPTURE_CCM]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[UI_CAPTURE]);
     if (iter!= featureMap.end()) {
         uiCaptureParam_ = std::static_pointer_cast<UICaptureParam>(iter->second);
     } else {

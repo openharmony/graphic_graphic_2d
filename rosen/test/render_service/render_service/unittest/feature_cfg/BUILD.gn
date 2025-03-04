@@ -27,7 +27,6 @@ ohos_unittest("feature_cfg_test") {
 
   sources = [
     "accessibility_param_test.cpp",
-    "background_drawable_param_test.cpp",
     "capture_base_param_test.cpp",
     "drm_param_test.cpp",
     "dvsync_param_test.cpp",
@@ -37,13 +36,11 @@ ohos_unittest("feature_cfg_test") {
     "hdr_param_test.cpp",
     "hfbc_param_test.cpp",
     "hwc_param_test.cpp",
-    "node_group_param_test.cpp",
     "opinc_param_test.cpp",
     "prevalidate_param_test.cpp",
     "socperf_param_test.cpp",
     "speciallayer_param_test.cpp",
     "surface_capture_param_test.cpp",
-    "surface_watermark_param_test.cpp",
     "ui_capture_param_test.cpp",
     "uifirst_param_test.cpp",
     "xml_parser_base_test.cpp",

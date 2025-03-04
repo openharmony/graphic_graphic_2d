@@ -36,13 +36,10 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "UIFirstConfig",
     "DvsyncConfig",
     "SocperfConfig",
-    "DeeplyReleaseGpuResourceConfig",
-    "NodeGroupConfig",
-    "SurfaceWatermarkConfig",
+    "CaptureConfig",
     "SurfaceCaptureConfig",
     "UICaptureConfig",
-    "CaptureConfig",
-    "BackgroundDrawableConfig",
+    "DeeplyReleaseGpuResourceConfig",
     "AccessibilityConfig"
 };
 
@@ -59,13 +56,10 @@ enum FeatureModule {
     FILTER,
     DVSYNC,
     SOC_PERF,
+    CAPTURE_BASE,
+    SURFACE_CAPTURE,
+    UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
-    NODE_GROUP_CCM,
-    SURFACE_WATERMARK_CCM,
-    SURFACE_CAPTURE_CCM,
-    UI_CAPTURE_CCM,
-    CAPTURE_CCM,
-    BACKGROUND_DRAWABLE_CCM,
     Accessibility,
 };
 
