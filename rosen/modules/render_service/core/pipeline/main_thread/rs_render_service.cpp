@@ -387,17 +387,27 @@ void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& f
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    NodeId nodeId = 0;
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
+            nodeId = surfaceNode->GetId();
+            return true;
+        }
+        return false;
+    });
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
             }).wait();
     }
 }
@@ -447,17 +457,27 @@ void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& 
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    NodeId nodeId = 0;
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
+            nodeId = surfaceNode->GetId();
+            return true;
+        }
+        return false;
+    });
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, fpsArg);
+            [this, &dumpString, &nodeId]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
             }).wait();
     }
 }
