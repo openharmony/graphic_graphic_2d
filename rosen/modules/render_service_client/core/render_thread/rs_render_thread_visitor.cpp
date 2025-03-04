@@ -40,6 +40,7 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "utils/camera3d.h"
+#include "ui/rs_ui_context_manager.h"
 
 #ifdef ROSEN_OHOS
 #include <frame_collector.h>
@@ -65,7 +66,9 @@ RSRenderThreadVisitor::~RSRenderThreadVisitor() = default;
 
 bool RSRenderThreadVisitor::IsValidRootRenderNode(RSRootRenderNode& node)
 {
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    auto context = RSUIContextManager::Instance().GetRSUIContext(node.GetToken());
+    auto ptr = context ? context->GetNodeMap().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId())
+                       : RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
     if (ptr == nullptr) {
         ROSEN_LOGE("No valid RSSurfaceNode id");
         return false;
@@ -369,7 +372,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         ProcessCanvasRenderNode(node);
         return;
     }
-    auto ptr = RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
+    auto context = RSUIContextManager::Instance().GetRSUIContext(node.GetToken());
+    auto ptr = context ? context->GetNodeMap().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId())
+                       : RSNodeMap::Instance().GetNode<RSSurfaceNode>(node.GetRSSurfaceNodeId());
     if (!IsValidRootRenderNode(node)) {
         return;
     }
@@ -901,7 +906,7 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
+    auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommandFromRT(command, nodeId, followType);
     }

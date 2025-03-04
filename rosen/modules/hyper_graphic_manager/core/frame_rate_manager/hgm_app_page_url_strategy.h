@@ -23,7 +23,7 @@ namespace Rosen {
 
 class HgmAppPageUrlStrategy final {
 public:
-    using PageUrlVoterCallback = std::function<void(int32_t pid, int32_t min, int32_t max, const bool isAddVoter)>;
+    using PageUrlVoterCallback = std::function<void(pid_t pid, std::string strategy, const bool isAddVoter)>;
 
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
     void SetPageUrlConfig(PolicyConfigData::PageUrlConfigMap pageUrlConfig);
@@ -42,7 +42,7 @@ private:
     PageUrlVoterCallback pageUrlVoterCallback_;
 
     void ProcessRemoveVoter(pid_t pid);
-    void ProcessAddVoter(pid_t pid, int32_t min, int32_t max);
+    void ProcessAddVoter(pid_t pid, std::string strategy);
 };
 } // namespace Rosen
 } // namespace OHOS

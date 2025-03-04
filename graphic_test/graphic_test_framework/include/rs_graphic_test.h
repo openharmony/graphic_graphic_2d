@@ -34,6 +34,7 @@ public:
     void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
     void RegisterNode(std::shared_ptr<RSNode> node);
+    void StartUIAnimation();
 
     // overrides gtest functions
     static void SetUpTestCase();

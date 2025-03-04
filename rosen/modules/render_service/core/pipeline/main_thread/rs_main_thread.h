@@ -35,6 +35,8 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature_cfg/feature_param/feature_param.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -265,6 +267,8 @@ public:
     }
 
     DeviceType GetDeviceType() const;
+    bool IsDeeplyRelGpuResEnable() const;
+    bool IsMultilayersSOCPerfEnable() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
     uint64_t GetFocusNodeId() const;
@@ -472,6 +476,8 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
+    void SetDeeplyRelGpuResSwitch();
+    void SetSOCPerfSwitch();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -621,6 +627,10 @@ private:
     // overDraw
     bool isOverDrawEnabledOfCurFrame_ = false;
     bool isOverDrawEnabledOfLastFrame_ = false;
+    // for deeply release GPU resource
+    bool isDeeplyRelGpuResEnable_ = false;
+    // for SOCPerf
+    bool isMultilayersSOCPerfEnable_ = false;
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     bool initVsyncServiceFlag_ = true;
 #endif
@@ -645,6 +655,7 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     pid_t lastCleanCachePid_ = -1;
+    int preHardwareTid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
     uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
@@ -654,6 +665,8 @@ private:
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;
+    // render start hardware task count
+    uint32_t preUnExecuteTaskNum_ = 0;
     std::atomic<int32_t> focusAppPid_ = -1;
     std::atomic<int32_t> focusAppUid_ = -1;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
@@ -836,6 +849,9 @@ private:
     bool isLastGameNodeOnTree_ = false;
     std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
+    std::string dumpInfo_;
+    std::atomic<uint32_t> currentNum_ = 0;
+    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

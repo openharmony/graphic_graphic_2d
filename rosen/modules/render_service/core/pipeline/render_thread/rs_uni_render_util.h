@@ -119,14 +119,11 @@ public:
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
-    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo,
-        const Drawing::Matrix& totalMatrix);
-    static void DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerScaleDown(RSSurfaceRenderNode& node);
-    static void LayerScaleFit(RSSurfaceRenderNode& node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
@@ -175,6 +172,9 @@ public:
     static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
         const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
     static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
+    static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
+        const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);

@@ -78,7 +78,7 @@ HWTEST_F(RSUIExtensionCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     data.WriteInterfaceToken(RSIUIExtensionCallback::GetDescriptor());
 
     int res = rsUiExtensionCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_NONE);
+    EXPECT_TRUE(res == ERR_INVALID_DATA);
     res = rsUiExtensionCallbackStub->OnRemoteRequest(-1, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
 }

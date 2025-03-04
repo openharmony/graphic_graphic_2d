@@ -35,7 +35,8 @@ public:
 
     void ClearChildren() override;
 
-    static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
+    static SharedPtr Create(
+        const RSDisplayNodeConfig& displayNodeConfig, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     void AddDisplayNodeToTree();
     void RemoveDisplayNodeFromTree();
 
@@ -62,8 +63,8 @@ public:
     void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid);
 
 protected:
-    explicit RSDisplayNode(const RSDisplayNodeConfig& config);
-    RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id);
+    explicit RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSDisplayNode(const RSDisplayNode&) = delete;
     RSDisplayNode(const RSDisplayNode&&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&) = delete;
@@ -72,6 +73,7 @@ protected:
 
 private:
     bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    void RegisterNodeMap() override;
     uint64_t screenId_;
     int32_t offsetX_;
     int32_t offsetY_;

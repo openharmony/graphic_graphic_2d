@@ -147,6 +147,7 @@ public:
     static void SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
+    static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
@@ -301,6 +302,10 @@ ADD_COMMAND(RSSetDrawRegion,
 ADD_COMMAND(RSSetOutOfParent,
     ARG(PERMISSION_APP, RS_NODE, SET_OUT_OF_PARENT,
         RSNodeCommandHelper::SetOutOfParent, NodeId, OutOfParentType))
+
+ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
+    ARG(PERMISSION_APP, RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG,
+        RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,

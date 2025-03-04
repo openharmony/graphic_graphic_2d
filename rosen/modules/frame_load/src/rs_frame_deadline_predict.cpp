@@ -61,6 +61,8 @@ void RsFrameDeadlinePredict::ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore
         "vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
         forceRefreshFlag, currentRate, vsyncOffset, drawingTime);
 
-    RsFrameReport::GetInstance().ReportFrameDeadline(drawingTime);
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["rsFrameDeadline"] = std::to_string(drawingTime);
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 } // namespace OHOS::Rosen

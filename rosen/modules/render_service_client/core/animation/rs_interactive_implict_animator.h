@@ -38,7 +38,9 @@ public:
     virtual ~RSInteractiveImplictAnimator();
     static std::shared_ptr<RSInteractiveImplictAnimator> Create(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
-
+    static std::shared_ptr<RSInteractiveImplictAnimator> Create(
+        const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve);
     /*
      * @brief add animations form callback
      * @param callback use property set change or RSNode::Animate to create aniamtion
@@ -47,7 +49,6 @@ public:
      *
      */
     size_t AddImplictAnimation(std::function<void()> callback);
-
     /*
      * @brief add animations form callback
      * @param callback use RSNode::Animate to create aniamtion
@@ -93,7 +94,8 @@ public:
     void SetFinishCallBack(const std::function<void()>& finishCallback);
 protected:
     explicit RSInteractiveImplictAnimator(
-        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
+        const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve);
 private:
     static InteractiveImplictAnimatorId GenerateId();
     const InteractiveImplictAnimatorId id_;
@@ -102,9 +104,12 @@ private:
     bool IsUniRenderEnabled() const;
     void FinishOnCurrent();
     void CallFinishCallback();
+    void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
+        FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
     std::shared_ptr<InteractiveAnimatorFinishCallback> GetAnimatorFinishCallback();
 
     RSInteractiveAnimationState state_ { RSInteractiveAnimationState::INACTIVE };
+    std::weak_ptr<RSUIContext> rsUIContext_;
     RSAnimationTimingProtocol timingProtocol_;
     RSAnimationTimingCurve timingCurve_;
 

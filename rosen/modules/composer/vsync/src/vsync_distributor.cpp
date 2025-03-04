@@ -311,7 +311,7 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
     return distributor->SetUiDvsyncConfig(bufferCount);
 }
 
-VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
+VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam)
     : controller_(controller), mutex_(), con_(), connections_(),
     event_(), vsyncEnabled_(false), name_(name)
 {
@@ -329,7 +329,7 @@ VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string
     }
 #endif
     // Start of DVSync
-    InitDVSync();
+    InitDVSync(dvsyncParam);
     // End of DVSync
 }
 
@@ -1505,9 +1505,10 @@ void VSyncDistributor::SetHasNativeBuffer()
 #endif
 }
 
-void VSyncDistributor::InitDVSync()
+void VSyncDistributor::InitDVSync(DVSyncFeatureParam dvsyncParam)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().InitWithParam(dvsyncParam);
     bool IsEnable = DVSync::Instance().SetDistributor(isRs_, this);
     if (IsEnable && isRs_ == false) {
         auto generator = CreateVSyncGenerator();
@@ -1604,7 +1605,7 @@ void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(std::string nodeName)
+bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     return DVSync::Instance().AdaptiveDVSyncEnable(nodeName);

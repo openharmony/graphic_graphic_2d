@@ -2708,7 +2708,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest112, TestSize.Level
     const char* text = "\xF0\x9F\x98";
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
-        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+        OHOS::Rosen::SPText::SINCE_API18_VERSION;
     OH_Drawing_TypographyHandlerAddText(handler, text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
     OH_Drawing_TypographyHandlerPopTextStyle(handler);

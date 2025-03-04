@@ -26,6 +26,7 @@ enum class StartAnimationErrorCode : int32_t {
     INVALID_STATUS,
     INVALID_ANIMATIONS,
     INVALID_PROXY,
+    INVALID_CONTEXT,
 };
 
 static bool g_isUniRenderEnabled = false;
@@ -48,28 +49,31 @@ std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Crea
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
 {
     return std::shared_ptr<RSInteractiveImplictAnimator>(
-        new RSInteractiveImplictAnimator(timingProtocol, timingCurve));
+        new RSInteractiveImplictAnimator(nullptr, timingProtocol, timingCurve));
 }
 
-RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(
+std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Create(
+    const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+    const RSAnimationTimingCurve& timingCurve)
+{
+    return std::shared_ptr<RSInteractiveImplictAnimator>(
+        new RSInteractiveImplictAnimator(rsUIContext, timingProtocol, timingCurve));
+}
+
+RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-    :id_(GenerateId()), timingProtocol_(timingProtocol), timingCurve_(timingCurve)
+    : id_(GenerateId()), rsUIContext_(rsUIContext), timingProtocol_(timingProtocol), timingCurve_(timingCurve)
 {
     InitUniRenderEnabled();
 }
 
 RSInteractiveImplictAnimator::~RSInteractiveImplictAnimator()
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
-        return;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorDestory>(id_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSInteractiveAnimatorDestory>(id_);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
 }
 
@@ -111,7 +115,9 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
         return 0;
     }
 
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    auto rsUIContext = rsUIContext_.lock();
+    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+        RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return 0;
@@ -144,8 +150,9 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
         ROSEN_LOGE("AddAnimation failed, state_ is error");
         return 0;
     }
-
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    auto rsUIContext = rsUIContext_.lock();
+    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+        RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return 0;
@@ -179,10 +186,12 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         ROSEN_LOGE("StartAnimation failed, animations size is error");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_ANIMATIONS);
     }
+    auto rsUIContext = rsUIContext_.lock();
     std::vector<std::pair<NodeId, AnimationId>> renderAnimations;
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveContinue();
             if (!animation->IsUiAnimation()) {
@@ -198,11 +207,11 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_PROXY);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote =
             std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
     return static_cast<int32_t>(StartAnimationErrorCode::SUCCESS);
 }
@@ -215,9 +224,11 @@ void RSInteractiveImplictAnimator::PauseAnimation()
     }
     state_ = RSInteractiveAnimationState::PAUSED;
 
+    auto rsUIContext = rsUIContext_.lock();
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractivePause();
         }
@@ -228,10 +239,10 @@ void RSInteractiveImplictAnimator::PauseAnimation()
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorPause>(id_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSInteractiveAnimatorPause>(id_);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
 }
 
@@ -244,9 +255,11 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
 
     state_ = RSInteractiveAnimationState::RUNNING;
 
+    auto rsUIContext = rsUIContext_.lock();
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveContinue();
         }
@@ -258,10 +271,10 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorContinue>(id_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSInteractiveAnimatorContinue>(id_);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
 }
 
@@ -272,10 +285,13 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
         return;
     }
     state_ = RSInteractiveAnimationState::INACTIVE;
+
+    auto rsUIContext = rsUIContext_.lock();
     if (position == RSInteractiveAnimationPosition::START || position == RSInteractiveAnimationPosition::END) {
         for (auto& [item, nodeId] : animations_) {
             auto animation = item.lock();
-            auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+            auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+                RSNodeMap::Instance().GetNode<RSNode>(nodeId);
             if (target == nullptr || animation == nullptr) {
                 continue;
             }
@@ -287,11 +303,11 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
             return;
         }
         std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorFinish>(id_, position);
-        transactionProxy->AddCommand(command, IsUniRenderEnabled());
+        AddCommand(command, IsUniRenderEnabled());
         if (!IsUniRenderEnabled()) {
             std::unique_ptr<RSCommand> commandForRemote =
                 std::make_unique<RSInteractiveAnimatorFinish>(id_, position);
-            transactionProxy->AddCommand(commandForRemote, true);
+            AddCommand(commandForRemote, true);
         }
     } else if (position == RSInteractiveAnimationPosition::CURRENT) {
         FinishOnCurrent();
@@ -300,10 +316,12 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
 
 void RSInteractiveImplictAnimator::FinishOnCurrent()
 {
+    auto rsUIContext = rsUIContext_.lock();
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (node == nullptr || animation == nullptr) {
             continue;
         }
@@ -324,7 +342,8 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
     }
     for (const auto& [key, value] : task->GetProperties()) {
         const auto& [nodeId, propertyId] = key;
-        auto node = RSNodeMap::Instance().GetNode(nodeId);
+        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (node == nullptr) {
             continue;
         }
@@ -352,9 +371,11 @@ void RSInteractiveImplictAnimator::ReverseAnimation()
 
     state_ = RSInteractiveAnimationState::RUNNING;
 
+    auto rsUIContext = rsUIContext_.lock();
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveReverse();
         }
@@ -366,10 +387,10 @@ void RSInteractiveImplictAnimator::ReverseAnimation()
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorReverse>(id_);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSInteractiveAnimatorReverse>(id_);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
 }
 
@@ -380,9 +401,11 @@ void RSInteractiveImplictAnimator::SetFraction(float fraction)
         return;
     }
 
+    auto rsUIContext = rsUIContext_.lock();
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
+            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveSetFraction(fraction);
         }
@@ -394,11 +417,11 @@ void RSInteractiveImplictAnimator::SetFraction(float fraction)
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorSetFraction>(id_, fraction);
-    transactionProxy->AddCommand(command, IsUniRenderEnabled());
+    AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> commandForRemote =
             std::make_unique<RSInteractiveAnimatorSetFraction>(id_, fraction);
-        transactionProxy->AddCommand(commandForRemote, true);
+        AddCommand(commandForRemote, true);
     }
 }
 
@@ -434,6 +457,26 @@ void RSInteractiveImplictAnimator::CallFinishCallback()
     fractionNodeId_ = 0;
     if (finishCallback_) {
         finishCallback_();
+    }
+}
+
+void RSInteractiveImplictAnimator::AddCommand(
+    std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand, FollowType followType, NodeId nodeId) const
+{
+    if (rsUIContext_.lock() != nullptr) {
+        auto rsTransaction = rsUIContext_.lock()->GetRSTransaction();
+        if (rsTransaction == nullptr) {
+            RS_LOGE("multi-instance: RSInteractiveImplictAnimator::AddCommand, transaction is nullptr");
+            return;
+        }
+        rsTransaction->AddCommand(command, isRenderServiceCommand, followType, nodeId);
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy == nullptr) {
+            RS_LOGE("RSInteractiveImplictAnimator::AddCommand transactionProxy is nullptr");
+            return;
+        }
+        transactionProxy->AddCommand(command, isRenderServiceCommand, followType, nodeId);
     }
 }
 } // namespace Rosen

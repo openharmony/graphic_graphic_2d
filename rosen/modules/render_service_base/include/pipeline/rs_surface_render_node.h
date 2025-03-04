@@ -617,6 +617,16 @@ public:
         return dstRect_;
     }
 
+    void SetDstRectWithoutRenderFit(const RectI& rect)
+    {
+        dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
+    }
+
+    Drawing::Rect GetDstRectWithoutRenderFit() const
+    {
+        return dstRectWithoutRenderFit_;
+    }
+
     const RectI& GetOriginalDstRect() const
     {
         return originalDstRect_;
@@ -1631,6 +1641,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
+    Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;
     RectI drawBehindWindowRegion_;

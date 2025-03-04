@@ -33,7 +33,11 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SpecialLayerConfig",
     "OPIncConfig",
     "PrevalidateConfig",
-    "UIFirstConfig"
+    "UIFirstConfig",
+    "DvsyncConfig",
+    "SocperfConfig",
+    "DeeplyReleaseGpuResourceConfig",
+    "AccessibilityConfig"
 };
 
 enum FeatureModule {
@@ -47,6 +51,10 @@ enum FeatureModule {
     PREVALIDATE,
     UIFirst,
     FILTER,
+    DVSYNC,
+    SOC_PERF,
+    DEEPLY_REL_GPU_RES,
+    Accessibility,
 };
 
 enum ParseErrCode {

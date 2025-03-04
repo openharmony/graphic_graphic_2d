@@ -32,19 +32,23 @@ public:
 
     ~RSRootNode() override = default;
 
-    static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
+    static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
 protected:
     void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const;
     void SetEnableRender(bool flag) const;
     void OnBoundsSizeChanged() const override;
 
-    explicit RSRootNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    explicit RSRootNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSRootNode(const RSRootNode&) = delete;
     RSRootNode(const RSRootNode&&) = delete;
     RSRootNode& operator=(const RSRootNode&) = delete;
     RSRootNode& operator=(const RSRootNode&&) = delete;
 
+private:
+    void RegisterNodeMap() override;
     friend class RSUIDirector;
 };
 } // namespace Rosen

@@ -1315,7 +1315,7 @@ void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
+    auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommandFromRT(command, nodeId);
     }
