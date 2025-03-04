@@ -4205,13 +4205,18 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     } else {
         lastVsyncTime = timestamp_;
     }
+    if ((unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
+        unsignedVsyncPeriod - PERIOD_OFFSET_THRESHOLD) {
+        unsignedNowTime += PERIOD_OFFSET_THRESHOLD;
+    }
     lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
         ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, unsignedNowTime, lastVsyncTime, timestamp_);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod &&
+    // 1/2 vsync period to support continunous fastcompose
+    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod / 2 &&
         unsignedLastFlushedDesiredPresentTimeStamp > lastVsyncTime - unsignedVsyncPeriod &&
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
@@ -4241,6 +4246,10 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
+            uint64_t lastFastComposeTimeStampDiff = 0;
+            if (lastFastComposeTimeStamp_ == timestamp_) {
+                lastFastComposeTimeStampDiff = lastFastComposeTimeStampDiff_;
+            }
             timestamp_ = timestamp_ + (now - curTime_);
             dvsyncRsTimestamp_.store(timestamp_);
             int64_t vsyncPeriod = 0;
@@ -4249,7 +4258,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 ret = receiver_->GetVSyncPeriod(vsyncPeriod);
             }
             if (ret == VSYNC_ERROR_OK && vsyncPeriod > 0) {
-                lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
+                lastFastComposeTimeStampDiff_ = (now - curTime_ + lastFastComposeTimeStampDiff) % vsyncPeriod;
                 lastFastComposeTimeStamp_ = timestamp_;
                 RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"
                     "Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
