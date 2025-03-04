@@ -14,8 +14,6 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-is_ok = true
-
 ## Build libtexgine.so {{{
 config("libtexgine_config") {
   visibility = [ ":*" ]
@@ -27,10 +25,7 @@ config("libtexgine_config") {
     "-std=c++17",
   ]
 
-  include_dirs = [
-    "src",
-    "export",
-  ]
+  include_dirs = [ "src" ]
 }
 
 if (defined(is_arkui_x) && is_arkui_x) {
@@ -49,8 +44,6 @@ if (defined(is_arkui_x) && is_arkui_x) {
 } else {
   config("libtexgine_public_config") {
     include_dirs = [
-      "export",
-      "texgine_drawing",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
@@ -61,24 +54,23 @@ if (defined(is_arkui_x) && is_arkui_x) {
 }
 
 ohos_source_set("libtexgine_source") {
-  if (is_ok) {
-    sources = [
-      "src/font_config.cpp",
-      "src/font_descriptor_cache.cpp",
-      "src/font_descriptor_mgr.cpp",
-      "src/font_parser.cpp",
-      "src/opentype_parser/cmap_table_parser.cpp",
-      "src/opentype_parser/name_table_parser.cpp",
-      "src/opentype_parser/opentype_basic_type.cpp",
-      "src/opentype_parser/post_table_parser.cpp",
-      "src/opentype_parser/ranges.cpp",
-    ]
+  sources = [
+    "src/font_config.cpp",
+    "src/font_descriptor_cache.cpp",
+    "src/font_descriptor_mgr.cpp",
+    "src/font_parser.cpp",
+    "src/opentype_parser/cmap_table_parser.cpp",
+    "src/opentype_parser/name_table_parser.cpp",
+    "src/opentype_parser/opentype_basic_type.cpp",
+    "src/opentype_parser/post_table_parser.cpp",
+    "src/opentype_parser/ranges.cpp",
+  ]
 
-    configs = [
-      ":libtexgine_config",
-      "//build/config/compiler:exceptions",
-      "//build/config/compiler:rtti",
-    ]
+  configs = [
+    ":libtexgine_config",
+    "//build/config/compiler:exceptions",
+    "//build/config/compiler:rtti",
+  ]
 
     public_configs = [ ":libtexgine_public_config" ]
 
@@ -158,17 +150,71 @@ ohos_shared_library("libtexgine") {
     platform = "windows"
   }
 
-  #the texengine process is only enabled_ Text_ Engine is valid if it is true
-  if (enable_text_gine) {
-    if (platform == "ohos") {
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-    } else {
-      deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
-    }
-    deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
+  public_deps = []
+
+  defines = []
+  if (is_arkui_x) {
+    defines += [ "CROSS_PLATFORM" ]
+    public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
   }
-  innerapi_tags = [ "platformsdk" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
+    }
+  }
+  if (is_arkui_x) {
+    deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+    deps += [ "//third_party/cJSON:cjson_static" ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_static",
+      "cJSON:cjson_static",
+      "skia:skia_canvaskit",
+    ]
+  }
+
+  if (platform == "ohos") {
+    defines += [
+      "BUILD_NON_SDK_VER",
+      "OHOS_TEXT_ENABLE",
+    ]
+
+    if (logger_enable_scope) {
+      defines += [ "LOGGER_ENABLE_SCOPE" ]
+    }
+
+    if (texgine_enable_debug_log) {
+      defines += [ "TEXGINE_ENABLE_DEBUGLOG" ]
+    }
+
+    external_deps += [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
+    ]
+
+    public_deps += [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+  } else {
+    if (platform == "mac") {
+      defines += [ "BUILD_SDK_MAC" ]
+      public_deps += [
+        "$graphic_2d_root/rosen/build/harfbuzz:rosen_libharfbuzz_$platform",
+      ]
+    } else {
+      if (!(host_os == "linux" && host_cpu == "arm64")) {
+        public_deps +=
+            [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+      }
+    }
+    if (platform == "android") {
+      defines += [ "BUILD_SDK_ANDROID" ]
+    }
+    if (platform == "ios") {
+      defines += [ "BUILD_SDK_IOS" ]
+    }
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
-## Build libtexgine.so }}}

@@ -475,7 +475,7 @@ if (enable_text_gine) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    deps = [ "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing" ]
+    deps = []
     if (!(host_os == "linux" && host_cpu == "arm64")) {
       deps += [ ":2d_graphics_source_$platform" ]
     }
