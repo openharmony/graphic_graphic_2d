@@ -23,7 +23,7 @@ group("unittest") {
     ":RSSurfaceCaptureParallelTaskTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUiCaptureTaskParallelTest",
-    ":RSUniHWcPrevalidateUtilTest",
+    ":RSUniHwcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
     ":RSVBlankIdleCorrectorTest",
   ]
@@ -271,8 +271,8 @@ ohos_unittest("RSUIFirstRenderListenerTest") {
   }
 }
 
-## Build RSUniHWcPrevalidateUtilTest
-ohos_unittest("RSUniHWcPrevalidateUtilTest") {
+## Build RSUniHwcPrevalidateUtilTest
+ohos_unittest("RSUniHwcPrevalidateUtilTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
