@@ -27,13 +27,13 @@ typedef OHOS::Rosen::AdapterTxt::TextLineBaseImpl LineImpl;
 OH_Drawing_LineTypography* OH_Drawing_CreateLineTypography(OH_Drawing_TypographyCreate* handler)
 {
     if (handler == nullptr) {
-        TEXT_LOGE("Param is null.");
+        TEXT_LOGE("Null handler");
         return nullptr;
     }
     TypographyCreate* rosenHandler = reinterpret_cast<TypographyCreate*>(handler);
     std::unique_ptr<LineTypography> lineTypography = rosenHandler->CreateLineTypography();
     if (lineTypography == nullptr) {
-        TEXT_LOGE("Create line typography failed.");
+        TEXT_LOGE("Failed to create line typography");
         return nullptr;
     }
     return reinterpret_cast<OH_Drawing_LineTypography*>(lineTypography.release());
@@ -60,28 +60,28 @@ OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypograp
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
     size_t limitSize = innerlineTypography->GetUnicodeSize();
     if (startIndex >= limitSize || count + startIndex > limitSize) {
-        TEXT_LOGE("Param is invalid.");
+        TEXT_LOGE("Invalid param");
         return nullptr;
     }
     void* lineFetcher = innerlineTypography->GetLineFetcher();
     if (lineFetcher == nullptr) {
-        TEXT_LOGE("Get line fetcher failed.");
+        TEXT_LOGE("Failed to get line fetcher");
         return nullptr;
     }
     SPText::ParagraphLineFetcher* spLineFetcher = reinterpret_cast<SPText::ParagraphLineFetcher*>(lineFetcher);
     auto line = spLineFetcher->CreateLine(startIndex, count);
     if (line == nullptr) {
-        TEXT_LOGE("Line fetcher create line failed.");
+        TEXT_LOGE("Failed to get line");
         return nullptr;
     }
     LineImpl* lineImpl = new (std::nothrow) LineImpl(std::move(line));
     if (lineImpl == nullptr) {
-        TEXT_LOGE("New text line failed.");
+        TEXT_LOGE("Failed to new text line");
         return nullptr;
     }
     LineObject* lineObject = new (std::nothrow) LineObject();
     if (lineObject == nullptr) {
-        TEXT_LOGE("New LineObject failed.");
+        TEXT_LOGE("Failed to new line object");
         delete lineImpl;
         return nullptr;
     }

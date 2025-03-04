@@ -451,6 +451,19 @@ bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& ta
     return ret;
 }
 
+bool SkiaPath::GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed)
+{
+    if (dst == nullptr) {
+        return false;
+    }
+    auto skiaPath = dst->GetImpl<SkiaPath>();
+    if (skiaPath == nullptr) {
+        return false;
+    }
+    PathMeasureUpdate(forceClosed);
+    return pathMeasure_->getSegment(start, stop, &skiaPath->GetMutablePath(), startWithMoveTo);
+}
+
 bool SkiaPath::IsClosed(bool forceClosed)
 {
     PathMeasureUpdate(forceClosed);

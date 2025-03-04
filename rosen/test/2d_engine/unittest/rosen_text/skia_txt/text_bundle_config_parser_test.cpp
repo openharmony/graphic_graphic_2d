@@ -58,8 +58,8 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
 HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level1)
 {
     TextBundleConfigParser::GetInstance().initStatus_ = true;
-    TextBundleConfigParser::GetInstance().bundleApiVersion_ = SINCE_API16_VERSION;
-    ASSERT_TRUE(TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API16_VERSION));
+    TextBundleConfigParser::GetInstance().bundleApiVersion_ = SINCE_API18_VERSION;
+    ASSERT_TRUE(TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API18_VERSION));
     TextBundleConfigParser::GetInstance().initStatus_ = false;
 }
 #endif

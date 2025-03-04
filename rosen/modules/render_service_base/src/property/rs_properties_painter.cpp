@@ -211,6 +211,59 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
     }
 }
 
+bool RSPropertiesPainter::GetScalingModeMatrix(ScalingMode scalingMode, RectF bounds,
+    float bufferWidth, float bufferHeight, Drawing::Matrix& scalingModeMatrix)
+{
+    if (ROSEN_EQ(bufferWidth, bounds.width_) && ROSEN_EQ(bufferHeight, bounds.height_)) {
+        return false;
+    }
+    scalingModeMatrix = Drawing::Matrix();
+    switch (scalingMode) {
+        case ScalingMode::SCALING_MODE_SCALE_CROP: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            float scale = std::max(bounds.width_ / bufferWidth, bounds.height_ / bufferHeight);
+            if (ROSEN_NE(scale, 0.f)) {
+                scalingModeMatrix.PreScale(scale, scale);
+                scalingModeMatrix.PreTranslate((bounds.width_ / scale - bufferWidth) / PARAM_DOUBLE,
+                    (bounds.height_ / scale - bufferHeight) / PARAM_DOUBLE);
+                return true;
+            }
+            return false;
+        }
+        case ScalingMode::SCALING_MODE_SCALE_FIT: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            float scale = std::min(bounds.width_ / bufferWidth, bounds.height_ / bufferHeight);
+            if (ROSEN_NE(scale, 0.f)) {
+                scalingModeMatrix.PreScale(scale, scale);
+                scalingModeMatrix.PreTranslate((bounds.width_ / scale - bufferWidth) / PARAM_DOUBLE,
+                    (bounds.height_ / scale - bufferHeight) / PARAM_DOUBLE);
+                return true;
+            }
+            return false;
+        }
+        case ScalingMode::SCALING_MODE_NO_SCALE_CROP: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            scalingModeMatrix.PreTranslate((bounds.width_ - bufferWidth) / PARAM_DOUBLE,
+                (bounds.height_ - bufferHeight) / PARAM_DOUBLE);
+            return true;
+        }
+        case ScalingMode::SCALING_MODE_FREEZE: [[fallthrough]];
+        case ScalingMode::SCALING_MODE_SCALE_TO_WINDOW: {
+            return true;
+        }
+        default: {
+            ROSEN_LOGE("GetScalingModeMatrix: Unknown ScalingMode=[%{public}d]", static_cast<int>(scalingMode));
+            return false;
+        }
+    }
+}
+
 void RSPropertiesPainter::Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias)
 {
     canvas.ClipRect(Rect2DrawingRect(rect), Drawing::ClipOp::INTERSECT, isAntiAlias);

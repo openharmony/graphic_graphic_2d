@@ -28,6 +28,7 @@
 #include "system/rs_system_parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -104,6 +105,8 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLE_GENERATECACHEIFNEED);
     // check if drawing cache enabled
     if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d"
@@ -241,6 +244,8 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLE_CHECKCACHETYPEANDDRAW);
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", nodeId_);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     RS_LOGI_IF(DEBUG_NODE,
@@ -312,6 +317,8 @@ void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
 
 void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLE_DRAWWITHNODEGROUPCACHE);
 #ifdef RS_ENABLE_PREFETCH
             __builtin_prefetch(&cachedImage_, 0, 1);
 #endif
@@ -517,6 +524,8 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
     pid_t threadId, bool isNeedFP16, GraphicColorGamut colorGamut)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLE_INITCACHEDSURFACE);
     std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -785,6 +794,8 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSRENDERNODEDRAWABLE_UPDATECACHESURFACE);
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();

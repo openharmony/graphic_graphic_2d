@@ -2644,7 +2644,8 @@ HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     NodeId id = 1;
     AnimationId animationId = 1;
-    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
+    uint64_t token = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId, token);
     mainThread->SendCommands();
 }
 

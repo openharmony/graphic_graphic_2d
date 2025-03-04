@@ -73,8 +73,9 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     auto animationParam = std::make_shared<RSImplicitCancelAnimationParam>(protocol);
+    auto rsUIContext = std::make_shared<RSUIContext>();
 
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     std::shared_ptr<RSCanvasNode> node = RSCanvasNode::Create();
@@ -82,7 +83,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties001, TestSize.Level1)
     auto modifier = std::make_shared<RSBoundsModifier>(property);
     modifier->AttachToNode(node);
     animationParam->AddPropertyToPendingSyncList(property);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSAnimationTest SyncProperties001 end";
@@ -102,6 +103,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     auto animationParam = std::make_shared<RSImplicitCancelAnimationParam>(protocol);
+    auto rsUIContext = std::make_shared<RSUIContext>();
 
     std::shared_ptr<RSCanvasNode> node1 = RSCanvasNode::Create(true, false);
     auto property1 = std::make_shared<RSAnimatableProperty<float>>(100.f);
@@ -123,7 +125,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     animation1->Start(node1);
 
     animationParam->AddPropertyToPendingSyncList(property1);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     std::shared_ptr<RSCanvasNode> node2 = RSCanvasNode::Create(false, true);
@@ -142,7 +144,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     animation2->Start(node2);
 
     animationParam->AddPropertyToPendingSyncList(property2);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest SyncProperties002 end";

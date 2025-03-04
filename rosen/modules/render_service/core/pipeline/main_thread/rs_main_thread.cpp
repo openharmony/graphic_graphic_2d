@@ -308,6 +308,12 @@ public:
     {
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsColorCorrectionEnabled()) {
+                RS_LOGE("RSAccessibility ColorCorrectionEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility DALTONIZATION_COLOR_FILTER: %{public}d",
                 static_cast<int>(value.daltonizationColorFilter));
             switch (value.daltonizationColorFilter) {
@@ -328,11 +334,23 @@ public:
             }
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsColorReverseEnabled()) {
+                RS_LOGE("RSAccessibility ColorReverseEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility INVERT_COLOR: %{public}d", static_cast<int>(value.invertColor));
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
+            if (accessibilityParamConfig_ != nullptr
+                && !accessibilityParamConfig_->IsHighContrastEnabled()) {
+                RS_LOGE("RSAccessibility HighContrastEnabled is not supported");
+                return;
+            }
+
             RS_LOGI("RSAccessibility HIGH_CONTRAST: %{public}d", static_cast<int>(value.highContrastText));
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         } else {
@@ -343,6 +361,14 @@ public:
             RSMainThread::Instance()->RequestNextVSync();
         });
     }
+
+    void SetAccessiblityParamConfig(std::shared_ptr<AccessibilityParam>& config)
+    {
+        accessibilityParamConfig_ = config;
+    }
+
+private:
+    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 };
 #endif
 static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
@@ -530,6 +556,8 @@ void RSMainThread::Init()
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
+    SetDeeplyRelGpuResSwitch();
+    SetSOCPerfSwitch();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -648,8 +676,13 @@ void RSMainThread::Init()
     }
 #endif
 
+auto accessibilityFeatureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[Accessibility]);
+    accessibilityParamConfig_ = std::static_pointer_cast<AccessibilityParam>(accessibilityFeatureParam);
+
 #if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
+    accessibilityObserver_->SetAccessiblityParamConfig(accessibilityParamConfig_);
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
@@ -852,9 +885,41 @@ void RSMainThread::SetDeviceType()
     }
 }
 
+void RSMainThread::SetDeeplyRelGpuResSwitch()
+{
+    auto deeplyRelGpuResFeature = GraphicFeatureParamManager::GetInstance().
+        GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]);
+    auto deeplyRelGpuResObj = std::static_pointer_cast<DeeplyRelGpuResParam>(deeplyRelGpuResFeature);
+    if (deeplyRelGpuResObj != nullptr) {
+        isDeeplyRelGpuResEnable_ = deeplyRelGpuResObj->IsDeeplyRelGpuResEnable();
+        RS_LOGD("SetDeeplyRelGpuResSwitch: DeeplyRelGpuResEnable %{public}d", this->IsDeeplyRelGpuResEnable());
+    }
+}
+
+void RSMainThread::SetSOCPerfSwitch()
+{
+    auto socPerfFeature = GraphicFeatureParamManager::GetInstance().
+        GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]);
+    auto socPerfObj = std::static_pointer_cast<SOCPerfParam>(socPerfFeature);
+    if (socPerfObj != nullptr) {
+        isMultilayersSOCPerfEnable_ = socPerfObj->IsMultilayersSOCPerfEnable();
+        RS_LOGD("SetSOCPerfSwitch: MultilayersSOCPerfEnable %{public}d", this->IsMultilayersSOCPerfEnable());
+    }
+}
+
 DeviceType RSMainThread::GetDeviceType() const
 {
     return deviceType_;
+}
+
+bool RSMainThread::IsDeeplyRelGpuResEnable() const
+{
+    return isDeeplyRelGpuResEnable_;
+}
+
+bool RSMainThread::IsMultilayersSOCPerfEnable() const
+{
+    return isMultilayersSOCPerfEnable_;
 }
 
 uint64_t RSMainThread::GetFocusNodeId() const
@@ -1585,7 +1650,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
             (surfaceHandler->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
-                surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+                surfaceNode->SetProtectedLayer(true);
             }
             const auto& instanceNode = surfaceNode->GetInstanceRootNode();
             if (instanceNode && instanceNode->IsOnTheTree()) {
@@ -1969,7 +2034,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             SkGraphics::PurgeAllCaches(); // clear cpu cache
             auto pid = *(this->exitedPidSet_.begin());
             if (this->exitedPidSet_.size() == 1 && pid == -1) {  // no exited app, just clear scratch resource
-                if (deeply || this->deviceType_ != DeviceType::PHONE) {
+                if (deeply || this->isDeeplyRelGpuResEnable_) {
                     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                 } else {
                     MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -1987,11 +2052,11 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
     if (refreshRate > 0) {
         if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
             PostTask(task, CLEAR_GPU_CACHE,
-                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         } else {
             RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
-                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         }
     }
@@ -2142,9 +2207,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                         linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr &&
-            frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-            // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });
@@ -2179,6 +2242,12 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
     const auto& nodeMap = context_->GetNodeMap();
     for (auto [id, captureTask]: pendingUiCaptureTasks_) {
         auto node = nodeMap.GetRenderNode(id);
+        bool flag = context_->GetUiCaptureCmdsExecutedFlag(id);
+        if (!flag) {
+            RS_LOGD("RSMainThread::PrepareUiCaptureTasks cmds not be processed, id: %{public}llu", id);
+            return;
+        }
+        context_->EraseUiCaptureCmdsExecutedFlag(id);
         if (!node) {
             RS_LOGW("RSMainThread::PrepareUiCaptureTasks node is nullptr");
         } else if (!node->IsOnTheTree() || node->IsDirty() || node->IsSubTreeDirty()) {
@@ -2370,7 +2439,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
 #endif // RES_SCHED_ENABLE
 
-        if (deviceType_ != DeviceType::PHONE) {
+        if (isMultilayersSOCPerfEnable_) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }
         CheckBlurEffectCountStatistics(rootNode);
@@ -2384,7 +2453,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
-        vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
+        vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport()
+                               && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
@@ -2830,7 +2900,8 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRe
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (curSurface && !curSurface->IsLeashWindow()) {
-            curSurface->SetOcclusionInSpecificScenes(deviceType_ == DeviceType::PC && !threeFingerScenesList_.empty());
+            curSurface->SetOcclusionInSpecificScenes(rsVsyncRateReduceManager_.GetVRateDeviceSupport()
+                                                    && !threeFingerScenesList_.empty());
             calculator(curSurface, true);
         }
     }
@@ -3602,11 +3673,11 @@ void RSMainThread::SendCommands()
     RS_OPTIONAL_TRACE_FUNC();
     RsFrameReport::GetInstance().SendCommandsStart();
     if (!context_->needSyncFinishAnimationList_.empty()) {
-        for (const auto& [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+        for (const auto& [nodeId, animationId, token] : context_->needSyncFinishAnimationList_) {
             RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
-                std::make_unique<RSAnimationCallback>(nodeId, animationId, FINISHED);
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, FINISHED);
             RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
         }
         context_->needSyncFinishAnimationList_.clear();
@@ -4757,6 +4828,12 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
 
 void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
+    if (accessibilityParamConfig_ != nullptr
+        && !accessibilityParamConfig_->IsCurtainScreenEnabled()) {
+        RS_LOGE("RSMainThread::SetCurtainScreenUsingStatus CurtainScreenEnabled is not supported");
+        return;
+    }
+    
 #ifdef RS_ENABLE_GPU
     if (isCurtainScreenOn_ == isCurtainScreenOn) {
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");

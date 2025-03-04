@@ -46,7 +46,7 @@ void RSBaseRenderEngineUnitTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI6GJ1Z
  */
-HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, SetHighContrast_001, TestSize.Level1)
 {
     bool contrastEnabled = false;
     RSBaseRenderEngine::SetHighContrast(contrastEnabled);
@@ -59,7 +59,7 @@ HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6GJ1Z
  */
-HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_002, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, SetHighContrast_002, TestSize.Level1)
 {
     bool contrastEnabled = true;
     RSBaseRenderEngine::SetHighContrast(contrastEnabled);
@@ -72,7 +72,7 @@ HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
@@ -95,7 +95,7 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
@@ -125,7 +125,7 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1)
 {
     NodeId id = 0;
     RSDisplayNodeConfig config;
@@ -164,7 +164,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -198,7 +198,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST(RSBaseRenderEngineUnitTest, CheckIsSurfaceBufferWithMetadata001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, CheckIsSurfaceBufferWithMetadata001, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -226,7 +226,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CheckIsSurfaceBufferWithMetadata001, TestSize
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
 {
     if (!RSSystemProperties::IsUseVulkan()) {
         auto renderEngine = std::make_shared<RSRenderEngine>();
@@ -243,7 +243,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
     }
 }
 
-HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintCanvase(&canvas);
@@ -270,7 +270,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->RegisterDeleteBufferListener(nullptr, true);
@@ -291,7 +291,7 @@ HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI6GJ1Z
  */
-HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSize.Level1)
 {
     std::shared_ptr<Drawing::ColorSpace> colorSpace;
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
@@ -310,7 +310,7 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSiz
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST(RSBaseRenderEngineUnitTest, ConvertDrawingColorSpaceToSpaceInfo, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, ConvertDrawingColorSpaceToSpaceInfo, TestSize.Level1)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
     std::shared_ptr<Drawing::ColorSpace> colorSpace;
@@ -338,7 +338,7 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertDrawingColorSpaceToSpaceInfo, TestSize
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
 {
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
@@ -352,7 +352,7 @@ HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     Drawing::Canvas canvas;
@@ -369,7 +369,7 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
+HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
 {
     BufferDrawParam params;
     params.useBilinearInterpolation = false;

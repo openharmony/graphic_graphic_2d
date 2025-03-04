@@ -26,20 +26,23 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static void TestProcessor(NodeId, AnimationId, AnimationCallbackEvent);
+    static void TestProcessor(NodeId, AnimationId, uint64_t, AnimationCallbackEvent);
 protected:
     static inline NodeId nodeId_;
     static inline AnimationId animationId_;
+    static inline uint64_t token_;
 };
 
 void RSAnimationCommandTest::SetUpTestCase() {}
 void RSAnimationCommandTest::TearDownTestCase() {}
 void RSAnimationCommandTest::SetUp() {}
 void RSAnimationCommandTest::TearDown() {}
-void RSAnimationCommandTest::TestProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
+void RSAnimationCommandTest::TestProcessor(
+    NodeId nodeId, AnimationId animId, uint64_t token, AnimationCallbackEvent event)
 {
     nodeId_ = nodeId;
     animationId_ = animId;
+    token_ = token;
 }
 
 /**
@@ -52,11 +55,13 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     AnimationId animId = static_cast<AnimationId>(1);
+    uint64_t token = 1;
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
     AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
-    AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    AnimationCommandHelper::AnimationCallback(context, targetId, animId, token, event);
     ASSERT_EQ(nodeId_, targetId);
     ASSERT_EQ(animationId_, animId);
+    ASSERT_EQ(token_, token);
 }
 
 /**
@@ -95,17 +100,15 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
  */
 HWTEST_F(RSAnimationCommandTest, AnimationCallback001, TestSize.Level1)
 {
+    AnimationCommandHelper::AnimationCallbackProcessor processor = [](
+        NodeId nodeId, AnimationId animId, uint64_t token, AnimationCallbackEvent event) {};
+    AnimationCommandHelper::SetAnimationCallbackProcessor(processor);
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     AnimationId animId = static_cast<AnimationId>(1);
+    uint64_t token = 1;
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
-    AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
-    EXPECT_TRUE(targetId == -1);
-
-    AnimationCommandHelper::AnimationCallbackProcessor processor = [](NodeId nodeId, AnimationId animId,
-                                                                       AnimationCallbackEvent event) {};
-    AnimationCommandHelper::SetAnimationCallbackProcessor(processor);
-    AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    AnimationCommandHelper::AnimationCallback(context, targetId, animId, token, event);
     EXPECT_TRUE(targetId == -1);
 }
 

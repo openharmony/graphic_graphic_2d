@@ -600,26 +600,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: HgmRsIdleTimerTest
- * @tc.desc: Verify the result of HgmRsIdleTimerTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
-{
-    int32_t interval = 700; // 700ms waiting time
-    HgmFrameRateManager mgr;
-    mgr.rsIdleTimer_ = std::make_unique<HgmSimpleTimer>("rs_idle_timer",
-        std::chrono::milliseconds(600), nullptr, nullptr);
-    ASSERT_NE(mgr.rsIdleTimer_, nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-    mgr.HandleRsFrame();
-    mgr.minIdleFps_ = OLED_30_HZ;
-    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-    sleep(1); // wait for timer stop
-}
-
-/**
  * @tc.name: FrameRateReportTest
  * @tc.desc: Verify the result of FrameRateReportTest
  * @tc.type: FUNC

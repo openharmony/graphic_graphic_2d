@@ -100,12 +100,8 @@ bool RSRenderService::Init()
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
 
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    // need called after GraphicFeatureParamManager::GetInstance().Init();
+    FilterCCMInit();
 
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
@@ -140,8 +136,28 @@ bool RSRenderService::Init()
         appVSyncController_ = new VSyncController(generator, 0);
         generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
-    rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
-    appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
+    std::shared_ptr<FeatureParam> featureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
+    std::vector<bool> switchParams = {};
+    std::vector<uint32_t> bufferCountParams = {};
+    if (featureParam != nullptr) {
+        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
+        switchParams = {
+            dvsyncFeatureParam->IsDVSyncEnable(),
+            dvsyncFeatureParam->IsUiDVSyncEnable(),
+            dvsyncFeatureParam->IsNativeDVSyncEnable(),
+            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
+        };
+        bufferCountParams = {
+            dvsyncFeatureParam->GetUiBufferCount(),
+            dvsyncFeatureParam->GetRsBufferCount(),
+            dvsyncFeatureParam->GetNativeBufferCount(),
+            dvsyncFeatureParam->GetWebBufferCount(),
+        };
+    }
+    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams };
+    rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
+    appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
 
     generator->SetRSDistributor(rsVSyncDistributor_);
     generator->SetAppDistributor(appVSyncDistributor_);
@@ -974,6 +990,20 @@ void RSRenderService::RegisterGpuFuncs()
     };
 
     RSDumpManager::GetInstance().Register(handers);
+}
+
+// need called after GraphicFeatureParamManager::GetInstance().Init();
+void RSRenderService::FilterCCMInit()
+{
+    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
+    if (filterParam == nullptr) {
+        return;
+    }
+    RSFilterCacheManager::isCCMFilterCacheEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ =
+        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
 }
 } // namespace Rosen
 } // namespace OHOS

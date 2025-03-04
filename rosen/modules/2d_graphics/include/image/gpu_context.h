@@ -171,6 +171,8 @@ public:
 
     void DumpAllResource(std::stringstream& dump) const;
 
+    void DumpAllCoreTrace(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */

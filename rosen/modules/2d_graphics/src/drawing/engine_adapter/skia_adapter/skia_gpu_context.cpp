@@ -228,6 +228,15 @@ void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
     grContext_->dumpAllResource(dump);
 }
 
+void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllCoreTrace, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllCoreTrace(dump);
+}
+
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
 {
     if (!grContext_) {

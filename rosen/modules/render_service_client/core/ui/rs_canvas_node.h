@@ -34,7 +34,8 @@ public:
 
     ~RSCanvasNode() override;
 
-    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     ExtendRecordingCanvas* BeginRecording(int width, int height);
     bool IsRecording() const;
@@ -51,7 +52,8 @@ public:
 
     void CheckThread();
 protected:
-    RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    RSCanvasNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasNode(const RSCanvasNode&) = delete;
     RSCanvasNode(const RSCanvasNode&&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&) = delete;
@@ -68,8 +70,10 @@ private:
     friend class RSPathAnimation;
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
+    friend class RSNodeMapV2;
     void OnBoundsSizeChanged() const override;
     void CreateRenderNodeForTextureExportSwitch() override;
+    void RegisterNodeMap() override;
     pid_t tid_;
 };
 } // namespace Rosen

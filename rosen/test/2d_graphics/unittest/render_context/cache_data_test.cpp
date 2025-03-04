@@ -379,27 +379,6 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RewriteTest002
- * @tc.desc: Imporve Coverage
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
- HWTEST_F(CacheDataTest, RewriteTest002, TestSize.Level1)
-{
-    std::string testFileDir = "testCachedata";
-    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(8, 8, 16, testFileDir);
-    uint8_t *tempBuffer = new uint8_t[8]();
-    const char *testKey1 = "testKey1";
-    const char *testValue1 = "testValue1";
-    cacheData->Rewrite(testKey1, 8, testValue1, 8);
-    auto result = cacheData->Get(testKey1, 8, tempBuffer, 8);
-    size_t valuePointerSize = std::get<1>(result);
-    EXPECT_NE(0, valuePointerSize);
-    delete[] tempBuffer;
-}
-
-/**
  * @tc.name: IfSizeValidateTest
  * @tc.desc: Imporve Coverage
  * @tc.type: FUNC

@@ -24,6 +24,7 @@
 
 namespace OHOS::Rosen {
 const std::vector<std::string> FEATURE_CONFIGS = {
+    "DirtyRegionConfig",
     "HdrConfig",
     "DrmConfig",
     "HwcConfig",
@@ -34,11 +35,17 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SpocConfig",
     "OPIncConfig",
     "PrevalidateConfig",
-    "UIFirstConfig"
+    "UIFirstConfig",
+    "DvsyncConfig",
+    "SocperfConfig",
+    "DeeplyReleaseGpuResourceConfig",
+    "AccessibilityConfig",
+    "VRateConfig",
 };
 
 enum FeatureModule {
-    HDR = 0,
+    DIRTYREGION = 0,
+    HDR,
     DRM,
     HWC,
     HFBC,
@@ -49,6 +56,11 @@ enum FeatureModule {
     PREVALIDATE,
     UIFirst,
     FILTER,
+    DVSYNC,
+    SOC_PERF,
+    DEEPLY_REL_GPU_RES,
+    Accessibility,
+    VRate,
 };
 
 enum ParseErrCode {

@@ -47,7 +47,6 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
             return;
         }
         showEnabled_ = enabled;
-        frameRateMgr->SetShowRefreshRateEnabled(showEnabled_);
     } else if (enumType == RealtimeRefreshRateType::COLLECT) {
         if (collectEnabled_ == enabled) {
             return;

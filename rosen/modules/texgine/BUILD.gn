@@ -131,21 +131,11 @@ ohos_source_set("libtexgine_source") {
         "c_utils:utils",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
+        "icu:shared_icuuc",
       ]
-
-      public_deps +=
-          [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
     } else {
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
-        public_deps += [
-          "$graphic_2d_root/rosen/build/harfbuzz:rosen_libharfbuzz_$platform",
-        ]
-      } else {
-        if (!(host_os == "linux" && host_cpu == "arm64")) {
-          public_deps +=
-              [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
-        }
       }
       if (platform == "android") {
         defines += [ "BUILD_SDK_ANDROID" ]

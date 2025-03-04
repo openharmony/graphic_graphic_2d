@@ -732,25 +732,17 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode &node,
         }
 
         xmlNode *childNode = currNode->xmlChildrenNode;
-        std::unordered_map<std::string, PolicyConfigData::PageUrlFps> pageUrl;
+        PolicyConfigData::PageUrlConfig pageUrlConfig;
         for (; childNode; childNode = childNode->next) {
             if (childNode->type != XML_ELEMENT_NODE) {
                 continue;
             }
             auto name = ExtractPropertyValue("name", *childNode);
-            auto min = ExtractPropertyValue("min", *childNode);
-            auto max = ExtractPropertyValue("max", *childNode);
-            if (!IsNumber(min) && !IsNumber(max)) {
-                HGM_LOGE("XMLParser stop parsing PageUrl, fps is not number");
-                return HGM_ERROR;
-            }
+            auto strategy = ExtractPropertyValue("strategy", *childNode);
             mParsedData_->pageNameList_.push_back(name);
-            PolicyConfigData::PageUrlFps pageUrlFps = {std::stoi(min), std::stoi(max)};
-            pageUrl[name] = pageUrlFps;
+            pageUrlConfig[name] = strategy;
         }
-        PolicyConfigData::PageUrlConfig pageUrlConfig;
         auto packageName = ExtractPropertyValue("name", *currNode);
-        pageUrlConfig.pageUrl = pageUrl;
         pageUrlConfigMap[packageName] = pageUrlConfig;
     }
     return EXEC_SUCCESS;

@@ -1008,16 +1008,6 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_TRUE(RSSystemProperties::GetBlurEffectTerminateLimit() > 0);
 }
 
-/**
- * @tc.name: IsSuperFoldDisplay
- * @tc.desc: IsSuperFoldDisplay Test
- * @tc.type:FUNC
- * @tc.require: issuesIBLTM5
- */
-HWTEST_F(RSSystemPropertiesTest, IsSuperFoldDisplay, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::IsSuperFoldDisplay());
-}
 
 /**
  * @tc.name: GetOptimizeParentNodeRegionEnabled

@@ -81,7 +81,7 @@ constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
 constexpr int MIN_OVERLAP = 2;
-constexpr uint32_t API15 = 15;
+constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
@@ -1915,6 +1915,7 @@ void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& a
     dstRect.height_ = static_cast<int>(std::round(dstRect.height_ * screenInfo_.GetRogHeightRatio()));
     // Set the destination rectangle of the node
     node.SetDstRect(dstRect);
+    node.SetDstRectWithoutRenderFit(dstRect);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
@@ -1924,12 +1925,12 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, con
     }
     node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
-    (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && apiCompatibleVersion <= API15) ?
+    (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && apiCompatibleVersion < API18) ?
         RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo_) :
-        RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_, totalMatrix);
+        RSUniRenderUtil::DealWithNodeGravity(node, totalMatrix);
+    RSUniRenderUtil::DealWithScalingMode(node, totalMatrix);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
-    RSUniRenderUtil::DealWithScalingMode(node, screenInfo_);
     RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo_);
     node.SetCalcRectInPrepare(true);
 }
@@ -3292,8 +3293,11 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
-        RectI rect = {std::floor(absRect.left_), std::floor(absRect.top_),
-            std::ceil(absRect.GetWidth()), std::ceil(absRect.GetHeight())};
+        RectI rect;
+        rect.left_ = static_cast<int>(std::floor(absRect.GetLeft()));
+        rect.top_ = static_cast<int>(std::floor(absRect.GetTop()));
+        rect.width_ = static_cast<int>(std::ceil(absRect.GetRight() - rect.left_));
+        rect.height_ = static_cast<int>(std::ceil(absRect.GetBottom() - rect.top_));
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
         UpdateSrcRect(*hwcNodePtr, matrix, rect);
         UpdateHwcNodeByTransform(*hwcNodePtr, matrix);
@@ -3355,7 +3359,7 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
         }
         if (parentProperties.GetClipToRRect()) {
             RectF rectF = parentProperties.GetClipRRect().rect_;
-            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetWidth(), rectF.GetHeight());
+            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetRight(), rectF.GetBottom());
             Drawing::Rect clipRectMapped;
             parentGeoPtr->GetMatrix().MapRect(clipRectMapped, clipRect);
             childRectMapped.Intersect(clipRectMapped);
@@ -3365,9 +3369,13 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     Drawing::Rect absClipRect;
     rootNodeAbsMatrix.MapRect(absClipRect, childRectMapped);
-    clipRect = {std::floor(absClipRect.left_), std::floor(absClipRect.top_),
-        std::ceil(absClipRect.GetWidth()), std::ceil(absClipRect.GetHeight())};
-    clipRect = clipRect.IntersectRect(prepareClipRect_);
+    Drawing::Rect prepareClipRect(prepareClipRect_.left_, prepareClipRect_.top_,
+        prepareClipRect_.GetRight(), prepareClipRect_.GetBottom());
+    absClipRect.Intersect(prepareClipRect);
+    clipRect.left_ = static_cast<int>(std::floor(absClipRect.GetLeft()));
+    clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
+    clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
+    clipRect.height_ = static_cast<int>(std::ceil(absClipRect.GetBottom() - clipRect.top_));
 }
 
 bool RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable() const
