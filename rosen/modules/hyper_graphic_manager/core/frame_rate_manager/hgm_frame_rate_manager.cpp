@@ -379,7 +379,6 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
 
 void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
 {
-    auto& hgmCore = HgmCore::Instance();
     if (rsFrameRateLinker_ == nullptr) {
         return;
     }
