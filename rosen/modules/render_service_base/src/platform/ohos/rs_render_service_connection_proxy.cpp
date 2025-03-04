@@ -1525,6 +1525,7 @@ void RSRenderServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenPow
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("SetScreenPowerStatus: SendRequest failed %{public}d", err);
         return;
     }
 }

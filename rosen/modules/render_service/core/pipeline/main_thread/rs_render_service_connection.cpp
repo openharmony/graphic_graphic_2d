@@ -617,7 +617,7 @@ ScreenId RSRenderServiceConnection::GetDefaultScreenId()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        return INVALID_SCREEN_ID;
     }
     return screenManager_->GetDefaultScreenId();
 }
@@ -626,7 +626,7 @@ ScreenId RSRenderServiceConnection::GetActiveScreenId()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        return INVALID_SCREEN_ID;
     }
     return screenManager_->GetActiveScreenId();
 }
@@ -812,9 +812,7 @@ int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeC
 
     // update
     int32_t status = screenManager_->AddScreenChangeCallback(callback);
-    auto tmp = screenChangeCallback_;
     screenChangeCallback_ = callback;
-    lock.unlock();
     return status;
 }
 

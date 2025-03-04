@@ -296,10 +296,7 @@ public:
 
     bool Init() noexcept override;
 
-    ScreenId GetDefaultScreenId() const override
-    {
-        return defaultScreenId_;
-    }
+    ScreenId GetDefaultScreenId() const override;
 
     std::vector<ScreenId> GetAllScreenIds() const override;
 
@@ -611,7 +608,7 @@ private:
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
-    std::unordered_set<uint64_t> castScreenBlackLists_ = {};
+    std::unordered_set<uint64_t> castScreenBlackList_ = {};
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;

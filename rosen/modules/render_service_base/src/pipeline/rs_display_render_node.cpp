@@ -159,7 +159,9 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         hasMirroredDisplayChanged_ = true;
     }
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
+    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%s]",
+        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
         GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 

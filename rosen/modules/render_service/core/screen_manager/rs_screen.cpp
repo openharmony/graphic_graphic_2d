@@ -173,6 +173,8 @@ void RSScreen::PhysicalScreenInit() noexcept
         height_ = phyHeight_;
     }
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
+        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenPowerStatus.",
+            __func__, id_);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
     } else {
         powerStatus_ = static_cast<ScreenPowerStatus>(status);
