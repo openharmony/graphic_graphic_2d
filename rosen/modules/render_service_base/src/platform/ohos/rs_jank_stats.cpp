@@ -727,7 +727,7 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
             "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.lastMaxHitchTime_),
             "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
             "DURATION", static_cast<uint64_t>(duration),
-            "MAX_FRAME_REFRESH_RATE", jankFrames.maxFrameRefreshRate_);
+            "MAX_FRAME_REFRESH_RATE", jankFrames.lastMaxFrameRefreshRate_);
     });
 }
 
