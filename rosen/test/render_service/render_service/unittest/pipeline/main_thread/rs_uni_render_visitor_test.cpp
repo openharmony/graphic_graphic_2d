@@ -1520,62 +1520,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Leve
     ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
-/**
- * @tc.name: CheckPixelFormatWithSelfDrawingNode001
- * @tc.desc: Test CheckPixelFormatWithSelfDrawingNode
- * @tc.type: FUNC
- * @tc.require: issueIAW3W0
- */
-HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormatWithSelfDrawingNode001, TestSize.Level2)
-{
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
-    selfDrawingNode->SetIsOnTheTree(false);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-    selfDrawingNode->SetIsOnTheTree(true);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-
-    selfDrawingNode->SetHardwareForcedDisabledState(false);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-    selfDrawingNode->SetHardwareForcedDisabledState(true);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-
-    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
-    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
-    ASSERT_NE(bufferHandle, nullptr);
-    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-}
-
-/*
- * @tc.name: UpdatePixelFormatAfterHwcCalc001
- * @tc.desc: Test UpdatePixelFormatAfterHwcCalc
- * @tc.type: FUNC
- * @tc.require: issueIAW3W0
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdatePixelFormatAfterHwcCalc001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
-    selfDrawingNode->SetAncestorDisplayNode(displayNode);
-    selfDrawingNode->SetHardwareForcedDisabledState(true);
-
-    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
-    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
-    ASSERT_NE(bufferHandle, nullptr);
-    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    rsUniRenderVisitor->UpdatePixelFormatAfterHwcCalc(*displayNode);
-}
-
 /*
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
  * @tc.desc: Reset but keep single node's surfaceInfo

@@ -404,8 +404,16 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
-    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
-    GraphicPixelFormat GetPixelFormat() const;
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    GraphicPixelFormat GetPixelFormat() const
+    {
+        return pixelFormat_;
+    }
+
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetColorSpace() const;
 

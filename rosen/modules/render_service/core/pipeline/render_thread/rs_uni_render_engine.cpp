@@ -15,6 +15,7 @@
 
 #include "common/rs_singleton.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
@@ -116,9 +117,9 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             // color temperature
             params.layerLinearMatrix = layer->GetLayerLinearMatrix();
         }
-        if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
+        if (RSHdrUtil::CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
             params.brightnessRatio = layer->GetBrightnessRatio();
-            if (CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
+            if (RSHdrUtil::CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
                 params.hasMetadata = true;
             }
         } else {
