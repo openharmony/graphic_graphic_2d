@@ -667,10 +667,11 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
     GetMaxJankInfo(jankFrames, isReportTaskDelayed, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     RS_TRACE_NAME_FMT(
         "RSJankStats::ReportEventJankFrame maxFrameTime is %" PRId64 "ms, maxHitchTime is %" PRId64
-        "ms, maxTechFrameTime is %" PRId64 "ms, maxRealFrameTime is %" PRId64 "ms: %s",
+        "ms, maxTechFrameTime is %" PRId64 "ms, maxRealFrameTime is %" PRId64 "ms,
+        maxFrameRefreshRate is %" PRId32 "fps: %s",
         jankFrames.maxFrameTimeSteady_, static_cast<int64_t>(jankFrames.maxHitchTime_),
         jankFrames.maxTechFrameTimeSteady_, jankFrames.maxRealFrameTimeSteady_,
-        GetSceneDescription(info).c_str());
+        jankFrames.maxFrameRefreshRate_, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration]() {
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
@@ -706,10 +707,11 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
     GetMaxJankInfo(jankFrames, isReportTaskDelayed, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     RS_TRACE_NAME_FMT(
         "RSJankStats::ReportEventJankFrame maxFrameTime is %" PRId64 "ms, maxHitchTime is %" PRId64
-        "ms, maxTechFrameTime is %" PRId64 "ms, maxRealFrameTime is %" PRId64 "ms: %s",
+        "ms, maxTechFrameTime is %" PRId64 "ms, maxRealFrameTime is %" PRId64 "ms,
+        maxFrameRefreshRate is %" PRId32 "fps: %s",
         jankFrames.lastMaxFrameTimeSteady_, static_cast<int64_t>(jankFrames.lastMaxHitchTime_),
         jankFrames.lastMaxTechFrameTimeSteady_, jankFrames.lastMaxRealFrameTimeSteady_,
-        GetSceneDescription(info).c_str());
+        jankFrames.lastMaxFrameRefreshRate_, GetSceneDescription(info).c_str());
     RSBackgroundThread::Instance().PostTask([
         jankFrames, info, aveFrameTimeSteady, maxFrameTimeFromStart, maxHitchTimeFromStart, duration]() {
         RS_TRACE_NAME("RSJankStats::ReportEventJankFrame in RSBackgroundThread");
