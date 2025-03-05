@@ -2795,6 +2795,9 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     if (isNodeGroup_ == isNodeGroup) {
         return;
     }
+    if (!isForced && !RSSystemProperties::GetNodeGroupGroupedByUIEnabled()) {
+        return;
+    }
     isNodeGroup_ = isNodeGroup;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeGroup>(GetId(), isNodeGroup, isForced,
         includeProperty);

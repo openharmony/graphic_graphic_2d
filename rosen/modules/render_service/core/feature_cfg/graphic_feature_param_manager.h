@@ -146,18 +146,5 @@ std::optional<Ret> GetFeatureParamValue(const std::string& featureName,
     auto pCls = std::static_pointer_cast<Cls>(pParam);
     return ((pCls.get())->*func)(std::forward<Args>(args)...);
 }
-
-template<class Ret, class Cls, class... FuncArgs, class... Args>
-std::optional<Ret> GetFeatureParamValue(const std::string& featureName,
-    Ret (Cls::*func)(FuncArgs&&...), Args&&... args)
-{
-    static_assert(std::is_base_of_v<FeatureParam, Cls>, "Invalid Param Type");
-    auto pParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(featureName);
-    if (pParam == nullptr || func == nullptr) {
-        return std::nullopt;
-    }
-    auto pCls = std::static_pointer_cast<Cls>(pParam);
-    return ((pCls.get())->*func)(std::forward<Args>(args)...);
-}
 } // namespace OHOS::Rosen
 #endif // GRAPHIC_FEATURE_PARAM_MANAGER_H

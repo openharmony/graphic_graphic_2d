@@ -334,10 +334,6 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
 {
-    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
-    if (!isEnableFeature) {
-        return;
-    }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);

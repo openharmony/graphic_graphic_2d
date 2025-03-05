@@ -305,7 +305,6 @@ public:
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
 
-    static bool GetSurfaceWatermarkEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
 private:
     RSSystemProperties() = default;

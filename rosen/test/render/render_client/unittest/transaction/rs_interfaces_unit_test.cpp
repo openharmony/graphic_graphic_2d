@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-#include "parameters.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -401,10 +400,6 @@ HWTEST_F(RsInterfaceTest, GetRefreshInfo01, TestSize.Level1)
  */
 HWTEST_F(RsInterfaceTest, SetWatermark01, TestSize.Level1)
 {
-    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
-    if (!isEnableFeature) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     instance.renderServiceClient_ = nullptr;

@@ -1271,13 +1271,6 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetSurfaceWatermarkEnabled()
-{
-    static auto surfaceWatermarkEnabled =
-        system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
-    return surfaceWatermarkEnabled;
-}
-
 bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     static auto groupedByUIEnabled =
