@@ -81,6 +81,8 @@ struct JankFrames {
     int32_t traceId_ = TRACE_ID_INITIAL;
     int64_t totalFrameTimeSteadyForHTR_ = 0;
     int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
+    int32_t lastMaxFrameRefreshRate_ = 0;
+    int32_t maxFrameRefreshRate_ = 0;
     float totalHitchTimeSteady_ = 0;
     float lastTotalHitchTimeSteady_ = 0;
     float maxHitchTime_ = 0;
