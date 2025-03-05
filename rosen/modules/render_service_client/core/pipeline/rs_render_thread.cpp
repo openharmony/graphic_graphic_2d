@@ -98,6 +98,7 @@ void SendFrameEvent(bool start)
 
 RSRenderThread& RSRenderThread::Instance()
 {
+    RSRenderNodeGC::Instance(); // To ensure that RSRenderNodeGC is created before RSRenderThread to be destroyed after!
     static RSRenderThread renderThread;
     RSAnimationFraction::Init();
     return renderThread;
