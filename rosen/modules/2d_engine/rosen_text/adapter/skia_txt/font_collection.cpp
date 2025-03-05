@@ -19,7 +19,6 @@
 #include "custom_symbol_config.h"
 #include "texgine/src/font_descriptor_mgr.h"
 #include "txt/platform.h"
-#include "txt/text_bundle_config_parser.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
 
@@ -181,10 +180,6 @@ void FontCollection::ClearThemeFont()
         TypefaceWithAlias ta(themeFamily, face);
         typefaceSet_.erase(ta);
         dfmanager_->LoadThemeFont("", themeFamily, nullptr, 0);
-        if (face != nullptr && Drawing::Typeface::GetTypefaceUnRegisterCallBack() != nullptr &&
-            SPText::TextBundleConfigParser::GetInstance().IsTargetApiVersion(SPText::SINCE_API18_VERSION)) {
-            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(face);
-        }
     }
     fontCollection_->ClearFontFamilyCache();
 }
