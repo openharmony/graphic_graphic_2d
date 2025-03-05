@@ -270,7 +270,7 @@ std::vector<std::function<void(skt::Paragraph&, const ParagraphStyle&, skt::Inte
 void ParagraphImpl::paragraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
     skt::InternalState& state)
 {
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)>
+    const std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>&
         paragraphStyleChangeBitmap = spParagraphStyle.relayoutChangeBitmap;
     if (!paragraphStyleChangeBitmap.any()) {
         return;

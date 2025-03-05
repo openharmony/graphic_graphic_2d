@@ -56,7 +56,7 @@ public:
     TextAlign GetEquivalentAlign() const;
 
     void SetRelayoutBitMap(const std::bitset<static_cast<size_t>(
-        RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)>& relayoutChangeBitmap)
+        RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>& relayoutChangeBitmap)
     {
         this->relayoutChangeBitmap = relayoutChangeBitmap;
     }
@@ -97,7 +97,8 @@ public:
     TextTab tab;
     float paragraphSpacing { 0.0f };
     bool isEndAddParagraphSpacing { false };
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
+        relayoutChangeBitmap;
 };
 } // namespace SPText
 } // namespace Rosen

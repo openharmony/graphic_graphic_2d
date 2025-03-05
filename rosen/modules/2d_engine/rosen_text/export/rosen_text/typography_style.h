@@ -59,7 +59,7 @@ enum class RelayoutParagraphStyleAttribute {
     // influence Format
     TEXT_ALIGN = 23,
 
-    PARAGRAPH_ATTRIBUTE_BUTT,
+    PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
 };
 
 struct TextTab {
@@ -163,7 +163,8 @@ struct TypographyStyle {
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
     TextTab tab;
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
+        relayoutChangeBitmap;
 };
 } // namespace Rosen
 } // namespace OHOS

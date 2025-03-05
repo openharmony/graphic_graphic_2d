@@ -53,7 +53,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, Te
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     typographyStyle.fontSize = 100;
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
     styleBitset.set(0);
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -144,7 +144,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, Te
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     typographyStyle.fontSize = 100;
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
     styleBitset.set(0);
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -176,7 +176,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, Te
     int preLineCnt = typography->GetLineCount();
 
     typographyStyle.maxLines = 0;
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
     styleBitset.set(2);
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -212,7 +212,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, Te
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     typographyStyle.ellipsis = u"省略号";
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
     styleBitset.set(21);
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -247,7 +247,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, Te
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     typographyStyle.ellipsisModal = EllipsisModal::HEAD;
-    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_ATTRIBUTE_BUTT)> styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
     styleBitset.set(22);
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
