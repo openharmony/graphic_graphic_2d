@@ -1270,5 +1270,19 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
+
+bool RSSystemProperties::GetSurfaceWatermarkEnabled()
+{
+    static auto surfaceWatermarkEnabled =
+        system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    return surfaceWatermarkEnabled;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    static auto groupedByUIEnabled =
+        system::GetBoolParameter("const.graphic.enable_grouped_by_ui", false);
+    return groupedByUIEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS

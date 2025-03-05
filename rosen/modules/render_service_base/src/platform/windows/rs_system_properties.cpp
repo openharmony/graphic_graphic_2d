@@ -598,5 +598,15 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
 }
+
+bool RSSystemProperties::GetSurfaceWatermarkEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

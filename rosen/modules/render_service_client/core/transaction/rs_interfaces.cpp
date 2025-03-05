@@ -16,9 +16,6 @@
 #include <cstdint>
 #include <functional>
 
-#include <parameter.h>
-#include <parameters.h>
-
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
@@ -155,7 +152,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    bool isEnableFeature = system::GetBoolParameter("const.graphic.enable_surface_watermark", false);
+    bool isEnableFeature = RSSystemProperties::GetSurfaceWatermarkEnabled();
     if (!isEnableFeature) {
         return false;
     }

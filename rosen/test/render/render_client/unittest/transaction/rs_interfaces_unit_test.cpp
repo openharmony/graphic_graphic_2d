@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "parameters.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
