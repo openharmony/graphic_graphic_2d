@@ -400,6 +400,10 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         activeSubtreeRootId_ = node.GetId();
     }
 
+    if (ptr == nullptr) {
+        ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode ptr err");
+        return;
+    }
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
     std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(ptr);
     if (rsSurface == nullptr) {
