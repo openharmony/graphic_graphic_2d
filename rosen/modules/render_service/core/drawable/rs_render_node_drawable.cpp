@@ -476,7 +476,6 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    autoCacheEnable_ = RSSystemProperties::IsDdgrOpincEnable();
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
     autoCacheRenderNodeInfos_.clear();
     opincRootTotalCount_ = 0;

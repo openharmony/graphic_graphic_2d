@@ -20,6 +20,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -1721,6 +1722,21 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
         return isFreeMultiWindowEnabled_ ? UiFirstModeType::MULTI_WINDOW_MODE : UiFirstModeType::SINGLE_WINDOW_MODE;
     }
     return UiFirstModeType::SINGLE_WINDOW_MODE;
+}
+
+void RSUifirstManager::ReadUIFirstCcmParam()
+{
+    auto uifirstFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("UIFirstConfig");
+    std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
+    isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
+    isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
+    auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
+    if (param) {
+        isUiFirstOn_ = param->IsUIFirstEnable();
+        isCardUiFirstOn_ = param->IsCardUIFirstEnable();
+        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d",
+            isUiFirstOn_, isCardUiFirstOn_);
+    }
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

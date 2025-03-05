@@ -64,8 +64,6 @@ public:
     bool ShouldPaint() const;
 
     // opinc switch
-    bool IsOpincRenderCacheEnable();
-    bool IsOpincRealDrawCacheEnable();
     bool IsAutoCacheDebugEnable();
 
     void OpincCalculateBefore(Drawing::Canvas& canvas,
@@ -118,6 +116,7 @@ public:
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+    static void SetAutoCacheEnable(bool autoCacheEnable);
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

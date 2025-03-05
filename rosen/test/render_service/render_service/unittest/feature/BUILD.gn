@@ -26,6 +26,7 @@ group("unittest") {
     ":RSUniHwcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
     ":RSVBlankIdleCorrectorTest",
+    "RSOpincManagerTest",
   ]
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
@@ -179,6 +180,22 @@ ohos_unittest("RSUifirstManagerTest") {
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_uifirst_manager_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSOpincManagerTest
+ohos_unittest("RSOpincManagerTest") {
+  module_out_path = module_output_path
+  sources = [
+    "opinc/rs_opinc_manager_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
