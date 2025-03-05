@@ -26,7 +26,7 @@ group("unittest") {
     ":RSUniHwcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
     ":RSVBlankIdleCorrectorTest",
-    "RSOpincManagerTest",
+    ":RSOpincManagerTest",
   ]
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
