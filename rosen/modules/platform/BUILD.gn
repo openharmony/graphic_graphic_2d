@@ -40,7 +40,7 @@ config("eventhandler_config") {
   include_dirs = [ "eventhandler" ]
 }
 
-ohos_source_set("impl_eventhandler") {
+ohos_shared_library("impl_eventhandler") {
   public_configs = [ ":eventhandler_config" ]
   sources = [
     "eventhandler_impl/epoll_io_waiter_mingw.cpp",
@@ -55,6 +55,10 @@ ohos_source_set("impl_eventhandler") {
   defines = [ "LOG_DOMAIN=0xD001200" ]
   cflags = [ "-std=c++17" ]
   deps = [ ":utils" ]
+
+  if (is_mingw) {
+    defines += [ "IMPL_EVENTHANDELER_BUILD" ]
+  }
 
   external_deps = [
     "hilog:libhilog",
