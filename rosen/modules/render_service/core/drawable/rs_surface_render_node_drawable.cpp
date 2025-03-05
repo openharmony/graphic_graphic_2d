@@ -843,7 +843,8 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
-    if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && !uniParam->IsMirrorScreen()) {
         return false;
     }
     // Check black list.
