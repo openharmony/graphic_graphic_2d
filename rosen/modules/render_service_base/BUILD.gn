@@ -27,7 +27,8 @@ config("export_config") {
   defines += gpu_defines
 }
 
-if (!is_mingw && !is_mac && !is_cross_platform) {
+if (!is_mingw && !is_mac && !is_cross_platform &&
+    !(host_os == "linux" && host_cpu == "arm64")) {
   defines = [ "ENABLE_RUST" ]
   rust_cxx("particle_cxx_gen") {
     sources = [ "rust/src/lib.rs" ]
@@ -508,7 +509,8 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  if (!is_mingw && !is_mac && !is_cross_platform) {
+  if (!is_mingw && !is_mac && !is_cross_platform &&
+      !(host_os == "linux" && host_cpu == "arm64")) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
     include_dirs += [
