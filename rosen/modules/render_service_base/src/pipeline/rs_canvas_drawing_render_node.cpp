@@ -46,7 +46,6 @@ namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300;
-constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -577,14 +576,8 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
         if (cmd == nullptr) {
             continue;
         }
-        
-        if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
-            RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
-                    " Add DrawOpSize [%{public}zu]",
-                GetId(), cmd->GetOpItemSize());
-            continue;
-        }
 
+        cmd->SetCanvasDrawingOpLimitEnable(true);
         drawCmdLists_[modifierType].emplace_back(cmd);
         ++cmdCount_;
         SetNeedProcess(true);

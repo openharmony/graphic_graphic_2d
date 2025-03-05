@@ -27,6 +27,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+namespace {
+    constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
+}
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
@@ -566,9 +569,15 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     if (drawOpItems_.empty()) {
         return;
     }
+    uint32_t opCount = 0;
     for (auto op : drawOpItems_) {
+        if (isCanvasDrawingOpLimitEnabled_ && opCount > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+            LOGE("DrawCmdList::PlaybackByVector Out of DrawOp limit, DrawOpCount: %{public}d", opCount);
+            break;
+        }
         if (op) {
             op->Playback(&canvas, rect);
+            ++opCount;
         }
     }
     canvas.DetachPaint();
@@ -602,9 +611,15 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
         } while (offset != 0 && count <= MAX_OPITEMSIZE);
         lastOpGenSize_ = opAllocator_.GetSize();
     }
+    uint32_t opCount = 0;
     for (auto op : drawOpItems_) {
+        if (isCanvasDrawingOpLimitEnabled_ && opCount > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+            LOGE("DrawCmdList::PlaybackByBuffer Out of DrawOp limit, DrawOpCount: %{public}d", opCount);
+            break;
+        }
         if (op) {
             op->Playback(&canvas, rect);
+            ++opCount;
         }
     }
     canvas.DetachPaint();
@@ -720,6 +735,11 @@ size_t DrawCmdList::GetSize()
         }
     }
     return totoalSize;
+}
+
+void DrawCmdList::SetCanvasDrawingOpLimitEnable(bool isEnable)
+{
+    isCanvasDrawingOpLimitEnabled_ = isEnable;
 }
 } // namespace Drawing
 } // namespace Rosen
