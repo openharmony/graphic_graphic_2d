@@ -56,6 +56,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
 {
     auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
     std::ifstream shuc("/system/fonts/NotoSans[wdth,wght].ttf", std::ios::binary);
     std::stringstream shucStream;
     shucStream << shuc.rdbuf();
@@ -105,6 +106,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
     fileStream.close();
 
     std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    fontCollection->ClearThemeFont();
     LoadSymbolErrorCode res = fontCollection->LoadSymbolFont("testCustomSymbol", nullptr, 0);
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
 
@@ -131,6 +133,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level1)
 {
     auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
     std::ifstream notosans("/system/fonts/NotoSans[wdth,wght].ttf", std::ios::binary);
     std::ifstream cjk("/system/fonts/NotoSansCJK-Regular.ttc", std::ios::binary);
     ASSERT_TRUE(cjk.is_open() && notosans.is_open());
