@@ -16,6 +16,7 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_TEXT_STYLE_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TEXT_STYLE_H
 
+#include <bitset>
 #include <map>
 #include <optional>
 #include <string>
@@ -33,6 +34,34 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class RelayoutTextStyleAttribute {
+    // influence Shape
+    FONT_SIZE = 0,
+    FONT_WEIGHT = 1,
+    FONT_WIDTH = 2,
+    FONT_STYLE = 3,
+    FONT_FAMILIES = 4,
+    LETTER_SPACING = 5,
+    WORD_SPACING = 6,
+    HEIGHT_ONLY = 7,
+    HEIGHT_SCALE = 8,
+    FONT_FEATURES = 9,
+    FONT_VARIATIONS = 10,
+    BASELINE_SHIFT = 11,
+
+    // influence Draw
+    DECORATION = 12,
+    DECORATION_COLOR = 13,
+    DECORATION_STYLE = 14,
+    DECORATION_THICKNESS_SCALE = 15,
+    BACKGROUND_RECT = 16,
+    STYLE_ID = 17,
+    FONT_COLOR = 18,
+    SHADOWS = 19,
+
+    TEXT_STYLE_ATTRIBUTE_BUTT,
+};
+
 class RS_EXPORT FontFeatures {
 public:
     void SetFeature(std::string tag, int value);
@@ -105,16 +134,18 @@ struct TextStyle {
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
-    RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
-    int styleId = 0;
+    RectStyle backgroundRect = { 0, 0.0, 0.0, 0.0, 0.0 };
+    int styleId = { 0 };
+    size_t textStyleUid = { 0 };
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
     bool isSymbolGlyph = false;
     HMSymbolTxt symbol;
-    double baseLineShift = 0.0;
+    double baseLineShift = { 0.0 };
     bool isPlaceholder = false;
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
 };
 } // namespace Rosen
 } // namespace OHOS

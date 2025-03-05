@@ -16,21 +16,38 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_HM_SYMBOL_TXT_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_HM_SYMBOL_TXT_H
 
+#include <bitset>
+#include <cstdint>
 #include <iostream>
 #include <vector>
-#include "draw/color.h"
 
+#include "draw/color.h"
 #include "text/hm_symbol.h"
 #include "symbol_constants.h"
 
 namespace OHOS {
 namespace Rosen {
+enum class RelayoutSymbolStyleAttribute {
+    // influence dynamic effect
+    EFFECT_STRATEGY = 0,
+    ANIMATION_MODE = 1,
+    ANIMATION_START = 2,
+    COMMONSUB_TYPE = 3,
+
+    // influence static effect
+    COLOR_LIST = 4,
+    RENDER_MODE = 5,
+
+    SYMBOL_ATTRIBUTE_BUTT,
+};
 
 enum VisualMode {
     VISUAL_MEDIUM = 0,
     VISUAL_SMALL = 1,
     VISUAL_LARGER = 2
 };
+
+using SymbolBitmapType = std::bitset<static_cast<size_t>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT)>;
 
 class RS_EXPORT HMSymbolTxt {
 public:
@@ -63,6 +80,10 @@ public:
 
     void SetSymbolType(SymbolType symbolType);
 
+    void SetSymbolTxtId(const size_t symbolTxtId);
+
+    void SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap);
+
     std::vector<Drawing::DrawingSColor> GetRenderColor() const;
 
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const;
@@ -81,6 +102,10 @@ public:
 
     SymbolType GetSymbolType() const;
 
+    size_t GetSymbolTxtId() const;
+
+    const SymbolBitmapType& GetSymbolBitmap() const;
+
 private:
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
@@ -89,12 +114,14 @@ private:
     // animationMode_ is the implementation mode of the animation effect:
     // common_animations: the 0 is the byLayer effect and 1 is the wholeSymbol effect;
     // variable_color : the 0 is the cumulative effect and 1 is the iteratuve effect.
+    size_t symbolTxtId_ = 0;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = false;
     std::map<std::string, int> visualMap_;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
+    SymbolBitmapType relayoutChangeBitmap_;
 };
 }
 }

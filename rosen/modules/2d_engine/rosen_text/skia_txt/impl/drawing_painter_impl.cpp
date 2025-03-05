@@ -16,14 +16,18 @@
 #include "drawing_painter_impl.h"
 
 #include <array>
+#include <memory>
 
 #include "include/core/SkBlurTypes.h"
 #include "include/core/SkMaskFilter.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkDiscretePathEffect.h"
+#include "modules/skparagraph/include/drawing.h"
+#include "paint_record.h"
 #include "skia_adapter/skia_paint.h"
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_text_blob.h"
+#include "symbol_engine/hm_symbol_run.h"
 
 #ifdef HM_SYMBOL_TXT_ENABLE
 #include <parameters.h>
@@ -95,30 +99,32 @@ RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, cons
 void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(const std::shared_ptr<RSTextBlob>& blob, const RSPoint& offset,
     const PaintRecord &pr)
 {
-    symbolCount_++;
-    const uint32_t length32Bit = 32;
-    auto symbolSpanId = (static_cast<uint64_t>(paragraphId_) << length32Bit) + symbolCount_;
-    HMSymbolRun hmSymbolRun = HMSymbolRun(symbolSpanId, pr.symbol, blob, animationFunc_);
+    std::shared_ptr<HMSymbolRun> hmSymbolRun = generateSymbolRun(blob, pr);
+
+    if (hmSymbolRun == nullptr) {
+        return;
+    }
+
     if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
         canvas_->AttachPen(pr.pen.value());
-        hmSymbolRun.DrawSymbol(canvas_, offset);
+        hmSymbolRun->DrawSymbol(canvas_, offset);
         canvas_->DetachPen();
         canvas_->DetachBrush();
     } else if (pr.pen.has_value() && !pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        hmSymbolRun.DrawSymbol(canvas_, offset);
+        hmSymbolRun->DrawSymbol(canvas_, offset);
         canvas_->DetachPen();
     } else if (!pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
-        hmSymbolRun.DrawSymbol(canvas_, offset);
+        hmSymbolRun->DrawSymbol(canvas_, offset);
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
         brush.SetAntiAlias(true);
         canvas_->AttachBrush(brush);
-        hmSymbolRun.DrawSymbol(canvas_, offset);
+        hmSymbolRun->DrawSymbol(canvas_, offset);
         canvas_->DetachBrush();
     }
 }
@@ -273,6 +279,21 @@ void RSCanvasParagraphPainter::save()
 void RSCanvasParagraphPainter::restore()
 {
     canvas_->Restore();
+}
+
+std::shared_ptr<HMSymbolRun> RSCanvasParagraphPainter::generateSymbolRun(
+    const std::shared_ptr<RSTextBlob>& blob, const PaintRecord& pr)
+{
+    for (const std::shared_ptr<HMSymbolRun>& hmSymbol : hmSymbols_) {
+        if (hmSymbol->GetSymbolTxtId() != pr.symbol.GetSymbolTxtId()) {
+            continue;
+        }
+
+        hmSymbol->SetTextBlob(blob);
+        hmSymbol->SetSymbolTxt(pr.symbol);
+        return hmSymbol;
+    }
+    return nullptr;
 }
 } // namespace SPText
 } // namespace Rosen

@@ -18,12 +18,14 @@
 #include <algorithm>
 #include <numeric>
 
+#include "convert.h"
 #include "drawing_painter_impl.h"
 #include "text_font_utils.h"
 #include "include/core/SkMatrix.h"
 #include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_builder_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
+#include "symbol_engine/hm_symbol_run.h"
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
@@ -152,6 +154,22 @@ float ParagraphImpl::DetectIndents(size_t index)
     return paragraph_->detectIndents(index);
 }
 
+void ParagraphImpl::InitSymbolRuns()
+{
+    std::call_once(initSymbolRunsFlag_, [this]() {
+        for (const PaintRecord& p : paints_) {
+            if (!p.isSymbolGlyph) {
+                continue;
+            }
+
+            std::shared_ptr<HMSymbolRun> hmSymbolRun = std::make_shared<HMSymbolRun>();
+            hmSymbolRun->SetAnimation(animationFunc_);
+            hmSymbolRun->SetSymbolTxtId(p.symbol.GetSymbolTxtId());
+            hmSymbols_.push_back(std::move(hmSymbolRun));
+        }
+    });
+}
+
 void ParagraphImpl::Layout(double width)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -201,7 +219,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
-    painter.SetParagraphId(id_);
+    painter.SetHmSymbols(hmSymbols_);
     paragraph_->paint(&painter, x, y);
 }
 
@@ -210,7 +228,6 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double h
     RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
-    painter.SetParagraphId(id_);
     paragraph_->paint(&painter, path, hOffset, vOffset);
 }
 

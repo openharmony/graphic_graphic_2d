@@ -16,12 +16,13 @@
 #ifndef ROSEN_MODULES_SPTEXT_DRAWING_PAINTER_IMPL_H
 #define ROSEN_MODULES_SPTEXT_DRAWING_PAINTER_IMPL_H
 
-#include "modules/skparagraph/include/ParagraphPainter.h"
-#include "txt/paint_record.h"
+#include <memory>
 
 #include "draw/canvas.h"
+#include "modules/skparagraph/include/ParagraphPainter.h"
 #include "rosen_text/symbol_animation_config.h"
 #include "symbol_engine/hm_symbol_run.h"
+#include "txt/paint_record.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,18 +60,19 @@ public:
         }
     }
 
-    void SetParagraphId(uint32_t id)
+    void SetHmSymbols(std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbols)
     {
-        paragraphId_ = id;
+        hmSymbols_ = hmSymbols;
     }
+
+    std::shared_ptr<HMSymbolRun> generateSymbolRun(const std::shared_ptr<RSTextBlob>& blob, const PaintRecord& pr);
 
 private:
     Drawing::Canvas* canvas_;
     const std::vector<PaintRecord>& paints_;
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
-    uint64_t symbolCount_ = 0;
-    uint32_t paragraphId_ = 0;
+    std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
 };
 } // namespace SPText
 } // namespace Rosen

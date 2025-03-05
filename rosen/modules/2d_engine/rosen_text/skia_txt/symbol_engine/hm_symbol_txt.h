@@ -16,16 +16,17 @@
 #ifndef LIB_TXT_SRC_SYMBOL_ENGINE_HM_SYMBOL_TXT_H
 #define LIB_TXT_SRC_SYMBOL_ENGINE_HM_SYMBOL_TXT_H
 
+#include <bitset>
 #include <iostream>
 #include <vector>
 
 #include "drawing.h"
 #include "rosen_text/symbol_constants.h"
+#include "rosen_text/hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-
 class HMSymbolTxt {
 public:
     HMSymbolTxt() {}
@@ -51,6 +52,10 @@ public:
 
     void SetSymbolType(SymbolType symbolType);
 
+    void SetSymbolTxtId(const size_t symbolTxtId);
+
+    void SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap);
+
     bool operator ==(HMSymbolTxt const &symbol) const;
 
     std::vector<RSSColor> GetRenderColor() const;
@@ -69,17 +74,23 @@ public:
 
     SymbolType GetSymbolType() const;
 
+    size_t GetSymbolTxtId() const;
+
+    const SymbolBitmapType& GetSymbolBitmap() const;
+
     std::string familyName_;
 
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
+    size_t symbolTxtId_ = 0;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
     SymbolType symbolType_{SymbolType::SYSTEM};
+    SymbolBitmapType relayoutChangeBitmap_;
 };
 }
 }
