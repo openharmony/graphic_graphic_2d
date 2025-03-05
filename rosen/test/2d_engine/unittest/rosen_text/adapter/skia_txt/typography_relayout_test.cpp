@@ -27,7 +27,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 const double LAYOUT_WIDTH = 1000;
-class OHDrawingTypographyRelayoutTest : public testing::Test {
+class TypographyRelayoutTest : public testing::Test {
 };
 
 /*
@@ -35,7 +35,7 @@ class OHDrawingTypographyRelayoutTest : public testing::Test {
  * @tc.desc: test for relayout but not change paragraph style
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Level1)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -68,7 +68,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, Te
  * @tc.desc: test for relayout but not layout
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Level1)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -98,7 +98,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, Te
  * @tc.desc: test for relayout and changing relayout width
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Level1)
 {
     double maxWidth = LAYOUT_WIDTH / 10;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -128,7 +128,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, Te
  * @tc.desc: test for relayout paragraph style default font size
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Level1)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -160,7 +160,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, Te
  * @tc.desc: test for relayout paragraph style maxlines
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Level1)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -192,7 +192,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, Te
  * @tc.desc: test for relayout paragraph style ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Level1)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;
@@ -228,7 +228,7 @@ HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, Te
  * @tc.desc: test for relayout paragraph style ellipsis modal
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingTypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Level1)
 {
     double maxWidth = 50;
     OHOS::Rosen::TypographyStyle typographyStyle;

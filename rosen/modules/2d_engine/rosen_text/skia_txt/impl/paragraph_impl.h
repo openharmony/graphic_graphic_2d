@@ -134,7 +134,7 @@ public:
 
     void SetLayoutState(size_t state) override;
 private:
-    void paragraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
+    void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);

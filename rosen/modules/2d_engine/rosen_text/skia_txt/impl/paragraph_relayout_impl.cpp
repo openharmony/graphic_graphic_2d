@@ -267,7 +267,7 @@ std::vector<std::function<void(skt::Paragraph&, const ParagraphStyle&, skt::Inte
 };
 }
 
-void ParagraphImpl::paragraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
+void ParagraphImpl::ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
     skt::InternalState& state)
 {
     const std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>&
@@ -291,7 +291,7 @@ void ParagraphImpl::ApplyParagraphStyleChanges(const ParagraphStyle& style)
     }
 
     skt::InternalState state = paragraph_->getState();
-    paragraphStyleUpdater(*paragraph_, style, state);
+    ParagraphStyleUpdater(*paragraph_, style, state);
     paragraph_->setState(state);
 }
 
