@@ -1178,6 +1178,10 @@ void RSRenderNode::FallbackAnimationsToRoot()
     context->RegisterAnimatingRenderNode(target);
 
     for (auto& [unused, animation] : animationManager_.animations_) {
+        if (animation->IsPaused()) {
+            animation->Resume();
+        }
+
         animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
