@@ -1037,7 +1037,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
     } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
-        auto canvasNode = static_cast<const RSCanvasNode*>(this);
+        auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
         NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
         if (linkedRootNodeId != INVALID_NODEID) {
             out += ", linkedRootNodeId: " + std::to_string(linkedRootNodeId);

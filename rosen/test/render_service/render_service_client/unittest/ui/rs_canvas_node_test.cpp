@@ -3822,7 +3822,7 @@ HWTEST_F(RSCanvasNodeTest, SetLinkedRootNodeId, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     EXPECT_NE(canvasNode, nullptr);
     canvasNode->SetLinkedRootNodeId(rootNodeId);
-    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+    EXPECT_EQ(rootNodeId, canvasNode->GetLinkedRootNodeId());
 }
 
 /**

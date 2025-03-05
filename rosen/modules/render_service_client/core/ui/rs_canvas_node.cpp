@@ -242,7 +242,7 @@ void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasNodeSetLinkedRootNodeId>(GetId(), rootNodeId);
     transactionProxy->AddCommand(command, true);
-    linkedRootNodeId_ = rootNodeId
+    linkedRootNodeId_ = rootNodeId;
 }
 
 NodeId RSCanvasNode::GetLinkedRootNodeId()
