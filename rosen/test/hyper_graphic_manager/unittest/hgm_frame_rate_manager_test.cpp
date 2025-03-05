@@ -561,6 +561,36 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     EXPECT_EQ(resVoteInfo.min, OLED_MIN_HZ);
 }
 
+/**
+ * @tc.name: ProcessRefreshRateVoteTest2
+ * @tc.desc: Verify the result of ProcessRefreshRateVote when idle 30 enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager frameRateMgr;
+    VoteInfo resultVoteInfo;
+    VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_60_HZ, OLED_120_HZ, 0}, true);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_120_HZ, OLED_120_HZ, 0}, true);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_IDLE", OLED_30_HZ, OLED_30_HZ, 0}, true);
+    auto resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_120_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_120_HZ, OLED_120_HZ, 0}, false);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_60_HZ, OLED_60_HZ, 0}, true);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_60_HZ);
+    EXPECT_EQ(resVoteInfo.max, OLED_60_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_60_HZ, OLED_60_HZ, 0}, false);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_60_HZ);
+    EXPECT_EQ(resVoteInfo.max, OLED_60_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_60_HZ, OLED_120_HZ, 0}, false);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_30_HZ, OLED_120_HZ, 0}, true);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.max, OLED_30_HZ);
+}
 
 /**
  * @tc.name: SetAceAnimatorVoteTest
