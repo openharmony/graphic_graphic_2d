@@ -122,12 +122,7 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         skia::textlayout::FontCollection::SetAdapterTextHeightEnabled(
             OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
         sktFontCollection_ = sk_make_sp<skia::textlayout::FontCollection>();
-
-        std::vector<SkString> defaultFontFamilies;
-        for (const std::string& family : OHOS::Rosen::SPText::GetDefaultFontFamilies()) {
-            defaultFontFamilies.emplace_back(family);
-        }
-        sktFontCollection_->setDefaultFontManager(defaultFontManager_, defaultFontFamilies);
+        UpdateDefaultFamilies();
         sktFontCollection_->setAssetFontManager(assetFontManager_);
         sktFontCollection_->setDynamicFontManager(dynamicFontManager_);
         sktFontCollection_->setTestFontManager(testFontManager_);
@@ -137,5 +132,17 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
     }
 
     return sktFontCollection_;
+}
+
+void FontCollection::UpdateDefaultFamilies()
+{
+    if (sktFontCollection_) {
+        std::vector<SkString> defaultFontFamilies;
+        for (const std::string& family :
+            OHOS::Rosen::SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies()) {
+            defaultFontFamilies.emplace_back(family);
+        }
+        sktFontCollection_->setDefaultFontManager(defaultFontManager_, std::move(defaultFontFamilies));
+    }
 }
 } // namespace txt
