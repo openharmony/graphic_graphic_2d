@@ -283,6 +283,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, ui
     jankFrames.lastMaxRealFrameTimeSteady_ = jankFrames.maxRealFrameTimeSteady_;
     jankFrames.lastMaxSeqMissedFrames_ = jankFrames.maxSeqMissedFrames_;
     jankFrames.lastMaxFrameOccurenceTimeSteady_ = jankFrames.maxFrameOccurenceTimeSteady_;
+    jankFrames.lastMaxFrameRefreshRate_ = jankFrames.maxFrameRefreshRate_;
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;
     }
@@ -298,6 +299,7 @@ void RSJankStats::UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, ui
     if (frameDuration > jankFrames.maxFrameTimeSteady_) {
         jankFrames.maxFrameOccurenceTimeSteady_ = rtEndTimeSteady_;
         jankFrames.maxFrameTimeSteady_ = frameDuration;
+        jankFrames.maxFrameRefreshRate_ = dynamicRefreshRate;
     }
     if (frameTechDuration > jankFrames.maxTechFrameTimeSteady_) {
         jankFrames.maxTechFrameTimeSteady_ = frameTechDuration;
@@ -683,7 +685,8 @@ void RSJankStats::ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames)
             aveFrameTimeSteady, "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP,
             "BUNDLE_NAME_EX", info.note, "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.maxHitchTime_),
             "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
-            "DURATION", static_cast<uint64_t>(duration));
+            "DURATION", static_cast<uint64_t>(duration),
+            "MAX_FRAME_REFRESH_RATE", jankFrames.maxFrameRefreshRate_);
     });
 }
 
@@ -723,7 +726,8 @@ void RSJankStats::ReportEventJankFrameWithDelay(const JankFrames& jankFrames) co
             "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note,
             "MAX_HITCH_TIME", static_cast<uint64_t>(jankFrames.lastMaxHitchTime_),
             "MAX_HITCH_TIME_SINCE_START", static_cast<uint64_t>(maxHitchTimeFromStart),
-            "DURATION", static_cast<uint64_t>(duration));
+            "DURATION", static_cast<uint64_t>(duration),
+            "MAX_FRAME_REFRESH_RATE", jankFrames.maxFrameRefreshRate_);
     });
 }
 
