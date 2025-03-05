@@ -632,6 +632,11 @@ public:
         isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
     }
 
+    bool GetOcclusionInSpecificScenes() const
+    {
+        return isOcclusionInSpecificScenes_;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
