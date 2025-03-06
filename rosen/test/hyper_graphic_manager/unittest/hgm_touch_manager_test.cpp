@@ -117,7 +117,6 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
 
     usleep(rsTimeoutUs);
     ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-    }
 
     // 3s timeout
     touchManager.ChangeState(TouchState::DOWN_STATE);
