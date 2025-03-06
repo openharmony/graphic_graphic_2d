@@ -1040,10 +1040,11 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
     }
 }
 
-void RSRenderServiceConnection::RepaintEverything()
+ErrCode RSRenderServiceConnection::RepaintEverything()
 {
     if (mainThread_ == nullptr) {
         RS_LOGE("RepaintEverything, mainThread_ is null, return");
+        return ERR_INVALID_VALUE;
     }
     auto task = []() -> void {
         RS_LOGI("RepaintEverything, setDirtyflag, forceRefresh in mainThread");
@@ -1051,6 +1052,7 @@ void RSRenderServiceConnection::RepaintEverything()
         RSMainThread::Instance()->ForceRefreshForUni();
     };
     mainThread_->PostTask(task);
+    return ERR_OK;
 }
 
 void RSRenderServiceConnection::ForceRefreshOneFrameWithNextVSync()

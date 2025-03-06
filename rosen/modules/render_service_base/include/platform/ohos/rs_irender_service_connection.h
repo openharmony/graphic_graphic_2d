@@ -163,7 +163,7 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
-    virtual void RepaintEverything() = 0;
+    virtual ErrCode RepaintEverything() = 0;
 
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
 

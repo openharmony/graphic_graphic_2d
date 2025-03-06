@@ -162,7 +162,7 @@ private:
 
     void MarkPowerOffNeedProcessOneFrame() override;
 
-    void RepaintEverything() override;
+    ErrCode RepaintEverything() override;
 
     void ForceRefreshOneFrameWithNextVSync() override;
 

@@ -1443,7 +1443,7 @@ void RSRenderServiceConnectionProxy::MarkPowerOffNeedProcessOneFrame()
     }
 }
 
-void RSRenderServiceConnectionProxy::RepaintEverything()
+ErrCode RSRenderServiceConnectionProxy::RepaintEverything()
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1451,15 +1451,16 @@ void RSRenderServiceConnectionProxy::RepaintEverything()
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RepaintEverything: Send Request err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
 void RSRenderServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync()
