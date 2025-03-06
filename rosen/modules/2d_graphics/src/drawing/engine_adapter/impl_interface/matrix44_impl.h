@@ -36,9 +36,9 @@ public:
 
     virtual void Translate(scalar dx, scalar dy, scalar dz) = 0;
     virtual void Scale(scalar sx, scalar sy, scalar sz) = 0;
-    virtual void PreTranslate(scalar dx, scalar dy, scalar dz);
-    virtual void PostTranslate(scalar dx, scalar dy, scalar dz);
-    virtual void PreScale(scalar sx, scalar sy, scalar sz);
+    virtual void PreTranslate(scalar dx, scalar dy, scalar dz) = 0;
+    virtual void PostTranslate(scalar dx, scalar dy, scalar dz) = 0;
+    virtual void PreScale(scalar sx, scalar sy, scalar sz) = 0;
     virtual void Multiply(const Matrix44& a, const Matrix44& b) = 0;
     virtual void SetMatrix44ColMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) = 0;
     virtual void SetMatrix44RowMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) = 0;
