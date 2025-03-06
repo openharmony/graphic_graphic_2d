@@ -2767,10 +2767,10 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-int32_t RSRenderServiceConnection::SetOverlayDisplayMode(int32_t mode)
+ErrCode RSRenderServiceConnection::SetOverlayDisplayMode(int32_t mode)
 {
     RS_LOGI("RSRenderServiceConnection::SetOverlayDisplayMode: mode: [%{public}d]", mode);
-    return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode);
+    return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode) == 0 ? ERR_OK : ERR_INVALID_VALUE;
 }
 #endif
 

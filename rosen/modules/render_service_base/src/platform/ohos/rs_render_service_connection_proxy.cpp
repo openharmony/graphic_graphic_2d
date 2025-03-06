@@ -4323,29 +4323,29 @@ void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-int32_t RSRenderServiceConnectionProxy::SetOverlayDisplayMode(int32_t mode)
+ErrCode RSRenderServiceConnectionProxy::SetOverlayDisplayMode(int32_t mode)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInt32(mode)) {
         ROSEN_LOGE("%{public}s: Write Int32 val err.", __func__);
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRequest failed. err:%{public}d.", __func__, err);
-        return RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     int32_t result = reply.ReadInt32();
     ROSEN_LOGI("%{public}s: mode:%{public}d, result:%{public}d.", __func__, mode, result);
-    return result;
+    return result == 0 ? ERR_OK : ERR_INVALID_VALUE;
 }
 #endif
 

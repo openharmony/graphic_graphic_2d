@@ -366,7 +366,7 @@ private:
     void SetWindowContainer(NodeId nodeId, bool value) override;
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-    int32_t SetOverlayDisplayMode(int32_t mode) override;
+    ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
