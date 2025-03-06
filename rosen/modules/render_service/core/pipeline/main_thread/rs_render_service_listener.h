@@ -34,6 +34,7 @@ public:
     void OnTransformChange() override;
 private:
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
+    void CleanLayerBufferCache();
 };
 } // namespace Rosen
 } // namespace OHOS

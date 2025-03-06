@@ -21,6 +21,8 @@
 #include "frame_report.h"
 #include "sync_fence.h"
 #include "rs_trace.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -134,6 +136,43 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         std::set<uint32_t> tmpSet;
         node->NeedClearPreBuffer(tmpSet);
         RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
+    });
+
+    CleanLayerBufferCache();
+}
+
+void RSRenderServiceListener::CleanLayerBufferCache()
+{
+    auto node = surfaceRenderNode_.lock();
+    if (!node) {
+        RS_LOGD("%{public}s: get node fail", __func__);
+        return;
+    }
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGD("%{public}s: get surfaceHandler fail", __func__);
+        return;
+    }
+    auto consumer = surfaceHandler->GetConsumer();
+    if (!consumer) {
+        RS_LOGD("%{public}s get consumer fail", __func__);
+        return;
+    }
+    uint64_t surfaceId = consumer->GetUniqueId();
+    RSHardwareThread::Instance().PostTask([surfaceId]() {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (!screenManager) {
+            RS_LOGE("RSRenderServiceListener get screenManager fail!");
+            return;
+        }
+        std::vector<ScreenId> screenIds = screenManager->GetAllScreenIds();
+        for (size_t i = 0; i < screenIds.size(); ++i) {
+            auto output = screenManager->GetOutput(screenIds[i]);
+            if (output == nullptr) {
+                continue;
+            }
+            output->CleanLayerBufferBySurfaceId(surfaceId);
+        }
     });
 }
 
