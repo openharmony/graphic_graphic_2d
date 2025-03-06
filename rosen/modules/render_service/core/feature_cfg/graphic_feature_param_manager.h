@@ -29,8 +29,8 @@
 #include "dirtyregion_param_parse.h"
 #include "drm_param_parse.h"
 #include "drm_param.h"
-#include "hdr_param_parse.h"
-#include "hdr_param.h"
+#include "color_gamut_param_parse.h"
+#include "color_gamut_param.h"
 #include "hfbc_param_parse.h"
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
@@ -69,7 +69,8 @@ struct ModuleConfig {
 const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[DIRTYREGION], [] {return std::make_unique<DirtyRegionParamParse>(); },
         [] {return std::make_unique<DirtyRegionParam>(); }},
-    {FEATURE_CONFIGS[HDR], [] {return std::make_unique<HDRParamParse>(); }, [] {return std::make_unique<HDRParam>(); }},
+    {FEATURE_CONFIGS[COLOR_GAMUT], [] {return std::make_unique<ColorGamutParamParse>(); },
+        [] {return std::make_unique<ColorGamutParam>(); }},
     {FEATURE_CONFIGS[DRM], [] {return std::make_unique<DRMParamParse>(); }, [] {return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
     {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },

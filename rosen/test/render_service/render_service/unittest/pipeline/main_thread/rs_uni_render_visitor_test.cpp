@@ -1265,6 +1265,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->curDisplayNode_->stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
     ASSERT_EQ(rsUniRenderVisitor->curDisplayNode_->GetColorSpace(), appWindowNode->GetColorSpace());
 }
@@ -1510,11 +1511,13 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Leve
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
+    displayNode->stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     displayNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
     ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     selfDrawingNode->SetAncestorDisplayNode(displayNode);
     selfDrawingNode->SetHardwareForcedDisabledState(true);
+    selfDrawingNode->SetIsOnTheTree(true);
     selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
     ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);

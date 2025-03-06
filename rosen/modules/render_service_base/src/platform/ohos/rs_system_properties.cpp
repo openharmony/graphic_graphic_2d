@@ -841,6 +841,14 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return true;
 }
 
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.wide.colorspace.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace = system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0;
