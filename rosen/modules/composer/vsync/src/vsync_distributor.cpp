@@ -1615,10 +1615,10 @@ bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t
 #endif
 }
 
-bool VSyncDistributor::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+void VSyncDistributor::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
+    DVSync::Instance().SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 #endif
 }
 

@@ -90,7 +90,7 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceR
     if (consumer) {
         consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedTimeStamp);
     }
-    int32_t bufferCount = surfaceHandler->GetAvailableBufferCount()
+    int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
     RSMainThread::Instance()->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
     RSMainThread::Instance()->RequestNextVSync("selfdrawing");
