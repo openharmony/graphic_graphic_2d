@@ -542,7 +542,6 @@ void RSMainThread::Init()
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     SetDeeplyRelGpuResSwitch();
-    SetSOCPerfSwitch();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -884,17 +883,6 @@ void RSMainThread::SetDeeplyRelGpuResSwitch()
     }
 }
 
-void RSMainThread::SetSOCPerfSwitch()
-{
-    auto socPerfFeature = GraphicFeatureParamManager::GetInstance().
-        GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]);
-    auto socPerfObj = std::static_pointer_cast<SOCPerfParam>(socPerfFeature);
-    if (socPerfObj != nullptr) {
-        isMultilayersSOCPerfEnable_ = socPerfObj->IsMultilayersSOCPerfEnable();
-        RS_LOGD("SetSOCPerfSwitch: MultilayersSOCPerfEnable %{public}d", this->IsMultilayersSOCPerfEnable());
-    }
-}
-
 DeviceType RSMainThread::GetDeviceType() const
 {
     return deviceType_;
@@ -903,11 +891,6 @@ DeviceType RSMainThread::GetDeviceType() const
 bool RSMainThread::IsDeeplyRelGpuResEnable() const
 {
     return isDeeplyRelGpuResEnable_;
-}
-
-bool RSMainThread::IsMultilayersSOCPerfEnable() const
-{
-    return isMultilayersSOCPerfEnable_;
 }
 
 uint64_t RSMainThread::GetFocusNodeId() const
@@ -2434,7 +2417,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
 #endif // RES_SCHED_ENABLE
 
-        if (isMultilayersSOCPerfEnable_) {
+        auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+            GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+        if (socPerfParam != nullptr && socPerfParam->isMultilayersSOCPerfEnable()) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }
         CheckBlurEffectCountStatistics(rootNode);
@@ -4278,6 +4263,11 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
 
 void RSMainThread::PerfForBlurIfNeeded()
 {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+        return;
+    }
     handler_->RemoveTask(PERF_FOR_BLUR_IF_NEEDED_TASK_NAME);
     static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;

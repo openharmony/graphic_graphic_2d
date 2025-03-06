@@ -541,6 +541,12 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+        return;
+    }
+    
     if (!handler_) {
         return;
     }
