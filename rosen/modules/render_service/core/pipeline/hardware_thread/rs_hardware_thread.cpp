@@ -107,6 +107,12 @@ void RSHardwareThread::Start()
     if (handler_) {
         ScheduleTask(
             [this]() {
+#if defined (RS_ENABLE_VK)
+                // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
+                if (RSSystemProperties::IsUseVulkan()) {
+                    RsVulkanContext::GetSingleton().SetIsProtected(false);
+                }
+#endif
                 auto screenManager = CreateOrGetScreenManager();
                 if (screenManager == nullptr || !screenManager->Init()) {
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
@@ -116,11 +122,6 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#if defined (RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
-                if (RSSystemProperties::IsUseVulkan()) {
-                    RsVulkanContext::GetSingleton().SetIsProtected(false);
-                }
-#endif
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
             }).wait();
