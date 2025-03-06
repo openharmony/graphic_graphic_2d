@@ -199,7 +199,6 @@ constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
-constexpr uint64_t FASTCOMPOSE_OFFSET_THRESHOLD = 150000; // 150us
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -4205,10 +4204,6 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_ - lastFastComposeTimeStampDiff_;
     } else {
         lastVsyncTime = timestamp_;
-    }
-    if ((unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
-        unsignedVsyncPeriod - FASTCOMPOSE_OFFSET_THRESHOLD) {
-        unsignedNowTime += FASTCOMPOSE_OFFSET_THRESHOLD;
     }
     lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
