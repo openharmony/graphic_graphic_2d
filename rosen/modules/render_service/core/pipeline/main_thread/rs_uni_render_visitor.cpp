@@ -1267,8 +1267,7 @@ void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode
         RS_OPTIONAL_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
             node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
-        const auto currentBlackList = GetCurrentBlackList();
-        if (IsValidInVirtualScreen(node) && currentBlackList.find(node.GetId()) == currentBlackList.end()) {
+        if (IsValidInVirtualScreen(node)) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
         }
     }
@@ -1324,15 +1323,6 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
         RS_LOGI("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
         allLastVisVec_ = std::move(allDstCurVisVec_);
     }
-}
-
-const std::unordered_set<NodeId> RSUniRenderVisitor::GetCurrentBlackList() const
-{
-    if (!screenManager_ || !curDisplayNode_) {
-        return std::unordered_set<NodeId>();
-    }
-
-    return screenManager_->GetVirtualScreenBlackList(curDisplayNode_->GetScreenId());
 }
 
 RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
@@ -1578,6 +1568,8 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
     curDisplayDirtyManager_->SetActiveSurfaceRect(screenInfo_.activeRect);
     screenManager_->SetScreenHasProtectedLayer(currentVisitDisplay_, false);
+    allBlackList_ = screenManager_->GetAllBlackList();
+    allWhiteList_ = screenManager_->GetAllWhiteList();
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
