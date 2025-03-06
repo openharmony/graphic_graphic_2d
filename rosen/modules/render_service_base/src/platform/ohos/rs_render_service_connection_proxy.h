@@ -316,7 +316,7 @@ public:
 
     int64_t GetHdrOnDuration() override;
 
-    void SetVmaCacheStatus(bool flag) override;
+    ErrCode SetVmaCacheStatus(bool flag) override;
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;

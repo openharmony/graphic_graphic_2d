@@ -346,7 +346,7 @@ public:
 
     virtual int64_t GetHdrOnDuration() = 0;
 
-    virtual void SetVmaCacheStatus(bool flag) = 0;
+    virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;

@@ -3958,26 +3958,27 @@ int64_t RSRenderServiceConnectionProxy::GetHdrOnDuration()
     return result;
 }
 
-void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
+ErrCode RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetVmaCacheStatus: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(flag)) {
         ROSEN_LOGE("SetVmaCacheStatus: WriteBool flag err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
 #ifdef TP_FEATURE_ENABLE

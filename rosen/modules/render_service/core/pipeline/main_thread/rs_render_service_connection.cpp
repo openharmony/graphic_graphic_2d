@@ -2553,11 +2553,12 @@ int64_t RSRenderServiceConnection::GetHdrOnDuration()
     return duration;
 }
 
-void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
+ErrCode RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_GPU
     renderThread_.SetVmaCacheStatus(flag);
 #endif
+    return ERR_OK;
 }
 
 #ifdef TP_FEATURE_ENABLE
