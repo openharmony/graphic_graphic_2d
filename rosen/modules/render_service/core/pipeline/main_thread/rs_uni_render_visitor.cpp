@@ -172,8 +172,13 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
 {
+    if (auto dirtyRegionParam = std::static_pointer_cast<DirtyRegionParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam("DirtyRegionConfig"))) {
+        isPartialRenderEnabled_ = dirtyRegionParam->IsDirtyRegionEnable();
+    }
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
-    isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
+
     isCompleteRenderEnabled_ = (partialRenderType_ == PartialRenderType::SET_DAMAGE_BUT_COMPLETE_RENDER);
     dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
     surfaceRegionDebugType_ = RSSystemProperties::GetSurfaceRegionDfxType();
