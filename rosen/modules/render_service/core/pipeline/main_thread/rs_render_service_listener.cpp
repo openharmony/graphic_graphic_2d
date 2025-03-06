@@ -84,7 +84,7 @@ void RSRenderServiceListener::OnBufferAvailable()
 }
 
 void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
-    std::shared_ptr<RSSurfaceHandler> &surfaceHandler, sptr<IConsumerSurface> &consumer)
+    std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
 {
     int64_t lastFlushedTimeStamp = 0;
     if (consumer) {
