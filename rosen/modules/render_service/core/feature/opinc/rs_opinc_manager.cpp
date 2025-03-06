@@ -25,9 +25,6 @@ RSOpincManager& RSOpincManager::Instance()
     return instance;
 }
 
-RSOpincManager::RSOpincManager()
-{}
-
 bool RSOpincManager::ReadOPIncCcmParam()
 {
     bool res = false;

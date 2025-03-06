@@ -34,7 +34,7 @@ public:
         isOPIncOn_ = opincSwitch;
     }
 private:
-    RSOpincManager();
+    RSOpincManager() = default;
     ~RSOpincManager() = default;
     RSOpincManager(const RSOpincManager&);
     RSOpincManager(const RSOpincManager&&);
