@@ -42,6 +42,11 @@ namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniRenderUtil {
 public:
+    static Occlusion::Region GetExpandedAllDirtyRegion(
+        ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion, Occlusion::Region& globalDirtyRegion);
+    static void MergeDirtyRectAfterMergeHistory(
+        std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion);
+    static std::vector<RectI> GetExpandedDamageRegion(ScreenInfo& screenInfo, std::vector<RectI>& rects);
     static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
     static std::vector<RectI> MergeDirtyHistoryInVirtual(
@@ -50,9 +55,12 @@ public:
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
-    static void SetAllSurfaceDrawableGlobalDityRegion(
+    static void SetAllSurfaceDrawableGlobalDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const Occlusion::Region& globalDirtyRegion);
+    static void SetDrawRegionForQuickReject(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
+        const Occlusion::Region mergedDirtyRects);
     /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
@@ -60,6 +68,10 @@ public:
     static Occlusion::Region MergeVisibleDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
+    static Occlusion::Region MergeVisibleAdvancedDirtyRegion(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+        std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec);
+    static Occlusion::Region MergeDirtyRects(Occlusion::Region dirtyRegion);
     static void MergeDirtyHistoryInVirtual(
         DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, bool renderParallel = false);
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(

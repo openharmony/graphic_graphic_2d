@@ -142,6 +142,7 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
+    "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
@@ -540,6 +541,12 @@ ohos_source_set("render_service_base_src") {
   if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
       enable_ipc_security_access_counter) {
     defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
+  if (defined(graphic_2d_math_tools_configs.vendor_root)) {
+    sources +=
+        graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources
+    sources -= graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources_del
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

@@ -438,6 +438,7 @@ private:
     bool needRequestNextVsync_ = true;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     DirtyRegionDebugType dirtyRegionDebugType_;
+    AdvancedDirtyRegionType advancedDirtyType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
