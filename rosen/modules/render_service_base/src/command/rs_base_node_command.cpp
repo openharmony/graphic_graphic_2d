@@ -99,13 +99,13 @@ void BaseNodeCommandHelper::SetIsCrossNode(RSContext& context, NodeId nodeId, bo
 }
 
 void BaseNodeCommandHelper::AddCrossScreenChild(RSContext& context, NodeId id, NodeId childId,
-    NodeId cloneNodeId, int32_t index)
+    NodeId cloneNodeId, int32_t index, bool autoClearCloneNode)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode(id);
     auto child = nodeMap.GetRenderNode(childId);
     if (node) {
-        node->AddCrossScreenChild(child, cloneNodeId, index);
+        node->AddCrossScreenChild(child, cloneNodeId, index, autoClearCloneNode);
     }
 }
 

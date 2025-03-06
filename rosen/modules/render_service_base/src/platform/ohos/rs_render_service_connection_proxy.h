@@ -232,6 +232,8 @@ public:
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
+
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
@@ -256,7 +258,7 @@ public:
 
     void SetAppWindowNum(uint32_t num) override;
 
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
@@ -268,6 +270,9 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) override;
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
     void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
@@ -275,6 +280,8 @@ public:
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
+
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
     void ReportEventResponse(DataBaseRs info) override;
 
@@ -335,6 +342,10 @@ public:
     void NotifyScreenSwitched() override;
 
     void SetWindowContainer(NodeId nodeId, bool value) override;
+
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
 private:
     bool FillParcelWithTransactionData(

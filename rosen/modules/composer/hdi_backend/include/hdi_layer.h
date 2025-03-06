@@ -130,6 +130,7 @@ private:
     int32_t SetPerFrameParameterSdrNit();
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
+    int32_t SetPerFrameLayerLinearMatrix();
     int32_t SetPerFrameLayerSourceTuning(); // used for source crop tuning
     void ClearBufferCache();
 };

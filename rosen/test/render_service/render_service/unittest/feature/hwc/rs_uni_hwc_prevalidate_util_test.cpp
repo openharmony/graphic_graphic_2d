@@ -26,7 +26,7 @@ constexpr uint32_t DEFAULT_Z_ORDER = 0;
 constexpr int DEFAULT_POSITION = 0;
 constexpr int DEFAULT_WIDTH = 100;
 constexpr int DEFAULT_HEIGHT = 100;
-class RSUniPrevalidateUtilTest : public testing::Test {
+class RSUniHwcPrevalidateUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -34,13 +34,13 @@ public:
     void TearDown() override;
 };
 
-void RSUniPrevalidateUtilTest::SetUpTestCase()
+void RSUniHwcPrevalidateUtilTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
 }
-void RSUniPrevalidateUtilTest::TearDownTestCase() {}
-void RSUniPrevalidateUtilTest::SetUp() {}
-void RSUniPrevalidateUtilTest::TearDown() {}
+void RSUniHwcPrevalidateUtilTest::TearDownTestCase() {}
+void RSUniHwcPrevalidateUtilTest::SetUp() {}
+void RSUniHwcPrevalidateUtilTest::TearDown() {}
 
 /**
  * @tc.name: CreateSurfaceNodeLayerInfo001
@@ -48,7 +48,7 @@ void RSUniPrevalidateUtilTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueIAZAWR
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     RequestLayerInfo info;
@@ -64,7 +64,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueIAZAWR
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfo002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -78,12 +78,32 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo002, TestSize.Level
 }
 
 /**
+ * @tc.name: CreateSurfaceNodeLayerInfo003
+ * @tc.desc: CreateSurfaceNodeLayerInfo, input surfaceNode with metaData
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateSurfaceNodeLayerInfo003, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->surfaceHandler_->buffer_.buffer;
+    ASSERT_NE(buffer, nullptr);
+    buffer->SetCropMetadata({DEFAULT_POSITION, DEFAULT_POSITION, DEFAULT_WIDTH, DEFAULT_HEIGHT});
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: IsYUVBufferFormat001
  * @tc.desc: IsYUVBufferFormat, buffer is nullptr && format is invalid
  * @tc.type: FUNC
  * @tc.require: issueIAZAWR
  */
-HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsYUVBufferFormat001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -107,7 +127,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIAZAWR
  */
-HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -124,7 +144,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateDisplayNodeLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
@@ -141,7 +161,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo001, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
@@ -162,7 +182,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateRCDLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     ScreenInfo screenInfo;
@@ -178,7 +198,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     NodeId id = 1;
@@ -197,7 +217,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIATEBN
  */
-HWTEST_F(RSUniPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     uniHwcPrevalidateUtil.isPrevalidateHwcNodeEnable_ = true;
@@ -215,7 +235,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIATEBN
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow001, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> hwcNode = nullptr;
     std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
@@ -233,7 +253,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow001, TestSize.
  * @tc.type: FUNC
  * @tc.require: issueIATEBN
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow002, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
     std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
@@ -250,7 +270,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow002, TestSize.
  * @tc.type: FUNC
  * @tc.require: issueIATEBN
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow003, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow003, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
     std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
@@ -261,12 +281,27 @@ HWTEST_F(RSUniPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow003, TestSize.
 }
 
 /**
+ * @tc.name: CheckHwcNodeAndGetPointerWindow003
+ * @tc.desc: CheckHwcNodeAndGetPointerWindow, input surfaceNode without buffer
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow004, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
+    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
+    hwcNode->isOnTheTree_ = true;
+    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
+    EXPECT_EQ(ret, false);
+}
+
+/**
  * @tc.name: ClearCldInfo
  * @tc.desc: Test ClearCldInfo
  * @tc.type: FUNC
  * @tc.require: issueIBA4NP
  */
-HWTEST_F(RSUniPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
 {
     NodeId id = 1;
     auto node = std::make_shared<RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
@@ -287,7 +322,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateUIFirstLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateUIFirstLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -304,7 +339,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateUIFirstLayerInfo001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CreateUIFirstLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateUIFirstLayerInfo002, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     RequestLayerInfo info;
@@ -320,7 +355,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateUIFirstLayerInfo002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CheckIfDoArsrPre001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoArsrPre001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -333,12 +368,27 @@ HWTEST_F(RSUniPrevalidateUtilTest, CheckIfDoArsrPre001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckIfDoArsrPre001
+ * @tc.desc: CheckIfDoArsrPre, surfaceNode buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoArsrPre002, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode);
+    ASSERT_EQ(ret, false);
+}
+
+/**
  * @tc.name: CopyCldInfo001
  * @tc.desc: CopyCldInfo
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CopyCldInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CopyCldInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     NodeId id = 1;
@@ -354,7 +404,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CopyCldInfo001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, LayerRotate001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, LayerRotate001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     RequestLayerInfo info;
@@ -392,7 +442,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, LayerRotate001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, EmplaceSurfaceNodeLayer001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, EmplaceSurfaceNodeLayer001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
@@ -410,7 +460,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, EmplaceSurfaceNodeLayer001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CollectUIFirstLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectUIFirstLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> uiFirstLayers;
@@ -425,7 +475,7 @@ HWTEST_F(RSUniPrevalidateUtilTest, CollectUIFirstLayerInfo001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBA6PF
  */
-HWTEST_F(RSUniPrevalidateUtilTest, CollectSurfaceNodeLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
@@ -437,5 +487,39 @@ HWTEST_F(RSUniPrevalidateUtilTest, CollectSurfaceNodeLayerInfo001, TestSize.Leve
     ScreenInfo screenInfo;
     uint32_t zOrder = DEFAULT_Z_ORDER;
     uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder, screenInfo);
+}
+
+/**
+ * @tc.name: Destructor001
+ * @tc.desc: test for Destructor when handle is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, Destructor001, TestSize.Level1)
+{
+    auto& util = RSUniHwcPrevalidateUtil::GetInstance();
+    util.preValidateHandle_ = nullptr;
+    ASSERT_EQ(util.preValidateHandle_, nullptr);
+}
+
+/**
+ * @tc.name: PreVaildate001
+ * @tc.desc: test for Prevaildate
+ * @tc.type: FUNC
+ * @tc.require: issueIBQDHZ
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, PreVaildate001, TestSize.Level1)
+{
+    auto& util = RSUniHwcPrevalidateUtil::GetInstance();
+    ScreenId id = 0;
+    std::vector<RequestLayerInfo> infos;
+    std::map<uint64_t, RequestCompositionType> strategy;
+    if (util.preValidateFunc_) {
+        bool ret = util.PreValidate(id, infos, strategy);
+        ASSERT_EQ(ret, true);
+    }
+    util.preValidateFunc_ = nullptr;
+    bool ret = util.PreValidate(id, infos, strategy);
+    ASSERT_EQ(ret, false);
 }
 }

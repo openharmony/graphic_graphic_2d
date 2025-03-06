@@ -400,9 +400,6 @@ HWTEST_F(RsInterfaceTest, GetRefreshInfo01, TestSize.Level1)
  */
 HWTEST_F(RsInterfaceTest, SetWatermark01, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     instance.renderServiceClient_ = nullptr;

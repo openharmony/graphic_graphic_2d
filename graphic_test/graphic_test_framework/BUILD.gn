@@ -75,6 +75,7 @@ ohos_source_set("rs_graphic_test_src") {
   public_external_deps = [
     "graphic_surface:surface",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "image_framework:image_native",
     "libpng:libpng",
     "window_manager:libdm",

@@ -64,7 +64,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CommitTransaction, TestSize.Level1)
     std::unique_ptr<RSTransactionData> transactionData;
     proxy->CommitTransaction(transactionData);
     transactionData = std::make_unique<RSTransactionData>();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     NodeId nodeId = 1;
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     transactionData->AddCommand(command, nodeId, followType);
@@ -882,7 +882,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallbac
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
     proxy->SetAppWindowNum(1);
-    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER));
+    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false));
 }
 
 /**
@@ -957,6 +957,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
 {
     std::vector<std::string> packageList;
     proxy->NotifyPackageEvent(1, packageList);
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    proxy->NotifyAppStrategyConfigChangeEvent("test", 1, newConfig);
     EventInfo eventInfo;
     proxy->NotifyRefreshRateEvent(eventInfo);
     int32_t touchStatus = 1;
@@ -965,6 +967,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: NotifyHgmConfigEvent Test
+ * @tc.desc: NotifyHgmConfigEvent Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Level1)
+{
+    std::string eventName = "HGMCONFIG_HIGH_TEMP";
+    bool state = false;
+    proxy->NotifyHgmConfigEvent(eventName, state);
+    ASSERT_TRUE(proxy);
 }
 
 /**

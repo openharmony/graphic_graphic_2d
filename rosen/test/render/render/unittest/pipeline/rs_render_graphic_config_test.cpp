@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

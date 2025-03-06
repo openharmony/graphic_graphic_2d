@@ -83,7 +83,8 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void ResetClearMemoryTask(bool isDoDirectComposition = false);
+    void PurgeShaderCacheAfterAnimate();
     void SetReclaimMemoryFinished(bool isFinished);
     bool IsReclaimMemoryFinished();
     void SetTimeToReclaim(bool isTimeToReclaim);
@@ -126,7 +127,7 @@ public:
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
-    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache);
+    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen = false);
 
     void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
@@ -198,6 +199,18 @@ public:
         return whiteList_;
     }
 
+    void SetVisibleRect(const Drawing::RectI& visibleRect)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        visibleRect_ = visibleRect;
+    }
+
+    const Drawing::RectI& GetVisibleRect() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return visibleRect_;
+    }
+
     void SetWallpaperTranslate(int32_t translateX, int32_t translateY)
     {
         std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
@@ -210,12 +223,24 @@ public:
         return wallpaperTranslate_;
     }
 
+    void SetEnableVisiableRect(bool enableVisiableRect)
+    {
+        enableVisiableRect_.store(enableVisiableRect);
+    }
+
+    bool GetEnableVisiableRect() const
+    {
+        return enableVisiableRect_.load();
+    }
+
+    void DumpVkImageInfo(std::string &dumpString);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
+    void RSUniRenderGfxDumpInit();
 
     bool displayNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
@@ -223,6 +248,7 @@ private:
     bool clearMemDeeply_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isDefaultCleanTaskFinished_ = true;
+    bool hasPurgeShaderCacheTask_ = false;
     bool postImageReleaseTaskFlag_ = false;
     bool isReclaimMemoryFinished_ = true;
     std::atomic<bool> isTimeToReclaim_ {false};
@@ -232,6 +258,7 @@ private:
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
     int imageReleaseCount_ = 0;
@@ -252,7 +279,6 @@ private:
     // used for stalling renderThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
-    std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
@@ -266,6 +292,7 @@ private:
     mutable std::mutex nodeListMutex_;
     std::unordered_set<NodeId> blackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
+    Drawing::RectI visibleRect_;
 
     std::mutex vmaCacheCountMutex_;
 

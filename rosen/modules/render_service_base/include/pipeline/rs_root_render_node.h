@@ -38,6 +38,7 @@ public:
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
     void AttachRSSurfaceNode(NodeId SurfaceNodeId);
+    void AttachToken(uint64_t token);
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSSurface> GetSurface();
@@ -58,6 +59,11 @@ public:
         return enableRender_;
     }
 
+    uint64_t GetToken() const
+    {
+        return token_;
+    }
+
 private:
     explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -67,6 +73,7 @@ private:
     bool enableRender_ = true;
     float suggestedBufferWidth_ = 0.f;
     float suggestedBufferHeight_ = 0.f;
+    uint64_t token_ = 0;
 
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RootNodeCommandHelper;

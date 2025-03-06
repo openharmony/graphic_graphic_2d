@@ -68,6 +68,39 @@ ohos_unittest("RSScreenManagerTest") {
   ]
 }
 
+##############################  TouchScreenTest  ##################################
+ohos_unittest("TouchScreenTest") {
+  module_out_path = module_output_path
+  sources = [ "touch_screen_test.cpp" ]
+  configs = [ ":touch_screen_test" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+  ]
+
+  deps = [ "$graphic_2d_root/rosen/modules/render_service:librender_service" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
 ##############################  RSScreenTest  ##################################
 ohos_unittest("RSScreenTest") {
   module_out_path = module_output_path
@@ -123,6 +156,12 @@ config("screen_manager_test") {
 }
 
 ###############################################################################
+config("touch_screen_test") {
+  #visibility = [ ":*" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+}
+
+###############################################################################
 config("screen_test") {
   #visibility = [ ":*" ]
   include_dirs =
@@ -136,4 +175,7 @@ group("unittest") {
     ":RSScreenManagerTest",
     ":RSScreenTest",
   ]
+  if (tp_feature_enable) {
+    deps += [ ":TouchScreenTest" ]
+  }
 }

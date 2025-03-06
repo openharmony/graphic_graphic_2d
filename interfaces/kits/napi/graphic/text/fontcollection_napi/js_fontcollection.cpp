@@ -326,13 +326,13 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
 bool JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
 {
     if (fontcollection_ == nullptr) {
-        TEXT_LOGE("Font collection is nullptr");
+        TEXT_LOGE("Null font collection");
         return false;
     }
 
     char tmpPath[PATH_MAX] = {0};
     if (realpath(path.c_str(), tmpPath) == nullptr) {
-        TEXT_LOGE("Path is invalid");
+        TEXT_LOGE("Invalid path %{public}s", path.c_str());
         return false;
     }
 
@@ -392,7 +392,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (argv[0] == nullptr) {
-        TEXT_LOGE("Argv[0] is invalid");
+        TEXT_LOGE("Null argv[0]");
         return nullptr;
     }
     std::string familyName;
@@ -403,7 +403,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
     }
     napi_valuetype valueType = napi_undefined;
     if (argv[1] == nullptr) {
-        TEXT_LOGE("JsFontCollection::OnLoadFont Argv[1] is invalid");
+        TEXT_LOGE("Null arv[1]");
         return nullptr;
     }
     napi_typeof(env, argv[1], &valueType);
@@ -435,7 +435,7 @@ napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
 napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info)
 {
     if (fontcollection_ == nullptr) {
-        TEXT_LOGE("JsFontCollection is nullptr");
+        TEXT_LOGE("Null font collection");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
             "JsFontCollection::OnClearCaches fontCollection is nullptr.");
     }

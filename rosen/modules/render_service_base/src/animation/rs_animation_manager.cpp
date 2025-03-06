@@ -236,11 +236,12 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
 {
     NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
+    uint64_t token = animation->GetToken();
 
     RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
+        std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     animation->Detach();
 }

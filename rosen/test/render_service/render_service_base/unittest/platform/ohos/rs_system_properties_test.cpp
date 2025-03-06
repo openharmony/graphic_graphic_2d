@@ -549,6 +549,28 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationScale, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHdrImageEnabled
+ * @tc.desc: GetHdrImageEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrImageEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrImageEnabled());
+}
+
+/**
+ * @tc.name: GetHdrVideoEnabled
+ * @tc.desc: GetHdrVideoEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrVideoEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrVideoEnabled());
+}
+
+/**
  * @tc.name: GetFilterCacheEnabled
  * @tc.desc: GetFilterCacheEnabled Test
  * @tc.type:FUNC
@@ -773,6 +795,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetWideColorSpaceEnabled
+ * @tc.desc: GetWideColorSpaceEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetWideColorSpaceEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetWideColorSpaceEnabled());
+}
+
+/**
  * @tc.name: GetUIFirstDebugEnabled
  * @tc.desc: GetUIFirstDebugEnabled Test
  * @tc.type:FUNC
@@ -915,17 +948,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSnapshotWithDMAEnabled
- * @tc.desc: GetSnapshotWithDMAEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetSnapshotWithDMAEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetSnapshotWithDMAEnabled());
-}
-
-/**
  * @tc.name: IsPhoneType
  * @tc.desc: IsPhoneType Test
  * @tc.type:FUNC
@@ -999,7 +1021,6 @@ HWTEST_F(RSSystemPropertiesTest, GetSingleFrameComposerCanvasNodeEnabled, TestSi
  */
 HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetSubSurfaceEnabled());
     EXPECT_FALSE(RSSystemProperties::GetSecurityPermissionCheckEnabled());
     EXPECT_TRUE(RSSystemProperties::GetEffectMergeEnabled());
     EXPECT_FALSE(RSSystemProperties::GetDumpUICaptureEnabled());
@@ -1009,15 +1030,27 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_TRUE(RSSystemProperties::GetBlurEffectTerminateLimit() > 0);
 }
 
+
 /**
- * @tc.name: IsSuperFoldDisplay
- * @tc.desc: IsSuperFoldDisplay Test
+ * @tc.name: GetOptimizeParentNodeRegionEnabled
+ * @tc.desc: GetOptimizeParentNodeRegionEnabled Test
  * @tc.type:FUNC
- * @tc.require: issuesIBLTM5
+ * @tc.require: issuesIBIA3V
  */
-HWTEST_F(RSSystemPropertiesTest, IsSuperFoldDisplay, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeParentNodeRegionEnabled, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::IsSuperFoldDisplay());
+    ASSERT_TRUE(RSSystemProperties::GetOptimizeParentNodeRegionEnabled());
+}
+
+/**
+ * @tc.name: GetOptimizeHwcComposeAreaEnabled
+ * @tc.desc: GetOptimizeHwcComposeAreaEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

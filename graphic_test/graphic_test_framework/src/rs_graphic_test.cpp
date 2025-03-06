@@ -91,7 +91,7 @@ void RSGraphicTest::TearDown()
     if (!shouldRunTest_) {
         return;
     }
-
+    StartUIAnimation();
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
@@ -188,5 +188,9 @@ std::string RSGraphicTest::GetImageSavePath(const std::string path)
     return imagePath;
 }
 
+void RSGraphicTest::StartUIAnimation()
+{
+    RSGraphicTestDirector::Instance().StartRunUIAnimation();
+}
 } // namespace Rosen
 } // namespace OHOS

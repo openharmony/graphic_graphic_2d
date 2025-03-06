@@ -212,7 +212,7 @@ void GlfwRenderContext::OnSizeChanged(const OnSizeChangedFunc &onSizeChanged)
 void GlfwRenderContext::OnMouseButton(GLFWwindow *window, int button, int action, int mods)
 {
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
-    if (that->onMouseBotton_) {
+    if (that && that->onMouseBotton_) {
         that->onMouseBotton_(button, action == GLFW_PRESS, mods);
     }
 }
@@ -220,7 +220,7 @@ void GlfwRenderContext::OnMouseButton(GLFWwindow *window, int button, int action
 void GlfwRenderContext::OnCursorPos(GLFWwindow *window, double x, double y)
 {
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
-    if (that->onCursorPos_) {
+    if (that && that->onCursorPos_) {
         that->onCursorPos_(x, y);
     }
 }
@@ -228,7 +228,7 @@ void GlfwRenderContext::OnCursorPos(GLFWwindow *window, double x, double y)
 void GlfwRenderContext::OnKey(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
-    if (that->onKey_) {
+    if (that && that->onKey_) {
         that->onKey_(key, scancode, action, mods);
     }
 }
@@ -236,7 +236,7 @@ void GlfwRenderContext::OnKey(GLFWwindow *window, int key, int scancode, int act
 void GlfwRenderContext::OnChar(GLFWwindow *window, unsigned int codepoint)
 {
     const auto &that = reinterpret_cast<GlfwRenderContext *>(glfwGetWindowUserPointer(window));
-    if (that->onChar_) {
+    if (that && that->onChar_) {
         that->onChar_(codepoint);
     }
 }

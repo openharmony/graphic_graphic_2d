@@ -20,7 +20,7 @@
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
@@ -102,6 +102,41 @@ HWTEST_F(RSUniRenderThreadTest, PostTask001, TestSize.Level1)
     instance.handler_ = nullptr;
     instance.PostTask(task);
     ASSERT_EQ(instance.handler_, nullptr);
+}
+
+/**
+ * @tc.name: GetVisibleRect001
+ * @tc.desc: Test GetVisibleRect with default
+ * @tc.type: FUNC
+ * @tc.require: issueIBM5U5
+ */
+HWTEST_F(RSUniRenderThreadTest, GetVisibleRect001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    const auto &visibleRectGet = instance.GetVisibleRect();
+    EXPECT_EQ(visibleRectGet.GetLeft(), 0);
+    EXPECT_EQ(visibleRectGet.GetTop(), 0);
+    EXPECT_EQ(visibleRectGet.GetRight(), 0);
+    EXPECT_EQ(visibleRectGet.GetBottom(), 0);
+}
+
+/**
+ * @tc.name: SetVisibleRect001
+ * @tc.desc: Test SetVisibleRect and GetVisibleRect
+ * @tc.type: FUNC
+ * @tc.require: issueIBM5U5
+ */
+HWTEST_F(RSUniRenderThreadTest, SetVisibleRect001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    // 100 test value for Rect right and bottom
+    Drawing::RectI visibleRectSet = Drawing::RectI(0, 0, 100, 100);
+    RSUniRenderThread::Instance().SetVisibleRect(visibleRectSet);
+    const auto &visibleRectGet = instance.GetVisibleRect();
+    EXPECT_EQ(visibleRectGet.GetLeft(), visibleRectSet.GetLeft());
+    EXPECT_EQ(visibleRectGet.GetTop(), visibleRectSet.GetTop());
+    EXPECT_EQ(visibleRectGet.GetRight(), visibleRectSet.GetRight());
+    EXPECT_EQ(visibleRectGet.GetBottom(), visibleRectSet.GetBottom());
 }
 
 /**
@@ -339,13 +374,11 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    std::unordered_map<NodeId, bool> ids1;
-    instance.ResetClearMemoryTask(std::move(ids1));
+    instance.ResetClearMemoryTask();
     EXPECT_FALSE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
-    std::unordered_map<NodeId, bool> ids2;
-    instance.ResetClearMemoryTask(std::move(ids2));
+    instance.ResetClearMemoryTask();
     EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 

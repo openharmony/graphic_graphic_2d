@@ -22,15 +22,15 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
-#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -435,6 +435,87 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
     surfaceRenderNode.SetFingerprint(false);
     result = surfaceRenderNode.GetFingerprint();
     ASSERT_EQ(false, result);
+}
+
+/**
+ * @tc.name: IsCloneNode
+ * @tc.desc: function test IsCloneNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.isCloneNode_ = true;
+    ASSERT_TRUE(surfaceRenderNode.IsCloneNode());
+}
+
+/**
+ * @tc.name: SetClonedNodeId
+ * @tc.desc: function test SetClonedNodeId
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeId, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.SetClonedNodeId(id + 1);
+    bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetClonedNodeRenderDrawable
+ * @tc.desc: function test SetClonedNodeRenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeRenderDrawable, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable;
+    surfaceRenderNode.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
+
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: SetIsCloned
+ * @tc.desc: function test SetIsCloned
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsCloned, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.stagingRenderParams_ = nullptr;
+    surfaceRenderNode.SetIsCloned(true);
+    ASSERT_EQ(surfaceRenderNode.stagingRenderParams_, nullptr);
+
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+    surfaceRenderNode.SetIsCloned(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->clonedSourceNode_);
+}
+
+/**
+ * @tc.name: UpdateInfoForClonedNode
+ * @tc.desc: function test UpdateInfoForClonedNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateInfoForClonedNode, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceRenderNode(id, context);
+    surfaceRenderNode.clonedSourceNodeId_ = surfaceRenderNode.GetId();
+    surfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(surfaceRenderNode.stagingRenderParams_, nullptr);
+
+    surfaceRenderNode.UpdateInfoForClonedNode(surfaceRenderNode.clonedSourceNodeId_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
 }
 
 /**
@@ -1184,6 +1265,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
 
     testNode->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
     Drawing::Canvas canvasArgs;
     RSPaintFilterCanvas canvas(&canvasArgs);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
@@ -1196,7 +1278,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
     testNode->CollectSurface(node, vec, true, false);
     testNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     testNode->CollectSurface(node, vec, true, true);
-    ASSERT_FALSE(testNode->isSubSurfaceEnabled_);
 }
 
 /**
@@ -1369,6 +1450,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::NO_HDR);
     testNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO);
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::AI_HDR_VIDEO);
+}
+
+/**
+ * @tc.name: MetadataTest
+ * @tc.desc: test results of SetHasMetadata, GetSdrHadMetadata
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MetadataTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetSdrHasMetadata(true);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), true);
+    testNode->SetSdrHasMetadata(false);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), false);
 }
 
 /**
@@ -1786,7 +1882,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    drawable->isFilterCacheValid_ = true;
+    drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     filterNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
     node->isFilterCacheFullyCovered_ = false;
     node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);
@@ -1813,10 +1909,16 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStaticFlag, TestSize.
     EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 
     node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node->surfaceCacheContentStatic_ = false;
+    node->UpdateSurfaceCacheContentStaticFlag(true);
+    EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
+
+    node->isSubTreeDirty_ = true;
+    node->isContentDirty_ = true;
     node->UpdateSurfaceCacheContentStaticFlag(false);
     EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
-    node->surfaceCacheContentStatic_ = true;
+
+    node->isSubTreeDirty_ = false;
+    node->isContentDirty_ = false;
     node->UpdateSurfaceCacheContentStaticFlag(false);
     EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 }
@@ -2210,6 +2312,20 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 {
     RSSurfaceRenderNode::SetAncoForceDoDirect(false);
     EXPECT_FALSE(RSSurfaceRenderNode::GetOriAncoForceDoDirect());
+}
+
+/**
+ * @tc.name: SetStencilVal
+ * @tc.desc: test SetStencilVal
+ * @tc.type: FUNC
+ * @tc.require: issueIBO35Y
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetStencilVal, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->SetStencilVal(-1);
 }
 
 /**

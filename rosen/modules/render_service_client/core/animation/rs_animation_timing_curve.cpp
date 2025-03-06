@@ -58,8 +58,9 @@ RSAnimationTimingCurve::RSAnimationTimingCurve(const std::function<float(float)>
     : customCurveFunc_(customCurveFunc)
 {}
 
-RSAnimationTimingCurve::RSAnimationTimingCurve(float response, float dampingRatio, float blendDuration)
-    : type_(CurveType::SPRING), springParams_ { { response, dampingRatio, blendDuration } }
+RSAnimationTimingCurve::RSAnimationTimingCurve(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
+    : type_(CurveType::SPRING), springParams_ { { response, dampingRatio, blendDuration, 0.0f, minimumAmplitudeRatio } }
 {}
 
 RSAnimationTimingCurve::RSAnimationTimingCurve(
@@ -109,9 +110,10 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateStepsCurve(int32_t steps, S
     return { std::make_shared<RSStepsInterpolator>(steps, position) };
 }
 
-RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(float response, float dampingRatio, float blendDuration)
+RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpring(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
 {
-    return { response, dampingRatio, blendDuration };
+    return { response, dampingRatio, blendDuration, minimumAmplitudeRatio };
 }
 
 std::shared_ptr<RSInterpolator> RSAnimationTimingCurve::GetInterpolator(int duration) const

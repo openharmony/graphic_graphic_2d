@@ -187,7 +187,7 @@ protected:
     RSAnimatableType initialVelocity_ {};
 
     // estimated duration until the spring is at rest
-    float minimumAmplitudeRatio_ { 0.001f };
+    float minimumAmplitudeRatio_ { SPRING_MIN_AMPLITUDE_RATIO };
 
 private:
     float EstimateDurationForUnderDampedModel() const

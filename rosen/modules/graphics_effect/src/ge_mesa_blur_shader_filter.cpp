@@ -128,7 +128,9 @@ GEMESABlurShaderFilter::GEMESABlurShaderFilter(const Drawing::GEMESABlurShaderFi
 bool GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
 {
     bool isSuccess = SetGeneralBlurParams(bParam);
-    isStretchX_ = (blurRadius_ >= BLUR_RADIUS[1]) && (tileMode_ == Drawing::TileMode::MIRROR);
+    if ((blurRadius_ >= BLUR_RADIUS[1]) && (tileMode_ == Drawing::TileMode::MIRROR)) {
+        isStretchX_ = PixelStretchFuzedMode::BEFORE_BLUR;
+    }
     return isSuccess;
 }
 
@@ -294,7 +296,7 @@ std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::ApplyFuzedFilter(
     if (!tmpBlur) {
         return nullptr;
     }
-    if (!isStretchX_) {
+    if (isStretchX_ != PixelStretchFuzedMode::BEFORE_BLUR) {
         return Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix);
     }
@@ -446,6 +448,26 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingFuzedBlur(Dr
 #endif
 }
 
+std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::PingPongBlur(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder, Drawing::RuntimeShaderBuilder& simpleBuilder,
+    const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& input,
+    const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
+{
+    int stride = 2;     // 2: stride
+    auto tmpBlur = image;
+    for (auto i = 1; i < blur.numberOfPasses; i++) {
+        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
+        blurBuilder.SetUniform("in_blurOffset", blur.offsets[stride * i], blur.offsets[stride * i + 1]);
+#ifdef RS_ENABLE_GPU
+        tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
+    }
+    return tmpBlur;
+}
+
 Drawing::ImageInfo GEMESABlurShaderFilter::ComputeImageInfo(const Drawing::ImageInfo& originImageInfo,
     int& width, int& height) const
 {
@@ -490,17 +512,8 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
     }
 
     // Step3. Blur iteration.
-    int stride = 2;     // 2: stride
-    for (auto i = 1; i < blur.numberOfPasses; i++) {
-        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
-            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
-        blurBuilder.SetUniform("in_blurOffset", blur.offsets[stride * i], blur.offsets[stride * i + 1]);
-#ifdef RS_ENABLE_GPU
-        tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
-#else
-        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
-#endif
-    }
+    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+    tmpBlur = PingPongBlur(canvas, blurBuilder, simpleBlurBuilder, tmpBlur, input, scaledInfo, linear, blur);
 
     // Step4. Upsampling and adding random noise.
     auto output = ScaleAndAddRandomColor(canvas, input, tmpBlur, src, dst, width, height);
@@ -784,7 +797,7 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ScaleAndAddRandomColor(D
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto scaledInfo = Drawing::ImageInfo(width, height, blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
-    if (isStretchX_) {
+    if (isStretchX_ != PixelStretchFuzedMode::AFTER_BLUR) {
         Drawing::Matrix scaleMatrix;
         // blurImage->GetWidth() and blurImage->GetHeight() are larger than zero, checked before
         float scaleW = static_cast<float>(dst.GetWidth()) / blurImage->GetWidth();

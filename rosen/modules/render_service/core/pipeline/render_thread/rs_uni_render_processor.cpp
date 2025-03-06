@@ -19,18 +19,18 @@
 
 #include "hdi_layer.h"
 #include "hdi_layer_info.h"
-#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -111,6 +111,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
+    layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     CreateSolidColorLayer(layer, params);
@@ -156,6 +157,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
+    layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
@@ -227,6 +229,9 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         return true;
     }
     if (!params.GetCornerRadiusInfoForDRM().empty()) {
+        return true;
+    }
+    if (params.GetIsOutOfScreen() == true) {
         return true;
     }
     bool forceClientForDRM = false;
@@ -306,7 +311,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetDirtyRegions(dirtyRegions);
 
     layer->SetBlendType(layerInfo.blendType);
-    ProcessLayerSetCropRect(layer, layerInfo, buffer);
+    layer->SetCropRect(layerInfo.srcRect);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
@@ -321,45 +326,6 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;
-}
-
-void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo,
-    sptr<SurfaceBuffer> buffer)
-{
-    auto adaptedSrcRect = layerInfo.srcRect;
-    // Because the buffer is mirrored in the horiziontal/vertical directions,
-    // srcRect need to be adjusted.
-    switch (layerInfo.transformType) {
-        case GraphicTransformType::GRAPHIC_FLIP_H: [[fallthrough]];
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180: {
-            // 1. Intersect the left border of the screen.
-            // map_x = (buffer_width - buffer_right_x)
-            if (adaptedSrcRect.x > 0) {
-                adaptedSrcRect.x = buffer->GetSurfaceBufferWidth() - adaptedSrcRect.x - adaptedSrcRect.w;
-            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
-                // 2. Intersect the right border of the screen.
-                // map_x = (buffer_width - buffer_right_x)
-                // Only left side adjustment can be triggerred on the narrow screen.
-                adaptedSrcRect.x =
-                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferWidth()) - adaptedSrcRect.w) : 0;
-            }
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V: [[fallthrough]];
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
-            // The processing in the vertical direction is similar to that in the horizontal direction.
-            if (adaptedSrcRect.y > 0) {
-                adaptedSrcRect.y = buffer->GetSurfaceBufferHeight() - adaptedSrcRect.y - adaptedSrcRect.h;
-            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
-                adaptedSrcRect.y =
-                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-    layerInfoPtr->SetCropRect(adaptedSrcRect);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)

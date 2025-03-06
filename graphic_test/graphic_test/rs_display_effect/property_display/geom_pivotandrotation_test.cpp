@@ -152,4 +152,45 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, PivotZ_Rotation_Test_1)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, PivotZ_Rotation_Test_2)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float rotationZ = 0.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetRotation(0.0, 0.0, rotationZ);
+            testNode->SetPerspW(2.0);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            rotationZ += 5.0;
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, PivotZ_Rotation_Test_3)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float rotation = 0.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetRotation(rotation, rotation, 0.0);
+            testNode->SetPerspW(2.0);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            rotation += 5.0;
+        }
+    }
+}
 } // namespace OHOS::Rosen

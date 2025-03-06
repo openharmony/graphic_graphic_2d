@@ -303,12 +303,12 @@ void RSProfiler::TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool 
     if (g_pauseAfterTime > 0) {
         // second time pause
         if (curTime > g_pauseAfterTime) {
-            g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+            g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         }
     }
     g_pauseAfterTime = newPauseAfterTime;
     if (immediate) {
-        g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+        g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         g_pauseAfterTime = curTime;
     }
 }

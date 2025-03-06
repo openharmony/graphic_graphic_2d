@@ -15,11 +15,13 @@
 
 #include "hgm_multi_app_strategy.h"
 
+#include <functional>
 #include <limits>
 
 #include "common/rs_common_hook.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
+#include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
@@ -29,11 +31,34 @@ namespace Rosen {
 namespace {
     static PolicyConfigData::ScreenSetting defaultScreenSetting;
     static PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
+    static PolicyConfigData::StrategyConfigMap defaultAppStrategyConfigMap;
+    static PolicyConfigData::StrategyConfigMap defaultAppStrategyConfigPreMap;
+    static std::vector<std::string> defaultAppBufferList;
     const std::string NULL_STRATEGY_CONFIG_NAME = "null";
+    using AppStrategyConfigHandleFunc = std::function<void(const std::string&, PolicyConfigData::StrategyConfig&)>;
+    const std::unordered_map<std::string, AppStrategyConfigHandleFunc> APP_STRATEGY_CONFIG_HANDLE_MAP = {
+        {"min", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.min = XMLParser::IsNumber(value) ? std::stoi(value) : appStrategyConfig.min; }},
+        {"max", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.max = XMLParser::IsNumber(value) ? std::stoi(value) : appStrategyConfig.max;  }},
+        {"dynamicMode", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.dynamicMode = XMLParser::IsNumber(value) ?
+                static_cast<DynamicModeType>(std::stoi(value)) : appStrategyConfig.dynamicMode; }},
+        {"isFactor", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.isFactor = value == "1"; }},
+        {"drawMin", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.drawMin = XMLParser::IsNumber(value) ? std::stoi(value) : 0; }},
+        {"drawMax", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.drawMax = XMLParser::IsNumber(value) ? std::stoi(value) : 0; }},
+        {"down", [](const std::string& value, PolicyConfigData::StrategyConfig& appStrategyConfig) {
+            appStrategyConfig.drawMax = XMLParser::IsNumber(value) ? std::stoi(value) : appStrategyConfig.max; }},
+    };
 }
 
 HgmMultiAppStrategy::HgmMultiAppStrategy()
-    : screenSettingCache_(defaultScreenSetting), strategyConfigMapCache_(defaultStrategyConfigMap)
+    : screenSettingCache_(defaultScreenSetting), strategyConfigMapCache_(defaultStrategyConfigMap),
+    appStrategyConfigMapCache_(defaultAppStrategyConfigMap),
+    appStrategyConfigMapPreCache_(defaultAppStrategyConfigPreMap), appBufferListCache_(defaultAppBufferList)
 {
 }
 
@@ -227,6 +252,7 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
 
     // udpate strategyConfigMapCache_
     strategyConfigMapCache_ = configData->strategyConfigs_;
+    appBufferListCache_ = configData->appBufferList_;
 
     // update screenSettingCache_
     auto curScreenStrategyId = frameRateMgr->GetCurScreenStrategyId();
@@ -243,6 +269,8 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     }
 
     screenSettingCache_ = screenConfig[curRefreshRateMode];
+    appStrategyConfigMapCache_.clear();
+    appStrategyConfigMapPreCache_.clear();
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
@@ -258,6 +286,10 @@ HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
 HgmErrCode HgmMultiAppStrategy::GetAppStrategyConfig(
     const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes)
 {
+    if (appStrategyConfigMapCache_.find(pkgName) != appStrategyConfigMapCache_.end()) {
+        strategyRes = appStrategyConfigMapCache_.at(pkgName);
+        return EXEC_SUCCESS;
+    }
     return GetStrategyConfig(GetAppStrategyConfigName(pkgName), strategyRes);
 }
 
@@ -435,6 +467,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
     if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
     }
@@ -455,5 +488,63 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         }
     }
 }
+
+void HgmMultiAppStrategy::HandleAppBufferStrategy(const std::string& configName, const std::string& configValue,
+    PolicyConfigData::StrategyConfig& appStrategyConfig)
+{
+    auto it = find(appBufferListCache_.begin(), appBufferListCache_.end(), configName);
+    if (it == appBufferListCache_.end()) {
+        return;
+    }
+    if (!XMLParser::IsNumber(configValue)) {
+        return;
+    }
+    appStrategyConfig.bufferFpsMap[configName] = std::stoi(configValue);
+}
+
+void HgmMultiAppStrategy::SetAppStrategyConfig(
+    const std::string& pkgName, const std::vector<std::pair<std::string, std::string>>& newConfig)
+{
+    if (pkgName.empty()) {
+        HGM_LOGI("pkgName is empty, clear all config");
+        appStrategyConfigMapPreCache_.clear();
+        appStrategyConfigMapChanged_ = true;
+        return;
+    }
+
+    if (newConfig.empty()) {
+        HGM_LOGI("newConfig is empty, clear %{public}s config", pkgName.c_str());
+        appStrategyConfigMapPreCache_.erase(pkgName);
+        appStrategyConfigMapChanged_ = true;
+        return;
+    }
+
+    PolicyConfigData::StrategyConfig appStrategyConfig;
+    if (GetAppStrategyConfig(pkgName, appStrategyConfig) != EXEC_SUCCESS) {
+        HGM_LOGE("not found  %{public}s strategy config", pkgName.c_str());
+        return;
+    }
+    for (const auto& [configName, configValue] : newConfig) {
+        HGM_LOGD("handle %{public}s config %{public}s = %{public}s",
+            pkgName.c_str(), configName.c_str(), configValue.c_str());
+        if (APP_STRATEGY_CONFIG_HANDLE_MAP.find(configName) != APP_STRATEGY_CONFIG_HANDLE_MAP.end()) {
+            APP_STRATEGY_CONFIG_HANDLE_MAP.at(configName)(configValue, appStrategyConfig);
+        } else {
+            HandleAppBufferStrategy(configName, configValue, appStrategyConfig);
+        }
+    }
+    appStrategyConfigMapPreCache_[pkgName] = appStrategyConfig;
+    appStrategyConfigMapChanged_ = true;
+}
+
+void HgmMultiAppStrategy::UpdateAppStrategyConfigCache()
+{
+    if (appStrategyConfigMapChanged_) {
+        HGM_LOGI("UpdateAppStrategyConfigCache on power touch idle");
+        appStrategyConfigMapCache_ = appStrategyConfigMapPreCache_;
+        appStrategyConfigMapChanged_ = false;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

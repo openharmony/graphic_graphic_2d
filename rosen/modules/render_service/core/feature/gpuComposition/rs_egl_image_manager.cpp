@@ -15,12 +15,12 @@
 
 #include "rs_egl_image_manager.h"
 
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include <native_window.h>
 #include <platform/common/rs_log.h>
 #include "sync_fence.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_task_dispatcher.h"

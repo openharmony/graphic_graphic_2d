@@ -37,13 +37,12 @@ OH_Drawing_PathEffect* OH_Drawing_CreateComposePathEffect(OH_Drawing_PathEffect*
     if (outer == nullptr || inner == nullptr) {
         return nullptr;
     }
-    NativeHandle<PathEffect>* pathEffectHandle = new NativeHandle<PathEffect>;
     NativeHandle<PathEffect>* pathEffect1 = Helper::CastTo<OH_Drawing_PathEffect*, NativeHandle<PathEffect>*>(outer);
     NativeHandle<PathEffect>* pathEffect2 = Helper::CastTo<OH_Drawing_PathEffect*, NativeHandle<PathEffect>*>(inner);
     if (!pathEffect1->value || !pathEffect2->value) {
-        delete pathEffectHandle;
         return nullptr;
     }
+    NativeHandle<PathEffect>* pathEffectHandle = new NativeHandle<PathEffect>;
     pathEffectHandle->value = PathEffect::CreateComposePathEffect(*pathEffect1->value, *pathEffect2->value);
     if (pathEffectHandle->value == nullptr) {
         delete pathEffectHandle;
@@ -93,7 +92,7 @@ OH_Drawing_PathEffect* OH_Drawing_CreateDiscretePathEffect(float segLength, floa
 }
 
 OH_Drawing_PathEffect* OH_Drawing_CreatePathDashEffect(const OH_Drawing_Path* path, float advance, float phase,
-    OH_Drawing_PathEffectType type)
+    OH_Drawing_PathDashStyle type)
 {
     if (path == nullptr || advance <= 0) {
         return nullptr;
@@ -114,15 +113,14 @@ OH_Drawing_PathEffect* OH_Drawing_CreateSumPathEffect(OH_Drawing_PathEffect* fir
     if (firstPathEffect == nullptr || secondPathEffect == nullptr) {
         return nullptr;
     }
-    NativeHandle<PathEffect>* pathEffectHandle = new NativeHandle<PathEffect>;
     NativeHandle<PathEffect>* pathEffectHandleFirst = Helper::CastTo<OH_Drawing_PathEffect*,
         NativeHandle<PathEffect>*>(firstPathEffect);
     NativeHandle<PathEffect>* pathEffectHandleSecond = Helper::CastTo<OH_Drawing_PathEffect*,
         NativeHandle<PathEffect>*>(secondPathEffect);
     if (!pathEffectHandleFirst->value || !pathEffectHandleSecond->value) {
-        delete pathEffectHandle;
         return nullptr;
     }
+    NativeHandle<PathEffect>* pathEffectHandle = new NativeHandle<PathEffect>;
     pathEffectHandle->value = PathEffect::CreateSumPathEffect(*pathEffectHandleFirst->value,
         *pathEffectHandleSecond->value);
     if (pathEffectHandle->value == nullptr) {

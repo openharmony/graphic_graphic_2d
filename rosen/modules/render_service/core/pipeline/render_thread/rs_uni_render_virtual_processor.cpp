@@ -25,7 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "rs_uni_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "string_utils.h"
 
 namespace OHOS {
@@ -232,14 +232,14 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata renderFrame is null.");
         return GSERROR_INVALID_ARGUMENTS;
     }
-    auto& rsSurface = renderFrame_->GetSurface();
+    auto rsSurface = renderFrame_->GetSurface();
     if (rsSurface == nullptr) {
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata surface is null.");
         return GSERROR_INVALID_ARGUMENTS;
     }
     auto buffer = rsSurface->GetCurrentBuffer();
     if (buffer == nullptr) {
-        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata buffer is null, not support get surfacebuffer.");
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata buffer is null.");
         return GSERROR_NO_BUFFER;
     }
     using namespace HDI::Display::Graphic::Common::V1_0;
@@ -363,6 +363,20 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     if (EnableVisibleRect()) {
         mirroredScreenWidth = visibleRect_.GetWidth();
         mirroredScreenHeight = visibleRect_.GetHeight();
+        if (mirroredScreenWidth < EPSILON || mirroredScreenHeight < EPSILON) {
+            RS_LOGE("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, input is illegal.");
+            return;
+        }
+        if (!drawMirrorCopy_) {
+            float top = visibleRect_.GetTop();
+            float left = visibleRect_.GetLeft();
+            float startRectX = virtualScreenWidth_ * (left / mirroredScreenWidth);
+            float startRectY = virtualScreenHeight_ * (top / mirroredScreenHeight);
+            canvas.Translate(-startRectX, -startRectY);
+            RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, top:%{public}f, left:%{public}f, width:%{public}f,"
+                "height:%{public}f, X:%{public}f, Y:%{public}f", top, left, mirroredScreenWidth,
+                mirroredScreenHeight, startRectX, startRectY);
+        }
     }
 
     if (mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
@@ -490,7 +504,7 @@ bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
     if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
-        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect()) {
+        (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect() && drawMirrorCopy_) {
         return true;
     }
     return false;

@@ -57,9 +57,13 @@ public:
 
     virtual void FreeGpuResources() = 0;
 
+    virtual void ReclaimResources() = 0;
+
     virtual void DumpGpuStats(std::string& out) = 0;
 
     virtual void DumpAllResource(std::stringstream& dump) = 0;
+
+    virtual void DumpAllCoreTrace(std::stringstream& dump) = 0;
 
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
@@ -68,6 +72,8 @@ public:
     virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
 
     virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
+
+    virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
 
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;

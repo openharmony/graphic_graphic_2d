@@ -126,4 +126,17 @@ HWTEST_F(RSSystemParametersTest, IsNeedScRGBForP3Test, TestSize.Level2)
     auto result = RSSystemParameters::IsNeedScRGBForP3(currentGamut);
     EXPECT_EQ(original, result);
 }
+
+/**
+ * @tc.name: GetAnimationOcclusionEnabled
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBLVD4
+ */
+HWTEST_F(RSSystemParametersTest, GetAnimationOcclusionEnabled, TestSize.Level2)
+{
+    auto original = system::GetBoolParameter("rosen.ani.occlusion.enabled", true);
+    auto result = RSSystemParameters::GetAnimationOcclusionEnabled();
+    EXPECT_EQ(original, result);
+}
 } // namespace OHOS::Rosen

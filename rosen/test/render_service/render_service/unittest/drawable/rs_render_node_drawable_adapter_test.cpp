@@ -565,6 +565,25 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
 }
 
 /**
+ * @tc.name: DrawLeashWindowBackground001
+ * @tc.desc: Test DrawLeashWindowBackground
+ * @tc.type: FUNC
+ * @tc.require: issueIB035Y
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawLeashWindowBackground001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Rect rect(0, 0, 100, 100);
+    adapter->DrawLeashWindowBackground(canvas, rect, false, -1);
+}
+
+/**
  * @tc.name: IsFilterCacheValidForOcclusionTest
  * @tc.desc: Test IsFilterCacheValidForOcclusion
  * @tc.type: FUNC

@@ -179,12 +179,12 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
-    void ClearCacheSet(const std::set<uint32_t>& unmappedCache);
+    void ClearCacheSet(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen = false);
+    void ClearVirtualScreenCacheSet();
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
     static bool IsHighContrastEnabled();
-    static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()
@@ -225,6 +225,7 @@ public:
         return captureSkContext_;
     }
 #endif
+    void DumpVkImageInfo(std::string &dumpString);
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -240,6 +241,8 @@ private:
 
     static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
         BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
+
+    static bool NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;

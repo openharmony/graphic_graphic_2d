@@ -82,7 +82,7 @@ private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-    void CheckDrawCmdListSize(RSModifierType type);
+    void CheckDrawCmdListSize(RSModifierType type, size_t originCmdListSize);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
@@ -111,6 +111,7 @@ private:
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+    uint32_t cmdCount_ = 0;
 
 
     friend class RSCanvasDrawingNodeCommandHelper;

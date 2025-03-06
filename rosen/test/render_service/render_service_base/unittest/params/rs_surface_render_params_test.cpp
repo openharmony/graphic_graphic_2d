@@ -372,7 +372,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetClonedNodeRenderDrawable, TestSize.Level2
 {
     RSSurfaceRenderParams params(117);
     auto clonedNodeRenderDrawable = params.GetClonedNodeRenderDrawable();
-    EXPECT_FALSE(clonedNodeRenderDrawable.expired());
+    EXPECT_TRUE(clonedNodeRenderDrawable.expired());
 }
 
 /**
@@ -412,5 +412,45 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetIsCloned, TestSize.Level2)
     RSSurfaceRenderParams params(120);
     params.SetIsCloned(true);
     EXPECT_TRUE(params.clonedSourceNode_);
+}
+
+/**
+ * @tc.name: isClonedNodeOnTheTree
+ * @tc.desc: Test function isClonedNodeOnTheTree
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, isClonedNodeOnTheTree, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(121);
+    auto result = params.IsClonedNodeOnTheTree();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SdrNitTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SdrNitTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(122);
+    params.SetSdrNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetSdrNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: LayerLinearMatrixTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(123);
+    std::vector<float> matrix = {1.0f, 2.0f, 3.0f};
+    params.SetLayerLinearMatrix(matrix);
+    EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
 }
 } // namespace OHOS::Rosen

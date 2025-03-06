@@ -33,7 +33,7 @@ napi_value JsLineTypeset::Constructor(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to get callback info, status value is %{public}d", status);
+        TEXT_LOGE("Failed to get callback info, ret %{public}d", status);
         return nullptr;
     }
 
@@ -46,7 +46,7 @@ napi_value JsLineTypeset::Constructor(napi_env env, napi_callback_info info)
     status = napi_wrap(env, jsThis, jsLineTypeset, JsLineTypeset::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsLineTypeset;
-        TEXT_LOGE("Failed to wrap native instance, status value is %{public}d", status);
+        TEXT_LOGE("Failed to wrap native instance, ret %{public}d", status);
         return nullptr;
     }
     return jsThis;
@@ -92,7 +92,7 @@ napi_value JsLineTypeset::CreateJsLineTypeset(napi_env env, std::unique_ptr<Line
         status = napi_wrap(env, result, jsLineTypeset, JsLineTypeset::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsLineTypeset;
-            TEXT_LOGE("Wrap line typography error, status value is %{public}d", status);
+            TEXT_LOGE("Failed to wrap, ret %{public}d", status);
             return nullptr;
         }
         napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
@@ -107,19 +107,19 @@ napi_value JsLineTypeset::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to define Paragraph class, status %{public}d", status);
+        TEXT_LOGE("Failed to define paragraph, ret %{public}d", status);
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to create reference of result, status %{public}d", status);
+        TEXT_LOGE("Failed to create reference, ret %{public}d", status);
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to set result, status %{public}d", status);
+        TEXT_LOGE("Failed to set property, ret %{public}d", status);
         return nullptr;
     }
     return exportObj;

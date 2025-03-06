@@ -31,10 +31,11 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-void RootNodeCommandHelper::AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId)
+void RootNodeCommandHelper::AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId, uint64_t token)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSRootRenderNode>(id)) {
         node->AttachRSSurfaceNode(surfaceNodeId);
+        node->AttachToken(token);
         context.GetGlobalRootRenderNode()->AddChild(node);
     }
 }

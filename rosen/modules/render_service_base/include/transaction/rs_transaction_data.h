@@ -202,6 +202,7 @@ private:
     std::vector<uint32_t> commandOffsets_;
 
     friend class RSTransactionProxy;
+    friend class RSTransactionHandler;
     friend class RSMessageProcessor;
     friend class RSMainThread;
 };

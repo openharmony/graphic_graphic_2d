@@ -86,21 +86,25 @@ public:
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasClipRegionForUniscaleMode();
     void ProcessCacheImage(Drawing::Image& cacheImage);
+    void SetDrawVirtualMirrorCopy(bool drawMirrorCopy)
+    {
+        drawMirrorCopy_ = drawMirrorCopy;
+    }
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableVisibleRect();
     bool EnableSlrScale();
+    GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
 
-    sptr<Surface> producerSurface_;
-    std::unique_ptr<RSRenderFrame> renderFrame_;
-    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     static inline const std::map<GraphicColorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType> COLORSPACE_TYPE {
             { GRAPHIC_COLOR_GAMUT_SRGB, HDI::Display::Graphic::Common::V1_0::CM_SRGB_LIMIT },
             { GRAPHIC_COLOR_GAMUT_DISPLAY_P3, HDI::Display::Graphic::Common::V1_0::CM_P3_LIMIT }
     };
+    sptr<Surface> producerSurface_;
+    std::unique_ptr<RSRenderFrame> renderFrame_;
+    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
     float mirrorWidth_ = 0.f;
@@ -126,6 +130,7 @@ private:
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
+    bool drawMirrorCopy_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

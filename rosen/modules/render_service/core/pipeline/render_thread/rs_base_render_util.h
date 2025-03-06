@@ -52,6 +52,7 @@ struct ComposeInfo {
     int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
+    std::vector<float> layerLinearMatrix;
 };
 #ifdef RS_ENABLE_GPU
 class RSSurfaceRenderParams;
@@ -95,8 +96,10 @@ struct BufferDrawParam {
     float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
     float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    std::vector<float> layerLinearMatrix;
     bool isHdrRedraw = false;
     bool isHdrToSdr = false;
+    bool hasMetadata = false; // SDR has metadata
 #endif
     bool preRotation = false;
 };
@@ -145,9 +148,11 @@ public:
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
-    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
+    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
+        bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false);
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
+        bool needConsume = true);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);

@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "xml_parser_base.h"
 
 #include <algorithm>
-
-#include "xml_parser_base.h"
 #include "graphic_feature_param_manager.h"
 
 namespace OHOS::Rosen {
@@ -23,28 +22,86 @@ namespace {
 constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
 }
 
-int32_t XMLParserBase::LoadGraphicConfiguration(const char* fileDir)
+void XMLParserBase::Destroy()
 {
-    RS_LOGI("XMLParserBase opening xml file");
-    xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
-    if (!xmlDocument_) {
-        RS_LOGE("XMLParser xmlReadFile failed");
-        return PARSE_FILE_LOAD_FAIL;
+    RS_LOGD("XMLParserBase Destroying the parser");
+    if (xmlSysDocument_ != nullptr) {
+        xmlFreeDoc(xmlSysDocument_);
+        xmlSysDocument_ = nullptr;
     }
+    if (xmlProdDocument_ != nullptr) {
+        xmlFreeDoc(xmlProdDocument_);
+        xmlProdDocument_ = nullptr;
+    }
+}
 
+int32_t XMLParserBase::LoadSysConfiguration(std::string& fileDir)
+{
+    for (const std::string& configPath : sysPaths_) {
+        std::string graphicFilePath = configPath + fileDir;
+        xmlSysDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
+        if (xmlSysDocument_ != nullptr) {
+            RS_LOGD("XMLParserBase success to get sys graphic config: %{public}s", graphicFilePath.c_str());
+            break;
+        }
+    }
+    if (!xmlSysDocument_) {
+        RS_LOGE("XMLParserBase read system file failed");
+        return PARSE_SYS_FILE_LOAD_FAIL;
+    }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t XMLParserBase::Parse()
+void XMLParserBase::LoadProdConfiguration(std::string& fileDir)
 {
-    RS_LOGI("XMLParserBase Parse Start");
-    if (!xmlDocument_) {
-        RS_LOGE("XMLParser xmlDocument_ is empty, should do LoadGraphicConfiguration first");
-        return PARSE_FILE_LOAD_FAIL;
+    std::string graphicFilePath = prodPath_ + fileDir;
+    xmlProdDocument_ = xmlReadFile(graphicFilePath.c_str(), nullptr, 0);
+    if (!xmlProdDocument_) {
+        RS_LOGD("XMLParserBase not have prod graphic config: %{public}s", graphicFilePath.c_str());
     }
-    xmlNode *root = xmlDocGetRootElement(xmlDocument_);
+}
+
+int32_t XMLParserBase::LoadGraphicConfiguration(std::string& fileDir)
+{
+    RS_LOGI("XMLParserBase opening xml file");
+    // System base config file read
+    if (LoadSysConfiguration(fileDir) != PARSE_EXEC_SUCCESS) {
+        return PARSE_SYS_FILE_LOAD_FAIL;
+    }
+    // For different feature settings in variant products
+    LoadProdConfiguration(fileDir);
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t XMLParserBase::ParseSysDoc()
+{
+    RS_LOGI("XMLParserBase Parse SysDoc Start");
+    if (!xmlSysDocument_) {
+        RS_LOGE("XMLParserBase xmlSysDocument_ is empty, should do LoadGraphicConfiguration first");
+        return PARSE_SYS_FILE_LOAD_FAIL;
+    }
+    xmlNode *root = xmlDocGetRootElement(xmlSysDocument_);
     if (root == nullptr) {
-        RS_LOGE("XMLParser xmlDocGetRootElement failed");
+        RS_LOGE("XMLParserBase xmlDocGetRootElement failed");
+        return PARSE_GET_ROOT_FAIL;
+    }
+
+    if (ParseInternal(*root) == false) {
+        return PARSE_INTERNAL_FAIL;
+    }
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t XMLParserBase::ParseProdDoc()
+{
+    RS_LOGI("XMLParserBase Parse ProdDoc Start");
+    if (!xmlProdDocument_) {
+        RS_LOGD("XMLParserBase xmlProdDocument_ is empty, check if need product config first");
+        return PARSE_PROD_FILE_LOAD_FAIL;
+    }
+    xmlNode *root = xmlDocGetRootElement(xmlProdDocument_);
+    if (root == nullptr) {
+        RS_LOGE("XMLParserBase xmlDocGetRootElement failed");
         return PARSE_GET_ROOT_FAIL;
     }
 
@@ -102,7 +159,7 @@ std::string XMLParserBase::ExtractPropertyValue(const std::string &propName, xml
     }
 
     if (tempValue != nullptr) {
-        RS_LOGD("XMLParser not a empty tempValue");
+        RS_LOGD("XMLParserBase not a empty tempValue");
         propValue = reinterpret_cast<const char*>(tempValue);
         xmlFree(tempValue);
         tempValue = nullptr;

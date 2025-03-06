@@ -295,8 +295,20 @@ bool DoTriggerSurfaceCaptureCallback(const uint8_t* data, size_t size)
     opts.editable = GetData<bool>();
     opts.useSourceIfMatch = GetData<bool>();
     std::shared_ptr<Media::PixelMap>  pixelmap = Media::PixelMap::Create(opts);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
+    captureConfig.isSync = GetData<bool>();
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
 
-    client->TriggerSurfaceCaptureCallback(id, pixelmap);
+    client->TriggerSurfaceCaptureCallback(id, captureConfig, pixelmap);
     return true;
 }
 
@@ -1385,7 +1397,7 @@ bool DoSetSystemAnimatedScenes(const uint8_t* data, size_t size)
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     SystemAnimatedScenes systemAnimatedScenes = SystemAnimatedScenes::ENTER_MISSION_CENTER;
-    client->SetSystemAnimatedScenes(systemAnimatedScenes);
+    client->SetSystemAnimatedScenes(systemAnimatedScenes, false);
     return true;
 }
 
@@ -1577,6 +1589,28 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DONotifyAppStrategyConfigChangeEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    std::string configKey = GetData<std::string>();
+    std::string configValue = GetData<std::string>();
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(make_pair(configKey, configValue));
+    client->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    return true;
+}
+
 bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1617,6 +1651,24 @@ bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
     bool enableDynamicMode = GetData<bool>();
     client->NotifyTouchEvent(touchStatus, touchCnt);
     client->NotifyDynamicModeEvent(enableDynamicMode);
+    return true;
+}
+
+bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::string eventName = "eventName";
+    bool state = GetData<bool>();
+    client->NotifyHgmConfigEvent(eventName, state);
     return true;
 }
 
@@ -2324,7 +2376,7 @@ bool DoRegisterOcclusionChangeCallback002(const uint8_t *data, size_t size)
     client->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
     client->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
     client->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);
-    client->SetSystemAnimatedScenes(systemAnimatedScenes);
+    client->SetSystemAnimatedScenes(systemAnimatedScenes, false);
     client->ResizeVirtualScreen(screenId, width, height);
     return true;
 }
@@ -2438,9 +2490,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoNotifyLightFactorStatus(data, size);
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
+    OHOS::Rosen::DONotifyAppStrategyConfigChangeEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
+    OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
     OHOS::Rosen::DoSetOnRemoteDiedCallback(data, size);
     OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
     OHOS::Rosen::DoSetVmaCacheStatus(data, size);

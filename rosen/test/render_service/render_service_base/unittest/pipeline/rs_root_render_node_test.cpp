@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {

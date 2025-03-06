@@ -54,8 +54,8 @@ public:
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
-        std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        int32_t rotation = 0, bool useDma = false);
+        std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0);
 #endif
 
     bool CreateResources();

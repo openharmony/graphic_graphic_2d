@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceBaseGfxTest") {
   module_out_path = module_output_path
 
   sources = [
+    "dump/rs_dump_manager_test.cpp",
     "fps_info/rs_surface_fps_manager_test.cpp",
     "fps_info/rs_surface_fps_test.cpp",
   ]

@@ -20,14 +20,12 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSAncoManagerTest",
     ":RSBaseRenderEngineUnitTest",
     ":RSBaseRenderUtilTest",
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
     ":RSHardwareThreadTest",
-    ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
     ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
@@ -37,9 +35,6 @@ group("unittest") {
     ":RSRenderServiceUnitTest",
     ":RSRenderServiceVisitorTest",
     ":RSRoundCornerDisplayTest",
-    ":RSSurfaceCaptureParallelTaskTest",
-    ":RSSurfaceCaptureTaskTest",
-    ":RSUiCaptureTaskParallelTest",
     ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",
     ":RSUniRenderJudgementTest",
@@ -50,22 +45,11 @@ group("unittest") {
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
-    ":RSUniUiCaptureTest",
-    ":RSUnmarshalThreadTest",
-    ":RSVBlankIdleCorrectorTest",
     ":RSVirtualScreenProcessorTest",
     ":RSVsyncRateReduceManagerTest",
   ]
   if (rs_enable_parallel_render && rs_enable_gpu) {
-    deps += [
-      ":RSRenderTaskTest",
-      ":RSSubThreadManagerTest",
-      ":RSSubThreadTest",
-      ":RSUIFirstRenderListenerTest",
-    ]
-  }
-  if (graphic_2d_feature_enable_rspipeline) {
-    deps += [ ":RSUifirstManagerTest" ]
+    deps += [ ":RSRenderTaskTest" ]
   }
   if (graphic_2d_feature_enable_vulkan &&
       graphic_2d_feature_vkqueue_priority_enable) {
@@ -91,7 +75,7 @@ config("pipeline_test") {
 ## Build RSVirtualScreenProcessorTest
 ohos_unittest("RSVirtualScreenProcessorTest") {
   module_out_path = module_output_path
-  sources = [ "rs_virtual_screen_processor_test.cpp" ]
+  sources = [ "render_thread/rs_virtual_screen_processor_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -231,13 +215,15 @@ ohos_unittest("RSRenderServiceVisitorTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_render_service_visitor_test.cpp",
+    "main_thread/rs_render_service_visitor_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -247,7 +233,6 @@ ohos_unittest("RSRenderServiceVisitorTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -287,12 +272,14 @@ ohos_unittest("RSComposerAdapterTest") {
 ## Build RSRenderServiceListenerTest
 ohos_unittest("RSRenderServiceListenerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_render_service_listener_test.cpp" ]
+  sources = [ "main_thread/rs_render_service_listener_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -302,7 +289,6 @@ ohos_unittest("RSRenderServiceListenerTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -341,7 +327,7 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
-    "rs_physical_screen_processor_test.cpp",
+    "render_thread/rs_physical_screen_processor_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
@@ -410,93 +396,6 @@ ohos_unittest("RSBaseRenderUtilTest") {
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSSurfaceCaptureParallelTaskTest
-ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_surface_capture_task_parallel_test.cpp",
-  ]
-  deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSSurfaceCaptureTaskTest
-ohos_unittest("RSSurfaceCaptureTaskTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_surface_capture_task_test.cpp",
-  ]
-  deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSUiCaptureTaskParallelTest
-ohos_unittest("RSUiCaptureTaskParallelTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_ui_capture_task_parallel_test.cpp",
-  ]
-  deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -590,8 +489,8 @@ ohos_unittest("RSUniRenderVisitorTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "main_thread/rs_uni_render_visitor_test.cpp",
     "mock/mock_matrix.cpp",
-    "rs_uni_render_visitor_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
@@ -599,6 +498,8 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "hilog:libhilog",
     "init:libbegetutil",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -608,7 +509,6 @@ ohos_unittest("RSUniRenderVisitorTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -640,41 +540,6 @@ ohos_unittest("RSPointerWindowManagerTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
-  }
-}
-
-## Build RSUniUiCaptureTest
-ohos_unittest("RSUniUiCaptureTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_uni_ui_capture_test.cpp",
-  ]
-  deps = [
-    ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "init:libbegetutil",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-    external_deps += [ "accessibility:accessibilityconfig" ]
-    external_deps += [ "accessibility:accessibility_common" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -713,7 +578,7 @@ ohos_unittest("RSHardwareThreadTest") {
 ## Build RSMainThreadTest
 ohos_unittest("RSMainThreadTest") {
   module_out_path = module_output_path
-  sources = [ "rs_main_thread_test.cpp" ]
+  sources = [ "main_thread/rs_main_thread_test.cpp" ]
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base/src/platform:platform",
@@ -725,6 +590,8 @@ ohos_unittest("RSMainThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
@@ -735,7 +602,6 @@ ohos_unittest("RSMainThreadTest") {
     defines += [ "ACCESSIBILITY_ENABLE" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -747,87 +613,6 @@ ohos_unittest("RSMainThreadTest") {
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSUIFirstRenderListenerTest
-ohos_unittest("RSUIFirstRenderListenerTest") {
-  module_out_path = module_output_path
-  sources = [ "parallel_render/rs_ui_first_render_listener_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSSubThreadManagerTest
-ohos_unittest("RSSubThreadManagerTest") {
-  module_out_path = module_output_path
-  sources = [ "parallel_render/rs_sub_thread_manager_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSSubThreadTest
-ohos_unittest("RSSubThreadTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
-    "parallel_render/rs_sub_thread_test.cpp",
-  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -958,7 +743,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
 ## Build RSRealtimeRefreshRateManagerTest
 ohos_unittest("RSRealtimeRefreshRateManagerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_realtime_refresh_rate_manager_test.cpp" ]
+  sources = [ "hardware_thread/rs_realtime_refresh_rate_manager_test.cpp" ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/utils/test_header:test_header",
@@ -1016,7 +801,7 @@ ohos_unittest("RSRenderEngineTest") {
 ## Build RSDividedRenderUtilTest
 ohos_unittest("RSDividedRenderUtilTest") {
   module_out_path = module_output_path
-  sources = [ "rs_divided_render_util_test.cpp" ]
+  sources = [ "render_thread/rs_divided_render_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -1030,8 +815,9 @@ ohos_unittest("RSDividedRenderUtilTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  include_dirs =
+      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -1068,127 +854,10 @@ ohos_unittest("RSUniRenderEngineTest") {
   }
 }
 
-## Build RSUnmarshalThreadTest
-ohos_unittest("RSUnmarshalThreadTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_unmarshal_thread_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-  ]
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSVBlankIdleCorrectorTest
-ohos_unittest("RSVBlankIdleCorrectorTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_vblank_idle_corrector_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-  ]
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSUniHWcPrevalidateUtilTest
-ohos_unittest("RSUniHWcPrevalidateUtilTest") {
-  module_out_path = module_output_path
-  sources = [ "hwc/rs_uni_hwc_prevalidate_util_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSUifirstManagerTest
-ohos_unittest("RSUifirstManagerTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_uifirst_manager_test.cpp",
-  ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
 ## Build RSMagicPointerRenderManagerTest
 ohos_unittest("RSMagicPointerRenderManagerTest") {
   module_out_path = module_output_path
   sources = [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
-  }
-}
-
-## Build RSAncoManagerTest
-ohos_unittest("RSAncoManagerTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_anco_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -1265,6 +934,13 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",

@@ -506,6 +506,18 @@ std::shared_ptr<Drawing::ColorSpace> RenderContext::ConvertColorGamutToColorSpac
     return colorSpace;
 }
 
+#if defined(RS_ENABLE_VK)
+bool RenderContext::CheckShaderCacheOverSoftLimit() const
+{
+    auto& shaderCache = ShaderCache::Instance();
+    if (!shaderCache.IfInitialized()) {
+        LOGE("CheckShaderCacheOverSoftLimit shaderCache not Initialized");
+        return false;
+    }
+    return shaderCache.CheckShaderCacheOverSoftLimit();
+}
+#endif
+
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 std::string RenderContext::GetShaderCacheSize() const
 {

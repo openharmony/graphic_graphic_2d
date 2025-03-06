@@ -31,19 +31,15 @@ struct CaptureParam {
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
-    float scaleX_ = 0.0f;
-    float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
     bool isNeedBlur_ = false;
     CaptureParam() {}
-    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false, bool isNeedBlur = false)
+    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
+        bool isSystemCalling = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
-        scaleX_(scaleX),
-        scaleY_(scaleY),
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling),
         isNeedBlur_(isNeedBlur) {}
@@ -98,6 +94,16 @@ public:
     void SetOpDropped(bool opDropped)
     {
         isOpDropped_ = opDropped;
+    }
+
+    bool IsDirtyAlignEnabled() const
+    {
+        return isDirtyAlignEnabled_;
+    }
+
+    bool IsStencilPixelOcclusionCullingEnabled() const
+    {
+        return isStencilPixelOcclusionCullingEnabled_;
     }
 
     bool HasDisplayHdrOn() const
@@ -458,6 +464,11 @@ public:
     {
         return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
     }
+
+    AdvancedDirtyRegionType GetAdvancedDirtyType() const
+    {
+        return advancedDirtyType_;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -481,6 +492,8 @@ private:
     bool isVisibleRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyAlignEnabled_ = false;
+    bool isStencilPixelOcclusionCullingEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
@@ -491,6 +504,7 @@ private:
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
+    AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;

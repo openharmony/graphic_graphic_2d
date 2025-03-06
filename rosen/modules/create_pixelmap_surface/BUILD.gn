@@ -46,12 +46,12 @@ ohos_source_set("create_pixelmap_surface_src") {
     "$graphic_2d_root/utils:scoped_bytrace",
   ]
 
-  external_deps = [
-    "drivers_interface_display:libdisplay_commontype_proxy_2.0",
-    "graphic_surface:sync_fence",
-  ]
+  external_deps = [ "graphic_surface:sync_fence" ]
 
-  cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
+  if (use_video_processing_engine) {
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
@@ -75,7 +75,6 @@ ohos_shared_library("create_pixelmap_surface") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",
-    "image_framework:image_utils",
   ]
 
   subsystem_name = "graphic"

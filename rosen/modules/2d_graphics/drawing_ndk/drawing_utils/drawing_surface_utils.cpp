@@ -177,9 +177,6 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     
     int fenceFd = -1;
     auto queue = vkContext.GetQueue();
-    if (vkContext.GetHardWareGrContext().get() == gpuContext) {
-        queue = vkContext.GetHardwareQueue();
-    }
     auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, nativeSurface->image, &fenceFd);
     if (err != VK_SUCCESS) {

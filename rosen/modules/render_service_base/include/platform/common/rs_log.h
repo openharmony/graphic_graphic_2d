@@ -219,7 +219,7 @@ private:
     static std::atomic<bool> isFirstTime##func##line = true;                                                     \
     static std::atomic<uint64_t> prePrintTime##func##line = std::chrono::duration_cast<std::chrono::seconds>(    \
         std::chrono::system_clock::now().time_since_epoch()).count();                                            \
-    uint64_t currTime = std::chrono::duration_cast<std::chrono::seconds>(                                        \
+    int64_t currTime = std::chrono::duration_cast<std::chrono::seconds>(                                         \
         std::chrono::system_clock::now().time_since_epoch()).count();                                            \
     if ((currTime - prePrintTime##func##line >= LOG_PRINT_INTERVAL_IN_SECOND) || isFirstTime##func##line) {      \
         prePrintTime##func##line = std::chrono::duration_cast<std::chrono::seconds>(                             \

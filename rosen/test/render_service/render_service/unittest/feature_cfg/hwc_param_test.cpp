@@ -37,36 +37,6 @@ void HwcParamTest::SetUp() {}
 void HwcParamTest::TearDown() {}
 
 /**
- * @tc.name: SetHwcEnable
- * @tc.desc: Verify the SetHwcEnable function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(HwcParamTest, SetHwcEnable, Function | SmallTest | Level1)
-{
-    HWCParam hwcParam;
-    hwcParam.SetHwcEnable(true);
-    EXPECT_EQ(hwcParam.isHwcEnable_, true);
-    hwcParam.SetHwcEnable(false);
-    EXPECT_EQ(hwcParam.isHwcEnable_, false);
-}
-
-/**
- * @tc.name: SetHwcMirrorEnable
- * @tc.desc: Verify the SetHwcMirrorEnable function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(HwcParamTest, SetHwcMirrorEnable, Function | SmallTest | Level1)
-{
-    HWCParam hwcParam;
-    hwcParam.SetHwcMirrorEnable(true);
-    EXPECT_EQ(hwcParam.isHwcMirrorEnable_, true);
-    hwcParam.SetHwcMirrorEnable(false);
-    EXPECT_EQ(hwcParam.isHwcMirrorEnable_, false);
-}
-
-/**
  * @tc.name: SetSourceTuningForApp
  * @tc.desc: Verify the SetSourceTuningForApp function
  * @tc.type: FUNC
@@ -78,7 +48,7 @@ HWTEST_F(HwcParamTest, SetSourceTuningForApp, Function | SmallTest | Level1)
     std::string appName = "testApp";
     std::string val = "1";
     hwcParam.SetSourceTuningForApp(appName, val);
-    ASSERT_EQ(hwcParam.sourceTuningMap_[appName], 1);
+    ASSERT_EQ(hwcParam.sourceTuningMap_[appName], "1");
 }
 
 /**
@@ -93,77 +63,37 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp, Function | SmallTest | Level1)
     std::string appName = "testApp";
     std::string val = "1";
     hwcParam.SetSolidColorLayerForApp(appName, val);
-    ASSERT_EQ(hwcParam.solidColorLayerMap_[appName], 1);
+    ASSERT_EQ(hwcParam.solidColorLayerMap_[appName], "1");
 }
 
 /**
- * @tc.name: IsHwcEnable
- * @tc.desc: Verify the result of IsHwcEnable function
+ * @tc.name: SetHwcExpandingScreenEnabled
+ * @tc.desc: Verify the SetHwcExpandingScreenEnabled function
  * @tc.type: FUNC
- * @tc.require: #IBIE4T
+ * @tc.require: #IBOLM8
  */
-HWTEST_F(HwcParamTest, IsHwcEnable, Function | SmallTest | Level1)
+HWTEST_F(HwcParamTest, SetHwcExpandingScreenEnabled, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
-    hwcParam.isHwcEnable_ = true;
-    EXPECT_TRUE(hwcParam.IsHwcEnable());
-    hwcParam.isHwcEnable_ = false;
-    EXPECT_FALSE(hwcParam.IsHwcEnable());
+    hwcParam.SetHwcExpandingScreenEnabled(true);
+    EXPECT_EQ(hwcParam.isHwcExpandingScreenEnabled_, true);
+    hwcParam.SetHwcExpandingScreenEnabled(false);
+    EXPECT_EQ(hwcParam.isHwcExpandingScreenEnabled_, false);
 }
 
 /**
- * @tc.name: IsHwcMirrorEnable
- * @tc.desc: Verify the result of IsHwcMirrorEnable function
+ * @tc.name: IsHwcExpandingScreenEnabled
+ * @tc.desc: Verify the IsHwcExpandingScreenEnabled function
  * @tc.type: FUNC
- * @tc.require: #IBIE4T
+ * @tc.require: #IBOLM8
  */
-HWTEST_F(HwcParamTest, IsHwcMirrorEnable, Function | SmallTest | Level1)
+HWTEST_F(HwcParamTest, IsHwcExpandingScreenEnabled, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
-    hwcParam.isHwcMirrorEnable_ = true;
-    EXPECT_TRUE(hwcParam.IsHwcMirrorEnable());
-    hwcParam.isHwcMirrorEnable_ = false;
-    EXPECT_FALSE(hwcParam.IsHwcMirrorEnable());
-}
-
-/**
- * @tc.name: GetSourceTuningForApp
- * @tc.desc: Verify the result of GetSourceTuningForApp function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(HwcParamTest, GetSourceTuningForApp, Function | SmallTest | Level1)
-{
-    HWCParam hwcParam;
-    std::string appName = "testApp";
-    int expectedVal = 1;
-    hwcParam.sourceTuningMap_[appName] = expectedVal;
-    int actualVal = hwcParam.GetSourceTuningForApp(appName);
-    EXPECT_EQ(actualVal, expectedVal);
-    // Check if not has the appName
-    std::string nonExistAppName = "nonExistApp";
-    int nonVal = hwcParam.GetSourceTuningForApp(nonExistAppName);
-    EXPECT_EQ(nonVal, -1);
-}
-
-/**
- * @tc.name: GetSolidColorLayerForApp
- * @tc.desc: Verify the result of GetSolidColorLayerForApp function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(HwcParamTest, GetSolidColorLayerForApp, Function | SmallTest | Level1)
-{
-    HWCParam hwcParam;
-    std::string appName = "testApp";
-    int expectedVal = 1;
-    hwcParam.solidColorLayerMap_[appName] = expectedVal;
-    int actualVal = hwcParam.GetSolidColorLayerForApp(appName);
-    EXPECT_EQ(actualVal, expectedVal);
-    // Check if not has the appName
-    std::string nonExistAppName = "nonExistApp";
-    int nonVal = hwcParam.GetSolidColorLayerForApp(nonExistAppName);
-    EXPECT_EQ(nonVal, -1);
+    hwcParam.isHwcExpandingScreenEnabled_ = true;
+    EXPECT_TRUE(hwcParam.IsHwcExpandingScreenEnabled());
+    hwcParam.isHwcExpandingScreenEnabled_ = false;
+    EXPECT_FALSE(hwcParam.IsHwcExpandingScreenEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

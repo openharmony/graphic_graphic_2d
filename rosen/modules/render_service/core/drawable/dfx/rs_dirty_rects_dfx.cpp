@@ -234,8 +234,8 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas)
     auto activeRect = screenInfo.activeRect;
     if (!activeRect.IsEmpty()) {
         canvas.Translate(activeRect.left_, activeRect.top_);
-        screenWidth = activeRect.width_;
-        screenHeight = activeRect.height_;
+        screenWidth = static_cast<uint32_t>(activeRect.width_);
+        screenHeight = static_cast<uint32_t>(activeRect.height_);
     }
     auto saveCount = canvas.Save();
     if (!RefreshRateRotationProcess(canvas, rotation, screenWidth, screenHeight)) {
@@ -401,10 +401,6 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canva
     for (const auto& subRect : expandedDirtyRegion_.GetRegionRectIs()) {
         DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_CYAN, RSPaintStyle::STROKE, edgeWidth, true);
     }
-
-    // draw display dirtyregion with red color
-    RectI dirtySurfaceRect = targetDrawable_.GetSyncDirtyManager()->GetDirtyRegion();
-    DrawDirtyRectForDFX(canvas, dirtySurfaceRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE);
 }
 
 void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const

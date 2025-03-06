@@ -440,6 +440,12 @@ int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFenc
     }
     return ret;
 }
+
+int32_t HdiDeviceImpl::GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayIdentificationData(screenId, outPort, edidData);
+}
 /* set & get device screen info end */
 
 /* set & get device layer info begin */
@@ -649,6 +655,13 @@ int32_t HdiDeviceImpl::SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t lay
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);
+}
+
+int32_t HdiDeviceImpl::SetDisplayPerFrameParameterSmq(uint32_t devId, const std::string& key,
+    const std::vector<int8_t>& value)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayPerFrameParameterSmq(devId, key, value);
 }
 
 int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)

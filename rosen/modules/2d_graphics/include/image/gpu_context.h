@@ -171,10 +171,17 @@ public:
 
     void DumpAllResource(std::stringstream& dump) const;
 
+    void DumpAllCoreTrace(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
+
+    /**
+     * @brief                   Deeply clean resources in Relcaim.
+     */
+    void ReclaimResources();
 
     /**
      * @brief                   Dump GPU stats.
@@ -209,6 +216,13 @@ public:
      * @param exitedPidSet            GPU resource exitedPidSet used to purge unlocked resources.
      */
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
+
+    /**
+     * @brief                         Register LeashWindow callback function
+     *                                provided callback function when gpu reset with device lost error.
+     * @param LeashWindowCallback     callback function for skia recall
+     */
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback);
 
     /**
      * @brief                       Purge unlocked resources in every frame

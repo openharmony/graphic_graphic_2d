@@ -22,6 +22,7 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
@@ -29,6 +30,7 @@
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "hgm_touch_manager.h"
+#include "hgm_pointer_manager.h"
 #include "hgm_vsync_generator_controller.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
@@ -51,7 +53,10 @@ enum TouchStatus : uint32_t {
     TOUCH_DOWN = 2,
     TOUCH_MOVE = 3,
     TOUCH_UP = 4,
+    TOUCH_BUTTON_DOWN = 8,
+    TOUCH_BUTTON_UP = 9,
     TOUCH_PULL_DOWN = 12,
+    TOUCH_PULL_MOVE = 13,
     TOUCH_PULL_UP = 14,
 };
 
@@ -59,7 +64,10 @@ enum CleanPidCallbackType : uint32_t {
     LIGHT_FACTOR,
     PACKAGE_EVENT,
     TOUCH_EVENT,
+    POINTER_EVENT,
     GAMES,
+    APP_STRATEGY_CONFIG_EVENT,
+    PAGE_URL,
 };
 
 enum LightFactorStatus : int32_t {
@@ -130,6 +138,7 @@ struct VoteInfo {
 
 class HgmFrameRateManager {
 public:
+    using ChangeDssRefreshRateCbType = std::function<void(ScreenId, uint32_t, bool)>;
     HgmFrameRateManager();
     ~HgmFrameRateManager() = default;
 
@@ -152,10 +161,10 @@ public:
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
+    void HandleThermalFrameRate(bool status);
 
     // called by RSHardwareThread
     void HandleRsFrame();
-    void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
     // called by RSMainThread
@@ -207,6 +216,17 @@ public:
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+    HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
+    void SetChangeDssRefreshRateCb(ChangeDssRefreshRateCbType changeDssRefreshRateCb)
+    {
+        changeDssRefreshRateCb_ = changeDssRefreshRateCb;
+    }
+    void ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter);
+    void CleanPageUrlVote(pid_t pid);
+    void HandlePageUrlEvent();
+    void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -217,6 +237,8 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void UpdateSoftVSync(bool followRs);
+    void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
@@ -232,7 +254,9 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
     void HandleScreenFrameRate(std::string curScreenName);
+    void UpdateScreenFrameRate();
 
     void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
     void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);
@@ -255,10 +279,9 @@ private:
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
-    void InitRsIdleTimer();
-    void InitPowerTouchManager();
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    void CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -276,6 +299,7 @@ private:
     uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
+    HgmSimpleTimer changeGeneratorRateValidTimer_;
     // current game app's self drawing node name
     std::string curGameNodeName_;
     // if current game's self drawing node is on tree,default false
@@ -288,7 +312,7 @@ private:
     std::vector<uint32_t> stylusVec_;
 
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
-    HgmSimpleTimer voterLtpoTimer_;
+    HgmSimpleTimer rsFrameRateTimer_;
 
     std::vector<std::string> voters_;
     // FORMAT: <sceneName, pid>
@@ -308,22 +332,18 @@ private:
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
+    bool isEnableThermalStrategy_ = false;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
     int32_t stylusMode_ = -1;
     int32_t idleFps_ = OLED_60_HZ;
-    int32_t minIdleFps_ = OLED_60_HZ;
-    // rsIdleTimer_ skip rsFrame(see in SetShowRefreshRateEnabled), default value is 1 while ShowRefreshRate disabled
-    std::atomic<int32_t> skipFrame_ = 1;
-    std::atomic<int32_t> curSkipCount_ = 0xFF;
-    std::unique_ptr<HgmSimpleTimer> rsIdleTimer_ = nullptr;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    HgmPointerManager pointerManager_;
     std::atomic<bool> voterTouchEffective_ = false;
     std::atomic<bool> voterGamesEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
-    HgmTouchManager powerTouchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
     // only called by RSMainThread
@@ -343,6 +363,8 @@ private:
     FrameRateLinkerMap appFrameRateLinkers_;
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
+    ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
+    HgmAppPageUrlStrategy appPageUrlStrategy_;
 };
 } // namespace Rosen
 } // namespace OHOS

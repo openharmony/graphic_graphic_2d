@@ -36,7 +36,9 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
             return false;
         }
     }
-    return true;
+
+    return (animationMode_ == symbol.animationMode_) && (animationStart_ == symbol.animationStart_) &&
+        (commonSubType_ == symbol.commonSubType_) && (familyName_ == symbol.familyName_);
 }
 
 void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
@@ -112,6 +114,16 @@ void HMSymbolTxt::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
 Drawing::DrawingCommonSubType HMSymbolTxt::GetCommonSubType() const
 {
     return commonSubType_;
+}
+
+void HMSymbolTxt::SetSymbolType(SymbolType symbolType)
+{
+    symbolType_ = symbolType;
+}
+
+SymbolType HMSymbolTxt::GetSymbolType() const
+{
+    return symbolType_;
 }
 } // SPText
 } // Rosen

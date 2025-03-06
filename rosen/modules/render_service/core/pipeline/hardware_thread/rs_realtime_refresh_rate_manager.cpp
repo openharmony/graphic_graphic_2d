@@ -21,7 +21,7 @@
 
 #include "hgm_core.h"
 #include "rs_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()
@@ -47,7 +47,6 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
             return;
         }
         showEnabled_ = enabled;
-        frameRateMgr->SetShowRefreshRateEnabled(showEnabled_);
     } else if (enumType == RealtimeRefreshRateType::COLLECT) {
         if (collectEnabled_ == enabled) {
             return;
@@ -108,7 +107,6 @@ void RSRealtimeRefreshRateManager::StatisticsRefreshRateDataLocked(std::shared_p
 
 uint32_t RSRealtimeRefreshRateManager::GetRealtimeRefreshRate(ScreenId screenId)
 {
-    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}" PRIu64"]", screenId);
     {
         std::unique_lock<std::mutex> threadLock(threadMutex_);
         if (!showEnabled_ && !collectEnabled_) {

@@ -143,6 +143,7 @@ INTERACTION_RENDER_JANK:
   MAX_HITCH_TIME: {type: UINT64, desc: max single frame hitch time during the scene}
   MAX_HITCH_TIME_SINCE_START: {type: UINT64, desc: duration from the scene start to the max hitch frame end}
   DURATION: {type: UINT64, desc: duration of the scene}
+  MAX_FRAME_REFRESH_RATE: {type: INT32, desc: the frame rate at the moment of the longest frame occurrence}
 
 INTERACTION_HITCH_TIME_RATIO:
   __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction hitch time ratio statistics}
@@ -176,11 +177,6 @@ RS_NODE_LIMIT_EXCEEDED:
   RS_TOP2_APP_NODE: {type: UINT32, desc: number of nodes of current app with top2 rs nodes}
   RS_TOP3_APP_NAME: {type: STRING, desc: name of current app with top3 rs nodes}
   RS_TOP3_APP_NODE: {type: UINT32, desc: number of nodes of current app with top3 rs nodes}
-
-ANIMATION_CALLBACK_MISSING:
-  __BASE: {type: STATISTIC, level: MINOR, desc: animation finish callback guarantee}
-  CURVE_TYPE: {type: INT32, desc: curve type}
-  DURATION: {type: FLOAT, desc: animation duration}
 
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}

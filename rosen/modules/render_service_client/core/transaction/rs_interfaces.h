@@ -227,6 +227,8 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
+
     /* skipFrameInterval : decide how many frames apart to refresh a frame,
        DEFAULT_SKIP_FRAME_INTERVAL means refresh each frame,
        change screen refresh rate finally */
@@ -271,8 +273,13 @@ public:
 
     void SetAppWindowNum(uint32_t num);
 
-    // Set the system overload Animated Scenes to RS for special load shedding
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+    /*
+    * @brief Set the system overload Animated Scenes to RS for special load shedding
+    * @param systemAnimatedScenes indicates the system animation scene
+    * @param isRegularAnimation indicates irregular windows in the animation scene
+    * @return true if succeed, otherwise false
+    */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
@@ -284,11 +291,16 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
 
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
+
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -352,9 +364,14 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
+
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

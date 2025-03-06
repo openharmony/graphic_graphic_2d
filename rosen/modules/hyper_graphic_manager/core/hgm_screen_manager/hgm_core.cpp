@@ -93,8 +93,7 @@ void HgmCore::Init()
         }
 
         SetLtpoConfig();
-        isDelayMode_ = RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType();
-        HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
+        HGM_LOGI("HgmCore initialization success!!!");
     });
 }
 
@@ -179,34 +178,31 @@ void HgmCore::SetLtpoConfig()
     }
     auto curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
-    if (curScreenSetting.ltpoConfig.find("switch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["switch"])) {
-        ltpoEnabled_ = std::stoi(curScreenSetting.ltpoConfig["switch"]);
+    auto ltpoConfig = curScreenSetting.ltpoConfig;
+    if (ltpoConfig.find("switch") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["switch"])) {
+        ltpoEnabled_ = std::stoi(ltpoConfig["switch"]);
     } else {
         ltpoEnabled_ = 0;
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["maxTE"])) {
-        maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+    if (ltpoConfig.find("maxTE") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["maxTE"])) {
+        maxTE_ = std::stoul(ltpoConfig["maxTE"]);
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["alignRate"])) {
-        alignRate_ = std::stoul(curScreenSetting.ltpoConfig["alignRate"]);
+    if (ltpoConfig.find("alignRate") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["alignRate"])) {
+        alignRate_ = std::stoul(ltpoConfig["alignRate"]);
     } else {
         alignRate_ = 0;
         HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("pipelineOffsetPulseNum") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"])) {
-        pipelineOffsetPulseNum_ = std::stoi(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"]);
+    if (ltpoConfig.count("pipelineOffsetPulseNum") != 0 && XMLParser::IsNumber(ltpoConfig["pipelineOffsetPulseNum"])) {
+        pipelineOffsetPulseNum_ = std::stoi(ltpoConfig["pipelineOffsetPulseNum"]);
         CreateVSyncGenerator()->SetVSyncPhaseByPulseNum(pipelineOffsetPulseNum_);
     } else {
         pipelineOffsetPulseNum_ = 0;
@@ -216,10 +212,12 @@ void HgmCore::SetLtpoConfig()
     SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
+    SetPerformanceConfig();
     HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
-        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, lowRateToHighQuickSwitch: %{public}d",
+        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, " \
+        "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
         ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
-        lowRateToHighQuickSwitch_.load());
+        lowRateToHighQuickSwitch_.load(), pluseNum_, isDelayMode_);
 }
 
 void HgmCore::SetScreenConstraintConfig()
@@ -248,6 +246,30 @@ void HgmCore::SetScreenConstraintConfig()
     }
 }
 
+void HgmCore::SetPerformanceConfig()
+{
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    if (mPolicyConfigData_->screenConfigs_.count(curScreenStrategyId) == 0 ||
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
+        return;
+    }
+    auto curScreenSetting =
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
+    if (curScreenSetting.performanceConfig.count("pluseNum") != 0 &&
+        XMLParser::IsNumber(curScreenSetting.performanceConfig["pluseNum"])) {
+        pluseNum_ = std::stoi(curScreenSetting.performanceConfig["pluseNum"]);
+    } else {
+        pluseNum_ = -1;
+        HGM_LOGW("HgmCore failed to find pluseNum_ strategy for LTPO");
+    }
+    if (curScreenSetting.performanceConfig.count("piplineDelayModeEnable") != 0) {
+        isDelayMode_ = curScreenSetting.performanceConfig["piplineDelayModeEnable"] != "0";
+    } else {
+        isDelayMode_ = true;
+        HGM_LOGW("HgmCore failed to find piplineDelayModeEnable_ strategy for LTPO");
+    }
+}
+
 void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback)
 {
     refreshRateModeChangeCallback_ = callback;
@@ -271,6 +293,15 @@ void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback&
     if (refreshRateUpdateCallback_ != nullptr) {
         refreshRateUpdateCallback_(refreshRate);
     }
+}
+
+void HgmCore::SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
+{
+    if (!mPolicyConfigData_) {
+        HGM_LOGE("Fail to set hfbcConfig, HgmCore is not initialized");
+        return;
+    }
+    mPolicyConfigData_->hfbcConfig_ = hfbcConfig;
 }
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)

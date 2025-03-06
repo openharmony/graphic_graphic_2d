@@ -20,7 +20,7 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
@@ -74,6 +74,7 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     ASSERT_NE(displayDrawable_, nullptr);
     displayDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown() {}
 
@@ -570,8 +571,22 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, EnableSlrScale, TestSize.Level2)
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    virtualProcessor->EnableSlrScale();
     ASSERT_NE(nullptr, virtualProcessor);
-    bool res = virtualProcessor->EnableSlrScale();
-    ASSERT_NE(false, res);
+}
+
+/**
+ * @tc.name: SetSpecialLayerType
+ * @tc.desc: test draw virtual mirror screen by copy.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetSpecialLayerType, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+    virtualProcessor->SetDrawVirtualMirrorCopy(true);
 }
 } // namespace OHOS::Rosen

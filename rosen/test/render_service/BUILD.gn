@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -25,6 +25,7 @@ group("test") {
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/drawable:unittest",
+    "render_service/unittest/feature:unittest",
     "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",
     "render_service/unittest/pipeline:unittest",
@@ -32,6 +33,8 @@ group("test") {
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
     "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
@@ -100,12 +103,13 @@ group("test") {
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
+    "render_service_base/unittest/display_engine:unittest",
     "render_service_base/unittest/drawable:unittest",
     "render_service_base/unittest/gfx:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
-    "render_service_base/unittest/luminance:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
+    "render_service_base/unittest/monitor:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/params:unittest",
@@ -141,9 +145,11 @@ group("test") {
     "render_service_client/fuzztest/ui/rsuidirector_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
-    "render_service_client/unittest/jank_detector:unittest",
+    "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
+    "render_service_client/unittest/render_thread:unittest",
+    "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
   ]
@@ -154,9 +160,6 @@ group("test") {
       "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
       "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
     ]
-  }
-  if (tp_feature_enable) {
-    deps += [ "render_service/unittest/touch_screen:unittest" ]
   }
 
   if (graphic_2d_feature_enable_rspipeline) {

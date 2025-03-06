@@ -15,13 +15,13 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "skia_adapter/skia_surface.h"
 
 using namespace testing;

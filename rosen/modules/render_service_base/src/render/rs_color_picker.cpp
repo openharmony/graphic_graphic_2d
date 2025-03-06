@@ -153,14 +153,12 @@ bool RSColorPicker::IsEquals(double val1, double val2) const
 // Transform RGB to HSV.
 HSV RSColorPicker::RGB2HSV(uint32_t rgb) const
 {
-    double r, g, b;
-    double h, s, v;
-    double minComponent, maxComponent;
-    double delta;
+    double r = GetARGB32ColorR(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
+    double g = GetARGB32ColorG(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
+    double b = GetARGB32ColorB(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
     HSV hsv;
-    r = GetARGB32ColorR(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
-    g = GetARGB32ColorG(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
-    b = GetARGB32ColorB(rgb) / 255.0;  // 255.0 is used to normalize color to [0, 1].
+    double minComponent;
+    double maxComponent;
     if (r > g) {
         maxComponent = std::max(r, b);
         minComponent = std::min(g, b);
@@ -168,15 +166,16 @@ HSV RSColorPicker::RGB2HSV(uint32_t rgb) const
         maxComponent = std::max(g, b);
         minComponent = std::min(r, b);
     }
-    v = maxComponent;
-    delta = maxComponent - minComponent;
-
+    double v = maxComponent;
+    double delta = maxComponent - minComponent;
+    double s;
     if (IsEquals(maxComponent, 0)) {
         s = 0.0;
     } else {
         s = delta / maxComponent;
     }
 
+    double h;
     if (maxComponent == minComponent) {
         h = 0.0;
     } else {

@@ -48,6 +48,8 @@ public:
 
     sk_sp<skia::textlayout::FontCollection> CreateSktFontCollection();
 
+    void UpdateDefaultFamilies();
+
 private:
     std::shared_ptr<RSFontMgr> defaultFontManager_;
     std::shared_ptr<RSFontMgr> assetFontManager_;

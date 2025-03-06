@@ -31,7 +31,13 @@ int RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(
             RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED): {
-            float visibleAreaRatio = data.ReadFloat();
+            float visibleAreaRatio{0.f};
+            if (!data.ReadFloat(visibleAreaRatio)) {
+                RS_LOGE("RSSurfaceOcclusionChangeCallbackStub::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED read"
+                        "visibleAreaRatio failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
             break;
         }

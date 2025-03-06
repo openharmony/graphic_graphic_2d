@@ -25,6 +25,7 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
@@ -282,7 +283,7 @@ public:
     virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
-    virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
+    virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
 
@@ -294,6 +295,9 @@ public:
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
+    virtual void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig) = 0;
+
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
     virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
@@ -301,6 +305,8 @@ public:
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
+
+    virtual void NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
 
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 
@@ -352,6 +358,8 @@ public:
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
+    virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual int32_t SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
@@ -369,6 +377,10 @@ public:
     virtual void NotifyScreenSwitched() = 0;
 
     virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
+
+    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
+
+    virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

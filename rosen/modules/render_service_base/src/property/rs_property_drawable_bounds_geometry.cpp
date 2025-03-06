@@ -804,7 +804,7 @@ void RSEffectDataGenerateDrawable::Draw(const RSRenderContent& content, RSPaintF
 {
     const auto& properties = content.GetRenderProperties();
     if (properties.GetHaveEffectRegion() && properties.GetBackgroundFilter() &&
-        RSSystemProperties::GetEffectMergeEnabled()) {
+        (RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
         RSPropertiesPainter::DrawBackgroundEffect(content.GetRenderProperties(), canvas);
     }
 }
@@ -920,16 +920,8 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
         auto blender = RSPropertiesPainter::MakeDynamicBrightnessBlender(properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
-    // use drawrrect to avoid texture update in phone screen rotation scene
-    if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
-        bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
-        brush.SetAntiAlias(antiAlias);
-        canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
-    } else {
-        canvas.AttachBrush(brush);
-        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
-    }
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
 }
 
@@ -1038,7 +1030,7 @@ std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderCont
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendFastDrawable>(blendMode, blender);
     }
-    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode, blender);
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode, blendModeApplyType, blender);
 }
 
 std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
@@ -1050,13 +1042,15 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
         // no blend
         return nullptr;
     }
-    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER)) {
+    if (blendModeApplyType != static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendSaveLayerRestoreDrawable>();
     }
     return std::make_unique<RSBlendFastRestoreDrawable>();
 }
 
-RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender)
+RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode, int blendModeApplyType,
+    std::shared_ptr<Drawing::Blender> blender)
+    : blendModeApplyType_(blendModeApplyType)
 {
     if (blender != nullptr) {
         blendBrush_.SetBlender(blender);
@@ -1069,7 +1063,7 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
 {
     if (!canvas.HasOffscreenLayer() &&
         RSPropertiesPainter::IsDangerousBlendMode(
-            static_cast<int>(blendBrush_.GetBlendMode()), static_cast<int>(RSColorBlendApplyType::SAVE_LAYER))) {
+            static_cast<int>(blendBrush_.GetBlendMode()), blendModeApplyType_)) {
         Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
         canvas.SaveLayer(maskLayerRec);
         ROSEN_LOGD("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
@@ -1079,7 +1073,9 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
     auto brush = blendBrush_;
-    brush.SetAlphaF(canvas.GetAlpha());
+    if (blendModeApplyType_ == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA)) {
+        brush.SetAlphaF(canvas.GetAlpha());
+    }
     Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, 0);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlendMode(std::nullopt);

@@ -14,6 +14,7 @@
  */
 
 #include "hm_symbol_run.h"
+#include "custom_symbol_config.h"
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
@@ -35,12 +36,12 @@ HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     if (textBlob) {
         textBlob_ = textBlob;
     } else {
-        TEXT_LOGD("textBlob_ is nullptr");
+        TEXT_LOGD("Null text blob");
     }
     if (animationFunc) {
         animationFunc_ = animationFunc;
     } else {
-        TEXT_LOGD("animationFunc_ is nullptr");
+        TEXT_LOGD("Null animation func");
     }
 }
 
@@ -48,9 +49,9 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
 {
     RSSymbolLayers symbolInfo;
     symbolInfo.symbolGlyphId = glyphId;
-    RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
+    auto& symbolInfoOrign = symbolLayersGroups_;
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
-        TEXT_LOGD("GetSymbolLayersGroups of graphId %{public}hu failed", glyphId);
+        TEXT_LOGD("Invalid symbol layer groups, glyph id %{public}hu.", glyphId);
         return symbolInfo;
     }
 
@@ -106,22 +107,45 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
     }
 }
 
+void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
+{
+    symbolLayersGroups_.symbolGlyphId = glyphId;
+    // Obtaining Symbol Preset LayerGroups Parameters
+    if (symbolTxt_.GetSymbolType() == SymbolType::SYSTEM) {
+        auto groups = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
+        if (groups.renderModeGroups.empty()) {
+            TEXT_LOGD("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
+            symbolLayersGroups_.renderModeGroups = {};
+            return;
+        }
+        symbolLayersGroups_ = groups;
+    } else {
+        auto groups = CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(symbolTxt_.familyName_, glyphId);
+        if (!groups.has_value()) {
+            TEXT_LOGD("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
+            symbolLayersGroups_.renderModeGroups = {};
+            return;
+        }
+        symbolLayersGroups_ = groups.value();
+    }
+}
+
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
     if (!textBlob_) {
-        TEXT_LOGD("HmSymbol: the textBlob_ is nullptr");
+        TEXT_LOGD("Null text blob");
         return;
     }
 
     if (!canvas) {
-        TEXT_LOGD("HmSymbol: the canvas is nullptr");
+        TEXT_LOGD("Null canvas");
         return;
     }
 
     std::vector<uint16_t> glyphIds;
     RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
     if (glyphIds.size() != 1) {
-        TEXT_LOGD("HmSymbol: the size of glyphIds is not equal to 1");
+        TEXT_LOGD("Glyph isn't unique");
         canvas->DrawTextBlob(textBlob_.get(), offset.GetX(), offset.GetY());
         return;
     }
@@ -130,6 +154,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
     OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
     RSHMSymbolData symbolData;
 
+    UpdateSymbolLayersGroups(glyphId);
     symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt_);
     if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
         path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, textBlob_.get());
@@ -139,7 +164,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
     RSEffectStrategy symbolEffect = symbolTxt_.GetEffectStrategy();
     std::pair<float, float> offsetXY(offset.GetX(), offset.GetY());
     if (symbolEffect > 0 && symbolTxt_.GetAnimationStart()) { // 0 > has animation
-        if (SymbolAnimation(symbolData, glyphId, offsetXY)) {
+        if (SymbolAnimation(symbolData, offsetXY)) {
             currentAnimationHasPlayed_ = true;
             return;
         }
@@ -213,7 +238,7 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     // 1.0 move path
     path.Offset(locate.GetX(), locate.GetY());
     if (symbolData.symbolInfo_.renderGroups.empty()) {
-        TEXT_LOGD("The symbolLayerGroups is empty!");
+        TEXT_LOGD("Empty render groups");
         canvas->DrawPath(path);
         return;
     }
@@ -250,19 +275,18 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     }
 }
 
-bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphId,
-    const std::pair<float, float>& offset)
+bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
 {
     RSEffectStrategy effectMode = symbolTxt_.GetEffectStrategy();
     uint16_t animationMode = symbolTxt_.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
-        TEXT_LOGD("HmSymbol: the RSEffectStrategy is NONE");
+        TEXT_LOGD("Invalid effect mode");
         return false;
     }
     RSAnimationSetting animationSetting;
     if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
-        if (!GetAnimationGroups(glyphId, effectMode, animationSetting)) {
-            TEXT_LOGD("HmSymbol: GetAnimationGroups of glyphId %{public}hu is failed", glyphId);
+        if (!GetAnimationGroups(effectMode, animationSetting)) {
+            TEXT_LOGD("Invalid animation setting");
             return false;
         }
 
@@ -293,13 +317,12 @@ void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::
     symbolNode.ClearAnimation();
 }
 
-bool HMSymbolRun::GetAnimationGroups(uint16_t glyphId, const RSEffectStrategy effectStrategy,
+bool HMSymbolRun::GetAnimationGroups(const RSEffectStrategy effectStrategy,
     RSAnimationSetting& animationOut)
 {
-    auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
     RSAnimationType animationType = static_cast<RSAnimationType>(effectStrategy);
 
-    for (auto& animationSetting: symbolInfoOrigin.animationSettings) {
+    for (const auto& animationSetting : symbolLayersGroups_.animationSettings) {
         if (std::find(animationSetting.animationTypes.begin(), animationSetting.animationTypes.end(),
             animationType) == animationSetting.animationTypes.end()) {
             continue;

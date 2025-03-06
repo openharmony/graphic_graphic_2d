@@ -63,6 +63,9 @@ public:
     MOCK_METHOD2(GetHDRCapabilityInfos, int32_t(uint32_t, GraphicHDRCapability&));
     MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<GraphicHDRMetadataKey>&));
     MOCK_METHOD2(Commit, int32_t(uint32_t, sptr<SyncFence>&));
+    MOCK_METHOD3(GetDisplayIdentificationData, int32_t(uint32_t, uint8_t&, std::vector<uint8_t>&));
+    MOCK_METHOD3(SetDisplayPerFrameParameterSmq,
+                 int32_t(uint32_t, const std::string&, const std::vector<int8_t>&));
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

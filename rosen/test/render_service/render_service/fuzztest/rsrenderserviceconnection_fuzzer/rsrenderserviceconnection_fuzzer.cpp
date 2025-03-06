@@ -39,8 +39,8 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "pipeline/rs_render_service.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_client.h"
@@ -943,7 +943,7 @@ bool DOSetSystemAnimatedScenes()
         return false;
     }
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
-    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
+    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes), false);
     return true;
 }
 
@@ -1097,6 +1097,22 @@ bool DONotifyPackageEvent()
     return true;
 }
 
+
+bool DONotifyAppStrategyConfigChangeEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    std::string configKey = GetData<std::string>();
+    std::string configValue = GetData<std::string>();
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(make_pair(configKey, configValue));
+    rsConn_->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    return true;
+}
+
 bool DONotifyRefreshRateEvent()
 {
     if (rsConn_ == nullptr) {
@@ -1130,6 +1146,17 @@ bool DONotifyDynamicModeEvent()
     }
     bool enableDynamicMode = GetData<bool>();
     rsConn_->NotifyDynamicModeEvent(enableDynamicMode);
+    return true;
+}
+
+bool DONotifyHgmConfigEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string eventName = GetData<std::string>();
+    bool state = GetData<bool>();
+    rsConn_->NotifyHgmConfigEvent(eventName, state);
     return true;
 }
 
@@ -1359,6 +1386,7 @@ void DoFuzzerTest2()
     DOSetHidePrivacyContent();
     DONotifyLightFactorStatus();
     DONotifyPackageEvent();
+    DONotifyAppStrategyConfigChangeEvent();
     DONotifyRefreshRateEvent();
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
@@ -1378,6 +1406,7 @@ void DoFuzzerTest2()
 void DoFuzzerTest3()
 {
     DoNotifySoftVsyncEvent();
+    DONotifyHgmConfigEvent();
     DoCreatePixelMapFromSurface();
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();

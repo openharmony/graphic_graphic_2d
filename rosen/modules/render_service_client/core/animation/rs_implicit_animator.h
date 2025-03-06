@@ -34,6 +34,7 @@ class RSImplicitAnimationParam;
 class RSTransitionEffect;
 class RSMotionPathOption;
 class RSNode;
+class RSUIContext;
 
 class RSC_EXPORT RSImplicitAnimator {
 public:
@@ -109,6 +110,11 @@ private:
 
     void ExecuteWithoutAnimation(const std::function<void()>& callback);
 
+    void SetRSUIContext(std::weak_ptr<RSUIContext> rsUIContext)
+    {
+        rsUIContext_ = rsUIContext;
+    }
+
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve,
         const std::shared_ptr<AnimationFinishCallback>, std::shared_ptr<AnimationRepeatCallback>>>
         globalImplicitParams_;
@@ -121,7 +127,10 @@ private:
 
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
     bool isAddInteractiveAnimator_ { false };
+    std::weak_ptr<RSUIContext> rsUIContext_;
+    friend class RSImplicitAnimatorMap;
     friend class RSNode;
+    friend class RSUIContext;
 };
 } // namespace Rosen
 } // namespace OHOS

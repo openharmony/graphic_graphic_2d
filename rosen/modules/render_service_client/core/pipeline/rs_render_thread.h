@@ -27,7 +27,7 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
 #ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"
@@ -139,6 +139,9 @@ private:
     void Render();
     void SendCommands();
     void ReleasePixelMapInBackgroundThread();
+#ifdef CROSS_PLATFORM
+    void PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds);
+#endif
 
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;

@@ -25,6 +25,7 @@
 #endif
 
 #include "text/font_mgr.h"
+#include "txt/platform.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_typeface.h"
@@ -38,7 +39,6 @@ namespace Rosen {
 namespace Drawing {
 namespace {
 const uint8_t MOVEBITS = 8;
-const std::string OHOS_THEME_FONT_LOW = "ohosthemefont";
 void SwapBytes(char16_t* srcStr, uint32_t len)
 {
     if (srcStr == nullptr || len == 0) {
@@ -115,13 +115,20 @@ bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkT
         checkStr.assign(name.c_str(), name.size());
     }
 
-    std::string lowFamilyName(checkStr.length(), 0);
-    std::transform(checkStr.begin(), checkStr.end(), lowFamilyName.begin(),
-        [](char c) { return (c & 0x80) ? c : ::tolower(c); }); // 0x80用于判断是否在0-127之间
+    auto toLower = [](const std::string& input) {
+        std::string output(input.length(), 0);
+        std::transform(input.begin(), input.end(), output.begin(),
+            [](char c) { return (c & 0x80) ? c : ::tolower(c); }); // 0x80 means upper case
+        return output;
+    };
+    std::string lowFamilyName = toLower(checkStr);
 
-    if (lowFamilyName.compare(OHOS_THEME_FONT_LOW) == 0) {
-        TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts");
-        return false;
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
+    for (const auto& themeFamily : themeFamilies) {
+        if (lowFamilyName == toLower(themeFamily)) {
+            TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts");
+            return false;
+        }
     }
 
     return true;

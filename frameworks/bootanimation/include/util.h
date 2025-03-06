@@ -166,6 +166,8 @@ int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp);
 std::string ReadFile(const std::string &filePath);
 
 std::string GetHingeStatus();
+
+int64_t GetSystemCurrentTime();
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

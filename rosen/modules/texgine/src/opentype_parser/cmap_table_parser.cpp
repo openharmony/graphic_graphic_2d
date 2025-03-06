@@ -31,7 +31,7 @@ void CmapTableParser::Dump() const
     TEXT_LOGI("CmapTable size: %{public}d", size_);
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
-        TEXT_LOGI("PlatformID: %{public}d, encodingID: %{public}d", record.platformID.Get(), record.encodingID.Get());
+        TEXT_LOGI("Platform id %{public}d, encoding id %{public}d", record.platformID.Get(), record.encodingID.Get());
     }
 }
 } // namespace TextEngine

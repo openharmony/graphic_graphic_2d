@@ -102,6 +102,10 @@ public:
     {
         return alpha_;
     }
+    bool IsClonedNodeOnTheTree() const
+    {
+        return isClonedNodeOnTheTree_;
+    }
     bool IsCrossNode() const
     {
         return isCrossNode_;
@@ -133,6 +137,26 @@ public:
     bool GetAnimateState() const
     {
         return animateState_;
+    }
+    void SetStencilVal(int64_t stencilVal)
+    {
+        stencilVal_ = stencilVal;
+    }
+    int64_t GetStencilVal() const
+    {
+        return stencilVal_;
+    }
+    void SetIsOutOfScreen(bool isOutOfScreen)
+    {
+        if (isOutOfScreen_ == isOutOfScreen) {
+            return;
+        }
+        isOutOfScreen_ = isOutOfScreen;
+        needSync_ = true;
+    }
+    bool GetIsOutOfScreen()
+    {
+        return isOutOfScreen_;
     }
     bool GetIsRotating() const
     {
@@ -503,6 +527,34 @@ public:
         return brightnessRatio_;
     }
 
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
+    {
+        if (layerLinearMatrix_ == layerLinearMatrix) {
+            return;
+        }
+        layerLinearMatrix_ = layerLinearMatrix;
+        needSync_ = true;
+    }
+
+    std::vector<float> GetLayerLinearMatrix() const
+    {
+        return layerLinearMatrix_;
+    }
+
+    void SetSdrHasMetadata(bool hasMetadata)
+    {
+        if (hasMetadata_ == hasMetadata) {
+            return;
+        }
+        hasMetadata_ = hasMetadata;
+        needSync_ = true;
+    }
+
+    bool GetSdrHasMetadata() const
+    {
+        return hasMetadata_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
@@ -526,17 +578,9 @@ public:
     {
         return allSubSurfaceNodeIds_;
     }
-    int32_t GetPreparedDisplayOffsetX() const
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetCrossNodeSkipDisplayConversionMatrix() const
     {
-        return preparedDisplayOffset_.x_;
-    }
-    int32_t GetPreparedDisplayOffsetY() const
-    {
-        return preparedDisplayOffset_.y_;
-    }
-    const std::unordered_map<NodeId, Vector2<int32_t>>& GetCrossNodeSkippedDisplayOffsets() const
-    {
-        return crossNodeSkippedDisplayOffsets_;
+        return crossNodeSkipDisplayConversionMatrices_;
     }
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
@@ -582,6 +626,21 @@ public:
         return isBufferFlushed_;
     }
 
+    void SetIsUnobscuredUEC(bool flag)
+    {
+        IsUnobscuredUIExtension_ = flag;
+    }
+
+    bool IsUnobscuredUIExtension() const
+    {
+        return IsUnobscuredUIExtension_;
+    }
+
+    void MarkSurfaceCapturePipeline()
+    {
+        isSurfaceCapturePipeline_ = true;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -594,6 +653,7 @@ private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
 
     float alpha_ = 0;
+    bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
     bool clonedSourceNode_ = false;
@@ -616,6 +676,8 @@ private:
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
+
+    bool IsUnobscuredUIExtension_ = false;
 
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
@@ -648,6 +710,7 @@ private:
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;
+    bool isOutOfScreen_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
@@ -665,6 +728,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
@@ -677,14 +741,18 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    // color temperature
+    std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
+    bool hasMetadata_ = false; // SDR with metadata
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
-    std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
-    Vector2<int32_t> preparedDisplayOffset_ = { 0, 0 };
+    std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
+
+    bool isSurfaceCapturePipeline_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

@@ -144,6 +144,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
     int32_t degree = 0;
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     operation.InitRsSurface();
     ASSERT_NE(nullptr, operation.rsSurface_);
