@@ -549,6 +549,28 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationScale, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHdrImageEnabled
+ * @tc.desc: GetHdrImageEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrImageEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrImageEnabled());
+}
+
+/**
+ * @tc.name: GetHdrVideoEnabled
+ * @tc.desc: GetHdrVideoEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrVideoEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrVideoEnabled());
+}
+
+/**
  * @tc.name: GetFilterCacheEnabled
  * @tc.desc: GetFilterCacheEnabled Test
  * @tc.type:FUNC

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/hdr/rs_hdr_util.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -115,9 +116,9 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             // color temperature
             params.layerLinearMatrix = layer->GetLayerLinearMatrix();
             if (node.GetRSSurfaceHandler() != nullptr &&
-                CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer()) == HdrStatus::NO_HDR) {
+                RSHdrUtil::CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer()) == HdrStatus::NO_HDR) {
                 params.brightnessRatio = layer->GetBrightnessRatio();
-                if (CheckIsSurfaceBufferWithMetadata(node.GetRSSurfaceHandler()->GetBuffer())) {
+                if (RSHdrUtil::CheckIsSurfaceBufferWithMetadata(node.GetRSSurfaceHandler()->GetBuffer())) {
                     params.hasMetadata = true;
                 }
             } else {

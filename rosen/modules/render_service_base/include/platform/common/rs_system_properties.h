@@ -273,7 +273,8 @@ public:
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
-    static bool GetHDRImageEnable();
+    static bool GetHdrImageEnabled();
+    static bool GetHdrVideoEnabled();
     static bool IsForceClient();
     static bool GetDrmMarkedFilterEnabled();
     static bool GetUnmarshParallelFlag();

@@ -39,7 +39,6 @@
 #include "rs_profiler.h"
 #include "rs_trace.h"
 #include "hisysevent.h"
-#include "v2_1/cm_color_space.h"
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 #include "xcollie/watchdog.h"
@@ -54,6 +53,7 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -380,22 +380,6 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
     return;
 #endif
 #endif
-}
-
-HdrStatus RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
-{
-    if (!surfaceNode.IsOnTheTree()) {
-        return HdrStatus::NO_HDR;
-    }
-    return RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
-}
-
-bool RSMainThread::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)
-{
-    if (!surfaceNode.IsOnTheTree()) {
-        return false;
-    }
-    return RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
 RSMainThread* RSMainThread::Instance()
@@ -1696,9 +1680,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceHandler->GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
-        surfaceNode->SetVideoHdrStatus(CheckIsHdrSurface(*surfaceNode));
+        surfaceNode->SetVideoHdrStatus(RSHdrUtil::CheckIsHdrSurface(*surfaceNode));
         if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
-            surfaceNode->SetSdrHasMetadata(CheckIsSurfaceWithMetadata(*surfaceNode));
+            surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
         }
     });
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
@@ -2558,7 +2542,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             RS_LOGE("RSMainThread::DoDirectComposition: surfaceNode is null!");
             continue;
         }
-        RSSurfaceRenderNode::UpdateSurfaceNodeNit(*surfaceNode, screenId);
+        RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
         displayNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
