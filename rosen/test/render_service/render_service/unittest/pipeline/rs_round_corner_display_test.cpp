@@ -908,8 +908,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
 
     rcdInstance.showResourceType_ = 4;
     rcdInstance.RcdChooseHardwareResource();
-    int type = 4;
-    EXPECT_EQ(rcdInstance.showResourceType_, type);
+
+    EXPECT_EQ(nullptr, rcdInstance.hardInfo_.bottomLayer);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
 }
 
