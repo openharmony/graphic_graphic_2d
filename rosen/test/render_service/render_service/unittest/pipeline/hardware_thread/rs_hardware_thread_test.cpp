@@ -433,6 +433,11 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
 
     auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
     ASSERT_EQ(supportedModes.size(), 0);
+    HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
+    HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
 }
 
 /**

@@ -30,6 +30,7 @@ namespace {
     const std::string rosenWeb = "RosenWeb";
     const std::string flutterBuffer = "oh_flutter";
     const std::string otherSurface = "Other_SF";
+    constexpr uint64_t  fromtest = 3;
     constexpr uint64_t  currTime = 100000000;
     constexpr uint64_t  lastTime = 200000000;
     constexpr uint32_t  fps30HZ = 30;
@@ -164,6 +165,12 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
     idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_UNKNOWN);
     ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
+    idleDetector->UpdateSurfaceTime("", currTime, Pid, UIFWKType::FROM_SURFACE);
+    OHOS::Rosen::UIFWKType pidType = static_cast<OHOS::Rosen::UIFWKType>(fromtest);
+    idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, pidType);
+    std::string surfaceName = "surfaceName";
+    idleDetector->surfaceTimeMap_.try_emplace(surfaceName, currTime);
+    idleDetector->UpdateSurfaceState(currTime);
 }
 
 /**

@@ -26,6 +26,11 @@ namespace {
     constexpr uint32_t OLED_60_HZ = 60;
     constexpr uint32_t OLED_30_HZ = 30;
     constexpr uint32_t INTERVAL_TIME = 50000; // us
+    struct NodeInfo {
+        int32_t vsyncRate;
+        int32_t targetRate;
+        int32_t node;
+    };
 }
 class RSUIDisplaySoloistTest : public testing::Test {
 public:
@@ -166,6 +171,7 @@ HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable002, TestSize.Level1)
 
     soloistManager.Stop(soloistId);
     soloistManager.RemoveSoloist(soloistId);
+    soloistManager.GetFrameRateRange();
     usleep(INTERVAL_TIME);
 }
 
@@ -206,5 +212,26 @@ HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
     soloistManager.Stop(soloistId2);
     soloistManager.RemoveSoloist(soloistId2);
     usleep(INTERVAL_TIME);
+}
+
+/**
+ * @tc.name: FindAcurateRa
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
+{
+    RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
+    std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
+    int32_t soloistId = soloistIdObj->GetId();
+    std::vector<NodeInfo> tests = {
+        {-1, 1, -1},
+        {-1, 3, -1},
+        {-1, 0, -1}
+    };
+    for (auto& test : tests) {
+        EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(test.vsyncRate,
+            test.targetRate), test.node);
+    }
 }
 } // namespace OHOS::Rosen
