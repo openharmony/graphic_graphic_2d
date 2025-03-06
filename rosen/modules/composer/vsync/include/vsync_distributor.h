@@ -154,7 +154,8 @@ public:
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    bool AdaptiveDVSyncEnable(const std::string &nodeName);
+    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);

@@ -447,10 +447,11 @@ public:
     }
 
     void ClearUnmappedCache();
-    void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;

@@ -1583,9 +1583,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
+        bool needConsume = true;
+        bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(surfaceNode->GetName(),
+            timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-            rsVSyncDistributor_->AdaptiveDVSyncEnable(surfaceNode->GetName()))) {
+            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -5060,6 +5062,11 @@ void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageLis
 void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
+}
+
+void RSMainThread::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+{
+    rsVSyncDistributor_->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 }
 } // namespace Rosen
 } // namespace OHOS

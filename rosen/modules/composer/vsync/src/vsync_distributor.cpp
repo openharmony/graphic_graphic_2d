@@ -1605,12 +1605,20 @@ void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName)
+bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount,
+    bool &needConsume)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName);
+    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount, needConsume);
 #else
     return false;
+#endif
+}
+
+void VSyncDistributor::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 #endif
 }
 

@@ -80,6 +80,19 @@ void RSRenderServiceListener::OnBufferAvailable()
             
         }
     }
+    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
+}
+
+void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
+    std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
+{
+    int64_t lastFlushedTimeStamp = 0;
+    if (consumer) {
+        consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedTimeStamp);
+    }
+    int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
+    std::string name = node->GetName();
+    RSMainThread::Instance()->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
     RSMainThread::Instance()->RequestNextVSync("selfdrawing");
 }
 
