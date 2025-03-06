@@ -4908,4 +4908,29 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
     mainThread->InitVulkanErrorCallback(&gpuContext);
 }
 
+/**
+ * @tc.name: RenderServiceAllSurafceDump01
+ * @tc.desc: RenderServiceAllSurafceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    node2->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+
+    DfxString log;
+    mainThread->RenderServiceAllSurafceDump(log);
+}
+
 } // namespace OHOS::Rosen

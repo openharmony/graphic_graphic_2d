@@ -3789,6 +3789,29 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
     nullnode_info.clear();
 }
 
+void RSMainThread::RenderServiceAllSurafceDump(DfxString& log)
+{
+    log.AppendFormat("%s\n", "the memory of size of all surfaces buffer: ");
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraversalNodes([&log](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr || !node->IsInstanceOf<RSSurfaceRenderNode>()) {
+            return;
+        }
+        const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+        if (surfaceConsumer == nullptr) {
+            return;
+        }
+        std::string dumpSurfaceInfo;
+        surfaceConsumer->Dump(dumpSurfaceInfo);
+        if (dumpSurfaceInfo.find("sequence") == std::string::npos) {
+            return;
+        }
+        log.AppendFormat("pid = %d nodeId:%llu", ExtractPid(node->GetId()), node->GetId());
+        log.AppendFormat("%s\n", dumpSurfaceInfo.c_str());
+    });
+}
+
 void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree start task[%u]", taskId);
