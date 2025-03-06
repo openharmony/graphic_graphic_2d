@@ -874,7 +874,8 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     node.SetOcclusionInSpecificScenes(mainThread->GetDeviceType() == DeviceType::PC &&
         mainThread->IsPCThreeFingerScenesListScene());
     // check current surface Participate In Occlusion
-    if (node.CheckParticipateInOcclusion() && !isAllSurfaceVisibleDebugEnabled_) {
+    bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
+    if (node.CheckParticipateInOcclusion() && occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
         std::unordered_set<NodeId> currentBlackList = GetCurrentBlackList();
         if (IsValidInVirtualScreen(node) && currentBlackList.find(node.GetId()) == currentBlackList.end()) {
