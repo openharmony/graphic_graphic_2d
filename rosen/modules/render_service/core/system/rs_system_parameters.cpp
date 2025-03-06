@@ -229,5 +229,13 @@ bool RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
+
+bool RSSystemParameters::GetAnimationOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ani.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

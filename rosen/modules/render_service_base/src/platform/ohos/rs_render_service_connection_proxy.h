@@ -221,7 +221,7 @@ public:
 
     void SetAppWindowNum(uint32_t num) override;
 
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 

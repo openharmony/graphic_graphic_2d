@@ -1789,14 +1789,15 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
     mainThread_->PostTask(task);
 }
 
-bool RSRenderServiceConnection::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceConnection::SetSystemAnimatedScenes(
+    SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     if (!mainThread_) {
         return false;
     }
     RSUifirstManager::Instance().OnProcessAnimateScene(systemAnimatedScenes);
     std::lock_guard<std::mutex> lock(mutex_);
-    return mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes);
+    return mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
 }
 
 void RSRenderServiceConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
