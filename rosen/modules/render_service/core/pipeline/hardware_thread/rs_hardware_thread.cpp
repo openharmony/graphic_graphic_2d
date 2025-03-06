@@ -337,19 +337,25 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
             solidColorLayer->SetLayerColor({0, 0, 0, 255});
         }
         layers.emplace_back(solidColorLayer);
-        RS_LOGD("make fold display black mask x y w h %{public}d %{public}d %{public}d %{public}d",
-            maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_);
     }
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
     for (auto& layerInfo : layers) {
+        auto layerSurface = layer->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                rcdLayerInfoList.push_back(rcdlayerInfo);
+                continue;
+            }
+        }
         GraphicIRect dstRect = layerInfo->GetLayerSize();
         GraphicIRect tmpRect = dstRect;
-        // Limit the target area to the activated area
         int reviseRight = reviseRect.left_ + reviseRect.width_;
         int reviseBottom = reviseRect.top_ + reviseRect.height_;
         tmpRect.x = std::clamp(dstRect.x, reviseRect.left_, reviseRight);
-        tmpRect.x = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
-        tmpRect.x = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
-        tmpRect.x = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
+        tmpRect.y = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
+        tmpRect.w = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
+        tmpRect.h = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
         layerInfo->SetLayerSize(tmpRect);
     }
 }
