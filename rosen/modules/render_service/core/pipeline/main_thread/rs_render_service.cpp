@@ -136,26 +136,8 @@ bool RSRenderService::Init()
         appVSyncController_ = new VSyncController(generator, 0);
         generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
-    std::shared_ptr<FeatureParam> featureParam =
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
-    std::vector<bool> switchParams = {};
-    std::vector<uint32_t> bufferCountParams = {};
-    if (featureParam != nullptr) {
-        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
-        switchParams = {
-            dvsyncFeatureParam->IsDVSyncEnable(),
-            dvsyncFeatureParam->IsUiDVSyncEnable(),
-            dvsyncFeatureParam->IsNativeDVSyncEnable(),
-            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
-        };
-        bufferCountParams = {
-            dvsyncFeatureParam->GetUiBufferCount(),
-            dvsyncFeatureParam->GetRsBufferCount(),
-            dvsyncFeatureParam->GetNativeBufferCount(),
-            dvsyncFeatureParam->GetWebBufferCount(),
-        };
-    }
-    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams };
+    DVSyncFeatureParam dvsyncParam;
+    InitDVSyncParams(dvsyncParam);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
 
@@ -195,6 +177,32 @@ bool RSRenderService::Init()
     RS_PROFILER_INIT(this);
 
     return true;
+}
+
+void RSRenderService::InitDVSyncParams(DVSyncFeatureParam &dvsyncParam)
+{
+    std::shared_ptr<FeatureParam> featureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
+    std::vector<bool> switchParams = {};
+    std::vector<uint32_t> bufferCountParams = {};
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    if (featureParam != nullptr) {
+        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
+        switchParams = {
+            dvsyncFeatureParam->IsDVSyncEnable(),
+            dvsyncFeatureParam->IsUiDVSyncEnable(),
+            dvsyncFeatureParam->IsNativeDVSyncEnable(),
+            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
+        };
+        bufferCountParams = {
+            dvsyncFeatureParam->GetUiBufferCount(),
+            dvsyncFeatureParam->GetRsBufferCount(),
+            dvsyncFeatureParam->GetNativeBufferCount(),
+            dvsyncFeatureParam->GetWebBufferCount(),
+        };
+        adaptiveConfigs = dvsyncFeatureParam->GetAdaptiveConfig();
+    }
+    dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
 }
 
 void RSRenderService::Run()

@@ -81,6 +81,7 @@ private:
     void RegisterMemFuncs();
     void RegisterFpsFuncs();
     void RegisterGpuFuncs();
+    void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
 
     // RS Filter CCM init
     void FilterCCMInit();
