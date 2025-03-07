@@ -687,15 +687,9 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
-#if defined(ACCESSIBILITY_ENABLE)
-    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unordered_map<NodeId, uint64_t> dividedRenderbufferTimestamps_;
@@ -847,6 +841,12 @@ private:
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
     std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
+#if defined(ACCESSIBILITY_ENABLE)
+    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
