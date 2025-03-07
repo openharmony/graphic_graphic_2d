@@ -1344,6 +1344,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo001, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1364,6 +1365,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1384,6 +1386,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
     NodeId hostId = 1;
     UIExtensionCallbackData callbackData;
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Level2)

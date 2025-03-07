@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceClientTransactionTest") {
   sources = [
     "rs_interfaces_test.cpp",
     "rs_sync_transaction_controller_test.cpp",
+    "rs_sync_transaction_handler_test.cpp",
     "rs_transaction_test.cpp",
   ]
 
