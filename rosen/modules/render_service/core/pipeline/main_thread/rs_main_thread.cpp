@@ -541,7 +541,6 @@ void RSMainThread::Init()
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    SetDeeplyRelGpuResSwitch();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -872,25 +871,9 @@ void RSMainThread::SetDeviceType()
     }
 }
 
-void RSMainThread::SetDeeplyRelGpuResSwitch()
-{
-    auto deeplyRelGpuResFeature = GraphicFeatureParamManager::GetInstance().
-        GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]);
-    auto deeplyRelGpuResObj = std::static_pointer_cast<DeeplyRelGpuResParam>(deeplyRelGpuResFeature);
-    if (deeplyRelGpuResObj != nullptr) {
-        isDeeplyRelGpuResEnable_ = deeplyRelGpuResObj->IsDeeplyRelGpuResEnable();
-        RS_LOGD("SetDeeplyRelGpuResSwitch: DeeplyRelGpuResEnable %{public}d", this->IsDeeplyRelGpuResEnable());
-    }
-}
-
 DeviceType RSMainThread::GetDeviceType() const
 {
     return deviceType_;
-}
-
-bool RSMainThread::IsDeeplyRelGpuResEnable() const
-{
-    return isDeeplyRelGpuResEnable_;
 }
 
 uint64_t RSMainThread::GetFocusNodeId() const
@@ -1998,12 +1981,14 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
+    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     this->SetClearMoment(moment);
     this->exitedPidSet_.emplace(pid);
     auto task =
-        [this, moment, deeply]() {
+        [this, moment, deeply, relGpuResParam]() {
             auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
             if (!grContext) {
                 return;
@@ -2015,7 +2000,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             SkGraphics::PurgeAllCaches(); // clear cpu cache
             auto pid = *(this->exitedPidSet_.begin());
             if (this->exitedPidSet_.size() == 1 && pid == -1) {  // no exited app, just clear scratch resource
-                if (deeply || this->isDeeplyRelGpuResEnable_) {
+                if (deeply || relGpuResParam->IsDeeplyRelGpuResEnable()) {
                     MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                 } else {
                     MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -2033,11 +2018,11 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
     if (refreshRate > 0) {
         if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
             PostTask(task, CLEAR_GPU_CACHE,
-                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
+                (relGpuResParam->IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         } else {
             RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
-                (this->isDeeplyRelGpuResEnable_ ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
+                (relGpuResParam->IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / refreshRate,
                 AppExecFwk::EventQueue::Priority::HIGH);
         }
     }
