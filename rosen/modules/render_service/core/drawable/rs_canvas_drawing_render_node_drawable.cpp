@@ -462,7 +462,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread get canvas is null");
             return;
         }
-        RS_LOGD("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread surface width[%{public}d],"
+        RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread surface width[%{public}d],"
             " height[%{public}d]", surface->GetImageInfo().GetWidth(), surface->GetImageInfo().GetHeight());
         cmds->Playback(*canvas);
         auto image = surface->GetImageSnapshot(); // planning: adapt multithread
