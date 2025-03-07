@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    std::shared_ptr<Blender> blender_;
+    std::shared_ptr<Blender> blender_; 
 };
 } // namespace Rosen
 } // namespace OHOS
