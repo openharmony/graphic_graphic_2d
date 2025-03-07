@@ -372,7 +372,7 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
     }
     using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
     for (auto& layerInfo : layers) {
-        auto layerSurface = layer->GetSurface();
+        auto layerSurface = layerInfo->GetSurface();
         if (layerSurface != nullptr) {
             auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
             if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
