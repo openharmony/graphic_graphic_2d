@@ -773,8 +773,10 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (cacheLimitsResourceSize > maxResourcesSize) {
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
     }
-    if (system::GetParameter("const.product.devicetype", "pc") == "wearable") {
-        gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+    int systemCacheLimitsResourceSize =
+            std::atoi((system::GetParameter("persist.sys.graphics.skiacachelimit", "0")).c_str());
+    if (systemCacheLimitsResourceSize > 0) {
+        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitsResourceSize);
     }
 #endif
 }
