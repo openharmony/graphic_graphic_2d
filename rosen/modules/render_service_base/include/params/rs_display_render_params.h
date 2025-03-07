@@ -38,7 +38,17 @@ public:
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
-    void SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects);
+
+    inline void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
+    }
+
+    inline void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
+    }
+
     const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetDisplayOffsetX() const
     {

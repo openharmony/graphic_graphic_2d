@@ -1002,7 +1002,16 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
         Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius));
     brush.SetFilter(filter);
     canvas->AttachBrush(brush);
-    canvas->DrawPath(path);
+    auto stencilVal = canvas->GetStencilVal();
+    if (stencilVal > 0) {
+        --stencilVal; // shadow positioned under app window
+    }
+    if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas->GetMaxStencilVal()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawPathWithStencil, stencilVal: %" PRId64 "", stencilVal);
+        canvas->DrawPathWithStencil(path, static_cast<uint32_t>(stencilVal));
+    } else {
+        canvas->DrawPath(path);
+    }
     canvas->DetachBrush();
 }
 

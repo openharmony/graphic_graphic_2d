@@ -302,6 +302,8 @@ public:
      */
     virtual void DrawPath(const Path& path);
 
+    virtual void DrawPathWithStencil(const Path& path, uint32_t stencilVal);
+
     /**
      * @brief              Use brush to fill the canvas.
      * @param brush        used to fill Canvas
@@ -427,6 +429,8 @@ public:
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect);
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling);
+    virtual void DrawImageWithStencil(const Image& image, const scalar px, const scalar py,
+        const SamplingOptions& sampling, uint32_t stencilVal);
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling);
@@ -475,6 +479,9 @@ public:
 
     // symbol
     virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
+
+    // stencil culling
+    virtual void ClearStencil(const RectI& rect, uint32_t stencilVal);
 
     // clip
     /**
