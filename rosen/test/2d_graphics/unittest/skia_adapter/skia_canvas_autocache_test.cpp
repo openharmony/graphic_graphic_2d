@@ -73,8 +73,10 @@ HWTEST_F(SkiaCanvasAutoCacheTest, Init001, TestSize.Level1)
 {
     SkCanvas canvas;
     std::shared_ptr<SkiaCanvasAutoCache> skiaCanvasAutoCache = std::make_shared<SkiaCanvasAutoCache>(&canvas);
+    auto originMatrix = skiaCanvasAutoCache->nodeMatrix_;
     SkMatrix m;
     skiaCanvasAutoCache->Init(m);
+    ASSERT_TRUE(skiaCanvasAutoCache->nodeMatrix_ == originMatrix);
 }
 
 /**
@@ -140,6 +142,7 @@ HWTEST_F(SkiaCanvasAutoCacheTest, ShowDrawResult001, TestSize.Level1)
 {
     SkCanvas canvas;
     std::shared_ptr<SkiaCanvasAutoCache> skiaCanvasAutoCache = std::make_shared<SkiaCanvasAutoCache>(&canvas);
+    ASSERT_TRUE(skiaCanvasAutoCache->GetOpsPercent() == 0);
     SkRect bound;
     skiaCanvasAutoCache->ShowDrawResult(bound);
 }
