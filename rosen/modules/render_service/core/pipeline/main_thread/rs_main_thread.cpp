@@ -1909,7 +1909,10 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            if (hwcFeature != nullptr && hwcFeature->IsHwcExpandingScreenEnabled()) {
+            if (!hwcFeature) {
+                return false;
+            }
+            if (hwcFeature->IsHwcExpandingScreenEnabled()) {
                 return displayNodeSp->GetCompositeType() ==
                     RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
             }
