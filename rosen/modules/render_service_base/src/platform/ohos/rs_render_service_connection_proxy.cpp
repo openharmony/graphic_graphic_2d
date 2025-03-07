@@ -4295,6 +4295,33 @@ void RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool valu
     }
 }
 
+int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteRemoteObject callback->AsObject() err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Send request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
 int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {

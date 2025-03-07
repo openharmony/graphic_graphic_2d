@@ -125,8 +125,8 @@ ohos_shared_library("librender_service") {
   #feature_cfg
   sources += [
     "core/feature_cfg/feature_param/extend_feature/capture_base_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/color_gamut_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/drm_param.cpp",
-    "core/feature_cfg/feature_param/extend_feature/hdr_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/hfbc_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/mem_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/speciallayer_param.cpp",
@@ -147,8 +147,8 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/vrate_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/capture_base_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/color_gamut_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/drm_param_parse.cpp",
-    "core/feature_cfg/xml_parser/extend_feature_parser/hdr_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/hfbc_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/mem_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/speciallayer_param_parse.cpp",
@@ -202,6 +202,7 @@ ohos_shared_library("librender_service") {
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
+      "core/feature/opinc/rs_opinc_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
       "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",

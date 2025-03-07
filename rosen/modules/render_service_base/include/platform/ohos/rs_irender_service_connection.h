@@ -25,6 +25,7 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
@@ -376,6 +377,8 @@ public:
     virtual void NotifyScreenSwitched() = 0;
 
     virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
+
+    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 };

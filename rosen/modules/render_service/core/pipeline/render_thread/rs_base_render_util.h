@@ -151,7 +151,8 @@ public:
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
         bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false);
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
+        bool needConsume = true);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);

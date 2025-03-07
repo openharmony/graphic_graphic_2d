@@ -47,6 +47,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -239,6 +240,20 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
+        mainThread_->ScheduleTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr) {
+                    return;
+                }
+                auto &monitor = SelfDrawingNodeMonitor::GetInstance();
+                if (connection->remotePid_ == monitor.GetCallingPid()) {
+                    monitor.ClearRectMap();
+                    monitor.UnRegisterRectChangeCallback(connection->remotePid_);
+                }
+            }).wait();
+    }
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
         RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);
@@ -2764,6 +2779,26 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
         }
     };
     mainThread_->PostTask(task);
+}
+
+int32_t RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (!callback) {
+        RS_LOGE("RSRenderServiceConnection::RegisterSelfDrawingNodeRectChangeCallback register null callback, failed.");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+
+    auto task = [pid = remotePid_, callback]() {
+        SelfDrawingNodeMonitor::GetInstance().RegisterRectChangeCallback(pid, callback);
+    };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

@@ -365,6 +365,8 @@ private:
 
     void SetWindowContainer(NodeId nodeId, bool value) override;
 
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode) override;
 #endif

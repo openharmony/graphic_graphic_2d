@@ -795,6 +795,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetWideColorSpaceEnabled
+ * @tc.desc: GetWideColorSpaceEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetWideColorSpaceEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetWideColorSpaceEnabled());
+}
+
+/**
  * @tc.name: GetUIFirstDebugEnabled
  * @tc.desc: GetUIFirstDebugEnabled Test
  * @tc.type:FUNC

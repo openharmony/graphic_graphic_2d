@@ -35,6 +35,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
@@ -1920,6 +1921,41 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
     if (renderService != nullptr) {
         renderService->SetWindowContainer(nodeId, value);
     }
+}
+
+class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub
+{
+public:
+    explicit CustomSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback) : cb_(callback)
+    {}
+    ~CustomSelfDrawingNodeRectChangeCallback() override {};
+
+    void OnSelfDrawingNodeRectChange(std::shared_ptr<RSSelfDrawingNodeRectData> rectData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(rectData);
+        }
+    }
+
+private:
+    SelfDrawingNodeRectChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback renderService == nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomSelfDrawingNodeRectChangeCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
+    }
+
+    return renderService->RegisterSelfDrawingNodeRectChangeCallback(cb);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

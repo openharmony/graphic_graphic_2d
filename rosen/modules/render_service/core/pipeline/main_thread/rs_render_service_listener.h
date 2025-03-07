@@ -33,6 +33,8 @@ public:
     void OnGoBackground() override;
     void OnTransformChange() override;
 private:
+    void SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
+        std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
 };
 } // namespace Rosen

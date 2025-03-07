@@ -27,6 +27,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -2761,6 +2762,16 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         }
         if (auto parent = GetParent().lock()) {
             parent->SetChildrenHasUIExtension(onTree);
+        }
+    }
+    auto &monitor = SelfDrawingNodeMonitor::GetInstance();
+    if (monitor.IsListeningEnabled() && IsSelfDrawingType()) {
+        if (onTree) {
+            auto rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+            std::string nodeName = GetName();
+            monitor.InsertCurRectMap(GetId(), nodeName, rect);
+        } else {
+            monitor.EraseCurRectMap(GetId());
         }
     }
     // if node is marked as cacheRoot, update subtree status when update surface

@@ -166,6 +166,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
@@ -276,6 +278,7 @@ ohos_source_set("render_service_base_src") {
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
     "src/transaction/rs_occlusion_data.cpp",
+    "src/transaction/rs_self_drawing_node_rect_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_handler.cpp",
     "src/transaction/rs_transaction_metric_collector.cpp",
@@ -301,6 +304,9 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
     "src/info_collection/rs_hdr_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
+
+    #monitor
+    "src/monitor/self_drawing_node_monitor.cpp",
   ]
 
   if (rs_enable_gpu) {
@@ -358,8 +364,6 @@ ohos_source_set("render_service_base_src") {
       "src/command/rs_display_node_command.cpp",
 
       #common
-      "src/common/rs_occlusion_region.cpp",
-      "src/common/rs_occlusion_region_helper.cpp",
       "src/common/rs_thread_handler_generic.cpp",
       "src/common/rs_thread_looper_generic.cpp",
       "src/common/rs_thread_looper_impl.cpp",
