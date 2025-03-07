@@ -407,7 +407,7 @@ private:
         wptr<RSRenderServiceConnection> conn_;
     };
     friend class RSApplicationRenderThreadDeathRecipient;
-    sptr<RSApplicationRenderThreadDeathRecipient> ApplicationDeathRecipient_;
+    sptr<RSApplicationRenderThreadDeathRecipient> applicationDeathRecipient_;
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
