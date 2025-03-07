@@ -533,6 +533,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         screenCurrentRefreshRate, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
+    appChangeData_.clear();
     for (auto linker : appFrameRateLinkers) {
         if (linker.second == nullptr) {
             continue;
