@@ -31,7 +31,7 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    // [Attention] Only used in PC window resize scene
+    // [Attention] Only used in PC window resize scene now
     bool DrawOffscreenBuffer(RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed);
 
 private:
@@ -40,6 +40,7 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::ROOT_NODE, OnGenerate>;
     static Registrar instance_;
 
+    // [Attention] Only used in PC window resize scene now
     RSWindowKeyframeBuffer windowKeyframeBuffer_;
 };
 } // namespace DrawableV2

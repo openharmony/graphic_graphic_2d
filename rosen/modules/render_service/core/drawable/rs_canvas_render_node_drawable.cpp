@@ -90,6 +90,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
+    // [Attention] Only used in PC window resize scene now
     if (UNLIKELY(linkedDrawable != nullptr)) {
         linkedDrawable->DrawOffscreenBuffer(*paintFilterCanvas, params->GetFrameRect(),
             params->GetAlpha(), params->GetRSFreezeFlag());

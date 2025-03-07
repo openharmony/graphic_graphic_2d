@@ -291,11 +291,13 @@ bool RSCanvasRenderNode::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
+// [Attention] Only used in PC window resize scene now
 void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
 {
     linkedRootNodeId_ = rootNodeId;
 }
 
+// [Attention] Only used in PC window resize scene now
 NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
 {
     return linkedRootNodeId_;

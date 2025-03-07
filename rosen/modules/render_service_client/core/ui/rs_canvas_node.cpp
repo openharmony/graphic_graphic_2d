@@ -229,6 +229,7 @@ void RSCanvasNode::CheckThread()
     }
 }
 
+// [Attention] Only used in PC window resize scene now
 void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -245,6 +246,7 @@ void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
     linkedRootNodeId_ = rootNodeId;
 }
 
+// [Attention] Only used in PC window resize scene now
 NodeId RSCanvasNode::GetLinkedRootNodeId()
 {
     return linkedRootNodeId_;

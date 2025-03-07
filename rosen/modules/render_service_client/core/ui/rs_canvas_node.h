@@ -87,6 +87,8 @@ private:
     void CreateRenderNodeForTextureExportSwitch() override;
     void RegisterNodeMap() override;
     pid_t tid_;
+
+    // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
