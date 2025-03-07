@@ -107,6 +107,12 @@ void RSHardwareThread::Start()
     if (handler_) {
         ScheduleTask(
             [this]() {
+#if defined (RS_ENABLE_VK)
+                // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
+                if (RSSystemProperties::IsUseVulkan()) {
+                    RsVulkanContext::GetSingleton().SetIsProtected(false);
+                }
+#endif
                 auto screenManager = CreateOrGetScreenManager();
                 if (screenManager == nullptr || !screenManager->Init()) {
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
@@ -116,11 +122,6 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#if defined (RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
-                if (RSSystemProperties::IsUseVulkan()) {
-                    RsVulkanContext::GetSingleton().SetIsProtected(false);
-                }
-#endif
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
             }).wait();
@@ -368,19 +369,24 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
             solidColorLayer->SetLayerColor({0, 0, 0, 255});
         }
         layers.emplace_back(solidColorLayer);
-        RS_LOGD("make fold display black mask x y w h %{public}d %{public}d %{public}d %{public}d",
-            maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_);
     }
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
     for (auto& layerInfo : layers) {
+        auto layerSurface = layerInfo->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                continue;
+            }
+        }
         GraphicIRect dstRect = layerInfo->GetLayerSize();
         GraphicIRect tmpRect = dstRect;
-        // Limit the target area to the activated area
         int reviseRight = reviseRect.left_ + reviseRect.width_;
         int reviseBottom = reviseRect.top_ + reviseRect.height_;
         tmpRect.x = std::clamp(dstRect.x, reviseRect.left_, reviseRight);
-        tmpRect.x = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
-        tmpRect.x = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
-        tmpRect.x = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
+        tmpRect.y = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
+        tmpRect.w = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
+        tmpRect.h = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
         layerInfo->SetLayerSize(tmpRect);
     }
 }

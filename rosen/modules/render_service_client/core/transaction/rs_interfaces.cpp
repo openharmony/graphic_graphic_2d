@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <functional>
+
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
@@ -151,9 +152,6 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    if (!RSSystemProperties::IsPcType()) {
-        return false;
-    }
     if (renderServiceClient_ == nullptr) {
         return false;
     }
@@ -961,6 +959,12 @@ void RSInterfaces::NotifyScreenSwitched()
 void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 {
     renderServiceClient_->SetWindowContainer(nodeId, value);
+}
+
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+{
+    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

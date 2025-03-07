@@ -2104,62 +2104,6 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSkipCrossNodeTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckPixelFormatWithSelfDrawingNode001
- * @tc.desc: Test CheckPixelFormatWithSelfDrawingNode
- * @tc.type: FUNC
- * @tc.require: issueB94PQ
- */
-HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormatWithSelfDrawingNode001, TestSize.Level2)
-{
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
-    selfDrawingNode->SetIsOnTheTree(false);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-    selfDrawingNode->SetIsOnTheTree(true);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-
-    selfDrawingNode->SetHardwareForcedDisabledState(false);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-    selfDrawingNode->SetHardwareForcedDisabledState(true);
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-
-    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
-    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
-    ASSERT_NE(bufferHandle, nullptr);
-    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-}
-
-/*
- * @tc.name: UpdatePixelFormatAfterHwcCalc001
- * @tc.desc: Test UpdatePixelFormatAfterHwcCalc
- * @tc.type: FUNC
- * @tc.require: issueB94PQ
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdatePixelFormatAfterHwcCalc001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(selfDrawingNode, nullptr);
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
-    selfDrawingNode->SetAncestorDisplayNode(0, displayNode);
-    selfDrawingNode->SetHardwareForcedDisabledState(true);
-
-    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
-    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
-    ASSERT_NE(bufferHandle, nullptr);
-    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-    rsUniRenderVisitor->UpdatePixelFormatAfterHwcCalc(*displayNode);
-}
-
-/**
  * @tc.name: CheckColorSpaceWithSelfDrawingNode002
  * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
  *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
@@ -3694,37 +3638,6 @@ HWTEST_F(RSUniRenderVisitorTest, SurfaceOcclusionCallbackToWMS001, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->SurfaceOcclusionCallbackToWMS();
-}
-
-/**
- * @tc.name: GetCurrentBlackList001
- * @tc.desc: Test GetCurrentBlackList with default constructed visitor
- * @tc.type: FUNC
- * @tc.require: issueIBD11A
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    EXPECT_TRUE(rsUniRenderVisitor->GetCurrentBlackList().empty());
-}
-
-/**
- * @tc.name: GetCurrentBlackList002
- * @tc.desc: Test GetCurrentBlackList002, screenManager_ && curDisplayNode_ != nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBD11A
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList002, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
-    ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
 }
 
 /**

@@ -212,18 +212,6 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-void RSSurfaceRenderNodeDrawable::MergeSubSurfaceNodesDirtyRegionForMainWindow(
-    RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const
-{
-    for (const auto& drawable : GetDrawableVectorById(surfaceParams.GetAllSubSurfaceNodeIds())) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceNodeDrawable && surfaceNodeDrawable->GetSyncDirtyManager()) {
-            Occlusion::Region subSurfaceDirtyRegion(surfaceNodeDrawable->GetSyncDirtyManager()->GetDirtyRegion());
-            surfaceDirtyRegion.OrSelf(subSurfaceDirtyRegion);
-        }
-    }
-}
-
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
@@ -243,16 +231,12 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
-    // The region is dirty region of this SurfaceNode (including sub-surface node in its subtree).
-    Occlusion::Region surfaceNodeDirtyRegion(GetSyncDirtyManager()->GetDirtyRegion());
-    // Dirty region of sub-surface nodes should also be count in parent main surface node, to avoid early skipping.
-    if (surfaceParams.HasSubSurfaceNodes()) {
-        MergeSubSurfaceNodesDirtyRegionForMainWindow(surfaceParams, surfaceNodeDirtyRegion);
+    // The region is dirty region of this SurfaceNode.
+    Occlusion::Region dirtyRegion;
+    for (const auto& rect : GetSyncDirtyManager()->GetDirtyRegionForQuickReject()) {
+        Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
+        dirtyRegion.OrSelf(region);
     }
-    // The region is the result of global dirty region AND occlusion region.
-    Occlusion::Region globalDirtyRegion = GetGlobalDirtyRegion();
-    // This include dirty region and occlusion region when surfaceNode is mainWindow.
-    auto dirtyRegion = globalDirtyRegion.Or(surfaceNodeDirtyRegion);
     // visibility of cross-display surface (which is generally at the top) is ignored.
     auto visibleDirtyRegion = surfaceParams.IsFirstLevelCrossNode() ? dirtyRegion : dirtyRegion.And(visibleRegion);
     if (visibleDirtyRegion.IsEmpty()) {
@@ -487,7 +471,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
 
     if (!isUiFirstNode) {
-        MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
@@ -687,53 +670,6 @@ void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
         // transfer from the display coordinate system during quickprepare into current display coordinate system.
         std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
         surfaceDirtyRect = geoPtr->MapRect(surfaceDirtyRect.ConvertTo<float>(), curConversionMatrix->second);
-    }
-}
-
-void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
-    RSRenderThreadParams& uniParam, Drawing::Region& region)
-{
-    if (!renderParams_) {
-        return;
-    }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(renderParams_.get());
-    auto isMainWindowType = surfaceParams->IsMainWindowType();
-    auto visibleRegion = surfaceParams->GetVisibleRegion();
-    if (isMainWindowType && visibleRegion.IsEmpty()) {
-        return;
-    }
-    if (isMainWindowType || surfaceParams->IsLeashWindow()) {
-        auto& accumulatedDirtyRegion = uniParam.GetAccumulatedDirtyRegion();
-        Occlusion::Region calcRegion;
-        if ((isMainWindowType && surfaceParams->IsParentScaling()) ||
-            surfaceParams->IsSubSurfaceNode() || uniParam.IsAllSurfaceVisibleDebugEnabled()) {
-            calcRegion = visibleRegion;
-        } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
-            auto transparentRegion = surfaceParams->GetTransparentRegion();
-            calcRegion = visibleRegion.And(transparentRegion);
-        }
-        if (!calcRegion.IsEmpty()) {
-            auto dirtyRegion = calcRegion.And(accumulatedDirtyRegion);
-            if (!dirtyRegion.IsEmpty()) {
-                for (auto& rect : dirtyRegion.GetRegionRects()) {
-                    Drawing::Region tempRegion;
-                    tempRegion.SetRect(Drawing::RectI(
-                        rect.left_, rect.top_, rect.right_, rect.bottom_));
-                    region.Op(tempRegion, Drawing::RegionOp::UNION);
-                }
-            }
-        }
-        // [planing] surfaceDirtyRegion can be optimized by visibleDirtyRegion in some case.
-        auto surfaceDirtyRect = GetSyncDirtyManager()->GetDirtyRegion();
-        CrossDisplaySurfaceDirtyRegionConversion(uniParam, *surfaceParams, surfaceDirtyRect);
-        auto surfaceDirtyRegion = Occlusion::Region { Occlusion::Rect{ surfaceDirtyRect } };
-        accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
-        // add children window dirty here for uifirst leasf window will not traverse cached children
-        if (surfaceParams->GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
-            auto childrenDirtyRegion = Occlusion::Region {
-                Occlusion::Rect{ surfaceParams->GetUifirstChildrenDirtyRectParam() } };
-            accumulatedDirtyRegion.OrSelf(childrenDirtyRegion);
-        }
     }
 }
 

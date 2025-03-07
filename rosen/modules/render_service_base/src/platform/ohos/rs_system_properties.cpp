@@ -841,6 +841,14 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return true;
 }
 
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.wide.colorspace.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace = system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0;
@@ -980,16 +988,6 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
 {
     return WatchParameter(name, func, context);
-}
-
-bool RSSystemProperties::GetSnapshotWithDMAEnabled()
-{
-    static bool isSupportDma = (system::GetParameter("const.product.devicetype", "pc") == "phone" ||
-        system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
-        system::GetParameter("const.product.devicetype", "pc") == "pc" ||
-        system::GetParameter("const.product.devicetype", "pc") == "2in1") &&
-        system::GetBoolParameter("rosen.snapshotDma.enabled", true);
-    return isSupportDma;
 }
 
 bool RSSystemProperties::IsPhoneType()
@@ -1183,12 +1181,16 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
 }
 
-bool RSSystemProperties::GetHDRImageEnable()
+bool RSSystemProperties::GetHdrImageEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.hdrimage.enable", "1");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(num, 0);
+    static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
+    return isHdrImageEnabled;
+}
+
+bool RSSystemProperties::GetHdrVideoEnabled()
+{
+    static bool isHdrVideoEnabled = system::GetBoolParameter("persist.sys.graphic.hdrvideo.enabled", true);
+    return isHdrVideoEnabled;
 }
 
 bool RSSystemProperties::IsForceClient()
@@ -1297,6 +1299,13 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    static auto groupedByUIEnabled =
+        system::GetBoolParameter("const.graphic.enable_grouped_by_ui", false);
+    return groupedByUIEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

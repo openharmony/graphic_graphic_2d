@@ -25,6 +25,7 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
@@ -55,13 +56,13 @@ public:
     RSIRenderServiceConnection() = default;
     virtual ~RSIRenderServiceConnection() noexcept = default;
 
-    virtual void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
+    virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
     virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
-    virtual bool GetUniRenderEnabled() = 0;
+    virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
-    virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
-    virtual bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId) = 0;
+    virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
+    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool& success) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
@@ -70,8 +71,8 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) = 0;
 
-    virtual int32_t GetPixelMapByProcessId(
-        std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid) = 0;
+    virtual ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
+        int32_t& repCode) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
@@ -102,7 +103,8 @@ public:
     
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
-    virtual bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) = 0;
+    virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        bool& success) = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
@@ -155,7 +157,7 @@ public:
 
     virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
 
-    virtual std::string GetRefreshInfo(pid_t pid) = 0;
+    virtual ErrCode GetRefreshInfo(pid_t pid, std::string& enable) = 0;
 
     virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
@@ -163,7 +165,7 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
-    virtual void RepaintEverything() = 0;
+    virtual ErrCode RepaintEverything() = 0;
 
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
 
@@ -176,13 +178,13 @@ public:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
-    virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+    virtual ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
 
     virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;
 
-    virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
+    virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 
@@ -196,20 +198,20 @@ public:
 
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
 
-    virtual MemoryGraphic GetMemoryGraphic(int pid) = 0;
+    virtual ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) = 0;
 
-    virtual bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) = 0;
+    virtual ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize, bool& success) = 0;
 
-    virtual std::vector<MemoryGraphic> GetMemoryGraphics() = 0;
+    virtual ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 
-    virtual void RegisterBufferAvailableListener(
+    virtual ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
 
-    virtual void RegisterBufferClearListener(
+    virtual ErrCode RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
 
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
@@ -252,9 +254,9 @@ public:
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
-    virtual bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) = 0;
-    virtual bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList) = 0;
+    virtual ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) = 0;
+    virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
 
@@ -288,9 +290,9 @@ public:
 
     virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
-    virtual void ReportJankStats() = 0;
+    virtual ErrCode ReportJankStats() = 0;
 
-    virtual void NotifyLightFactorStatus(int32_t lightFactorStatus) = 0;
+    virtual ErrCode NotifyLightFactorStatus(int32_t lightFactorStatus) = 0;
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
@@ -307,11 +309,11 @@ public:
 
     virtual void NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
 
-    virtual void ReportEventResponse(DataBaseRs info) = 0;
+    virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
-    virtual void ReportEventComplete(DataBaseRs info) = 0;
+    virtual ErrCode ReportEventComplete(DataBaseRs info) = 0;
 
-    virtual void ReportEventJankFrame(DataBaseRs info) = 0;
+    virtual ErrCode ReportEventJankFrame(DataBaseRs info) = 0;
 
     virtual void ReportGameStateData(GameStateData info) = 0;
 
@@ -319,10 +321,10 @@ public:
 
     virtual void ReportRsSceneJankEnd(AppInfo info) = 0;
 
-    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    virtual ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
         bool dynamicHardwareEnable) = 0;
 
-    virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
+    virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
@@ -346,7 +348,7 @@ public:
 
     virtual int64_t GetHdrOnDuration() = 0;
 
-    virtual void SetVmaCacheStatus(bool flag) = 0;
+    virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
@@ -368,14 +370,16 @@ public:
     virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
-    virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    virtual ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) = 0;
 
-    virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
+    virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
     virtual void NotifyScreenSwitched() = 0;
 
-    virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
+    virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
+
+    virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 };

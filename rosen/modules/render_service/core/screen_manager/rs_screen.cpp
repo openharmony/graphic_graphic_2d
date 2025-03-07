@@ -391,8 +391,9 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         RS_LOGE("%{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    if (activeRect.w <= 0 || activeRect.w > width_ || activeRect.h <= 0 || activeRect.h > height_ ||
-        activeRect.x < 0 || activeRect.x > width_ || activeRect.y < 0 || activeRect.y > height_) {
+    if (activeRect.x < 0 || activeRect.y < 0 || activeRect.w <= 0 || activeRect.h <= 0 ||
+        static_cast<uint32_t>(activeRect.x + activeRect.w) > width_ ||
+        static_cast<uint32_t>(activeRect.y + activeRect.h) > height_) {
         RS_LOGW("%{public}s failed:, for activeRect: "
             "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
             __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
@@ -430,7 +431,7 @@ bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, Gr
     if (activeRect.w > 0 && activeRect.h > 0) {
         // neet tobe configuration item
         static RectI rect[2] = {{0, 0, 0, 0}, {0, 1008, 2232, 128}};
-        maskRect_ = (activeRect.h == height_) ? rect[0] : rect[1];
+        maskRect_ = (static_cast<uint32_t>(activeRect.h) == height_) ? rect[0] : rect[1];
         // Take the minimum rectangular area containing two rectangles
         reviseRect.x = std::clamp(activeRect.x, 0, std::min(activeRect.x, maskRect_.left_));
         reviseRect.y = std::clamp(activeRect.y, 0, std::min(activeRect.y, maskRect_.top_));

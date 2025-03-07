@@ -1420,9 +1420,6 @@ public:
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
-    // use for updating hdr and sdr nit
-    static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
-
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1481,8 +1478,6 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
-    // use for updating layerLineraMatrix
-    static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;

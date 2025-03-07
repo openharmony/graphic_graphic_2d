@@ -109,6 +109,7 @@ group("test") {
     "render_service_base/unittest/ipc_callbacks:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
+    "render_service_base/unittest/monitor:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/params:unittest",

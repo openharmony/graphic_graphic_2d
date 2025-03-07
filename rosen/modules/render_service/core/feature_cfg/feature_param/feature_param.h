@@ -25,7 +25,7 @@
 namespace OHOS::Rosen {
 const std::vector<std::string> FEATURE_CONFIGS = {
     "DirtyRegionConfig",
-    "HdrConfig",
+    "ColorGamutConfig",
     "DrmConfig",
     "HwcConfig",
     "FilterConfig",
@@ -38,6 +38,9 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "UIFirstConfig",
     "DvsyncConfig",
     "SocperfConfig",
+    "CaptureConfig",
+    "SurfaceCaptureConfig",
+    "UICaptureConfig",
     "DeeplyReleaseGpuResourceConfig",
     "AccessibilityConfig",
     "VRateConfig",
@@ -45,7 +48,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
 
 enum FeatureModule {
     DIRTYREGION = 0,
-    HDR,
+    COLOR_GAMUT,
     DRM,
     HWC,
     HFBC,
@@ -58,6 +61,9 @@ enum FeatureModule {
     FILTER,
     DVSYNC,
     SOC_PERF,
+    CAPTURE_BASE,
+    SURFACE_CAPTURE,
+    UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
     Accessibility,
     VRate,

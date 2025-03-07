@@ -739,6 +739,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {

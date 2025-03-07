@@ -49,6 +49,7 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "rs_hgm_config_data.h"
 #include "rs_occlusion_data.h"
+#include "rs_self_drawing_node_rect_data.h"
 #include "rs_uiextension_data.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
@@ -72,6 +73,7 @@ using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
 using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
+using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 struct DataBaseRs {
     int32_t appPid = -1;
     int32_t eventType = -1;
@@ -435,6 +437,8 @@ public:
     void ForceRefreshOneFrameWithNextVSync();
 
     void SetWindowContainer(NodeId nodeId, bool value);
+
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 private:

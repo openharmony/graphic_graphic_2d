@@ -740,6 +740,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t SetOverlayDisplayMode(int32_t mode)
 {

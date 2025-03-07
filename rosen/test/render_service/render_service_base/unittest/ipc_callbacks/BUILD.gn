@@ -32,6 +32,8 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
     "rs_occlusion_change_callback_proxy_test.cpp",
     "rs_occlusion_change_callback_stub_test.cpp",
     "rs_rt_refresh_callback_test.cpp",
+    "rs_self_drawing_node_rect_change_callback_proxy_test.cpp",
+    "rs_self_drawing_node_rect_change_callback_stub_test.cpp",
     "rs_surface_buffer_callback_proxy_test.cpp",
     "rs_surface_buffer_callback_stub_test.cpp",
     "rs_surface_buffer_callback_test.cpp",

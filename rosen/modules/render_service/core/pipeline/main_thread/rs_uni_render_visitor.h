@@ -159,7 +159,6 @@ public:
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
 private:
-    const std::unordered_set<NodeId> GetCurrentBlackList() const;
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
@@ -294,8 +293,6 @@ private:
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
-    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicPixelFormat& pixelFormat);
-    void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
@@ -308,13 +305,19 @@ private:
     {
         return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged();
     }
-    bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
+
+    inline bool IsValidInVirtualScreen(const RSSurfaceRenderNode& node) const
     {
         const auto& specialLayerMgr = node.GetSpecialLayerMgr();
-        return !specialLayerMgr.Find(SpecialLayerType::SKIP) &&
-            !specialLayerMgr.Find(SpecialLayerType::SECURITY) &&
-            (screenInfo_.whiteList.empty() || screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
+        if (specialLayerMgr.Find(IS_GENERAL_SPECIAL)) {
+            return false; // surface is special layer
+        }
+        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
+            return false; // white list is not empty, or surface is in black list
+        }
+        return true;
     }
+
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
@@ -325,7 +328,6 @@ private:
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);
-    void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
 
     void UpdateVirtualScreenInfo(RSDisplayRenderNode& node);
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node, RSDisplayRenderNode& mirrorNode);
@@ -343,6 +345,8 @@ private:
     void SetHdrWhenMultiDisplayChange();
 
     void TryNotifyUIBufferAvailable();
+
+    void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> rsUniHwcVisitor_;
@@ -377,6 +381,8 @@ private:
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
+    std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
+    std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region occlusionRegionWithoutSkipLayer_;
     // variable for occlusion
@@ -438,6 +444,7 @@ private:
     bool needRequestNextVsync_ = true;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     DirtyRegionDebugType dirtyRegionDebugType_;
+    AdvancedDirtyRegionType advancedDirtyType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;

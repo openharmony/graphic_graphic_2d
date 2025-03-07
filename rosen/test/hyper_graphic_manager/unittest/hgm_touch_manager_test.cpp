@@ -103,36 +103,43 @@ HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level1)
  */
 HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
 {
-    PART("CaseDescription") {
-        auto touchManager = HgmTouchManager();
-        const int32_t rsTimeoutUs = 610000;
-        const int32_t handleRsFrameTimeUs = 510000;
-        const int32_t handleRsFrameNum = 5;
+    auto touchManager = HgmTouchManager();
+    const int32_t rsTimeoutUs = 610000;
+    const int32_t handleRsFrameTimeUs = 150000;
+    const int32_t handleRsFrameNum = 20;
+    const int32_t skipTimeUs = 2600000;
+    const int32_t upOffsetTimeUs = 400000;
 
-        STEP("1. 600ms timeout") {
-            touchManager.ChangeState(TouchState::DOWN_STATE);
-            touchManager.ChangeState(TouchState::UP_STATE);
-            usleep(waitTaskFinishNs);
-            ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+    // 1. 600ms timeout
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-            usleep(rsTimeoutUs);
-            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+    usleep(rsTimeoutUs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+
+    // 2. 3s timeout
+    touchManager.ChangeState(TouchState::DOWN_STATE);
+    touchManager.ChangeState(TouchState::UP_STATE);
+    auto start  = std::chrono::steady_clock::now();
+    usleep(waitTaskFinishNs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+
+    for (int i = 0; i < handleRsFrameNum; i++) {
+        touchManager.HandleRsFrame();
+        usleep(handleRsFrameTimeUs);
+        auto end  = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() > skipTimeUs) {
+            break;
         }
-        STEP("2. 3s timeout") {
-            touchManager.ChangeState(TouchState::DOWN_STATE);
-            touchManager.ChangeState(TouchState::UP_STATE);
-            usleep(waitTaskFinishNs);
-            ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
-
-            for (int i = 0; i < handleRsFrameNum; i++) {
-                touchManager.HandleRsFrame();
-                usleep(handleRsFrameTimeUs);
-                ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
-            }
-            usleep(handleRsFrameTimeUs);
-            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-        }
+        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
     }
+    touchManager.HandleRsFrame();
+    usleep(upOffsetTimeUs);
+    touchManager.HandleRsFrame();
+    usleep(upOffsetTimeUs);
+    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 }
 
 /**

@@ -97,7 +97,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ExecuteSynchronousTask, TestSize.Le
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetUniRenderEnabled, TestSize.Level1)
 {
-    proxy->GetUniRenderEnabled();
+    bool enable;
+    proxy->GetUniRenderEnabled(enable);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -122,7 +123,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, FillParcelWithTransactionData, Test
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, CreateNodeAndSurface, TestSize.Level1)
 {
-    ASSERT_FALSE(proxy->CreateNode(RSSurfaceRenderNodeConfig()));
+    bool success;
+    ASSERT_EQ(proxy->CreateNode(RSSurfaceRenderNodeConfig(), success), ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
     ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig()), nullptr);
 }
 
@@ -564,7 +567,10 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetMemoryGraphics, TestSize.Level1)
 {
     ScreenId id = 1;
     EXPECT_EQ(proxy->GetScreenSupportedModes(id).size(), 0);
-    ASSERT_EQ(proxy->GetMemoryGraphics().size(), 0);
+
+    std::vector<MemoryGraphic> memoryGraphics;
+    proxy->GetMemoryGraphics(memoryGraphics);
+    ASSERT_EQ(memoryGraphics.size(), 0);
 }
 
 /**
@@ -577,7 +583,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetTotalAppMemSize, TestSize.Level1
 {
     float cpuMemSize = 1.0f;
     float gpuMemSize = 1.0f;
-    ASSERT_FALSE(proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize));
+    bool success;
+    ASSERT_EQ(proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success), ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
 }
 
 /**
@@ -589,7 +597,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetTotalAppMemSize, TestSize.Level1
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Level1)
 {
     int pid = 1;
-    EXPECT_EQ(proxy->GetMemoryGraphic(pid).pid_, 0);
+    MemoryGraphic memoryGraphic;
+    proxy->GetMemoryGraphic(pid, memoryGraphic);
+    EXPECT_EQ(memoryGraphic.pid_, 0);
     ScreenId id = 1;
     proxy->GetScreenCapability(id);
     EXPECT_EQ(proxy->GetScreenData(id).powerStatus_, INVALID_POWER_STATUS);
@@ -780,7 +790,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetBitmap, TestSize.Level1)
     RSScreenType screenType = RSScreenType::VIRTUAL_TYPE_SCREEN;
     ASSERT_EQ(proxy->GetScreenType(id, screenType), 2);
     Drawing::Bitmap bitmap;
-    ASSERT_FALSE(proxy->GetBitmap(1, bitmap));
+    bool success;
+    ASSERT_EQ(proxy->GetBitmap(id, bitmap, success), ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
 }
 
 /**
@@ -820,7 +832,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetPixelmap, TestSize.Level1)
     Drawing::Rect rect;
     NodeId id = 1;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    ASSERT_FALSE(proxy->GetPixelmap(id, pixelmap, &rect, drawCmdList));
+    bool result;
+    ASSERT_EQ(proxy->GetPixelmap(id, pixelmap, &rect, drawCmdList, result), ERR_INVALID_VALUE);
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -1132,8 +1146,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetPixelMapByProcessIdTest, TestSiz
 {
     pid_t pid = 0;
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-    int32_t res = proxy->GetPixelMapByProcessId(pixelMapVector, pid);
-    ASSERT_EQ(res, RS_CONNECTION_ERROR);
+    int32_t repCode;
+    ASSERT_EQ(proxy->GetPixelMapByProcessId(pixelMapVector, pid, repCode), ERR_INVALID_VALUE);
+    ASSERT_EQ(repCode, RS_CONNECTION_ERROR);
 }
 } // namespace Rosen
 } // namespace OHOS

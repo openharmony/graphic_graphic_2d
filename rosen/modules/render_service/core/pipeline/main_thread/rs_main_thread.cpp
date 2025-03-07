@@ -39,7 +39,6 @@
 #include "rs_profiler.h"
 #include "rs_trace.h"
 #include "hisysevent.h"
-#include "v2_1/cm_color_space.h"
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 #include "xcollie/watchdog.h"
@@ -54,7 +53,9 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -66,6 +67,7 @@
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
 #include "metadata_helper.h"
+#include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
@@ -382,22 +384,6 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 #endif
 }
 
-HdrStatus RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
-{
-    if (!surfaceNode.IsOnTheTree()) {
-        return HdrStatus::NO_HDR;
-    }
-    return RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
-}
-
-bool RSMainThread::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)
-{
-    if (!surfaceNode.IsOnTheTree()) {
-        return false;
-    }
-    return RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
-}
-
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -556,7 +542,6 @@ void RSMainThread::Init()
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     SetDeeplyRelGpuResSwitch();
-    SetSOCPerfSwitch();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -619,6 +604,9 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
+    RSOpincManager::Instance().ReadOPIncCcmParam();
+    RSUifirstManager::Instance().ReadUIFirstCcmParam();
+    isUiFirstOn_ = RSUifirstManager::Instance().GetUiFirstSwitch();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
         RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
@@ -895,17 +883,6 @@ void RSMainThread::SetDeeplyRelGpuResSwitch()
     }
 }
 
-void RSMainThread::SetSOCPerfSwitch()
-{
-    auto socPerfFeature = GraphicFeatureParamManager::GetInstance().
-        GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]);
-    auto socPerfObj = std::static_pointer_cast<SOCPerfParam>(socPerfFeature);
-    if (socPerfObj != nullptr) {
-        isMultilayersSOCPerfEnable_ = socPerfObj->IsMultilayersSOCPerfEnable();
-        RS_LOGD("SetSOCPerfSwitch: MultilayersSOCPerfEnable %{public}d", this->IsMultilayersSOCPerfEnable());
-    }
-}
-
 DeviceType RSMainThread::GetDeviceType() const
 {
     return deviceType_;
@@ -914,11 +891,6 @@ DeviceType RSMainThread::GetDeviceType() const
 bool RSMainThread::IsDeeplyRelGpuResEnable() const
 {
     return isDeeplyRelGpuResEnable_;
-}
-
-bool RSMainThread::IsMultilayersSOCPerfEnable() const
-{
-    return isMultilayersSOCPerfEnable_;
 }
 
 uint64_t RSMainThread::GetFocusNodeId() const
@@ -1598,9 +1570,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
+        bool needConsume = true;
+        bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(surfaceNode->GetName(),
+            timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-            rsVSyncDistributor_->AdaptiveDVSyncEnable(surfaceNode->GetName()))) {
+            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -1696,9 +1670,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceHandler->GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
-        surfaceNode->SetVideoHdrStatus(CheckIsHdrSurface(*surfaceNode));
+        surfaceNode->SetVideoHdrStatus(RSHdrUtil::CheckIsHdrSurface(*surfaceNode));
         if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
-            surfaceNode->SetSdrHasMetadata(CheckIsSurfaceWithMetadata(*surfaceNode));
+            surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
         }
     });
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
@@ -2443,11 +2417,14 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
 #endif // RES_SCHED_ENABLE
 
-        if (isMultilayersSOCPerfEnable_) {
+        auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+            GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+        if (socPerfParam != nullptr && socPerfParam->IsMultilayersSOCPerfEnable()) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }
         CheckBlurEffectCountStatistics(rootNode);
         uniVisitor->SurfaceOcclusionCallbackToWMS();
+        SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
@@ -2558,7 +2535,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             RS_LOGE("RSMainThread::DoDirectComposition: surfaceNode is null!");
             continue;
         }
-        RSSurfaceRenderNode::UpdateSurfaceNodeNit(*surfaceNode, screenId);
+        RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
         displayNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
@@ -4286,6 +4263,11 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
 
 void RSMainThread::PerfForBlurIfNeeded()
 {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+        return;
+    }
     handler_->RemoveTask(PERF_FOR_BLUR_IF_NEEDED_TASK_NAME);
     static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
@@ -4653,9 +4635,6 @@ bool RSMainThread::HasMirrorDisplay() const
 
 void RSMainThread::UpdateRogSizeIfNeeded()
 {
-    if (!RSSystemProperties::IsPhoneType() || RSSystemProperties::IsFoldScreenFlag()) {
-        return;
-    }
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
@@ -4713,7 +4692,6 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 #endif
 }
@@ -5074,6 +5052,11 @@ void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageLis
 void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
+}
+
+void RSMainThread::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+{
+    rsVSyncDistributor_->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 }
 } // namespace Rosen
 } // namespace OHOS

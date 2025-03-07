@@ -119,8 +119,6 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
-    static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -268,7 +266,6 @@ public:
 
     DeviceType GetDeviceType() const;
     bool IsDeeplyRelGpuResEnable() const;
-    bool IsMultilayersSOCPerfEnable() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
     uint64_t GetFocusNodeId() const;
@@ -449,10 +446,11 @@ public:
     }
 
     void ClearUnmappedCache();
-    void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -477,7 +475,6 @@ private:
     void OnUniRenderDraw();
     void SetDeviceType();
     void SetDeeplyRelGpuResSwitch();
-    void SetSOCPerfSwitch();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -629,8 +626,6 @@ private:
     bool isOverDrawEnabledOfLastFrame_ = false;
     // for deeply release GPU resource
     bool isDeeplyRelGpuResEnable_ = false;
-    // for SOCPerf
-    bool isMultilayersSOCPerfEnable_ = false;
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     bool initVsyncServiceFlag_ = true;
 #endif

@@ -249,6 +249,7 @@ public:
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
+    static bool GetWideColorSpaceEnabled();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
@@ -258,7 +259,6 @@ public:
     static bool GetASTCEnabled();
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
-    static bool GetSnapshotWithDMAEnabled();
     static bool GetDrmEnabled();
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
@@ -274,7 +274,8 @@ public:
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
-    static bool GetHDRImageEnable();
+    static bool GetHdrImageEnabled();
+    static bool GetHdrVideoEnabled();
     static bool IsForceClient();
     static bool GetDrmMarkedFilterEnabled();
     static bool GetUnmarshParallelFlag();
@@ -318,6 +319,8 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+
+    static bool GetNodeGroupGroupedByUIEnabled();
 private:
     RSSystemProperties() = default;
 

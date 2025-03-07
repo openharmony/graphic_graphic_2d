@@ -609,5 +609,10 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
 }
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

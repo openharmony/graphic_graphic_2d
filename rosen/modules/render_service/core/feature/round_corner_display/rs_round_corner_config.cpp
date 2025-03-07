@@ -508,7 +508,7 @@ LCDModel* RCDConfig::GetLcdModel(const std::string& name) const
             return model;
         }
     }
-    RS_LOGE("[%{public}s] lcd not found in name %{public}s! \n", __func__, name.c_str());
+    RS_LOGD("[%{public}s] rcd: lcd not found in name %{public}s! \n", __func__, name.c_str());
     return nullptr;
 }
 

@@ -252,6 +252,8 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetUiAnimationIdleFpsTest1, TestSize.Le
     ASSERT_EQ(rsRange.max_, 30);
     ASSERT_EQ(rsRange.min_, 30);
     ASSERT_EQ(rsRange.preferred_, 30);
+    HgmEnergyConsumptionPolicy::Instance().isTouchIdle_ = true;
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
 }
 
 /**
@@ -365,6 +367,8 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, PrintEnergyConsumptionLogTest, TestSize
     rsRange.componentScene_ = ComponentScene::SWIPER_FLING;
     HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
     ASSERT_EQ(rsRange.componentScene_, ComponentScene::SWIPER_FLING);
+    rsRange.isEnergyAssurance_ = false;
+    HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
 }
 
 /**
