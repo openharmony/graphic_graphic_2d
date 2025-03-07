@@ -39,6 +39,8 @@
 #include "hwc_param.h"
 #include "mem_param_parse.h"
 #include "mem_param.h"
+#include "multiscreen_param_parse.h"
+#include "multiscreen_param.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
@@ -89,6 +91,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
+    {FEATURE_CONFIGS[MULTISCREEN], [] {return std::make_unique<MultiScreenParamParse>(); },
+        [] {return std::make_unique<MultiScreenParam>(); }},
     {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
         [] {return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
