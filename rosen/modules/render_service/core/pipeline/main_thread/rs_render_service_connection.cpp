@@ -2425,7 +2425,7 @@ void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEve
     });
 }
 
-void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+ErrCode RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
     HgmTaskHandleThread::Instance().PostTask([eventName, state] () {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
@@ -2437,6 +2437,7 @@ void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventNam
             frameRateMgr->HandleThermalFrameRate(state);
         }
     });
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
@@ -2589,15 +2590,15 @@ HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
-int64_t RSRenderServiceConnection::GetHdrOnDuration()
+ErrCode RSRenderServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
 {
     auto rsHdrCollection = RsHdrCollection::GetInstance();
     if (rsHdrCollection == nullptr) {
-        return -1;
+        return ERR_INVALID_VALUE;
     }
-    int64_t duration = rsHdrCollection->GetHdrOnDuration();
+    hdrOnDuration = rsHdrCollection->GetHdrOnDuration();
     rsHdrCollection->ResetHdrOnDuration();
-    return duration;
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
