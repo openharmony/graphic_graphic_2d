@@ -322,7 +322,7 @@ private:
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
-    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+    ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
@@ -336,7 +336,7 @@ private:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
-    int64_t GetHdrOnDuration() override;
+    ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) override;
 
     ErrCode SetVmaCacheStatus(bool flag) override;
 

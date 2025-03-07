@@ -307,7 +307,7 @@ public:
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
-    virtual void NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
+    virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
 
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
@@ -346,7 +346,7 @@ public:
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
 
-    virtual int64_t GetHdrOnDuration() = 0;
+    virtual ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) = 0;
 
     virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
 

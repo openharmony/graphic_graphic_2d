@@ -282,7 +282,7 @@ public:
 
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
-    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+    ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
@@ -315,7 +315,7 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
-    int64_t GetHdrOnDuration() override;
+    ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) override;
 
     ErrCode SetVmaCacheStatus(bool flag) override;
 

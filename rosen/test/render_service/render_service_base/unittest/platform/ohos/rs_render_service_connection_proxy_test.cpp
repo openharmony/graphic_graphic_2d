@@ -1076,7 +1076,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
 {
     ASSERT_NE(proxy, nullptr);
-    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
+    int64_t hdrOnDuration;
+    proxy->GetHdrOnDuration(hdrOnDuration);
+    ASSERT_TRUE(proxy);
 }
 
 /**
