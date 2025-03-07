@@ -98,6 +98,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<VSyncIConnectionToken> token;
     std::string name("name");
     uint64_t id1 = GetData<uint64_t>();
+    int64_t id2 = GetData<int64_t>();
     uint64_t windowNodeId = GetData<uint64_t>();
     int32_t pid1 = GetData<int32_t>();
     int32_t uid = GetData<int32_t>();
@@ -260,7 +261,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
     rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
-    rsRenderServiceConnectionProxy.GetHdrOnDuration();
+    rsRenderServiceConnectionProxy.GetHdrOnDuration(id2);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(true);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(false);
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
