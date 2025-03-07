@@ -1716,9 +1716,14 @@ int64_t RSRenderServiceClient::GetHdrOnDuration()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
+        return 0;
     }
-    return renderService->GetHdrOnDuration();
+    int64_t hdrOnDuration = 0;
+    auto ret = renderService->GetHdrOnDuration(hdrOnDuration);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("Failed to get HdrOnDuration, ret=%{public}d", ret);
+    }
+    return hdrOnDuration;
 }
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
