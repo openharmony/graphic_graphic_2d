@@ -2286,7 +2286,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             topLayers.emplace_back(hwcNodePtr);
             continue;
         }
-        if (IsHdrUseUnirender(curDisplayNode_->GetHasUniRenderHdrSurface(), hwcNodePtr)){
+        if (IsHdrUseUnirender(curDisplayNode_->GetHasUniRenderHdrSurface(), hwcNodePtr)) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             // DRM will force HDR to use unirender
             curDisplayNode_->SetHasUniRenderHdrSurface(curDisplayNode_->GetHasUniRenderHdrSurface() ||
@@ -2326,7 +2326,6 @@ bool RSUniRenderVisitor::IsHdrUseUnirender(bool hasUniRenderHdrSurface,
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
             " disabled by having UniRenderHdrSurface/DRM nodes, isHdrHardwareDisabled:%d",
             hwcNodePtr->GetName().c_str(),hwcNodePtr->GetId(),isHdrHardwareDisabled);
-        PrintHiperfLog(hwcNodePtr,"unirender HDR");
         return true;
     }
     return false;
