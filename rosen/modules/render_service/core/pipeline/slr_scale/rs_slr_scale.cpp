@@ -16,6 +16,7 @@
 #include "rs_slr_scale.h"
 
 #include <cfloat>
+#include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
