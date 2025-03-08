@@ -2320,7 +2320,7 @@ bool RSUniRenderVisitor::IsHdrUseUnirender(bool hasUniRenderHdrSurface,
     }
     bool isHdrHardwareDisabled = RSLuminanceControl::Get().IsCloseHardwareHdr() &&
         (RSMainThread::CheckIsHdrSurface(*hwcNodePtr) != HdrStatus::NO_HDR ||
-         RSLuminanceControl::Get().IsHdrOn(curDisplayNode_->GetScreenId()));
+        RSLuminanceControl::Get().IsHdrOn(curDisplayNode_->GetScreenId()));
     if (hasUniRenderHdrSurface || !drmNodes_.empty() || hasFingerprint_[currentVisitDisplay_] ||
         isHdrHardwareDisabled) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
