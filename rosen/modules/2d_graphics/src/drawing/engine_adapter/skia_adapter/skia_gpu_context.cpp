@@ -96,7 +96,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
 #ifdef ROSEN_OHOS
-    grOptions.fRuntimeProgramCacheSize = 
+    grOptions.fRuntimeProgramCacheSize =
         std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
 #endif
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
