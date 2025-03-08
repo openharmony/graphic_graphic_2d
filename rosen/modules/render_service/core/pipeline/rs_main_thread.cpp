@@ -446,6 +446,7 @@ void RSMainThread::Init()
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();
         if (!isUniRender_) {
+            RSMainThread::GPUCompositonCacheGuard guard;
             ReleaseAllNodesBuffer();
         }
         SendCommands();
@@ -2008,7 +2009,10 @@ void RSMainThread::ClearUnmappedCache()
         bufferIds.swap(unmappedCacheSet_);
     }
     if (!bufferIds.empty()) {
-        RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferIds);
+        auto engine = GetRenderEngine();
+        if (engine) {
+            engine->ClearCacheSet(bufferIds);
+        }
         RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(bufferIds);
     }
 }
