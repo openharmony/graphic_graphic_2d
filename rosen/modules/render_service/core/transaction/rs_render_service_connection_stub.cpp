@@ -1529,7 +1529,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES): {
             uint32_t systemAnimatedScenes = data.ReadUint32();
-            bool result = SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
+            bool isRegularAnimation = data.ReadBool();
+            bool result = SetSystemAnimatedScenes(
+                static_cast<SystemAnimatedScenes>(systemAnimatedScenes), isRegularAnimation);
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }

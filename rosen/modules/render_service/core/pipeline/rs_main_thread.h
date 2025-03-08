@@ -221,8 +221,9 @@ public:
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     SystemAnimatedScenes GetSystemAnimatedScenes();
+    bool GetIsRegularAnimation() const;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
     pid_t GetDesktopPidForRotationScene() const;
@@ -730,6 +731,7 @@ private:
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
+    bool isRegularAnimation_ = false;
     uint32_t leashWindowCount_ = 0;
 
     // for drawing cache dfx

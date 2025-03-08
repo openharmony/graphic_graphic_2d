@@ -3722,17 +3722,18 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
-bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%d] "
-        "systemAnimatedScenesListSize_[%d]", __func__, systemAnimatedScenes,
-        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size());
+        "systemAnimatedScenesListSize_[%d], isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
+        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size(), isRegularAnimation);
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
         RS_LOGD("RSMainThread::SetSystemAnimatedScenes Out of range.");
         return false;
     }
     systemAnimatedScenes_ = systemAnimatedScenes;
+    isRegularAnimation_ = isRegularAnimation;
     if (!systemAnimatedScenesEnabled_) {
         return true;
     }
@@ -3761,6 +3762,13 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
         }
     }
     return true;
+}
+
+bool RSMainThread::GetIsRegularAnimation() const
+{
+    return (isRegularAnimation_ &&
+        systemAnimatedScenes_ < SystemAnimatedScenes::OTHERS &&
+        RSSystemParameters::GetAnimationOcclusionEnabled()) || IsPCThreeFingerScenesListScene();
 }
 
 SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()

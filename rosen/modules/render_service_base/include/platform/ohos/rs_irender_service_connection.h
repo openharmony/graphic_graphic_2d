@@ -248,7 +248,7 @@ public:
     virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
-    virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
+    virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
 

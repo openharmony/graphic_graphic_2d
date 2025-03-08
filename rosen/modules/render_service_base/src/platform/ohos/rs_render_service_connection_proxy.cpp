@@ -2315,7 +2315,8 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
     }
 }
 
-bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(
+    SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2325,6 +2326,7 @@ bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(SystemAnimatedScene
     }
     option.SetFlags(MessageOption::TF_SYNC);
     data.WriteUint32(static_cast<uint32_t>(systemAnimatedScenes));
+    data.WriteBool(isRegularAnimation);
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
