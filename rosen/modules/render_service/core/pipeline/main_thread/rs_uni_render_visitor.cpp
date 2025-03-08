@@ -3660,7 +3660,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
     }
     auto absMatrix = geoPtr->GetAbsMatrix();
     bool isScale = false;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
         isScale = (!ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_X), 1.f, EPSILON_SCALE) ||
             !ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_Y), 1.f, EPSILON_SCALE));
     } else {

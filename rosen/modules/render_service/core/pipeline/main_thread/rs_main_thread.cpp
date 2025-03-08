@@ -1148,7 +1148,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
-        (deviceType_ != DeviceType::PC || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+        (RSUifirstManager::Instance().GetUiFirstType() != UiFirstCcmType::MULTI
+            || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
 #ifdef RS_ENABLE_GPU
         if (!isUniRender_) {
             RSSubThreadManager::Instance()->ResetSubThreadGrContext(); // planning: move to prepare

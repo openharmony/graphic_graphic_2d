@@ -43,6 +43,7 @@
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -652,14 +653,12 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceRenderNodeScaleTest, TestSize.Leve
     ASSERT_NE(leashWindowNode, nullptr);
     leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
 
-    auto deviceTypeStr = system::GetParameter("const.product.devicetype", "pc");
-    system::SetParameter("const.product.devicetype", "pc");
-    RSMainThread::Instance()->SetDeviceType();
+    auto uifirstType = RSUifirstManager::Instance().GetUiFirstType();
+    RSUifirstManager::Instance().SetUiFirstType(2);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->UpdateSurfaceRenderNodeScale(*leashWindowNode);
-    system::SetParameter("const.product.devicetype", deviceTypeStr);
-    RSMainThread::Instance()->SetDeviceType();
+    RSUifirstManager::Instance().SetUiFirstType((int)uifirstType);
 }
 
 /*

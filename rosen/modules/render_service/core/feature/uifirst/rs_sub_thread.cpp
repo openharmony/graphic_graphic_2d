@@ -388,7 +388,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
+    bool optFenceWait = RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateCacheSurfaceInfo();
     nodeDrawable->UpdateBackendTexture();
@@ -434,7 +434,7 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rsCanvas);
-    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
+    bool optFenceWait = RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI ? false : true;
     RS_TRACE_BEGIN("FlushFrame");
     RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateCacheSurfaceInfo();

@@ -29,6 +29,7 @@ public:
     bool IsCacheOptimizeRotateEnable() const;
     bool IsFreeMultiWindowEnable() const;
     int GetUIFirstEnableWindowThreshold() const;
+    int GetUIFirstType() const;
 
 protected:
     void SetUIFirstEnable(bool isEnable);
@@ -36,6 +37,7 @@ protected:
     void SetCacheOptimizeRotateEnable(bool isCacheOptimizeRotateEnable);
     void SetFreeMultiWindowEnable(bool isFreeMultiWindowEnable);
     void SetUIFirstEnableWindowThreshold(int uiFirstEnableWindowThreshold);
+    void SetUIFirstType(int uiFirstType);
 
 private:
     bool isUIFirstEnable_ = true;
@@ -43,6 +45,7 @@ private:
     bool isCacheOptimizeRotateEnable_ = false;
     bool isFreeMultiWindowEnable_ = false;
     int uiFirstEnableWindowThreshold_ = 1;
+    int uiFirstType_ = 1;
 
     friend class UIFirstParamParse;
 };

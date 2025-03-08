@@ -19,6 +19,7 @@
 
 #include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
@@ -282,7 +283,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
     minLoadThreadIndex_ = defaultThreadIndex_;
     unsigned int loadDefaultIndex = 0;
-    if (RSSystemProperties::IsPcType()) {
+    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
         loadDefaultIndex = 1;
     }
     for (unsigned int j = loadDefaultIndex; j < SUB_THREAD_NUM; j++) {
@@ -303,7 +304,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
             defaultThreadIndex_ = loadDefaultIndex;
         }
     }
-    if (RSSystemProperties::IsPcType()) {
+    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
         if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
             threadList_[0]->GetDoingCacheProcessNum() < SUB_VIDEO_THREAD_TASKS_NUM_MAX) {

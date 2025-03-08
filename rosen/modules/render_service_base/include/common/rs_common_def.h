@@ -319,6 +319,12 @@ enum class UiFirstModeType : uint8_t {
     MULTI_WINDOW_MODE,
 };
 
+enum class UiFirstCcmType : uint8_t {
+    SINGLE = 1,
+    MULTI,
+    HYBRID,
+};
+
 enum class RSUIFirstSwitch {
     NONE,               // follow RS rules
     MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst

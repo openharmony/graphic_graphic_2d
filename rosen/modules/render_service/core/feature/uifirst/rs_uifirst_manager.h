@@ -100,6 +100,13 @@ public:
         isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
+    UiFirstCcmType GetUiFirstType() const
+    {
+        return uifirstType_;
+    }
+
+    void SetUiFirstType(int type);
+
     void SetNodeNeedForceUpdateFlag(bool flag)
     {
         hasForceUpdateNode_ = flag;
@@ -233,6 +240,7 @@ private:
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
     bool isCardUiFirstOn_ = false;
+    UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
