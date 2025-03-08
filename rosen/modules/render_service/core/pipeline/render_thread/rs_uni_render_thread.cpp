@@ -547,7 +547,7 @@ void RSUniRenderThread::PerfForBlurIfNeeded()
     if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
         return;
     }
-    
+
     if (!handler_) {
         return;
     }
@@ -802,13 +802,6 @@ void RSUniRenderThread::DumpMem(DfxString& log)
         auto gpuContext = renderContext->GetDrGPUContext();
         MemoryManager::DumpDrawingGpuMemory(log, gpuContext, nodeTags);
     });
-}
-
-void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
-{
-    if (uniRenderEngine_) {
-        uniRenderEngine_->ClearCacheSet(unmappedCache, isMatchVirtualScreen);
-    }
 }
 
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)

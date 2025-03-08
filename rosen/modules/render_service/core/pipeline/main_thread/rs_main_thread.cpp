@@ -459,6 +459,7 @@ void RSMainThread::Init()
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();
         if (!isUniRender_) {
+            RSMainThread::GPUCompositonCacheGuard guard;
             ReleaseAllNodesBuffer();
         }
         SendCommands();
@@ -2303,11 +2304,17 @@ void RSMainThread::ClearUnmappedCache()
         bufferMirrorIds.swap(unmappedVirScreenCacheSet_);
     }
     if (!bufferIds.empty()) {
-        RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferIds);
+        auto engine = GetRenderEngine();
+        if (engine) {
+            engine->ClearCacheSet(bufferIds);
+        }
         RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(bufferIds);
     }
     if (!bufferMirrorIds.empty()) {
-        RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferMirrorIds, true);
+        auto engine = GetRenderEngine();
+        if (engine) {
+            engine->ClearCacheSet(bufferIds, true);
+        }
     }
 }
 
@@ -4828,7 +4835,7 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
         RS_LOGE("RSMainThread::SetCurtainScreenUsingStatus CurtainScreenEnabled is not supported");
         return;
     }
-    
+
 #ifdef RS_ENABLE_GPU
     if (isCurtainScreenOn_ == isCurtainScreenOn) {
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
