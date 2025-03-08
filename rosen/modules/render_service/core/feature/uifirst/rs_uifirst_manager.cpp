@@ -51,14 +51,7 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-RSUifirstManager::RSUifirstManager() :
-#if defined(RS_ENABLE_VK)
-    useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        uifirstType_ == UiFirstCcmType::SINGLE && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR))
-#else
-    useDmaBuffer_(false)
-#endif
+RSUifirstManager::RSUifirstManager() : useDmaBuffer_(false)
 {}
 
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
@@ -1673,14 +1666,7 @@ void RSUifirstManager::AddCapturedNodes(NodeId id)
 
 void RSUifirstManager::SetUseDmaBuffer(bool val)
 {
-    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-#if defined(RS_ENABLE_VK)
-    useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        uifirstType_ == UiFirstCcmType::SINGLE && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR);
-#else
     useDmaBuffer_ = false;
-#endif
 }
 
 bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
