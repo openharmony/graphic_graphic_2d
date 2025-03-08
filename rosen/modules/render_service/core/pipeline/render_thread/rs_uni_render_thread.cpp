@@ -830,7 +830,7 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    bool isDeeplyRelGpuResEnable = true;
+    bool isDeeplyRelGpuResEnable = false;
     auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
     if (relGpuResParam != nullptr) {

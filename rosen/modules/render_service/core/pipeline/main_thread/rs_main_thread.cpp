@@ -1984,7 +1984,7 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
-    bool isDeeplyRelGpuResEnable = true;
+    bool isDeeplyRelGpuResEnable = false;
     auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
     if (relGpuResParam != nullptr) {
