@@ -417,7 +417,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         RSSystemProperties::GetHdrImageEnabled(), RSSystemProperties::GetHdrVideoEnabled());
     ScreenId screenId = node.GetScreenId();
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
-    if (RSLuminanceControl::Get().IsCloseHardwareHdr() && !drmNodes_.empty()){
+    if (RSLuminanceControl::Get().IsCloseHardwareHdr() && !drmNodes_.empty()) {
         // Disable hdr when drm videos exist to avoid flicker
         RSLuminanceControl::Get().SetHdrStatus(screenId, HdrStatus::NO_HDR);
     } else {
