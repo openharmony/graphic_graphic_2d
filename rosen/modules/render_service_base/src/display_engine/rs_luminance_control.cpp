@@ -141,7 +141,7 @@ bool RSLuminanceControl::LoadStatusControl()
         return false;
     }
     isCloseHardwareHdr_ = reinterpret_cast<IsCloseHardwareHdrFunc>(dlsym(extLibHandle_,
-         "isCloseHardwareHdr"));
+        "isCloseHardwareHdr"));
     if (isCloseHardwareHdr_ == nullptr) {
         RS_LOGE("LumCtr link IsCloseHardwareHdrFunc error!");
         return false;
@@ -307,6 +307,12 @@ void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceClose
     if (initStatus_ && forceCloseHdr_ != nullptr) {
         forceCloseHdr_(closeHdrSceneId, forceCloseHdr);
     }
+}
+
+bool RSLuminanceControl::IsCloseHardwareHdr()
+{
+    return (initStatus_ && isCloseHardwareHdr_ != nullptr) ?
+        isCloseHardwareHdr_() : false;
 }
 } // namespace Rosen
 } // namespace OHOS
