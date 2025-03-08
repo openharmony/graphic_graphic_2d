@@ -126,7 +126,7 @@ public:
         }
     }
 
-    bool IsCurFrameStatic(DeviceType deviceType);
+    bool IsCurFrameStatic();
 
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 

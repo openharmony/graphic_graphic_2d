@@ -1266,8 +1266,7 @@ void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
     auto mainThread = RSMainThread::Instance();
-    node.SetOcclusionInSpecificScenes(mainThread->GetDeviceType() == DeviceType::PC &&
-        mainThread->GetIsRegularAnimation());
+    node.SetOcclusionInSpecificScenes(mainThread->GetIsRegularAnimation());
     bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
     bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
         occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
