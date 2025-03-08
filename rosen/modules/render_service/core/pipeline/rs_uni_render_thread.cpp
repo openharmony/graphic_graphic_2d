@@ -770,13 +770,6 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearGPUCompositionCache(const std::set<int32_t>& unmappedCache)
-{
-    if (uniRenderEngine_) {
-        uniRenderEngine_->ClearCacheSet(unmappedCache);
-    }
-}
-
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
