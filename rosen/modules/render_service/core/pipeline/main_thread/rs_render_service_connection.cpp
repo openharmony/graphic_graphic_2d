@@ -450,21 +450,22 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& c
     return ERR_OK;
 }
 
-sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured)
+ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    sptr<Surface>& sfc, bool unobscured)
 {
     if (!mainThread_) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     std::shared_ptr<RSSurfaceRenderNode> node =
         SurfaceNodeCommandHelper::CreateWithConfigInRS(config, mainThread_->GetContext(), unobscured);
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     if (surface == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     const std::string& surfaceName = surface->GetName();
     RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
@@ -495,11 +496,11 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     sptr<IBufferProducer> producer = surface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    return pSurface;
+    sfc = Surface::CreateSurfaceAsProducer(producer);
+    return ERR_OK;
 }
 
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
@@ -2259,10 +2260,10 @@ int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallb
     return StatusCode::SUCCESS;
 }
 
-void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
+ErrCode RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     if (!mainThread_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     auto task = [weakThis = wptr<RSRenderServiceConnection>(this), num]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
@@ -2272,6 +2273,8 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
         connection->mainThread_->SetAppWindowNum(num);
     };
     mainThread_->PostTask(task);
+
+    return ERR_OK;
 }
 
 bool RSRenderServiceConnection::SetSystemAnimatedScenes(

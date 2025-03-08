@@ -175,7 +175,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize, getTotalAppMemSizeSuccess);
     rsRenderServiceConnectionProxy.GetUniRenderEnabled(getUniRenderEnable);
     rsRenderServiceConnectionProxy.CreateNode(config, createNodeSuccess);
-    rsRenderServiceConnectionProxy.CreateNodeAndSurface(config);
+    sptr<Surface> sface = nullptr;
+    rsRenderServiceConnectionProxy.CreateNodeAndSurface(config, sface);
     rsRenderServiceConnectionProxy.CreateVSyncConnection(name, token, id1, windowNodeId);
     rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect);
     rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);

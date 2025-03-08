@@ -126,7 +126,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreateNodeAndSurface, TestSize.Leve
     bool success;
     ASSERT_EQ(proxy->CreateNode(RSSurfaceRenderNodeConfig(), success), ERR_INVALID_VALUE);
     ASSERT_FALSE(success);
-    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig()), nullptr);
+    sptr<Surface> surface = nullptr;
+    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface), ERR_INVALID_VALUE);
 }
 
 /**

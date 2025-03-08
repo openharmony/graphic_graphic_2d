@@ -151,8 +151,10 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     if (renderService == nullptr) {
         return nullptr;
     }
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config, unobscured);
-    if (surface == nullptr) {
+
+    sptr<Surface> surface = nullptr;
+    ErrCode err = renderService->CreateNodeAndSurface(config, surface, unobscured);
+    if ((err != ERR_OK) || (surface == nullptr)) {
         ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;
     }

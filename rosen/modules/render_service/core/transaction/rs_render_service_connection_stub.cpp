@@ -521,8 +521,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .isTextureExportNode = isTextureExportNode,
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType) };
-            sptr<Surface> surface = CreateNodeAndSurface(config, unobscured);
-            if (surface == nullptr) {
+            sptr<Surface> surface = nullptr;
+            ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
+            if ((err != ERR_OK) || (surface == nullptr)) {
                 ret = ERR_NULL_OBJECT;
                 break;
             }

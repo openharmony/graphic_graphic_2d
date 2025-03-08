@@ -251,8 +251,8 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConf
     return ERR_OK;
 }
 
-sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
+ErrCode RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    sptr<Surface>& sfc, bool unobscured)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -260,45 +260,45 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
 
     if (!data.WriteUint64(config.id)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteUint64 config.id err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteString(config.name)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteString config.name err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(config.nodeType))) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteUint8 config.nodeType err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(config.isTextureExportNode)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteBool config.isTextureExportNode err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(config.isSync)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteBool config.isSync err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(config.surfaceWindowType))) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteUint8 config.surfaceWindowType err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(unobscured)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNodeAndSurface: WriteBool unobscured err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     sptr<IRemoteObject> surfaceObject = reply.ReadRemoteObject();
     sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(surfaceObject);
     if (bp == nullptr) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
-    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bp);
-    return surface;
+    sfc = Surface::CreateSurfaceAsProducer(bp);
+    return ERR_OK;
 }
 
 sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
@@ -3158,26 +3158,28 @@ int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdate
     return result;
 }
 
-void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
+ErrCode RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint32(num)) {
         ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
+
+    return ERR_OK;
 }
 
 bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(
