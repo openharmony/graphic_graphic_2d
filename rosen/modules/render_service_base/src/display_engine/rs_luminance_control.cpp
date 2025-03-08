@@ -141,9 +141,9 @@ bool RSLuminanceControl::LoadStatusControl()
         return false;
     }
     isCloseHardwareHdr_ = reinterpret_cast<IsCloseHardwareHdrFunc>(dlsym(extLibHandle_,
-        "isCloseHardwareHdr"));
+        "IsCloseHardwareHdr"));
     if (isCloseHardwareHdr_ == nullptr) {
-        RS_LOGE("LumCtr link IsCloseHardwareHdrFunc error!");
+        RS_LOGE("LumCtr link IsCloseHardwareHdr error!");
         return false;
     }
     return true;
