@@ -71,6 +71,8 @@
 #include "utils/performanceCaculate.h"
 // cpu boost
 #include "c/ffrt_cpu_boost.h"
+// xml parser
+#include "graphic_feature_param_manager.h"
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -881,8 +883,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 curCanvas_->Restore();
             }
         }
-        if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
-            && !params->IsRotationChanged()) {
+
+        if (RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport() && !params->IsRotationChanged()) {
             offscreenSurface_ = nullptr;
         }
 
@@ -2098,7 +2100,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if (useFixedSize && (RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+    if (useFixedSize && RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport()
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize;
@@ -2365,5 +2367,23 @@ bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scr
             break;
     }
     return needSkip;
+}
+
+bool RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport()
+{
+    auto rotateOffScreenFeatureParam =
+         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
+    if (rotateOffScreenFeatureParam == nullptr) {
+        RS_LOGE("Get rotateOffScreenFeatureParam failed, rotateOffScreenFeatureParam is nullptr");
+        return false;
+    }
+    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
+    if (rotateOffScreenParam == nullptr) {
+        RS_LOGE("Get rotateOffScreenParam failed, rotateOffScreenParam is nullptr");
+        return false;
+    }
+    RS_LOGI("GetRotateOffScreenIsSupport: %{public}d",
+            static_cast<int>(rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable()));
+    return rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
 }
 } // namespace OHOS::Rosen::DrawableV2

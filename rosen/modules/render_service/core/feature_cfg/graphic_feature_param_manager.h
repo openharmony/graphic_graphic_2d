@@ -45,6 +45,8 @@
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
 #include "prevalidate_param.h"
+#include "rotateoffscreen_param_parse.h"
+#include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
 #include "stencil_pixel_occlusion_culling_param.h"
@@ -115,6 +117,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[VRate], [] { return std::make_unique<VRateParamParse>(); },
         [] { return std::make_unique<VRateParam>(); }},
+    {FEATURE_CONFIGS[RotateOffScreen], [] { return std::make_unique<RotateOffScreenParamParse>(); },
+        [] { return std::make_unique<RotateOffScreenParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

@@ -28,6 +28,8 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+// xml parser
+#include "graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -192,9 +194,16 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     ASSERT_NE(renderNode_, nullptr);
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
+    auto rotateOffScreenFeatureParam =
+         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
+    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
+    if (rotateOffScreenParam == nullptr) {
+        rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();
+    }
+    auto type = rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
+    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(true);
+
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto type = system::GetParameter("const.window.foldscreen.type", "");
-    system::SetParameter("const.window.foldscreen.type", "1");
     params->isRotationChanged_ = true;
     params->frameRect_ = { 0.f, 0.f, 1.f, 0.f };
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
@@ -208,7 +217,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->curCanvas_->surface_ = surface.get();
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     ASSERT_TRUE(displayDrawable_->curCanvas_->GetSurface());
-    system::SetParameter("const.window.foldscreen.type", type);
+    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(type);
 }
 
 /**
