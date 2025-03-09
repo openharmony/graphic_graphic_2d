@@ -27,6 +27,7 @@
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font.h"
+#include "text/font_mgr.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
 #include "utils/point.h"
