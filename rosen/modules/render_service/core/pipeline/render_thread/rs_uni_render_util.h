@@ -42,11 +42,8 @@ namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniRenderUtil {
 public:
-    static Occlusion::Region GetExpandedAllDirtyRegion(
-        ScreenInfo& screenInfo, Occlusion::Region& dirtyRegion, Occlusion::Region& globalDirtyRegion);
     static void MergeDirtyRectAfterMergeHistory(
         std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion);
-    static std::vector<RectI> GetExpandedDamageRegion(ScreenInfo& screenInfo, std::vector<RectI>& rects);
     static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
     static std::vector<RectI> MergeDirtyHistoryInVirtual(
@@ -189,6 +186,9 @@ private:
         sptr<IConsumerSurface> consumer);
     static bool FrameAwareTraceBoost(size_t layerNum);
     static void RequestPerf(uint32_t layerLevel, bool onOffTag);
+    static void GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInfo, const Occlusion::Region& srcDamageRegion,
+        bool isDirtyAlignEnabled, Occlusion::Region& sampledDamageRegion, Occlusion::Region& sampledDrawnRegion);
+
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };
