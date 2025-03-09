@@ -2263,8 +2263,10 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     ScreenInfo screenInfo;
     RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
     auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
-    EXPECT_EQ(rects.empty(), true);
+    EXPECT_EQ(rects.empty(), false);
     displayDrawable = nullptr;
 }
 
