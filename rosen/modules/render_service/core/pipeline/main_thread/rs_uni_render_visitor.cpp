@@ -2325,7 +2325,7 @@ bool RSUniRenderVisitor::IsHdrUseUnirender(bool hasUniRenderHdrSurface,
         isHdrHardwareDisabled) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
             " disabled by having UniRenderHdrSurface/DRM nodes, isHdrHardwareDisabled:%d",
-            hwcNodePtr->GetName().c_str(),hwcNodePtr->GetId(),isHdrHardwareDisabled);
+            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(), isHdrHardwareDisabled);
         return true;
     }
     return false;
