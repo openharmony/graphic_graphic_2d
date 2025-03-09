@@ -478,6 +478,8 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
+std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
+std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 
