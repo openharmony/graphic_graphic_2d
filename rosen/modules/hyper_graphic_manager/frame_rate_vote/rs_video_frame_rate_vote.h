@@ -33,6 +33,7 @@ public:
      * @param videoRate the rate of video
      */
     void StartVideoFrameRateVote(double videoRate);
+    void ReSetLastRate();
 
 private:
     void VoteVideoFrameRate(double videoRate);

@@ -37,6 +37,7 @@ public:
      * @param buffer the buffer queue
      */
     void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer);
+    void SetTransactionFlags(const std::string& transactionFlags);
 
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);
@@ -44,12 +45,15 @@ private:
     void VoteRate(pid_t pid, std::string eventName, uint32_t rate);
     void CancelVoteRate(pid_t pid, std::string eventName);
     void NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo);
+    bool CheckSurfaceAndUi(OHSurfaceSource sourceType);
 
 private:
     bool isSwitchOn_ {false};
     pid_t lastVotedPid_ {DEFAULT_PID};
     uint32_t lastVotedRate_ {OLED_NULL_HZ};
     bool isVoted_ {false};
+    uint64_t currentUpdateTime_ {0};
+    std::string transactionFlags_ = "";
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_ {};
     std::unordered_map<uint64_t, uint32_t> surfaceVideoRate_ {};
     std::mutex mutex_;
