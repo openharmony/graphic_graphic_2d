@@ -75,8 +75,8 @@ public:
     virtual ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) = 0;
 
-    virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect) = 0;
+    virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) = 0;
 
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,

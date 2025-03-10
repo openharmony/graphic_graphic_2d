@@ -157,11 +157,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreatePixelMapFromSurface, TestSize
 {
     sptr<Surface> surface;
     Rect srcRect;
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> producer = consumer->GetProducer();
     surface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
 }
 
 /**

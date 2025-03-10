@@ -379,47 +379,46 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
     return ERR_OK;
 }
 
-std::shared_ptr<Media::PixelMap> RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect)
+ErrCode RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (surface == nullptr) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     auto producer = surface->GetProducer();
     if (producer == nullptr) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteInterfaceToken RSIRenderServiceConnection::GetDescriptor() err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteRemoteObject(producer->AsObject())) {
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteRemoteObject producer->AsObject() err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteInt32(srcRect.x) || !data.WriteInt32(srcRect.y) ||
         !data.WriteInt32(srcRect.w) || !data.WriteInt32(srcRect.h)) {
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteInt32 srcRect err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreatePixelMapFromSurface: Send Request err.");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
 
-    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     if (reply.ReadBool()) {
         pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
     }
-    return pixelMap;
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnectionProxy::SetFocusAppInfo(

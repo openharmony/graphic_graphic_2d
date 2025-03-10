@@ -222,8 +222,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     if (surface == nullptr) {
         return nullptr;
     }
-
-    return renderService->CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    return renderService->CreatePixelMapFromSurface(surface, srcRect, pixelMap) == ERR_OK ? pixelMap : nullptr;
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,

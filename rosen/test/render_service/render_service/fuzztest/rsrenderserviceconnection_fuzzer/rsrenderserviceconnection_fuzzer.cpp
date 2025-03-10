@@ -1294,8 +1294,8 @@ bool DoCreatePixelMapFromSurface()
         .w = GetData<int32_t>(),
         .h = GetData<int32_t>(),
     };
-
-    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
     return true;
 }
 
