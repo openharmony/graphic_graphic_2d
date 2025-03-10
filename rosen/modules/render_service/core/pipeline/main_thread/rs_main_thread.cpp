@@ -4211,6 +4211,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_ - lastFastComposeTimeStampDiff_;
     } else {
         lastVsyncTime = timestamp_;
+        lastFastComposeTimeStampDiff_ = 0;
     }
     lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
@@ -4218,7 +4219,8 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod &&
+    // 1/2 vsync period to support continunous fastcompose
+    if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod / 2 &&
         unsignedLastFlushedDesiredPresentTimeStamp > lastVsyncTime - unsignedVsyncPeriod &&
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
@@ -4256,7 +4258,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 ret = receiver_->GetVSyncPeriod(vsyncPeriod);
             }
             if (ret == VSYNC_ERROR_OK && vsyncPeriod > 0) {
-                lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
+                lastFastComposeTimeStampDiff_ = (now - curTime_ + lastFastComposeTimeStampDiff_) % vsyncPeriod;
                 lastFastComposeTimeStamp_ = timestamp_;
                 RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"
                     "Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
