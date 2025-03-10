@@ -102,9 +102,9 @@ private:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
-    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;

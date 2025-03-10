@@ -100,9 +100,10 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
-    virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
     
-    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode RemoveVirtualScreenBlackList(
+        ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;

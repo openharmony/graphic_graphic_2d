@@ -432,8 +432,9 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->AddVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->AddVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -442,8 +443,9 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->RemoveVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)

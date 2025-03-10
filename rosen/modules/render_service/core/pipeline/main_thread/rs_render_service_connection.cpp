@@ -705,30 +705,38 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
-int32_t RSRenderServiceConnection::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::AddVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
-int32_t RSRenderServiceConnection::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::RemoveVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(

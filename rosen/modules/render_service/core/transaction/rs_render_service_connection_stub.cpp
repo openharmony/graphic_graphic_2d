@@ -639,8 +639,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -653,8 +654,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
