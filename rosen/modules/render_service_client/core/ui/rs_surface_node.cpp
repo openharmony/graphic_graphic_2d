@@ -739,8 +739,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         texture->UpdateSurfaceExtConfig(config);
     }
 #endif
-    ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
-        GetId(), config.type, texture.get());
+    ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u", GetId(), config.type);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), texture);
     AddCommand(command, false);
