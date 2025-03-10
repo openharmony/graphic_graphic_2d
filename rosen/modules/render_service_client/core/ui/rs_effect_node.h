@@ -32,15 +32,19 @@ public:
 
     ~RSEffectNode() override = default;
 
-    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     void SetFreeze(bool isFreeze) override;
 
 protected:
-    RSEffectNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    RSEffectNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSEffectNode(const RSEffectNode&) = delete;
     RSEffectNode(const RSEffectNode&&) = delete;
     RSEffectNode& operator=(const RSEffectNode&) = delete;
     RSEffectNode& operator=(const RSEffectNode&&) = delete;
+private:
+    void RegisterNodeMap() override;
 };
 } // namespace Rosen
 } // namespace OHOS

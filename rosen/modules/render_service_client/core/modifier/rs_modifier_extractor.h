@@ -23,10 +23,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSNode;
+class RSUIContext;
 
 class RSC_EXPORT RSModifierExtractor {
 public:
-    RSModifierExtractor(NodeId id);
+    RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
@@ -130,6 +131,7 @@ public:
     std::string Dump() const;
 private:
     NodeId id_;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 };
 } // namespace Rosen
 } // namespace OHOS

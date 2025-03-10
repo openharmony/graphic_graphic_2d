@@ -738,5 +738,20 @@ void RSRenderServiceClient::NotifyScreenSwitched()
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
+
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -27,6 +27,7 @@
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction.h"
+#include "ui/rs_ui_context_manager.h"
 #include "util.h"
 
 namespace OHOS {
@@ -102,7 +103,10 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.SurfaceNodeName = "BootCompileProgressNode";
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
+    rsUIDirector_->Init(false, false);
+    auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("ota compile, SFNode create failed");
         compileRunner_->Stop();
@@ -119,7 +123,7 @@ bool BootCompileProgress::CreateCanvasNode()
     rsSurfaceNode_->AttachToDisplay(screenId_);
     Rosen::RSTransaction::FlushImplicitTransaction();
 
-    rsCanvasNode_ = Rosen::RSCanvasNode::Create();
+    rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     rsCanvasNode_->SetFrame(0, windowHeight_ * OFFSET_Y_PERCENT, windowWidth_, windowHeight_ * HEIGHT_PERCENT);
     rsCanvasNode_->SetBackgroundColor(Rosen::Drawing::Color::COLOR_TRANSPARENT);

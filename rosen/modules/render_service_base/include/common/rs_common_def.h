@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <functional>
+#include <limits.h>
 #include <limits>
 #include <memory>
 #include <string>
@@ -239,6 +240,20 @@ struct RSSurfaceCapturePermissions {
     bool selfCapture = false;
 };
 
+#define CHECK_FALSE_RETURN(var)      \
+    do {                             \
+        if (!(var)) {                \
+            return;                  \
+        }                            \
+    } while (0)                      \
+
+#define CHECK_FALSE_RETURN_VALUE(var, value)     \
+    do {                                         \
+        if (!(var)) {                            \
+            return value;                        \
+        }                                        \
+    } while (0)
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -343,6 +358,25 @@ struct RSSurfaceRenderNodeConfig {
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
+struct RSAdvancedDirtyConfig {
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles to one
+    static const int RECT_NUM_MERGING_ALL = 35;
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles by level
+    static const int RECT_NUM_MERGING_BY_LEVEL = 20;
+    // maximal number of dirty rectangles in one surface/display node when advancedDirty is opened
+    static const int MAX_RECT_NUM_EACH_NODE = 10;
+    // number of dirty rectangles in one surface/display node when advancedDirty is closed
+    static const int DISABLED_RECT_NUM_EACH_NODE = 1;
+    // expected number of rectangles after merging
+    static const int EXPECTED_OUTPUT_NUM = 3;
+    // maximal tolerable cost in merging
+    // if the merging cost of two rectangles is larger than it, we will not merge
+    // later it could be set to a quantity related to screen area
+    static const int MAX_TOLERABLE_COST = INT_MAX;
+};
+
+static RSAdvancedDirtyConfig advancedDirtyConfig;
+
 // codes for arkui-x start
 // types for RSSurfaceExt
 enum class RSSurfaceExtType : uint8_t {
@@ -414,6 +448,12 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
+}
+
 inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
@@ -457,6 +497,12 @@ inline constexpr pid_t ExtractPid(uint64_t id)
 {
     // extract high 32 bits of nodeid/animationId/propertyId as pid
     return static_cast<pid_t>(id >> 32);
+}
+
+inline constexpr int32_t ExtractTid(uint64_t token)
+{
+    // extract high 32 bits of token as tid
+    return static_cast<int32_t>(token >> 32);
 }
 
 template<class Container, class Predicate>

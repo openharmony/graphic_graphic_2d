@@ -62,7 +62,9 @@ template("skia_libtxt") {
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
       "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
+      "$txt_root/impl/paragraph_relayout_impl.cpp",
       "$txt_root/impl/run_impl.cpp",
+      "$txt_root/impl/text_font_utils.cpp",
       "$txt_root/impl/text_line_impl.cpp",
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
       "$txt_root/symbol_engine/hm_symbol_run.cpp",
@@ -222,12 +224,14 @@ ohos_source_set("skia_paragraph") {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/icu/icu4c:static_icuuc",
       "//third_party/skia:skia_$platform",
     ]
   } else {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "hilog:libhilog",
+      "icu:shared_icuuc",
       "skia:skia_canvaskit",
     ]
   }
@@ -273,8 +277,10 @@ ohos_source_set("skia_unicode") {
   if (platform == "mingw") {
     platform = "windows"
   }
-  external_deps = [ "skia:skia_canvaskit" ]
-  public_deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+  external_deps = [
+    "icu:shared_icuuc",
+    "skia:skia_canvaskit",
+  ]
 }
 
 ohos_source_set("skia_shaper") {

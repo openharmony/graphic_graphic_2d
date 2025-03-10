@@ -67,6 +67,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -88,6 +93,16 @@ bool RSSystemProperties::GetClosePixelMapFdEnabled()
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return {};
+}
+
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
+{
+    return {};
+}
+
+DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};
 }
@@ -459,10 +474,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -521,6 +532,11 @@ bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
 {
     return false;
+}
+
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetRenderParallelEnabled()
@@ -596,6 +612,16 @@ bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
 bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

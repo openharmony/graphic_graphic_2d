@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_common_def.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -39,6 +40,7 @@ RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
     renderNodeMap_[0][0] = std::make_shared<RSBaseRenderNode>(0);
+    renderNodeMap_[0][0]->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 }
 
 void RSRenderNodeMap::Initialize(const std::weak_ptr<RSContext>& context)
@@ -426,7 +428,7 @@ std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
 {
     for (auto &t : surfaceNodeMap_) {
-        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType()) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType() && !t.second->IsRosenWeb()) {
             return t.second->GetName();
         }
     }

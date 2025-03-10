@@ -155,6 +155,45 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetScalingModeMatrix
+ * @tc.desc: test results of GetScalingModeMatrix
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetScalingModeMatrix001, TestSize.Level1)
+{
+    constexpr float defaultBoundsWidth = 800.f;
+    constexpr float defaultBoundsHeight = 600.f;
+    RectF bounds(0.f, 0.f, defaultBoundsWidth, defaultBoundsHeight);
+    float bufferWidth = 30.f;
+    float bufferHeight = 40.f;
+    Drawing::Matrix scalingModeMatrix;
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_FREEZE, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix freezeMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, freezeMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleWindowMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, scaleWindowMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleCropMatrix = Drawing::Matrix();
+    scaleCropMatrix.SetMatrix(26.666666f, 0.f, 0.f, 0.f, 26.666666f, -233.333328f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_NO_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix noScaleCropMatrix = Drawing::Matrix();
+    noScaleCropMatrix.SetMatrix(1.f, 0.f, 385.f, 0.f, 1.f, 280.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, noScaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_FIT, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleFitMatrix = Drawing::Matrix();
+    scaleFitMatrix.SetMatrix(15.f, 0.f, 174.999985f, 0.f, 15.f, 0.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleFitMatrix);
+}
+
+/**
  * @tc.name: Clip001
  * @tc.desc: test results of Clip
  * @tc.type:FUNC

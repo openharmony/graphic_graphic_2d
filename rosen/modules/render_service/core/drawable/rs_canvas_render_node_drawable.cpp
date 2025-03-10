@@ -22,9 +22,11 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
+#include "rs_root_render_node_drawable.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -43,6 +45,8 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
+        RS_RSCANVASRENDERNODEDRAWABLE_ONDRAW, GetId());
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
@@ -62,12 +66,16 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
+
+    auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
+        params->GetLinkedRootNodeDrawable().lock());
     auto isOpincDraw = PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
-        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC()) {
+        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC() &&
+        LIKELY(linkedDrawable == nullptr)) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
@@ -80,6 +88,13 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
             return;
         }
+    }
+
+    // [Attention] Only used in PC window resize scene now
+    if (UNLIKELY(linkedDrawable != nullptr)) {
+        linkedDrawable->DrawOffscreenBuffer(*paintFilterCanvas, params->GetFrameRect(),
+            params->GetAlpha(), params->GetRSFreezeFlag());
+        return;
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
@@ -101,6 +116,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
  */
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSCANVASRENDERNODEDRAWABLE_ONCAPTURE);
 #ifdef RS_ENABLE_GPU
     if (!ShouldPaint()) {
         return;

@@ -24,7 +24,7 @@
 #include "opentype_parser/name_table_parser.h"
 #include "opentype_parser/post_table_parser.h"
 
-#include "texgine_typeface.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -99,7 +99,7 @@ public:
     std::vector<FontDescriptor> GetVisibilityFonts(const std::string &locale = SIMPLIFIED_CHINESE);
     std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
         const std::string locale = SIMPLIFIED_CHINESE);
-    
+
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
     std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
         const std::string& path, const std::string& locale = ENGLISH);

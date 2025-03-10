@@ -456,6 +456,35 @@ void NativeDrawingPathTest009(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(pathGetMatrix);
     OH_Drawing_MatrixDestroy(matrix);
 }
+
+void NativeDrawingPathTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* newPath = OH_Drawing_PathCreate();
+    bool result = false;
+
+    OH_Drawing_PathGetSegment(path, GetObject<bool>(), GetObject<float>(), GetObject<float>(), GetObject<bool>(),
+        newPath, &result);
+    OH_Drawing_PathGetSegment(nullptr, GetObject<bool>(), GetObject<float>(), GetObject<float>(), GetObject<bool>(),
+        newPath, &result);
+    OH_Drawing_PathGetSegment(path, GetObject<bool>(), GetObject<float>(), GetObject<float>(), GetObject<bool>(),
+        nullptr, &result);
+    OH_Drawing_PathGetSegment(path, GetObject<bool>(), GetObject<float>(), GetObject<float>(), GetObject<bool>(),
+        newPath, nullptr);
+
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(newPath);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -473,5 +502,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest007(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest008(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest009(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest010(data, size);
     return 0;
 }

@@ -39,8 +39,8 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "pipeline/rs_render_service.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_client.h"
@@ -165,7 +165,8 @@ bool DoGetMemoryGraphic()
     }
 
     int pid = GetData<int>();
-    rsConn_->GetMemoryGraphic(pid);
+    MemoryGraphic memoryGraphic;
+    rsConn_->GetMemoryGraphic(pid, memoryGraphic);
     return true;
 }
 
@@ -175,7 +176,8 @@ bool DoGetMemoryGraphics()
         return false;
     }
 
-    rsConn_->GetMemoryGraphics();
+    std::vector<MemoryGraphic> memoryGraphics;
+    rsConn_->GetMemoryGraphics(memoryGraphics);
     return true;
 }
 
@@ -185,8 +187,10 @@ bool DoCreateNodeAndSurface()
         return false;
     }
     RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test" };
-    rsConn_->CreateNode(config);
-    rsConn_->CreateNodeAndSurface(config);
+    bool success;
+    rsConn_->CreateNode(config, success);
+    sptr<Surface> surface = nullptr;
+    rsConn_->CreateNodeAndSurface(config, surface);
     return true;
 }
 
@@ -490,7 +494,8 @@ bool DoGetBitmap()
     }
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
-    rsConn_->GetBitmap(id, bm);
+    bool success;
+    rsConn_->GetBitmap(id, bm, success);
     return true;
 }
 
@@ -694,7 +699,8 @@ bool DoGetUniRenderEnabled()
     if (rsConn_ == nullptr) {
         return false;
     }
-    rsConn_->GetUniRenderEnabled();
+    bool enable;
+    rsConn_->GetUniRenderEnabled(enable);
     return true;
 }
 
@@ -709,7 +715,8 @@ bool DoCreateNode1()
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
     uint64_t nodeId = GetData<uint64_t>();
-    rsConn_->CreateNode(displayNodeConfig, nodeId);
+    bool success;
+    rsConn_->CreateNode(displayNodeConfig, nodeId, success);
     return true;
 }
 
@@ -721,7 +728,8 @@ bool DoCreateNode2()
     RSSurfaceRenderNodeConfig config;
     config.id = GetData<uint64_t>();
     config.name = GetData<std::string>();
-    rsConn_->CreateNode(config);
+    bool success;
+    rsConn_->CreateNode(config, success);
     return true;
 }
 
@@ -759,7 +767,8 @@ bool DoGetTotalAppMemSize()
     }
     float cpuMemSize = GetData<float>();
     float gpuMemSize = GetData<float>();
-    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    bool success;
+    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success);
     return true;
 }
 
@@ -1070,7 +1079,8 @@ bool DOSetHidePrivacyContent()
     }
     uint32_t id = GetData<uint32_t>();
     bool needHidePrivacyContent = GetData<bool>();
-    rsConn_->SetHidePrivacyContent(id, needHidePrivacyContent);
+    uint32_t resCode;
+    rsConn_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
     return true;
 }
 

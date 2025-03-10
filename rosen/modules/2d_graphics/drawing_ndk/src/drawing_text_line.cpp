@@ -33,7 +33,7 @@ typedef OHOS::Rosen::AdapterTxt::RunImpl RunImpl;
 OH_Drawing_Array* OH_Drawing_TypographyGetTextLines(OH_Drawing_Typography* typography)
 {
     if (typography == nullptr) {
-        TEXT_LOGE("Typography is nullptr");
+        TEXT_LOGE("Null typography");
         return nullptr;
     }
 
@@ -89,7 +89,7 @@ OH_Drawing_Array* OH_Drawing_TypographyGetTextLines(OH_Drawing_Typography* typog
 void OH_Drawing_DestroyTextLines(OH_Drawing_Array* lines)
 {
     if (lines == nullptr) {
-        TEXT_LOGE("Lines is nullptr");
+        TEXT_LOGE("Null lines");
         return;
     }
 
@@ -113,7 +113,7 @@ void OH_Drawing_DestroyTextLines(OH_Drawing_Array* lines)
 void OH_Drawing_DestroyTextLine(OH_Drawing_TextLine* line)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return;
     }
 
@@ -128,7 +128,7 @@ void OH_Drawing_DestroyTextLine(OH_Drawing_TextLine* line)
 OH_Drawing_TextLine* OH_Drawing_GetTextLineByIndex(OH_Drawing_Array* lines, size_t index)
 {
     if (lines == nullptr) {
-        TEXT_LOGE("Lines is nullptr");
+        TEXT_LOGE("Null lines");
         return nullptr;
     }
 
@@ -145,7 +145,7 @@ OH_Drawing_TextLine* OH_Drawing_GetTextLineByIndex(OH_Drawing_Array* lines, size
 double OH_Drawing_TextLineGetGlyphCount(OH_Drawing_TextLine* line)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return 0.0;
     }
 
@@ -179,7 +179,7 @@ void OH_Drawing_TextLineGetTextRange(OH_Drawing_TextLine* line, size_t* start, s
 OH_Drawing_Array* OH_Drawing_TextLineGetGlyphRuns(OH_Drawing_TextLine* line)
 {
     if (line == nullptr) {
-        TEXT_LOGE("line is nullptr");
+        TEXT_LOGE("Null line");
         return nullptr;
     }
 
@@ -226,7 +226,7 @@ OH_Drawing_Array* OH_Drawing_TextLineGetGlyphRuns(OH_Drawing_TextLine* line)
 void OH_Drawing_DestroyRuns(OH_Drawing_Array* runs)
 {
     if (runs == nullptr) {
-        TEXT_LOGE("Runs is nullptr");
+        TEXT_LOGE("Null runs");
         return;
     }
 
@@ -246,7 +246,7 @@ void OH_Drawing_DestroyRuns(OH_Drawing_Array* runs)
 OH_Drawing_Run* OH_Drawing_GetRunByIndex(OH_Drawing_Array* runs, size_t index)
 {
     if (runs == nullptr) {
-        TEXT_LOGE("Runs is nullptr");
+        TEXT_LOGE("Null runs");
         return nullptr;
     }
 
@@ -263,7 +263,7 @@ OH_Drawing_Run* OH_Drawing_GetRunByIndex(OH_Drawing_Array* runs, size_t index)
 void OH_Drawing_TextLinePaint(OH_Drawing_TextLine* line, OH_Drawing_Canvas* canvas, double x, double y)
 {
     if (line == nullptr || canvas == nullptr) {
-        TEXT_LOGE("Param is nullptr");
+        TEXT_LOGE("Invalid parameter");
         return;
     }
 
@@ -280,7 +280,7 @@ OH_Drawing_TextLine* OH_Drawing_TextLineCreateTruncatedLine(OH_Drawing_TextLine*
     const char* ellipsis)
 {
     if (line == nullptr || ellipsis == nullptr) {
-        TEXT_LOGE("Param is nullptr");
+        TEXT_LOGE("Invalid parameter");
         return nullptr;
     }
 
@@ -327,7 +327,7 @@ double OH_Drawing_TextLineGetTypographicBounds(OH_Drawing_TextLine* line, double
     double* leading)
 {
     if (line == nullptr || ascent == nullptr || descent == nullptr || leading == nullptr) {
-        TEXT_LOGE("Param is nullptr");
+        TEXT_LOGE("Invalid parameter");
         return 0.0;
     }
 
@@ -343,7 +343,7 @@ double OH_Drawing_TextLineGetTypographicBounds(OH_Drawing_TextLine* line, double
 OH_Drawing_Rect* OH_Drawing_TextLineGetImageBounds(OH_Drawing_TextLine* line)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return nullptr;
     }
 
@@ -360,7 +360,7 @@ OH_Drawing_Rect* OH_Drawing_TextLineGetImageBounds(OH_Drawing_TextLine* line)
 double OH_Drawing_TextLineGetTrailingSpaceWidth(OH_Drawing_TextLine* line)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return 0.0;
     }
 
@@ -376,7 +376,7 @@ double OH_Drawing_TextLineGetTrailingSpaceWidth(OH_Drawing_TextLine* line)
 int32_t OH_Drawing_TextLineGetStringIndexForPosition(OH_Drawing_TextLine* line, OH_Drawing_Point* point)
 {
     if (line == nullptr || point == nullptr) {
-        TEXT_LOGE("Param is nullptr");
+        TEXT_LOGE("Invalid parameter");
         return 0;
     }
 
@@ -392,7 +392,7 @@ int32_t OH_Drawing_TextLineGetStringIndexForPosition(OH_Drawing_TextLine* line, 
 double OH_Drawing_TextLineGetOffsetForStringIndex(OH_Drawing_TextLine* line, int32_t index)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return 0.0;
     }
 
@@ -408,7 +408,7 @@ double OH_Drawing_TextLineGetOffsetForStringIndex(OH_Drawing_TextLine* line, int
 void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, Drawing_CaretOffsetsCallback callback)
 {
     if (line == nullptr || callback == nullptr) {
-        TEXT_LOGE("Param is nullptr");
+        TEXT_LOGE("Invalid parameter");
         return;
     }
 
@@ -442,7 +442,7 @@ void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, Drawing
 double OH_Drawing_TextLineGetAlignmentOffset(OH_Drawing_TextLine* line, double alignmentFactor, double alignmentWidth)
 {
     if (line == nullptr) {
-        TEXT_LOGE("Line is nullptr");
+        TEXT_LOGE("Null line");
         return 0.0;
     }
 

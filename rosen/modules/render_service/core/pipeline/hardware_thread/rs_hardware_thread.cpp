@@ -31,7 +31,7 @@
 #include "common/rs_singleton.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -42,6 +42,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "platform/common/rs_hisysevent.h"
+#include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -106,6 +107,12 @@ void RSHardwareThread::Start()
     if (handler_) {
         ScheduleTask(
             [this]() {
+#if defined (RS_ENABLE_VK)
+                // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
+                if (RSSystemProperties::IsUseVulkan()) {
+                    RsVulkanContext::GetSingleton().SetIsProtected(false);
+                }
+#endif
                 auto screenManager = CreateOrGetScreenManager();
                 if (screenManager == nullptr || !screenManager->Init()) {
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
@@ -115,11 +122,6 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#if defined (RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
-                if (RSSystemProperties::IsUseVulkan()) {
-                    RsVulkanContext::GetSingleton().SetIsProtected(false);
-                }
-#endif
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
             }).wait();
@@ -154,11 +156,28 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSHardwareThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSHardwareThread::PostDelayTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {
         handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSHardwareThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 
 uint32_t RSHardwareThread::GetunExecuteTaskNum()
@@ -350,19 +369,24 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
             solidColorLayer->SetLayerColor({0, 0, 0, 255});
         }
         layers.emplace_back(solidColorLayer);
-        RS_LOGD("make fold display black mask x y w h %{public}d %{public}d %{public}d %{public}d",
-            maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_);
     }
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
     for (auto& layerInfo : layers) {
+        auto layerSurface = layerInfo->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                continue;
+            }
+        }
         GraphicIRect dstRect = layerInfo->GetLayerSize();
         GraphicIRect tmpRect = dstRect;
-        // Limit the target area to the activated area
         int reviseRight = reviseRect.left_ + reviseRect.width_;
         int reviseBottom = reviseRect.top_ + reviseRect.height_;
         tmpRect.x = std::clamp(dstRect.x, reviseRect.left_, reviseRight);
-        tmpRect.x = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
-        tmpRect.x = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
-        tmpRect.x = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
+        tmpRect.y = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
+        tmpRect.w = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
+        tmpRect.h = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
         layerInfo->SetLayerSize(tmpRect);
     }
 }
@@ -884,10 +908,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
         isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
     }
+    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+    bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
+
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled() && isDefaultScreen) {
+        if (isDrmEnabled && isDefaultScreen) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

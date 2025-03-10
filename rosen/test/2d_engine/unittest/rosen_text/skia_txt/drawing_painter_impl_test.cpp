@@ -308,19 +308,6 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest014, TestSize
 }
 
 /*
- * @tc.name: RSCanvasParagraphPainterTest015
- * @tc.desc: test for SetParagraphId
- * @tc.type: FUNC
- */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest015, TestSize.Level1)
-{
-    ASSERT_NE(canvasParagraphPainter_, nullptr);
-    ASSERT_NE(recordingCanvas_, nullptr);
-    canvasParagraphPainter_->SetParagraphId(1);
-    EXPECT_EQ(canvasParagraphPainter_->paragraphId_, 1);
-}
-
-/*
  * @tc.name: RSCanvasParagraphPainterTest016
  * @tc.desc: test for drawTextBlob
  * @tc.type: FUNC

@@ -21,6 +21,7 @@
 
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/rs_pointer_window_manager.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -135,7 +136,8 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
     info.zOrder = zorder;
     auto usage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
-    info.usage = node->IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType() ?
+    info.usage = node->IsHardwareEnabledTopSurface() &&
+        RSPointerWindowManager::Instance().CheckHardCursorSupport(node->GetScreenId()) ?
         usage | USAGE_HARDWARE_CURSOR : usage;
     info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     info.fps = fps;

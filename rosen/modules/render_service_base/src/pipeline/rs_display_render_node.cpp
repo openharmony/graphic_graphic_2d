@@ -34,7 +34,9 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     : RSRenderNode(id, context), isMirroredDisplay_(config.isMirrored), offsetX_(0), offsetY_(0),
       screenId_(config.screenId), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
-    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", screenid:%{public}" PRIu64, id, screenId_);
+    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64
+        ", isMirrored:%{public}d, mirrorNodeId:%{public}" PRIu64 ", isSync:%{public}d]",
+        id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
@@ -91,6 +93,18 @@ void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, N
     RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, cacheNodeId, uifirstRootNodeId, GetId());
 }
 
+void RSDisplayRenderNode::SetScreenId(uint64_t screenId)
+{
+    RS_TRACE_NAME_FMT("RSScreenManager %s:displayNode[%" PRIu64 "] change screen [%" PRIu64 "] "
+        "to [%" PRIu64 "].", __func__, GetId(), screenId_, screenId);
+    RS_LOGI("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
+        "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
+    if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
+        releaseScreenDmaBufferTask_(screenId_);
+    }
+    screenId_ = screenId;
+}
+
 RSDisplayRenderNode::CompositeType RSDisplayRenderNode::GetCompositeType() const
 {
     return compositeType_;
@@ -141,8 +155,13 @@ bool RSDisplayRenderNode::GetSecurityDisplay() const
 
 void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
 {
+    if (isMirroredDisplay_ != isMirror) {
+        hasMirroredDisplayChanged_ = true;
+    }
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
+    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%s]",
+        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
         GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 
@@ -485,30 +504,6 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
         AddToPendingSyncList();
     }
 #endif
-}
-
-void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
-{
-#ifdef RS_ENABLE_GPU
-    if (pixelFormat_ == pixelFormat) {
-        return;
-    }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    if (!displayParams) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    displayParams->SetNewPixelFormat(pixelFormat);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
-    pixelFormat_ = pixelFormat;
-#endif
-}
-
-GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
-{
-    return pixelFormat_;
 }
 
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)

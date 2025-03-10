@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 // use in mainthread, post subthread, not affect renderthread
@@ -474,7 +475,6 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSu
 void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
     std::shared_ptr<RSSurfaceRenderNode>>& pendingNode)
 {
-    auto deviceType = RSMainThread::Instance()->GetDeviceType();
     for (auto it = pendingNode.begin(); it != pendingNode.end();) {
         auto id = it->first;
         auto drawable = GetSurfaceDrawableByID(id);
@@ -495,7 +495,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
 
-        bool staticContent = drawable->IsCurFrameStatic(deviceType);
+        bool staticContent = drawable->IsCurFrameStatic();
         RS_TRACE_NAME_FMT("Purge node name: %s, HasCachedTexture:%d, staticContent: %d",
             surfaceParams->GetName().c_str(), drawable->HasCachedTexture(), staticContent);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
@@ -1721,6 +1721,21 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
         return isFreeMultiWindowEnabled_ ? UiFirstModeType::MULTI_WINDOW_MODE : UiFirstModeType::SINGLE_WINDOW_MODE;
     }
     return UiFirstModeType::SINGLE_WINDOW_MODE;
+}
+
+void RSUifirstManager::ReadUIFirstCcmParam()
+{
+    auto uifirstFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("UIFirstConfig");
+    std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
+    isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
+    isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
+    auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
+    if (param) {
+        isUiFirstOn_ = param->IsUIFirstEnable();
+        isCardUiFirstOn_ = param->IsCardUIFirstEnable();
+        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d",
+            isUiFirstOn_, isCardUiFirstOn_);
+    }
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

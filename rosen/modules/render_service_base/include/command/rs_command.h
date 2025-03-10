@@ -99,6 +99,11 @@ public:
         return 0;
     }
 
+    virtual uint64_t GetToken() const
+    {
+        return 0;
+    }
+
     std::string PrintType() const
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";

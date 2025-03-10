@@ -213,6 +213,8 @@ public:
 
     size_t GetSize();
 
+    void SetCanvasDrawingOpLimitEnable(bool isEnable);
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -239,6 +241,7 @@ private:
     uint32_t performanceCaculateOpType_ = 0;
     bool isNeedUnmarshalOnDestruct_ = false;
     bool noNeedUICaptured_ = false;
+    bool isCanvasDrawingOpLimitEnabled_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

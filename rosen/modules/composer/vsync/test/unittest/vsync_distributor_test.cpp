@@ -1045,8 +1045,9 @@ HWTEST_F(VSyncDistributorTest, NotifyTouchEventTest001, Function | MediumTest| L
 HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
 {
     std::string nodeName = "test";
-    vsyncDistributor->AdaptiveDVSyncEnable(nodeName);
-    ASSERT_EQ(nodeName, "test");
+    bool needConsume = true;
+    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0, needConsume);
+    ASSERT_EQ(needConsume, true);
 }
 } // namespace
 } // namespace Rosen

@@ -126,7 +126,7 @@ public:
         }
     }
 
-    bool IsCurFrameStatic(DeviceType deviceType);
+    bool IsCurFrameStatic();
 
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
@@ -268,9 +268,6 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
-        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
     Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
     void CrossDisplaySurfaceDirtyRegionConversion(
@@ -386,6 +383,7 @@ private:
     uint32_t uifirstPostOrder_ = 0;
 
     static inline bool isInRotationFixed_ = false;
+    bool lastGlobalPositionEnabled_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

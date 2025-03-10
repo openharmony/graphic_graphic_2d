@@ -15,14 +15,15 @@
 
 #include "rs_vsync_rate_reduce_manager.h"
 #include <parameters.h>
+#include <memory>
 #include <ratio>
 #include <thread>
 #include <unordered_set>
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "graphic_feature_param_manager.h"
+#include "main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -482,11 +483,28 @@ void RSVsyncRateReduceManager::NotifyVSyncRates(const std::map<NodeId, RSVisible
     }
 }
 
+bool RSVsyncRateReduceManager::GetVRateIsSupport()
+{
+    auto vRateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[VRate]);
+    if (vRateFeatureParam == nullptr) {
+        RS_LOGE("Get vRateFeatureParam failed, vRateFeatureParam is nullptr");
+        return false;
+    }
+    auto vRatePatam = std::static_pointer_cast<VRateParam>(vRateFeatureParam);
+    if (vRatePatam == nullptr) {
+        RS_LOGE("Get vRatePatam failed, vRatePatam is nullptr");
+        return false;
+    }
+    RS_LOGI("GetVRateIsSupport: %{public}d", static_cast<int>(vRatePatam->GetVRateEnable()));
+    return vRatePatam->GetVRateEnable();
+}
+
 void RSVsyncRateReduceManager::Init(const sptr<VSyncDistributor>& appVSyncDistributor)
 {
     appVSyncDistributor_ = appVSyncDistributor;
-    deviceType_ = RSMainThread::Instance()->GetDeviceType();
-    vRateReduceEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
+    isDeviceSupprotVRate_ = GetVRateIsSupport();
+    vRateReduceEnabled_ = isDeviceSupprotVRate_ && RSSystemParameters::GetVSyncControlEnabled();
+    RS_LOGI("Init vRateReduceEnabled_ is %{public}d", vRateReduceEnabled_);
 }
 
 void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)

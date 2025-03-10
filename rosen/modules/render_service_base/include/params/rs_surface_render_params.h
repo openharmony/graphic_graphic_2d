@@ -25,6 +25,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -396,18 +397,9 @@ public:
     void SetOpaqueRegion(const Occlusion::Region& opaqueRegion);
     const Occlusion::Region& GetOpaqueRegion() const;
 
-    void SetNeedOffscreen(bool needOffscreen)
+    bool GetNeedOffscreen() const override
     {
-        if (needOffscreen_ == needOffscreen) {
-            return;
-        }
-        needOffscreen_ = needOffscreen;
-        needSync_ = true;
-    }
-
-    bool GetNeedOffscreen() const
-    {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? RSRenderParams::GetNeedOffscreen() : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -539,6 +531,20 @@ public:
     std::vector<float> GetLayerLinearMatrix() const
     {
         return layerLinearMatrix_;
+    }
+
+    void SetSdrHasMetadata(bool hasMetadata)
+    {
+        if (hasMetadata_ == hasMetadata) {
+            return;
+        }
+        hasMetadata_ = hasMetadata;
+        needSync_ = true;
+    }
+
+    bool GetSdrHasMetadata() const
+    {
+        return hasMetadata_;
     }
 
     // [Attention] The function only used for unlocking screen for PC currently
@@ -711,7 +717,6 @@ private:
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
     bool needHidePrivacyContent_ = false;
-    bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
     int64_t stencilVal_ = -1;
@@ -727,8 +732,9 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
-    // color temp
-    std::vector<float> layerLinearMatrix_; // matrix_1
+    // color temperature
+    std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
+    bool hasMetadata_ = false; // SDR with metadata
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;

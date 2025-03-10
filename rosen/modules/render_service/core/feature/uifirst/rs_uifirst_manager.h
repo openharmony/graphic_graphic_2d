@@ -23,7 +23,7 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_processor.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_render_service_client.h"
 
@@ -84,10 +84,20 @@ public:
 
     void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
     void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
-    
+
+    bool GetUiFirstSwitch() const
+    {
+        return isUiFirstOn_;
+    }
+
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
         isUiFirstOn_ = uiFirstSwitch;
+    }
+
+    void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
+    {
+        isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
     void SetNodeNeedForceUpdateFlag(bool flag)
@@ -154,6 +164,7 @@ public:
         isFreeMultiWindowEnabled_ = enable;
     }
     UiFirstModeType GetUiFirstMode();
+    void ReadUIFirstCcmParam();
     // only use in mainThread & RT onsync
     inline void UifirstCurStateClear()
     {
@@ -221,6 +232,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool isCardUiFirstOn_ = false;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;

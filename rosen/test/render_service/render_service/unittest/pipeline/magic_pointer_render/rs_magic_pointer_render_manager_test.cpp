@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 using namespace testing;
 using namespace testing::ext;

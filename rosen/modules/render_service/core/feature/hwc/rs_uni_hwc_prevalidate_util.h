@@ -18,7 +18,6 @@
 
 #include <array>
 #include <map>
-#include <stdint.h>
 #include <vector>
 
 #include "screen_manager/screen_types.h"

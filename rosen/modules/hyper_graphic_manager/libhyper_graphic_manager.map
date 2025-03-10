@@ -14,6 +14,10 @@
 {
   global:
     extern "C++" {
+      *HgmAppPageUrlStrategy::NotifyPageName*;
+      *HgmAppPageUrlStrategy::NotifyScreenSettingChange*;
+      *HgmAppPageUrlStrategy::SetPageUrlConfig*;
+
       *HgmConfigCallbackManager::GetInstance*;
       *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
@@ -93,6 +97,7 @@
       *HgmFrameRateManager::HgmFrameRateManager*;
       *HgmFrameRateManager::Init*;
       *HgmFrameRateManager::MergeRangeByPriority*;
+      *HgmFrameRateManager::NotifyPageName*;
       *HgmFrameRateManager::ProcessAdaptiveSync*;
       *HgmFrameRateManager::ProcessPendingRefreshRate*;
       *HgmFrameRateManager::ProcessRefreshRateVote*;
@@ -104,6 +109,7 @@
       *HgmFrameRateManager::UpdateSurfaceTime*;
       *HgmFrameRateManager::UpdateUIFrameworkDirtyNodes*;
       *HgmFrameRateManager::UpdateVoteRule*;
+      *HgmFrameRateManager::UpdateSoftVSync*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
 
@@ -112,6 +118,7 @@
       *HgmIdleDetector::SetAceAnimatorIdleState*;
       *HgmIdleDetector::SetAppSupportedState*;
       *HgmIdleDetector::UpdateSurfaceTime*;
+      *HgmIdleDetector::UpdateSurfaceState*;
 
       *HgmMultiAppStrategy::AnalyzePkgParam*;
       *HgmMultiAppStrategy::CalcVote*;
@@ -162,6 +169,12 @@
       *HgmTouchManager::HgmTouchManager*;
       *HgmTouchManager::State2String*;
 
+      *HgmPointerManager::CheckChangeStateValid*;
+      *HgmPointerManager::HandleRsFrame*;
+      *HgmPointerManager::HandleTimerReset*;
+      *HgmPointerManager::HgmPointerManager*;
+      *HgmPointerManager::State2String*;
+
       *HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime*;
       *HgmVSyncGeneratorController::ChangeGeneratorRate*;
       *HgmVSyncGeneratorController::GetAppOffset*;
@@ -174,6 +187,7 @@
       *RSFrameRateVote::ReleaseSurfaceMap*;
       *RSFrameRateVote::SurfaceVideoVote*;
       *RSFrameRateVote::VideoFrameRateVote*;
+      *RSFrameRateVote::SetTransactionFlags*;
       *RSFrameRateVote::VoteRate*;
       *RSFrameRateVote::~RSFrameRateVote*;
 

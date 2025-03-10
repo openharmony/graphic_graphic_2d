@@ -464,6 +464,11 @@ public:
     {
         return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
     }
+
+    AdvancedDirtyRegionType GetAdvancedDirtyType() const
+    {
+        return advancedDirtyType_;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -499,6 +504,7 @@ private:
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
+    AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;

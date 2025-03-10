@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
 

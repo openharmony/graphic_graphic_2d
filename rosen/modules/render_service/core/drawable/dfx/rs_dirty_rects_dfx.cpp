@@ -401,10 +401,6 @@ void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canva
     for (const auto& subRect : expandedDirtyRegion_.GetRegionRectIs()) {
         DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_CYAN, RSPaintStyle::STROKE, edgeWidth, true);
     }
-
-    // draw display dirtyregion with red color
-    RectI dirtySurfaceRect = targetDrawable_.GetSyncDirtyManager()->GetDirtyRegion();
-    DrawDirtyRectForDFX(canvas, dirtySurfaceRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE);
 }
 
 void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const

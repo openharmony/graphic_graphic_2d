@@ -22,15 +22,15 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
-#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1265,6 +1265,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
 
     testNode->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
     Drawing::Canvas canvasArgs;
     RSPaintFilterCanvas canvas(&canvasArgs);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
@@ -1277,7 +1278,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
     testNode->CollectSurface(node, vec, true, false);
     testNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     testNode->CollectSurface(node, vec, true, true);
-    ASSERT_FALSE(testNode->isSubSurfaceEnabled_);
 }
 
 /**
@@ -1450,6 +1450,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::NO_HDR);
     testNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO);
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::AI_HDR_VIDEO);
+}
+
+/**
+ * @tc.name: MetadataTest
+ * @tc.desc: test results of SetHasMetadata, GetSdrHadMetadata
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MetadataTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetSdrHasMetadata(true);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), true);
+    testNode->SetSdrHasMetadata(false);
+    EXPECT_EQ(testNode->GetSdrHasMetadata(), false);
 }
 
 /**
@@ -1867,7 +1882,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    drawable->isFilterCacheValid_ = true;
+    drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     filterNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
     node->isFilterCacheFullyCovered_ = false;
     node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);

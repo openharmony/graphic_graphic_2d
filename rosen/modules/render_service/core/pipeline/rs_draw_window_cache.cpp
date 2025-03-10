@@ -16,12 +16,16 @@
 #include "rs_draw_window_cache.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_thread/rs_uni_render_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+    constexpr float SCALE_DIFF = 0.01f;
+}
 
 RSDrawWindowCache::~RSDrawWindowCache()
 {
@@ -129,12 +133,12 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     // draw background
     surfaceDrawable->DrawBackground(canvas, boundSize);
     const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(image_->GetWidth(), image_->GetHeight());
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
-    } else {
-        float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
-        float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
+    float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
+    float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
+    if (ROSEN_EQ(scaleY, scaleX, SCALE_DIFF)) {
         canvas.Scale(scaleX, scaleY);
+    } else {
+        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (image_->IsTextureBacked()) {

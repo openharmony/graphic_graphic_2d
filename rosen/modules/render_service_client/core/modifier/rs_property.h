@@ -42,6 +42,7 @@
 #include "render/rs_shader.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -358,7 +359,9 @@ public:
 
         RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
-        auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        auto rsUIContext = node->GetRSUIContext();
+        auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
             auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
@@ -427,7 +430,19 @@ public:
             return true;
         }
         auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(node->GetId(), GetRenderProperty());
-        RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+        auto rsUIContext = node->GetRSUIContext();
+        if (rsUIContext != nullptr) {
+            auto transaction = rsUIContext->GetRSTransaction();
+            if (transaction != nullptr) {
+                transaction->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+            }
+        } else {
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+            }
+        }
+
         // when task is timeout, the caller need to decide whether to call this function again
         if (!task || task->IsTimeout()) {
             return false;
@@ -483,8 +498,9 @@ public:
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};
         }
-
-        const auto& implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        auto rsUIContext = node->GetRSUIContext();
+        const auto& implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (!implicitAnimator) {
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};

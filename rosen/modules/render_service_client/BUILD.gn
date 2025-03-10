@@ -94,6 +94,7 @@ template("render_service_client_source_set") {
 
       #feature
       "core/feature/anco_manager/rs_ext_node_operation.cpp",
+      "core/feature/ui_capture/rs_divided_ui_capture.cpp",
 
       #modifier
       "core/modifier/rs_extended_modifier.cpp",
@@ -106,11 +107,13 @@ template("render_service_client_source_set") {
       "core/modifier/rs_showing_properties_freezer.cpp",
 
       #pipeline
-      "core/pipeline/rs_divided_ui_capture.cpp",
       "core/pipeline/rs_node_map.cpp",
+      "core/pipeline/rs_node_map_v2.cpp",
       "core/pipeline/rs_render_thread.cpp",
-      "core/pipeline/rs_render_thread_util.cpp",
-      "core/pipeline/rs_render_thread_visitor.cpp",
+
+      #render_thread
+      "core/render_thread/rs_render_thread_util.cpp",
+      "core/render_thread/rs_render_thread_visitor.cpp",
 
       #jank_detector
       "core/render_thread/jank_detector/rs_jank_detector.cpp",
@@ -120,6 +123,7 @@ template("render_service_client_source_set") {
       "core/transaction/rs_interfaces.cpp",
       "core/transaction/rs_render_thread_client.cpp",
       "core/transaction/rs_sync_transaction_controller.cpp",
+      "core/transaction/rs_sync_transaction_handler.cpp",
       "core/transaction/rs_transaction.cpp",
 
       #ui
@@ -136,6 +140,8 @@ template("render_service_client_source_set") {
       "core/ui/rs_surface_extractor.cpp",
       "core/ui/rs_surface_node.cpp",
       "core/ui/rs_texture_export.cpp",
+      "core/ui/rs_ui_context.cpp",
+      "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
     ]
 

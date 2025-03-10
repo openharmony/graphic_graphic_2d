@@ -171,10 +171,17 @@ public:
 
     void DumpAllResource(std::stringstream& dump) const;
 
+    void DumpAllCoreTrace(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
+
+    /**
+     * @brief                   Deeply clean resources in Relcaim.
+     */
+    void ReclaimResources();
 
     /**
      * @brief                   Dump GPU stats.
