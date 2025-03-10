@@ -349,6 +349,7 @@ public:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

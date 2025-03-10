@@ -375,6 +375,8 @@ private:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override {};
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

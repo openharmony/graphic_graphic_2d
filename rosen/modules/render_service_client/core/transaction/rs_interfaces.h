@@ -372,6 +372,7 @@ public:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

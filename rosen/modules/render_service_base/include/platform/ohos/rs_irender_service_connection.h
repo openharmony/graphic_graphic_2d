@@ -383,6 +383,8 @@ public:
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+
+    virtual void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
