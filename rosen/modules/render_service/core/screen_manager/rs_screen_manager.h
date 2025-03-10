@@ -531,6 +531,7 @@ private:
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;
+    mutable std::mutex renderControlMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
