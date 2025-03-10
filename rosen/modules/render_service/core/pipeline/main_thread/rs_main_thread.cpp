@@ -4204,6 +4204,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_ - lastFastComposeTimeStampDiff_;
     } else {
         lastVsyncTime = timestamp_;
+        lastFastComposeTimeStampDiff_ = 0;
     }
     lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
     RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
@@ -4242,10 +4243,6 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
-            uint64_t lastFastComposeTimeStampDiff = 0;
-            if (lastFastComposeTimeStamp_ == timestamp_) {
-                lastFastComposeTimeStampDiff = lastFastComposeTimeStampDiff_;
-            }
             timestamp_ = timestamp_ + (now - curTime_);
             dvsyncRsTimestamp_.store(timestamp_);
             int64_t vsyncPeriod = 0;
@@ -4254,7 +4251,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
                 ret = receiver_->GetVSyncPeriod(vsyncPeriod);
             }
             if (ret == VSYNC_ERROR_OK && vsyncPeriod > 0) {
-                lastFastComposeTimeStampDiff_ = (now - curTime_ + lastFastComposeTimeStampDiff) % vsyncPeriod;
+                lastFastComposeTimeStampDiff_ = (now - curTime_ + lastFastComposeTimeStampDiff_) % vsyncPeriod;
                 lastFastComposeTimeStamp_ = timestamp_;
                 RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"
                     "Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
