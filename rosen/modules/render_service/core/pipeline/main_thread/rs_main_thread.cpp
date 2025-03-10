@@ -722,6 +722,12 @@ auto accessibilityFeatureParam =
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
     RSColorTemperature::Get().Init();
+    // used to force refresh screen when cct is updated
+    std::function<void()> refreshFunc = []() {
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->RequestNextVSync();
+    };
+    RSColorTemperature::Get().RegisterRefresh(std::move(refreshFunc));
 #ifdef RS_ENABLE_GPU
     MemoryManager::InitMemoryLimit();
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());

@@ -48,6 +48,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
 }
@@ -615,7 +617,9 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isHdrToSdr) {
-        parameter.tmoNits = parameter.sdrNits;
+        parameter.sdrNits = DEFAULT_DISPLAY_NIT;
+        parameter.tmoNits = DEFAULT_DISPLAY_NIT;
+        parameter.displayNits = DEFAULT_DISPLAY_NIT;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
@@ -823,7 +827,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    // HDR to SDR, tmoNits equal sdrNits, layerLinearMatrix reset to 3x3 Identity matrix
+    // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
         !RSSystemProperties::GetHdrVideoEnabled();
 
