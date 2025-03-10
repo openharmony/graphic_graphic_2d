@@ -1201,7 +1201,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror001, TestSiz
     ASSERT_NE(surfaceParams, nullptr);
     auto params = std::make_unique<RSRenderThreadParams>();
     params->SetIsMirrorScreen(false);
-    RSUniRenderThread::Instance().Sync(move(params));
+    RSUniRenderThread::Instance().Sync(std::move(params));
     ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
@@ -1218,7 +1218,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror002, TestSiz
     ASSERT_NE(surfaceParams, nullptr);
     auto params = std::make_unique<RSRenderThreadParams>();
     params->SetIsMirrorScreen(true);
-    RSUniRenderThread::Instance().Sync(move(params));
+    RSUniRenderThread::Instance().Sync(std::move(params));
     ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
@@ -1238,7 +1238,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror003, TestSiz
 
     auto params = std::make_unique<RSRenderThreadParams>();
     params->SetIsMirrorScreen(true);
-    RSUniRenderThread::Instance().Sync(move(params));
+    RSUniRenderThread::Instance().Sync(std::move(params));
     ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
@@ -1258,7 +1258,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror004, TestSiz
 
     auto params = std::make_unique<RSRenderThreadParams>();
     params->SetIsMirrorScreen(true);
-    RSUniRenderThread::Instance().Sync(move(params));
+    RSUniRenderThread::Instance().Sync(std::move(params));
     ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
