@@ -177,6 +177,8 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     if (auto dirtyRegionParam = std::static_pointer_cast<DirtyRegionParam>(
         GraphicFeatureParamManager::GetInstance().GetFeatureParam("DirtyRegionConfig"))) {
         isPartialRenderEnabled_ = dirtyRegionParam->IsDirtyRegionEnable();
+        isAdvancedDirtyRegionEnabled_ = dirtyRegionParam->IsAdvancedDirtyRegionEnable();
+        isDirtyAlignEnabled_ = dirtyRegionParam->IsTileBasedAlignEnable();
     }
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
@@ -202,8 +204,9 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isVirtualDirtyEnabled_ = RSSystemProperties::GetVirtualDirtyEnabled() &&
         (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) && !isRegionDebugEnabled_;
     isExpandScreenDirtyEnabled_ = RSSystemProperties::GetExpandScreenDirtyEnabled();
-    advancedDirtyType_ = RSSystemProperties::GetAdvancedDirtyRegionEnabled();
-    isDirtyAlignEnabled_ = RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
+    advancedDirtyType_ = isAdvancedDirtyRegionEnabled_ ?
+        RSSystemProperties::GetAdvancedDirtyRegionEnabled() : AdvancedDirtyRegionType::DISABLED;
+    isDirtyAlignEnabled_ &= RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()

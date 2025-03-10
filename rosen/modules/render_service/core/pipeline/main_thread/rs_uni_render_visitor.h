@@ -359,6 +359,7 @@ private:
     bool isDirty_ = false;
     bool dirtyFlag_ { false };
     bool isPartialRenderEnabled_ = false;
+    bool isAdvancedDirtyRegionEnabled_ = false;
     bool isRegionDebugEnabled_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool curDirty_ = false;
