@@ -21,6 +21,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -1073,6 +1074,7 @@ void RSUifirstManager::AddReuseNode(NodeId id)
 
 void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
 {
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask(info.sceneId);
     RS_OPTIONAL_TRACE_NAME_FMT("uifirst uniqueId:%" PRId64", appPid:%" PRId32", sceneId:%s",
         info.uniqueId, info.appPid, info.sceneId.c_str());
     EventInfo eventInfo = {GetCurSysTime(), 0, info.uniqueId, info.appPid, info.sceneId, {}};

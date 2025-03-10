@@ -3575,8 +3575,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    // When exited two apps in one second, post reclaim task.
-    MemoryManager::CheckIsClearApp();
+    RSReclaimMemoryManager::Instance().TriggerReclaimTask();
 
     EraseIf(applicationAgentMap_,
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });

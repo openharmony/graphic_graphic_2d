@@ -966,7 +966,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
     }
     if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
-        if (!isDoDirectComposition) {
+        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+            isTimeToReclaim_.store(false);
+            RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+        } else if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }
