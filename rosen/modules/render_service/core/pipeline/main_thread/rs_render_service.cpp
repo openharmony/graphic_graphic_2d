@@ -241,17 +241,14 @@ sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RS
 
 void RSRenderService::RemoveConnection(sptr<IRemoteObject> token)
 {
+    // temporarily extending the life cycle
     std::unique_lock<std::mutex> lock(mutex_);
-    if (connections_.count(token) == 0) {
-        return;
-    }
     auto iter = connections_.find(token);
     if (iter == connections_.end()) {
         RS_LOGE("RSRenderService::RemoveConnection: connections_ cannot find token");
         return;
     }
-    
-    auto tmp = connections_.at(token);
+    auto tmp = iter->second;
     connections_.erase(token);
     lock.unlock();
 }

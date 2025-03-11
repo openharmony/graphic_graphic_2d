@@ -103,7 +103,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
       screenManager_(screenManager),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      ApplicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
+      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
       appVSyncDistributor_(distributor)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
@@ -117,12 +117,6 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     }
     if (screenManager_ == nullptr) {
         RS_LOGW("RSRenderServiceConnection: screenManager_ is nullptr");
-    }
-    if (connDeathRecipient_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection: connDeathRecipient_ is nullptr");
-    }
-    if (ApplicationDeathRecipient_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection: ApplicationDeathRecipient_ is nullptr");
     }
     if (appVSyncDistributor_ == nullptr) {
         RS_LOGW("RSRenderServiceConnection: appVSyncDistributor_ is nullptr");
@@ -1357,7 +1351,7 @@ ErrCode RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<I
     };
     mainThread_->PostTask(captureTask);
 
-    app->AsObject()->AddDeathRecipient(ApplicationDeathRecipient_);
+    app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
     return ERR_OK;
 }
 
