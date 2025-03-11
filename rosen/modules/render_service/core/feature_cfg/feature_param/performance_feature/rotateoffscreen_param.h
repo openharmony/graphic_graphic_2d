@@ -24,12 +24,12 @@ public:
     RotateOffScreenParam() = default;
     ~RotateOffScreenParam() = default;
 
-    bool GetRotateOffScreenDisplayNodeEnable() const;
+    static bool GetRotateOffScreenDisplayNodeEnable();
 
 protected:
     void SetRotateOffScreenDisplayNodeEnable(bool enable);
 private:
-    bool isRotateOffScreenDisplayNodeEnable_ = false;
+    static bool isRotateOffScreenDisplayNodeEnable_;
 
     friend class RotateOffScreenParamParse;
 };
