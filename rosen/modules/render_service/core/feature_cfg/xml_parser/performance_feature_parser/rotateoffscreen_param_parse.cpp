@@ -58,7 +58,7 @@ int32_t RotateOffScreenParamParse::ParseRotateOffScreenInternal(FeatureParamMapT
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "RotateOffScreenDisplayNodeEnabled") {
             rotateOffScreenParam_->SetRotateOffScreenDisplayNodeEnable(isEnabled);
-            RS_LOGD("RotateOffScreenParamParse parse RotateOffScreenDisplayNodeEnable %{public}d", isEnabled);
+            RS_LOGI("RotateOffScreenParamParse parse RotateOffScreenDisplayNodeEnable %{public}d", isEnabled);
         }
     }
     return PARSE_EXEC_SUCCESS;

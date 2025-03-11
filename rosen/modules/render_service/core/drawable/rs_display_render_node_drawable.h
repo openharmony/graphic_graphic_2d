@@ -187,8 +187,6 @@ private:
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
 
-    bool GetRotateOffScreenIsSupport();
-
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;

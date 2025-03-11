@@ -896,7 +896,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
         }
 
-        if (RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport() && !params->IsRotationChanged()) {
+        if (RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable() && !params->IsRotationChanged()) {
             offscreenSurface_ = nullptr;
         }
 
@@ -2143,7 +2143,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if (useFixedSize && RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport()
+    if (useFixedSize && RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable()
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize;
@@ -2410,23 +2410,5 @@ bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scr
             break;
     }
     return needSkip;
-}
-
-bool RSDisplayRenderNodeDrawable::GetRotateOffScreenIsSupport()
-{
-    auto rotateOffScreenFeatureParam =
-         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
-    if (rotateOffScreenFeatureParam == nullptr) {
-        RS_LOGE("Get rotateOffScreenFeatureParam failed, rotateOffScreenFeatureParam is nullptr");
-        return false;
-    }
-    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
-    if (rotateOffScreenParam == nullptr) {
-        RS_LOGE("Get rotateOffScreenParam failed, rotateOffScreenParam is nullptr");
-        return false;
-    }
-    RS_LOGI("GetRotateOffScreenIsSupport: %{public}d",
-            static_cast<int>(rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable()));
-    return rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
 }
 } // namespace OHOS::Rosen::DrawableV2
