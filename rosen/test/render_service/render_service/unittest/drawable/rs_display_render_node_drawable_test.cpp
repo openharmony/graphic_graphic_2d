@@ -1965,6 +1965,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilterWithP3, TestSize.Leve
     Drawing::Bitmap bitmap;
     Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     bitmap.Build(10, 10, bitmapFormat);
+    surface->Bind(bitmap);
     canvas.surface_ = surface.get();
 
     ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
