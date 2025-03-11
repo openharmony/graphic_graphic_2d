@@ -837,7 +837,7 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
 
-        int ret = OH_HiSysEvent_Write("GRPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
+        int ret = OH_HiSysEvent_Write("GRAPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
             sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
         if (ret == 0) {
             RS_LOGE("Successed to rs_vulkan_error fault event.");
