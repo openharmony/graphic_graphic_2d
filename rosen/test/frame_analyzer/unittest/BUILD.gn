@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("frame_analyzer_test") {
-  module_out_path = "graphic_2d/rosen/modules/frame_analyzer"
+  module_out_path = "graphic_2d/graphic_2d/frame_analyzer"
 
   include_dirs = [ "$graphic_2d_root/rosen/modules/frame_analyzer/src" ]
 
