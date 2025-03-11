@@ -991,6 +991,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         node.OpincSetInAppStateEnd(unchangeMarkInApp_);
         return;
     }
+    curSurfaceDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
 
     // 1. Update matrix and collect dirty region
     auto dirtyFlag = dirtyFlag_;
@@ -1567,6 +1568,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
     curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curDisplayDirtyManager_->Clear();
     transparentCleanFilter_.clear();
