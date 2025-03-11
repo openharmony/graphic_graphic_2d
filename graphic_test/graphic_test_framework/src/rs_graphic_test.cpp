@@ -17,6 +17,7 @@
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 #include "rs_parameter_parse.h"
+#include "rs_trace.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 
@@ -25,6 +26,7 @@
 #include <iostream>
 #include <thread>
 
+using namespace std;
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -66,6 +68,29 @@ void RSGraphicTest::TearDownTestCase()
     return;
 }
 
+UIPoint GetScreenCapacity(const string testCase)
+{
+    int testCnt = ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(testCase);
+    int cl = 1;
+    int num = 1;
+    while (num < testCnt) {
+        cl++;
+        num = cl*cl;
+    }
+    int rl = ceil((double) testCnt/cl); 
+    return {cl, rl};
+}
+
+UIPoint GetPos(int id, int cl)
+{
+    if (cl <= 0) {
+        return {0, 0};
+    }
+    int x = id % cl;
+    int y = id / cl;
+    return {x, y};
+}
+
 void RSGraphicTest::SetUp()
 {
     shouldRunTest_ = ShouldRunCurrentTest();
@@ -75,7 +100,8 @@ void RSGraphicTest::SetUp()
     }
 
     RSSurfaceNodeConfig config;
-    config.SurfaceNodeName = "TestSurface";
+    string surfaceNodeName = "TestSurface";
+    config.SurfaceNodeName = surfaceNodeName.append(to_string(imageWriteId_));
     auto testSurface = RSSurfaceNode::Create(config, false);
 
     testSurface->SetBounds({0, 0, GetScreenSize()[0], GetScreenSize()[1]});
@@ -84,6 +110,30 @@ void RSGraphicTest::SetUp()
     GetRootNode()->SetTestSurface(testSurface);
 
     BeforeEach();
+
+    const ::testing::TestInfo* const testInfo =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
+        testInfo->test_case_name(), testInfo->name());
+    if (!extInfo->isMultiple) {
+        cout << "SetUp:isMultiple is false" << endl;
+        return;
+    }
+
+    cout << "SetUp:isMultiple is true" << endl;
+    auto capacity = GetScreenCapacity(string(testInfo->test_case_name));
+    auto size = GetScreenSize();
+    cout << "SetUp:capacity:" << capacity.x_ << "*" << capacity.y_ << endl;
+    cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
+    if (imageWriteId_ == 0) {
+        SetScreenSurfaceBounds({0, 0, capacity.x_*size.x_, capacity.y_*size.y_});
+        cout << "ScreenSurfaceBounds:[" << capacity.x_*size.x_ << "*" << capacity.y_*size.y_ << "]" << endl;
+    }
+    auto pos = getPos(imageWriteId_, capacity.x_);
+    cout << "pos:id:" << imageWriteId_ << "[" << pos.x_ << "." << pos.y_ << "]" << endl;
+
+    testSurface->SetBounds({pos.x_*size.x_, pos.y_*size.y_, size.x_, size.y_});
+    testSurface->SetFrame({pos.x_*size.x_, pos.y_*size.y_, size.x_, size.y_});
 }
 
 void RSGraphicTest::TearDown()
@@ -91,14 +141,20 @@ void RSGraphicTest::TearDown()
     if (!shouldRunTest_) {
         return;
     }
-    StartUIAnimation();
-    RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     const ::testing::TestInfo* const testInfo =
         ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
+
+    if ((extInfo->isMultiple) && (++imageWriteId_ < ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(string(testInfo->test_case_name)))) {
+        return;
+    }
+
+    StartUIAnimation();
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+
     bool isManualTest = false;
     if (extInfo) {
         isManualTest = (extInfo->testMode == RSGraphicTestMode::MANUAL);
@@ -114,8 +170,11 @@ void RSGraphicTest::TearDown()
             RSParameterParse::Instance().surfaceCaptureWaitTime);
         if (pixelMap) {
             std::string filename = GetImageSavePath(extInfo->filePath);
-            filename += testInfo->test_case_name() + std::string("_");
-            filename += testInfo->name() + std::string(".png");
+            filename += testInfo->test_case_name();
+            if (!extInfo->isMultiple) {
+                filename += std::string("_") + testInfo->name();
+            }
+            filename += std::string(".png");
             if (std::filesystem::exists(filename)) {
                 LOGW("RSGraphicTest file exists %{public}s", filename.c_str());
             }
@@ -133,13 +192,12 @@ void RSGraphicTest::TearDown()
     GetRootNode()->ResetTestSurface();
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
-
-    ++imageWriteId_;
 }
 
 void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
 {
     nodes_.push_back(node);
+    GetRootNode()->RegisterNode(node);
 }
 
 std::shared_ptr<RSGraphicRootNode> RSGraphicTest::GetRootNode() const
@@ -165,6 +223,11 @@ void RSGraphicTest::SetScreenSurfaceBounds(const Vector4f& bounds)
 void RSGraphicTest::SetSurfaceColor(const RSColor& color)
 {
     RSGraphicTestDirector::Instance().SetSurfaceColor(color);
+}
+
+void RSGraphicTest::SetScreenSize(float width, float height)
+{
+    RSGraphicTestDirector::Instance().SetScreenSize(width, height);
 }
 
 std::string RSGraphicTest::GetImageSavePath(const std::string path)

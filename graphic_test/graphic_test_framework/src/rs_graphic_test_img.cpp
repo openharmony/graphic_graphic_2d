@@ -47,9 +47,41 @@ std::shared_ptr<Media::PixelMap> DecodePixelMap(const std::string& pathName, con
     return pixelmap;
 }
 
+std::shared_ptr<Media::PixelMap> DecodePixelMap(const uint8_t* data, uint32_t size, const Media::AllocatorType& allocatorType)
+{
+    uint32_t errCode = 0;
+    std::unique_ptr<Media::ImageSource> imageSource =
+        Media::ImageSource::CreateImageSource(data, size, Media::SourceOptions(), errCode);
+    if (imageSource == nullptr || errCode != 0) {
+        std::cout << "imageSource : " << (imageSource != nullptr) << ", err:" << errCode << std::endl;
+        return nullptr;
+    }
+    Media::DecodeOptions decodeOpt;
+    decodeOpt.allocatorType = allocatorType;
+    std::shared_ptr<Media::PixelMap> pixelmap = imageSource->CreatePixelMap(decodeOpt, errCode);
+    if (pixelmap == nullptr || errCode != 0) {
+        std::cout << "pixelmap == nullptr, err:" << errCode << std::endl;
+        return nullptr;
+    }
+    return pixelmap;
+}
+
 std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const std::string& pathName, const Rosen::Vector4f bounds)
 {
     std::shared_ptr<Media::PixelMap> pixelmap = DecodePixelMap(pathName, Media::AllocatorType::SHARE_MEM_ALLOC);
+    auto image = std::make_shared<Rosen::RSImage>();
+    image->SetPixelMap(pixelmap);
+    image->SetImageFit((int)ImageFit::FILL);
+    auto node = Rosen::RSCanvasNode::Create();
+    node->SetBounds(bounds);
+    node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
+    node->SetBgImage(image);
+    return node;
+}
+
+std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const uint8_t* data, uint32_t size, const Rosen::Vector4f bounds)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap = DecodePixelMap(data, size, Media::AllocatorType::SHARE_MEM_ALLOC);
     auto image = std::make_shared<Rosen::RSImage>();
     image->SetPixelMap(pixelmap);
     image->SetImageFit((int)ImageFit::FILL);

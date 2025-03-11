@@ -29,6 +29,8 @@ std::shared_ptr<OHOS::Media::PixelMap> DecodePixelMap(
     const std::string& pathName, const OHOS::Media::AllocatorType& allocatorType);
 std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
     const std::string& pathName, const OHOS::Rosen::Vector4f bounds);
+std::shared_ptr<OHOS::Rosen::RSCanvasNode> SetUpNodeBgImage(
+    const uint8_t* data, uint32_t size, const OHOS::Rosen::Vector4f bounds);
 
 class ImageCustomModifier : public OHOS::Rosen::RSContentStyleModifier {
 public:

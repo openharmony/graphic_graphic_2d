@@ -168,11 +168,13 @@ void RSGraphicTestDirector::Run()
 
 void RSGraphicTestDirector::FlushMessage()
 {
+    RS_TRACE_NAME("RSGraphicTestDirector::FlushMessage");
     rsUiDirector_->SendMessages();
 }
 
 std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms)
 {
+    RS_TRACE_NAME("RSGraphicTestDirector::TakeScreenCaptureAndWait");
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
     if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
@@ -207,6 +209,21 @@ Vector2f RSGraphicTestDirector::GetScreenSize() const
     return {screenBounds_.GetWidth(), screenBounds_.GetHeight()};
 }
 
+void RSGraphicTestDirector::SetScreenSize(float width, float height)
+{
+    screenBounds_ = {0, 0, width, height};
+}
+
+void RSGraphicTestDirector::SetSingleTest(bool isSingleTest)
+{
+    isSingleTest_ = isSingleTest;
+}
+
+void RSGraphicTestDirector::IsSingleTest()
+{
+    return isSingleTest_;
+}
+
 void RSGraphicTestDirector::SetSurfaceBounds(const Vector4f& bounds)
 {
     if (rootNode_->testSurfaceNode_) {
@@ -218,6 +235,7 @@ void RSGraphicTestDirector::SetScreenSurfaceBounds(const Vector4f& bounds)
 {
     if (rootNode_->screenSurfaceNode_) {
         rootNode_->screenSurfaceNode_->SetBounds(bounds);
+        rootNode_->screenSurfaceNode_->SetFrame(bounds);
     }
 }
 
