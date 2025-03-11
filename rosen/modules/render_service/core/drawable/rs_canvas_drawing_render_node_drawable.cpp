@@ -355,16 +355,27 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
             return;
         }
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
+        std::shared_ptr<Drawing::Canvas> canvas = nullptr;
         {
             std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
             if (surface != canvasDrawingDrawable->surface_) {
                 return;
             }
-            cmds->Playback(*surface->GetCanvas());
-            auto image = surface->GetImageSnapshot(); // planning: adapt multithread
-            if (image) {
-                SKResourceManager::Instance().HoldResource(image);
-            }
+            canvas = surface->GetCanvas();
+        }
+        if (canvas == nullptr) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread get canvas is null");
+            return;
+        }
+        RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread surface width[%{public}d],"
+            " height[%{public}d]", surface->GetImageInfo().GetWidth(), surface->GetImageInfo().GetHeight());
+        cmds->Playback(*canvas);
+        auto image = surface->GetImageSnapshot(); // planning: adapt multithread
+        if (image) {
+            SKResourceManager::Instance().HoldResource(image);
+        }
+        {
+            std::unique_lock<std::recursive_mutex> lock(canvasDrawingDrawable->drawableMutex_);
             canvasDrawingDrawable->image_ = image;
         }
         if (UNLIKELY(!ctx)) {
