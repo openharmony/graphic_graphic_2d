@@ -53,7 +53,8 @@ public:
     ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) override;
     
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
+    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
+        std::shared_ptr<Media::PixelMap> &pixelMap) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,

@@ -598,8 +598,8 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
     return ERR_OK;
 }
 
-std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect)
+ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSRENDERSERVICECONNECTION_CREATEPIXELMAPFROMSURFACE);
@@ -609,11 +609,10 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
         .width = srcRect.w,
         .height = srcRect.h,
     };
-    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
-    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelmap]() {
-        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
+        pixelMap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
     });
-    return pixelmap;
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(

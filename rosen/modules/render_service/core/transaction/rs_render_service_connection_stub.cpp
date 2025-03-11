@@ -1685,7 +1685,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .w = w,
                 .h = h
             };
-            std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
+            std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     ret = ERR_INVALID_REPLY;
