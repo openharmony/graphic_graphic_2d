@@ -354,7 +354,7 @@ private:
 
     void DropFrameByPid(const std::vector<int32_t> pidList) override;
 
-    bool SetAncoForceDoDirect(bool direct) override;
+    ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
 

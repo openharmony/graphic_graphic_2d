@@ -2775,8 +2775,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = SetAncoForceDoDirect(direct);
-            reply.WriteBool(result);
+            bool res;
+            if (SetAncoForceDoDirect(direct, res) != ERR_OK || !reply.WriteBool(res)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {

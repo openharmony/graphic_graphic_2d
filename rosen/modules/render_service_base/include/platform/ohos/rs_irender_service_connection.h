@@ -355,7 +355,7 @@ public:
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
 
-    virtual bool SetAncoForceDoDirect(bool direct) = 0;
+    virtual ErrCode SetAncoForceDoDirect(bool direct, bool& res) = 0;
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 

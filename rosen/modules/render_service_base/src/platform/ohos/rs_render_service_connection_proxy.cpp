@@ -4205,27 +4205,30 @@ bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, Virtual
     return result;
 }
 
-bool RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct)
+ErrCode RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct, bool& res)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetAncoForceDoDirect: WriteInterfaceToken GetDescriptor err.");
-        return false;
+        res = false;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (data.WriteBool(direct)) {
         uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT);
         int32_t err = SendRequest(code, data, reply, option);
         if (err != NO_ERROR) {
-            return RS_CONNECTION_ERROR;
+            res = false;
+            return ERR_INVALID_VALUE;
         }
-        bool result = reply.ReadBool();
-        return result;
+        res = reply.ReadBool();
+        return ERR_OK;
     } else {
         ROSEN_LOGE("SetAncoForceDoDirect: WriteBool direct err.");
-        return RS_CONNECTION_ERROR;
+        res = false;
+        return ERR_INVALID_VALUE;
     }
 }
 

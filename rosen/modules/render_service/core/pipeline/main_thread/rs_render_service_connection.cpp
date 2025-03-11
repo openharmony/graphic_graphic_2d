@@ -2719,14 +2719,16 @@ bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScree
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
 
-bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
+ErrCode RSRenderServiceConnection::SetAncoForceDoDirect(bool direct, bool& res)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (mainThread_ == nullptr) {
-        return false;
+        res = false;
+        return ERR_INVALID_VALUE;
     }
     mainThread_->SetAncoForceDoDirect(direct);
-    return true;
+    res = true;
+    return ERR_OK;
 }
 
 void RSRenderServiceConnection::SetFreeMultiWindowStatus(bool enable)

@@ -1808,7 +1808,9 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        return renderService->SetAncoForceDoDirect(direct);
+        bool res;
+        renderService->SetAncoForceDoDirect(direct, res);
+        return res;
     }
     ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;

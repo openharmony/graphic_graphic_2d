@@ -363,7 +363,7 @@ private:
 
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
-    bool SetAncoForceDoDirect(bool direct) override;
+    ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 

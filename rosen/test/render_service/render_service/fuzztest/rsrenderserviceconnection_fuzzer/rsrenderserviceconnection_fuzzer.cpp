@@ -650,7 +650,8 @@ bool DoSetAncoForceDoDirect()
     }
 
     bool direct = GetData<bool>();
-    rsConn_->SetAncoForceDoDirect(direct);
+    bool res;
+    rsConn_->SetAncoForceDoDirect(direct, res);
     return true;
 }
 
