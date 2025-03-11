@@ -54,7 +54,10 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(FeatureParamMapType &fea
         return PARSE_NO_PARAM;
     }
     multiScreenParam_ = std::static_pointer_cast<MultiScreenParam>(iter->second);
-
+    if (!multiScreenParam_) {
+        RS_LOGW("MultiScreenParamParse stop parsing, multiScreenParam_ is null");
+        return PARSE_ERROR;
+    }
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);

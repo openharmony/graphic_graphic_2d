@@ -63,7 +63,8 @@ public:
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
     virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool& success) = 0;
-    virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false) = 0;
+    virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
+        bool unobscured = false) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token = nullptr,
@@ -74,8 +75,8 @@ public:
     virtual ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) = 0;
 
-    virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect) = 0;
+    virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) = 0;
 
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -99,9 +100,10 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
-    virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
     
-    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode RemoveVirtualScreenBlackList(
+        ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;
@@ -277,7 +279,7 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
-    virtual void SetAppWindowNum(uint32_t num) = 0;
+    virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
@@ -301,13 +303,13 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
+    virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
-    virtual void NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
+    virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
 
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
@@ -346,7 +348,7 @@ public:
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
 
-    virtual int64_t GetHdrOnDuration() = 0;
+    virtual ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) = 0;
 
     virtual ErrCode SetVmaCacheStatus(bool flag) = 0;
 
@@ -382,6 +384,8 @@ public:
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+
+    virtual void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

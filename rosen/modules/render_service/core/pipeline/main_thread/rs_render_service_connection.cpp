@@ -450,21 +450,22 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& c
     return ERR_OK;
 }
 
-sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured)
+ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    sptr<Surface>& sfc, bool unobscured)
 {
     if (!mainThread_) {
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     std::shared_ptr<RSSurfaceRenderNode> node =
         SurfaceNodeCommandHelper::CreateWithConfigInRS(config, mainThread_->GetContext(), unobscured);
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     if (surface == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     const std::string& surfaceName = surface->GetName();
     RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
@@ -495,11 +496,11 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
-        return nullptr;
+        return ERR_INVALID_VALUE;
     }
     sptr<IBufferProducer> producer = surface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    return pSurface;
+    sfc = Surface::CreateSurfaceAsProducer(producer);
+    return ERR_OK;
 }
 
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
@@ -597,8 +598,8 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
     return ERR_OK;
 }
 
-std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect)
+ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSRENDERSERVICECONNECTION_CREATEPIXELMAPFROMSURFACE);
@@ -608,11 +609,10 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
         .width = srcRect.w,
         .height = srcRect.h,
     };
-    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
-    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelmap]() {
-        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
+        pixelMap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
     });
-    return pixelmap;
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
@@ -704,30 +704,38 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
-int32_t RSRenderServiceConnection::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::AddVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
-int32_t RSRenderServiceConnection::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::RemoveVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
@@ -2259,10 +2267,10 @@ int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallb
     return StatusCode::SUCCESS;
 }
 
-void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
+ErrCode RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     if (!mainThread_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     auto task = [weakThis = wptr<RSRenderServiceConnection>(this), num]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
@@ -2272,6 +2280,8 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
         connection->mainThread_->SetAppWindowNum(num);
     };
     mainThread_->PostTask(task);
+
+    return ERR_OK;
 }
 
 bool RSRenderServiceConnection::SetSystemAnimatedScenes(
@@ -2396,12 +2406,13 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     });
 }
 
-void RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
+ErrCode RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     if (!appVSyncDistributor_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rateDiscount, true);
+    return ERR_OK;
 }
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
@@ -2425,7 +2436,7 @@ void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEve
     });
 }
 
-void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+ErrCode RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
     HgmTaskHandleThread::Instance().PostTask([eventName, state] () {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
@@ -2437,6 +2448,7 @@ void RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &eventNam
             frameRateMgr->HandleThermalFrameRate(state);
         }
     });
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
@@ -2589,15 +2601,15 @@ HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
-int64_t RSRenderServiceConnection::GetHdrOnDuration()
+ErrCode RSRenderServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
 {
     auto rsHdrCollection = RsHdrCollection::GetInstance();
     if (rsHdrCollection == nullptr) {
-        return -1;
+        return ERR_INVALID_VALUE;
     }
-    int64_t duration = rsHdrCollection->GetHdrOnDuration();
+    hdrOnDuration = rsHdrCollection->GetHdrOnDuration();
     rsHdrCollection->ResetHdrOnDuration();
-    return duration;
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::SetVmaCacheStatus(bool flag)

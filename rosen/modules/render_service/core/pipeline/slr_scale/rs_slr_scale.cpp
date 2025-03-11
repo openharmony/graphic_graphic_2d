@@ -16,6 +16,7 @@
 #include "rs_slr_scale.h"
 
 #include <cfloat>
+#include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
@@ -143,8 +144,14 @@ void RSSLRScaleFunction::RefreshScreenData()
 
     widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
     heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSSLRScaleFunction::RefreshScreenData multiScreenFeatureParam is null");
+        return;
+    }
     isSLRCopy_ = scaleNum_ < SLR_SCALE_THR_HIGH && widthEffect_ && heightEffect_ &&
-        RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
+        multiScreenFeatureParam->IsSlrScaleEnabled();
 }
 
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)

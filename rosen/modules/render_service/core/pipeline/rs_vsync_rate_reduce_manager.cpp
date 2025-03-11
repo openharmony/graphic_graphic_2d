@@ -486,18 +486,17 @@ void RSVsyncRateReduceManager::NotifyVSyncRates(const std::map<NodeId, RSVisible
 bool RSVsyncRateReduceManager::GetVRateIsSupport()
 {
     auto vRateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[VRate]);
-    if (!vRateFeatureParam) {
+    if (vRateFeatureParam == nullptr) {
         RS_LOGE("Get vRateFeatureParam failed, vRateFeatureParam is nullptr");
         return false;
     }
     auto vRatePatam = std::static_pointer_cast<VRateParam>(vRateFeatureParam);
-    if (vRatePatam != nullptr) {
-        RS_LOGI("GetVRateIsSupport: %{public}d", static_cast<int>(vRatePatam->GetVRateEnable()));
-        return vRatePatam->GetVRateEnable();
-    } else {
-        RS_LOGE("vRatePatam is nullptr");
+    if (vRatePatam == nullptr) {
+        RS_LOGE("Get vRatePatam failed, vRatePatam is nullptr");
+        return false;
     }
-    return false;
+    RS_LOGI("GetVRateIsSupport: %{public}d", static_cast<int>(vRatePatam->GetVRateEnable()));
+    return vRatePatam->GetVRateEnable();
 }
 
 void RSVsyncRateReduceManager::Init(const sptr<VSyncDistributor>& appVSyncDistributor)

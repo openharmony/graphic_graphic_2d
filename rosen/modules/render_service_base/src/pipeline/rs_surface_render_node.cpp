@@ -1029,7 +1029,8 @@ void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
 
 void RSSurfaceRenderNode::SyncColorGamutInfoToFirstLevelNode()
 {
-    if (GetColorSpace() != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+    // When the P3 appWindow node is up or down the tree, it transmits color gamut information to leashWindow node.
+    if (colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (firstLevelNode) {
             firstLevelNode->SetFirstLevelNodeColorGamut(IsOnTheTree());
@@ -1219,11 +1220,17 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     return colorSpace_;
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
 {
+    if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (wideColorGamutInChildNodeCount_ > 0) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     } else {
@@ -1669,7 +1676,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
-    if (isHardCursorEnable && RSSystemProperties::IsPcType()) {
+    if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
@@ -2635,80 +2642,6 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
     } else {
         return false;
     }
-}
-
-bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
-{
-    bool isDirty = deviceType == DeviceType::PC ? !surfaceCacheContentStatic_ :
-        !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty();
-    if (isDirty) {
-        return false;
-    }
-    if (IsMainWindowType()) {
-        return true;
-    } else if (IsLeashWindow()) {
-        auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
-        // leashwindow children changed or has other type node except surfacenode
-        if (deviceType == DeviceType::PC && lastFrameChildrenCnt_ != GetChildren()->size()) {
-            return false;
-        }
-        for (auto& nestedSurface: nestedSurfaceNodes) {
-            if (nestedSurface && !nestedSurface->IsCurFrameStatic(deviceType)) {
-                return false;
-            }
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
-{
-    bool isStaticUnderVisibleRegion = false;
-    if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
-        if (deviceType != DeviceType::PC) {
-            return false;
-        }
-        // Visible dirty region optimization takes effecct only in PC or TABLET scenarios
-        Occlusion::Rect currentFrameDirty(dirtyManager_->GetCurrentFrameDirtyRegion());
-        if (!visibleRegion_.IsEmpty() && visibleRegion_.IsIntersectWith(currentFrameDirty)) {
-            ClearHistoryUnSubmittedDirtyInfo();
-            return false;
-        }
-        isStaticUnderVisibleRegion = true;
-    }
-    if (IsMainWindowType()) {
-        if (deviceType == DeviceType::PC) {
-            if (IsHistoryOccludedDirtyRegionNeedSubmit()) {
-                ClearHistoryUnSubmittedDirtyInfo();
-                return false;
-            }
-            if (isStaticUnderVisibleRegion) {
-                UpdateHistoryUnsubmittedDirtyInfo();
-            }
-        }
-        return true;
-    } else if (IsLeashWindow()) {
-        auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
-        if (nestedSurfaceNodes.empty()) {
-            return false;
-        }
-        for (auto& nestedSurface: nestedSurfaceNodes) {
-            if (nestedSurface && !nestedSurface->IsVisibleDirtyEmpty(deviceType)) {
-                return false;
-            }
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool RSSurfaceRenderNode::IsUIFirstCacheReusable(DeviceType deviceType)
-{
-    return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-        HasCachedTexture() && IsUIFirstSelfDrawCheck() && IsCurFrameStatic(deviceType);
 }
 
 void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)

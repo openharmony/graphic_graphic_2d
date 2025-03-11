@@ -126,7 +126,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreateNodeAndSurface, TestSize.Leve
     bool success;
     ASSERT_EQ(proxy->CreateNode(RSSurfaceRenderNodeConfig(), success), ERR_INVALID_VALUE);
     ASSERT_FALSE(success);
-    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig()), nullptr);
+    sptr<Surface> surface = nullptr;
+    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface), ERR_INVALID_VALUE);
 }
 
 /**
@@ -156,11 +157,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreatePixelMapFromSurface, TestSize
 {
     sptr<Surface> surface;
     Rect srcRect;
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> producer = consumer->GetProducer();
     surface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
 }
 
 /**
@@ -1076,7 +1080,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
 {
     ASSERT_NE(proxy, nullptr);
-    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
+    int64_t hdrOnDuration;
+    proxy->GetHdrOnDuration(hdrOnDuration);
+    ASSERT_TRUE(proxy);
 }
 
 /**

@@ -41,7 +41,8 @@ public:
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& configg, bool& success) override;
     ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeIdg, bool& success) override;
-    sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false) override;
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
+        bool unobscured = false) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token,
@@ -52,7 +53,8 @@ public:
     ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) override;
     
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
+    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
+        std::shared_ptr<Media::PixelMap> &pixelMap) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -77,9 +79,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
-    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
     
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
     ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
 
@@ -257,7 +259,7 @@ public:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
 
-    void SetAppWindowNum(uint32_t num) override;
+    ErrCode SetAppWindowNum(uint32_t num) override;
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation) override;
 
@@ -276,13 +278,13 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
+    ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
-    void NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+    ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
@@ -315,7 +317,7 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
-    int64_t GetHdrOnDuration() override;
+    ErrCode GetHdrOnDuration(int64_t& hdrOnDuration) override;
 
     ErrCode SetVmaCacheStatus(bool flag) override;
 
@@ -348,6 +350,7 @@ public:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

@@ -26,6 +26,7 @@ group("unittest") {
     ":RSDisplayRenderNodeDrawableTest",
     ":RSDmaBufferSurfaceRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
+    ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableAutoCacheTest",
     ":RSRenderNodeDrawableTest",
@@ -106,6 +107,26 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
+}
+
+## Build RSRcdSurfaceRenderNodeDrawableTest
+ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_rcd_surface_render_node_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSRenderNodeDrawableAdapterTest

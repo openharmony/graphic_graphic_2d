@@ -396,8 +396,6 @@ public:
     }
 
     bool IsUIFirstSelfDrawCheck();
-    bool IsVisibleDirtyEmpty(DeviceType deviceType);
-    bool IsCurFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -1131,8 +1129,6 @@ public:
     {
         lastFrameChildrenCnt_ = childrenCnt;
     }
-
-    bool IsUIFirstCacheReusable(DeviceType deviceType);
 
     bool GetUifirstSupportFlag() override
     {

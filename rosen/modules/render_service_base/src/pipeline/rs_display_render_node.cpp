@@ -275,6 +275,13 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
+    displayParams->roundCornerSurfaceDrawables_.clear();
+    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
+    }
+    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
+    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }

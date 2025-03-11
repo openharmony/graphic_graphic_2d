@@ -731,7 +731,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
+    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
 
     if (RSSystemProperties::GetCacheOptimizeRotateEnable() &&
         surfaceParams->GetName().find(WALLPAPER) != std::string::npos) {
@@ -740,6 +740,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+        SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture surface skipped in mirror name:[%s] id:%" PRIu64,
+            name_.c_str(), surfaceParams->GetId());
         return;
     }
 
@@ -774,12 +777,13 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     CaptureSurface(*rscanvas, *surfaceParams);
-    ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
+    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
-    if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && !uniParam->IsMirrorScreen()) {
         return false;
     }
     // Check black list.

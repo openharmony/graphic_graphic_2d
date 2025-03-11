@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceBaseParamsTest") {
     "rs_canvas_drawing_render_params_test.cpp",
     "rs_display_render_params_test.cpp",
     "rs_effect_render_params_test.cpp",
+    "rs_rcd_render_params_test.cpp",
     "rs_render_params_test.cpp",
     "rs_surface_render_params_test.cpp",
   ]

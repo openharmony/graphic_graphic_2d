@@ -56,6 +56,11 @@ uint32_t DVSyncParam::GetWebBufferCount() const
     return webBufferCount_;
 }
 
+std::unordered_map<std::string, std::string> DVSyncParam::GetAdaptiveConfig() const
+{
+    return adaptiveConfig_;
+}
+
 void DVSyncParam::SetDVSyncEnable(bool isEnable)
 {
     isRsDVSyncEnabled_ = isEnable;
@@ -65,6 +70,7 @@ void DVSyncParam::SetUiDVSyncEnable(bool isEnable)
 {
     isUiDVSyncEnabled_ = isEnable;
 }
+
 void DVSyncParam::SetNativeDVSyncEnable(bool isEnable)
 {
     isNativeDVSyncEnabled_ = isEnable;
@@ -84,12 +90,19 @@ void DVSyncParam::SetUiBufferCount(int32_t cnt)
 {
     uiBufferCount_ = static_cast<uint32_t>(cnt);
 }
+
 void DVSyncParam::SetNativeBufferCount(int32_t cnt)
 {
     nativeBufferCount_ = static_cast<uint32_t>(cnt);
 }
+
 void DVSyncParam::SetWebBufferCount(int32_t cnt)
 {
     webBufferCount_ = static_cast<uint32_t>(cnt);
+}
+
+void DVSyncParam::SetAdaptiveConfig(const std::string &name, const std::string &val)
+{
+    adaptiveConfig_[name] = val;
 }
 } // namespace OHOS::Rosen

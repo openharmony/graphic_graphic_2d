@@ -985,5 +985,10 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
 }
+
+void RSInterfaces::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    renderServiceClient_->TestLoadFileSubTreeToNode(nodeId, filePath);
+}
 } // namespace Rosen
 } // namespace OHOS

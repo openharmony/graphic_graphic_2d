@@ -111,6 +111,7 @@ public:
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
     void RenderServiceAllNodeDump(DfxString& log);
+    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
@@ -265,7 +266,6 @@ public:
     }
 
     DeviceType GetDeviceType() const;
-    bool IsDeeplyRelGpuResEnable() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
     uint64_t GetFocusNodeId() const;
@@ -474,7 +474,6 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
-    void SetDeeplyRelGpuResSwitch();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -624,8 +623,6 @@ private:
     // overDraw
     bool isOverDrawEnabledOfCurFrame_ = false;
     bool isOverDrawEnabledOfLastFrame_ = false;
-    // for deeply release GPU resource
-    bool isDeeplyRelGpuResEnable_ = false;
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     bool initVsyncServiceFlag_ = true;
 #endif

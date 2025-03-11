@@ -39,6 +39,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
+#include "params/rs_rcd_render_params.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -60,6 +61,7 @@
 #include <v1_0/cm_color_space.h>
 
 #include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 
@@ -172,8 +174,15 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
 {
+    if (auto dirtyRegionParam = std::static_pointer_cast<DirtyRegionParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam("DirtyRegionConfig"))) {
+        isPartialRenderEnabled_ = dirtyRegionParam->IsDirtyRegionEnable();
+        isAdvancedDirtyRegionEnabled_ = dirtyRegionParam->IsAdvancedDirtyRegionEnable();
+        isDirtyAlignEnabled_ = dirtyRegionParam->IsTileBasedAlignEnable();
+    }
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
-    isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
+
     isCompleteRenderEnabled_ = (partialRenderType_ == PartialRenderType::SET_DAMAGE_BUT_COMPLETE_RENDER);
     dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
     surfaceRegionDebugType_ = RSSystemProperties::GetSurfaceRegionDfxType();
@@ -195,8 +204,9 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isVirtualDirtyEnabled_ = RSSystemProperties::GetVirtualDirtyEnabled() &&
         (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) && !isRegionDebugEnabled_;
     isExpandScreenDirtyEnabled_ = RSSystemProperties::GetExpandScreenDirtyEnabled();
-    advancedDirtyType_ = RSSystemProperties::GetAdvancedDirtyRegionEnabled();
-    isDirtyAlignEnabled_ = RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
+    advancedDirtyType_ = isAdvancedDirtyRegionEnabled_ ?
+        RSSystemProperties::GetAdvancedDirtyRegionEnabled() : AdvancedDirtyRegionType::DISABLED;
+    isDirtyAlignEnabled_ &= RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
@@ -784,6 +794,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     PostPrepare(node);
     UpdateHwcNodeEnable();
+    UpdateDisplayRcdRenderNode();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
     if (needRecalculateOcclusion_) {
@@ -1266,8 +1277,7 @@ void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
     auto mainThread = RSMainThread::Instance();
-    node.SetOcclusionInSpecificScenes(mainThread->GetDeviceType() == DeviceType::PC &&
-        mainThread->GetIsRegularAnimation());
+    node.SetOcclusionInSpecificScenes(mainThread->GetIsRegularAnimation());
     bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
     bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
         occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
@@ -1746,7 +1756,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node)
 {
-    if (!node.IsLeashWindow()) {
+    if (!node.IsLeashWindow() || !RSSystemParameters::GetUIFirstOcclusionEnabled()) {
         return;
     }
 
@@ -2214,12 +2224,14 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     // add rcd layer
     RequestLayerInfo rcdLayer;
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curDisplayNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
+        auto topNode = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curDisplayNode_->GetRcdSurfaceNodeTop());
+        if (topNode &&
+            RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(topNode, screenInfo_, curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
         }
-        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curDisplayNode_->GetId());
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
+        auto bottomNode = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curDisplayNode_->GetRcdSurfaceNodeBottom());
+        if (bottomNode &&
+            RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(bottomNode, screenInfo_, curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
         }
     }
@@ -2342,7 +2354,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
-        bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curDisplayNode_);
+        bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curDisplayNode_->GetScreenId());
         pointWindow->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by pointWindow and pointSurfaceHandler",
             pointWindow->GetName().c_str(), pointWindow->GetId());
@@ -2351,7 +2363,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
         pointWindow->SetHardCursorStatus(isHardCursor);
         pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);
-        if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        if (isHardCursor) {
             RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
         }
     }
@@ -2458,6 +2470,43 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
 #ifdef RS_PROFILER_ENABLED
     RS_PROFILER_SET_DIRTY_REGION(accumulatedDirtyRegion);
 #endif
+}
+
+void RSUniRenderVisitor::UpdateDisplayRcdRenderNode()
+{
+    RSSingleton<RoundCornerDisplayManager>::GetInstance().RefreshFlagAndUpdateResource(curDisplayNode_->GetId());
+    bool isRcdEnabled = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable();
+
+    if (isRcdEnabled) {
+        if (!curDisplayNode_->GetRcdSurfaceNodeTop()) {
+            auto node = RSRcdSurfaceRenderNode::Create(
+                curDisplayNode_->GetId(), RCDSurfaceType::TOP, curDisplayNode_->GetContext());
+            curDisplayNode_->SetRcdSurfaceNodeTop(node);
+        }
+        if (!curDisplayNode_->GetRcdSurfaceNodeBottom()) {
+            auto node = RSRcdSurfaceRenderNode::Create(
+                curDisplayNode_->GetId(), RCDSurfaceType::BOTTOM, curDisplayNode_->GetContext());
+            curDisplayNode_->SetRcdSurfaceNodeBottom(node);
+        }
+
+        auto hardInfo =
+            RSSingleton<RoundCornerDisplayManager>::GetInstance().PrepareHardwareInfo(curDisplayNode_->GetId());
+        if (hardInfo.topLayer && hardInfo.bottomLayer) {
+            auto topNode = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curDisplayNode_->GetRcdSurfaceNodeTop());
+            auto bottomNode =
+                std::static_pointer_cast<RSRcdSurfaceRenderNode>(curDisplayNode_->GetRcdSurfaceNodeBottom());
+
+            if (hardInfo.resourceChanged) {
+                topNode->SetRenderDisplayRect(hardInfo.displayRect);
+                topNode->PrepareHardwareResource(hardInfo.topLayer);
+                bottomNode->SetRenderDisplayRect(hardInfo.displayRect);
+                bottomNode->PrepareHardwareResource(hardInfo.bottomLayer);
+            }
+
+            topNode->UpdateRcdRenderParams(hardInfo.resourceChanged, hardInfo.topLayer->curBitmap);
+            bottomNode->UpdateRcdRenderParams(hardInfo.resourceChanged, hardInfo.bottomLayer->curBitmap);
+        }
+    }
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow()
@@ -2703,8 +2752,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const
 {
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
-        surfaceNode.IsHardwareEnabledTopSurface() && surfaceNode.GetHardCursorStatus()) {
+    bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curDisplayNode_->GetScreenId());
+    if (isHardCursor && surfaceNode.IsHardwareEnabledTopSurface() && surfaceNode.GetHardCursorStatus()) {
         return;
     }
     RectI lastFrameSurfacePos = curDisplayNode_->GetLastFrameSurfacePos(surfaceNode.GetId());
@@ -3301,7 +3350,9 @@ bool RSUniRenderVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& 
 void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
     const RSRenderNode& rootNode)
 {
-    constexpr float MAX_FLOAT = std::numeric_limits<float>::max();
+    // The value here represents an imaginary plane of infinite width and infinite height,
+    // using values summarized empirically.
+    constexpr float MAX_FLOAT = std::numeric_limits<float>::max() * 1e-30;
     Drawing::Rect childRectMapped(0.0f, 0.0f, MAX_FLOAT, MAX_FLOAT);
     RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
     while (hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE &&
@@ -3800,8 +3851,6 @@ void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
 {
     if (RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo_) &&
         RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RSRcdRenderManager::GetInstance().CheckRenderTargetNode(RSMainThread::Instance()->GetContext());
-        RSSingleton<RoundCornerDisplayManager>::GetInstance().AddRoundCornerDisplay(node.GetId());
         using rcd_msg = RSSingleton<RsMessageBus>;
         uint32_t left = 0; // render region
         uint32_t top = 0;
@@ -3928,26 +3977,29 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay() const
         RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay get screen type failed.");
         return;
     }
-    if (screenType == EXTERNAL_TYPE_SCREEN) {
-        RectI dirtyRectTop, dirtyRectBottom;
-        if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
+
+    if (screenType != EXTERNAL_TYPE_SCREEN) {
+        return;
+    }
+
+    RectI dirtyRectTop, dirtyRectBottom;
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curDisplayNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge topRcdNode dirty "
-                    "%{public}s, global dirty %{public}s, add rect %{public}s",
-                std::to_string(curDisplayNode_->GetScreenId()).c_str(),
-                curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                dirtyRectTop.ToString().c_str());
-            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectTop);
-        }
-        if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
+        RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge topRcdNode dirty "
+                "%{public}s, global dirty %{public}s, add rect %{public}s",
+            std::to_string(curDisplayNode_->GetScreenId()).c_str(),
+            curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
+            dirtyRectTop.ToString().c_str());
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectTop);
+    }
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curDisplayNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
-                    "%{public}s, global dirty %{public}s, add rect %{public}s",
-                std::to_string(curDisplayNode_->GetScreenId()).c_str(),
-                curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                dirtyRectBottom.ToString().c_str());
-            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectBottom);
-        }
+        RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
+                "%{public}s, global dirty %{public}s, add rect %{public}s",
+            std::to_string(curDisplayNode_->GetScreenId()).c_str(),
+            curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
+            dirtyRectBottom.ToString().c_str());
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectBottom);
     }
 }
 

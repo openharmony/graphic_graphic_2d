@@ -5562,4 +5562,21 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSelfDrawingNodeRectInfoTest, TestSize.Le
     rsUniRenderVisitor->CollectSelfDrawingNodeRectInfo(node);
     ASSERT_EQ(SelfDrawingNodeMonitor::GetInstance().curRect_.size(), 0);
 }
+
+/*
+ * @tc.name: UpdateDisplayRcdRenderNodeTest
+ * @tc.desc: Test UpdateDisplayRcdRenderNodeTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->UpdateDisplayRcdRenderNode();
+}
 } // OHOS::Rosen

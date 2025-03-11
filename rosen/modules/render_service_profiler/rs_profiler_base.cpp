@@ -1368,5 +1368,49 @@ double RSProfiler::BaseGetPlaybackSpeed()
     return g_replaySpeed;
 }
 
+void RSProfiler::MarshalSubTreeLo(RSContext& context, std::stringstream& data,
+    const RSRenderNode& node, uint32_t fileVersion)
+{
+    NodeId nodeId = node.GetId();
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
 
+    MarshalNode(node, data, fileVersion);
+
+    const uint32_t count = node.children_.size();
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    for (const auto& child : node.children_) {
+        if (auto childNode = child.lock().get()) {
+            MarshalSubTreeLo(context, data, *childNode, fileVersion);
+        }
+    }
+}
+
+std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
+    RSRenderNode& attachNode, uint32_t fileVersion)
+{
+    NodeId nodeId;
+    data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
+
+    std::string errorReason = UnmarshalNode(context, data, fileVersion);
+    if (errorReason.size()) {
+        return errorReason;
+    }
+
+    auto node = context.GetMutableNodeMap().GetRenderNode(Utils::PatchNodeId(nodeId));
+    if (!node) {
+        return "Failed to create node";
+    }
+
+    attachNode.AddChild(node);
+
+    uint32_t childCount;
+    data.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
+    for (uint32_t i = 0; i < childCount; i++) {
+        UnmarshalSubTreeLo(context, data, *node, fileVersion);
+        if (errorReason.size()) {
+            return errorReason;
+        }
+    }
+    return errorReason;
+}
 } // namespace OHOS::Rosen

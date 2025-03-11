@@ -264,5 +264,21 @@ bool RSSystemParameters::GetAnimationOcclusionEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
+
+bool RSSystemParameters::GetUIFirstPurgeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uifirst.purge.enable", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetUIFirstOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.uifirst.occlusion.enable", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

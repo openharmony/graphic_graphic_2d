@@ -100,6 +100,11 @@ public:
         isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
+    void SetPurgeEnable(bool purgeEnable)
+    {
+        purgeEnable_ = purgeEnable;
+    }
+
     void SetNodeNeedForceUpdateFlag(bool flag)
     {
         hasForceUpdateNode_ = flag;
@@ -232,6 +237,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;

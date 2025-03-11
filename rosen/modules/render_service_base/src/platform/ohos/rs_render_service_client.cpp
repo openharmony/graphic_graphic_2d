@@ -151,8 +151,10 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     if (renderService == nullptr) {
         return nullptr;
     }
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config, unobscured);
-    if (surface == nullptr) {
+
+    sptr<Surface> surface = nullptr;
+    ErrCode err = renderService->CreateNodeAndSurface(config, surface, unobscured);
+    if ((err != ERR_OK) || (surface == nullptr)) {
         ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;
     }
@@ -220,8 +222,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     if (surface == nullptr) {
         return nullptr;
     }
-
-    return renderService->CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    return renderService->CreatePixelMapFromSurface(surface, srcRect, pixelMap) == ERR_OK ? pixelMap : nullptr;
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -430,8 +432,9 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->AddVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->AddVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -440,8 +443,9 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->RemoveVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
@@ -1716,9 +1720,14 @@ int64_t RSRenderServiceClient::GetHdrOnDuration()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
+        return 0;
     }
-    return renderService->GetHdrOnDuration();
+    int64_t hdrOnDuration = 0;
+    auto ret = renderService->GetHdrOnDuration(hdrOnDuration);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("Failed to get HdrOnDuration, ret=%{public}d", ret);
+    }
+    return hdrOnDuration;
 }
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
@@ -2000,6 +2009,14 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->TestLoadFileSubTreeToNode(nodeId, filePath);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

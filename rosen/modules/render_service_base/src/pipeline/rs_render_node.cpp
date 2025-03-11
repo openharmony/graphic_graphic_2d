@@ -52,6 +52,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
+#include "sandbox_utils.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -4061,6 +4062,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
+}
+
+NodeId RSRenderNode::GenerateId()
+{
+    static pid_t pid_ = GetRealPid();
+    static std::atomic<uint32_t> currentId_ = 0; // surfaceNode is seted correctly during boot when currentId is 1
+
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
+        // [PLANNING]:process the overflow situations
+        ROSEN_LOGE("Node Id overflow");
+    }
+
+    // concat two 32-bit numbers to one 64-bit number
+    return ((NodeId)pid_ << 32) | currentId;
 }
 
 bool RSRenderNode::IsRenderUpdateIgnored() const

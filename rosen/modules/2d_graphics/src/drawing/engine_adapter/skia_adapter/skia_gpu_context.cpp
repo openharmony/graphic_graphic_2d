@@ -24,6 +24,9 @@
 #include "skia_trace_memory_dump.h"
 #include "utils/system_properties.h"
 #include "skia_task_executor.h"
+#ifdef ROSEN_OHOS
+#include "parameters.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -92,6 +95,10 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef ROSEN_OHOS
+    grOptions.fRuntimeProgramCacheSize =
+        std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
+#endif
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
     return grContext_ != nullptr ? true : false;
 }

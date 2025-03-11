@@ -50,6 +50,7 @@ typedef void (*GCNotifyTask)(bool);
 struct DVSyncFeatureParam {
     std::vector<bool> switchParams;
     std::vector<uint32_t> bufferCountParams;
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
 };
 
 class VSyncConnection : public VSyncConnectionStub {

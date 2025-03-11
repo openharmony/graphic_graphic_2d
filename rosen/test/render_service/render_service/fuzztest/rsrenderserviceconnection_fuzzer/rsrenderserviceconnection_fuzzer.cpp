@@ -189,7 +189,8 @@ bool DoCreateNodeAndSurface()
     RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test" };
     bool success;
     rsConn_->CreateNode(config, success);
-    rsConn_->CreateNodeAndSurface(config);
+    sptr<Surface> surface = nullptr;
+    rsConn_->CreateNodeAndSurface(config, surface);
     return true;
 }
 
@@ -1293,8 +1294,8 @@ bool DoCreatePixelMapFromSurface()
         .w = GetData<int32_t>(),
         .h = GetData<int32_t>(),
     };
-
-    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
     return true;
 }
 
