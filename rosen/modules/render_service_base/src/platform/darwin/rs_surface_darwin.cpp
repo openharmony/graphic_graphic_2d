@@ -21,6 +21,7 @@
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_darwin.h"
+#include <dispatch/dispatch.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -56,7 +57,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
 
 #ifdef USE_GLFW_WINDOW
     if (GlfwRenderContext::GetGlobal()->IsVisible()) {
-        GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+        dispatch_sync(dispatch_get_main_queue(), ^{
+          GlfwRenderContext::GetGlobal()->CreateRenderingContext();
+        });
     }
 #endif
 
@@ -133,24 +136,47 @@ void RSSurfaceDarwin::SetRenderContext(RenderContext* context)
 bool RSSurfaceDarwin::SetupGrContext()
 {
     if (grContext_ != nullptr) {
+#ifdef USE_GLFW_WINDOW
+        if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+            GlfwRenderContext::GetGlobal()->MakeRenderingCurrent();
+        }
+#endif
         return true;
     }
 
+    bool createOnMainThread = false;
 #ifdef USE_GLFW_WINDOW
-    if (!GlfwRenderContext::GetGlobal()->IsVisible()) {
-        GlfwRenderContext::GetGlobal()->MakeCurrent();
+    if (GlfwRenderContext::GetGlobal()->IsVisible()) {
+        createOnMainThread = true;
     }
-#else
-    GlfwRenderContext::GetGlobal()->MakeCurrent();
 #endif
-    auto grContext = std::make_shared<Drawing::GPUContext>();
-    Drawing::GPUContextOptions options;
-    if (!grContext->BuildFromGL(options)) {
-        RS_LOGE("grContext is nullptr");
-        return false;
+    if (createOnMainThread) {
+        __block auto grContext = std::make_shared<Drawing::GPUContext>();
+        __block bool contextCreated = true;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            Drawing::GPUContextOptions options;
+            if (!grContext->BuildFromGL(options)) {
+                RS_LOGE("grContext is nullptr");
+                contextCreated = false;
+            }
+        });
+        if (!contextCreated) {
+            return false;
+        }
+        GlfwRenderContext::GetGlobal()->MakeRenderingCurrent();
+        grContext_ = grContext;
+        return true;
+    } else {
+        GlfwRenderContext::GetGlobal()->MakeCurrent();
+        auto grContext = std::make_shared<Drawing::GPUContext>();
+        Drawing::GPUContextOptions options;
+        if (!grContext->BuildFromGL(options)) {
+            RS_LOGE("grContext is nullptr");
+            return false;
+        }
+        grContext_ = grContext;
+        return true;
     }
-    grContext_ = grContext;
-    return true;
 }
 
 uint32_t RSSurfaceDarwin::GetQueueSize() const
