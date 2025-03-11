@@ -2031,6 +2031,58 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetAllBlackList001
+ * @tc.desc: Test GetAllBlackList
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSScreenManagerTest, GetAllBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    ScreenId id = 1;
+    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screen->SetCastScreenEnableSkipWindow(false);
+    screenManagerImpl.screens_[id] = std::move(screen);
+
+    const std::vector<uint64_t>& screenBlackList = { 1, 2, 3, 4 };
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    EXPECT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, screenBlackList), StatusCode::SUCCESS);
+
+    auto allBlackList = screenManagerImpl.GetAllBlackList();
+    for (const auto nodeId : screenBlackList) {
+        EXPECT_EQ(allBlackList.count(nodeId), 1);
+    }
+}
+
+/*
+ * @tc.name: GetAllWhiteList001
+ * @tc.desc: Test GetAllWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSScreenManagerTest, GetAllWhiteList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    ScreenId id = 1;
+    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    const std::unordered_set<NodeId>& whiteList = { 1, 2, 3, 4 };
+    screen->whiteList_ = whiteList;
+    screenManagerImpl.screens_[id] = std::move(screen);
+
+    auto allWhiteList = screenManagerImpl.GetAllWhiteList();
+    for (const auto nodeId : whiteList) {
+        EXPECT_EQ(allWhiteList.count(nodeId), 1);
+    }
+}
+
+/*
  * @tc.name: RemoveVirtualScreenBlackList001
  * @tc.desc: Test RemoveVirtualScreenBlackList, when id is INVALID_SCREEN_ID
  * @tc.type: FUNC

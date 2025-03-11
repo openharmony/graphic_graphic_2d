@@ -1185,6 +1185,37 @@ std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(ScreenId i
     }
 }
 
+std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allBlackList;
+    for (const auto& screen : screens_) {
+        if (screen.second == nullptr) {
+            continue;
+        }
+        if (screen.second->GetCastScreenEnableSkipWindow()) {
+            allBlackList.insert(castScreenBlackLists_.begin(), castScreenBlackLists_.end());
+        } else {
+            const auto& blackList = screen.second->GetBlackList();
+            allBlackList.insert(blackList.begin(), blackList.end());
+        }
+    }
+    return allBlackList;
+}
+
+std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allWhiteList;
+    for (const auto& screen : screens_) {
+        if (screen.second != nullptr) {
+            const auto& whiteList = screen.second->GetWhiteList();
+            allWhiteList.insert(whiteList.begin(), whiteList.end());
+        }
+    }
+    return allWhiteList;
+}
+
 int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);

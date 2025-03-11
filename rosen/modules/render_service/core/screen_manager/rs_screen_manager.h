@@ -89,6 +89,10 @@ public:
     
     virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) = 0;
 
+    virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
+
+    virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const = 0;
@@ -306,6 +310,10 @@ public:
     bool GetCastScreenEnableSkipWindow(ScreenId id) override;
     
     std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
+
+    std::unordered_set<uint64_t> GetAllBlackList() const override;
+
+    std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
