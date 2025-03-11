@@ -465,4 +465,33 @@ HWTEST_F(RSColorspaceConvertTest, ConvertColorGamutToSpaceInfo007, TestSize.Leve
     ASSERT_TRUE(ret == true);
 }
 
+/**
+ * @tc.name: GetFovMetadata001
+ * @tc.desc: test get fov metadata with nullptr buffer
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, GetFovMetadata001, TestSize.Level1)
+{
+    VPEParameter parameter;
+    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+    GSError ret = GSERROR_OK;
+    RSColorSpaceConvert::Instance().GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
+    ASSERT_TRUE(ret != GSERROR_OK); // buffer is nullptr
+}
+
+/**
+ * @tc.name: GetFovMetadata002
+ * @tc.desc: test get fov metadata normal case
+ * @tc.type:FUNC
+ * @tc.require: IAJ26A
+ */
+HWTEST_F(RSColorspaceConvertTest, GetFovMetadata002, TestSize.Level1)
+{
+    VPEParameter parameter;
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    GSError ret = GSERROR_OK;
+    RSColorSpaceConvert::Instance().GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
+    ASSERT_TRUE(ret == GSERROR_OK);
+}
 } // namespace OHOS::Rosen
