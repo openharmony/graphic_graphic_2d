@@ -731,7 +731,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
+    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
 
     if (RSSystemProperties::GetCacheOptimizeRotateEnable() &&
         surfaceParams->GetName().find(WALLPAPER) != std::string::npos) {
@@ -777,7 +777,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     CaptureSurface(*rscanvas, *surfaceParams);
-    ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
+    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
