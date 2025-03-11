@@ -65,6 +65,7 @@ public:
 
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
+    RSB_EXPORT bool IsCloseHardwareHdr();
 
 private:
     RSLuminanceControl() = default;
@@ -94,6 +95,7 @@ private:
     using IsHdrPictureOnFunc = bool(*)();
     using IsForceCloseHdrFunc = bool(*)();
     using ForceCloseHdrFunc = void(*)(uint32_t, bool);
+    using IsCloseHardwareHdrFunc = bool(*)();
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
     IsHdrOnFunc isHdrOn_{nullptr};
@@ -110,6 +112,7 @@ private:
     IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
     IsForceCloseHdrFunc isForceCloseHdr_{nullptr};
     ForceCloseHdrFunc forceCloseHdr_{nullptr};
+    IsCloseHardwareHdrFunc isCloseHardwareHdr_{nullptr};
 #endif
 };
 

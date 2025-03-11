@@ -619,7 +619,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     } else if (params.isHdrToSdr) {
         parameter.sdrNits = DEFAULT_DISPLAY_NIT;
         parameter.tmoNits = DEFAULT_DISPLAY_NIT;
-        parameter.displayNits = DEFAULT_DISPLAY_NIT;
+        parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 

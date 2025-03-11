@@ -92,5 +92,10 @@ bool RSLuminanceControl::IsHdrPictureOn()
 {
     return false;
 }
+
+bool IsCloseHardwareHdr()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

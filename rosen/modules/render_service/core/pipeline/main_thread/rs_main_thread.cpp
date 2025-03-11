@@ -1764,6 +1764,15 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 return;
             }
 
+            // If hardware don't support hdr render, should disable direct composition
+            if (RSLuminanceControl::Get().IsCloseHardwareHdr() &&
+                surfaceNode->GetVideoHdrStatus() != HdrStatus::NO_HDR &&
+                !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+                doDirectComposition_ = false;
+                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", HDR disable direct composition",
+                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
+            }
+
             if (isAdaptive && gameNodeName == surfaceNode->GetName()) {
                 isGameNodeOnTree = true;
             }
