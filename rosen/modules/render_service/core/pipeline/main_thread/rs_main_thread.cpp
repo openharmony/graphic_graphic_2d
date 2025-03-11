@@ -3161,21 +3161,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
             RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
             if ((requestNextVsyncNum_ - currentNum_) >= REQUEST_VSYNC_DUMP_NUMBER) {
                 RS_LOGW("RSMainThread::RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
-                RSEventDumper dumper;
-                handler_->Dump(dumper);
-                dumpInfo_ = dumper.GetOutput().c_str();
-                size_t dumpBegin = dumpInfo_.find("Current Running: start");
-                size_t compareStrSize = sizeof("\n");
-                if (dumpBegin != std::string::npos) {
-                    size_t dumpEnd = dumpInfo_.find("RSEventDumper No. 9", dumpBegin);
-                    if (dumpEnd != std::string::npos) {
-                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
-                            dumpInfo_.substr(dumpBegin, dumpEnd - dumpBegin - compareStrSize).c_str());
-                    } else {
-                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
-                            dumper.GetOutput().c_str());
-                    }
-                }
+                DumpEventHandlerInfo();
             }
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
@@ -3185,6 +3171,84 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
             rsVSyncDistributor_->PrintConnectionsStatus();
         }
     }
+}
+
+void RSMainThread::DumpEventHandlerInfo()
+{
+    RSEventDumper dumper;
+    handler_->Dump(dumper);
+    dumpInfo_ = dumper.GetOutput().c_str();
+    RS_LOGW("RSMainThread::RequestNextVSync HistoryEventQueue is %{public}s", SubHistoryEventQueue(dumpInfo_).c_str());
+    size_t immediateStart = dumpInfo_.find("Immediate priority event queue infomation:");
+    if (immediateStart != std::string::npos) {
+        size_t immediateEnd = dumpInfo_.find("RSEventDumper High priority event", immediateStart);
+        if (immediateEnd != std::string::npos) {
+            std::string priorityEventQueue = dumpInfo_.substr(immediateStart, immediateEnd - immediateStart).c_str();
+            RS_LOGW("RSMainThread::RequestNextVSync PriorityEventQueue is %{public}s",
+                SubPriorityEventQueue(priorityEventQueue).c_str());
+        }
+    }
+    currentNum_ = requestNextVsyncNum_.load();
+}
+
+std::string RSMainThread::SubHistoryEventQueue(std::string input)
+{
+    const int CONTEXT_LINES = 3;
+    const std::string TARGET_STRING = "completeTime time = ,";
+    std::vector<std::string> lines;
+    std::string line;
+    std::istringstream stream(input);
+    bool foundTargetStr = false;
+    while (std::getline(stream, line)) {
+        lines.push_back(line);
+    }
+    std::string result;
+    for (int i = 0; i < lines.size(); ++i) {
+        if (lines[i].find(TARGET_STRING) != std::string::npos) {
+            foundTargetStr = true;
+            int start = std::max(0, i - CONTEXT_LINES);
+            int end = std::min(static_cast<int>(lines.size() - 1), i + CONTEXT_LINES);
+            for (int j = start; j < end; ++j) {
+                result += lines[j] + "\n";
+            }
+            break;
+        }
+    }
+    if (!foundTargetStr) {
+        RS_LOGW("RSMainThread::SubHistoryEventQueue No task is being executed");
+        // If the TARGET_STRING is not found, dump the information of the first 10 lines.
+        int end = std::min(static_cast<int>(lines.size() - 1) - 1, 9);
+        for (int j = 0; j <= end; ++j) {
+            result += lines[j] + "\n";
+        }
+    }
+    return result;
+}
+
+std::string RSMainThread::SubPriorityEventQueue(std::string input)
+{
+    std::string result;
+    std::string line;
+    std::istringstream stream(input);
+
+    while (std::getline(stream, line)) {
+        if (line.find("RSEventDumper No.") != std::string::npos) {
+            size_t dot_pos = line.find('.');
+            if (dot_pos != std::string::npos) {
+                size_t space_pos = line.find(' ', dot_pos);
+                if (space_pos != std::string::npos) {
+                    std::string num_str = line.substr(dot_pos + 1, space_pos - dot_pos - 1);
+                    int num = std::stoi(num_str);
+                    if (num >= 1 && num <= 3) { // dump the first three lines of information.
+                        result += line + "\n";
+                    }
+                }
+            }
+        } else if (line.find("Total size of Immediate Events") != std::string::npos) {
+            result += line + "\n";
+        }
+    }
+    return result;
 }
 
 void RSMainThread::ProcessScreenHotPlugEvents()

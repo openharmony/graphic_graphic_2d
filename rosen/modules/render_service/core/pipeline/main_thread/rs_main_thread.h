@@ -578,6 +578,9 @@ private:
 
     // Record change status of multi or single display
     void MultiDisplayChange(bool isMultiDisplay);
+    void DumpEventHandlerInfo();
+    std::string SubHistoryEventQueue(std::string input);
+    std::string SubPriorityEventQueue(std::string input);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
