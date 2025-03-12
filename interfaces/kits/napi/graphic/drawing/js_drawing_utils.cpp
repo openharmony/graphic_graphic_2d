@@ -22,7 +22,7 @@
 
 #include "draw/color.h"
 #include "rosen_text/font_collection.h"
-#include "platform.h"
+#include "txt/platform.h"
 
 namespace OHOS::Rosen {
 
