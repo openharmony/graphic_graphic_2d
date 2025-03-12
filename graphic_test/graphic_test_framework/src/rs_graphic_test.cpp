@@ -123,7 +123,7 @@ void RSGraphicTest::SetUp()
     }
 
     cout << "SetUp:isMultiple is true" << endl;
-    auto capacity = GetScreenCapacity(string(testInfo->test_case_name));
+    auto capacity = GetScreenCapacity(string(testInfo->test_case_name()));
     auto size = GetScreenSize();
     cout << "SetUp:capacity:" << capacity.x_ << "*" << capacity.y_ << endl;
     cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
@@ -131,7 +131,7 @@ void RSGraphicTest::SetUp()
         SetScreenSurfaceBounds({0, 0, capacity.x_*size.x_, capacity.y_*size.y_});
         cout << "ScreenSurfaceBounds:[" << capacity.x_*size.x_ << "*" << capacity.y_*size.y_ << "]" << endl;
     }
-    auto pos = getPos(imageWriteId_, capacity.x_);
+    auto pos = getPos(extInfo->testId, capacity.x_);
     cout << "pos:id:" << imageWriteId_ << "[" << pos.x_ << "." << pos.y_ << "]" << endl;
 
     testSurface->SetBounds({pos.x_*size.x_, pos.y_*size.y_, size.x_, size.y_});
@@ -149,9 +149,11 @@ void RSGraphicTest::TearDown()
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
 
-    if ((extInfo->isMultiple) && (++imageWriteId_ < ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(
-        string(testInfo->test_case_name)))) {
-        return;
+    if (!IsSingleTest()) {
+        if ((extInfo->isMultiple) && (++imageWriteId_ < ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(
+            string(testInfo->test_case_name)))) {
+            return;
+        }
     }
 
     StartUIAnimation();
@@ -231,6 +233,11 @@ void RSGraphicTest::SetSurfaceColor(const RSColor& color)
 void RSGraphicTest::SetScreenSize(float width, float height)
 {
     RSGraphicTestDirector::Instance().SetScreenSize(width, height);
+}
+
+bool RSGraphicTest::IsSingleTest()
+{
+    RSGraphicTestDirector::Instance().IsSingleTest();
 }
 
 std::string RSGraphicTest::GetImageSavePath(const std::string path)

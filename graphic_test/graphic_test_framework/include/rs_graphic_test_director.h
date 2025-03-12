@@ -54,7 +54,7 @@ public:
 private:
     ScreenId screenId_ = 0;
     RectF screenBounds_;
-    bool IsSingleTest_ = false;
+    bool isSingleTest_ = false;
     std::shared_ptr<RSGraphicRootNode> rootNode_;
     std::shared_ptr<RSUIDirector> rsUiDirector_;
 

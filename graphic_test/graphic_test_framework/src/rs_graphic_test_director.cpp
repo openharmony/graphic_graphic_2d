@@ -219,7 +219,7 @@ void RSGraphicTestDirector::SetSingleTest(bool isSingleTest)
     isSingleTest_ = isSingleTest;
 }
 
-void RSGraphicTestDirector::IsSingleTest()
+bool RSGraphicTestDirector::IsSingleTest()
 {
     return isSingleTest_;
 }
