@@ -59,7 +59,6 @@ private:
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
-    bool isPhone_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

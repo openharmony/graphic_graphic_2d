@@ -134,7 +134,7 @@ HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
     }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     renderProcessor->PostProcess();
-    EXPECT_FALSE(renderProcessor->isPhone_);
+    EXPECT_EQ(renderProcessor->layers_.size(), 0);
 }
 
 /**
@@ -165,7 +165,7 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     layerInfo.zOrder = 0;
     params.SetLayerInfo(layerInfo);
     renderProcessor->CreateLayer(node, params);
-    EXPECT_FALSE(renderProcessor->isPhone_);
+    EXPECT_EQ(params.GetLayerInfo().zOrder, 0);
 }
 
 /**
