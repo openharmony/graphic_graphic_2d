@@ -341,7 +341,7 @@ void RSUifirstManager::ProcessDoneNode()
             it++;
         }
     }
-    for (int it = pindingResetWindowCachedNodes_.begin(); it != pindingResetWindowCachedNodes_.end();) {
+    for (auto it = pindingResetWindowCachedNodes_.begin(); it != pindingResetWindowCachedNodes_.end();) {
         ResetUifirstNode(*it);
         pindingResetWindowCachedNodes_.erase(it);
     }
