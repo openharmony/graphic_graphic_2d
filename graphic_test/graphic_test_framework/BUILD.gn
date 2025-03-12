@@ -116,7 +116,7 @@ ohos_static_library("rs_graphic_test_main") {
 action_foreach("objcopy_resource") {
   # add resource file here
   sources = [
-    "resource/Cursor_Circle.png",
+    "$rosen_root/modules/effect/test/resource/images/test.png",
   ]
 
   resource_dir =
