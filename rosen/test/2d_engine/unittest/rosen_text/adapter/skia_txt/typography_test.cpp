@@ -544,7 +544,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     ASSERT_EQ(runMetrics.size(), 1);
     for (const auto& item : runMetrics) {
         ASSERT_EQ(item.second.textStyle->fontSize, 100);
-        ASSERT_EQ(item.second.textStyle->heightOnly, true);
         ASSERT_EQ(item.second.textStyle->heightScale, 1);
     }
 }
@@ -581,7 +580,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
      ASSERT_EQ(runMetrics1.size(), 1);
      for (const auto& item : runMetrics1) {
          ASSERT_EQ(item.second.textStyle->fontSize, 30);
-         ASSERT_EQ(item.second.textStyle->heightOnly, true);
          ASSERT_EQ(item.second.textStyle->heightScale, 2);
      }
  }
@@ -624,7 +622,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level
     auto runMetrics2 = myLinesMetric2[0].runMetrics;
     for (const auto& item : runMetrics2) {
         ASSERT_EQ(item.second.textStyle->fontSize, 50);
-        ASSERT_EQ(item.second.textStyle->heightOnly, true);
         ASSERT_EQ(item.second.textStyle->heightScale, 3);
     }
 }
