@@ -65,7 +65,6 @@ ohos_source_set("rs_graphic_test_src") {
     "$rosen_root/modules/platform:eventhandler",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
-    ":objcopy_resource",
   ]
 
   public_deps = [
@@ -117,6 +116,7 @@ action_foreach("objcopy_resource") {
   # add resource file here
   sources = [
     "$rosen_root/modules/effect/test/resource/images/test.png",
+    # "resource/pngtest.png",
   ]
 
   resource_dir =
