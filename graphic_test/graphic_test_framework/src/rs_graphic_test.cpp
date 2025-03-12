@@ -131,7 +131,7 @@ void RSGraphicTest::SetUp()
         SetScreenSurfaceBounds({0, 0, capacity.x_*size.x_, capacity.y_*size.y_});
         cout << "ScreenSurfaceBounds:[" << capacity.x_*size.x_ << "*" << capacity.y_*size.y_ << "]" << endl;
     }
-    auto pos = getPos(extInfo->testId, capacity.x_);
+    auto pos = GetPos(extInfo->testId, capacity.x_);
     cout << "pos:id:" << imageWriteId_ << "[" << pos.x_ << "." << pos.y_ << "]" << endl;
 
     testSurface->SetBounds({pos.x_*size.x_, pos.y_*size.y_, size.x_, size.y_});
