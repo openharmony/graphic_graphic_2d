@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include "graphic_feature_param_manager.h"
 #include "display_engine/rs_color_temperature.h"
 #include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
@@ -544,17 +545,22 @@ void RSScreenManager::ProcessPendingConnections()
         std::lock_guard<std::mutex> lock(hotPlugAndConnectMutex_);
         pendingConnectedIds = std::move(pendingConnectedIds_);
     }
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("%{public}s multiScreenFeatureParam is null", __func__);
+        return;
+    }
     for (auto id : pendingConnectedIds) {
         if (!isHwcDead_) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && RSSystemProperties::IsPcType()) {
+        } else if (id != 0 && multiScreenFeatureParam->IsRsReportHwcDead()) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
         auto screen = GetScreen(id);
         if (screen == nullptr) {
             continue;
         }
-
         ScreenRotation rotation = ScreenRotation::INVALID_SCREEN_ROTATION;
         int32_t backLightLevel = INVALID_BACKLIGHT_VALUE;
         {
@@ -569,7 +575,6 @@ void RSScreenManager::ProcessPendingConnections()
         if (rotation != ScreenRotation::INVALID_SCREEN_ROTATION) {
             screen->SetScreenCorrection(rotation);
         }
-
         bool screenPowerOn = false;
         {
             std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
@@ -1256,6 +1261,37 @@ const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(Scre
     }
     RS_LOGD("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     return virtualScreen->second->GetBlackList();
+}
+
+std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allBlackList;
+    for (const auto& screen : screens_) {
+        if (screen.second == nullptr) {
+            continue;
+        }
+        if (screen.second->GetCastScreenEnableSkipWindow()) {
+            allBlackList.insert(castScreenBlackList_.begin(), castScreenBlackList_.end());
+        } else {
+            const auto& blackList = screen.second->GetBlackList();
+            allBlackList.insert(blackList.begin(), blackList.end());
+        }
+    }
+    return allBlackList;
+}
+
+std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allWhiteList;
+    for (const auto& screen : screens_) {
+        if (screen.second != nullptr) {
+            const auto& whiteList = screen.second->GetWhiteList();
+            allWhiteList.insert(whiteList.begin(), whiteList.end());
+        }
+    }
+    return allWhiteList;
 }
 
 int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)

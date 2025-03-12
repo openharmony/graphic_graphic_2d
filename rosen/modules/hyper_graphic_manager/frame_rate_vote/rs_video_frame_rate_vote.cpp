@@ -51,6 +51,11 @@ void RSVideoFrameRateVote::StartVideoFrameRateVote(double videoRate)
     SendDelayTask();
 }
 
+void RSVideoFrameRateVote::ReSetLastRate()
+{
+    lastRate_ = 0;
+}
+
 void RSVideoFrameRateVote::VoteVideoFrameRate(double videoRate)
 {
     int32_t intRate = static_cast<int32_t>(videoRate);

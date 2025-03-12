@@ -24,7 +24,7 @@ namespace Rosen {
 class RSUniRenderEngine : public RSBaseRenderEngine {
 public:
     RSUniRenderEngine() = default;
-    ~RSUniRenderEngine() noexcept = default;
+    ~RSUniRenderEngine() noexcept override = default;
     RSUniRenderEngine(const RSUniRenderEngine&) = delete;
     void operator=(const RSUniRenderEngine&) = delete;
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,

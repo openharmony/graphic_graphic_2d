@@ -43,7 +43,10 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
-    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
+        bool displayP3Enable = false) const;
+    void SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas, ColorFilterMode colorFilterMode,
+        float hdrBrightnessRatio = 1.f) const;
     void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const

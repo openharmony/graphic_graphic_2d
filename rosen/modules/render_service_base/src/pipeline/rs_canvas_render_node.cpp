@@ -23,6 +23,7 @@
 #include "recording/recording_canvas.h"
 #include "memory/rs_memory_track.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -288,6 +289,18 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 bool RSCanvasRenderNode::GetHDRPresent() const
 {
     return hasHdrPresent_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
+{
+    linkedRootNodeId_ = rootNodeId;
+}
+
+// [Attention] Only used in PC window resize scene now
+NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
+{
+    return linkedRootNodeId_;
 }
 
 } // namespace Rosen

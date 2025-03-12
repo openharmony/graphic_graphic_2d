@@ -534,6 +534,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
@@ -605,6 +610,11 @@ bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
 }
 
 bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
 }

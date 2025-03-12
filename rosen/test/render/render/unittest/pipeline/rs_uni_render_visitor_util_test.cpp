@@ -3641,37 +3641,6 @@ HWTEST_F(RSUniRenderVisitorTest, SurfaceOcclusionCallbackToWMS001, TestSize.Leve
 }
 
 /**
- * @tc.name: GetCurrentBlackList001
- * @tc.desc: Test GetCurrentBlackList with default constructed visitor
- * @tc.type: FUNC
- * @tc.require: issueIBD11A
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    EXPECT_TRUE(rsUniRenderVisitor->GetCurrentBlackList().empty());
-}
-
-/**
- * @tc.name: GetCurrentBlackList002
- * @tc.desc: Test GetCurrentBlackList002, screenManager_ && curDisplayNode_ != nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBD11A
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList002, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
-    ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
-}
-
-/**
  * @tc.name: IsLeashAndHasMainSubNode001
  * @tc.desc: Test IsLeashAndHasMainSubNode with empty node
  * @tc.type: FUNC

@@ -26,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 
+// remove and use UniRenderVisitor instead when rcd is handled by in OH 6.0 rcd refactoring
 class RSRcdRenderVisitor : public RSNodeVisitor {
 public:
     RSRcdRenderVisitor();
@@ -47,10 +48,8 @@ public:
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
-    bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node);
-    bool ProcessRcdSurfaceRenderNode(
-        RSRcdSurfaceRenderNode &node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged);
-    void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
+    bool PrepareResourceBuffer(RSRcdSurfaceRenderNode &node, std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
+    void ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, bool resourceChanged);
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 
 private:

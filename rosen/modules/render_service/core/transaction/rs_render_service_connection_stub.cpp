@@ -188,6 +188,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -424,7 +425,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFdWorker, ashmemFlowControlUnit,
                     callingPid);
                 if (parsedParcel) {
-                    RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
+                    parcelNumber = RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
                 }
             }
             if (parsedParcel == nullptr) {
@@ -449,7 +450,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED): {
-            if (!reply.WriteBool(GetUniRenderEnabled())) {
+            bool enable;
+            if (GetUniRenderEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -477,7 +479,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
-            if (!reply.WriteBool(CreateNode(config))) {
+            bool success;
+            if (CreateNode(config, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -519,8 +522,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .isTextureExportNode = isTextureExportNode,
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType) };
-            sptr<Surface> surface = CreateNodeAndSurface(config, unobscured);
-            if (surface == nullptr) {
+            sptr<Surface> surface = nullptr;
+            ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
+            if ((err != ERR_OK) || (surface == nullptr)) {
                 ret = ERR_NULL_OBJECT;
                 break;
             }
@@ -635,8 +639,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -649,8 +654,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1001,8 +1007,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            std::string refreshInfo = GetRefreshInfo(pid);
-            if (!reply.WriteString(refreshInfo)) {
+            std::string refreshInfo;
+            if (GetRefreshInfo(pid, refreshInfo) != ERR_OK || !reply.WriteString(refreshInfo)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1270,15 +1276,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            MemoryGraphic memoryGraphic = GetMemoryGraphic(pid);
-            if (!reply.WriteParcelable(&memoryGraphic)) {
+            MemoryGraphic memoryGraphic;
+            if (GetMemoryGraphic(pid, memoryGraphic) != ERR_OK || !reply.WriteParcelable(&memoryGraphic)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS): {
-            std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
-            if (!reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()))) {
+            std::vector<MemoryGraphic> memoryGraphics;
+            if (GetMemoryGraphics(memoryGraphics) != ERR_OK ||
+                !reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()))) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
@@ -1293,8 +1300,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
-            GetTotalAppMemSize(cpuMemSize, gpuMemSize);
-            if (!reply.WriteFloat(cpuMemSize) || !reply.WriteFloat(gpuMemSize)) {
+            bool success;
+            if (GetTotalAppMemSize(cpuMemSize, gpuMemSize, success) != ERR_OK || !success ||
+                !reply.WriteFloat(cpuMemSize) || !reply.WriteFloat(gpuMemSize)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1631,8 +1639,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-            int32_t result = GetPixelMapByProcessId(pixelMapVector, static_cast<pid_t>(pid));
-            if (!reply.WriteInt32(result)) {
+            int32_t repCode;
+            if (GetPixelMapByProcessId(pixelMapVector, static_cast<pid_t>(pid), repCode) != ERR_OK ||
+                !reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
@@ -1676,7 +1685,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .w = w,
                 .h = h
             };
-            std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
+            std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     ret = ERR_INVALID_REPLY;
@@ -1904,12 +1914,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_PROFILER_PATCH_NODE_ID(data, id);
             Drawing::Bitmap bm;
-            bool result = GetBitmap(id, bm);
-            if (!reply.WriteBool(result)) {
+            bool success;
+            if (GetBitmap(id, bm, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result) {
+            if (success) {
                 RSMarshallingHelper::Marshalling(reply, bm);
             }
             break;
@@ -1932,12 +1942,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSMarshallingHelper::Unmarshalling(data, rect);
             std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
             RSMarshallingHelper::Unmarshalling(data, drawCmdList);
-            bool result = GetPixelmap(id, pixelmap, &rect, drawCmdList);
-            if (!reply.WriteBool(result)) {
+            bool success;
+            if (GetPixelmap(id, pixelmap, &rect, drawCmdList, success) != ERR_OK ||
+                !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result) {
+            if (success) {
                 RSMarshallingHelper::Marshalling(reply, pixelmap);
             }
             break;
@@ -2188,7 +2199,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::std::shared_ptr<Media::PixelMap> watermark == nullptr");
                 break;
             }
-            SetWatermark(name, watermark);
+            bool success;
+            if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
+                RS_LOGE("RSRenderServiceConnectionStub::SetWatermark failed");
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {
@@ -2359,7 +2373,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (!reply.WriteUint32(SetHidePrivacyContent(id, needHidePrivacyContent))) {
+            uint32_t resCode;
+            if (SetHidePrivacyContent(id, needHidePrivacyContent, resCode) != ERR_OK ||
+                !reply.WriteUint32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2635,8 +2651,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HDR_ON_DURATION) : {
-            int64_t hdrOnDuration = GetHdrOnDuration();
-            if (!reply.WriteInt64(hdrOnDuration)) {
+            int64_t hdrOnDuration = 0;
+            auto errCode = GetHdrOnDuration(hdrOnDuration);
+            if (errCode != ERR_OK || !reply.WriteInt64(hdrOnDuration)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2791,7 +2808,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
             };
-            reply.WriteBool(CreateNode(config, id));
+            bool success;
+            if (CreateNode(config, id, success) != ERR_OK || reply.WriteBool(success)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
@@ -2909,6 +2929,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE) : {
+            NodeId nodeId = {};
+            std::string filePath;
+            if (!data.ReadUint64(nodeId) || !data.ReadString(filePath)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RS_PROFILER_TEST_LOAD_FILE_SUB_TREE(nodeId, filePath);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

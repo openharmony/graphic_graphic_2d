@@ -68,17 +68,7 @@ bool RSLuminanceControl::IsNeedUpdateLuminance(ScreenId screenId)
     return false;
 }
 
-float RSLuminanceControl::GetHdrTmoNits(ScreenId screenId, int mode)
-{
-    return HDR_DEFAULT_TMO_NIT;
-}
-
 float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
-{
-    return HDR_DEFAULT_TMO_NIT;
-}
-
-float RSLuminanceControl::GetHdrDisplayNits(ScreenId screenId)
 {
     return HDR_DEFAULT_TMO_NIT;
 }
@@ -99,6 +89,11 @@ float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, int32_t d
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
+{
+    return false;
+}
+
+bool IsCloseHardwareHdr()
 {
     return false;
 }

@@ -107,6 +107,11 @@ public:
 
     void SetUiFirstType(int type);
 
+    void SetPurgeEnable(bool purgeEnable)
+    {
+        purgeEnable_ = purgeEnable;
+    }
+
     void SetNodeNeedForceUpdateFlag(bool flag)
     {
         hasForceUpdateNode_ = flag;
@@ -239,6 +244,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;

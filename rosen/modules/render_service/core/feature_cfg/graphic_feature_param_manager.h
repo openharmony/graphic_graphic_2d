@@ -33,16 +33,22 @@
 #include "drm_param.h"
 #include "color_gamut_param_parse.h"
 #include "color_gamut_param.h"
+#include "hard_cursor_param.h"
+#include "hard_cursor_param_parse.h"
 #include "hfbc_param_parse.h"
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
 #include "hwc_param.h"
 #include "mem_param_parse.h"
 #include "mem_param.h"
+#include "multiscreen_param_parse.h"
+#include "multiscreen_param.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
 #include "prevalidate_param.h"
+#include "rotateoffscreen_param_parse.h"
+#include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
 #include "stencil_pixel_occlusion_culling_param.h"
@@ -89,6 +95,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
+    {FEATURE_CONFIGS[MULTISCREEN], [] {return std::make_unique<MultiScreenParamParse>(); },
+        [] {return std::make_unique<MultiScreenParam>(); }},
     {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
         [] {return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
@@ -97,6 +105,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<FilterParam>(); }},
     {FEATURE_CONFIGS[DVSYNC], [] { return std::make_unique<DVSyncParamParse>(); },
         [] { return std::make_unique<DVSyncParam>(); }},
+    {FEATURE_CONFIGS[HARDCURSOR], [] { return std::make_unique<HardCursorParamParse>(); },
+        [] { return std::make_unique<HardCursorParam>(); }},
     {FEATURE_CONFIGS[SOC_PERF], [] { return std::make_unique<SOCPerfParamParse>(); },
         [] { return std::make_unique<SOCPerfParam>(); }},
     {FEATURE_CONFIGS[CAPTURE_BASE], [] {return std::make_unique<CaptureBaseParamParse>(); },
@@ -111,6 +121,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[VRate], [] { return std::make_unique<VRateParamParse>(); },
         [] { return std::make_unique<VRateParam>(); }},
+    {FEATURE_CONFIGS[RotateOffScreen], [] { return std::make_unique<RotateOffScreenParamParse>(); },
+        [] { return std::make_unique<RotateOffScreenParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

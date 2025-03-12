@@ -34,9 +34,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_singleton.h"
-#include "feature/round_corner_display/rs_message_bus.h"
 #ifdef RS_ENABLE_GPU
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
@@ -117,7 +115,7 @@ bool RSRenderService::Init()
 #ifdef RS_ENABLE_GPU
         RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
-        RegisterRcdMsg();
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RegisterRcdMsg();
 #endif
     }
 
@@ -136,26 +134,8 @@ bool RSRenderService::Init()
         appVSyncController_ = new VSyncController(generator, 0);
         generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
-    std::shared_ptr<FeatureParam> featureParam =
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
-    std::vector<bool> switchParams = {};
-    std::vector<uint32_t> bufferCountParams = {};
-    if (featureParam != nullptr) {
-        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
-        switchParams = {
-            dvsyncFeatureParam->IsDVSyncEnable(),
-            dvsyncFeatureParam->IsUiDVSyncEnable(),
-            dvsyncFeatureParam->IsNativeDVSyncEnable(),
-            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
-        };
-        bufferCountParams = {
-            dvsyncFeatureParam->GetUiBufferCount(),
-            dvsyncFeatureParam->GetRsBufferCount(),
-            dvsyncFeatureParam->GetNativeBufferCount(),
-            dvsyncFeatureParam->GetWebBufferCount(),
-        };
-    }
-    DVSyncFeatureParam dvsyncParam = { switchParams, bufferCountParams };
+    DVSyncFeatureParam dvsyncParam;
+    InitDVSyncParams(dvsyncParam);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
 
@@ -197,6 +177,32 @@ bool RSRenderService::Init()
     return true;
 }
 
+void RSRenderService::InitDVSyncParams(DVSyncFeatureParam &dvsyncParam)
+{
+    std::shared_ptr<FeatureParam> featureParam =
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
+    std::vector<bool> switchParams = {};
+    std::vector<uint32_t> bufferCountParams = {};
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+    if (featureParam != nullptr) {
+        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
+        switchParams = {
+            dvsyncFeatureParam->IsDVSyncEnable(),
+            dvsyncFeatureParam->IsUiDVSyncEnable(),
+            dvsyncFeatureParam->IsNativeDVSyncEnable(),
+            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
+        };
+        bufferCountParams = {
+            dvsyncFeatureParam->GetUiBufferCount(),
+            dvsyncFeatureParam->GetRsBufferCount(),
+            dvsyncFeatureParam->GetNativeBufferCount(),
+            dvsyncFeatureParam->GetWebBufferCount(),
+        };
+        adaptiveConfigs = dvsyncFeatureParam->GetAdaptiveConfig();
+    }
+    dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+}
+
 void RSRenderService::Run()
 {
     if (!mainThread_) {
@@ -205,36 +211,6 @@ void RSRenderService::Run()
     }
     RS_LOGE("RSRenderService::Run");
     mainThread_->Start();
-}
-
-void RSRenderService::RegisterRcdMsg()
-{
-#ifdef RS_ENABLE_GPU
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
-        if (!isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
-            auto& rcdHardManager = RSRcdRenderManager::GetInstance();
-            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
-                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateDisplayParameter);
-            msgBus.RegisterTopic<NodeId, ScreenRotation>(
-                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateOrientationStatus);
-            msgBus.RegisterTopic<NodeId, int>(
-                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateNotchStatus);
-            msgBus.RegisterTopic<NodeId, bool>(
-                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
-            isRcdServiceRegister_ = true;
-            RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
-            return;
-        }
-        RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
-    }
-#endif
 }
 
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
@@ -265,17 +241,14 @@ sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RS
 
 void RSRenderService::RemoveConnection(sptr<IRemoteObject> token)
 {
+    // temporarily extending the life cycle
     std::unique_lock<std::mutex> lock(mutex_);
-    if (connections_.count(token) == 0) {
-        return;
-    }
     auto iter = connections_.find(token);
     if (iter == connections_.end()) {
         RS_LOGE("RSRenderService::RemoveConnection: connections_ cannot find token");
         return;
     }
-    
-    auto tmp = connections_.at(token);
+    auto tmp = iter->second;
     connections_.erase(token);
     lock.unlock();
 }

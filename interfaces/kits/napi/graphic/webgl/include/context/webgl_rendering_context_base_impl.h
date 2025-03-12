@@ -428,7 +428,7 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
         LOGE("AddObject %{public}" PRIu64 " status %{public}u", key, status);
         return false;
     }
-    LOGD("AddObject %{public}u %{public}p %{public}" PRIu64, T::objectType, obj, key);
+    LOGD("AddObject %{public}u %{private}p %{public}" PRIu64, T::objectType, obj, key);
     objects_[T::objectType].insert({ key, ref });
     return true;
 }
@@ -446,7 +446,7 @@ napi_value WebGLRenderingContextBaseImpl::GetNapiValue(napi_env env, uint64_t ke
     }
     napi_value obj;
     napi_status status = napi_get_reference_value(env, it->second, &obj);
-    LOGD("GetNapiValue %{public}u %{public}p %{public}" PRIu64, T::objectType, obj, key);
+    LOGD("GetNapiValue %{public}u %{private}p %{public}" PRIu64, T::objectType, obj, key);
     if (status != napi_ok) {
         return nullptr;
     }

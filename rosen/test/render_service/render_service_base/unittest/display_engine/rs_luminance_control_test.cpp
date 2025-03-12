@@ -21,6 +21,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr float HDR_DEFAULT_SCALER = 1000.0f / 203.0f;
+
 class RSLuminanceControlTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -51,8 +53,8 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     std::ignore = luminCtrl.IsDimmingOn(screenId);
     std::ignore = luminCtrl.IsHdrOn(screenId);
     std::ignore = luminCtrl.IsNeedUpdateLuminance(screenId);
-    std::ignore = luminCtrl.GetHdrTmoNits(screenId, mode);
-    std::ignore = luminCtrl.GetHdrDisplayNits(screenId);
+    std::ignore = luminCtrl.GetSdrDisplayNits(screenId);
+    std::ignore = luminCtrl.GetDisplayNits(screenId);
     std::ignore = luminCtrl.GetHdrBrightnessRatio(screenId, mode);
     std::ignore = luminCtrl.GetNewHdrLuminance(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
@@ -61,14 +63,15 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
+    luminCtrl.ForceCloseHdr(screenId, false);
 
     luminCtrl.initStatus_ = true;
     luminCtrl.DimmingIncrease(screenId);
     std::ignore = luminCtrl.IsDimmingOn(screenId);
     std::ignore = luminCtrl.IsHdrOn(screenId);
     std::ignore = luminCtrl.IsNeedUpdateLuminance(screenId);
-    std::ignore = luminCtrl.GetHdrTmoNits(screenId, mode);
-    std::ignore = luminCtrl.GetHdrDisplayNits(screenId);
+    std::ignore = luminCtrl.GetSdrDisplayNits(screenId);
+    std::ignore = luminCtrl.GetDisplayNits(screenId);
     std::ignore = luminCtrl.GetHdrBrightnessRatio(screenId, mode);
     std::ignore = luminCtrl.GetNewHdrLuminance(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
@@ -77,6 +80,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
+    luminCtrl.ForceCloseHdr(screenId, true);
     
     ASSERT_NE((&luminCtrl), nullptr);
 }
@@ -107,5 +111,46 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl002, TestSize.Level1)
     std::ignore = luminCtrl.LoadTmoControl();
 
     ASSERT_NE((&luminCtrl), nullptr);
+}
+
+/**
+ * @tc.name: LuminanceControl003
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl003, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    float maxCll = 1000.0f;
+    int32_t dyMetadataSize = 50.0f;
+    float ratio = 0.0f;
+    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadataSize, ratio), 0.0f);
+    ratio = 1.0f;
+    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadataSize, ratio), HDR_DEFAULT_SCALER);
+}
+
+/**
+ * @tc.name: LuminanceControl004
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl004, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    ASSERT_EQ(luminCtrl.IsHdrPictureOn(), false);
+}
+
+/**
+ * @tc.name: LuminanceControl005
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl005, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    ASSERT_EQ(luminCtrl.IsForceCloseHdr(), false);
 }
 } // namespace OHOS::Rosen

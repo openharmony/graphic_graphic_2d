@@ -19,6 +19,7 @@
 #include <parameters.h>
 #include <string>
 
+#include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
@@ -37,8 +38,10 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/anco_manager/rs_anco_manager.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -70,6 +73,8 @@
 #include "utils/performanceCaculate.h"
 // cpu boost
 #include "c/ffrt_cpu_boost.h"
+// xml parser
+#include "graphic_feature_param_manager.h"
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -112,23 +117,34 @@ Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& sc
         region.Op(tmpRegion, Drawing::RegionOp::UNION);
     }
     return region;
-}
-}
-void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    const ScreenInfo& screenInfo)
+}}  // namespace
+
+// Rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
+void DoScreenRcdTask(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> &processor)
 {
-    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
+    if (processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has no processor");
+        return;
+    }
+    const auto &screenInfo = params.GetScreenInfo();
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
-            [id, &processor, &rcdInfo](void) {
-                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id, true);
-                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(id, rcdInfo->processInfo);
-            });
+
+    bool res = true;
+    bool resourceChanged = false;
+    auto drawables = params.GetRoundCornerDrawables();
+    for (auto drawable : drawables) {
+        auto rcdDrawable = std::static_pointer_cast<DrawableV2::RSRcdSurfaceRenderNodeDrawable>(drawable);
+        if (rcdDrawable) {
+            resourceChanged |= rcdDrawable->IsResourceChanged();
+            res &= rcdDrawable->DoProcessRenderTask(processor);
+        }
+    }
+    if (resourceChanged && res) {
+        RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(
+            TOPIC_RCD_DISPLAY_HWRESOURCE, params.GetId(), true);
     }
 }
 
@@ -405,9 +421,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
 
     // commit RCD layers
-    auto rcdInfo = std::make_unique<RcdInfo>();
-    const auto& screenInfo = params.GetScreenInfo();
-    DoScreenRcdTask(params.GetId(), processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(params, processor);
     processor->PostProcess();
     return true;
 }
@@ -842,10 +856,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             rsDirtyRectsDfx.OnDraw(*curCanvas_);
             curCanvas_->Restore();
             DrawCurtainScreen();
+            bool displayP3Enable = (params->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
             if (screenInfo.isSamplingOn) {
                 // In expand screen down-sampling situation, process watermark and color filter during offscreen render.
                 DrawWatermarkIfNeed(*params, *curCanvas_);
-                SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
+                SwitchColorFilter(*curCanvas_, hdrBrightnessRatio, displayP3Enable);
             }
             if (needOffscreen && canvasBackup_) {
                 Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
@@ -860,7 +875,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (!screenInfo.isSamplingOn) {
                 // In normal situation, process watermark and color filter after offscreen render.
                 DrawWatermarkIfNeed(*params, *curCanvas_);
-                SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
+                SwitchColorFilter(*curCanvas_, hdrBrightnessRatio, displayP3Enable);
             }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
             RSOverlayDisplayManager::Instance().PostProcFilter(*curCanvas_);
@@ -880,8 +895,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 curCanvas_->Restore();
             }
         }
-        if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
-            && !params->IsRotationChanged()) {
+
+        if (RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable() && !params->IsRotationChanged()) {
             offscreenSurface_ = nullptr;
         }
 
@@ -911,8 +926,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // process round corner display
-    auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(*params, processor);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute"
@@ -1327,7 +1341,13 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
-    bool isProcessSecLayer = RSMainThread::Instance()->GetDeviceType() != DeviceType::PC &&
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection multiScreenFeatureParam is null");
+        return;
+    }
+    bool isProcessSecLayer = !multiScreenFeatureParam->IsExternalScreenSecure() &&
         mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
@@ -1414,7 +1434,13 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw multiScreenFeatureParam is null");
+        return;
+    }
+    if (!multiScreenFeatureParam->IsExternalScreenSecure()) {
         auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
         if (hasSecSurface) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
@@ -1437,7 +1463,8 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     mirroredDrawable.RSRenderNodeDrawable::OnDraw(*curCanvas_);
     DrawCurtainScreen();
     DrawWatermarkIfNeed(*mirroredParams, *curCanvas_);
-    SwitchColorFilter(*curCanvas_, 1.f); // 1.f: wired screen not use hdr, use default value 1.f
+    bool displayP3Enable = (params.GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    SwitchColorFilter(*curCanvas_, 1.f, displayP3Enable); // 1.f: wired screen not use hdr, use default value 1.f
     RSUniRenderThread::ResetCaptureParam();
 
     uniParam->SetOpDropped(isOpDropped);
@@ -1816,7 +1843,8 @@ void RSDisplayRenderNodeDrawable::FindHardCursorNodes(RSDisplayRenderParams& par
     }
 }
 
-void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio) const
+void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio,
+    bool displayP3Enable) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
@@ -1826,6 +1854,11 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas,
     ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
         colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return;
+    }
+
+    if (displayP3Enable) {
+        SwitchColorFilterWithP3(canvas, colorFilterMode, hdrBrightnessRatio);
         return;
     }
 
@@ -1841,6 +1874,31 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas,
 #endif
     Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
     canvas.SaveLayer(slr);
+}
+
+void RSDisplayRenderNodeDrawable::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
+    ColorFilterMode colorFilterMode, float hdrBrightnessRatio) const
+{
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::SwitchColorFilterWithP3 mode:%d",
+        static_cast<int32_t>(colorFilterMode));
+
+    int32_t offscreenWidth = canvas.GetWidth();
+    int32_t offscreenHeight = canvas.GetHeight();
+
+    Drawing::ImageInfo info = Drawing::ImageInfo { offscreenWidth, offscreenHeight,
+        Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB()};
+    auto offscreenSurface = canvas.GetSurface()->MakeSurface(info);
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+
+    Drawing::Brush brush;
+    auto originSurfaceImage = canvas.GetSurface()->GetImageSnapshot();
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
+    offscreenCanvas->AttachBrush(brush);
+    offscreenCanvas->DrawImage(*originSurfaceImage, 0.f, 0.f, Drawing::SamplingOptions());
+    offscreenCanvas->DetachBrush();
+
+    auto offscreenImage = offscreenCanvas->GetSurface()->GetImageSnapshot();
+    canvas.DrawImage(*offscreenImage, 0.f, 0.f, Drawing::SamplingOptions());
 }
 
 void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams& params)
@@ -2085,7 +2143,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if (useFixedSize && (RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+    if (useFixedSize && RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable()
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize;

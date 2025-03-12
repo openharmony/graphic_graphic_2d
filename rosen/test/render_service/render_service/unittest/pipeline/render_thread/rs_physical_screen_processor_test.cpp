@@ -270,8 +270,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessRcdSurface, TestSize.Level1)
     ASSERT_NE(rsHardwareProcessor, nullptr);
     NodeId id = 1;
     RCDSurfaceType type = RCDSurfaceType::BOTTOM;
-    RSRcdSurfaceRenderNode node(id, type);
-    rsHardwareProcessor->ProcessRcdSurface(node);
+    auto node = RSRcdSurfaceRenderNode::Create(id, type);
+    rsHardwareProcessor->ProcessRcdSurface(*node);
 }
 
 /**

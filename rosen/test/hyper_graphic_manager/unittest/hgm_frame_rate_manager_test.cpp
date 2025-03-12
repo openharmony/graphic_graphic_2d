@@ -950,6 +950,27 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
 }
 
 /**
+ * @tc.name: HandleThermalFrameRate
+ * @tc.desc: Verify the result of HandleThermalFrameRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleThermalFrameRate, Function | SmallTest | Level1)
+{
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+
+    frameRateMgr->HandleThermalFrameRate(true);
+    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, true);
+
+    frameRateMgr->HandleThermalFrameRate(false);
+    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, false);
+}
+
+/**
  * @tc.name: HandlePackageEvent
  * @tc.desc: Verify the result of HandlePackageEvent
  * @tc.type: FUNC

@@ -34,9 +34,9 @@
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "graphic_feature_param_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -541,6 +541,12 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+        return;
+    }
+
     if (!handler_) {
         return;
     }
@@ -797,13 +803,6 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
-{
-    if (uniRenderEngine_) {
-        uniRenderEngine_->ClearCacheSet(unmappedCache, isMatchVirtualScreen);
-    }
-}
-
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
@@ -830,7 +829,13 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    auto task = [this, moment, deeply, isDefaultClean]() {
+    bool isDeeplyRelGpuResEnable = false;
+    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
+    if (relGpuResParam != nullptr) {
+        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
+    }
+    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -850,7 +855,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+            if (deeply || isDeeplyRelGpuResEnable) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -886,7 +891,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / rate);
+            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
@@ -960,7 +965,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
     }
     if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
-        if (!isDoDirectComposition) {
+        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+            isTimeToReclaim_.store(false);
+            RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+        } else if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }

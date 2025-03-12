@@ -16,8 +16,10 @@
 #include "rs_profiler.h"
 
 #include <cstddef>
+#include <fstream>
 #include <filesystem>
 #include <numeric>
+#include <system_error>
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler_archive.h"
@@ -92,6 +94,7 @@ static uint32_t g_effectiveNodeTimeCount = CALC_PERF_NODE_TIME_COUNT_MAX;
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT_MAX];
 static int g_nodeListPerfCalcIndex = -1;
 
+static std::string g_testDataSubTree;
 static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
@@ -548,7 +551,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
-        g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
+        g_recordFile.WriteRenderMetrics(0, timeSinceRecordStart, out.data(), out.size());
     }
 }
 
@@ -2273,5 +2276,145 @@ std::vector<std::pair<uint64_t, int64_t>> RSProfiler::AnimeGetStartTimesFlattene
         }
     }
     return headerAnimeStartTimes;
+}
+
+void RSProfiler::TestLoadFileSubTree(NodeId nodeId, const std::string &filePath)
+{
+    auto node = GetRenderNode(nodeId);
+    if (!node) {
+        RS_LOGE("RSProfiler::TestLoadFileSubTree node is nullptr");
+        return;
+    }
+
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::error_code ec(errno, std::system_category());
+        RS_LOGE("RSProfiler::TestLoadFileSubTree read file failed: %{public}s", ec.message().c_str());
+        return;
+    }
+    std::stringstream stream;
+    stream << file.rdbuf();
+    file.close();
+    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
+    if (errorReason.size()) {
+        RS_LOGE("RSProfiler::TestLoadFileSubTree failed: %{public}s", errorReason.c_str());
+    }
+}
+
+void RSProfiler::TestSaveSubTree(const ArgList& args)
+{
+    const auto nodeId = args.Node();
+    auto node = GetRenderNode(nodeId);
+    if (!node) {
+        Respond("Error: node not found");
+        return;
+    }
+
+    std::stringstream stream;
+    MarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
+    g_testDataSubTree = stream.str();
+
+    Respond("Save SubTree Size: " + std::to_string(g_testDataSubTree.size()));
+
+    // save file need setenforce 0
+    const std::string filePath = "/data/rssbtree_test_" + std::to_string(nodeId);
+    std::ofstream file(filePath);
+    if (file.is_open()) {
+        file << g_testDataSubTree;
+        file.close();
+        Respond("Save subTree Success, file path:" + filePath);
+    } else {
+        Respond("Save subTree Failed: save file faild!");
+    }
+}
+
+void RSProfiler::TestLoadSubTree(const ArgList& args)
+{
+    const auto nodeId = args.Node();
+    auto node = GetRenderNode(nodeId);
+    if (!node) {
+        Respond("Error: node not found");
+        return;
+    }
+
+    std::stringstream stream;
+    stream.str(g_testDataSubTree);
+    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
+    if (!errorReason.size()) {
+        errorReason = "OK";
+    }
+    Respond("Load subTree result: " + errorReason);
+}
+
+void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,
+    const RSRenderNode& node, uint32_t fileVersion, bool clearImageCache)
+{
+    if (clearImageCache) {
+        ImageCache::Reset();
+    }
+
+    SetMode(Mode::WRITE_EMUL);
+    DisableSharedMemory();
+
+    std::stringstream dataNodes(std::ios::in | std::ios::out | std::ios::binary);
+    MarshalSubTreeLo(context, dataNodes, node, fileVersion);
+
+    EnableSharedMemory();
+    SetMode(Mode::NONE);
+
+    std::stringstream dataPixelMaps(std::ios::in | std::ios::out | std::ios::binary);
+    ImageCache::Serialize(dataPixelMaps);
+
+    // SAVE TO STREAM
+    TypefaceMarshalling(data, fileVersion);
+
+    uint32_t pixelMapSize = dataPixelMaps.str().size();
+    data.write(reinterpret_cast<const char*>(&pixelMapSize), sizeof(pixelMapSize));
+    data.write(dataPixelMaps.str().data(), dataPixelMaps.str().size());
+
+    uint32_t nodesSize = dataNodes.str().size();
+    data.write(reinterpret_cast<const char*>(&nodesSize), sizeof(nodesSize));
+    data.write(dataNodes.str().data(), dataNodes.str().size());
+}
+
+std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& data,
+    RSRenderNode& attachNode, uint32_t fileVersion, bool clearImageCache)
+{
+    if (clearImageCache) {
+        ImageCache::Reset();
+    }
+
+    TypefaceUnmarshalling(data, fileVersion);
+
+    uint32_t pixelMapSize = 0u;
+    data.read(reinterpret_cast<char*>(&pixelMapSize), sizeof(pixelMapSize));
+
+    // read Cache
+    ImageCache::Deserialize(data);
+
+    uint32_t nodesSize = 0u;
+    data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize));
+
+    SetMode(Mode::READ_EMUL);
+    DisableSharedMemory();
+
+    std::string errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
+
+    EnableSharedMemory();
+    SetMode(Mode::NONE);
+
+    auto& nodeMap = context.GetMutableNodeMap();
+    nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+        if (Utils::IsNodeIdPatched(node->GetId())) {
+            node->SetContentDirty();
+            node->SetDirty();
+        }
+    });
+    g_mainThread->SetDirtyFlag();
+    AwakeRenderServiceThread();
+    return errReason;
 }
 } // namespace OHOS::Rosen

@@ -383,7 +383,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     rsFrameRateLinker_->SetExpectedRange(finalRange);
     idleDetector_.SetAceAnimatorIdleState(true);
     for (auto linker : appFrameRateLinkers_) {
-        if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
+        if (linker.second == nullptr || !multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
             continue;
         }
         SetAceAnimatorVote(linker.second);
@@ -533,6 +533,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         screenCurrentRefreshRate, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
+    appChangeData_.clear();
     for (auto linker : appFrameRateLinkers) {
         if (linker.second == nullptr) {
             continue;

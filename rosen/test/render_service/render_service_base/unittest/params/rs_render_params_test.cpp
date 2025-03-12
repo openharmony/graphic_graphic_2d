@@ -659,4 +659,36 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
     RSLayerInfo defaultLayerInfo = {};
     EXPECT_EQ(defaultLayerInfo, renderParams->GetLayerInfo());
 }
+
+/**
+ * @tc.name: SetNeedOffscreen
+ * @tc.desc: Test SetNeedOffscreen
+ * @tc.type: FUNC
+ * @tc.require:#IBPVN9
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedOffscreen, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
+
+    renderParams->SetNeedOffscreen(true);
+    EXPECT_TRUE(renderParams->GetNeedOffscreen());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetNeedSwapBuffer
+ * @tc.desc: Test SetNeedSwapBuffer
+ * @tc.type: FUNC
+ * @tc.require:#IBPVN9
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedSwapBuffer, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
+
+    renderParams->SetNeedSwapBuffer(true);
+    EXPECT_TRUE(renderParams->GetNeedSwapBuffer());
+    EXPECT_TRUE(renderParams->needSync_);
+}
 } // namespace OHOS::Rosen

@@ -27,6 +27,11 @@ bool FilterParam::IsEffectMergeEnable() const
     return isEffectMergeEnable_;
 }
 
+bool FilterParam::IsBlurAdaptiveAdjust() const
+{
+    return isBlurAdaptiveAdjust;
+}
+
 void FilterParam::SetFilterCacheEnable(bool isEnable)
 {
     isFilterCacheEnable_ = isEnable;
@@ -35,5 +40,10 @@ void FilterParam::SetFilterCacheEnable(bool isEnable)
 void FilterParam::SetEffectMergeEnable(bool isEnable)
 {
     isEffectMergeEnable_ = isEnable;
+}
+
+void FilterParam::SetBlurAdaptiveAdjust(bool isEnable)
+{
+    isBlurAdaptiveAdjust = isEnable;
 }
 } // namespace OHOS::Rosen

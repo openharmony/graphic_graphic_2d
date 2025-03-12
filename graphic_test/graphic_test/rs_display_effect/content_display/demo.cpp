@@ -12,3 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "rs_graphic_test.h"
+
+using namespace testing;
+using namespace testing::ext;
+
+namespace OHOS::Rosen {
+
+class LoadRenderNodeTreeFileTest : public RSGraphicTest {
+private:
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
+
+public:
+    // called before each tests
+    void BeforeEach() override
+    {
+        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        system("setenforce 0");
+    }
+};
+
+GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, Load_RenderNodeTree_File_Test)
+{
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+    AddFileRenderNodeTreeToNode(testNode, "/data/rssubtree_test_14426795147348");
+}
+
+} // namespace OHOS::Rosen

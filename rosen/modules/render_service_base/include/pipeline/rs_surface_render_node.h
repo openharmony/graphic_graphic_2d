@@ -396,8 +396,6 @@ public:
     }
 
     bool IsUIFirstSelfDrawCheck();
-    bool IsVisibleDirtyEmpty(DeviceType deviceType);
-    bool IsCurFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -1132,8 +1130,6 @@ public:
         lastFrameChildrenCnt_ = childrenCnt;
     }
 
-    bool IsUIFirstCacheReusable(DeviceType deviceType);
-
     bool GetUifirstSupportFlag() override
     {
         return RSRenderNode::GetUifirstSupportFlag();
@@ -1295,7 +1291,7 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
-    void SetNeedOffscreen(bool needOffscreen);
+    void SetNeedOffscreen(bool needOffscreen) override;
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
