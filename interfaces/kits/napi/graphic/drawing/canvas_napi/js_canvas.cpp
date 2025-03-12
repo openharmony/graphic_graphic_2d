@@ -1179,6 +1179,7 @@ napi_value JsCanvas::DrawSingleCharacter(napi_env env, napi_callback_info info)
 napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_value argv[ARGC_FOUR] = {nullptr};
@@ -1207,13 +1208,11 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
         return nullptr;
     }
     const char* currentStr = str;
-    int32_t unicode = SKUTF::NextUTF8(&currentStr, currentStr + len);
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
     if (themeFont != nullptr) {
         font = themeFont;
     }
-    const char* currentStr = str;
-    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     size_t byteLen = currentStr - str;
     if (byteLen != len) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
