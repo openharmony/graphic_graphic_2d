@@ -91,6 +91,13 @@ void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationI
 void RSContext::InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag)
 {
     std::lock_guard<std::mutex> lock(uiCaptureCmdsExecutedMutex_);
+    if (!flag) {
+        auto iter = uiCaptureCmdsExecutedFlag_.find(nodeId);
+        if (iter == uiCaptureCmdsExecutedFlag_.end()) {
+            uiCaptureCmdsExecutedFlag_[nodeId] = false;
+        }
+        return;
+    }
     uiCaptureCmdsExecutedFlag_[nodeId] = flag;
 }
 
