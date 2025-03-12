@@ -628,11 +628,6 @@ public:
         return IsUnobscuredUIExtension_;
     }
 
-    void MarkSurfaceCapturePipeline()
-    {
-        isSurfaceCapturePipeline_ = true;
-    }
-
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -742,8 +737,6 @@ private:
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
-
-    bool isSurfaceCapturePipeline_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
