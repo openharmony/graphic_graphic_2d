@@ -2535,7 +2535,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest107
- * @tc.desc: test for the textshadow.
+ * @tc.desc: test for the textshadow01.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level1)
@@ -2554,39 +2554,46 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_DestroyTextShadow(nullptr);
     OH_Drawing_PointDestroy(nullptr);
     EXPECT_NE(shadow, nullptr);
-
-    // Test the full shadow parameters of the scene
-    OH_Drawing_TextShadow* shadow2 = OH_Drawing_CreateTextShadow();
-    uint32_t color2 = OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00);
-    OH_Drawing_Point* offset2 = OH_Drawing_PointCreate(10, 10);
-    double blurRadius2 = 10.0;
-    OH_Drawing_SetTextShadow(shadow2, color2, offset2, blurRadius2);
-    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
-    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
-    int getCount2 = OH_Drawing_TextStyleGetShadowCount(textStyle);
-    EXPECT_EQ(getCount2, 2);
-    OH_Drawing_TextStyleClearShadows(textStyle);
-    EXPECT_EQ(OH_Drawing_TextStyleGetShadowCount(textStyle), 0);
-    OH_Drawing_TextShadow* shadow2_1 = OH_Drawing_CreateTextShadow();
-    uint32_t color2_1 = OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0x00);
-    OH_Drawing_Point* offset2_1 = OH_Drawing_PointCreate(-10, -10);
-    double blurRadius2_1 = 20.0;
-    OH_Drawing_SetTextShadow(shadow2_1, color2_1, offset2_1, blurRadius2_1);
-    OH_Drawing_TextStyleAddShadow(textStyle, shadow2_1);
-    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
-    OH_Drawing_TextShadow* getShadow2 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2 - 1);
-    EXPECT_NE(getShadow2, nullptr);
-    OH_Drawing_TextShadow* getShadow2_1 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, 0);
-    EXPECT_NE(getShadow2_1, nullptr);
-    EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, -1), nullptr);
-    EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2), nullptr);
-    OH_Drawing_PointDestroy(offset2);
-    OH_Drawing_PointDestroy(offset2_1);
-    OH_Drawing_DestroyTextShadow(shadow2);
-    OH_Drawing_DestroyTextShadow(shadow2_1);
-    EXPECT_NE(shadow2, nullptr);
-    EXPECT_NE(shadow2_1, nullptr);
+}
+/*
+ * @tc.name: OH_Drawing_TypographyTest108
+ * @tc.desc: test for the textshadow02.
+ * @tc.type: FUNC
+ */
+ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest108, TestSize.Level1)
+ {
+     // Test the full shadow parameters of the scene
+     OH_Drawing_TextShadow* shadow2 = OH_Drawing_CreateTextShadow();
+     uint32_t color2 = OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00);
+     OH_Drawing_Point* offset2 = OH_Drawing_PointCreate(10, 10);
+     double blurRadius2 = 10.0;
+     OH_Drawing_SetTextShadow(shadow2, color2, offset2, blurRadius2);
+     OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+     OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+     OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+     int getCount2 = OH_Drawing_TextStyleGetShadowCount(textStyle);
+     EXPECT_EQ(getCount2, 2);
+     OH_Drawing_TextStyleClearShadows(textStyle);
+     EXPECT_EQ(OH_Drawing_TextStyleGetShadowCount(textStyle), 0);
+     OH_Drawing_TextShadow* shadow21 = OH_Drawing_CreateTextShadow();
+     uint32_t color21 = OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0x00);
+     OH_Drawing_Point* offset21 = OH_Drawing_PointCreate(-10, -10);
+     double blurRadius21 = 20.0;
+     OH_Drawing_SetTextShadow(shadow21, color21, offset21, blurRadius21);
+     OH_Drawing_TextStyleAddShadow(textStyle, shadow21);
+     OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+     OH_Drawing_TextShadow* getShadow2 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2 - 1);
+     EXPECT_NE(getShadow2, nullptr);
+     OH_Drawing_TextShadow* getShadow21 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, 0);
+     EXPECT_NE(getShadow21, nullptr);
+     EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, -1), nullptr);
+     EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2), nullptr);
+     OH_Drawing_PointDestroy(offset2);
+     OH_Drawing_PointDestroy(offset21);
+     OH_Drawing_DestroyTextShadow(shadow2);
+     OH_Drawing_DestroyTextShadow(shadow21);
+     EXPECT_NE(shadow2, nullptr);
+     EXPECT_NE(shadow21, nullptr);
 
     // Test the scene for abnormal shadow parameters
     OH_Drawing_TextShadow* shadow3 = OH_Drawing_CreateTextShadow();
@@ -2603,7 +2610,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     EXPECT_NE(shadow3AllGet, nullptr);
     OH_Drawing_DestroyTextShadows(shadow3AllGet);
     EXPECT_NE(shadow3AllGet, nullptr);
-}
+ }
 
 /*
  * @tc.name: OH_Drawing_AddTextStyleDecorationTest
