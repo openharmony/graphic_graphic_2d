@@ -63,14 +63,14 @@ public:
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
 
-    uint64_t GetSymbolTxtId() const
+    uint64_t GetSymbolUid() const
     {
-        return symbolTxt_.GetSymbolTxtId();
+        return symbolTxt_.GetSymbolUid();
     }
 
-    void SetSymbolTxtId(uint64_t symbolTxtId)
+    void SetSymbolUid(uint64_t symbolUid)
     {
-        symbolTxt_.SetSymbolTxtId(symbolTxtId);
+        symbolTxt_.SetSymbolUid(symbolUid);
     }
 
     void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)

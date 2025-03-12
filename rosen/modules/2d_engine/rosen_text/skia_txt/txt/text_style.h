@@ -129,17 +129,17 @@ public:
     FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
-    bool halfLeading = { false };
+    bool halfLeading { false };
     std::vector<std::string> fontFamilies;
-    double fontSize = { 14.0 };
-    double letterSpacing = { 0.0 };
-    double wordSpacing = { 0.0 };
-    double height = { 1.0 };
-    bool heightOverride = { false };
+    double fontSize { 14.0 };
+    double letterSpacing { 0.0 };
+    double wordSpacing { 0.0 };
+    double height { 1.0 };
+    bool heightOverride { false };
     std::string locale;
-    RectStyle backgroundRect = { 0, 0.0f, 0.0f, 0.0f, 0.0f };
-    int styleId = { 0 };
-    size_t textStyleUid = { 0 };
+    RectStyle backgroundRect { 0, 0.0f, 0.0f, 0.0f, 0.0f };
+    int styleId { 0 };
+    size_t textStyleUid { 0 };
 
     std::optional<PaintRecord> background;
     std::optional<PaintRecord> foreground;
@@ -149,10 +149,10 @@ public:
     FontVariations fontVariations;
 
     // symbol glyph
-    bool isSymbolGlyph = { false };
+    bool isSymbolGlyph { false };
     HMSymbolTxt symbol;
-    double baseLineShift = { 0.0 };
-    bool isPlaceholder = { false };
+    double baseLineShift { 0.0 };
+    bool isPlaceholder { false };
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
 };
 

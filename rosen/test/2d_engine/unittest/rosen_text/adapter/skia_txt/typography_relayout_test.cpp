@@ -61,7 +61,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -90,8 +90,8 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest002, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, 0));
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(relayoutLongestLineWithIndent, 0));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, 0));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(relayoutLongestLineWithIndent, 0));
 }
 
 /*
@@ -121,7 +121,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest003, TestSize.Le
     typography->Relayout(maxWidth * 2, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -153,7 +153,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -221,7 +221,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -256,7 +256,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -291,7 +291,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest008, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(10 * preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(10 * preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -325,7 +325,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest009, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -360,7 +360,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest010, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -394,7 +394,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(relayoutLongestLineWithIndent, (preLongestLineWithIndent + 4 * 10)));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(relayoutLongestLineWithIndent, (preLongestLineWithIndent + 4 * 10)));
 }
 
 /*
@@ -430,7 +430,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutParagraphHeight = typography->GetHeight();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
 }
 
 /*
@@ -464,7 +464,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest013, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -495,7 +495,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest014, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    ASSERT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*
@@ -534,7 +534,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutParagraphHeight = typography->GetHeight();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
 }
 
 /*
@@ -570,7 +570,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest016, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutParagraphHeight = typography->GetHeight();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
 }
 
 /*
@@ -607,7 +607,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest017, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutParagraphHeight = typography->GetHeight();
 
-    ASSERT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(preParagraphHeight, relayoutParagraphHeight));
 }
 } // namespace Rosen
 } // namespace OHOS

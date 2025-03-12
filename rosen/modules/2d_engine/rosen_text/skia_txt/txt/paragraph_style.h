@@ -99,7 +99,7 @@ public:
     bool isEndAddParagraphSpacing { false };
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
-    size_t defaultTextStyleUid { DEFAULT_PARAGRAPH_STYLE_ID };
+    size_t textStyleUid { 0 };
 };
 } // namespace SPText
 } // namespace Rosen

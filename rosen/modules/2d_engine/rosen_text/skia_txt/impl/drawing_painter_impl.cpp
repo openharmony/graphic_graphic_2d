@@ -100,7 +100,6 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(const std::shared_ptr<RSTextBlo
     const PaintRecord &pr)
 {
     std::shared_ptr<HMSymbolRun> hmSymbolRun = generateSymbolRun(blob, pr);
-
     if (hmSymbolRun == nullptr) {
         return;
     }
@@ -285,7 +284,7 @@ std::shared_ptr<HMSymbolRun> RSCanvasParagraphPainter::generateSymbolRun(
     const std::shared_ptr<RSTextBlob>& blob, const PaintRecord& pr)
 {
     for (const std::shared_ptr<HMSymbolRun>& hmSymbol : hmSymbols_) {
-        if (hmSymbol->GetSymbolTxtId() != pr.symbol.GetSymbolTxtId()) {
+        if (hmSymbol->GetSymbolUid() != pr.symbol.GetSymbolUid()) {
             continue;
         }
 

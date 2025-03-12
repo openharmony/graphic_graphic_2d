@@ -60,7 +60,7 @@ public:
         }
     }
 
-    void SetHmSymbols(std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbols)
+    void SetHmSymbols(const std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbols)
     {
         hmSymbols_ = hmSymbols;
     }

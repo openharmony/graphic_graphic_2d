@@ -127,14 +127,14 @@ SymbolType HMSymbolTxt::GetSymbolType() const
 }
 
 
-void HMSymbolTxt::SetSymbolTxtId(const size_t symbolTxtId)
+void HMSymbolTxt::SetSymbolUid(const size_t symbolUid)
 {
-    symbolTxtId_ = symbolTxtId;
+    symbolUid_ = symbolUid;
 }
 
-size_t HMSymbolTxt::GetSymbolTxtId() const
+size_t HMSymbolTxt::GetSymbolUid() const
 {
-    return symbolTxtId_;
+    return symbolUid_;
 }
 
 void HMSymbolTxt::SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap)

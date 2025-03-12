@@ -26,8 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-const size_t DEFAULT_PARAGRAPH_STYLE_ID = 6657;
-
 enum class RelayoutParagraphStyleAttribute {
     // influence Shape
     FONT_SIZE = 0,
@@ -167,7 +165,7 @@ struct TypographyStyle {
     TextTab tab;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
-    size_t defaultTextStyleUid { DEFAULT_PARAGRAPH_STYLE_ID };
+    size_t textStyleUid { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

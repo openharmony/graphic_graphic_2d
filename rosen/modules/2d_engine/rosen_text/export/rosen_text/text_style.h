@@ -134,17 +134,17 @@ struct TextStyle {
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
-    RectStyle backgroundRect = { 0, 0.0, 0.0, 0.0, 0.0 };
-    int styleId = { 0 };
-    size_t textStyleUid = { 0 };
+    RectStyle backgroundRect { 0, 0.0, 0.0, 0.0, 0.0 };
+    int styleId { 0 };
+    size_t textStyleUid { 0 };
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
-    bool isSymbolGlyph = false;
+    bool isSymbolGlyph { false };
     HMSymbolTxt symbol;
-    double baseLineShift = { 0.0 };
-    bool isPlaceholder = false;
+    double baseLineShift { 0.0 };
+    bool isPlaceholder { false };
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
 };
 } // namespace Rosen

@@ -52,7 +52,7 @@ public:
 
     void SetSymbolType(SymbolType symbolType);
 
-    void SetSymbolTxtId(const size_t symbolTxtId);
+    void SetSymbolUid(const size_t symbolUid);
 
     void SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap);
 
@@ -74,7 +74,7 @@ public:
 
     SymbolType GetSymbolType() const;
 
-    size_t GetSymbolTxtId() const;
+    size_t GetSymbolUid() const;
 
     const SymbolBitmapType& GetSymbolBitmap() const;
 
@@ -84,7 +84,7 @@ private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
-    size_t symbolTxtId_ = 0;
+    size_t symbolUid_ = 0;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = false;

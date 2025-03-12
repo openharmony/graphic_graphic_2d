@@ -94,7 +94,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .paragraphSpacing = style.paragraphSpacing,
         .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
         .relayoutChangeBitmap = style.relayoutChangeBitmap,
-        .defaultTextStyleUid = style.defaultTextStyleUid,
+        .textStyleUid = style.textStyleUid,
     };
 }
 
@@ -129,7 +129,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
     textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
-    textStyle.symbol.SetSymbolTxtId(style.symbol.GetSymbolTxtId());
+    textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
     textStyle.symbol.SetSymbolBitmap(style.symbol.GetSymbolBitmap());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
@@ -213,7 +213,7 @@ void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
     textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
-    textStyle.symbol.SetSymbolTxtId(style.symbol.GetSymbolTxtId());
+    textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
 }
 
 void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
