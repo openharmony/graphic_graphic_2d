@@ -77,10 +77,10 @@ UIPoint GetScreenCapacity(const string testCase)
         cl++;
         num = cl * cl;
     }
-    int rl = ceil(static_cast<double>testCnt) / cl); 
+    int rl = ceil(static_cast<double>(testCnt / cl)); 
     return {cl, rl};
 }
-
+      
 UIPoint GetPos(int id, int cl)
 {
     if (cl > 0) {
