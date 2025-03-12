@@ -94,7 +94,7 @@ template("skia_libtxt") {
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
       defines += [ "OHOS_TEXT_ENABLE" ]
     } else {
-      defines += ["MODULE_TEXTING"]
+      defines += [ "MODULE_TEXTING" ]
     }
 
     defines += [ "OHOS_SUPPORT" ]
