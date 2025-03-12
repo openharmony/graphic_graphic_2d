@@ -301,6 +301,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
+    txt.heightOverride = skStyle.getHeightOverride();
 
     txt.locale = skStyle.getLocale().c_str();
     if (skStyle.hasBackground()) {
