@@ -341,6 +341,10 @@ void RSUifirstManager::ProcessDoneNode()
             it++;
         }
     }
+    for (int it = pindingResetWindowCachedNodes_.begin(); it != pindingResetWindowCachedNodes_.end();) {
+        ResetUifirstNode(*it);
+        pindingResetWindowCachedNodes_.erase(it);
+    }
 
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end();) {
         auto id = it->first;
@@ -1475,14 +1479,21 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
         // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
         if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && !node.GetSubThreadAssignable()) {
+            RS_TRACE_NAME_FMT("AssignMainThread selfAndParentShouldPaint: %d, skipDraw: %d",
+                node.GetSelfAndParentShouldPaint(), node.GetSkipDraw());
             UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
-            node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
-            node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
+            if (node.GetSelfAndParentShouldPaint() && !node.GetSkipDraw()) {
+                node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
+                node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
 
-            // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
-            node.SetHwcChildrenDisabledState();
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst first frame",
-                node.GetName().c_str(), node.GetId());
+                // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
+                node.SetHwcChildrenDisabledState();
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst first frame",
+                    node.GetName().c_str(), node.GetId());
+
+                auto func = &RSUifirstManager::ProcessTreeStateChange;
+                node.RegisterTreeStateChangeCallback(func);
+            }
         } else {
             UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
         }
@@ -1664,8 +1675,11 @@ void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 {
-    RS_TRACE_NAME_FMT("DisableUifirstNode");
+    RS_TRACE_NAME_FMT("DisableUifirstNode node[%lld] %s", node.GetId(), node.GetName().c_str());
     UifirstStateChange(node, MultiThreadCacheType::NONE);
+
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
+    pindingResetWindowCachedNodes_.emplace_back(surfaceNode);
 }
 
 void RSUifirstManager::AddCapturedNodes(NodeId id)
