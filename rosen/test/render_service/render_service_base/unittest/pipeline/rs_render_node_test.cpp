@@ -3061,29 +3061,5 @@ HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
     ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
 }
 
-/**
- * @tc.name: SetNeedOffscreen
- * @tc.desc: test SetNeedOffscreen
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSRenderNodeTest, SetNeedOffscreen, TestSize.Level1)
-{
-    NodeId id = static_cast<NodeId>(1);
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(id);
-    EXPECT_NE(nodeTest, nullptr);
-    
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
-    EXPECT_NE(stagingRenderParams, nullptr);
-
-    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
-    auto needOffscreen = nodeTest->stagingRenderParams_->GetNeedOffscreen();
-    nodeTest->SetNeedOffscreen(needOffscreen);
-    EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
-
-    nodeTest->SetNeedOffscreen(!needOffscreen);
-    EXPECT_TRUE(nodeTest->stagingRenderParams_->needSync_);
-}
-
 } // namespace Rosen
 } // namespace OHOS

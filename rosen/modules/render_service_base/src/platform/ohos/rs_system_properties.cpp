@@ -1301,6 +1301,14 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.windowkeyframe.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     static auto groupedByUIEnabled =

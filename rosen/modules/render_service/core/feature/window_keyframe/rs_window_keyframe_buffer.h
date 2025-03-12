@@ -29,7 +29,8 @@ public:
     explicit RSWindowKeyframeBuffer(DrawableV2::RSCanvasRenderNodeDrawable& drawable);
     ~RSWindowKeyframeBuffer() = default;
 
-    bool OnDraw(Drawing::Canvas& canvas);
+    bool NeedDrawWindowKeyFrame(const std::unique_ptr<RSRenderParams>& params);
+    bool OnDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool DrawOffscreenBuffer(RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed);
 
 private:

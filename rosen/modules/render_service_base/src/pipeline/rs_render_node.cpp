@@ -5074,16 +5074,5 @@ void RSRenderNode::ClearDrawableVec2()
         drawableVecNeedClear_ = false;
     }
 }
-
-void RSRenderNode::SetNeedOffscreen(bool needOffscreen)
-{
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("RSRenderNode::SetNeedOffscreen stagingRenderParams is null");
-        return;
-    }
-    stagingRenderParams_->SetNeedOffscreen(needOffscreen);
-    AddToPendingSyncList();
-}
-
 } // namespace Rosen
 } // namespace OHOS

@@ -228,6 +228,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
+    targetDisplayParams->needOffscreen_ = needOffscreen_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
     targetDisplayParams->isRotationFinished_ = isRotationFinished_;
     targetDisplayParams->hasFingerprint_ = hasFingerprint_;
@@ -271,6 +272,20 @@ bool RSDisplayRenderParams::HasCaptureWindow() const
         hasCaptureWindow = iter->second;
     }
     return hasCaptureWindow;
+}
+
+void RSDisplayRenderParams::SetNeedOffscreen(bool needOffscreen)
+{
+    if (needOffscreen_ == needOffscreen) {
+        return;
+    }
+    needOffscreen_ = needOffscreen;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetNeedOffscreen() const
+{
+    return needOffscreen_;
 }
 
 } // namespace OHOS::Rosen

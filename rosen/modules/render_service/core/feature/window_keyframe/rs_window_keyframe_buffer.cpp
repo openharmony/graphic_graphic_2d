@@ -28,20 +28,24 @@ RSWindowKeyframeBuffer::RSWindowKeyframeBuffer(DrawableV2::RSCanvasRenderNodeDra
 {
 }
 
-bool RSWindowKeyframeBuffer::OnDraw(Drawing::Canvas& canvas)
+bool RSWindowKeyframeBuffer::NeedDrawWindowKeyFrame(const std::unique_ptr<RSRenderParams>& params)
 {
-    const auto& params = canvasNodeDrawable_.GetRenderParams();
     if (UNLIKELY(params == nullptr)) {
-        RS_LOGE("RSWindowKeyframeBuffer::DrawOffscreenToBuffer renderParamsis nullptr");
+        RS_LOGE("RSWindowKeyframeBuffer::NeedDrawWindowKeyFrame params is nullptr");
         return false;
     }
 
-    if (LIKELY(!params->GetNeedOffscreen())) {
+    if (LIKELY(!params->IsWindowKeyFrameEnabled())) {
         cachedOffscreenImg_ = nullptr;
         preCachedOffscreenImg_ = nullptr;
         return false;
     }
 
+    return true;
+}
+
+bool RSWindowKeyframeBuffer::OnDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
+{
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(uniParams == nullptr)) {
         RS_LOGE("RSWindowKeyframeBuffer::DrawOffscreenToBuffer uniParams is nullptr");
@@ -55,7 +59,7 @@ bool RSWindowKeyframeBuffer::OnDraw(Drawing::Canvas& canvas)
         return false;
     }
 
-    auto bounds = params->GetFrameRect();
+    auto bounds = params.GetFrameRect();
     auto cacheSurface = curSurface->MakeSurface(bounds.GetWidth(), bounds.GetHeight());
     if (UNLIKELY(cacheSurface == nullptr)) {
         RS_LOGE("RSWindowKeyframeBuffer::DrawOffscreenToBuffer make surface failed");
@@ -81,9 +85,9 @@ bool RSWindowKeyframeBuffer::OnDraw(Drawing::Canvas& canvas)
     uniParams->SetOpDropped(false); // temporarily close partial render
     canvasNodeDrawable_.DrawableV2::RSCanvasRenderNodeDrawable::OnDraw(*cacheCanvas);
     uniParams->SetOpDropped(isOpDropped);
-    params->ApplyAlphaAndMatrixToCanvas(*curCanvas, true);
+    params.ApplyAlphaAndMatrixToCanvas(*curCanvas, true);
 
-    return DrawOffscreenImgToBuffer(canvas, *params, bounds, cacheSurface);
+    return DrawOffscreenImgToBuffer(canvas, params, bounds, cacheSurface);
 }
 
 bool RSWindowKeyframeBuffer::DrawOffscreenImgToBuffer(Drawing::Canvas& canvas, const RSRenderParams& params,

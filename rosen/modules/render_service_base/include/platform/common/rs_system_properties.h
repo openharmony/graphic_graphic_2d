@@ -319,7 +319,7 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
-
+    static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
 private:
     RSSystemProperties() = default;

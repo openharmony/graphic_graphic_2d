@@ -32,7 +32,8 @@ public:
     void OnCapture(Drawing::Canvas& canvas) override;
 
     // [Attention] Only used in PC window resize scene now
-    bool DrawOffscreenBuffer(RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed);
+    bool DrawWindowKeyFrameOffscreenBuffer(RSPaintFilterCanvas& canvas,
+        const Drawing::Rect& bounds, float alpha, bool isFreezed);
 
 private:
     explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

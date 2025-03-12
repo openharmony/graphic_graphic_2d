@@ -619,6 +619,11 @@ bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
     return true;
 }
 
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;

@@ -35,7 +35,9 @@ void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
 
     // [Attention] Only used in PC window resize scene now
-    if (UNLIKELY(windowKeyframeBuffer_.OnDraw(canvas))) {
+    const auto& params = GetRenderParams();
+    if (UNLIKELY(windowKeyframeBuffer_.NeedDrawWindowKeyFrame(params))) {
+        windowKeyframeBuffer_.OnDraw(canvas, *params);
         return;
     }
 
@@ -50,7 +52,7 @@ void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 }
 
 // [Attention] Only used in PC window resize scene now
-bool RSRootRenderNodeDrawable::DrawOffscreenBuffer(
+bool RSRootRenderNodeDrawable::DrawWindowKeyFrameOffscreenBuffer(
     RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed)
 {
     return windowKeyframeBuffer_.DrawOffscreenBuffer(canvas, bounds, alpha, isFreezed);

@@ -133,6 +133,9 @@ public:
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasCaptureWindow() const;
 
+    void SetNeedOffscreen(bool needOffscreen);
+    bool GetNeedOffscreen() const;
+
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
 
@@ -213,6 +216,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
+    bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
