@@ -526,7 +526,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     typographyStyle0.heightOnly = true;
     typographyStyle0.heightScale = 1;
     OHOS::Rosen::TextStyle textStyle = typographyStyle0.GetTextStyle();
-    ASSERT_NE(textStyle, nullptr);
     ASSERT_EQ(textStyle.fontSize, 100);
     ASSERT_EQ(textStyle.heightOnly, true);
     ASSERT_EQ(textStyle.heightScale, 1);
