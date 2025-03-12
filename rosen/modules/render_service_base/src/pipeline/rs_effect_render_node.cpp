@@ -50,7 +50,6 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->PrepareEffectRenderNode(*this);
-    preStaticStatus_ = IsStaticCached();
 }
 
 void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -166,7 +165,6 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
-    preStaticStatus_ = IsStaticCached();
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
@@ -192,8 +190,10 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
         GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
     // case 3: the state of freeze changed to false, and the last cache maybe wrong.
-    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
+    bool res = foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
         (preStaticStatus_ != isStaticCached_ && isStaticCached_ == false);
+    preStaticStatus_ = IsStaticCached();
+    return res;
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
