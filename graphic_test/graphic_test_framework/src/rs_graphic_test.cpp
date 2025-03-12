@@ -69,7 +69,7 @@ void RSGraphicTest::TearDownTestCase()
     return;
 }
 
-UIPoint GetScreenCapacity(const string testCase)
+UIPoint RSGraphicTest::GetScreenCapacity(const string testCase)
 {
     int testCnt = ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(testCase);
     int cl = 1;
@@ -82,7 +82,7 @@ UIPoint GetScreenCapacity(const string testCase)
     return {cl, rl};
 }
       
-UIPoint GetPos(int id, int cl)
+UIPoint RSGraphicTest::GetPos(int id, int cl)
 {
     if (cl > 0) {
         int x = id % cl;
@@ -138,6 +138,26 @@ void RSGraphicTest::SetUp()
     testSurface->SetFrame({pos.x_*size.x_, pos.y_*size.y_, size.x_, size.y_});
 }
 
+bool RSGraphicTest::WaitOtherTest()
+{
+    if (IsSingleTest()) {
+        return false;
+    }
+    const ::testing::TestInfo* const testInfo =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
+        testInfo->test_case_name(), testInfo->name());
+    int testCaseCnt = ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(
+        string(testInfo->test_case_name()));
+    if (!extInfo->isMultiple) {
+        return false;
+    }
+    if (++imageWriteId_ < testCaseCnt) {
+        return true;
+    }
+    return false;
+}
+
 void RSGraphicTest::TearDown()
 {
     if (!shouldRunTest_) {
@@ -149,11 +169,8 @@ void RSGraphicTest::TearDown()
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
 
-    if (!IsSingleTest()) {
-        if ((extInfo->isMultiple) && (++imageWriteId_ < ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(
-            string(testInfo->test_case_name)))) {
-            return;
-        }
+    if (WaitOtherTest()) {
+        return;
     }
 
     StartUIAnimation();
