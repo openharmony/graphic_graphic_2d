@@ -537,6 +537,8 @@ void RSUifirstManager::PostSubTask(NodeId id)
     // 1.find in cache list(done to dele) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (drawable) {
+        // record uifirst dirty region
+        drawable->UpdateUifirstDirtyManager();
         // ref drawable
         subthreadProcessingNode_.emplace(id, drawable);
         // post task

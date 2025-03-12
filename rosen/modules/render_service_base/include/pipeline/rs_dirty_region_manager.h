@@ -140,6 +140,9 @@ public:
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
 
+    // uifirst dirty
+    const RectI GetUiLatestHistoryDirtyRegions(const int historyIndex = 4) const; // 4 means default history index
+
     void SetActiveSurfaceRect(const RectI& rect)
     {
         auto dstRect = surfaceRect_.IntersectRect(rect);
