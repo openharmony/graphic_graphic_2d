@@ -1448,6 +1448,7 @@ public:
     {
         selfAndParentShouldPaint_ = selfAndParentShouldPaint;
     }
+
     bool GetSelfAndParentShouldPaint() const
     {
         return selfAndParentShouldPaint_;
