@@ -341,10 +341,10 @@ void RSUifirstManager::ProcessDoneNode()
             it++;
         }
     }
-    for (auto it = pindingResetWindowCachedNodes_.begin(); it != pindingResetWindowCachedNodes_.end();) {
-        ResetUifirstNode(*it);
-        pindingResetWindowCachedNodes_.erase(it);
+    for (auto& surfaceNode : pindingResetWindowCachedNodes_) {
+        ResetUifirstNode(surfaceNode);
     }
+    pindingResetWindowCachedNodes_.clear();
 
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end();) {
         auto id = it->first;
