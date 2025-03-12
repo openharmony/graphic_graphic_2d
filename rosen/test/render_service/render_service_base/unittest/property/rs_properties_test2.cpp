@@ -572,6 +572,12 @@ HWTEST_F(PropertiesTest, SetShadowIsFilledTest, TestSize.Level1)
 
     properties.SetShadowIsFilled(true);
     EXPECT_EQ(properties.contentDirty_, true);
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    RSShadow shadow;
+    shadow.SetMask(true);
+    properties.shadow_ = shadow;
+    properties.SetShadowIsFilled(true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**

@@ -38,18 +38,20 @@ std::string RSFilter::GetDetailedDescription()
     return "RSFilter " + std::to_string(type_);
 }
 
-std::shared_ptr<RSFilter> RSFilter::CreateBlurFilter(float blurRadiusX, float blurRadiusY)
+std::shared_ptr<RSFilter> RSFilter::CreateBlurFilter(float blurRadiusX, float blurRadiusY,
+    bool disableSystemAdaptation)
 {
     return std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
 }
 
-std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
+std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode,
+    float ratio, bool disableSystemAdaptation)
 {
     return std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(float radius, float saturation,
-    float brightness, uint32_t colorValue, BLUR_COLOR_MODE mode)
+    float brightness, uint32_t colorValue, BLUR_COLOR_MODE mode, bool disableSystemAdaptation)
 {
     MaterialParam materialParam = {radius, saturation, brightness, Color::FromArgbInt(colorValue)};
     return std::make_shared<RSMaterialFilter>(materialParam, mode);

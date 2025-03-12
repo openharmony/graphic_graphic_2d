@@ -49,6 +49,7 @@ public:
     virtual bool GetVsyncSamplerEnabled() = 0;
     virtual int32_t StartSample(bool forceReSample) = 0;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) = 0;
+    virtual uint64_t GetVsyncEnabledScreenId() = 0;
 protected:
     SetScreenVsyncEnabledCallback setScreenVsyncEnabledCallback_ = nullptr;
 };
@@ -82,6 +83,7 @@ public:
     virtual bool GetVsyncSamplerEnabled() override;
     virtual int32_t StartSample(bool forceReSample) override;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
+    virtual uint64_t GetVsyncEnabledScreenId() override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;

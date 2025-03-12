@@ -45,6 +45,7 @@ struct RSSurfaceNodeConfig {
     SurfaceId surfaceId = 0;
     bool isSync = true;
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {
@@ -61,11 +62,12 @@ public:
 
     ~RSSurfaceNode() override;
 
-    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     // This interface is only available for WMS
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true,
-        bool unobscured = false);
+        bool unobscured = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
@@ -148,7 +150,7 @@ public:
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
-    static void SetHDRPresent(bool hdrPresent, NodeId id);
+    void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
@@ -167,8 +169,10 @@ public:
     void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
-    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
-    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
@@ -187,6 +191,7 @@ private:
     void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
+    void RegisterNodeMap() override;
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     std::string bundleName_;
@@ -211,8 +216,6 @@ private:
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
 #endif
-
-    std::mutex apiInitMutex_;
 
     friend class RSUIDirector;
     friend class RSAnimation;

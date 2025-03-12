@@ -303,6 +303,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_DYNAMIC_MODE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_HGMCONFIG_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_HGMCONFIG_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_TOUCH_EVENT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_TOUCH_EVENT");
             break;
@@ -473,6 +477,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WINDOW_CONTAINER");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_IDENTIFICATION_DATA): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_IDENTIFICATION_DATA");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP_BY_PROCESSID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXELMAP_BY_PROCESSID");
             break;
@@ -483,6 +495,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
 #endif
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TEST_LOAD_FILE_SUB_TREE): {
+            hasPermission = IsStartByHdcd();
+            break;
+        }
         default: {
             break;
         }

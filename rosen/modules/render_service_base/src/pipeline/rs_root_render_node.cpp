@@ -47,6 +47,11 @@ void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
     surfaceNodeId_ = surfaceNodeId;
 }
 
+void RSRootRenderNode::AttachToken(uint64_t token)
+{
+    token_ = token;
+}
+
 float RSRootRenderNode::GetSuggestedBufferWidth() const
 {
     return suggestedBufferWidth_;

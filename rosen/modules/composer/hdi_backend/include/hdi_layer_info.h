@@ -432,6 +432,16 @@ public:
         brightnessRatio_ = brightnessRatio;
     }
 
+    const std::vector<float>& GetLayerLinearMatrix() const
+    {
+        return layerLinearMatrix_;
+    }
+
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
+    {
+        layerLinearMatrix_ = layerLinearMatrix;
+    }
+
     // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
@@ -502,6 +512,7 @@ public:
         sdrNit_ = layerInfo->GetSdrNit();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
+        layerLinearMatrix_ = layerInfo->GetLayerLinearMatrix();
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
@@ -626,6 +637,8 @@ private:
     int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    std::vector<float> layerLinearMatrix_
+        = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;

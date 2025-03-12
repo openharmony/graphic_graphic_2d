@@ -81,7 +81,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 2. Background filter is null
     // 3. Canvas is offscreen
     if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
-        !RSSystemProperties::GetEffectMergeEnabled() ||
+        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
         return;
@@ -151,7 +151,7 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #ifdef RS_ENABLE_GPU
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::FilterCacheEnabled) {
+    if (!RSProperties::filterCacheEnabled_) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
@@ -260,7 +260,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::FilterCacheEnabled) {
+    if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
 #endif

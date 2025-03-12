@@ -19,8 +19,9 @@
 #include "wrapper_log.h"
 
 namespace OHOS {
-EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window)
-    : EglWrapperObject(disp), surf_(surf), window_(window)
+EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf,
+                                     NativeWindowType window, EGLint colorSpace)
+    : EglWrapperObject(disp), surf_(surf), window_(window), colorSpace_(colorSpace)
 {
     WLOGD("");
     if (window_) {
@@ -51,6 +52,15 @@ void EglWrapperSurface::Disconnect(OHNativeWindow *window)
     if (window != nullptr) {
         NativeWindowDisconnect(window);
     }
+}
+
+EGLBoolean EglWrapperSurface::GetColorSpaceAttribute(EGLint attribute, EGLint* value) const
+{
+    if (attribute == EGL_GL_COLORSPACE_KHR) {
+        *value = colorSpace_;
+        return EGL_TRUE;
+    }
+    return EGL_FALSE;
 }
 
 } // namespace OHOS

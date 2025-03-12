@@ -28,6 +28,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
+#include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "memory/rs_memory_track.h"
@@ -40,7 +41,6 @@
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
-#include "luminance/rs_luminance_control.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -164,10 +164,6 @@ public:
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
-        if (IsRosenWeb() && !(RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType() ||
-            RSSystemProperties::IsPcType())) {
-            return false;
-        }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             IsLayerTop();
     }
@@ -336,7 +332,7 @@ public:
     {
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
-        if (specialLayerManager_.Find(SpecialLayerType::PROTECTED) && IsOnTheTree()) {
+        if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
@@ -400,8 +396,6 @@ public:
     }
 
     bool IsUIFirstSelfDrawCheck();
-    bool IsVisibleDirtyEmpty(DeviceType deviceType);
-    bool IsCurFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -525,6 +519,7 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
+    void SetIsOutOfScreen(bool isOutOfScreen);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -620,6 +615,16 @@ public:
         return dstRect_;
     }
 
+    void SetDstRectWithoutRenderFit(const RectI& rect)
+    {
+        dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
+    }
+
+    Drawing::Rect GetDstRectWithoutRenderFit() const
+    {
+        return dstRectWithoutRenderFit_;
+    }
+
     const RectI& GetOriginalDstRect() const
     {
         return originalDstRect_;
@@ -658,6 +663,8 @@ public:
     void OnAlphaChanged() override {
         alphaChanged_ = true;
     }
+
+    void SetStencilVal(int64_t stencilVal);
 
     void SetOcclusionVisible(bool visible);
 
@@ -1123,8 +1130,6 @@ public:
         lastFrameChildrenCnt_ = childrenCnt;
     }
 
-    bool IsUIFirstCacheReusable(DeviceType deviceType);
-
     bool GetUifirstSupportFlag() override
     {
         return RSRenderNode::GetUifirstSupportFlag();
@@ -1286,10 +1291,13 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
-    void SetNeedOffscreen(bool needOffscreen);
+    void SetNeedOffscreen(bool needOffscreen) override;
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
+    void SetSdrHasMetadata(bool hasMetadata);
+    bool GetSdrHasMetadata() const;
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1407,8 +1415,6 @@ public:
     {
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
-    // use for updating hdr and sdr nit
-    static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
@@ -1582,6 +1588,7 @@ private:
     int hdrNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
+    int64_t stencilVal_ = -1;
     float positionZ_ = 0.0f;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.
@@ -1625,6 +1632,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
+    Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;
     RectI drawBehindWindowRegion_;

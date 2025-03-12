@@ -142,6 +142,47 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
     }
 }
 
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_VisualEffect_Test)
+{
+    float rateList[] = { -0.05, 0.0, 1.0, 20.0 };
+    float saturationList[] = { 0.0, 5.0, 10.0, 20.0 };
+    Vector3f RGB[] = { { 2.3, 4.5, 2 }, { 0.5, 2, 0.5 } };
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 2; k++) {
+                float fraction = 0.0;
+                auto brightnessBlender = std::make_shared<BrightnessBlender>();
+                brightnessBlender->SetLinearRate(rateList[i]);
+                brightnessBlender->SetDegree(rateList[(i + 3) % 4]);
+                brightnessBlender->SetCubicRate(saturationList[j]);
+                brightnessBlender->SetQuadRate(saturationList[(j + 1) % 4]);
+                brightnessBlender->SetSaturation(saturationList[j]);
+                brightnessBlender->SetPositiveCoeff(RGB[k]);
+                brightnessBlender->SetNegativeCoeff(RGB[(k + 1) % 2]);
+                brightnessBlender->SetFraction(fraction);
+
+                auto backgroundColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
+                backgroundColorEffectPara->SetBlender(brightnessBlender);
+                VisualEffect effect;
+                effect.AddPara(backgroundColorEffectPara);
+
+                int x = i * 310;           // start position x of the image
+                int y = (k + j * 2) * 310; // calculate the positon y of the image
+                auto testFaNode = SetUpNodeBgImage(
+                    "/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 }); // 300 is image height and width
+                auto testNode = RSCanvasNode::Create();
+                testNode->SetBounds({ 0, 0, 300, 300 });  // Set the bounds height and width to 300
+                testNode->SetBackgroundColor(0xff7d112c); // Set the background color
+                testNode->SetVisualEffect(&effect);
+                GetRootNode()->AddChild(testFaNode);
+                testFaNode->AddChild(testNode);
+                RegisterNode(testFaNode);
+                RegisterNode(testNode);
+            }
+        }
+    }
+}
+
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Fract_Test)
 {
     int columnCount = 2;

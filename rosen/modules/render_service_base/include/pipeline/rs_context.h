@@ -190,12 +190,22 @@ public:
     }
 
     // save some need sync finish to client animations in list
-    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId, uint64_t token);
 
     void AddSubSurfaceCntUpdateInfo(SubSurfaceCntUpdateInfo info)
     {
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
+
+    std::unordered_map<NodeId, bool>& GetUiCaptureCmdsExecutedFlagMap()
+    {
+        return uiCaptureCmdsExecutedFlag_;
+    }
+
+    void InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag);
+    bool GetUiCaptureCmdsExecutedFlag(NodeId nodeId);
+    void EraseUiCaptureCmdsExecutedFlag(NodeId nodeId);
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -215,7 +225,7 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
-    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
+    std::vector<std::tuple<NodeId, AnimationId, uint64_t>> needSyncFinishAnimationList_;
 
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void(const std::function<void()>&)> rttaskRunner_;
@@ -226,6 +236,9 @@ private:
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
+
+    std::unordered_map<NodeId, bool> uiCaptureCmdsExecutedFlag_;
+    mutable std::mutex uiCaptureCmdsExecutedMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

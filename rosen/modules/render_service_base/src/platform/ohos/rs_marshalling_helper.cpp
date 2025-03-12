@@ -1639,8 +1639,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
         val->CloseFd();
     }
+    OHOS::Media::ImageInfo imageInfo;
+    val->GetImageInfo(imageInfo);
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
+        val->GetByteCount(), 0, 0, val->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
 #ifdef ROSEN_OHOS

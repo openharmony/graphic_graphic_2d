@@ -30,17 +30,18 @@
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
+#include "utils/graphic_coretrace.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "graphic_feature_param_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -52,6 +53,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
+#include "gfx/dump/rs_dump_manager.h"
 
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
@@ -71,15 +73,17 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* PURGE_SHADER_CACHE_AFTER_ANIMATE = "PurgeShaderCacheAfterAnimate";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* RECLAIM_MEMORY = "ReclaimMemory";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
+constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t TIME_OF_DEFAULT_CLEAR_GPU_CACHE = 5000;
-constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 12000;
+constexpr uint32_t TIME_OF_RECLAIM_MEMORY = 25000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
@@ -175,6 +179,7 @@ void RSUniRenderThread::InitGrContext()
     if (!grContext) {
         return;
     }
+    RSMainThread::Instance()->InitVulkanErrorCallback(grContext);
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
@@ -239,6 +244,8 @@ void RSUniRenderThread::Start()
         auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
         rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     }
+
+    RSUniRenderGfxDumpInit();
 }
 
 std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
@@ -336,6 +343,8 @@ void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRend
 
 void RSUniRenderThread::Render()
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSUNIRENDERTHREAD_RENDER);
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
@@ -532,6 +541,12 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
+    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
+    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+        return;
+    }
+
     if (!handler_) {
         return;
     }
@@ -788,13 +803,6 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
-{
-    if (uniRenderEngine_) {
-        uniRenderEngine_->ClearCacheSet(unmappedCache, isMatchVirtualScreen);
-    }
-}
-
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
@@ -821,7 +829,13 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    auto task = [this, moment, deeply, isDefaultClean]() {
+    bool isDeeplyRelGpuResEnable = false;
+    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
+    if (relGpuResParam != nullptr) {
+        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
+    }
+    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -841,7 +855,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || this->deviceType_ != DeviceType::PHONE) {
+            if (deeply || isDeeplyRelGpuResEnable) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -855,14 +869,6 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
-            auto purgeDrawables =
-                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
-            for (auto& drawable : purgeDrawables) {
-                drawable->Purge();
-            }
-        }
-        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
@@ -885,7 +891,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / rate);
+            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
@@ -897,7 +903,7 @@ void RSUniRenderThread::ReclaimMemory()
         return;
     }
 
-    // Reclaim memory when no render in 12s.
+    // Reclaim memory when no render in 25s.
     PostReclaimMemoryTask(ClearMemoryMoment::RECLAIM_CLEAN, true);
 }
 
@@ -915,6 +921,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         if (UNLIKELY(!grContext)) {
             return;
         }
+        grContext->ReclaimResources();
+
         RS_LOGD("Clear memory cache %{public}d", moment);
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
@@ -941,15 +949,8 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
+void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
 {
-    for (auto [nodeId, purgeFlag] : ids) {
-        if (purgeFlag) {
-            nodesNeedToBeClearMemory_.insert(nodeId);
-        } else {
-            nodesNeedToBeClearMemory_.erase(nodeId);
-        }
-    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         if (!isDoDirectComposition) {
@@ -964,7 +965,10 @@ void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bo
     }
     if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
-        if (!isDoDirectComposition) {
+        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+            isTimeToReclaim_.store(false);
+            RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+        } else if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }
@@ -1067,6 +1071,48 @@ void RSUniRenderThread::MemoryManagementBetweenFrames()
     }
 }
 
+void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
+{
+#ifdef RS_ENABLE_VK
+    if (hasPurgeShaderCacheTask_) {
+        RemoveTask(PURGE_SHADER_CACHE_AFTER_ANIMATE); // ensure only one task
+        hasPurgeShaderCacheTask_ = false;
+    }
+    if (!RSJankStats::GetInstance().IsAnimationEmpty()) {
+        return;
+    }
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    if (renderContext->CheckShaderCacheOverSoftLimit()) {
+        RS_TRACE_NAME("ShaderCache OverSize, Posting Purge Task");
+        hasPurgeShaderCacheTask_ = true;
+        PostTask(
+            [this]() {
+                auto& shaderCache = ShaderCache::Instance();
+                if (!shaderCache.IfInitialized()) {
+                    RS_LOGD("PurgeShaderCacheAfterAnimate shaderCache not Initialized");
+                    return;
+                }
+                RS_TRACE_NAME("PurgeShaderCacheAfterAnimate");
+                shaderCache.PurgeShaderCacheAfterAnimate([this]() -> bool {
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+                });
+                hasPurgeShaderCacheTask_ = false;
+            },
+            PURGE_SHADER_CACHE_AFTER_ANIMATE,
+            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_SIX_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+            AppExecFwk::EventQueue::Priority::LOW);
+    }
+#else
+    return;
+#endif
+}
+
 void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)
 {
     PostSyncTask([this, &dumpString]() {
@@ -1076,6 +1122,18 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)
         }
         rootNodeDrawable_->DumpDrawableTree(0, dumpString, RSMainThread::Instance()->GetContext());
     });
+}
+
+void RSUniRenderThread::RSUniRenderGfxDumpInit()
+{
+     // uni render tree
+    RSDumpFunc rsUniRenderTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                            std::string &dumpString) -> void {
+        RenderServiceTreeDump(dumpString);
+    };
+
+    std::vector<RSDumpHander> handers = { { RSDumpID::DRAWABLE_INFO, rsUniRenderTreeFunc, RS_UNI_THREAD_TAG } };
+    RSDumpManager::GetInstance().Register(handers);
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()
@@ -1119,6 +1177,16 @@ void RSUniRenderThread::SetVmaCacheStatus(bool flag)
     }
     std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
     vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
+}
+
+void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

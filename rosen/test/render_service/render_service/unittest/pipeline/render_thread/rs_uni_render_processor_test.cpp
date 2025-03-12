@@ -21,6 +21,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -201,9 +202,12 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
-    RSRcdSurfaceRenderNode node(nodeId, type);
-    renderProcessor->ProcessRcdSurface(node);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+    auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
+    renderProcessor->ProcessRcdSurface(*node);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
+    DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
+    renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
 }
 
 /**
@@ -562,81 +566,26 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessLayerSetCropRect
- * @tc.desc: Test RSUniRenderProcessorTest.ProcessLayerSetCropRect when params has Buffer
+ * @tc.name: GetForceClientForDRM005
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, ProcessLayerSetCropRect, TestSize.Level1)
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         return;
     }
-    RSSurfaceRenderParams params(0);
-    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(buffer, {});
-
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
-
-    LayerInfoPtr layerInfoPtr = HdiLayerInfo::CreateHdiLayerInfo();
-    auto layerInfo = params.layerInfo_;
-
-    // case 1. Intersect the left border of the screen.
-    //    map_x = (buffer_width - buffer_right_x)
-    layerInfo.srcRect.x = 1;
-    ASSERT_EQ(layerInfo.srcRect.x, 1);
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    // case 2. Intersect the right border of the screen.
-    //    map_x = (buffer_width - buffer_right_x)
-    //    Only left side adjustment can be triggerred on the narrow screen.
-    layerInfo.srcRect.x = 0;
-    ASSERT_EQ(layerInfo.srcRect.x, 0);
-    layerInfo.dstRect.x = 10000;
-    layerInfo.dstRect.w = 10000;
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    // case 1. Vertical direction.
-    layerInfo.srcRect.y = 1;
-    ASSERT_EQ(layerInfo.srcRect.y, 1);
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    // case 2. Vertical direction.
-    layerInfo.srcRect.y = 0;
-    ASSERT_EQ(layerInfo.srcRect.y, 0);
-    layerInfo.dstRect.y = 10000;
-    layerInfo.dstRect.h = 10000;
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
-
-    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
-    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+    RSSurfaceRenderParams params(0);
+    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    params.animateState_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    // set drm out of screen
+    params.isOutOfScreen_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    params.isOutOfScreen_ = true;
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
 }
 }

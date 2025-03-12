@@ -57,8 +57,9 @@ public:
 
     void OnError(int32_t errorCode, const std::string &errorMsg) override;
     void OnInfo(Media::PlayerOnInfoType type, int32_t extra, const Media::Format &infoBody) override;
+    void OnOperateInfo(Media::PlayerOnInfoType type, int32_t extra);
 private:
-    std::shared_ptr<BootVideoPlayer> boot_;
+    std::weak_ptr<BootVideoPlayer> boot_;
 };
 #endif
 } // namespace OHOS

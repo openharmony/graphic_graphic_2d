@@ -53,7 +53,7 @@ RSFrameRateLinker::RSFrameRateLinker() : id_(GenerateId())
 RSFrameRateLinker::~RSFrameRateLinker()
 {
     // tell RT/RS to destroy related frameRateLinker
-    auto transactionProxy = RSTransactionProxy::GetInstance();
+    auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
     if (transactionProxy == nullptr) {
         return;
     }
@@ -87,7 +87,7 @@ void RSFrameRateLinker::UpdateFrameRateRange(const FrameRateRange& range, int32_
         currAnimatorExpectedFrameRate_ = animatorExpectedFrameRate;
         std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(),
             range, animatorExpectedFrameRate);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
+        auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsUniRenderEnabled());
         }

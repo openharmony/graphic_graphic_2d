@@ -342,6 +342,8 @@ public:
     // bound of all region rects
     void MakeBound();
 
+    Region GetAlignedRegion(int alignmentSize) const;
+    
     bool IsIntersectWith(const Rect& r) const
     {
         for (const Rect& rect : rects_) {

@@ -28,6 +28,7 @@
 #include "skia_image.h"
 #include "skia_image_info.h"
 #include "skia_runtime_effect.h"
+#include "render/rs_colorful_shadow_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -151,6 +152,45 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix002, TestSize.Level1)
     RSPropertiesPainter::GetGravityMatrix(Gravity::DEFAULT, rect, w, h, mat);
     Gravity gravity = static_cast<Gravity>(100);
     EXPECT_FALSE(RSPropertiesPainter::GetGravityMatrix(gravity, rect, w, h, mat));
+}
+
+/**
+ * @tc.name: GetScalingModeMatrix
+ * @tc.desc: test results of GetScalingModeMatrix
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetScalingModeMatrix001, TestSize.Level1)
+{
+    constexpr float defaultBoundsWidth = 800.f;
+    constexpr float defaultBoundsHeight = 600.f;
+    RectF bounds(0.f, 0.f, defaultBoundsWidth, defaultBoundsHeight);
+    float bufferWidth = 30.f;
+    float bufferHeight = 40.f;
+    Drawing::Matrix scalingModeMatrix;
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_FREEZE, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix freezeMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, freezeMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleWindowMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, scaleWindowMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleCropMatrix = Drawing::Matrix();
+    scaleCropMatrix.SetMatrix(26.666666f, 0.f, 0.f, 0.f, 26.666666f, -233.333328f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_NO_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix noScaleCropMatrix = Drawing::Matrix();
+    noScaleCropMatrix.SetMatrix(1.f, 0.f, 385.f, 0.f, 1.f, 280.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, noScaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_FIT, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleFitMatrix = Drawing::Matrix();
+    scaleFitMatrix.SetMatrix(15.f, 0.f, 174.999985f, 0.f, 15.f, 0.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleFitMatrix);
 }
 
 /**
@@ -521,6 +561,30 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Leve
     properties.foregroundFilterCache_->type_ = RSFilter::FOREGROUND_EFFECT;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilterCache());
+}
+
+/**
+ * @tc.name: GetForegroundEffectDirtyRect002
+ * @tc.desc: test results of GetForegroundEffectDirtyRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Level1)
+{
+    RectI dirtyForegroundEffect;
+    RSProperties properties;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
+
+    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+    properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    RSShadow shadow;
+    RRect rrect({ 0.0f, 0.0f, 10.0f, 10.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+    shadow.SetMask(true);
+    shadow.SetRadius(1.0f);
+    properties.shadow_ = shadow;
+    properties.rrect_ = rrect;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
 }
 
 /**

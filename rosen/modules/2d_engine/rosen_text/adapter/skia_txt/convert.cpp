@@ -91,6 +91,9 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .hintingIsOn = style.hintingIsOn,
         .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
         .tab = Convert(style.tab),
+        .paragraphSpacing = style.paragraphSpacing,
+        .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
+        .relayoutChangeBitmap = style.relayoutChangeBitmap,
     };
 }
 
@@ -117,6 +120,7 @@ static std::string RemoveQuotes(const std::string& str)
 
 void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
 {
+    textStyle.symbol.SetSymbolType(style.symbol.GetSymbolType());
     textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
     textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());

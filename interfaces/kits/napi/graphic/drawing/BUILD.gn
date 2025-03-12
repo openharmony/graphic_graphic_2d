@@ -150,6 +150,7 @@ if (is_arkui_x) {
       external_deps += [
         "ability_runtime:abilitykit_native",
         "ability_runtime:app_context",
+        "ability_runtime:napi_common",
         "hilog:libhilog",
         "image_framework:image_native",
         "init:libbegetutil",

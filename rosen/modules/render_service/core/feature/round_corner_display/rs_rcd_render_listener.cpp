@@ -15,37 +15,37 @@
 
 #include "rs_rcd_render_listener.h"
 
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 RSRcdRenderListener::~RSRcdRenderListener() {}
 
-RSRcdRenderListener::RSRcdRenderListener(std::weak_ptr<RSRcdSurfaceRenderNode> surfaceRenderNode)
-    : surfaceRenderNode_(surfaceRenderNode) {}
+RSRcdRenderListener::RSRcdRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceHandler)
+    : surfaceHandler_(surfaceHandler) {}
 
 void RSRcdRenderListener::OnBufferAvailable()
 {
-    auto node = surfaceRenderNode_.lock();
-    if (node == nullptr) {
-        RS_LOGE("RSRcdRenderListener::OnBufferAvailable node is nullptr");
+    auto surfaceHandler = surfaceHandler_.lock();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSRcdRenderListener::OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-    node->IncreaseAvailableBuffer();
+    surfaceHandler->IncreaseAvailableBuffer();
 }
 
 void RSRcdRenderListener::OnGoBackground()
 {
-    std::weak_ptr<RSRcdSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
-    RSMainThread::Instance()->PostTask([surfaceNode]() {
-        auto node = surfaceNode.lock();
-        if (node == nullptr) {
-            RS_LOGW("RSRcdRenderListener::OnGoBackground node is nullptr");
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler = surfaceHandler_;
+    RSMainThread::Instance()->PostTask([surfaceHandler]() {
+        auto hanlder = surfaceHandler.lock();
+        if (hanlder == nullptr) {
+            RS_LOGW("RSRcdRenderListener::OnGoBackground surfaceHandler is nullptr");
             return;
         }
-        node->ResetBufferAvailableCount();
-        node->CleanCache();
+        hanlder->ResetBufferAvailableCount();
+        hanlder->CleanCache();
     });
 }
 } // namespace Rosen

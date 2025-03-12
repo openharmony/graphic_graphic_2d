@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_client/ui"
+module_output_path = "graphic_2d/graphic_2d/render_service_client/ui"
 
 ##############################  RSRenderServiceClientTest  ##################################
 ohos_unittest("RSCanvasDrawingNodeTest") {
@@ -111,96 +111,6 @@ ohos_unittest("RSEffectNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_effect_node_test.cpp" ]
-
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
-
-  configs = [
-    ":ui_test",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
-  ]
-
-  cflags = [
-    "-Dprivate = public",
-    "-Dprotected = public",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  subsystem_name = "graphic"
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-##############################  RSRenderServiceClientTest  ##################################
-ohos_unittest("RSExtNodeOperationTest") {
-  module_out_path = module_output_path
-
-  sources = [ "rs_ext_node_operation_test.cpp" ]
-
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
-
-  configs = [
-    ":ui_test",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
-  ]
-
-  cflags = [
-    "-Dprivate = public",
-    "-Dprotected = public",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  subsystem_name = "graphic"
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-##############################  RSRenderServiceClientTest  ##################################
-ohos_unittest("RSFrameRateLinkerTest") {
-  module_out_path = module_output_path
-
-  sources = [ "rs_frame_rate_linker_test.cpp" ]
-
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
-
-  configs = [
-    ":ui_test",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
-  ]
-
-  cflags = [
-    "-Dprivate = public",
-    "-Dprotected = public",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  subsystem_name = "graphic"
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-##############################  RSRenderServiceClientTest  ##################################
-ohos_unittest("RSFrameRatePolicyTest") {
-  module_out_path = module_output_path
-
-  sources = [ "rs_frame_rate_policy_test.cpp" ]
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -437,36 +347,6 @@ ohos_unittest("RSUIDirectorTest") {
   ]
 }
 
-##############################  RSRenderServiceClientTest  ##################################
-ohos_unittest("RSUIDisplaySoloistTest") {
-  module_out_path = module_output_path
-
-  sources = [ "rs_ui_display_soloist_test.cpp" ]
-
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
-
-  configs = [
-    ":ui_test",
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
-  ]
-
-  cflags = [
-    "-Dprivate = public",
-    "-Dprotected = public",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  subsystem_name = "graphic"
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
 ###############################################################################
 config("ui_test") {
   visibility = [ ":*" ]
@@ -484,9 +364,6 @@ group("unittest") {
     ":RSCanvasNodeTest",
     ":RSDisplayNodeTest",
     ":RSEffectNodeTest",
-    ":RSExtNodeOperationTest",
-    ":RSFrameRateLinkerTest",
-    ":RSFrameRatePolicyTest",
     ":RSNodeTest",
     ":RSProxyNodeTest",
     ":RSRootNodeTest",
@@ -494,6 +371,5 @@ group("unittest") {
     ":RSSurfaceNodeTest",
     ":RSTextureExportTest",
     ":RSUIDirectorTest",
-    ":RSUIDisplaySoloistTest",
   ]
 }

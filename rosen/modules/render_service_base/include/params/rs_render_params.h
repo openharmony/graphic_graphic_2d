@@ -359,6 +359,20 @@ public:
         return absRotation_;
     }
 
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC(bool flag);
+
+    virtual void SetNeedOffscreen(bool needOffscreen);
+    virtual bool GetNeedOffscreen() const;
+
+    // [Attention] Only used in PC window resize scene now
+    void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable();
+    void SetNeedSwapBuffer(bool needSwapBuffer);
+    bool GetNeedSwapBuffer() const;
+    void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
+    const Drawing::RectF& GetCacheNodeFrameRect() const;
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -410,6 +424,13 @@ private:
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
+    bool hasUnobscuredUEC_ = false;
+    bool needOffscreen_ = false;
+
+    // [Attention] Only used in PC window resize scene now
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr linkedRootNodeDrawable_;
+    bool needSwapBuffer_ = false;
+    Drawing::RectF cacheNodeFrameRect_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

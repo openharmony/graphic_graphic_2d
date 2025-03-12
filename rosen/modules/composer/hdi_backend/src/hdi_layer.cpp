@@ -15,16 +15,21 @@
 
 #include "hdi_layer.h"
 #include "hdi_log.h"
+#include "rs_trace.h"
 #include <algorithm>
+#include <cstring>
+#include <securec.h>
 namespace OHOS {
 namespace Rosen {
 constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
 constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
+constexpr size_t MATRIX_SIZE = 9;
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 
 template<typename T>
@@ -277,16 +282,23 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
 
 int32_t HdiLayer::SetLayerBuffer()
 {
-    sptr<SurfaceBuffer> currBuffer = layerInfo_->GetBuffer();
-    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
-    if (currBuffer == nullptr) {
+    RS_TRACE_NAME_FMT("SetLayerBuffer(layerid=%u)", layerId_);
+    if (layerInfo_->GetBuffer() != nullptr) {
+        currBuffer_ = layerInfo_->GetBuffer();
+    }
+    if (currBuffer_ == nullptr) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
+    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
     if (doLayerInfoCompare_) {
         sptr<SurfaceBuffer> prevBuffer = prevLayerInfo_->GetBuffer();
         sptr<SyncFence> prevAcquireFence = prevLayerInfo_->GetAcquireFence();
-        if (currBuffer == prevBuffer && currAcquireFence == prevAcquireFence) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (currBuffer_ == prevBuffer && currAcquireFence == prevAcquireFence) {
+            if (!alreadyClearBuffer_) {
+                return GRAPHIC_DISPLAY_SUCCESS;
+            }
+            HLOGW("layerid=%{public}u: force set same buffer(bufferId=%{public}u)", layerId_, currBuffer_->GetSeqNum());
+            RS_TRACE_NAME_FMT("layerid=%u: force set same buffer(bufferId=%u)", layerId_, currBuffer_->GetSeqNum());
         }
     }
 
@@ -297,7 +309,7 @@ int32_t HdiLayer::SetLayerBuffer()
         ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
-        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
+        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer_->GetSeqNum(), index, deletingList);
     }
 
     GraphicLayerBuffer layerBuffer;
@@ -307,8 +319,10 @@ int32_t HdiLayer::SetLayerBuffer()
     if (bufferCached && index < bufferCacheCountMax_) {
         layerBuffer.handle = nullptr;
     } else {
-        layerBuffer.handle = currBuffer->GetBufferHandle();
+        layerBuffer.handle = currBuffer_->GetBufferHandle();
     }
+
+    alreadyClearBuffer_ = false;
     return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
 
@@ -786,6 +800,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
             ret = SetPerFrameParameterBrightnessRatio();
             CheckRet(ret, "SetPerFrameParameterBrightnessRatio");
+        } else if (key == GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX) {
+            ret = SetPerFrameLayerLinearMatrix();
+            CheckRet(ret, "SetLayerLinearMatrix");
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
@@ -836,6 +853,23 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
         screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
 }
 
+int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
+    if (memcpy_s(valueBlob.data(), valueBlob.size(), layerInfo_->GetLayerLinearMatrix().data(),
+        MATRIX_SIZE * sizeof(float)) != EOK) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX, valueBlob);
+}
+
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 {
     if (prevLayerInfo_ != nullptr) {
@@ -855,9 +889,18 @@ void HdiLayer::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
+    if (layerInfo_ == nullptr || device_ == nullptr) {
+        return;
+    }
+    if (layerInfo_->GetBuffer() != nullptr) {
+        currBuffer_ = layerInfo_->GetBuffer();
+    }
+    RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
+        bufferCache_.size());
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
     bufferCache_.clear();
+    alreadyClearBuffer_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

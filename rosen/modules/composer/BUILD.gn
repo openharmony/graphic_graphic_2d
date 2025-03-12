@@ -70,6 +70,7 @@ ohos_shared_library("libcomposer") {
   public_configs = [ ":composer_public_config" ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/utils:scoped_bytrace",
     "vsync:libvsync",
   ]

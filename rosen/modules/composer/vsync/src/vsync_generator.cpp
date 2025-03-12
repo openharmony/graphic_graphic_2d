@@ -58,6 +58,7 @@ constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
+constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 
 static void SetThreadHighPriority()
 {
@@ -83,6 +84,7 @@ uint32_t CalculateRefreshRate(int64_t period)
         {15000000, 18000000, 60}, // 15000000ns, 18000000ns
         {13000000, 15000000, 72}, // 13000000ns, 15000000ns
         {10000000, 12000000, 90}, // 10000000ns, 12000000ns
+        {12000000, 13000000, 80}, // 12000000ns, 13000000ns
         {7500000, 9000000, 120}, // 7500000ns, 9000000ns
         {6000000, 7500000, 144}}; // 6000000ns, 7500000ns
     for (const auto& rateSection : rateSections) {
@@ -666,9 +668,7 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     phase_ = phase;
-    if (period == 0) {
-        UpdateReferenceTimeLocked(referenceTime);
-    } else if (UpdatePeriodLocked(period) == VSYNC_ERROR_OK) {
+    if (period == 0 || UpdatePeriodLocked(period) == VSYNC_ERROR_OK) {
         UpdateReferenceTimeLocked(referenceTime);
     }
     startRefresh_ = false;
@@ -681,6 +681,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     ScopedBytrace func("AddListener");
     std::lock_guard<std::mutex> locker(mutex_);
     if (cb == nullptr) {
+        VLOGE("AddListener failed, cb is null.");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     Listener listener;
@@ -689,6 +690,10 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     listener.lastTime_ = SystemTime() - period_ + phase_;
 
     listeners_.push_back(listener);
+
+    if (listeners_.size() > MAX_LISTENERS_AMOUNT) {
+        VLOGE("AddListener, listeners size is out of range, size = %{public}zu", listeners_.size());
+    }
 
     size_t i = 0;
     for (; i < listenersRecord_.size(); i++) {
@@ -805,7 +810,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     changingPhaseOffset_ = listenerPhaseOffset;
     needChangePhaseOffset_ = true;
 
-    if (generatorRefreshRate != currRefreshRate_) {
+    if (generatorRefreshRate != currRefreshRate_ || generatorRefreshRate != changingGeneratorRefreshRate_) {
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
     } else {
@@ -1016,6 +1021,7 @@ VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator
     ScopedBytrace func("RemoveListener");
     std::lock_guard<std::mutex> locker(mutex_);
     if (cb == nullptr) {
+        VLOGE("RemoveListener failed, cb is null.");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     bool removeFlag = false;
@@ -1028,6 +1034,7 @@ VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator
         }
     }
     if (!removeFlag) {
+        VLOGE("RemoveListener, not found, size = %{public}zu", listeners_.size());
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     return VSYNC_ERROR_OK;
@@ -1098,11 +1105,11 @@ void VSyncGenerator::Dump(std::string &result)
 void VSyncGenerator::PrintGeneratorStatus()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    VLOGI("PrintGeneratorStatus, period:" VPUBI64 ", phase:" VPUBI64 ", referenceTime:" VPUBI64
+    VLOGW("[Info]PrintGeneratorStatus, period:" VPUBI64 ", phase:" VPUBI64 ", referenceTime:" VPUBI64
         ", vsyncMode:%{public}d, listeners size:%{public}u", period_, phase_, referenceTime_, vsyncMode_,
         static_cast<uint32_t>(listeners_.size()));
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        VLOGI("i:%{public}u, listener phase is " VPUBI64 ", timeStamp is " VPUBI64,
+        VLOGW("[Info]i:%{public}u, listener phase is " VPUBI64 ", timeStamp is " VPUBI64,
             i, listeners_[i].phase_, listeners_[i].lastTime_);
     }
 }

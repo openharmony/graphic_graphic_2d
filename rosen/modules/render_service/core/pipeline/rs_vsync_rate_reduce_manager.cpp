@@ -15,14 +15,15 @@
 
 #include "rs_vsync_rate_reduce_manager.h"
 #include <parameters.h>
+#include <memory>
 #include <ratio>
 #include <thread>
 #include <unordered_set>
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "graphic_feature_param_manager.h"
+#include "main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -45,7 +46,7 @@ constexpr float V_VAL_MAX = 1.0f;
 constexpr float WORKLOAD_TIMES[] = {1.0f, 1.5f, 2.0f, 2.5f};
 constexpr float V_VAL_INTERVALS[] = {V_VAL_MAX, 0.75f, 0.5f, 0.25f, V_VAL_MIN};
 constexpr int BALANCE_FRAME_COUNT = 3;
-constexpr int WORKLOAD_TIMES_SIZE = sizeof(WORKLOAD_TIMES);
+constexpr int WORKLOAD_TIMES_SIZE = sizeof(WORKLOAD_TIMES) / sizeof(WORKLOAD_TIMES[0]);
 constexpr int WORKLOAD_LEVEL_COUNT = sizeof(VSYNC_RATE_TABLE) / sizeof(VSYNC_RATE_TABLE[0]);
 // v_val of the v-rate result
 constexpr float V_VAL_LEVEL_1 = 1.0f;
@@ -186,9 +187,8 @@ int RSVsyncRateReduceManager::UpdateRatesLevel()
         frameDurations_.pop_front();
     }
     int plusLevel = -1;
-    float expectPeriod = BALANCE_FRAME_COUNT;
     for (int i = WORKLOAD_TIMES_SIZE; i > 0; --i) {
-        if (totalDuration > expectPeriod * WORKLOAD_TIMES[i - 1]) {
+        if (totalDuration > static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES[i - 1]) {
             plusLevel = i;
             break;
         }
@@ -278,9 +278,10 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
         RS_LOGE("GetRateByBalanceLevel curRatesLevel error");
         return DEFAULT_RATE;
     }
-    int minRate = rsRefreshRate_ / MIN_REFRESH_RATE;
+    int minRate = rsRefreshRate_ / static_cast<uint32_t>(MIN_REFRESH_RATE);
     auto& rates = VSYNC_RATE_TABLE[curRatesLevel_];
-    for (int i = 1; i < sizeof(V_VAL_INTERVALS); ++i) {
+    size_t intervalsSize = sizeof(V_VAL_INTERVALS) / sizeof(float);
+    for (size_t i = 1; i < intervalsSize; ++i) {
         if (vVal > V_VAL_INTERVALS[i]) {
             return std::min(minRate, rates[i - 1]);
         }
@@ -325,8 +326,8 @@ Occlusion::Rect RSVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Re
     }
     xPositions.assign(xPositionSet.begin(), xPositionSet.end());
     std::sort(xPositions.begin(), xPositions.end());
-    for (int i = 0; i < xPositions.size() - 1; ++i) {
-        for (int j = i + 1; j < xPositions.size(); ++j) {
+    for (size_t i = 0; i < xPositions.size() - 1; ++i) {
+        for (size_t j = i + 1; j < xPositions.size(); ++j) {
             Occlusion::Rect subBound(xPositions[i], srcBound.top_, xPositions[j], srcBound.bottom_);
             int baseArea = std::max(maxRArea, minArea);
             if (subBound.Area() <= baseArea) {
@@ -482,11 +483,28 @@ void RSVsyncRateReduceManager::NotifyVSyncRates(const std::map<NodeId, RSVisible
     }
 }
 
+bool RSVsyncRateReduceManager::GetVRateIsSupport()
+{
+    auto vRateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[VRate]);
+    if (vRateFeatureParam == nullptr) {
+        RS_LOGE("Get vRateFeatureParam failed, vRateFeatureParam is nullptr");
+        return false;
+    }
+    auto vRatePatam = std::static_pointer_cast<VRateParam>(vRateFeatureParam);
+    if (vRatePatam == nullptr) {
+        RS_LOGE("Get vRatePatam failed, vRatePatam is nullptr");
+        return false;
+    }
+    RS_LOGI("GetVRateIsSupport: %{public}d", static_cast<int>(vRatePatam->GetVRateEnable()));
+    return vRatePatam->GetVRateEnable();
+}
+
 void RSVsyncRateReduceManager::Init(const sptr<VSyncDistributor>& appVSyncDistributor)
 {
     appVSyncDistributor_ = appVSyncDistributor;
-    deviceType_ = RSMainThread::Instance()->GetDeviceType();
-    vRateReduceEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
+    isDeviceSupprotVRate_ = GetVRateIsSupport();
+    vRateReduceEnabled_ = isDeviceSupprotVRate_ && RSSystemParameters::GetVSyncControlEnabled();
+    RS_LOGI("Init vRateReduceEnabled_ is %{public}d", vRateReduceEnabled_);
 }
 
 void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
@@ -506,7 +524,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     if (!vRateConditionQualified_) {
         return;
     }
-    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / rsRefreshRate;
+    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate);
     rsRefreshRate_ = rsRefreshRate;
 }
 } // namespace Rosen

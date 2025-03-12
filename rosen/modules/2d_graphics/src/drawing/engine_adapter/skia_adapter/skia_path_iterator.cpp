@@ -41,6 +41,8 @@ static PathVerb ConvertToPathVerb(const SkPath::Verb& verb)
             return PathVerb::CLOSE;
         case SkPath::Verb::kDone_Verb:
             return PathVerb::DONE;
+        default:
+            return PathVerb::DONE;
     }
 }
 
@@ -59,7 +61,7 @@ const SkPath::RawIter& SkiaPathIterator::ExportSkiaPathIterator() const
     return skPathIterator_;
 }
 
-scalar SkiaPathIterator::conicWeight() const
+scalar SkiaPathIterator::ConicWeight() const
 {
     return skPathIterator_.conicWeight();
 }

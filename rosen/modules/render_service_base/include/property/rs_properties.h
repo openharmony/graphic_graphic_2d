@@ -43,7 +43,7 @@
 #include "render/rs_shadow.h"
 #include "render/rs_attraction_effect_filter.h"
 
-#include "property/rs_filter_cache_manager.h"
+#include "render/rs_filter_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -474,6 +474,7 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
+    void CreateColorfulShadowFilter();
     RectI GetAttractionEffectCurrentDirtyRegion() const;
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
@@ -569,6 +570,8 @@ public:
     void SetHaveEffectRegion(bool hasEffectRegion);
 
     void OnApplyModifiers();
+
+    static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
 
 private:
     inline float DecreasePrecision(float value)
@@ -737,7 +740,7 @@ private:
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
-    static const bool FilterCacheEnabled;
+    static bool filterCacheEnabled_;
 #endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;

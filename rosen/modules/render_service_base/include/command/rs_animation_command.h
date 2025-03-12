@@ -75,52 +75,38 @@ public:
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        [[maybe_unused]] auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (animation) {
+            (*animation.*OP)();
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)();
     }
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOpReg(RSContext& context, NodeId nodeId, AnimationId animId)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (node && animation) {
+            (*animation.*OP)();
+            // register node on animation start or resume
+            context.RegisterAnimatingRenderNode(node);
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)();
-        // register node on animation start or resume
-        context.RegisterAnimatingRenderNode(node);
     }
     template<typename T, void (RSRenderAnimation::*OP)(T)>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId, T param)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        [[maybe_unused]] auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (animation) {
+            (*animation.*OP)(param);
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)(param);
     }
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
     static void CreateParticleAnimation(RSContext& context, NodeId targetId,
         const std::shared_ptr<RSRenderParticleAnimation>& animation);
 
-    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
+    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, uint64_t, AnimationCallbackEvent);
     static void AnimationCallback(RSContext& context,
-                                  NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
+                                  NodeId targetId, AnimationId animId, uint64_t token,
+                                  AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 
@@ -137,6 +123,11 @@ public:
     static void ReverseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
     static void SetFractionInteractiveAnimator(RSContext& context,
         InteractiveImplictAnimatorId targetId, float fraction);
+private:
+    using NodeAndAnimationPair =
+    std::pair<const std::shared_ptr<RSRenderNode>, const std::shared_ptr<RSRenderAnimation>>;
+    static NodeAndAnimationPair GetNodeAndAnimation(
+    RSContext& context, NodeId& nodeId, AnimationId& animId, const char* funcName);
 };
 
 // animation operation
@@ -151,7 +142,7 @@ ADD_COMMAND(RSAnimationResume,
         AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Resume>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationFinish,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_FINISH,
-        AnimationCommandHelper::AnimOp<&RSRenderAnimation::Finish>, NodeId, AnimationId))
+        AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Finish>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationReverse,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_REVERSE,
         AnimationCommandHelper::AnimOp<bool, &RSRenderAnimation::SetReversed>, NodeId, AnimationId, bool))
@@ -164,7 +155,7 @@ ADD_COMMAND(RSAnimationCancel,
 
 ADD_COMMAND(RSAnimationCallback,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CALLBACK,
-        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
+        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, uint64_t, AnimationCallbackEvent))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve,

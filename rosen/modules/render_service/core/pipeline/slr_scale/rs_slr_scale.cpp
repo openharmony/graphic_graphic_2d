@@ -16,8 +16,9 @@
 #include "rs_slr_scale.h"
 
 #include <cfloat>
+#include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,9 +67,9 @@ float GetSLRFactor(float x, int a)
 const float BIT_BOUND = 32767.0f;
 const int SLR_MAX_WIN_SIZE = 4;
 const int SLR_TAO_MAX_SIZE = 2;
-const float SLR_SCALE_THR_LOW = 0.6f;
-const float SLR_ALPHA_LOW = 0.6f;
-const float SLR_ALPHA_HIGH = 0.1f;
+const float SLR_SCALE_THR_LOW = 0.65f;
+const float SLR_ALPHA_LOW = 0.2f;
+const float SLR_ALPHA_HIGH = 0.05f;
 
 static std::shared_ptr<uint32_t[]> GetSLRWeights(float coeff, int width, int dstWidth, int minBound)
 {
@@ -137,15 +138,20 @@ void RSSLRScaleFunction::RefreshScreenData()
     scaleNum_ = std::min(mirrorWidth_ / srcWidth_, mirrorHeight_ / srcHeight_);
     dstWidth_ = scaleNum_ * srcWidth_;
     dstHeight_ = scaleNum_ * srcHeight_;
-    alpha_ = (SLR_SCALE_THR_LOW < scaleNum_ && scaleNum_ < SLR_SCALE_THR_HIGH) ?
-        SLR_ALPHA_LOW :SLR_ALPHA_HIGH;
+    alpha_ = scaleNum_ > SLR_SCALE_THR_LOW ? SLR_ALPHA_HIGH : SLR_ALPHA_LOW;
     float tao = 1.0f / scaleNum_;
     kernelSize_ = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
 
     widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
     heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSSLRScaleFunction::RefreshScreenData multiScreenFeatureParam is null");
+        return;
+    }
     isSLRCopy_ = scaleNum_ < SLR_SCALE_THR_HIGH && widthEffect_ && heightEffect_ &&
-        RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
+        multiScreenFeatureParam->IsSlrScaleEnabled();
 }
 
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)

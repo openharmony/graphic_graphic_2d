@@ -43,7 +43,10 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
-    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
+        bool displayP3Enable = false) const;
+    void SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas, ColorFilterMode colorFilterMode,
+        float hdrBrightnessRatio = 1.f) const;
     void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
@@ -125,6 +128,8 @@ public:
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, RSDisplayRenderParams& params,
+        RSRenderThreadParams& uniParam);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void FindHardwareEnabledNodes(RSDisplayRenderParams& params);
     void AdjustZOrderAndDrawSurfaceNode(std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,

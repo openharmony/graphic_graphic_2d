@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/common"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/common"
 
 ##############################  RSRenderServiceBaseCommonTest  ##################################
 ohos_unittest("RSRenderServiceBaseCommonTest") {
@@ -30,6 +30,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_obj_abs_geometry_test.cpp",
     "rs_occlusion_region_test.cpp",
     "rs_rect_test.cpp",
+    "rs_rectangles_merger_test.cpp",
     "rs_special_layer_manager_test.cpp",
     "rs_thread_handler_generic_test.cpp",
     "rs_thread_looper_generic_test.cpp",
@@ -61,6 +62,12 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
   ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+  if (defined(graphic_2d_math_tools_configs.vendor_root)) {
+    sources +=
+        graphic_2d_math_tools_configs.librender_service_ext_math_tools_test
+    sources -=
+        graphic_2d_math_tools_configs.librender_service_ext_math_tools_test_del
   }
   deps = [
     "../../../../../modules/render_service_base:librender_service_base",

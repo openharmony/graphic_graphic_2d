@@ -16,9 +16,11 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 #define ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 
+#include <bitset>
 #include <shared_mutex>
 #include "rosen_text/typography.h"
 #include "txt/paragraph.h"
+#include "rosen_text/typography_style.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,8 +50,8 @@ public:
     void SetIndents(const std::vector<float>& indents) override;
     float DetectIndents(size_t index) override;
     void Layout(double width) override;
-    void Paint(SkCanvas *canvas, double x, double y) override;
-    void Paint(Drawing::Canvas *drawCanvas, double x, double y) override;
+    void Paint(SkCanvas* canvas, double x, double y) override;
+    void Paint(Drawing::Canvas* drawCanvas, double x, double y) override;
     void Paint(Drawing::Canvas* drawCanvas, Drawing::Path* path, double hOffset, double vOffset) override;
 
     std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
@@ -77,6 +79,9 @@ public:
     void UpdateColor(size_t from, size_t to, const Drawing::Color& color) override;
     void* GetParagraph() override { return reinterpret_cast<void*>(paragraph_.get()); }
     Drawing::RectI GeneratePaintRegion(double x, double y) const override;
+    void Relayout(double width, const TypographyStyle& typograhyStyle,
+        const std::vector<TextStyle>& textStyles) override;
+
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

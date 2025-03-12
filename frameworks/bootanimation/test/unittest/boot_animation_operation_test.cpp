@@ -80,6 +80,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Le
 {
     BootAnimationOperation operation;
     int32_t degree = 0;
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     ASSERT_NE(nullptr, operation.rsSurfaceNode_);
 }
@@ -93,6 +94,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Le
 {
     BootAnimationOperation operation;
     int32_t degree = 0;
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     operation.InitRsSurface();
     ASSERT_NE(nullptr, operation.rsSurface_);
@@ -153,6 +155,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Le
     BootAnimationOperation operation;
     int32_t degree = 0;
     system::SetParameter(BOOT_ANIMATION_READY, "true");
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     ASSERT_NE(nullptr, operation.rsSurfaceNode_);
 }

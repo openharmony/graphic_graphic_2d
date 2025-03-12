@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "include/gpu/vk/GrVkGraphicCoreTrace.h"
+#include "utils/graphic_coretrace.h"
 #include "skia_utils.h"
 
 #include "src/core/SkUtils.h"
@@ -24,6 +26,20 @@ namespace Drawing {
 void SkiaUtils::SetVmaCacheStatus(bool flag)
 {
     SkSetVmaCacheFlag(flag);
+}
+
+void SkiaUtils::RecordCoreTrace(int functionType)
+{
+#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
+    GraphicCoreTrace::RecordCoreTrace(functionType);
+#endif
+}
+
+void SkiaUtils::RecordCoreTrace(int functionType, uint64_t nodeId)
+{
+#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
+    GraphicCoreTrace::RecordCoreTrace(functionType, nodeId);
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

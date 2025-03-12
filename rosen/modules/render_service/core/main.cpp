@@ -20,7 +20,7 @@
 #include <hilog/log.h>
 
 #include "platform/common/rs_log.h"
-#include "pipeline/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;

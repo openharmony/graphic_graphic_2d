@@ -89,7 +89,11 @@ scalar SkiaCamera::GetCameraPosZ() const
 
 void SkiaCamera::ApplyToMatrix(Matrix& m)
 {
-    SkMatrix& matrix = m.GetImpl<SkiaMatrix>()->ExportMatrix();
+    auto matrixImpl = m.GetImpl<SkiaMatrix>();
+    if (matrixImpl == nullptr) {
+        return;
+    }
+    SkMatrix& matrix = matrixImpl->ExportMatrix();
     view_.getMatrix(&matrix);
 }
 } // namespace Drawing

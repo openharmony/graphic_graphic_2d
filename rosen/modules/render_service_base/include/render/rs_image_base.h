@@ -43,6 +43,17 @@ class VulkanCleanupHelper;
 #endif
 class RSB_EXPORT RSImageBase {
 public:
+#ifdef ROSEN_OHOS
+    /* This class is used to avoid Unmap is being called after ReMap and before pixelMap is used. */
+    class PixelMapUseCountGuard {
+    public:
+        PixelMapUseCountGuard(std::shared_ptr<Media::PixelMap> pixelMap, bool purgeable);
+        ~PixelMapUseCountGuard();
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+        bool purgeable_ = false;
+    };
+#endif
     RSImageBase() = default;
     virtual ~RSImageBase();
 
@@ -63,7 +74,9 @@ public:
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
-    std::shared_ptr<Media::PixelMap> GetPixelMap();
+    void MarkPurgeable();
+    bool IsPurgeable() const;
+    std::shared_ptr<Media::PixelMap> GetPixelMap() const;
     void DumpPicture(DfxString& info) const;
     uint64_t GetUniqueId() const;
 #ifdef ROSEN_OHOS
@@ -75,19 +88,13 @@ public:
 
     /*
      * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
-     * Only the pixelMap_ held by at most one RSImage and one Image can be purged.
-     * More information can be found in RSImageCahe::CheckRefCntAndReleaseImageCache.
+     * Only the pixelMap_ with one RefCount and one UseCount can be purged.
     */
     void Purge();
+    void DePurge();
 
 protected:
     void GenUniqueId(uint32_t id);
-    /*
-     * This is the reverse process of Purge, which will call ReMap() of pixelMap_. To avoid Upmap() being called
-     * after ReMap() and before pixelMap_ is used, use_count of pixelMap_ will be increased by return value.
-     * Use the return temporary and do not store it to avoid memory leak.
-    */
-    std::shared_ptr<Media::PixelMap> DePurge();
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)

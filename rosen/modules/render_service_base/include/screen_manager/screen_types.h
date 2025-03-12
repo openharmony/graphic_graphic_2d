@@ -198,6 +198,7 @@ typedef enum : uint32_t {
     BLACKLIST_IS_EMPTY,
     SET_RATE_ERROR,
     VIRTUAL_SCREEN,
+    READ_PARCEL_ERR,
 } StatusCode;
 
 typedef enum {

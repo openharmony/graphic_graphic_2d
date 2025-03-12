@@ -17,6 +17,7 @@
 #define FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_SURFACE_H
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include "egl_wrapper_object.h"
 #include "external_window.h"
 #include "surface.h"
@@ -27,7 +28,8 @@ class EglWrapperDisplay;
 
 class EglWrapperSurface : public EglWrapperObject {
 public:
-    EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window = nullptr);
+    EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf,
+                      NativeWindowType window = nullptr, EGLint colorSpace = EGL_UNKNOWN);
     static EglWrapperSurface *GetWrapperSurface(EGLSurface surf);
     inline EGLSurface GetEglSurface() const
     {
@@ -41,11 +43,19 @@ public:
 
     static void Disconnect(OHNativeWindow *window);
 
+    EGLint GetColorSpace() const
+    {
+        return colorSpace_;
+    }
+
+    EGLBoolean GetColorSpaceAttribute(EGLint attribute, EGLint* value) const;
+
 protected:
     ~EglWrapperSurface() override;
 private:
     EGLSurface surf_;
     NativeWindowType window_;
+    EGLint colorSpace_;
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_SURFACE_H

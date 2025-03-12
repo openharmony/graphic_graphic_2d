@@ -96,13 +96,14 @@ bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Imag
     return true;
 }
 
-bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap)
+bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, std::shared_ptr<Drawing::Bitmap>& bitmap)
 {
     if (image == nullptr) {
         RS_LOGE("[%{public}s] No image found \n", __func__);
         return false;
     }
-    if (!image->AsLegacyBitmap(bitmap)) {
+    bitmap = std::make_shared<Drawing::Bitmap>();
+    if (!image->AsLegacyBitmap(*bitmap)) {
         RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
         return false;
     }
@@ -247,7 +248,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t left, uint32_t top, uin
 {
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
     RectU displayRect(left, top, width, height);
-    if (displayRect != displayRect_) {
+    if (displayRect != lastRcvDisplayRect_) {
         RS_LOGI("[%{public}s] rcd last rect %{public}u, %{public}u, %{public}u, %{public}u"
             "rcv rect %{public}u, %{public}u, %{public}u, %{public}u \n", __func__,
             lastRcvDisplayRect_.GetLeft(), lastRcvDisplayRect_.GetTop(),
@@ -314,8 +315,14 @@ void RoundCornerDisplay::UpdateHardwareResourcePrepared(bool prepared)
     }
 }
 
+void RoundCornerDisplay::RefreshFlagAndUpdateResource()
+{
+    UpdateParameter(updateFlag_);
+}
+
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
+    RS_TRACE_BEGIN("RCD::UpdateParameter");
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
@@ -336,6 +343,7 @@ void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag
     } else {
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Status is not changed \n", __func__);
     }
+    RS_TRACE_END();
 }
 
 // Choose the approriate resource type according to orientation and notch status
@@ -408,21 +416,21 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerUp);
-            hardInfo_.topLayer->curBitmap = &bitmapTopPortrait_;
+            hardInfo_.topLayer->curBitmap = bitmapTopPortrait_;
             break;
         case TOP_HIDDEN:
             if (portrait == std::nullopt) {
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerHide);
-            hardInfo_.topLayer->curBitmap = &bitmapTopHidden_;
+            hardInfo_.topLayer->curBitmap = bitmapTopHidden_;
             break;
         case TOP_LADS_ORIT:
             if (landscape == std::nullopt) {
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(landscape->layerUp);
-            hardInfo_.topLayer->curBitmap = &bitmapTopLadsOrit_;
+            hardInfo_.topLayer->curBitmap = bitmapTopLadsOrit_;
             break;
         default:
             RS_LOGE("[%{public}s] No showResourceType found with type %{public}d \n", __func__, showResourceType_);
@@ -432,7 +440,7 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
         return;
     }
     hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
-    hardInfo_.bottomLayer->curBitmap = &bitmapBottomPortrait_;
+    hardInfo_.bottomLayer->curBitmap = bitmapBottomPortrait_;
 }
 
 void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)
@@ -481,7 +489,7 @@ void RoundCornerDisplay::DrawBottomRoundCorner(RSPaintFilterCanvas* canvas)
 
 void RoundCornerDisplay::PrintRCDInfo()
 {
-    RS_LOGI("[%{public}s] begin \n", __func__);
+    RS_LOGD("[%{public}s] begin \n", __func__);
     if (lcdModel_ != nullptr) {
         RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
             "hardware->%{public}d rogListSize %{public}d\n", __func__, lcdModel_->name.c_str(),
@@ -493,13 +501,18 @@ void RoundCornerDisplay::PrintRCDInfo()
         RS_LOGI("[%{public}s] rog info : \n", __func__);
         rs_rcd::RCDConfig::PrintParseRog(rog_);
     }
-    RS_LOGI("[%{public}s] render target displayNode Id %{public}" PRIu64 " \n", __func__,
-        renderTargetId_);
-    RS_LOGI("[%{public}s] current rect, notch: %{public}u, %{public}u, %{public}u, %{public}u, %{public}d \n", __func__,
-        displayRect_.GetLeft(), displayRect_.GetTop(), displayRect_.GetWidth(), displayRect_.GetHeight(), notchStatus_);
-
-    RS_LOGI("[%{public}s] current hardware Info rcdchangeTag, rcdPreparingTag : %{public}d , %{public}d \n", __func__,
-        hardInfo_.resourceChanged, hardInfo_.resourcePreparing);
+    RS_LOGI("[%{public}s] render target id: %{public}" PRIu64
+            ", display rect: (%{public}u, %{public}u, %{public}u, %{public}u), notch: %{public}d, resource tag: "
+            "%{public}d , %{public}d\n",
+        __func__,
+        renderTargetId_,
+        displayRect_.GetLeft(),
+        displayRect_.GetTop(),
+        displayRect_.GetWidth(),
+        displayRect_.GetHeight(),
+        notchStatus_,
+        hardInfo_.resourceChanged,
+        hardInfo_.resourcePreparing);
     if (hardInfo_.topLayer != nullptr) {
         RS_LOGW("[%{public}s] current hardware Info toplayer w h : %{public}u , %{public}u\n", __func__,
             hardInfo_.topLayer->cldWidth, hardInfo_.topLayer->cldHeight);
@@ -508,7 +521,7 @@ void RoundCornerDisplay::PrintRCDInfo()
         RS_LOGW("[%{public}s] current hardware Info bottomlayer w h : %{public}u , %{public}u\n", __func__,
             hardInfo_.bottomLayer->cldWidth, hardInfo_.bottomLayer->cldHeight);
     }
-    RS_LOGI("[%{public}s] end \n", __func__);
+    RS_LOGD("[%{public}s] end \n", __func__);
 }
 } // namespace Rosen
 } // namespace OHOS

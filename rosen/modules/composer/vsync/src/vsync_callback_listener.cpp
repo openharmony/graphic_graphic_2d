@@ -110,8 +110,8 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld, fd:%d",
-        dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
+    RS_TRACE_NAME_FMT("ReceiveVsync name:%s dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld, fd:%d",
+        name_.c_str(), dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
     if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
         cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);

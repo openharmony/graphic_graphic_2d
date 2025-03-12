@@ -485,7 +485,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        bufferSynced_ = true;
+        if (UNLIKELY(isSurfaceCapturePipeline_)) {
+            bufferSynced_ = false;
+            isSurfaceCapturePipeline_ = false;
+        } else {
+            bufferSynced_ = true;
+        }
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -519,6 +524,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->stencilVal_ = stencilVal_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -531,6 +537,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
@@ -550,18 +557,20 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
-    targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
+    targetSurfaceParams->layerLinearMatrix_ = layerLinearMatrix_;
+    targetSurfaceParams->hasMetadata_ = hasMetadata_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;

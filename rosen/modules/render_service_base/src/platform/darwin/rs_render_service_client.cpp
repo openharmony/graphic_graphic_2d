@@ -470,6 +470,12 @@ bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface
     return {};
 }
 
+int32_t RSRenderServiceClient::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
+    std::vector<uint8_t>& edidData)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
@@ -553,7 +559,7 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
 
-bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};
 }
@@ -609,6 +615,10 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 }
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+}
+
+void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
 }
 
@@ -726,6 +736,21 @@ void RSRenderServiceClient::NotifyScreenSwitched()
 }
 
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
+{
+}
+
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
 {
 }
 } // namespace Rosen

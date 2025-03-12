@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
-#include "pipeline/rs_uni_render_listener.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 #include "metadata_helper.h"

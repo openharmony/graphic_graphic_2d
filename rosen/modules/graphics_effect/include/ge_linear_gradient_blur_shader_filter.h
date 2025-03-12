@@ -33,8 +33,8 @@ public:
     GELinearGradientBlurShaderFilter operator=(const GELinearGradientBlurShaderFilter&) = delete;
     ~GELinearGradientBlurShaderFilter() override = default;
 
-    std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst) override;
+    virtual std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst) override;
 
     std::string GetDescription();
     std::string GetDetailedDescription();
@@ -44,12 +44,7 @@ public:
         geoHeight_ = geoHeight;
     }
 
-private:
-    static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
-    static void ComputeScale(float width, float height, bool useMaskAlgorithm);
-    static void MakeHorizontalMeanBlurEffect();
-    static void MakeVerticalMeanBlurEffect();
-
+protected:
     std::shared_ptr<GELinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     inline static float imageScale_ = 1.f;
     inline static float geoWidth_ = 0.f;
@@ -58,12 +53,20 @@ private:
     inline static float tranY_ = 0.f;
     inline static bool isOffscreenCanvas_ = true;
 
-    static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
+    static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
+    static bool ProcessGradientDirectionPoints(
+        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);  // 2 size of points
     static bool GetGEGradientDirectionPoints(
         Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);  // 2 size of points
     static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(
         const Drawing::Rect& clipBounds, const std::shared_ptr<GELinearGradientBlurPara>& para, uint8_t directionBias);
+private:
+    static void ComputeScale(float width, float height, bool useMaskAlgorithm);
+    static void MakeHorizontalMeanBlurEffect();
+    static void MakeVerticalMeanBlurEffect();
+
+    static Drawing::Rect ComputeRectBeforeClip(const uint8_t directionBias, const Drawing::Rect& dst);
     static std::shared_ptr<Drawing::Image> DrawMaskLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
         Drawing::Canvas& canvas, std::shared_ptr<GEShaderFilter>& blurFilter,
         std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst);
@@ -74,8 +77,6 @@ private:
         float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::Rect& dst);
     std::shared_ptr<Drawing::Image> ProcessImageDDGR(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image, uint8_t directionBias);
-    static bool ProcessGradientDirectionPoints(
-        Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GEGradientDirection direction);  // 2 size of points
     static std::shared_ptr<Drawing::Image> BuildMeanLinearGradientBlur(const std::shared_ptr<Drawing::Image>& image,
         Drawing::Canvas& canvas, float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
         Drawing::Matrix blurMatrix);

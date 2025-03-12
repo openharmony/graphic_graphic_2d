@@ -43,7 +43,8 @@ void AppendFormat(std::string& out, const char* fmt, Args&& ... args)
 template <class Container>
 void SplitString(const std::string& src, Container& dest, const char separator)
 {
-    if (src.empty()) {
+    if (src.empty() || src.length() > STRING_BUFFER_SIZE) {
+        HiviewDFX::HiLog::Error(TAG, "failed to split string.");
         return;
     }
     std::string tmp;

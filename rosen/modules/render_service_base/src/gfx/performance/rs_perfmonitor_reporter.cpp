@@ -320,6 +320,7 @@ void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int upda
         std::string bundleName = GetCurrentBundleName();
         std::string timeTaken = GetUpdateCacheTimeTaken(nodeId);
         RSBackgroundThread::Instance().PostTask([nodeId, bundleName, updateTimes, timeTaken]() {
+            RS_TRACE_NAME("RSPerfMonitorReporter::ProcessRendergroupSubhealth HiSysEventWrite in RSBackgroundThread");
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, RENDERGROUP_SUBHEALTH_EVENT_NAME,
                 OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                 "NODE_ID", nodeId,

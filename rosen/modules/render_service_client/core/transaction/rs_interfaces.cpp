@@ -15,15 +15,16 @@
 
 #include <cstdint>
 #include <functional>
+
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_system_properties.h"
-#include "pipeline/rs_divided_ui_capture.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "feature/ui_capture/rs_divided_ui_capture.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -151,9 +152,6 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    if (!RSSystemProperties::IsPcType()) {
-        return false;
-    }
     if (renderServiceClient_ == nullptr) {
         return false;
     }
@@ -331,6 +329,7 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 
 uint32_t RSInterfaces::GetRealtimeRefreshRate(ScreenId id)
 {
+    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}" PRIu64"]", id);
     return renderServiceClient_->GetRealtimeRefreshRate(id);
 }
 
@@ -645,6 +644,11 @@ int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
     return renderServiceClient_->GetScreenType(id, screenType);
 }
 
+int32_t RSInterfaces::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData)
+{
+    return renderServiceClient_->GetDisplayIdentificationData(id, outPort, edidData);
+}
+
 int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);
@@ -660,9 +664,9 @@ int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefre
     return renderServiceClient_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
-bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes);
+    return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
 }
 
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
@@ -810,12 +814,20 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 
 void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
+    if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {
+        return;
+    }
     renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 
 void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
     renderServiceClient_->NotifyDynamicModeEvent(enableDynamicMode);
+}
+
+void RSInterfaces::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+    renderServiceClient_->NotifyHgmConfigEvent(eventName, state);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -949,6 +961,12 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+{
+    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
 {
@@ -956,5 +974,21 @@ int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
     return renderServiceClient_->SetOverlayDisplayMode(mode);
 }
 #endif
+
+void RSInterfaces::NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter)
+{
+    auto pageNameList = RSFrameRatePolicy::GetInstance()->GetPageNameList();
+    auto item = pageNameList.find(pageName);
+    if (item != pageNameList.end()) {
+        ROSEN_LOGI("RSInterfaces packageName = %{public}s pageName = %{public}s isEnter = %{public}d",
+            packageName.c_str(), pageName.c_str(), isEnter);
+        renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
+    }
+}
+
+void RSInterfaces::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    renderServiceClient_->TestLoadFileSubTreeToNode(nodeId, filePath);
+}
 } // namespace Rosen
 } // namespace OHOS

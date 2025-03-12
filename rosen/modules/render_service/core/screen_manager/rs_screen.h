@@ -20,6 +20,7 @@
 #include <mutex>
 #include <optional>
 #include <unordered_set>
+#include <shared_mutex>
 
 #include <common/rs_rect.h>
 #include <surface_type.h>
@@ -129,7 +130,6 @@ public:
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
     virtual bool GetDisplayPropertyForHardCursor() = 0;
-    virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
     virtual int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) = 0;
@@ -142,6 +142,8 @@ public:
     virtual bool GetHasProtectedLayer() = 0;
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
+    virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
+    virtual int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
 };
 
 namespace impl {
@@ -241,7 +243,6 @@ public:
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus() const override;
     bool GetDisplayPropertyForHardCursor() override;
-    void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
     int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) override;
@@ -254,6 +255,8 @@ public:
     bool GetHasProtectedLayer() override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
+    int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
+    int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -276,6 +279,7 @@ private:
 
     std::string name_;
 
+    mutable std::shared_mutex screenMutex_;
     uint32_t width_ = 0;
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
@@ -285,10 +289,11 @@ private:
     float samplingTranslateY_ = 0.f;
     float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
-    VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
     RectI activeRect_ = {};
     RectI maskRect_ = {};
     RectI reviseRect_ = {};
+
+    std::atomic<VirtualScreenStatus> screenStatus_ = VIRTUAL_SCREEN_PLAY;
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;
@@ -298,6 +303,7 @@ private:
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
+    std::mutex powerStatusMutex_;
     ScreenPowerStatus powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
     GraphicPixelFormat pixelFormat_;
 
@@ -307,20 +313,23 @@ private:
         COLOR_GAMUT_ADOBE_RGB,
         COLOR_GAMUT_DISPLAY_P3 };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
-    int32_t currentVirtualColorGamutIdx_ = 0;
-    int32_t currentPhysicalColorGamutIdx_ = 0;
-    ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
+    std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
+    std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
+    std::atomic<ScreenGamutMap> currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
     int32_t currentVirtualHDRFormatIdx_ = 0;
     int32_t currentPhysicalHDRFormatIdx_ = 0;
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
+
+    mutable std::shared_mutex skipFrameMutex_;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
     uint32_t expectedRefreshRate_ = INVALID_EXPECTED_REFRESH_RATE;
     SkipFrameStrategy skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
     bool isEqualVsyncPeriod_ = true;
-    ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
+
+    std::atomic<ScreenRotation> screenRotation_ = ScreenRotation::ROTATION_0;
     bool canvasRotation_ = false; // just for virtual screen to use
     ScreenScaleMode scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
@@ -334,10 +343,15 @@ private:
     bool enableVisibleRect_ = false;
     Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
+
+    std::once_flag hardCursorSupportedFlag_;
     bool isHardCursorSupport_ = false;
-    mutable std::mutex skipFrameMutex_;
+
     bool isSupportRotation_ = false;
     bool hasProtectedLayer_ = false;
+
+    std::shared_mutex linearMatrixMutex_;
+    std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 };
 } // namespace impl
 } // namespace Rosen

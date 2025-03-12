@@ -21,7 +21,7 @@
 #include "src/gpu/gl/GrGLDefines.h"
 #endif
 
-#include "pipeline/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "common/rs_optional_trace.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -44,9 +44,12 @@
 #ifdef RS_ENABLE_GPU
 #include "drawable/rs_display_render_node_drawable.h"
 #endif
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
 }
@@ -71,7 +74,7 @@ void RSBaseRenderEngine::Init(bool independentContext)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         vkImageManager_ = std::make_shared<RSVkImageManager>();
         renderContext_->SetUpGpuContext(skContext_);
     } else {
@@ -116,7 +119,7 @@ void RSBaseRenderEngine::InitCapture(bool independentContext)
     }
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
-        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         captureRenderContext_->SetUpGpuContext(captureSkContext_);
     } else {
         captureRenderContext_->SetUpGpuContext();
@@ -255,11 +258,12 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
     const FrameContextConfig& frameContextConfig)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_REQUESTFRAME);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(
-            frameContextConfig.independentContext);
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (renderContext_ == nullptr) {
             return nullptr;
         }
@@ -417,6 +421,8 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
     BufferDrawParam& drawParam)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_DRAWDISPLAYNODEWITHPARAMS);
     if (drawParam.useCPU) {
         DrawBuffer(canvas, drawParam);
     } else {
@@ -569,8 +575,10 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    RSColorSpaceConvert::Instance().GetHDRMetadata(params.buffer,
-        parameter.staticMetadata, parameter.dynamicMetadata, ret);
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(params.buffer, parameter.staticMetadata, ret);
+    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
+    RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer,
+        parameter.adaptiveFOVMetadata, ret);
 #endif
 
     parameter.width = params.buffer->GetWidth();
@@ -578,6 +586,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.tmoNits = params.tmoNits;
     parameter.currentDisplayNits = params.displayNits;
     parameter.sdrNits = params.sdrNits;
+    // color temperature
+    parameter.layerLinearMatrix = params.layerLinearMatrix;
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
             "outPrimaries = %{public}u, outMetadataType = %{public}u, "
@@ -607,7 +617,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isHdrToSdr) {
-        parameter.tmoNits = parameter.sdrNits;
+        parameter.sdrNits = DEFAULT_DISPLAY_NIT;
+        parameter.tmoNits = DEFAULT_DISPLAY_NIT;
+        parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
+        parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
@@ -673,6 +686,17 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorSpaceNameTo
     return colorSpace;
 }
 
+void RSBaseRenderEngine::DumpVkImageInfo(std::string &dumpString)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan() && vkImageManager_) {
+        vkImageManager_->DumpVkImageInfo(dumpString);
+    }
+#else
+    (void) dumpString;
+#endif
+}
+
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
     BufferDrawParam& params, VideoInfo& videoInfo)
 {
@@ -701,6 +725,9 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex, params.screenId);
+        if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
+            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum(), true);
+        }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
@@ -737,6 +764,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBASERENDERENGINE_DRAWIMAGE);
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
     RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;
@@ -783,23 +812,24 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
+    Media::VideoProcessingEngine::CM_ColorSpaceInfo& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
-    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc ==
-        outClrInfo.transfunc && !canvas.GetHdrOn()) {
-        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
+    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc &&
+        !params.hasMetadata) {
+        RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
 
-    // HDR to SDR, tmoNits equal sdrNits
-    params.isHdrToSdr = canvas.IsOnMultipleScreen() || !canvas.GetHdrOn();
+    // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
+    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
+        !RSSystemProperties::GetHdrVideoEnabled();
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
@@ -866,34 +896,6 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         return true;
     }
     return false;
-}
-
-HdrStatus RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer)
-{
-    if (surfaceBuffer == nullptr) {
-        return HdrStatus::NO_HDR;
-    }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> metadataType{};
-    if (surfaceBuffer->GetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) ==
-        GSERROR_OK && metadataType.size() > 0 &&
-        metadataType[0] == HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR) {
-        return HdrStatus::AI_HDR_VIDEO;
-    }
-#endif
-    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        return HdrStatus::NO_HDR;
-    }
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK) {
-        if (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG) {
-            return HdrStatus::HDR_VIDEO;
-        }
-    }
-    return HdrStatus::NO_HDR;
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

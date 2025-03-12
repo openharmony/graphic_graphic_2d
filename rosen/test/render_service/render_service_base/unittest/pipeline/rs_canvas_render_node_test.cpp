@@ -17,7 +17,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 using namespace testing;
@@ -409,5 +409,22 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
     std::optional<Color> colorBlend = color;
     property.SetColorBlend(colorBlend);
     EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+}
+
+/**
+ * @tc.name: SetLinkedRootNodeId
+ * @tc.desc: test SetLinkedRootNodeId
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetLinkedRootNodeId, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(2);
+    NodeId rootNodeId = static_cast<NodeId>(3);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), INVALID_NODEID);
+
+    rsCanvasRenderNode->SetLinkedRootNodeId(rootNodeId);
+    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), rootNodeId);
 }
 } // namespace OHOS::Rosen

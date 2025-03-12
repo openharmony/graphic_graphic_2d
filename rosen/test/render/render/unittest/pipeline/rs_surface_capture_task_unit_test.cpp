@@ -30,7 +30,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_extractor.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"

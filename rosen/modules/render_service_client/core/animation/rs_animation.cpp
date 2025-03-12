@@ -15,6 +15,8 @@
 
 #include "animation/rs_animation.h"
 
+#include "sandbox_utils.h"
+
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_trace_utils.h"
@@ -23,9 +25,10 @@
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
-#include "sandbox_utils.h"
+#include "ui/rs_ui_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -200,16 +203,16 @@ void RSAnimation::OnPause()
         ROSEN_LOGE("Failed to pause animation, target is null!");
         return;
     }
-
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send pause", id_);
+    RS_TRACE_NAME_FMT("Animation[%llu] send pause", id_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationPause>(target->GetId(), id_);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationPause>(target->GetId(), id_);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationPause>(target->GetId(), id_);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+    }
+    if (finishCallback_) {
+        finishCallback_->SetAnimationBeenPaused();
     }
 }
 
@@ -347,16 +350,14 @@ void RSAnimation::OnResume()
         ROSEN_LOGE("Failed to resume animation, target is null!");
         return;
     }
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send resume", id_);
+    RS_TRACE_NAME_FMT("Animation[%llu] send resume", id_);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationResume>(target->GetId(), id_);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationResume>(target->GetId(), id_);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationResume>(target->GetId(), id_);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
@@ -389,16 +390,12 @@ void RSAnimation::OnFinish()
         ROSEN_LOGE("Failed to finish animation, target is null!");
         return;
     }
-
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] send finish", id_);
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationFinish>(target->GetId(), id_);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationFinish>(target->GetId(), id_);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationFinish>(target->GetId(), id_);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
@@ -432,16 +429,12 @@ void RSAnimation::OnReverse()
         ROSEN_LOGE("Failed to reverse animation, target is null!");
         return;
     }
-
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationReverse>(target->GetId(), id_, isReversed_);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
@@ -480,14 +473,11 @@ void RSAnimation::OnSetFraction(float fraction)
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationSetFraction>(target->GetId(), id_, fraction);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
@@ -523,11 +513,26 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
             animation->SetFrameRateRange(range);
         }
     }
+    // set token to RSRenderAnimation
+    if (auto target = target_.lock()) {
+        if (auto context = target->GetRSUIContext()) {
+            animation->SetToken(context->GetToken());
+        }
+    } else {
+        ROSEN_LOGE("multi-instance, RSAnimation::UpdateParamToRenderAnimation, target is null!");
+    }
 }
 
 void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    auto target = target_.lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("multi-instance, RSAnimation::StartCustomAnimation, target is null!");
+        return;
+    }
+    auto rsUIContext = target->GetRSUIContext();
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
+                                       : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr || animation == nullptr) {
         ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %{public}" PRIu64 "!",
             GetId());
@@ -535,9 +540,7 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
     }
 
     uiAnimation_ = animation;
-    if (auto target = target_.lock()) {
-        animation->targetId_ = target->GetId();
-    }
+    animation->targetId_ = target->GetId();
     animation->Start();
     modifierManager->AddAnimation(animation);
 }

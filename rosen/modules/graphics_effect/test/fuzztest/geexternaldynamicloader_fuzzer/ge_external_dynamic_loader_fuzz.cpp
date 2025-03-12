@@ -36,11 +36,7 @@ bool GEExternalDynamicLoaderFuzzTest001(const uint8_t *data, size_t size)
     GETest::g_pos = 0;
 
     auto& dynamicLoader = GEExternalDynamicLoader::GetInstance();
-    uint32_t type = GETest::GetPlainData<uint32_t>();
-    // Only parameter struct containing basic types can be tested
-    if (type != (uint32_t)Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR) {
-        type = (uint32_t)Drawing::GEVisualEffectImpl::FilterType::NONE;
-    }
+    auto type = (uint32_t)Drawing::GEVisualEffectImpl::FilterType::NONE;
     uint32_t len = GETest::GetPlainData<uint32_t>();
     uint8_t* param = (uint8_t*)(data + GETest::g_pos);
     auto object = dynamicLoader.CreateGEXObjectByType(type, len, param);

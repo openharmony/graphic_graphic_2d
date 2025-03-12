@@ -22,6 +22,8 @@ namespace Drawing {
 class SkiaUtils {
 public:
     static void SetVmaCacheStatus(bool flag);
+    static void RecordCoreTrace(int functionType);
+    static void RecordCoreTrace(int functionType, uint64_t nodeId);
 };
 } // namespace Drawing
 } // namespace Rosen

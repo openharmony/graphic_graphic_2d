@@ -37,7 +37,7 @@ public:
     }
 
     const SkPath::RawIter& ExportSkiaPathIterator() const;
-    scalar conicWeight() const override;
+    scalar ConicWeight() const override;
     PathVerb Next(Point* points) override;
     PathVerb Peek() override;
 private:

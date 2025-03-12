@@ -99,19 +99,13 @@ void RSInterpolatingSpringAnimation::StartRenderAnimation(
         ROSEN_LOGE("Failed to start interpolating spring animation, target is null!");
         return;
     }
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("Failed to start interpolating spring animation, transaction proxy is null!");
-        return;
-    }
-
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCreateInterpolatingSpring>(target->GetId(), animation);
-    transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
     if (target->NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> commandForRemote =
             std::make_unique<RSAnimationCreateInterpolatingSpring>(target->GetId(), animation);
-        transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 

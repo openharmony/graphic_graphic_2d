@@ -28,7 +28,7 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
 #include "platform/ohos/rs_render_service_proxy.h"
-#include "pipeline/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service.h"
 #include "transaction/rs_render_service_stub.h"
 
 namespace OHOS {

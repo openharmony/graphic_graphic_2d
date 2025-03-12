@@ -20,7 +20,7 @@
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
@@ -129,7 +129,7 @@ HWTEST_F(RSUniRenderThreadTest, GetVisibleRect001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, SetVisibleRect001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    // 100 test value for Rect reight and bottom
+    // 100 test value for Rect right and bottom
     Drawing::RectI visibleRectSet = Drawing::RectI(0, 0, 100, 100);
     RSUniRenderThread::Instance().SetVisibleRect(visibleRectSet);
     const auto &visibleRectGet = instance.GetVisibleRect();
@@ -374,13 +374,11 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    std::unordered_map<NodeId, bool> ids1;
-    instance.ResetClearMemoryTask(std::move(ids1));
+    instance.ResetClearMemoryTask();
     EXPECT_FALSE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
-    std::unordered_map<NodeId, bool> ids2;
-    instance.ResetClearMemoryTask(std::move(ids2));
+    instance.ResetClearMemoryTask();
     EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 
@@ -563,7 +561,6 @@ HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
     instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 
-    instance.deviceType_ = DeviceType::PC;
     instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 

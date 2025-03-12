@@ -60,4 +60,14 @@
 #define RSC_EXPORT_TMP
 #endif
 
+#if (defined(__aarch64__) || defined(__x86_64__))
+#define RSPUBI64  "%{public}ld"
+#define RSPUB_SIZE "%{public}lu"
+#define RSPUBU64  "%{public}lu"
+#else
+#define RSPUBI64  "%{public}lld"
+#define RSPUB_SIZE "%{public}u"
+#define RSPUBU64  "%{public}llu"
+#endif
+
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_MACROS_H

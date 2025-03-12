@@ -498,6 +498,17 @@ public:
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const;
 
     /**
+     * @brief Gets the path between the start and end points.
+     * @param start            The distance from the starting point of the segment to the starting point of the path.
+     * @param stop             The distance from the end point of the segment to the starting point of the path.
+     * @param dst              The path obtained.
+     * @param startWithMoveTo  Whether the path obtained moveTo to the starting segment.
+     * @param forceClosed      Whether to close the path.
+     * @return Returns false if the segment is zero-length or start > stop, else return true.
+     */
+    bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) const;
+
+    /**
      * @brief Determines whether the current contour is closed.
      * @param forceClosed  Whether to close the Path.
      * @return Returns true if the current contour is closed, otherwise false.

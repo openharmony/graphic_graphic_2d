@@ -122,7 +122,8 @@ HWTEST_F(RSRenderServiceProxyTest, FillParcelWithTransactionData, TestSize.Level
 HWTEST_F(RSRenderServiceProxyTest, CreateNodeAndSurface, TestSize.Level1)
 {
     ASSERT_FALSE(proxy->CreateNode(RSSurfaceRenderNodeConfig()));
-    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig()), nullptr);
+    sptr<Surface> surface = nullptr;
+    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface), ERR_INVALID_VALUE);
 }
 
 /**
@@ -869,7 +870,7 @@ HWTEST_F(RSRenderServiceProxyTest, RegisterHgmRefreshRateUpdateCallback, TestSiz
 HWTEST_F(RSRenderServiceProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
     proxy->SetAppWindowNum(1);
-    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER));
+    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false));
 }
 
 /**

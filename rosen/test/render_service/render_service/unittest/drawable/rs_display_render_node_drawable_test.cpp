@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "drawable/rs_display_render_node_drawable.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
@@ -26,8 +27,9 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "platform/drawing/rs_surface_converter.h"
+// xml parser
+#include "graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -192,9 +194,16 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     ASSERT_NE(renderNode_, nullptr);
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
+    auto rotateOffScreenFeatureParam =
+         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
+    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
+    if (rotateOffScreenParam == nullptr) {
+        rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();
+    }
+    auto type = rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
+    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(true);
+
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto type = system::GetParameter("const.window.foldscreen.type", "");
-    system::SetParameter("const.window.foldscreen.type", "1");
     params->isRotationChanged_ = true;
     params->frameRect_ = { 0.f, 0.f, 1.f, 0.f };
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
@@ -208,7 +217,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->curCanvas_->surface_ = surface.get();
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     ASSERT_TRUE(displayDrawable_->curCanvas_->GetSurface());
-    system::SetParameter("const.window.foldscreen.type", type);
+    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(type);
 }
 
 /**
@@ -829,6 +838,35 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest, TestSize.Level1)
 
     auto virtualProcesser = new RSUniRenderVirtualProcessor();
     displayDrawable_->DrawExpandScreen(*virtualProcesser);
+}
+
+/**
+ * @tc.name: ClearCanvasStencilTest001
+ * @tc.desc: Test ClearCanvasStencilTest
+ * @tc.type: FUNC
+ * @tc.require: #IBO35Y
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearCanvasStencilTest001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    ASSERT_NE(uniParam, nullptr);
+
+    ASSERT_NE(displayDrawable_, nullptr);
+    displayDrawable_->ClearCanvasStencil(canvas, *params, *uniParam);
+
+    displayDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
+    ASSERT_NE(displayDrawable_->syncDirtyManager_, nullptr);
+    auto dirtyManager = displayDrawable_->GetSyncDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    auto alignedRegion = allDirtyRegion.GetAlignedRegion(128);
+    ASSERT_TRUE(alignedRegion.IsEmpty());
 }
 
 /**
@@ -1899,10 +1937,43 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
     displayDrawable_->SwitchColorFilter(canvas, 0.6);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
     displayDrawable_->SwitchColorFilter(canvas, 0.6);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6, true);
+
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: SwitchColorFilterWithP3
+ * @tc.desc: Test SwitchColorFilterWithP3
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilterWithP3, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.Build(10, 10, bitmapFormat);
+    surface->Bind(bitmap);
+    canvas.surface_ = surface.get();
+
+    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    displayDrawable_->SwitchColorFilterWithP3(canvas, colorFilterMode);
+    displayDrawable_->SwitchColorFilterWithP3(canvas, colorFilterMode, 0.6);
 
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;

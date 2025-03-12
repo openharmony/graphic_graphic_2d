@@ -97,11 +97,33 @@ public:
     const RectI& GetDirtyRegion() const;
     // return mapAbs dirtyRegion
     const RectI& GetCurrentFrameMpsAbsDirtyRect() const;
+
+    std::vector<RectI> GetCurrentFrameAdvancedDirtyRegion() const
+    {
+        return currentFrameAdvancedDirtyRegion_;
+    }
+
+    std::vector<RectI> GetAdvancedDirtyRegion() const
+    {
+        return advancedDirtyRegion_;
+    }
+
+    std::vector<RectI> GetDirtyRegionForQuickReject() const
+    {
+        return dirtyRegionForQuickReject_;
+    }
+
+    void SetDirtyRegionForQuickReject(std::vector<RectI> region)
+    {
+        dirtyRegionForQuickReject_ = region;
+    }
+
     void SetCurrentFrameDirtyRect(const RectI& dirtyRect);
     /*  return merged historical region upside down in left-bottom origin coordinate
         reason: when use OpenGL SetDamageRegion, coordinate system conversion exists.
     */
     RectI GetDirtyRegionFlipWithinSurface() const;
+    std::vector<RectI> GetAdvancedDirtyRegionFlipWithinSurface() const;
     // return current frame's region from dirtyregion history
     const RectI& GetLatestDirtyRegion() const;
     // return merged historical region upside down in left-bottom origin coordinate
@@ -217,7 +239,21 @@ public:
     const RectI& GetUifirstFrameDirtyRegion();
     void SetUifirstFrameDirtyRect(const RectI& dirtyRect);
 
+    void SetMaxNumOfDirtyRects(int maxNumOfDirtyRects)
+    {
+        maxNumOfDirtyRects_ = maxNumOfDirtyRects;
+    }
+
+    void SetAdvancedDirtyRegionType(AdvancedDirtyRegionType advancedDirtyRegionType)
+    {
+        advancedDirtyRegionType_ = advancedDirtyRegionType;
+    }
+
 private:
+    void UpdateMaxNumOfDirtyRectByState();
+    void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
+    void MergeAdvancedDirtyHistory(unsigned int age);
+    std::vector<RectI> GetAdvancedDirtyHistory(unsigned int i) const;
     RectI MergeHistory(unsigned int age, RectI rect) const;
     void PushHistory(RectI rect);
     // get his rect according to index offset
@@ -233,6 +269,8 @@ private:
     int historyHead_ = -1;
     unsigned int historySize_ = 0;
     const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
+    int maxNumOfDirtyRects_ = 1;
+    AdvancedDirtyRegionType advancedDirtyRegionType_ = AdvancedDirtyRegionType::DISABLED;
     // may add new set function for bufferAge
     unsigned int bufferAge_ = 0;
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
@@ -256,6 +294,11 @@ private:
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion
     std::vector<RectI> cacheableFilterRects_ = {};  // node's region if filter cachable
     std::vector<RectI> mergedDirtyRegions_ = {};
+
+    std::vector<RectI> advancedDirtyRegion_ = {};
+    std::vector<RectI> currentFrameAdvancedDirtyRegion_ = {};
+    std::vector<RectI> dirtyRegionForQuickReject_ = {};
+    std::vector<std::vector<RectI>> advancedDirtyHistory_ = {};
 
     // added for dfx
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;

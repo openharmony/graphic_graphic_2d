@@ -22,6 +22,7 @@
 #include <ui/rs_canvas_node.h>
 #include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
+#include "ui/rs_ui_director.h"
 
 #include "draw/canvas.h"
 #include "event_handler.h"
@@ -64,6 +65,7 @@ private:
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;
+    std::shared_ptr<Rosen::RSUIDirector> rsUIDirector_;
     std::shared_ptr<Rosen::Drawing::Typeface> tf_;
     std::shared_ptr<Rosen::VSyncReceiver> receiver_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;

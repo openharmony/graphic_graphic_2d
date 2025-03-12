@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "limit_number.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "rs_test_util.h"
 #include "system/rs_system_parameters.h"
@@ -93,13 +93,10 @@ HWTEST_F(RSVsyncRateReduceManagerTest, EnqueueFrameDuration001, TestSize.Level1)
  */
 HWTEST_F(RSVsyncRateReduceManagerTest, Init001, TestSize.Level1)
 {
-    auto instance = RSMainThread::Instance();
-    instance->SetDeviceType();
     RSVsyncRateReduceManager rateReduceManager;
     sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
     rateReduceManager.Init(vSyncDistributor);
-    if (instance->GetDeviceType() == DeviceType::PC) {
-        EXPECT_EQ(DeviceType::PC, rateReduceManager.deviceType_);
+    if (rateReduceManager.GetVRateDeviceSupport()) {
         EXPECT_EQ(true, rateReduceManager.GetVRateReduceEnabled());
     }
     EXPECT_NE(nullptr, rateReduceManager.appVSyncDistributor_);

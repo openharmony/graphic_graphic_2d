@@ -24,15 +24,55 @@
 
 namespace OHOS::Rosen {
 const std::vector<std::string> FEATURE_CONFIGS = {
-    "HdrConfig",
+    "DirtyRegionConfig",
+    "ColorGamutConfig",
     "DrmConfig",
-    "HwcConfig"
+    "HardCursorConfig",
+    "HwcConfig",
+    "FilterConfig",
+    "HfbcConfig",
+    "MemConfig",
+    "MultiScreenConfig",
+    "SpecialLayerConfig",
+    "SpocConfig",
+    "OPIncConfig",
+    "PrevalidateConfig",
+    "UIFirstConfig",
+    "DvsyncConfig",
+    "SocperfConfig",
+    "CaptureConfig",
+    "SurfaceCaptureConfig",
+    "UICaptureConfig",
+    "DeeplyReleaseGpuResourceConfig",
+    "AccessibilityConfig",
+    "VRateConfig",
+    "RotateOffScreenConfig",
 };
 
 enum FeatureModule {
-    HDR = 0,
+    DIRTYREGION = 0,
+    COLOR_GAMUT,
     DRM,
+    HARDCURSOR,
     HWC,
+    HFBC,
+    MEM,
+    MULTISCREEN,
+    SPECIALLAYER,
+    SPOC,
+    OPInc,
+    PREVALIDATE,
+    UIFirst,
+    FILTER,
+    DVSYNC,
+    SOC_PERF,
+    CAPTURE_BASE,
+    SURFACE_CAPTURE,
+    UI_CAPTURE,
+    DEEPLY_REL_GPU_RES,
+    Accessibility,
+    VRate,
+    RotateOffScreen,
 };
 
 enum ParseErrCode {
@@ -42,7 +82,8 @@ enum ParseErrCode {
 
     PARSE_NO_PARAM = 100,
 
-    PARSE_FILE_LOAD_FAIL = 200,
+    PARSE_SYS_FILE_LOAD_FAIL = 200,
+    PARSE_PROD_FILE_LOAD_FAIL,
     PARSE_GET_ROOT_FAIL,
     PARSE_GET_CHILD_FAIL,
     PARSE_INTERNAL_FAIL,

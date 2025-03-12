@@ -72,9 +72,13 @@ public:
 
     void FreeGpuResources() override;
 
+    void ReclaimResources() override;
+
     void DumpGpuStats(std::string& out) override;
 
     void DumpAllResource(std::stringstream& dump) override;
+
+    void DumpAllCoreTrace(std::stringstream& dump) override;
 
     void ReleaseResourcesAndAbandonContext() override;
 
@@ -83,6 +87,8 @@ public:
     void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) override;
 
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) override;
+
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) override;
 
     void PurgeUnlockAndSafeCacheGpuResources() override;
 

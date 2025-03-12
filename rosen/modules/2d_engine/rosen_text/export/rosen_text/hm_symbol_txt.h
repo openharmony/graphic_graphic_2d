@@ -21,6 +21,7 @@
 #include "draw/color.h"
 
 #include "text/hm_symbol.h"
+#include "symbol_constants.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,6 +61,8 @@ public:
 
     void SetVisualMode(const VisualMode visual);
 
+    void SetSymbolType(SymbolType symbolType);
+
     std::vector<Drawing::DrawingSColor> GetRenderColor() const;
 
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const;
@@ -76,6 +79,8 @@ public:
 
     Drawing::DrawingCommonSubType GetCommonSubType() const;
 
+    SymbolType GetSymbolType() const;
+
 private:
     std::vector<Drawing::DrawingSColor> colorList_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
@@ -89,6 +94,7 @@ private:
     bool animationStart_ = false;
     std::map<std::string, int> visualMap_;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
+    SymbolType symbolType_{SymbolType::SYSTEM};
 };
 }
 }

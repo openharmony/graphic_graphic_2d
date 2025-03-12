@@ -22,22 +22,27 @@
 #include "pipeline/rs_node_map.h"
 #include "property/rs_properties_def.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
+RSModifierExtractor::RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
+    : id_(id), rsUIContext_(rsUIContext)
+{}
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
+        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
         if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
         std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         T value = defaultValue;                                                                                     \
         if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
+            RS_LOGE_LIMIT(                                                                                          \
+                __func__, __line__, "RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());   \
         }                                                                                                           \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
@@ -49,7 +54,8 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
-        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
+        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
         if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \

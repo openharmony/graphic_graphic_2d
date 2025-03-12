@@ -76,9 +76,6 @@ public:
     uint64_t GetSize() const;
 
     // call from main thread
-    void AddOffTreeNode(NodeId nodeId);
-    void RemoveOffTreeNode(NodeId nodeId);
-    std::unordered_map<NodeId, bool>&& GetAndClearPurgeableNodeIds();
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetSelfDrawingNodeInProcess(pid_t pid);
 private:
     explicit RSRenderNodeMap();

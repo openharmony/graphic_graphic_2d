@@ -62,14 +62,8 @@ void RSCurveAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderCurveA
         ROSEN_LOGE("Failed to start curve animation, target is null!");
         return;
     }
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        ROSEN_LOGE("Failed to start curve animation, transaction proxy is null!");
-        return;
-    }
-
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateCurve>(target->GetId(), animation);
-    transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
 }
 
 void RSCurveAnimation::StartUIAnimation(const std::shared_ptr<RSRenderCurveAnimation>& animation)

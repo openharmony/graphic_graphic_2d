@@ -67,7 +67,7 @@ string WebGLBuffer::GetClassName()
 
 WebGLBuffer::~WebGLBuffer()
 {
-    LOGD("Free WebGLBuffer %{public}p", this);
+    LOGD("Free WebGLBuffer %{private}p", this);
 }
 } // namespace Rosen
 } // namespace OHOS

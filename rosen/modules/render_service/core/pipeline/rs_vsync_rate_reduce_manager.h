@@ -78,6 +78,12 @@ public:
     {
         return needPostTask_.exchange(newState);
     }
+    
+    bool GetVRateIsSupport();
+    bool GetVRateDeviceSupport() const
+    {
+        return isDeviceSupprotVRate_;
+    }
 private:
     void NotifyVRates();
     int UpdateRatesLevel();
@@ -118,7 +124,8 @@ private:
 
     bool isSystemAnimatedScenes_ = false;
     bool isReduceBySystemAnimatedScenes_ = false;
-    DeviceType deviceType_ = DeviceType::PC;
+
+    bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::map<NodeId, uint64_t> windowLinkerMap_;

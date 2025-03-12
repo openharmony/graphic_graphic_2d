@@ -14,9 +14,9 @@
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_client/modifier"
+module_output_path = "graphic_2d/graphic_2d/render_service_client/modifier"
 
-##############################  RSRenderServiceClientTest  ##################################
+##############################  RSRenderServiceClientModifierTest  ##################################
 ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 

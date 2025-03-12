@@ -15,6 +15,8 @@
 
 #include "display_manager.h"
 #include "rs_graphic_test_director.h"
+#include "rs_graphic_test_utils.h"
+#include "rs_trace.h"
 #include "rs_parameter_parse.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_root_node.h"
@@ -31,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr float TOP_LEVEL_Z = 1000000.0f;
 constexpr uint32_t SCREEN_COLOR = 0;
+constexpr int64_t WAIT_ANIMATION_SYNC_TIME_OUT = 100;
 
 class TestSurfaceCaptureCallback : public SurfaceCaptureCallback {
 public:
@@ -63,37 +66,52 @@ public:
 
 class VSyncWaiter {
 public:
-    VSyncWaiter(std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler, int32_t rate)
+    explicit VSyncWaiter(std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler)
     {
         frameCallback_ = {
             .userData_ = this,
-            .callback_ = [this](int64_t, void*) { this->OnVSync(); },
+            .callback_ = [this](int64_t timestamp, void*) { this->OnVSync(timestamp); },
         };
         vsyncReceiver_ = RSInterfaces::GetInstance().CreateVSyncReceiver("RSGraphicTest", handler);
         vsyncReceiver_->Init();
-        vsyncReceiver_->SetVSyncRate(frameCallback_, rate);
     }
 
-    void OnVSync()
+    void OnVSync(int64_t timestamp)
     {
         {
             std::unique_lock lock(mutex_);
-            ++counts_;
+            ready_ = true;
+            time_ = time_ + ANIMATION_VSYNC_TIME_MS * UNIT_MS_TO_NS;
         }
+        RS_TRACE_NAME_FMT("VSyncWaiter Send OnVSync time is %llu", time_);
         cv_.notify_all();
     }
 
-    void WaitForVSync(size_t count)
+    void RequestNextVSync()
     {
-        std::unique_lock lock(mutex_);
-        count += counts_;
-        cv_.wait(lock, [this, count] { return counts_ >= count; });
+        if (vsyncReceiver_) {
+            vsyncReceiver_->RequestNextVSync(frameCallback_);
+        }
+        {
+            std::unique_lock lock(mutex_);
+            ready_ = false;
+            cv_.wait_for(lock, std::chrono::milliseconds(WAIT_ANIMATION_SYNC_TIME_OUT), [&] { return ready_; });
+        }
+        RSGraphicTestDirector::Instance().OnVSync(time_);
+    }
+
+    void InitStartTime()
+    {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        time_ = ts.tv_sec * SEC_TO_NANOSEC + ts.tv_nsec;
     }
 
 private:
     std::mutex mutex_;
     std::condition_variable cv_;
-    size_t counts_ = 0;
+    bool ready_ = false;
+    int64_t time_;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> vsyncReceiver_;
     Rosen::VSyncReceiver::FrameCallback frameCallback_;
 };
@@ -108,6 +126,7 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
 {
     rootNode_->screenSurfaceNode_->RemoveFromTree();
     rsUiDirector_->SendMessages();
+    runner_->Stop();
     sleep(1);
 }
 
@@ -116,11 +135,16 @@ void RSGraphicTestDirector::Run()
     rsUiDirector_ = RSUIDirector::Create();
     rsUiDirector_->Init();
 
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
-    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    rsUiDirector_->SetUITaskRunner(
-        [handler](const std::function<void()>& task, uint32_t delay) { handler->PostTask(task); });
-    runner->Run();
+    rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
+        if (task) {
+            task();
+        }
+    });
+
+    runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+    vsyncWaiter_ = std::make_shared<VSyncWaiter>(handler_);
+    runner_->Run();
 
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
 
@@ -204,10 +228,42 @@ void RSGraphicTestDirector::SetSurfaceColor(const RSColor& color)
     }
 }
 
-void RSGraphicTestDirector::WaitForVSync(size_t count)
+void RSGraphicTestDirector::StartRunUIAnimation()
+{
+    if (HasUIRunningAnimation()) {
+        if (vsyncWaiter_) {
+            vsyncWaiter_->InitStartTime();
+        }
+        // request first frame
+        RequestNextVSync();
+    }
+}
+
+bool RSGraphicTestDirector::HasUIRunningAnimation()
+{
+    return rsUiDirector_->HasUIRunningAnimation();
+}
+
+void RSGraphicTestDirector::FlushAnimation(int64_t time)
+{
+    RS_TRACE_NAME_FMT("RSGraphicTestDirector FlushAnimation time is %llu", time);
+    rsUiDirector_->FlushAnimation(time);
+    rsUiDirector_->FlushModifier();
+}
+
+void RSGraphicTestDirector::RequestNextVSync()
 {
     if (vsyncWaiter_) {
-        vsyncWaiter_->WaitForVSync(count);
+        vsyncWaiter_->RequestNextVSync();
+    }
+}
+
+void RSGraphicTestDirector::OnVSync(int64_t time)
+{
+    FlushAnimation(time);
+    //also have animation request next frame
+    if (HasUIRunningAnimation()) {
+        RequestNextVSync();
     }
 }
 } // namespace Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include <cstddef>
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_pixmap.h"
+#include "image/pixmap.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -139,6 +140,35 @@ HWTEST_F(SkiaPixmapTest, GetHeight001, TestSize.Level1)
     skiaPixmap->ImportSkiaPixmap(skPixmap);
     auto ret = skiaPixmap->GetHeight();
     EXPECT_TRUE(ret == 0);
+}
+
+/**
+ * @tc.name: ScalePixels001
+ * @tc.desc: Test ScalePixels
+ * @tc.type: FUNC
+ * @tc.require: IAKGJ7
+ */
+HWTEST_F(SkiaPixmapTest, ScalePixels001, TestSize.Level1)
+{
+    std::shared_ptr<SkiaPixmap> skiaPixmap = std::make_shared<SkiaPixmap>();
+    Pixmap pixmap;
+    CubicResampler cubicResampler;
+    SamplingOptions options1 { cubicResampler };
+    ASSERT_TRUE(!skiaPixmap->ScalePixels(pixmap, options1));
+}
+
+/**
+ * @tc.name: ScalePixels002
+ * @tc.desc: Test ScalePixels
+ * @tc.type: FUNC
+ * @tc.require: IAKGJ7
+ */
+HWTEST_F(SkiaPixmapTest, ScalePixels002, TestSize.Level1)
+{
+    std::shared_ptr<SkiaPixmap> skiaPixmap = std::make_shared<SkiaPixmap>();
+    Pixmap pixmap;
+    SamplingOptions options1 {FilterMode::NEAREST, MipmapMode::NEAREST};
+    ASSERT_TRUE(!skiaPixmap->ScalePixels(pixmap, options1));
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -69,7 +69,7 @@ bool RSAncoManager::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt
 bool RSAncoManager::IsAncoOptimize(ScreenRotation rotation)
 {
     if (!AncoDisableHebcProperty() || !RSSurfaceRenderNode::GetOriAncoForceDoDirect() ||
-        !RSSystemProperties::IsTabletType() || rotation != ScreenRotation::ROTATION_0) {
+        rotation != ScreenRotation::ROTATION_0) {
         return false;
     }
     return true;
