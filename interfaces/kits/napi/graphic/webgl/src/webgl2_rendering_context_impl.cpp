@@ -1385,7 +1385,7 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
     GLsizeiptr dstSize = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
                                            : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
     GLuint dstOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
-    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{public}p",
+    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
          static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
 
     void *mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);

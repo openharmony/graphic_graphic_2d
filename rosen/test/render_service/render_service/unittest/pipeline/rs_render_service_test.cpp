@@ -195,4 +195,21 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 
     DoDumpSingleArg(renderService);
 }
+
+/**
+ * @tc.name: RSGfxDumpInit001
+ * @tc.desc: test RSGfxDumpInit
+ * @tc.type: FUNC
+ * @tc.require: issueIAJCOS
+ */
+HWTEST_F(RSRenderServiceUnitTest, RSGfxDumpInit001, TestSize.Level1)
+{
+    auto renderService = GetAndInitRenderService();
+    ASSERT_NE(renderService, nullptr);
+
+    ASSERT_EQ(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
+    renderService->RSGfxDumpInit();
+    ASSERT_NE(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
+}
+
 } // namespace OHOS::Rosen

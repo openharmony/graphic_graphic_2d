@@ -1344,6 +1344,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo001, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1364,6 +1365,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1384,6 +1386,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
     NodeId hostId = 1;
     UIExtensionCallbackData callbackData;
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Level2)
@@ -2263,8 +2266,10 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
     ScreenInfo screenInfo;
     RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
     auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
-    EXPECT_EQ(rects.empty(), true);
+    EXPECT_EQ(rects.empty(), false);
     displayDrawable = nullptr;
 }
 

@@ -178,7 +178,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<Surface> sface = nullptr;
     rsRenderServiceConnectionProxy.CreateNodeAndSurface(config, sface);
     rsRenderServiceConnectionProxy.CreateVSyncConnection(name, token, id1, windowNodeId);
-    rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect, pixelMap);
     rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);
     rsRenderServiceConnectionProxy.GetDefaultScreenId();
     rsRenderServiceConnectionProxy.GetActiveScreenId();

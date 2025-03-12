@@ -103,7 +103,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
       screenManager_(screenManager),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      ApplicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
+      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
       appVSyncDistributor_(distributor)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
@@ -117,12 +117,6 @@ RSRenderServiceConnection::RSRenderServiceConnection(
     }
     if (screenManager_ == nullptr) {
         RS_LOGW("RSRenderServiceConnection: screenManager_ is nullptr");
-    }
-    if (connDeathRecipient_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection: connDeathRecipient_ is nullptr");
-    }
-    if (ApplicationDeathRecipient_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection: ApplicationDeathRecipient_ is nullptr");
     }
     if (appVSyncDistributor_ == nullptr) {
         RS_LOGW("RSRenderServiceConnection: appVSyncDistributor_ is nullptr");
@@ -598,8 +592,8 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
     return ERR_OK;
 }
 
-std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect)
+ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSRENDERSERVICECONNECTION_CREATEPIXELMAPFROMSURFACE);
@@ -609,11 +603,10 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
         .width = srcRect.w,
         .height = srcRect.h,
     };
-    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
-    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelmap]() {
-        pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
+        pixelMap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
     });
-    return pixelmap;
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
@@ -705,30 +698,38 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
-int32_t RSRenderServiceConnection::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::AddVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
-int32_t RSRenderServiceConnection::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+ErrCode RSRenderServiceConnection::RemoveVirtualScreenBlackList(
+    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
     if (blackListVector.empty()) {
         RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
-        return StatusCode::BLACKLIST_IS_EMPTY;
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    return ERR_OK;
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
@@ -1350,7 +1351,7 @@ ErrCode RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<I
     };
     mainThread_->PostTask(captureTask);
 
-    app->AsObject()->AddDeathRecipient(ApplicationDeathRecipient_);
+    app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
     return ERR_OK;
 }
 
@@ -2399,12 +2400,13 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     });
 }
 
-void RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
+ErrCode RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
 {
     if (!appVSyncDistributor_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rateDiscount, true);
+    return ERR_OK;
 }
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)

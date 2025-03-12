@@ -237,6 +237,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     RSRenderParams::OnSync(target);
 }
 

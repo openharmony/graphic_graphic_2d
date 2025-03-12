@@ -75,8 +75,8 @@ public:
     virtual ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) = 0;
 
-    virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect) = 0;
+    virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) = 0;
 
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -100,9 +100,10 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
-    virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
     
-    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    virtual ErrCode RemoveVirtualScreenBlackList(
+        ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;
@@ -302,7 +303,7 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
-    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
+    virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
@@ -383,6 +384,8 @@ public:
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+
+    virtual void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

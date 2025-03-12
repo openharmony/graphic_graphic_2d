@@ -188,6 +188,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -424,7 +425,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFdWorker, ashmemFlowControlUnit,
                     callingPid);
                 if (parsedParcel) {
-                    RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
+                    parcelNumber = RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
                 }
             }
             if (parsedParcel == nullptr) {
@@ -638,8 +639,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -652,8 +654,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1682,7 +1685,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .w = w,
                 .h = h
             };
-            std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
+            std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     ret = ERR_INVALID_REPLY;
@@ -2925,6 +2929,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE) : {
+            NodeId nodeId = {};
+            std::string filePath;
+            if (!data.ReadUint64(nodeId) || !data.ReadString(filePath)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RS_PROFILER_TEST_LOAD_FILE_SUB_TREE(nodeId, filePath);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

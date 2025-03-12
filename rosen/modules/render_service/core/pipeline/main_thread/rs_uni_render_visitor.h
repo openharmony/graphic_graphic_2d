@@ -29,7 +29,6 @@
 #include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -196,6 +195,8 @@ private:
     void UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    // should be removed due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    void UpdateDisplayRcdRenderNode();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckScreenPowerChange() const;
@@ -346,6 +347,7 @@ private:
     void SetHdrWhenMultiDisplayChange();
 
     void TryNotifyUIBufferAvailable();
+    bool IsHdrUseUnirender(bool hasUniRenderHdrSurface, std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr);
 
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
@@ -358,6 +360,7 @@ private:
     bool isDirty_ = false;
     bool dirtyFlag_ { false };
     bool isPartialRenderEnabled_ = false;
+    bool isAdvancedDirtyRegionEnabled_ = false;
     bool isRegionDebugEnabled_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool curDirty_ = false;

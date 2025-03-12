@@ -222,8 +222,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     if (surface == nullptr) {
         return nullptr;
     }
-
-    return renderService->CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    return renderService->CreatePixelMapFromSurface(surface, srcRect, pixelMap) == ERR_OK ? pixelMap : nullptr;
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -432,8 +432,9 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->AddVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->AddVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -442,8 +443,9 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->RemoveVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
@@ -2007,6 +2009,14 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->TestLoadFileSubTreeToNode(nodeId, filePath);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

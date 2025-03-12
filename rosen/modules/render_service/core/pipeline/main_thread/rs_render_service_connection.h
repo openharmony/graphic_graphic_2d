@@ -79,7 +79,8 @@ private:
     ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
         int32_t& repCode) override;
 
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
+    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
@@ -102,9 +103,9 @@ private:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
-    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
@@ -317,7 +318,7 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
+    ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
@@ -375,6 +376,8 @@ private:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override {};
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
@@ -408,7 +411,7 @@ private:
         wptr<RSRenderServiceConnection> conn_;
     };
     friend class RSApplicationRenderThreadDeathRecipient;
-    sptr<RSApplicationRenderThreadDeathRecipient> ApplicationDeathRecipient_;
+    sptr<RSApplicationRenderThreadDeathRecipient> applicationDeathRecipient_ = nullptr;
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;

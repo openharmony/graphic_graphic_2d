@@ -349,7 +349,7 @@ napi_value WebGLRenderingContextBaseImpl::CreateRenderBuffer(napi_env env)
     glGenRenderbuffers(1, &renderbufferId);
     webGlRenderbuffer->SetRenderbuffer(renderbufferId);
     (void)AddObject<WebGLRenderbuffer>(env, renderbufferId, objRenderbuffer);
-    LOGD("WebGL createRenderbuffer renderbufferId %{public}u result %{public}p", renderbufferId, objRenderbuffer);
+    LOGD("WebGL createRenderbuffer renderbufferId %{public}u result %{private}p", renderbufferId, objRenderbuffer);
     return objRenderbuffer;
 }
 
@@ -469,7 +469,7 @@ napi_value WebGLRenderingContextBaseImpl::DeleteBuffer(napi_env env, napi_value 
     DoObjectDelete(WebGLBuffer::objectType, webGlBuffer);
     DeleteObject<WebGLBuffer>(env, buffer);
     glDeleteBuffers(1, &buffer);
-    LOGD("WebGL deleteBuffer bufferId %{public}u %{public}p result %{public}u", buffer, webGlBuffer, GetError_());
+    LOGD("WebGL deleteBuffer bufferId %{public}u %{private}p result %{public}u", buffer, webGlBuffer, GetError_());
     for (uint32_t i = 0; i < BoundBufferType::BUFFER_MAX; i++) {
         if (boundBufferIds_[i] == buffer) {
             boundBufferIds_[i] = 0;

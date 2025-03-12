@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_pointer_window_manager.h"
 #include "common/rs_optional_trace.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #ifdef RS_ENABLE_GPU
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -26,6 +27,11 @@ RSPointerWindowManager& RSPointerWindowManager::Instance()
 {
     static RSPointerWindowManager instance;
     return instance;
+}
+
+RSPointerWindowManager::RSPointerWindowManager()
+{
+    isHardCursorEnable_ = RSPointerWindowManager::GetHardCursorEnabledPass();
 }
 
 void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
@@ -49,6 +55,16 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
             isNeedForceCommitByPointer_ = false;
         }
     }
+}
+
+bool RSPointerWindowManager::GetHardCursorEnabledPass()
+{
+    auto hardCursorFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam("HardCursorConfig");
+    auto hardCursorFeature = std::static_pointer_cast<HardCursorParam>(hardCursorFeatureParam);
+    if (hardCursorFeature != nullptr) {
+        return hardCursorFeature->IsHardCursorEnable();
+    }
+    return false;
 }
 
 void RSPointerWindowManager::UpdatePointerInfo()
@@ -159,16 +175,16 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
 #endif
 }
 
-bool RSPointerWindowManager::CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
 {
-    if (curDisplayNode == nullptr) {
+    if (!isHardCursorEnable_) {
         return false;
     }
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         return false;
     }
-    return screenManager->GetDisplayPropertyForHardCursor(curDisplayNode->GetScreenId());
+    return screenManager->GetDisplayPropertyForHardCursor(screenId);
 }
 
 bool RSPointerWindowManager::HasMirrorDisplay() const

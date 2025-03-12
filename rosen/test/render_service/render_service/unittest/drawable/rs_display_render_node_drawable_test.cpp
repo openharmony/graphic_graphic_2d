@@ -1937,10 +1937,43 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
     displayDrawable_->SwitchColorFilter(canvas, 0.6);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
     displayDrawable_->SwitchColorFilter(canvas, 0.6);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6, true);
+
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: SwitchColorFilterWithP3
+ * @tc.desc: Test SwitchColorFilterWithP3
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilterWithP3, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap.Build(10, 10, bitmapFormat);
+    surface->Bind(bitmap);
+    canvas.surface_ = surface.get();
+
+    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    ColorFilterMode colorFilterMode = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    displayDrawable_->SwitchColorFilterWithP3(canvas, colorFilterMode);
+    displayDrawable_->SwitchColorFilterWithP3(canvas, colorFilterMode, 0.6);
 
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;

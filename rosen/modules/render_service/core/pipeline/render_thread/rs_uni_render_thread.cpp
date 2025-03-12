@@ -34,7 +34,6 @@
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
@@ -966,7 +965,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
     }
     if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
-        if (!isDoDirectComposition) {
+        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+            isTimeToReclaim_.store(false);
+            RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+        } else if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }

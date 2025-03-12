@@ -177,6 +177,11 @@ public:
         return hasSecLayerInVisibleRectChanged_;
     }
 
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
+    {
+        return roundCornerSurfaceDrawables_;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -215,6 +220,8 @@ private:
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

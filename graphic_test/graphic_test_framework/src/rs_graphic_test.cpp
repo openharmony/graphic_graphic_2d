@@ -205,6 +205,18 @@ void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
     GetRootNode()->RegisterNode(node);
 }
 
+void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath)
+{
+    //need flush client node to rs firstly
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+
+    std::cout << "load subbtree to node file path is " << filePath << std::endl;
+    RSInterfaces::GetInstance().TestLoadFileSubTreeToNode(node->GetId(), filePath);
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+}
+
 std::shared_ptr<RSGraphicRootNode> RSGraphicTest::GetRootNode() const
 {
     return RSGraphicTestDirector::Instance().GetRootNode();

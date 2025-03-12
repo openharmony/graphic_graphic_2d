@@ -25,9 +25,40 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 class OH_Drawing_FontCollectionTest : public testing::Test {
+protected:
+    void SetUp() override;
+
 private:
-    const char* symbolFile = "/system/fonts/HMSymbolVF.ttf";
+    std::string GetFileData(const std::string& path);
+
+    const char* symbolFile_ = "/system/fonts/HMSymbolVF.ttf";
+    const char* cjkFile_ = "/system/fonts/NotoSansCJK-Regular.ttc";
+    const char* sansFile_ = "/system/fonts/NotoSans[wdth,wght].ttf";
+    const char* mathFile_ = "/system/fonts/NotoSansMath-Regular.ttf";
+    const char* cjkFamily_ = "Noto Sans CJK JP";
+    const char* sansFamily_ = "Noto Sans";
+    const char* mathFamily_ = "Noto Sans Math";
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_;
+    std::shared_ptr<Drawing::FontMgr> fontMgr_;
 };
+
+void OH_Drawing_FontCollectionTest::SetUp()
+{
+    fontCollection_ = OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection_, nullptr);
+    fontMgr_ = fontCollection_->GetFontMgr();
+    ASSERT_NE(fontMgr_, nullptr);
+}
+
+std::string OH_Drawing_FontCollectionTest::GetFileData(const std::string& path)
+{
+    std::ifstream file(path, std::ios::binary);
+    std::stringstream fileStream;
+    fileStream << file.rdbuf();
+    std::string fileData = fileStream.str();
+    return fileData;
+}
 
 /*
  * @tc.name: OH_Drawing_FontCollectionTest001
@@ -36,16 +67,13 @@ private:
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level1)
 {
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    fontCollection->DisableFallback();
-    fontCollection->DisableSystemFont();
+    fontCollection_->DisableFallback();
+    fontCollection_->DisableSystemFont();
     const uint8_t* data = nullptr;
-    auto typeface = fontCollection->LoadFont("familyname", data, 0);
+    auto typeface = fontCollection_->LoadFont("familyname", data, 0);
     EXPECT_EQ(typeface == nullptr, true);
-    typeface = fontCollection->LoadThemeFont("familynametest", data, 0);
+    typeface = fontCollection_->LoadThemeFont("familynametest", data, 0);
     EXPECT_EQ(typeface == nullptr, true);
-    std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
-    EXPECT_EQ(fontMgr != nullptr, true);
 }
 
 /*
@@ -55,26 +83,36 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
 {
-    auto fontCollection = OHOS::Rosen::FontCollection::Create();
     OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
-    std::ifstream shuc("/system/fonts/NotoSans[wdth,wght].ttf", std::ios::binary);
-    std::stringstream shucStream;
-    shucStream << shuc.rdbuf();
-    std::string shucData = shucStream.str();
+    std::string sansData = GetFileData(sansFile_);
     // 10000 just for test
     const size_t minSize = 10000;
-    EXPECT_GE(shucData.size(), minSize);
-    auto typefaces = fontCollection->LoadThemeFont(
-        "familyname", { { reinterpret_cast<const uint8_t*>(shucData.c_str()), shucData.size() } });
-    auto typefaces1 = fontCollection->LoadThemeFont(
-        "familyname", { { reinterpret_cast<const uint8_t*>(shucData.c_str()), shucData.size() } });
+    EXPECT_GE(sansData.size(), minSize);
+    auto typefaces = fontCollection_->LoadThemeFont(
+        "familyname", { { reinterpret_cast<const uint8_t*>(sansData.c_str()), sansData.size() } });
+    auto typefaces1 = fontCollection_->LoadThemeFont(
+        "familyname", { { reinterpret_cast<const uint8_t*>(sansData.c_str()), sansData.size() } });
     ASSERT_EQ(typefaces.size(), 1);
-    ASSERT_EQ(typefaces1.size(), 1);
+    ASSERT_EQ(typefaces1.size(), typefaces.size());
     EXPECT_EQ(typefaces[0]->GetFamilyName(), typefaces1[0]->GetFamilyName());
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
-    // 1 is the default families' size
-    ASSERT_EQ(themeFamilies.size(), 1);
-    EXPECT_EQ(themeFamilies[0], SPText::OHOS_THEME_FONT);
+    ASSERT_EQ(themeFamilies.size(), typefaces.size());
+    ASSERT_EQ(fontMgr_->CountFamilies(), typefaces.size());
+
+    const char* result[] = { sansFamily_, cjkFamily_ };
+    for (size_t i = 0; i < themeFamilies.size(); i += 1) {
+        auto themeFamily = SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(i);
+        EXPECT_EQ(themeFamilies[i], themeFamily);
+        EXPECT_EQ(typefaces[i]->GetFamilyName(), result[i]);
+        auto styleSet = fontMgr_->MatchFamily(themeFamily.c_str());
+        ASSERT_NE(styleSet, nullptr);
+        EXPECT_EQ(styleSet->Count(), 1);
+        auto typeface = styleSet->CreateTypeface(0);
+        ASSERT_NE(typeface, nullptr);
+        EXPECT_EQ(typeface->GetFamilyName(), result[i]);
+    }
+    fontCollection_->ClearThemeFont();
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 
 /*
@@ -84,10 +122,8 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
 {
-    auto fontCollection = OHOS::Rosen::FontCollection::From(nullptr);
-    fontCollection->ClearCaches();
-    std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
-    EXPECT_EQ(fontMgr != nullptr, true);
+    fontCollection_->ClearCaches();
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 
 /*
@@ -97,7 +133,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSize.Level1)
 {
-    std::ifstream fileStream(symbolFile);
+    std::ifstream fileStream(symbolFile_);
     fileStream.seekg(0, std::ios::end);
     uint32_t bufferSize = fileStream.tellg();
     fileStream.seekg(0, std::ios::beg);
@@ -105,82 +141,151 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
     fileStream.read(reinterpret_cast<char*>(buffer.get()), bufferSize);
     fileStream.close();
 
-    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
-    fontCollection->ClearThemeFont();
-    LoadSymbolErrorCode res = fontCollection->LoadSymbolFont("testCustomSymbol", nullptr, 0);
+    fontCollection_->ClearThemeFont();
+    LoadSymbolErrorCode res = fontCollection_->LoadSymbolFont("testCustomSymbol", nullptr, 0);
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
 
     uint8_t invalidBuffer[] = { 0, 0, 0, 0, 0 };
-    res = fontCollection->LoadSymbolFont("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
+    res = fontCollection_->LoadSymbolFont("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
 
-    res = fontCollection->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    res = fontCollection_->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
-    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection.get());
+    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
     EXPECT_EQ(adaptFontCollection->typefaceSet_.size(), 1);
 
     // When loading the same data repeatedly, return success without increasing the count;
-    res = fontCollection->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    res = fontCollection_->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
     EXPECT_EQ(adaptFontCollection->typefaceSet_.size(), 1);
 }
 
 /*
  * @tc.name: OH_Drawing_FontCollectionTest005
- * @tc.desc: test for LoadThemeFont
+ * @tc.desc: test for LoadThemeFont with 2 fonts
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level1)
 {
-    auto fontCollection = OHOS::Rosen::FontCollection::Create();
     OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
-    std::ifstream notosans("/system/fonts/NotoSans[wdth,wght].ttf", std::ios::binary);
-    std::ifstream cjk("/system/fonts/NotoSansCJK-Regular.ttc", std::ios::binary);
-    ASSERT_TRUE(cjk.is_open() && notosans.is_open());
-    std::stringstream italicStream;
-    std::stringstream shucStream;
-    italicStream << notosans.rdbuf();
-    shucStream << cjk.rdbuf();
-    std::string italicData = italicStream.str();
-    std::string shucData = shucStream.str();
+    std::string sansData = GetFileData(sansFile_);
+    std::string cjkData = GetFileData(cjkFile_);
     // 10000 just for test
     const size_t minSize = 10000;
-    EXPECT_GE(italicData.size(), minSize);
-    EXPECT_GE(shucData.size(), minSize);
-    fontCollection->ClearThemeFont();
-    auto typefaces = fontCollection->LoadThemeFont(
-        "familyname",
-        { { reinterpret_cast<const uint8_t*>(italicData.c_str()), italicData.size() },
-        { reinterpret_cast<const uint8_t*>(shucData.c_str()), shucData.size() } });
+    EXPECT_GE(sansData.size(), minSize);
+    EXPECT_GE(cjkData.size(), minSize);
+    fontCollection_->ClearThemeFont();
+    auto typefaces = fontCollection_->LoadThemeFont(
+        "familyname", { { reinterpret_cast<const uint8_t*>(sansData.c_str()), sansData.size() },
+                          { reinterpret_cast<const uint8_t*>(cjkData.c_str()), cjkData.size() } });
     // 2 is the theme families' size
     ASSERT_EQ(typefaces.size(), 2);
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
+    ASSERT_EQ(themeFamilies.size(), typefaces.size());
+    ASSERT_EQ(fontMgr_->CountFamilies(), typefaces.size());
+
+    const char* result[] = { sansFamily_, cjkFamily_ };
+    for (size_t i = 0; i < themeFamilies.size(); i += 1) {
+        auto themeFamily = SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(i);
+        EXPECT_EQ(themeFamilies[i], themeFamily);
+        EXPECT_EQ(typefaces[i]->GetFamilyName(), result[i]);
+        auto styleSet = fontMgr_->MatchFamily(themeFamily.c_str());
+        ASSERT_NE(styleSet, nullptr);
+        EXPECT_EQ(styleSet->Count(), 1);
+        auto typeface = styleSet->CreateTypeface(0);
+        ASSERT_NE(typeface, nullptr);
+        EXPECT_EQ(typeface->GetFamilyName(), result[i]);
+    }
+
+    fontCollection_->ClearThemeFont();
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest006
+ * @tc.desc: test for LoadThemeFont with 3 fonts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSize.Level1)
+{
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
+    std::string sansData = GetFileData(sansFile_);
+    std::string cjkData = GetFileData(cjkFile_);
+    std::string mathData = GetFileData(mathFile_);
+    // 10000 just for test
+    const size_t minSize = 10000;
+    EXPECT_GE(sansData.size(), minSize);
+    EXPECT_GE(cjkData.size(), minSize);
+    EXPECT_GE(mathData.size(), minSize);
+    fontCollection_->ClearThemeFont();
+    auto typefaces = fontCollection_->LoadThemeFont(
+        "familyname", { { reinterpret_cast<const uint8_t*>(sansData.c_str()), sansData.size() },
+                          { reinterpret_cast<const uint8_t*>(cjkData.c_str()), cjkData.size() },
+                          { reinterpret_cast<const uint8_t*>(mathData.c_str()), mathData.size() } });
+    // 3 is the theme families' size
+    ASSERT_EQ(typefaces.size(), 3);
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
+    ASSERT_EQ(themeFamilies.size(), typefaces.size());
+    ASSERT_EQ(fontMgr_->CountFamilies(), typefaces.size());
+    
+    const char* result[] = { sansFamily_, cjkFamily_, mathFamily_ };
+    for (size_t i = 0; i < themeFamilies.size(); i += 1) {
+        auto themeFamily = SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(i);
+        EXPECT_EQ(themeFamilies[i], themeFamily);
+        EXPECT_EQ(typefaces[i]->GetFamilyName(), result[i]);
+        auto styleSet = fontMgr_->MatchFamily(themeFamily.c_str());
+        ASSERT_NE(styleSet, nullptr);
+        EXPECT_EQ(styleSet->Count(), 1);
+        auto typeface = styleSet->CreateTypeface(0);
+        ASSERT_NE(typeface, nullptr);
+        EXPECT_EQ(typeface->GetFamilyName(), result[i]);
+    }
+
+    fontCollection_->ClearThemeFont();
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest007
+ * @tc.desc: test for LoadThemeFont with 3 fonts but 1 is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSize.Level1)
+{
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
+    std::string sansData = GetFileData(sansFile_);
+    std::string cjkData = GetFileData(cjkFile_);
+    // 10000 just for test
+    const size_t minSize = 10000;
+    EXPECT_GE(sansData.size(), minSize);
+    EXPECT_GE(cjkData.size(), minSize);
+    fontCollection_->ClearThemeFont();
+    auto typefaces = fontCollection_->LoadThemeFont(
+        "familyname", { { reinterpret_cast<const uint8_t*>(sansData.c_str()), sansData.size() },
+                        // size of "12345" is 5
+                        { reinterpret_cast<const uint8_t*>("12345"), 5 },
+                        { reinterpret_cast<const uint8_t*>(cjkData.c_str()), cjkData.size() }});
     // 2 is the theme families' size
-    ASSERT_EQ(themeFamilies.size(), 2);
-    EXPECT_EQ(themeFamilies[0], SPText::OHOS_THEME_FONT);
-    EXPECT_EQ(themeFamilies[1], SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(1));
+    ASSERT_EQ(typefaces.size(), 2);
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
+    ASSERT_EQ(themeFamilies.size(), typefaces.size());
+    ASSERT_EQ(fontMgr_->CountFamilies(), typefaces.size());
+    
+    const char* result[] = { sansFamily_, cjkFamily_ };
+    for (size_t i = 0; i < themeFamilies.size(); i += 1) {
+        auto themeFamily = SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(i);
+        EXPECT_EQ(themeFamilies[i], themeFamily);
+        EXPECT_EQ(typefaces[i]->GetFamilyName(), result[i]);
+        auto styleSet = fontMgr_->MatchFamily(themeFamily.c_str());
+        ASSERT_NE(styleSet, nullptr);
+        EXPECT_EQ(styleSet->Count(), 1);
+        auto typeface = styleSet->CreateTypeface(0);
+        ASSERT_NE(typeface, nullptr);
+        EXPECT_EQ(typeface->GetFamilyName(), result[i]);
+    }
 
-    auto styleSet =
-        fontCollection->GetFontMgr()->MatchFamily(SPText::DefaultFamilyNameMgr::GenerateThemeFamilyName(0).c_str());
-    ASSERT_NE(styleSet, nullptr);
-    EXPECT_EQ(styleSet->Count(), 1);
-    auto typeface = styleSet->CreateTypeface(0);
-    ASSERT_NE(typeface, nullptr);
-    EXPECT_EQ(typeface->GetFamilyName(), "Noto Sans");
-
-    styleSet =
-        fontCollection->GetFontMgr()->MatchFamily(SPText::DefaultFamilyNameMgr::GenerateThemeFamilyName(1).c_str());
-    ASSERT_NE(styleSet, nullptr);
-    EXPECT_EQ(styleSet->Count(), 1);
-    typeface = styleSet->CreateTypeface(0);
-    ASSERT_NE(typeface, nullptr);
-    EXPECT_EQ(typeface->GetFamilyName(), "Noto Sans CJK JP");
-
-    fontCollection->ClearThemeFont();
-    styleSet =
-        fontCollection->GetFontMgr()->MatchFamily(SPText::DefaultFamilyNameMgr::GenerateThemeFamilyName(0).c_str());
-    ASSERT_NE(styleSet, nullptr);
-    EXPECT_EQ(styleSet->Count(), 0);
+    fontCollection_->ClearThemeFont();
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

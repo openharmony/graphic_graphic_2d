@@ -47,6 +47,7 @@ public:
     virtual void BeforeEach() {};
     virtual void AfterEach() {};
 
+    void AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath);
 private:
     std::string GetImageSavePath(const std::string path);
     bool IsSingleTest();

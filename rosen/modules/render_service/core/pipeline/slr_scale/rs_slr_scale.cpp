@@ -68,7 +68,7 @@ const float BIT_BOUND = 32767.0f;
 const int SLR_MAX_WIN_SIZE = 4;
 const int SLR_TAO_MAX_SIZE = 2;
 const float SLR_SCALE_THR_LOW = 0.65f;
-const float SLR_ALPHA_LOW = 0.1f;
+const float SLR_ALPHA_LOW = 0.2f;
 const float SLR_ALPHA_HIGH = 0.05f;
 
 static std::shared_ptr<uint32_t[]> GetSLRWeights(float coeff, int width, int dstWidth, int minBound)

@@ -266,8 +266,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHepler(
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
-    RSUniRenderThread::SetCaptureParam(
-        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 
