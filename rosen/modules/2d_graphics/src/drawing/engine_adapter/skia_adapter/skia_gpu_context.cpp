@@ -95,10 +95,6 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
-#ifdef ROSEN_OHOS
-    grOptions.fRuntimeProgramCacheSize =
-        std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
-#endif
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
     return grContext_ != nullptr ? true : false;
 }
@@ -132,6 +128,10 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef ROSEN_OHOS
+    grOptions.fRuntimeProgramCacheSize =
+        std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
+#endif
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
