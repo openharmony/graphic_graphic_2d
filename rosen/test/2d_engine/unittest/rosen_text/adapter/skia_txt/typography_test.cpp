@@ -516,5 +516,115 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
     typography2->Layout(maxWidth);
     EXPECT_EQ(typography0->GetHeight(), typography2->GetHeight());
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest016
+ * @tc.desc: test for the actual effective value of textstyle: fallback textstyle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level1)
+{
+    // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.fontSize = 100; // set the fallback text style in typographstyle
+    typographyStyle0.heightOnly = true;
+    typographyStyle0.heightScale = 1;
+    OHOS::Rosen::TextStyle textStyle = typographyStyle0.GetTextStyle();
+    EXPECT_EQ(textStyle.fontSize, 100);
+    EXPECT_EQ(textStyle.heightOnly, true);
+    EXPECT_EQ(textStyle.heightScale, 1);
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"text textstyle";
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 10000.0;
+    typography0->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight(), 100);
+    std::vector<LineMetrics> myLinesMetric = typography0->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
+    EXPECT_EQ(runMetrics.size(), 1);
+    for (const auto& item : runMetrics) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 100);
+        EXPECT_EQ(item.second.textStyle->heightScale, 1);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest017
+ * @tc.desc: test for the actual effective value of textstyle: default textstyle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level1)
+{
+    // After setting the default text style in typographstyle, the fallback text style becomes ineffective.
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.fontSize = 100;
+    typographyStyle1.heightOnly = true;
+    typographyStyle1.heightScale = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    OHOS::Rosen::TextStyle textStyle1;
+    textStyle1.fontSize = 30;
+    textStyle1.heightOnly = true;
+    textStyle1.heightScale = 2;
+    typographyStyle1.SetTextStyle(textStyle1); // set the default text style in typographstyle
+    std::u16string text1 = u"你好测试文本样式";
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text1);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    double maxWidth = 10000.0;
+    typography1->Layout(maxWidth);
+    EXPECT_EQ(typography1->GetHeight(), 60);
+    std::vector<LineMetrics> myLinesMetric1 = typography1->GetLineMetrics();
+    auto runMetrics1 = myLinesMetric1[0].runMetrics;
+    EXPECT_EQ(runMetrics1.size(), 1);
+    for (const auto& item : runMetrics1) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 30);
+        EXPECT_EQ(item.second.textStyle->heightScale, 2);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest018
+ * @tc.desc: test for the actual effective value of textstyle: pushtext style.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level1)
+{
+    // After pushing a new text style, the default text style becomes ineffective.
+    OHOS::Rosen::TypographyStyle typographyStyle2;
+    typographyStyle2.fontSize = 100;
+    typographyStyle2.heightOnly = true;
+    typographyStyle2.heightScale = 1;
+    OHOS::Rosen::TextStyle textStyle2;
+    textStyle2.fontSize = 30;
+    textStyle2.heightOnly = true;
+    textStyle2.heightScale = 2;
+    typographyStyle2.SetTextStyle(textStyle2);
+    textStyle2.fontSize = 50;
+    textStyle2.heightOnly = true;
+    textStyle2.heightScale = 3;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection2);
+    typographyCreate2->PushStyle(textStyle2); // pushtext style
+    std::u16string text2 = u"你好测试 textstyle hello ";
+    typographyCreate2->AppendText(text2);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    double maxWidth = 10000.0;
+    typography2->Layout(maxWidth);
+    EXPECT_EQ(typography2->GetHeight(), 150);
+    std::vector<LineMetrics> myLinesMetric2 = typography2->GetLineMetrics();
+    auto runMetrics2 = myLinesMetric2[0].runMetrics;
+    for (const auto& item : runMetrics2) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 50);
+        EXPECT_EQ(item.second.textStyle->heightScale, 3);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
