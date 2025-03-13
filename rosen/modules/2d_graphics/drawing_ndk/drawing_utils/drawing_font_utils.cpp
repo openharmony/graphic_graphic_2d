@@ -46,7 +46,7 @@ std::shared_ptr<Drawing::Font> DrawingFontUtils::GetThemeFont(const Drawing::Fon
         return nullptr;
     }
     std::shared_ptr<Drawing::Typeface> themeTypeface =
-        std::shared_ptr<Drawing::Typeface>(fontMgr->MatchFamilyStyle(OHOS_THEME_FONT, Drawing::FontStyle()));
+        std::shared_ptr<Drawing::Typeface>(fontMgr->MatchFamilyStyle(SPText::OHOS_THEME_FONT, Drawing::FontStyle()));
     if (themeTypeface == nullptr) {
         return nullptr;
     }

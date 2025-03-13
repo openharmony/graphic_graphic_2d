@@ -278,7 +278,7 @@ std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
         return nullptr;
     }
     std::shared_ptr<Typeface> themeTypeface =
-        std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyle(OHOS_THEME_FONT, FontStyle()));
+        std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyle(SPText::OHOS_THEME_FONT, FontStyle()));
     if (themeTypeface == nullptr) {
         return nullptr;
     }
