@@ -714,29 +714,29 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         HiSysEventParam pPID = { .name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = appPid_ }, .arraySize = 0 };
 
         HiSysEventParam pAppNodeId = {
-            .name = "AppNodeId", .t = HISYSEVENT_UINT64, .v = { .ui64 = appWindowId_ }, .arraySize = 0
+            .name = "APPNODEID", .t = HISYSEVENT_UINT64, .v = { .ui64 = appWindowId_ }, .arraySize = 0
         };
 
         HiSysEventParam pAppNodeName = {
-            .name = "AppNodeName", .t = HISYSEVENT_STRING, .v = { .s = appWindowName }, .arraySize = 0
+            .name = "APPNODENAME", .t = HISYSEVENT_STRING, .v = { .s = appWindowName }, .arraySize = 0
         };
 
         HiSysEventParam pLeashWindowId = {
-            .name = "LeashWindowId", .t = HISYSEVENT_UINT64, .v = { .ui64 = focusLeashWindowId_ }, .arraySize = 0
+            .name = "LEASHWINDOWID", .t = HISYSEVENT_UINT64, .v = { .ui64 = focusLeashWindowId_ }, .arraySize = 0
         };
 
         HiSysEventParam pLeashWindowName = {
-            .name = "LeashWindowName", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
+            .name = "LEASHWINDOWNAME", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
         };
 
         HiSysEventParam pExtInfo = {
-            .name = "ExtInfo", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
+            .name = "EXT_INFO", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
         };
 
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
 
-        int ret = OH_HiSysEvent_Write("GRPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
+        int ret = OH_HiSysEvent_Write("GRAPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
             sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
         if (ret == 0) {
             RS_LOGE("Successed to upload hebc fault event.");
