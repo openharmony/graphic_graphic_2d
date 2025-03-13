@@ -17,6 +17,7 @@
 #define ROSEN_MODULES_SPTEXT_TEXT_STYLE_H
 
 #include <map>
+#include <bitset>
 #include <optional>
 #include <string>
 #include <vector>
@@ -24,8 +25,9 @@
 #include "include/core/SkColor.h"
 #include "include/core/SkPoint.h"
 #include "paint_record.h"
-#include "text_types.h"
+#include "rosen_text/text_style.h"
 #include "symbol_engine/hm_symbol_txt.h"
+#include "text_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -109,28 +111,35 @@ public:
 
     bool operator==(TextStyle const& other) const;
 
+    void SetRelayoutBitMap(const std::bitset<static_cast<size_t>
+        (RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> &relayoutChangeBitmap)
+    {
+        this->relayoutChangeBitmap = relayoutChangeBitmap;
+    }
+
     SkColor color = SK_ColorWHITE;
 
     TextDecoration decoration = TextDecoration::NONE;
     // transparent for no decoration color.
     SkColor decorationColor = SK_ColorTRANSPARENT;
     TextDecorationStyle decorationStyle = TextDecorationStyle::SOLID;
-    double decorationThicknessMultiplier = 1.0;
+    double decorationThicknessMultiplier = { 1.0 };
 
     FontWeight fontWeight = FontWeight::W400;
     FontWidth fontWidth = FontWidth::NORMAL;
     FontStyle fontStyle = FontStyle::NORMAL;
     TextBaseline baseline = TextBaseline::ALPHABETIC;
-    bool halfLeading = false;
+    bool halfLeading { false };
     std::vector<std::string> fontFamilies;
-    double fontSize = 14.0;
-    double letterSpacing = 0.0;
-    double wordSpacing = 0.0;
-    double height = 1.0;
-    bool heightOverride = false;
+    double fontSize { 14.0 };
+    double letterSpacing { 0.0 };
+    double wordSpacing { 0.0 };
+    double height { 1.0 };
+    bool heightOverride { false };
     std::string locale;
-    RectStyle backgroundRect = {0, 0.0f, 0.0f, 0.0f, 0.0f};
-    int styleId = 0;
+    RectStyle backgroundRect { 0, 0.0f, 0.0f, 0.0f, 0.0f };
+    int styleId { 0 };
+    size_t textStyleUid { 0 };
 
     std::optional<PaintRecord> background;
     std::optional<PaintRecord> foreground;
@@ -140,10 +149,11 @@ public:
     FontVariations fontVariations;
 
     // symbol glyph
-    bool isSymbolGlyph = false;
+    bool isSymbolGlyph { false };
     HMSymbolTxt symbol;
-    double baseLineShift = 0.0;
-    bool isPlaceholder = false;
+    double baseLineShift { 0.0 };
+    bool isPlaceholder { false };
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
 };
 
 } // namespace SPText
