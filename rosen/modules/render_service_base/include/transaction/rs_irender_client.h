@@ -36,6 +36,9 @@ public:
 
     static RSB_EXPORT std::shared_ptr<RSIRenderClient> CreateRenderServiceClient();
     static RSB_EXPORT std::unique_ptr<RSIRenderClient> CreateRenderThreadClient();
+
+private:
+    static std::shared_ptr<RSIRenderClient> client_;
 };
 
 } // namespace Rosen

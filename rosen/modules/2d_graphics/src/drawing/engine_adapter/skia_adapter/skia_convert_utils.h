@@ -27,12 +27,14 @@
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
+#include "src/gpu/GrPerfMonitorReporter.h"
 
 #include "text/font_arguments.h"
 #include "text/font_metrics.h"
 #include "text/font_style.h"
 #include "text/rs_xform.h"
 #include "text/text_blob_builder.h"
+#include "utils/perfevent.h"
 #include "utils/rect.h"
 #include "utils/sampling_options.h"
 
@@ -43,67 +45,115 @@ class SkiaConvertUtils {
 public:
     static void DrawingFontMetricsCastToSkFontMetrics(const FontMetrics& fontMetrics, SkFontMetrics& skFontMetrics)
     {
-        skFontMetrics.fFlags = fontMetrics.fFlags;
-        skFontMetrics.fTop = fontMetrics.fTop;
-        skFontMetrics.fAscent = fontMetrics.fAscent;
-        skFontMetrics.fDescent = fontMetrics.fDescent;
-        skFontMetrics.fBottom = fontMetrics.fBottom;
-        skFontMetrics.fLeading = fontMetrics.fLeading;
-        skFontMetrics.fAvgCharWidth = fontMetrics.fAvgCharWidth;
-        skFontMetrics.fMaxCharWidth = fontMetrics.fMaxCharWidth;
-        skFontMetrics.fXMin = fontMetrics.fXMin;
-        skFontMetrics.fXMax = fontMetrics.fXMax;
-        skFontMetrics.fXHeight = fontMetrics.fXHeight;
-        skFontMetrics.fCapHeight = fontMetrics.fCapHeight;
-        skFontMetrics.fUnderlineThickness = fontMetrics.fUnderlineThickness;
-        skFontMetrics.fUnderlinePosition = fontMetrics.fUnderlinePosition;
-        skFontMetrics.fStrikeoutThickness = fontMetrics.fStrikeoutThickness;
-        skFontMetrics.fStrikeoutPosition = fontMetrics.fStrikeoutPosition;
+        // Tell the compiler there is no alias and to select wider load/store instructions.
+        uint32_t fFlags = fontMetrics.fFlags;
+        scalar fTop = fontMetrics.fTop;
+        scalar fAscent = fontMetrics.fAscent;
+        scalar fDescent = fontMetrics.fDescent;
+        scalar fBottom = fontMetrics.fBottom;
+        scalar fLeading = fontMetrics.fLeading;
+        scalar fAvgCharWidth = fontMetrics.fAvgCharWidth;
+        scalar fMaxCharWidth = fontMetrics.fMaxCharWidth;
+        scalar fXMin = fontMetrics.fXMin;
+        scalar fXMax = fontMetrics.fXMax;
+        scalar fXHeight = fontMetrics.fXHeight;
+        scalar fCapHeight = fontMetrics.fCapHeight;
+        scalar fUnderlineThickness = fontMetrics.fUnderlineThickness;
+        scalar fUnderlinePosition = fontMetrics.fUnderlinePosition;
+        scalar fStrikeoutThickness = fontMetrics.fStrikeoutThickness;
+        scalar fStrikeoutPosition = fontMetrics.fStrikeoutPosition;
+
+        skFontMetrics.fFlags = fFlags;
+        skFontMetrics.fTop = fTop;
+        skFontMetrics.fAscent = fAscent;
+        skFontMetrics.fDescent = fDescent;
+        skFontMetrics.fBottom = fBottom;
+        skFontMetrics.fLeading = fLeading;
+        skFontMetrics.fAvgCharWidth = fAvgCharWidth;
+        skFontMetrics.fMaxCharWidth = fMaxCharWidth;
+        skFontMetrics.fXMin = fXMin;
+        skFontMetrics.fXMax = fXMax;
+        skFontMetrics.fXHeight = fXHeight;
+        skFontMetrics.fCapHeight = fCapHeight;
+        skFontMetrics.fUnderlineThickness = fUnderlineThickness;
+        skFontMetrics.fUnderlinePosition = fUnderlinePosition;
+        skFontMetrics.fStrikeoutThickness = fStrikeoutThickness;
+        skFontMetrics.fStrikeoutPosition = fStrikeoutPosition;
     }
 
     static void SkFontMetricsCastToDrawingFontMetrics(const SkFontMetrics& skFontMetrics, FontMetrics& fontMetrics)
     {
-        fontMetrics.fFlags = skFontMetrics.fFlags;
-        fontMetrics.fTop = skFontMetrics.fTop;
-        fontMetrics.fAscent = skFontMetrics.fAscent;
-        fontMetrics.fDescent = skFontMetrics.fDescent;
-        fontMetrics.fBottom = skFontMetrics.fBottom;
-        fontMetrics.fLeading = skFontMetrics.fLeading;
-        fontMetrics.fAvgCharWidth = skFontMetrics.fAvgCharWidth;
-        fontMetrics.fMaxCharWidth = skFontMetrics.fMaxCharWidth;
-        fontMetrics.fXMin = skFontMetrics.fXMin;
-        fontMetrics.fXMax = skFontMetrics.fXMax;
-        fontMetrics.fXHeight = skFontMetrics.fXHeight;
-        fontMetrics.fCapHeight = skFontMetrics.fCapHeight;
-        fontMetrics.fUnderlineThickness = skFontMetrics.fUnderlineThickness;
-        fontMetrics.fUnderlinePosition = skFontMetrics.fUnderlinePosition;
-        fontMetrics.fStrikeoutThickness = skFontMetrics.fStrikeoutThickness;
-        fontMetrics.fStrikeoutPosition = skFontMetrics.fStrikeoutPosition;
+        // Tell the compiler there is no alias and to select wider load/store instructions.
+        uint32_t fFlags = skFontMetrics.fFlags;
+        scalar fTop = skFontMetrics.fTop;
+        scalar fAscent = skFontMetrics.fAscent;
+        scalar fDescent = skFontMetrics.fDescent;
+        scalar fBottom = skFontMetrics.fBottom;
+        scalar fLeading = skFontMetrics.fLeading;
+        scalar fAvgCharWidth = skFontMetrics.fAvgCharWidth;
+        scalar fMaxCharWidth = skFontMetrics.fMaxCharWidth;
+        scalar fXMin = skFontMetrics.fXMin;
+        scalar fXMax = skFontMetrics.fXMax;
+        scalar fXHeight = skFontMetrics.fXHeight;
+        scalar fCapHeight = skFontMetrics.fCapHeight;
+        scalar fUnderlineThickness = skFontMetrics.fUnderlineThickness;
+        scalar fUnderlinePosition = skFontMetrics.fUnderlinePosition;
+        scalar fStrikeoutThickness = skFontMetrics.fStrikeoutThickness;
+        scalar fStrikeoutPosition = skFontMetrics.fStrikeoutPosition;
+
+        fontMetrics.fFlags = fFlags;
+        fontMetrics.fTop = fTop;
+        fontMetrics.fAscent = fAscent;
+        fontMetrics.fDescent = fDescent;
+        fontMetrics.fBottom = fBottom;
+        fontMetrics.fLeading = fLeading;
+        fontMetrics.fAvgCharWidth = fAvgCharWidth;
+        fontMetrics.fMaxCharWidth = fMaxCharWidth;
+        fontMetrics.fXMin = fXMin;
+        fontMetrics.fXMax = fXMax;
+        fontMetrics.fXHeight = fXHeight;
+        fontMetrics.fCapHeight = fCapHeight;
+        fontMetrics.fUnderlineThickness = fUnderlineThickness;
+        fontMetrics.fUnderlinePosition = fUnderlinePosition;
+        fontMetrics.fStrikeoutThickness = fStrikeoutThickness;
+        fontMetrics.fStrikeoutPosition = fStrikeoutPosition;
     }
 
     static inline void DrawingRectCastToSkRect(const Rect& rect, SkRect& skRect)
     {
-        skRect.fLeft = rect.GetLeft();
-        skRect.fTop = rect.GetTop();
-        skRect.fRight = rect.GetRight();
-        skRect.fBottom = rect.GetBottom();
+        scalar fLeft = rect.GetLeft();
+        scalar fTop = rect.GetTop();
+        scalar fRight = rect.GetRight();
+        scalar fBottom = rect.GetBottom();
+        skRect.fLeft = fLeft;
+        skRect.fTop = fTop;
+        skRect.fRight = fRight;
+        skRect.fBottom = fBottom;
     }
 
     static inline void SkRectCastToDrawingRect(const SkRect& skRect, Rect& rect)
     {
-        rect.SetLeft(skRect.fLeft);
-        rect.SetTop(skRect.fTop);
-        rect.SetRight(skRect.fRight);
-        rect.SetBottom(skRect.fBottom);
+        SkScalar fLeft = skRect.fLeft;
+        SkScalar fTop = skRect.fTop;
+        SkScalar fRight = skRect.fRight;
+        SkScalar fBottom = skRect.fBottom;
+        rect.SetLeft(fLeft);
+        rect.SetTop(fTop);
+        rect.SetRight(fRight);
+        rect.SetBottom(fBottom);
     }
 
     static inline void SkRunBufferCastToDrawingRunBuffer(const SkTextBlobBuilder::RunBuffer& skRunBuffer,
         TextBlobBuilder::RunBuffer& runBuffer)
     {
-        runBuffer.glyphs = skRunBuffer.glyphs;
-        runBuffer.pos = skRunBuffer.pos;
-        runBuffer.utf8text = skRunBuffer.utf8text;
-        runBuffer.clusters = skRunBuffer.clusters;
+        uint16_t* glyphs = skRunBuffer.glyphs;
+        float* pos = skRunBuffer.pos;
+        char* utf8text = skRunBuffer.utf8text;
+        uint32_t* clusters = skRunBuffer.clusters;
+        runBuffer.glyphs = glyphs;
+        runBuffer.pos = pos;
+        runBuffer.utf8text = utf8text;
+        runBuffer.clusters = clusters;
     }
 
     static inline void DrawingFontStyleCastToSkFontStyle(const FontStyle& fontStyle, SkFontStyle& skFontStyle)
@@ -162,6 +212,26 @@ public:
         pal.index = fontArgs.GetPalette().index;
         pal.overrideCount = fontArgs.GetPalette().overrideCount;
         skFontArgs.setPalette(pal);
+    }
+
+    static inline void DrawingTextureEventToRsTextureEvent(const TextureEvent& grTextureEvent,
+        RsTextureEvent& rsTextureEvent)
+    {
+        rsTextureEvent.fPid = grTextureEvent.fPid;
+        rsTextureEvent.fMaxBytes = grTextureEvent.fMaxBytes;
+        rsTextureEvent.fBudgetedBytes = grTextureEvent.fBudgetedBytes;
+        rsTextureEvent.fAllocTime = grTextureEvent.fAllocTime;
+        rsTextureEvent.fClearCache = grTextureEvent.fClearCache;
+    }
+
+    static inline void DrawingBlurEventToRsBlurEvent(const BlurEvent& grBlurEvent, RsBlurEvent& rsBlurEvent)
+    {
+        rsBlurEvent.fPid = grBlurEvent.fPid;
+        rsBlurEvent.fFilterType = grBlurEvent.fFilterType;
+        rsBlurEvent.fBlurRadius = grBlurEvent.fBlurRadius;
+        rsBlurEvent.fWidth = grBlurEvent.fWidth;
+        rsBlurEvent.fHeight = grBlurEvent.fHeight;
+        rsBlurEvent.fBlurTime = grBlurEvent.fBlurTime;
     }
 };
 } // namespace Drawing

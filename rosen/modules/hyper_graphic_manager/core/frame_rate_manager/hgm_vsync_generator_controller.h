@@ -37,8 +37,8 @@ public:
                                 const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
                                 uint64_t targetTime = 0,
                                 bool isNeedUpdateAppOffset = false);
-    uint32_t GetCurrentRate() const;
-    int64_t GetCurrentOffset() const;
+    uint32_t GetCurrentRate() const { return currentRate_; }
+    int64_t GetCurrentOffset() const { return currentOffset_; }
 private:
     sptr<VSyncController> rsController_;
     sptr<VSyncController> appController_;

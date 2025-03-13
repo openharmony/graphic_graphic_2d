@@ -37,6 +37,7 @@ enum ClearMemoryMoment : uint32_t {
     LOW_MEMORY,
     NO_CLEAR,
     DEFAULT_CLEAN,
+    RECLAIM_CLEAN,
 };
 
 class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {
@@ -73,6 +74,11 @@ public:
         return nodeMap;
     }
 
+    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetAnimatingNodeList() const
+    {
+        return animatingNodeList_;
+    }
+
     RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
     {
         return frameRateLinkerMap;
@@ -92,13 +98,6 @@ public:
     {
         return interactiveImplictAnimatorMap_;
     }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo>& GetMutableSkipSyncBuffer()
-    {
-        return skipSyncBuffer_;
-    }
-#endif
 
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
     void UnregisterAnimatingRenderNode(NodeId id);
@@ -170,7 +169,7 @@ public:
         return uiFrameworkTypeTable_;
     }
 
-    void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
+    void UpdateUIFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
         uiFrameworkDirtyNodes_.emplace_back(uiFwkDirtyNode);
     }
@@ -191,28 +190,43 @@ public:
     }
 
     // save some need sync finish to client animations in list
-    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId, uint64_t token);
+
+    void AddSubSurfaceCntUpdateInfo(SubSurfaceCntUpdateInfo info)
+    {
+        subSurfaceCntUpdateInfo_.emplace_back(info);
+    }
+
+    std::unordered_map<NodeId, bool>& GetUiCaptureCmdsExecutedFlagMap()
+    {
+        return uiCaptureCmdsExecutedFlag_;
+    }
+
+    void InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag);
+    bool GetUiCaptureCmdsExecutedFlag(NodeId nodeId);
+    void EraseUiCaptureCmdsExecutedFlag(NodeId nodeId);
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
+    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
+    bool requestedNextVsyncAnimate_ = false;
+    PurgeType purgeType_ = PurgeType::NONE;
+    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
+    uint64_t transactionTimestamp_ = 0;
+    uint64_t currentTimestamp_ = 0;
+    // The root of render node tree, Note: this node is not the animation fallback node.
+    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     RSRenderNodeMap nodeMap;
     std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
-    // The root of render node tree, Note: this node is not the animation fallback node.
-    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
-    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
-    bool requestedNextVsyncAnimate_ = false;
-    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
-    PurgeType purgeType_ = PurgeType::NONE;
-    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
+    std::vector<std::tuple<NodeId, AnimationId, uint64_t>> needSyncFinishAnimationList_;
 
-    uint64_t transactionTimestamp_ = 0;
-    uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void()> vsyncRequestFunc_;
@@ -221,13 +235,16 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
-#ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo> skipSyncBuffer_;
-#endif
+    std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
+
+    std::unordered_map<NodeId, bool> uiCaptureCmdsExecutedFlag_;
+    mutable std::mutex uiCaptureCmdsExecutedMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;
+#ifdef RS_ENABLE_GPU
     friend class RSDrawFrame;
+#endif
     friend class RSSurfaceCaptureTaskParallel;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

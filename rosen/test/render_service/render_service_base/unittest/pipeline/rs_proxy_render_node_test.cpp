@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "pipeline/rs_proxy_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -51,6 +51,7 @@ HWTEST_F(RSProxyRenderNodeTest, LifeCycel001, TestSize.Level1)
     auto target = std::make_shared<RSSurfaceRenderNode>(config);
     auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
     std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
+    ASSERT_NE(visitor, nullptr);
     node->Prepare(visitor);
     node->Process(visitor);
     auto matrix = Drawing::Matrix();

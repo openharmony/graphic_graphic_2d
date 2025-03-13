@@ -17,7 +17,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;
@@ -251,6 +251,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::shared_ptr<RSBaseRenderNode> child_;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->AddCrossParentChild(child, index);
     node->AddCrossParentChild(child_, index_);
 }
@@ -264,6 +265,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
@@ -280,6 +282,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
     bool skipTransition = false;
     bool skipTransition_ = true;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->RemoveFromTree(skipTransition);
     node->RemoveFromTree(skipTransition_);
 }
@@ -293,6 +296,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, PrepareTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     node->Prepare(visitor);
 }
@@ -847,20 +851,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetStaticCached, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSubSurfaceCnt
- * @tc.desc: test results of UpdateSubSurfaceCnt
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateSubSurfaceCnt, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto preParent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->UpdateSubSurfaceCnt(node, preParent);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: GetNodeGroupType
  * @tc.desc: test results of GetNodeGroupType
  * @tc.type:FUNC
@@ -958,34 +948,6 @@ HWTEST_F(RSBaseRenderNodeTest, ResetParent, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->ResetParent();
     ASSERT_EQ(node->parent_.lock(), nullptr);
-}
-
-/**
- * @tc.name: AddSubSurfaceNode
- * @tc.desc: test results of AddSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, AddSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->AddSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: RemoveSubSurfaceNode
- * @tc.desc: test results of RemoveSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, RemoveSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->RemoveSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -1120,21 +1082,6 @@ HWTEST_F(RSBaseRenderNodeTest, CollectSurface, TestSize.Level1)
     bool isUniRender = true;
     bool onlyFirstLevel = true;
     node->CollectSurface(renderNode, vec, isUniRender, onlyFirstLevel);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: CollectSurfaceForUIFirstSwitch
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitch
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, CollectSurfaceForUIFirstSwitch, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    uint32_t leashWindowCount = 2;
-    uint32_t minNodeNum = 1;
-    node->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
     ASSERT_TRUE(true);
 }
 
@@ -1539,6 +1486,56 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
     node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode04
+ * @tc.desc: test OpincQuickMarkStableNode when content dirty
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode04, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetContentDirty();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode05
+ * @tc.desc: test OpincQuickMarkStableNode when subtree dirty
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode05, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetSubTreeDirty(true);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode06
+ * @tc.desc: test OpincQuickMarkStableNode default
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode06, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
 }
 

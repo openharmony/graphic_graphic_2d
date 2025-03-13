@@ -123,74 +123,15 @@ void RSRenderPathAnimation::SetRotationId(const PropertyId id)
     rotationId_ = id;
 }
 
-bool RSRenderPathAnimation::Marshalling(Parcel& parcel) const
-{
-    if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, RenderPropertyAnimation failed");
-        return false;
-    }
-    if (!(parcel.WriteFloat(originRotation_) && parcel.WriteFloat(beginFraction_) && parcel.WriteFloat(endFraction_) &&
-            RSMarshallingHelper::Marshalling(parcel, animationPath_) &&
-            parcel.WriteInt32(static_cast<std::underlying_type<RotationMode>::type>(rotationMode_)) &&
-            parcel.WriteBool(isNeedPath_) && parcel.WriteBool(needAddOrigin_) && interpolator_ != nullptr &&
-            interpolator_->Marshalling(parcel) && RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_) && parcel.WriteUint64(rotationId_))) {
-        ROSEN_LOGE("RSRenderPathAnimation::Marshalling, write failed");
-        return false;
-    }
-    return true;
-}
-
-RSRenderPathAnimation* RSRenderPathAnimation::Unmarshalling(Parcel& parcel)
-{
-    RSRenderPathAnimation* renderPathAnimation = new RSRenderPathAnimation();
-
-    if (!renderPathAnimation->ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderPathAnimation::Unmarshalling, Parse RenderProperty Fail");
-        delete renderPathAnimation;
-        return nullptr;
-    }
-    return renderPathAnimation;
-}
-
-bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
-{
-    if (!RSRenderPropertyAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse RenderProperty Fail");
-        return false;
-    }
-
-    int32_t rotationMode = 0;
-    bool isNeedPath = true;
-    if (!(parcel.ReadFloat(originRotation_) && parcel.ReadFloat(beginFraction_) &&
-            parcel.ReadFloat(endFraction_) && RSMarshallingHelper::Unmarshalling(parcel, animationPath_) &&
-            parcel.ReadInt32(rotationMode) && parcel.ReadBool(isNeedPath) && parcel.ReadBool(needAddOrigin_))) {
-        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse PathAnimation Failed");
-        return false;
-    }
-
-    std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
-    if (interpolator == nullptr) {
-        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Unmarshalling interpolator failed");
-        return false;
-    }
-
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_) && parcel.ReadUint64(rotationId_))) {
-        ROSEN_LOGE("RSRenderPathAnimation::ParseParam, Parse values failed");
-        return false;
-    }
-    RS_PROFILER_PATCH_NODE_ID(parcel, rotationId_);
-    SetInterpolator(interpolator);
-    SetRotationMode(static_cast<RotationMode>(rotationMode));
-    SetIsNeedPath(isNeedPath);
-    return true;
-}
-
 void RSRenderPathAnimation::OnAnimate(float fraction)
 {
     if (animationPath_ == nullptr) {
         ROSEN_LOGE("Failed to animate motion path, path is null!");
+        return;
+    }
+
+    if (GetOriginValue() == nullptr) {
+        ROSEN_LOGE("Failed to animate motion path, originValue is null!");
         return;
     }
 

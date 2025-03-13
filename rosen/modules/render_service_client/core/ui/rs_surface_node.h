@@ -45,6 +45,7 @@ struct RSSurfaceNodeConfig {
     SurfaceId surfaceId = 0;
     bool isSync = true;
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {
@@ -61,10 +62,12 @@ public:
 
     ~RSSurfaceNode() override;
 
-    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     // This interface is only available for WMS
-    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true);
+    static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true,
+        bool unobscured = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     // This API is only for abilityView create RSRenderSurfaceNode in RenderThread.
     // Do not call this API unless you are sure what you do.
@@ -77,6 +80,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetLeashPersistentId(LeashPersistentId leashPersistentId);
+    LeashPersistentId GetLeashPersistentId() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
@@ -102,7 +107,8 @@ public:
 
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true);
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
@@ -130,6 +136,7 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+    // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);
     void MarkUiFrameAvailable(bool available);
@@ -138,10 +145,12 @@ public:
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetClonedNodeId(NodeId nodeId);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
-    static void SetHDRPresent(bool hdrPresent, NodeId id);
+    void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
@@ -150,10 +159,20 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    void SetHardwareEnableHint(bool enable);
+    void SetApiCompatibleVersion(uint32_t version);
+
+    void AttachToWindowContainer(ScreenId screenId);
+    void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
-    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
-    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSSurfaceNode(const RSSurfaceNode&) = delete;
     RSSurfaceNode(const RSSurfaceNode&&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
@@ -164,13 +183,15 @@ private:
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
 #endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0);
+    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0,
+        bool unobscured = false);
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
+    void RegisterNodeMap() override;
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     std::string bundleName_;
@@ -188,6 +209,7 @@ private:
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

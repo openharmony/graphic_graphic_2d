@@ -27,11 +27,13 @@
 #include <securec.h>
 #include <unistd.h>
 
+#include "common/rs_color.h"
 #include "draw/canvas.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable_bounds_geometry.h"
+#include "skia_adapter/skia_surface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -75,7 +77,9 @@ bool DoDraw(const uint8_t* data, size_t size)
     Canvas canvas(width, height);
     RSPaintFilterCanvas cacheCanvas(&canvas);
     RSRenderContent content;
-    RSProperties properties;
+    auto& properties = content.GetMutableRenderProperties();
+    float value = GetData<float>();
+    properties.SetBounds(value);
     auto rsBound = std::make_shared<RSBoundsGeometryDrawable>();
     rsBound->Draw(content, cacheCanvas);
     auto rsPoint = std::make_shared<RSPointLightDrawable>();
@@ -109,14 +113,55 @@ bool DoGenerate(const uint8_t* data, size_t size)
 
     RSRenderContent content;
     RSBoundsGeometryDrawable::Generate(content);
+    RSPointLightDrawable::Generate(content);
     RSShadowBaseDrawable::Generate(content);
     Brush brush;
     Pen pen;
     RSBorderDrawable::Generate(content);
     RSOutlineDrawable::Generate(content);
+    RSMaskDrawable::Generate(content);
+    float value = GetData<float>();
+    uint32_t color = GetData<uint32_t>();
+    BorderStyle borderStyle = static_cast<BorderStyle>(GetData<uint32_t>() % 4);
+    auto& properties = content.GetMutableRenderProperties();
+    properties.SetBorderWidth(value);
+    properties.SetBorderColor(RSColor::FromArgbInt(color));
+    properties.SetBorderStyle(static_cast<uint32_t>(borderStyle));
+    RSBorderDrawable::Generate(content);
+    Vector4f radius = GetData<Vector4f>();
+    properties.SetOutlineRadius(radius);
+    properties.GetOutline()->SetWidth(value);
+    properties.GetOutline()->SetColor(RSColor::FromArgbInt(color));
+    properties.GetOutline()->SetStyle(borderStyle);
+    RSOutlineDrawable::Generate(content);
     auto mask = std::make_shared<RSMask>();
+    MaskType maskType = static_cast<MaskType>(GetData<uint32_t>() % 5);
+    mask->SetMaskType(maskType);
     RSMaskDrawable::Generate(content);
     RSShadowBaseDrawable::Generate(content);
+    return true;
+}
+
+bool DoRSClipBoundsDrawable(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSRenderContent content;
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
+    Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    auto rsClipBoundsDrawable = std::make_shared<RSClipBoundsDrawable>();
+    rsClipBoundsDrawable->Generate(content);
+    rsClipBoundsDrawable->Draw(content, cacheCanvas);
+    
     return true;
 }
 
@@ -171,13 +216,90 @@ bool DoRSBorderFourLineDrawable(const uint8_t* data, size_t size)
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    RSProperties properties;
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
+    Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
     auto rsBorderFourLineDrawable =
         std::make_shared<RSBorderFourLineDrawable>(std::move(brush), std::move(pen), properties, true);
+    Vector4f borderWidth = GetData<Vector4f>();
+    properties.SetBorderWidth(borderWidth);
+    rsBorderFourLineDrawable->Draw(content, cacheCanvas);
+    rsBorderFourLineDrawable->OnBoundsChange(properties);
+    return true;
+}
+
+bool DoRSBorderPathDrawable(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t r = GetData<uint32_t>();
+    uint32_t g = GetData<uint32_t>();
+    uint32_t b = GetData<uint32_t>();
+    uint32_t a = GetData<uint32_t>();
+    Color c(r, g, b, a);
+    Brush brush(c);
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    brush.SetAntiAlias(true);
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    float value = GetData<float>();
+    properties.SetBorderWidth(value);
+    properties.SetOutlineWidth(value);
+    auto rsBorderPath =
+        std::make_shared<RSBorderPathDrawable>(std::move(brush), std::move(pen), properties, true);
     RSRenderContent content;
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    rsBorderPath->Draw(content, cacheCanvas);
+    rsBorderPath->OnBoundsChange(properties);
+    return true;
+}
+
+bool DoRSBorderFourLineRoundCornerDrawable(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t r = GetData<uint32_t>();
+    uint32_t g = GetData<uint32_t>();
+    uint32_t b = GetData<uint32_t>();
+    uint32_t a = GetData<uint32_t>();
+    Color c(r, g, b, a);
+    Brush brush(c);
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    brush.SetAntiAlias(true);
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
+    Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    RSRenderContent content;
+    RSProperties& properties = content.GetMutableRenderProperties();
+    auto rsBorderFourLineRoundCornerDrawable =
+        std::make_shared<RSBorderFourLineRoundCornerDrawable>(std::move(brush), std::move(pen), properties, true);
+    Vector4f borderWidth = GetData<Vector4f>();
+    properties.SetBorderWidth(borderWidth);
+    rsBorderFourLineRoundCornerDrawable->Draw(content, cacheCanvas);
+    rsBorderFourLineRoundCornerDrawable->OnBoundsChange(properties);
     return true;
 }
 
@@ -324,6 +446,29 @@ bool DoRSBackgroundFilterDrawable(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoRSCompositingFilterDrawable(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsCompositingFilterDrawable = std::make_shared<RSCompositingFilterDrawable>();
+    RSRenderContent content;
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
+    Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    rsCompositingFilterDrawable->Draw(content, cacheCanvas);
+    RSCompositingFilterDrawable::Generate(content);
+    rsCompositingFilterDrawable->Update(content);
+    return true;
+}
+
 bool DoRSForegroundFilterDrawable(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -341,9 +486,34 @@ bool DoRSForegroundFilterDrawable(const uint8_t* data, size_t size)
     int32_t height = GetData<int32_t>();
     Canvas canvas(width, height);
     RSPaintFilterCanvas cacheCanvas(&canvas);
+    auto surface = Drawing::Surface::MakeRasterN32Premul(1, 1);
+    cacheCanvas.surface_ = surface.get();
     rsForegroundFilterDrawable->Draw(content, cacheCanvas);
     RSForegroundFilterDrawable::Generate(content);
     rsForegroundFilterDrawable->Update(content);
+    return true;
+}
+
+bool DoRSForegroundFilterRestoreDrawable(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsForegroundFilterRestoreDrawable = std::make_shared<RSForegroundFilterRestoreDrawable>();
+    RSRenderContent content;
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
+    Canvas canvas(width, height);
+    RSPaintFilterCanvas cacheCanvas(&canvas);
+    rsForegroundFilterRestoreDrawable->Draw(content, cacheCanvas);
+    RSForegroundFilterRestoreDrawable::Generate(content);
+    rsForegroundFilterRestoreDrawable->Update(content);
     return true;
 }
 
@@ -368,6 +538,7 @@ bool DoRSEffectDataGenerateDrawable(const uint8_t* data, size_t size)
     rsEffectDataGenerateDrawable->Update(content);
     return true;
 }
+
 bool DoRSEffectDataApplyDrawable(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -546,6 +717,7 @@ bool DoRSBackgroundImageDrawable(const uint8_t* data, size_t size)
     Canvas canvas(width, height);
     RSPaintFilterCanvas cacheCanvas(&canvas);
     rsBackgroundImageDrawable->Update(content);
+    rsBackgroundImageDrawable->Draw(content, cacheCanvas);
     return true;
 }
 
@@ -560,7 +732,7 @@ bool DoRSBlendSaveLayerDrawable(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2);
+    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 1);
     RSRenderContent content;
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
@@ -632,6 +804,24 @@ bool DoRSBlendFastRestoreDrawable(const uint8_t* data, size_t size)
     rsBlendFastRestoreDrawable->Draw(content, cacheCanvas);
     return true;
 }
+
+bool DoBlendSaveDrawableGenerate(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSRenderContent content;
+    auto result1 = BlendSaveDrawableGenerate(content);
+    auto result2 = BlendRestoreDrawableGenerate(content);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -663,5 +853,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoRSBlendFastDrawable(data, size);
     OHOS::Rosen::DoRSBlendSaveLayerRestoreDrawable(data, size);
     OHOS::Rosen::DoRSBlendFastRestoreDrawable(data, size);
+    OHOS::Rosen::DoRSClipBoundsDrawable(data, size);
+    OHOS::Rosen::DoRSBorderPathDrawable(data, size);
+    OHOS::Rosen::DoRSBorderFourLineRoundCornerDrawable(data, size);
+    OHOS::Rosen::DoRSCompositingFilterDrawable(data, size);
+    OHOS::Rosen::DoRSForegroundFilterRestoreDrawable(data, size);
+    OHOS::Rosen::DoBlendSaveDrawableGenerate(data, size);
     return 0;
 }

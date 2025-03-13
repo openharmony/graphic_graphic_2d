@@ -64,8 +64,6 @@ public:
     bool ShouldPaint() const;
 
     // opinc switch
-    bool IsOpincRenderCacheEnable();
-    bool IsOpincRealDrawCacheEnable();
     bool IsAutoCacheDebugEnable();
 
     void OpincCalculateBefore(Drawing::Canvas& canvas,
@@ -111,9 +109,14 @@ public:
         return isOpincRootNode_;
     }
 
+    void SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image);
+
+    std::shared_ptr<Drawing::Image> GetCacheImageByCapture() const;
+
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+    static void SetAutoCacheEnable(bool autoCacheEnable);
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -153,7 +156,7 @@ protected:
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
-        bool isNeedFP16 = false);
+        bool isNeedFP16 = false, GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
@@ -172,8 +175,10 @@ protected:
 private:
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
+    mutable std::mutex freezeByCaptureMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
+    std::shared_ptr<Drawing::Image> cachedImageByCapture_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK
@@ -185,8 +190,11 @@ private:
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
+    static inline std::mutex drawingCacheContiUpdateTimeMapMutex_;
+    static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
+    static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
     static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
@@ -206,6 +214,8 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    void ClearDrawingCacheDataMap();
+    void ClearDrawingCacheContiUpdateTimeMap();
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -216,13 +226,12 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool isOpincMarkCached_ = false;
-    bool OpincGetCachedMark() const
+    bool OpincGetCachedMark()
     {
         return isOpincMarkCached_;
     }
+    bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
-    static thread_local bool isOffScreenWithClipHole_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

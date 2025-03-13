@@ -114,6 +114,7 @@ HWTEST_F(RSContextTest, TaskRunnerTest004, TestSize.Level1)
 
     // Set Task Runner
     auto taskRunner = [](const std::function<void()>& task, bool isSyncTask) {};
+    ASSERT_NE(taskRunner, nullptr);
     rSContext.SetTaskRunner(taskRunner);
     auto taskRunnerTest = []() {};
     rSContext.PostTask(taskRunnerTest, true);
@@ -134,6 +135,8 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
     rSContext.Initialize();
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(INVALID_NODEID);
+    EXPECT_NE(nodePtr, nullptr);
 }
 
 /**
@@ -152,7 +155,7 @@ HWTEST_F(RSContextTest, UiFrameworkTest, TestSize.Level1)
     EXPECT_GT(ret, 0);
 
     auto dirtyNode = std::make_shared<RSRenderNode>(0);
-    rSContext.UpdateUiFrameworkDirtyNodes(dirtyNode);
+    rSContext.UpdateUIFrameworkDirtyNodes(dirtyNode);
     auto dirtyNodes = rSContext.GetUiFrameworkDirtyNodes();
     ret = dirtyNodes.size();
     EXPECT_GT(ret, 0);
@@ -170,5 +173,23 @@ HWTEST_F(RSContextTest, SetRequestedNextVsyncAnimateTest007, TestSize.Level1)
     rSContext.SetRequestedNextVsyncAnimate(true);
     auto ret = rSContext.IsRequestedNextVsyncAnimate();
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: GetAnimatingNodeListTest001
+ * @tc.desc: GetAnimatingNodeList test.
+ * @tc.type: FUNC
+ * @tc.require: IAYANC
+ */
+HWTEST_F(RSContextTest, GetAnimatingNodeListTest001, TestSize.Level1)
+{
+    RSContext rSContext;
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(1);
+    EXPECT_TRUE(nodePtr);
+    rSContext.RegisterAnimatingRenderNode(nodePtr);
+    EXPECT_EQ(rSContext.GetAnimatingNodeList().size(), 1);
+    rSContext.UnregisterAnimatingRenderNode(1);
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
 }
 } // namespace OHOS::Rosen

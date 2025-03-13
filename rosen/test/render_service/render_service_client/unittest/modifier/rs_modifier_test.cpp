@@ -502,8 +502,8 @@ HWTEST_F(RSModifierTest, ScaleModifier002, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, SkewModifier001, TestSize.Level1)
 {
-    auto value = Vector2f(2.f, 2.f);
-    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto value = Vector3f(2.f, 2.f, 2.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector3f>>(value);
     auto modifier = std::make_shared<RSSkewModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -523,8 +523,8 @@ HWTEST_F(RSModifierTest, SkewModifier001, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, SkewModifier002, TestSize.Level1)
 {
-    auto value = Vector2f();
-    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto value = Vector3f();
+    auto prop = std::make_shared<RSAnimatableProperty<Vector3f>>(value);
     auto modifier = std::make_shared<RSSkewModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -532,7 +532,7 @@ HWTEST_F(RSModifierTest, SkewModifier002, TestSize.Level1)
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetSkew(), value);
 
-    value = Vector2f(0.5f, 0.5f);
+    value = Vector3f(0.5f, 0.5f, 0.5f);
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetSkew(), value);
 }
@@ -544,8 +544,8 @@ HWTEST_F(RSModifierTest, SkewModifier002, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, PerspModifier001, TestSize.Level1)
 {
-    auto value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
-    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto value = Vector4f(FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSPerspModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -565,8 +565,8 @@ HWTEST_F(RSModifierTest, PerspModifier001, TestSize.Level1)
  */
 HWTEST_F(RSModifierTest, PerspModifier002, TestSize.Level1)
 {
-    auto value = Vector2f();
-    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto value = Vector4f();
+    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
     auto modifier = std::make_shared<RSPerspModifier>(prop);
 
     auto node = RSCanvasNode::Create();
@@ -574,7 +574,7 @@ HWTEST_F(RSModifierTest, PerspModifier002, TestSize.Level1)
     ASSERT_TRUE(node != nullptr);
     ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
 
-    value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+    value = Vector4f(FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT);
     prop->Set(value);
     ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
 }
@@ -1900,6 +1900,7 @@ HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.AddModifier(modifier);
     manager.Draw();
 }
@@ -1937,6 +1938,7 @@ HWTEST_F(RSModifierTest, ModifierManager003, TestSize.Level1)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
     manager.AddAnimation(animation);
     manager.AddModifier(modifier);
     manager.Draw();
@@ -1977,6 +1979,7 @@ HWTEST_F(RSModifierTest, ModifierManager005, TestSize.Level1)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
     manager.AddAnimation(animation);
     manager.RemoveAnimation(id);
     manager.AddModifier(modifier);
@@ -1996,6 +1999,7 @@ HWTEST_F(RSModifierTest, ModifierManager006, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();
@@ -2014,6 +2018,7 @@ HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();

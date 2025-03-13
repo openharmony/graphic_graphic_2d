@@ -26,7 +26,7 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 namespace OHOS {
 namespace Rosen {

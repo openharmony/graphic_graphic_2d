@@ -34,10 +34,11 @@ public:
 };
 
 ADD_COMMAND(RSCanvasDrawingNodeCreate,
-    ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE, RSCanvasDrawingNodeCommandHelper::Create, NodeId, bool))
-ADD_COMMAND(
-    RSCanvasDrawingNodeResetSurface, ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_RESET_SURFACE,
-                                         RSCanvasDrawingNodeCommandHelper::ResetSurface, NodeId, int32_t, int32_t))
+    ARG(PERMISSION_APP, CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE,
+        RSCanvasDrawingNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSCanvasDrawingNodeResetSurface,
+    ARG(PERMISSION_APP, CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_RESET_SURFACE,
+        RSCanvasDrawingNodeCommandHelper::ResetSurface, NodeId, int32_t, int32_t))
 
 } // namespace Rosen
 } // namespace OHOS

@@ -26,9 +26,10 @@ Bitmap::Bitmap()
 
 Bitmap::~Bitmap() {}
 
-bool Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
+bool Bitmap::Build(int32_t width, int32_t height, const BitmapFormat& format,
+    int32_t stride, std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
-    return bmpImplPtr->Build(width, height, format, stride);
+    return bmpImplPtr->Build(width, height, format, stride, colorSpace);
 }
 
 bool Bitmap::Build(const ImageInfo& imageInfo, int32_t stride)

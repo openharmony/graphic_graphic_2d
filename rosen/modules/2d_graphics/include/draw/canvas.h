@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "drawing/draw/core_canvas.h"
+#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,8 +57,6 @@ public:
     void AddCanvas(Canvas* canvas);
 
     void RemoveAll();
-    // constructor adopt a raw canvas ptr, using for ArkUI, should remove after rosen modifier provide drawing Canvas.
-    explicit Canvas(void* rawCanvas) : CoreCanvas(rawCanvas) {}
     virtual ~Canvas();
 
     /*
@@ -100,10 +99,22 @@ public:
         BuildOverDraw(canvas);
     }
     virtual ~OverDrawCanvas() {}
-    virtual DrawingType GetDrawingType() const
+    virtual DrawingType GetDrawingType() const override
     {
         return DrawingType::OVER_DRAW;
     }
+    void SetGrContext(std::shared_ptr<GPUContext> gpuContext)
+    {
+        gpuContext_ = gpuContext;
+    }
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<GPUContext> GetGPUContext() override
+    {
+        return gpuContext_;
+    }
+#endif
+private:
+    std::shared_ptr<GPUContext> gpuContext_ = nullptr;
 };
 
 class DRAWING_API NoDrawCanvas : public Canvas {

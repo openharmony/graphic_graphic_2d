@@ -58,6 +58,7 @@ HWTEST_F(SkiaRuntimeBlenderBuilderTest, SetUniform001, TestSize.Level1)
 {
     SkiaRuntimeBlenderBuilder skiaRuntimeBlenderBuilder1;
     skiaRuntimeBlenderBuilder1.SetUniform("uniform", 1.0f);
+    EXPECT_TRUE(!skiaRuntimeBlenderBuilder1.MakeBlender());
 }
 } // namespace Drawing
 } // namespace Rosen

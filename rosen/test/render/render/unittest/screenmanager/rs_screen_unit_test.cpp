@@ -817,6 +817,28 @@ HWTEST_F(RsScreenTest, SetActiveMode005, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetScreenActiveRect001
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RsScreenTest, SetScreenActiveRect001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->isVirtual_ = false;
+    GraphicIRect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
  * @tc.name: SetResolution002
  * @tc.desc: SetResolution Test, IsVirtual() is false
  * @tc.type: FUNC

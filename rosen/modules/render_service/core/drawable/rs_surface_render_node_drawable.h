@@ -26,8 +26,8 @@
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_window_cache.h"
 
@@ -37,11 +37,14 @@ class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
+class RSRcdSurfaceRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
+
+// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
@@ -101,6 +104,7 @@ public:
         return res;
     }
 
+    bool BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface, bool isNeedFP16);
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
@@ -123,15 +127,17 @@ public:
         } else {
             ClearCacheSurfaceInThread();
         }
+        drawWindowCache_.ClearCache();
     }
 
-    bool IsCurFrameStatic(DeviceType deviceType);
+    bool IsCurFrameStatic();
 
-    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     bool HasCachedTexture() const;
 
     void SetTextureValidFlag(bool isValid);
+#ifdef RS_ENABLE_GPU
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
@@ -141,6 +147,7 @@ public:
     {
         return isCacheSurfaceNeedUpdate_;
     }
+#endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
@@ -211,7 +218,7 @@ public:
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect);
+    void SetGlobalDirtyRegion(Occlusion::Region region);
     const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
@@ -220,9 +227,23 @@ public:
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
+    void SetUIExtensionNeedToDraw(bool needToDraw) override
+    {
+        uiExtensionNeedToDraw_ = needToDraw;
+    }
+
+    bool UIExtensionNeedToDraw() const override
+    {
+        return uiExtensionNeedToDraw_;
+    }
+
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
+
+    uint32_t GetUifirstPostOrder() const;
+    void SetUifirstPostOrder(uint32_t order);
+
     std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerUiFirstOnDraw()
     {
         return surfaceHandlerUiFirst_;
@@ -241,22 +262,31 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
+    int GetTotalProcessedSurfaceCount() const;
+    void UpdateCacheSurfaceInfo();
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
-    void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
+    void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
+    void CrossDisplaySurfaceDirtyRegionConversion(
+        const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParam, RectI& surfaceDirtyRect) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
+    bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams) const;
+    void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
+    void ClearTotalProcessedSurfaceCount();
+    void PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas);
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -271,8 +301,14 @@ private:
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
+    // Draw cloneNode
+    bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
+        RSSurfaceRenderParams& surfaceParams, bool isCapture = false);
+
     // Watermark
     void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+
+    bool RecordTimestamp(NodeId id, uint32_t seqNum);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
@@ -284,6 +320,7 @@ private:
 #endif
     std::shared_ptr<RSSurface> surface_ = nullptr;
     bool surfaceCreated_ = false;
+    bool uiExtensionNeedToDraw_ = false;
 
     // UIFIRST
     std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
@@ -292,9 +329,15 @@ private:
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
+    struct CacheSurfaceInfo {
+        int processedSurfaceCount = -1;
+        float alpha = -1.f;
+    };
+    CacheSurfaceInfo cacheSurfaceInfo_;
+    CacheSurfaceInfo cacheCompletedSurfaceInfo_;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_GPU
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
 #ifdef RS_ENABLE_VK
@@ -332,7 +375,6 @@ private:
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region globalDirtyRegion_;
-    bool globalDirtyRegionIsEmpty_ = false;
 
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
@@ -340,6 +382,12 @@ private:
 
     RSDrawWindowCache drawWindowCache_;
     friend class OHOS::Rosen::RSDrawWindowCache;
+    bool vmaCacheOff_ = false;
+    static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
+    uint32_t uifirstPostOrder_ = 0;
+
+    static inline bool isInRotationFixed_ = false;
+    bool lastGlobalPositionEnabled_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

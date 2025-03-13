@@ -16,16 +16,20 @@
 
 #include <dlfcn.h>
 
+#include "display_engine/rs_color_temperature.h"
+#include "display_engine/rs_luminance_control.h"
 #include "effect/image_filter.h"
-#include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 
 namespace {
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
+constexpr uint32_t DEFAULT_DYNAMIC_METADATA_SIZE = 50;
+constexpr size_t MATRIX_SIZE = 9;
 }; // namespace
 
 RSColorSpaceConvert::RSColorSpaceConvert()
@@ -38,30 +42,21 @@ RSColorSpaceConvert::RSColorSpaceConvert()
     colorSpaceConvertDisplayCreate_ = reinterpret_cast<VPEColorSpaceConvertDisplayCreate>(
         dlsym(handle_, "ColorSpaceConvertDisplayCreate"));
     if (colorSpaceConvertDisplayCreate_ == nullptr) {
-        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        RS_LOGW("[%{public}s]:load Create failed, reason: %{public}s", __func__, dlerror());
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConvertDisplayDestroy_ = reinterpret_cast<VPEColorSpaceConvertDisplayDestroy>(
         dlsym(handle_, "ColorSpaceConvertDisplayDestroy"));
     if (colorSpaceConvertDisplayDestroy_ == nullptr) {
-        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        RS_LOGW("[%{public}s]:load Destroy failed, reason: %{public}s", __func__, dlerror());
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConvertDisplayHandle_ = colorSpaceConvertDisplayCreate_();
     if (colorSpaceConvertDisplayHandle_ == nullptr) {
         RS_LOGE("ColorSpaceConvertDisplayCreate failed, return nullptr");
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConverterDisplay_ = static_cast<ColorSpaceConvertDisplayHandleImpl *>(
@@ -75,14 +70,8 @@ RSColorSpaceConvert::~RSColorSpaceConvert()
         colorSpaceConvertDisplayHandle_ = nullptr;
     }
     if (handle_) {
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        CloseLibraryHandle();
     }
-    colorSpaceConvertDisplayCreate_ = nullptr;
-    colorSpaceConvertDisplayDestroy_ = nullptr;
-    colorSpaceConverterDisplay_ = nullptr;
 }
 
 RSColorSpaceConvert& RSColorSpaceConvert::Instance()
@@ -95,8 +84,10 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
     ScreenId screenId, uint32_t dynamicRangeMode)
 {
-    RS_LOGD("RSColorSpaceConvertor targetColorSpace:%{public}d. screenId:%{public}" PRIu64 ". \
-        dynamicRangeMode%{public}u", targetColorSpace, screenId, dynamicRangeMode);
+    RS_LOGD("RSColorSpaceConvertor HDRDraw targetColorSpace: %{public}d, screenId: %{public}" PRIu64 ""
+        ", dynamicRangeMode: %{public}u", targetColorSpace, screenId, dynamicRangeMode);
+    RS_TRACE_NAME_FMT("RSColorSpaceConvertor HDRDraw targetColorSpace: %d, screenId: %" PRIu64 ""
+        ", dynamicRangeMode: %u", targetColorSpace, screenId, dynamicRangeMode);
     VPEParameter parameter;
 
     if (inputShader == nullptr) {
@@ -107,9 +98,6 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     if (!SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter, targetColorSpace, screenId,
         dynamicRangeMode)) {
         return false;
-    }
-    if (dynamicRangeMode == DynamicRangeMode::STANDARD) {
-        parameter.disableHeadRoom = true;
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
@@ -129,6 +117,38 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     }
     paint.SetShaderEffect(outputShader);
     return true;
+}
+
+void RSColorSpaceConvert::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& hdrStaticMetadata, GSError& ret)
+{
+    ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetHDRStaticMetadata failed with ret: %{public}u.", ret);
+    }
+}
+
+void RSColorSpaceConvert::GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret)
+{
+    ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetHDRDynamicMetadata failed with ret: %{public}u.", ret);
+    }
+}
+
+void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& adaptiveFOVMetadata, GSError& ret)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceBuffer is nullptr. Failed to get FOV metadata.");
+        ret = GSERROR_INVALID_ARGUMENTS;
+        return;
+    }
+    ret = MetadataHelper::GetAdaptiveFOVMetadata(surfaceBuffer, adaptiveFOVMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetFOVMetadata( failed with ret: %{public}u.", ret);
+    }
 }
 
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
@@ -152,10 +172,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("bhdr GetHDRStaticMetadata failed with %{public}u.", ret);
-    }
+    GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata, ret);
+    GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata, ret);
+    GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
 
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();
@@ -163,22 +182,29 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         RS_LOGD("bhdr parameter.staticMetadata size is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
-        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
+            ret == GSERROR_OK ? parameter.dynamicMetadata.size() : DEFAULT_DYNAMIC_METADATA_SIZE);
     }
 
-    ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
+    if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
+        scaler = 1.0f;
     }
 
-    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
     parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
-    RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f. SdrNits:%{public}f.", parameter.tmoNits,
-        parameter.currentDisplayNits, parameter.sdrNits);
+    // color temperature
+    parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK ?
+        parameter.dynamicMetadata : std::vector<uint8_t>(), parameter.inputColorSpace.colorSpaceInfo.matrix);
+    if (parameter.layerLinearMatrix.size() >= MATRIX_SIZE) {
+        // main diagonal indices of a 3x3 matrix are 0, 4 and 8
+        RS_LOGD("bhdr Matrix[0]:%{public}.2f. Matrix[4]:%{public}.2f. Matrix[8]:%{public}.2f",
+            parameter.layerLinearMatrix[0], parameter.layerLinearMatrix[4], parameter.layerLinearMatrix[8]);
+    }
+    RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u",
+        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
     return true;
 }
 
@@ -210,6 +236,17 @@ bool RSColorSpaceConvert::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& 
     }
 
     return true;
+}
+
+void RSColorSpaceConvert::CloseLibraryHandle()
+{
+    colorSpaceConvertDisplayCreate_ = nullptr;
+    colorSpaceConvertDisplayDestroy_ = nullptr;
+    colorSpaceConverterDisplay_ = nullptr;
+    if (dlclose(handle_) != 0) {
+        ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+    }
+    handle_ = nullptr;
 }
 
 } // namespace Rosen

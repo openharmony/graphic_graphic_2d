@@ -35,6 +35,15 @@ namespace {
     constexpr size_t TILEMODE_SIZE = 4;
     constexpr size_t FILTERMODE_SIZE = 2;
 } // namespace
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateColorShader(...)
+ * 2. Deserialize(...)
+ * 3. Serialize()
+ * 4. GetType()
+ * 5. GetDrawingType()
+ */
 bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -47,14 +56,34 @@ bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
 
     ColorQuad color = GetObject<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
-    shaderEffect->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    shaderEffect->Deserialize(dataVal);
     shaderEffect->Serialize();
     shaderEffect->GetType();
     shaderEffect->GetDrawingType();
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateColorShader(...)
+ * 2. CreateColorSpaceShader(...)
+ * 3. ShaderEffect(...)
+ * 4. ShaderEffect(...)
+ * 5. CreateBlendShader(...)
+ */
 bool ShaderEffectFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -97,6 +126,12 @@ bool ShaderEffectFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateImageShader(...)
+ * 2. CreatePictureShader(...)
+ * 3. CreateLinearGradient(...)
+ */
 bool ShaderEffectFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -162,6 +197,15 @@ bool ShaderEffectFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateRadialGradient(...)
+ * 2. CreateTwoPointConical(...)
+ * 3. CreateSweepGradient(...)
+ * 4. CreateLightUp(...)
+ * 5. CreateExtendShader(...)
+ * 6. GetType()
+ */
 bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -201,16 +245,21 @@ bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
         scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
     ShaderEffect::CreateSweepGradient(startPt, colorQuad, scalarNumbers,
         static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
-    uint32_t color = GetObject<uint32_t>();
-    uint32_t t = GetObject<uint32_t>();
-    float lightUpDeg = GetObject<float>();
-    ShaderEffect shaderEffect = ShaderEffect(static_cast<ShaderEffect::ShaderEffectType>(t % SHADEREFFECTTYPE_SIZE),
-        color);
-    ShaderEffect::CreateLightUp(lightUpDeg, shaderEffect);
     ShaderEffect::CreateExtendShader(nullptr);
-    shaderEffect.GetType();
     return true;
 }
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. ShaderEffect(ShaderEffectType type, uint32_t color)
+ * 2. ShaderEffect(ShaderEffectType type, Color4f color4f, std::shared_ptr<ColorSpace> colorSpace)
+ * 3. ShaderEffect(ShaderEffectType type, ShaderEffect shaderEffect1, ShaderEffect shaderEffect2,
+ *       BlendMode blendMode)
+ * 4. ShaderEffect(ShaderEffectType type, const Image& image, TileMode tileModeX, TileMode tileModeY,
+ *       const SamplingOptions& samplingOptions, const Matrix& matrix)
+ * 5. ShaderEffect(ShaderEffectType type, const Picture& picture, TileMode tileModeX, TileMode tileModeY,
+ *       FilterMode filterMode, const Matrix& matrix, const Rect& rect)
+ */
 
 bool ShaderEffectFuzzTest005(const uint8_t* data, size_t size)
 {

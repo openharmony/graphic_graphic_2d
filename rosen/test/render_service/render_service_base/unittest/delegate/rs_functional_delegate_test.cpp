@@ -61,5 +61,6 @@ HWTEST_F(RSFunctionalDelegateTest, Repaint002, TestSize.Level1)
 {
     rsfunctionaldelegate_->SetRepaintCallback(nullptr);
     rsfunctionaldelegate_->Repaint();
+    ASSERT_EQ(rsfunctionaldelegate_->repaintCallback_, nullptr);
 }
 } // namespace OHOS::Rosen

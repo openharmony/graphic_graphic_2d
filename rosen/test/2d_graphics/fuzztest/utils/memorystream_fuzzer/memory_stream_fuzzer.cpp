@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
 #include "utils/memory_stream.h"
 
 namespace OHOS {

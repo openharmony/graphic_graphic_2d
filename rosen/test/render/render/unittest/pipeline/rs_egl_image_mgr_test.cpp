@@ -17,9 +17,9 @@
 #include "surface_buffer_impl.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
+#include "feature/gpuComposition/rs_egl_image_manager.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_egl_image_manager.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_context/render_context.h"
 
 using namespace testing;

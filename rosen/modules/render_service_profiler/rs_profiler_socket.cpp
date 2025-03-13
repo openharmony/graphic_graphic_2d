@@ -20,10 +20,12 @@
 #include <netinet/tcp.h>
 #include <securec.h>
 #include <sys/select.h>
-#include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <poll.h>
 
+#include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
@@ -71,32 +73,19 @@ static void SetCloseOnExec(int32_t socket, bool enable)
     fcntl(socket, F_SETFD, ToggleFlag(fcntl(socket, F_GETFD, 0), FD_CLOEXEC, enable));
 }
 
-static fd_set GetFdSet(int32_t socket)
-{
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(socket, &set);
-    return set;
-}
-
-static bool IsFdSet(int32_t socket, const fd_set& set)
-{
-    return FD_ISSET(socket, &set);
-}
-
 Socket::~Socket()
 {
     Shutdown();
 }
 
+bool Socket::Connected() const
+{
+    return (socket_ != -1) && (client_ != -1) && (state_ == SocketState::CONNECTED);
+}
+
 SocketState Socket::GetState() const
 {
     return state_;
-}
-
-void Socket::SetState(SocketState state)
-{
-    state_ = state;
 }
 
 void Socket::Shutdown()
@@ -151,21 +140,33 @@ void Socket::AcceptClient()
         if ((errno != EWOULDBLOCK) && (errno != EAGAIN) && (errno != EINTR)) {
             Shutdown();
         }
-    } else {
-        SetBlocking(client_, false);
-        SetCloseOnExec(client_, true);
-
-        int32_t nodelay = 1;
-        setsockopt(client_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
-
-        state_ = SocketState::ACCEPT;
+        return;
     }
+
+    SetBlocking(client_, false);
+    SetCloseOnExec(client_, true);
+
+    int32_t nodelay = 1;
+    setsockopt(client_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
+
+    state_ = SocketState::CONNECTED;
 }
 
-void Socket::SendWhenReady(const void* data, size_t size)
+size_t Socket::Available()
+{
+    int32_t size = 0;
+    const auto result = ioctl(client_, FIONREAD, &size);
+    if (result == -1) {
+        HRPE("Socket: Available failed: %d", errno);
+        return 0u;
+    }
+    return static_cast<size_t>(size);
+}
+
+bool Socket::SendWhenReady(const void* data, size_t size)
 {
     if (!data || (size == 0)) {
-        return;
+        return true;
     }
 
     SetBlocking(client_, true);
@@ -178,10 +179,15 @@ void Socket::SendWhenReady(const void* data, size_t size)
     const char* bytes = reinterpret_cast<const char*>(data);
     size_t sent = 0;
     while (sent < size) {
+        if (PollSend(1) == 0) {
+            // wait for 1ms in worst case to have socket ready for sending
+            continue;
+        }
         const ssize_t sentBytes = send(client_, bytes, size - sent, 0);
         if ((sentBytes <= 0) && (errno != EINTR)) {
+            HRPE("Socket: SendWhenReady: Invoke shutdown: %d", errno);
             Shutdown();
-            return;
+            return false;
         }
         auto actualSentBytes = static_cast<size_t>(sentBytes);
         sent += actualSentBytes;
@@ -190,6 +196,7 @@ void Socket::SendWhenReady(const void* data, size_t size)
 
     SetTimeout(client_, previousTimeout);
     SetBlocking(client_, false);
+    return true;
 }
 
 bool Socket::Receive(void* data, size_t& size)
@@ -208,6 +215,7 @@ bool Socket::Receive(void* data, size_t& size)
         if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR)) {
             return true;
         }
+        HRPE("Socket: Receive: Invoke shutdown: %d", errno);
         Shutdown();
         return false;
     }
@@ -234,6 +242,7 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
         // receivedBytes can only be -1 or [0, size - received] (from recv man)
         const ssize_t receivedBytes = recv(client_, bytes, size - received, 0);
         if ((receivedBytes == -1) && (errno != EINTR)) {
+            HRPE("Socket: ReceiveWhenReady: Invoke shutdown: %d", errno);
             Shutdown();
             return false;
         }
@@ -250,26 +259,20 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
     return true;
 }
 
-void Socket::GetStatus(bool& readyToReceive, bool& readyToSend) const
+int Socket::PollReceive(int timeout)
 {
-    readyToReceive = false;
-    readyToSend = false;
+    struct pollfd pollFd = {0};
+    pollFd.fd = client_;
+    pollFd.events = POLLIN;
+    return poll(&pollFd, 1, timeout);
+}
 
-    if (client_ == -1) {
-        return;
-    }
-
-    fd_set send = GetFdSet(client_);
-    fd_set receive = GetFdSet(client_);
-
-    constexpr uint32_t timeoutMilliseconds = 10;
-    timeval timeout = GetTimeoutDesc(timeoutMilliseconds);
-    if (select(client_ + 1, &receive, &send, nullptr, &timeout) == 0) {
-        return;
-    }
-
-    readyToReceive = IsFdSet(client_, receive);
-    readyToSend = IsFdSet(client_, send);
+int Socket::PollSend(int timeout)
+{
+    struct pollfd pollFd = {0};
+    pollFd.fd = client_;
+    pollFd.events = POLLOUT;
+    return poll(&pollFd, 1, timeout);
 }
 
 } // namespace OHOS::Rosen

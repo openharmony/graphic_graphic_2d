@@ -38,6 +38,7 @@ config("libframe_analyzer_public_config") {
 }
 
 ohos_shared_library("libframe_analyzer") {
+  branch_protector_ret = "pac_ret"
   if (current_os == "ohos") {
     sources = [
       "src/frame_collector.cpp",

@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "hwc_param.h"
+
+#include "hgm_core.h"
+#include "platform/common/rs_log.h"
+
+namespace OHOS::Rosen {
+
+void HWCParam::SetSourceTuningForApp(std::string appName, std::string val)
+{
+    sourceTuningMap_[std::move(appName)] = std::move(val);
+}
+
+void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
+{
+    solidColorLayerMap_[std::move(appName)] = std::move(val);
+}
+
+void HWCParam::SetHwcExpandingScreenEnabled(bool isEnabled)
+{
+    isHwcExpandingScreenEnabled_ = isEnabled;
+}
+
+bool HWCParam::IsHwcExpandingScreenEnabled() const
+{
+    return isHwcExpandingScreenEnabled_;
+}
+
+void HWCParam::MoveDataToHgmCore()
+{
+    HgmCore& hgmCore = HgmCore::Instance();
+    if (!hgmCore.mPolicyConfigData_) {
+        hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = std::move(sourceTuningMap_);
+        hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
+    }
+}
+} // namespace OHOS::Rosen

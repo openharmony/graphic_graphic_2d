@@ -27,7 +27,7 @@ namespace Rosen {
 namespace {
 constexpr static float SECOND_TO_MILLISECOND = 1e3;
 constexpr static float MILLISECOND_TO_SECOND = 1e-3;
-constexpr static float SECOND_TO_NANOSECOND = 1e9;
+constexpr static double SECOND_TO_NANOSECOND = 1e9;
 constexpr static float RESPONSE_THRESHOLD = 0.001f;
 constexpr static float FRACTION_THRESHOLD = 0.001f;
 constexpr static float FRAME_TIME_INTERVAL = 1.0f / 90.0f;
@@ -56,11 +56,13 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
+void RSRenderSpringAnimation::SetSpringParameters(
+    float response, float dampingRatio, float blendDuration, float minimumAmplitudeRatio)
 {
     response_ = response;
-    dampingRatio_ = dampingRatio;
+    dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
+    minimumAmplitudeRatio_ = minimumAmplitudeRatio;
 }
 
 void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
@@ -74,75 +76,6 @@ void RSRenderSpringAnimation::SetZeroThreshold(float zeroThreshold)
     zeroThreshold_ = zeroThreshold;
     needLogicallyFinishCallback_ = true;
 }
-
-#ifdef ROSEN_OHOS
-bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
-{
-    if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, RenderPropertyAnimation failed");
-        return false;
-    }
-    if (!(RSRenderPropertyBase::Marshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Marshalling(parcel, endValue_))) {
-        ROSEN_LOGE("RSRenderSpringAnimation::Marshalling, MarshallingHelper failed");
-        return false;
-    }
-
-    if (!(RSMarshallingHelper::Marshalling(parcel, response_) &&
-            RSMarshallingHelper::Marshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Marshalling(parcel, blendDuration_) &&
-            RSMarshallingHelper::Marshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Marshalling(parcel, zeroThreshold_))) {
-        return false;
-    }
-
-    if (initialVelocity_) {
-        return RSMarshallingHelper::Marshalling(parcel, true) &&
-               RSMarshallingHelper::Marshalling(parcel, initialVelocity_);
-    }
-
-    return RSMarshallingHelper::Marshalling(parcel, false);
-}
-
-RSRenderSpringAnimation* RSRenderSpringAnimation::Unmarshalling(Parcel& parcel)
-{
-    auto* renderSpringAnimation = new RSRenderSpringAnimation();
-    if (!renderSpringAnimation->ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderSpringAnimation::Unmarshalling, failed");
-        delete renderSpringAnimation;
-        return nullptr;
-    }
-    return renderSpringAnimation;
-}
-
-bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
-{
-    if (!RSRenderPropertyAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderSpringAnimation::ParseParam, ParseParam Fail");
-        return false;
-    }
-
-    if (!(RSRenderPropertyBase::Unmarshalling(parcel, startValue_) &&
-            RSRenderPropertyBase::Unmarshalling(parcel, endValue_))) {
-        return false;
-    }
-
-    auto haveInitialVelocity = false;
-    if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, blendDuration_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
-        return false;
-    }
-
-    if (haveInitialVelocity) {
-        return RSMarshallingHelper::Unmarshalling(parcel, initialVelocity_);
-    }
-    return true;
-}
-#endif
 
 void RSRenderSpringAnimation::OnAnimate(float fraction)
 {
@@ -295,6 +228,7 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(
         GetPropertyId(), GetAnimationId(), initialVelocity_, GetPropertyValue());
     springValueEstimator_->SetInitialVelocity(initialVelocity_);
+    springValueEstimator_->SetMinimumAmplitudeRatio(minimumAmplitudeRatio_);
     springValueEstimator_->UpdateSpringParameters();
 
     if (blendDuration_) {
@@ -314,7 +248,8 @@ RSRenderSpringAnimation::GetSpringStatus() const
 {
     // if animation is never started, return start value and initial velocity
     // fraction_threshold will change with animationScale.
-    if (ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {
+    if (ROSEN_EQ(animationFraction_.GetAnimationScale(), 0.0f) ||
+        ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {
         return { startValue_, endValue_, initialVelocity_ };
     }
 
@@ -357,8 +292,10 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
     // inherit spring status from last spring animation
     startValue_ = lastValue->Clone();
     initialVelocity_ = velocity;
-    originValue_ = startValue_->Clone();
-    lastValue_ = startValue_->Clone();
+    if (startValue_) {
+        originValue_ = startValue_->Clone();
+        lastValue_ = startValue_->Clone();
+    }
     springValueEstimator_->UpdateStartValueAndLastValue(startValue_, lastValue_);
     springValueEstimator_->SetInitialVelocity(velocity);
     return true;
@@ -373,9 +310,10 @@ void RSRenderSpringAnimation::CallLogicallyFinishCallback() const
 {
     NodeId targetId = GetTargetId();
     AnimationId animationId = GetAnimationId();
+    uint64_t token = GetToken();
 
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(targetId, animationId, LOGICALLY_FINISHED);
+        std::make_unique<RSAnimationCallback>(targetId, animationId, token, LOGICALLY_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
 }
 

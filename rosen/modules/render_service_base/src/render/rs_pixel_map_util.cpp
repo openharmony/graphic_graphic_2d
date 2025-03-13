@@ -90,10 +90,22 @@ static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 
 
 struct PixelMapReleaseContext {
-    explicit PixelMapReleaseContext(std::shared_ptr<PixelMap> pixelMap) : pixelMap_(pixelMap) {}
+    explicit PixelMapReleaseContext(std::shared_ptr<PixelMap> pixelMap) : pixelMap_(pixelMap)
+    {
+#ifdef ROSEN_OHOS
+        if (pixelMap_) {
+            pixelMap_->IncreaseUseCount();
+        }
+#endif
+    }
 
     ~PixelMapReleaseContext()
     {
+#ifdef ROSEN_OHOS
+        if (pixelMap_) {
+            pixelMap_->DecreaseUseCount();
+        }
+#endif
         pixelMap_ = nullptr;
     }
 
@@ -131,7 +143,8 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
         ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
-    Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    Drawing::Pixmap imagePixmap(drawingImageInfo,
+        reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
     if (!image) {
@@ -293,8 +306,10 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage
             YUVPixelFormatToSubSampling(imageInfo.pixelFormat),
             YUVPixelFormatToYUVColorSpace(imageInfo.pixelFormat),
             YUVPixelFormatToYUVDataType(imageInfo.pixelFormat));
+#ifdef RS_ENABLE_GPU
         return Drawing::Image::MakeFromYUVAPixmaps(*gpuContext, info,
             const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+#endif
     }
     return nullptr;
 }
@@ -305,13 +320,7 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
     if (!(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
         return false;
     }
-    ImageInfo imageInfo;
-    pixelMap->GetImageInfo(imageInfo);
-    if (imageInfo.pixelFormat == Media::PixelFormat::RGBA_8888) {
-        return sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
-    }
-    return true;
+    return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
 }
 } // namespace Rosen
 } // namespace OHOS

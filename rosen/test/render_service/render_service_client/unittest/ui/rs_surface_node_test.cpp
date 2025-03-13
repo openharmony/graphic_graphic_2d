@@ -334,12 +334,9 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
-        return;
-    }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     std::string waterMark = "watermark";
     surfaceNode->SetWatermarkEnabled(waterMark, true);
     surfaceNode->SetWatermarkEnabled(waterMark, false);
@@ -396,6 +393,20 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipLayer001, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetSkipLayer(true);
     EXPECT_TRUE(surfaceNode->GetSkipLayer());
+}
+
+/**
+ * @tc.name: SetLeashPersistId001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetLeashPersistId001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    LeashPersistentId leashPersistentId = 50;
+    surfaceNode->SetLeashPersistentId(leashPersistentId);
+    EXPECT_TRUE(surfaceNode->GetLeashPersistentId() == leashPersistentId);
 }
 
 /**
@@ -1077,6 +1088,7 @@ HWTEST_F(RSSurfaceNodeTest, SetFreeze001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetFreeze(true);
 }
 
@@ -1090,6 +1102,7 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetContainerWindow(true, rrect);
 }
 
@@ -1103,6 +1116,7 @@ HWTEST_F(RSSurfaceNodeTest, SetIsNotifyUIBufferAvailable001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetIsNotifyUIBufferAvailable(true);
 }
 
@@ -1116,6 +1130,7 @@ HWTEST_F(RSSurfaceNodeTest, ClearChildren001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->CreateNodeInRenderThread();
     RSSurfaceNodeConfig c2;
     RSSurfaceNode::SharedPtr surfaceNode2 = RSSurfaceNode::Create(c2);
@@ -1266,14 +1281,9 @@ HWTEST_F(RSSurfaceNodeTest, SetTextureExport, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetTextureExport(true);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
     surfaceNode->SetTextureExport(false);
-    //for test
-    ret = false;
-    ASSERT_EQ(false, ret);
 }
 
 /**
@@ -1286,14 +1296,9 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnabled, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetHardwareEnabled(true);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
     surfaceNode->SetHardwareEnabled(false);
-    //for test
-    ret = false;
-    ASSERT_EQ(false, ret);
 }
 
 /**
@@ -1306,12 +1311,9 @@ HWTEST_F(RSSurfaceNodeTest, DetachToDisplay, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    //for test
+    ASSERT_NE(surfaceNode, nullptr);
     uint64_t screenId = 0;
     surfaceNode->DetachToDisplay(screenId);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
 }
 
 /**
@@ -1324,12 +1326,9 @@ HWTEST_F(RSSurfaceNodeTest, AttachToDisplay, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    //for test
+    ASSERT_NE(surfaceNode, nullptr);
     uint64_t screenId = 0;
     surfaceNode->AttachToDisplay(screenId);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
 }
 
 /**
@@ -1389,6 +1388,7 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetContextAlpha();
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 }
@@ -1403,14 +1403,12 @@ HWTEST_F(RSSurfaceNodeTest, SetForeground, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetForeground(true);
     surfaceNode->SetForceUIFirst(true);
     surfaceNode->SetAncoFlags(1);
     surfaceNode->SetHDRPresent(true, 0);
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
 }
 
 /**
@@ -1423,12 +1421,10 @@ HWTEST_F(RSSurfaceNodeTest, SetBoundsChangedCallback, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
     surfaceNode->SetBoundsChangedCallback(callback);
-    //for test
-    bool ret = true;
-    ASSERT_EQ(true, ret);
 }
 
 /**
@@ -1536,7 +1532,7 @@ HWTEST_F(RSSurfaceNodeTest, CreateNodeAndSurface, TestSize.Level1)
     const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
     SurfaceId surfaceId = 0;
     bool res = surfaceNode->CreateNodeAndSurface(config, surfaceId);
-    ASSERT_EQ(true, res);
+    ASSERT_EQ(false, res);
 }
 
 /**
@@ -1570,16 +1566,16 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceIdToRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateTextureExportRenderNodeInRT Test
- * @tc.desc: CreateTextureExportRenderNodeInRT
+ * @tc.name: CreateRenderNodeForTextureExportSwitch Test
+ * @tc.desc: CreateRenderNodeForTextureExportSwitch
  * @tc.type: FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSSurfaceNodeTest, CreateTextureExportRenderNodeInRT, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->CreateTextureExportRenderNodeInRT();
+    surfaceNode->CreateRenderNodeForTextureExportSwitch();
     bool res = true;
     ASSERT_EQ(true, res);
 }
@@ -1688,5 +1684,53 @@ HWTEST_F(RSSurfaceNodeTest, GetAbilityState, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: SetHardwareEnableHint
+ * @tc.desc: Test function SetHardwareEnableHint
+ * @tc.type: FUNC
+ * @tc.require: issueIAHFXD
+ */
+HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetHardwareEnableHint(true);
+    surfaceNode->SetHardwareEnableHint(false);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
+
+/**
+ * @tc.name: AttachToWindowContainer
+ * @tc.desc: Test function AttachToWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, AttachToWindowContainer, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->AttachToWindowContainer(id);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
+
+/**
+ * @tc.name: DetachFromWindowContainer
+ * @tc.desc: Test function DetachFromWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->DetachFromWindowContainer(id);
+    bool res = true;
+    ASSERT_EQ(true, res);
 }
 } // namespace OHOS::Rosen

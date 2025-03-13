@@ -45,8 +45,7 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
-    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
-        const RSProperties& properties, const bool isAbsCoordinate = true);
+    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -85,6 +84,8 @@ public:
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawMask(const RSProperties& properties, Drawing::Canvas& canvas, Drawing::Rect maskBounds);
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat);
+    static bool GetScalingModeMatrix(ScalingMode scalingMode, RectF bounds,
+        float bufferWidth, float bufferHeight, Drawing::Matrix& scalingModeMatrix);
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
@@ -96,6 +97,7 @@ public:
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoef);
+    static std::shared_ptr<Drawing::Blender> MakeLightUpEffectBlender(const float lightUpDeg);
 
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -111,6 +113,7 @@ private:
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool isOutline);
     static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
@@ -123,42 +126,20 @@ private:
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
-        float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(
         float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
-        float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+        float thresholdLow, float thresholdHigh,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeEffect> MakeGreyAdjustmentEffect();
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
         const std::shared_ptr<RSBorder>& border, const bool isOutline);
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
 
-    static bool UseFilterCache(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        const Drawing::RectI& bounds, const std::shared_ptr<RSDrawingFilter>& filter);
-    static void ProcessAndCacheImage(Drawing::Surface* surface, const Drawing::RectI& bounds,
-        const std::shared_ptr<RSDrawingFilter>& filter, RSPaintFilterCanvas& canvas);
-
-    static bool ProcessPixelStretch(RSPaintFilterCanvas& canvas, Drawing::Rect& bounds,
-        const std::optional<Vector4f>& pixelStretch, Drawing::Rect& fClipBounds, Drawing::Rect& scaledBounds);
-    static bool ProcessRotation(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Rect& bounds,
-        Drawing::Matrix& inverseMat);
-    static void DrawPixelStretchImage(const RSProperties& properties, RSPaintFilterCanvas& canvas,
-        Drawing::Rect& bounds, const std::optional<Vector4f>& pixelStretch, Drawing::Surface* surface);
-
-    static void ApplyClipIfNeed(const RSProperties& properties, RSPaintFilterCanvas& canvas, const bool antiAlias);
-    static void DrawBorderIfNoFill(const RSProperties& properties, Drawing::Canvas& canvas,
-        const std::shared_ptr<RSBorder>& border, const bool isOutline);
-    static void ApplyMaskToCanvas(Drawing::Canvas& canvas, std::shared_ptr<RSMask>& mask, Drawing::Rect& maskBounds);
-    static void DrawCustomPath(Drawing::Canvas& canvas, const float offsetSquare, const bool isWidthGreater,
-        std::vector<Drawing::Point>& ctrlPoints, const std::vector<Drawing::Point>& texCoords);
-    static std::vector<Drawing::Point> InitCtrlPoints(float width, float height, float degree);
-    static float CalcOffsetSquare(float& width, float& height, const float degree, const bool isWidthGreater);
-
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;

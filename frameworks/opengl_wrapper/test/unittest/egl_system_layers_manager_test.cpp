@@ -40,7 +40,7 @@ HWTEST_F(EglSystemLayersManagerTest, getJsonConfigtTest001, Level1)
 {
     EglSystemLayersManager manager;
     Json::Value val{Json::nullValue};
-    manager.GetJsonConfig(val);
+    EXPECT_TRUE(manager.GetJsonConfig(val));
 }
 
 /**
@@ -52,7 +52,8 @@ HWTEST_F(EglSystemLayersManagerTest, getSystemLayersFromConfigTest, Level1)
 {
     EglSystemLayersManager manager;
     Json::Value val{Json::nullValue};
-    manager.GetSystemLayersFromConfig(val, "testName");
+    std::vector<std::string> config = manager.GetSystemLayersFromConfig(val, "testName");
+    EXPECT_TRUE(config.empty());
 }
 
 /**
@@ -65,6 +66,6 @@ HWTEST_F(EglSystemLayersManagerTest, getSystemLayersTest, Level1)
     EglSystemLayersManager manager;
     manager.GetSystemLayers();
     Json::Value val{true};
-    manager.GetStringVectorFromJson(val);
+    EXPECT_TRUE(manager.GetStringVectorFromJson(val).empty());
 }
 } // OHOS::Rosen

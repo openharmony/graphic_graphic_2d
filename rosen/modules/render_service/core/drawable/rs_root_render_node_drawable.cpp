@@ -15,14 +15,14 @@
 
 #include "drawable/rs_root_render_node_drawable.h"
 
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
-#include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;
 RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSCanvasRenderNodeDrawable(std::move(node))
+    : RSCanvasRenderNodeDrawable(std::move(node)), windowKeyframeBuffer_(*this)
 {}
 
 RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -33,6 +33,12 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
+
+    // [Attention] Only used in PC window resize scene now
+    if (UNLIKELY(windowKeyframeBuffer_.OnDraw(canvas))) {
+        return;
+    }
+
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 
@@ -42,4 +48,12 @@ void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSCanvasRenderNodeDrawable::OnCapture(canvas);
 }
+
+// [Attention] Only used in PC window resize scene now
+bool RSRootRenderNodeDrawable::DrawOffscreenBuffer(
+    RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed)
+{
+    return windowKeyframeBuffer_.DrawOffscreenBuffer(canvas, bounds, alpha, isFreezed);
+}
+
 } // namespace OHOS::Rosen::DrawableV2

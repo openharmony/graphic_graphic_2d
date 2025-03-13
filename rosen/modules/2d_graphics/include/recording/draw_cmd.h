@@ -29,8 +29,8 @@
 #include "draw/paint.h"
 #include "recording/cmd_list.h"
 
-#define REGISTER_UNMARSHALLING_FUNC(name, type, func) \
-    static bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().RegisterFunc(type, func)
+#define UNMARSHALLING_REGISTER(name, type, func, size) \
+    static bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().Register(type, func, size)
 
 namespace OHOS {
 namespace Rosen {
@@ -89,6 +89,8 @@ public:
         IMAGE_WITH_PARM_OPITEM,
         PIXELMAP_WITH_PARM_OPITEM,
         PIXELMAP_RECT_OPITEM,
+        PIXELMAP_NINE_OPITEM,
+        PIXELMAP_LATTICE_OPITEM,
         REGION_OPITEM,
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
@@ -121,6 +123,8 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 
     virtual void Purge() {}
+
+    size_t GetOpSize();
 };
 
 class DRAWING_API UnmarshallingHelper {
@@ -128,8 +132,8 @@ class DRAWING_API UnmarshallingHelper {
 public:
     static UnmarshallingHelper& Instance();
 
-    bool RegisterFunc(uint32_t type, UnmarshallingFunc func);
-    UnmarshallingFunc GetFunc(uint32_t type);
+    bool Register(uint32_t type, UnmarshallingFunc func, size_t unmarshallingSize);
+    std::pair<UnmarshallingFunc, size_t> GetFuncAndSize(uint32_t type);
 
 private:
     UnmarshallingHelper() = default;
@@ -141,6 +145,7 @@ private:
 
     std::shared_mutex mtx_;
     std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
+    std::unordered_map<uint32_t, size_t> opUnmarshallingSize_;
 };
 
 class UnmarshallingPlayer {
@@ -148,7 +153,7 @@ public:
     UnmarshallingPlayer(const DrawCmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
-    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle);
+    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle, size_t avaliableSize);
 private:
     const DrawCmdList& cmdList_;
 };
@@ -158,7 +163,7 @@ public:
     GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas = nullptr, const Rect* rect = nullptr);
     ~GenerateCachedOpItemPlayer() = default;
 
-    bool GenerateCachedOpItem(uint32_t type, void* handle);
+    bool GenerateCachedOpItem(uint32_t type, void* handle, size_t avaliableSize);
 
     Canvas* canvas_ = nullptr;
     const Rect* rect_;
@@ -258,11 +263,11 @@ private:
 class DrawPointsOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(PointMode mode, const std::pair<uint32_t, size_t>& pts, const PaintHandle& paintHandle)
+        ConstructorHandle(PointMode mode, const std::pair<size_t, size_t>& pts, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::POINTS_OPITEM), mode(mode), pts(pts), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         PointMode mode;
-        std::pair<uint32_t, size_t> pts;
+        std::pair<size_t, size_t> pts;
         PaintHandle paintHandle;
     };
     DrawPointsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
@@ -696,8 +701,8 @@ private:
 class DrawAtlasOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& atlas, const std::pair<uint32_t, size_t>& xform,
-            const std::pair<uint32_t, size_t>& tex, const std::pair<uint32_t, size_t>& colors, BlendMode mode,
+        ConstructorHandle(const OpDataHandle& atlas, const std::pair<size_t, size_t>& xform,
+            const std::pair<size_t, size_t>& tex, const std::pair<size_t, size_t>& colors, BlendMode mode,
             const SamplingOptions& samplingOptions, bool hasCullRect, const Rect& cullRect,
             const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::ATLAS_OPITEM), atlas(atlas), xform(xform), tex(tex), colors(colors), mode(mode),
@@ -705,9 +710,9 @@ public:
               paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle atlas;
-        std::pair<uint32_t, size_t> xform;
-        std::pair<uint32_t, size_t> tex;
-        std::pair<uint32_t, size_t> colors;
+        std::pair<size_t, size_t> xform;
+        std::pair<size_t, size_t> tex;
+        std::pair<size_t, size_t> colors;
         BlendMode mode;
         SamplingOptions samplingOptions;
         bool hasCullRect;
@@ -908,6 +913,7 @@ public:
     virtual void DumpItems(std::string& out) const override;
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
+    uint64_t GetTypefaceId();
 protected:
     void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;
@@ -917,6 +923,7 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
+    uint64_t globalUniqueId_;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
@@ -1320,10 +1327,10 @@ public:
 class ClipAdaptiveRoundRectOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const std::pair<uint32_t, size_t>& radiusData)
+        ConstructorHandle(const std::pair<size_t, size_t>& radiusData)
             : OpItem(DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM), radiusData(radiusData) {}
         ~ConstructorHandle() override = default;
-        std::pair<uint32_t, size_t> radiusData;
+        std::pair<size_t, size_t> radiusData;
     };
     ClipAdaptiveRoundRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     explicit ClipAdaptiveRoundRectOpItem(const std::vector<Point>& radiusData)

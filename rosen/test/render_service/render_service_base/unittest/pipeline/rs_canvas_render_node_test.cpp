@@ -17,7 +17,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 using namespace testing;
@@ -229,6 +229,36 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRPresent001
+ * @tc.desc: test true of SetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.SetHDRPresent(true);
+    EXPECT_TRUE(rsCanvasRenderNode.GetHDRPresent());
+}
+
+/**
+ * @tc.name: SetHDRPresent002
+ * @tc.desc: test false of SetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.SetHDRPresent(false);
+    EXPECT_FALSE(rsCanvasRenderNode.GetHDRPresent());
+}
+
+/**
  * @tc.name: DrawShadow
  * @tc.desc: test results of DrawShadow
  * @tc.type:FUNC
@@ -379,5 +409,22 @@ HWTEST_F(RSCanvasRenderNodeTest, OpincGetNodeSupportFlag001, TestSize.Level1)
     std::optional<Color> colorBlend = color;
     property.SetColorBlend(colorBlend);
     EXPECT_FALSE(rsCanvasRenderNode->OpincGetNodeSupportFlag());
+}
+
+/**
+ * @tc.name: SetLinkedRootNodeId
+ * @tc.desc: test SetLinkedRootNodeId
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetLinkedRootNodeId, TestSize.Level1)
+{
+    NodeId nodeId = static_cast<NodeId>(2);
+    NodeId rootNodeId = static_cast<NodeId>(3);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), INVALID_NODEID);
+
+    rsCanvasRenderNode->SetLinkedRootNodeId(rootNodeId);
+    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), rootNodeId);
 }
 } // namespace OHOS::Rosen

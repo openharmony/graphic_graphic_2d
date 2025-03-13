@@ -155,9 +155,6 @@ HWTEST_F(SkiaGPUContextTest, PurgeUnlockedResourcesByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
-    GrMockOptions options;
-    gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-    gpuContext->PurgeUnlockedResourcesByTag(true, tag);
 }
 
 /**
@@ -216,9 +213,6 @@ HWTEST_F(SkiaGPUContextTest, ReleaseByTag001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag;
     gpuContext->ReleaseByTag(tag);
-    GrMockOptions options;
-    gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-    gpuContext->ReleaseByTag(tag);
 }
 
 /**
@@ -248,6 +242,19 @@ HWTEST_F(SkiaGPUContextTest, DumpMemoryStatistics001, TestSize.Level1)
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->DumpMemoryStatistics(nullptr);
+}
+
+/**
+ * @tc.name: RegisterVulkanErrorCallback001
+ * @tc.desc: Test RegisterVulkanErrorCallback
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->RegisterVulkanErrorCallback(nullptr);
 }
 
 /**

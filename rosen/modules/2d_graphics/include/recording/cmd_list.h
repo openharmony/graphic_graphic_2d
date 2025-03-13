@@ -36,6 +36,7 @@ namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
+constexpr size_t MAX_OPITEMSIZE = 10000;
 
 class DRAWING_API ExtendImageObject {
 public:
@@ -50,8 +51,26 @@ public:
 class DRAWING_API ExtendImageBaseObj {
 public:
     virtual ~ExtendImageBaseObj() = default;
-    virtual void Playback(Canvas& canvas, const Rect& rect,
-        const SamplingOptions& sampling) = 0;
+    virtual void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
+        SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) = 0;
+    virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
+};
+
+class DRAWING_API ExtendImageNineObject {
+public:
+    virtual ~ExtendImageNineObject() = default;
+    virtual void Playback(Canvas& canvas, const RectI& center, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) = 0;
+    virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
+};
+
+class DRAWING_API ExtendImageLatticeObject {
+public:
+    virtual ~ExtendImageLatticeObject() = default;
+    virtual void Playback(Canvas& canvas, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode = FilterMode::NEAREST) = 0;
     virtual void SetNodeId(NodeId id) {};
     virtual void Purge() {};
 };
@@ -104,12 +123,14 @@ public:
             return;
         }
 
-        uint32_t offset = opAllocator_.AddrToOffset(op);
+        size_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
 #ifdef CROSS_PLATFORM
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.__get(), sizeof(OpItem)));
 #else
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.value(), sizeof(OpItem)));
 #endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
@@ -124,9 +145,9 @@ public:
      * @param data  A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
-    uint32_t AddCmdListData(const CmdListData& data);
+    size_t AddCmdListData(const CmdListData& data);
 
-    const void* GetCmdListData(uint32_t offset) const;
+    const void* GetCmdListData(size_t offset, size_t size) const;
 
     /**
      * @brief   Gets the contiguous buffers of CmdList.
@@ -135,15 +156,15 @@ public:
 
     // using for recording, should to remove after using shared memory
     bool SetUpImageData(const void* data, size_t size);
-    uint32_t AddImageData(const void* data, size_t size);
-    const void* GetImageData(uint32_t offset) const;
+    size_t AddImageData(const void* data, size_t size);
+    const void* GetImageData(size_t offset, size_t size) const;
     CmdListData GetAllImageData() const;
 
     OpDataHandle AddImage(const Image& image);
     std::shared_ptr<Image> GetImage(const OpDataHandle& imageHandle);
 
-    uint32_t AddBitmapData(const void* data, size_t size);
-    const void* GetBitmapData(uint32_t offset) const;
+    size_t AddBitmapData(const void* data, size_t size);
+    const void* GetBitmapData(size_t offset, size_t size) const;
     bool SetUpBitmapData(const void* data, size_t size);
     CmdListData GetAllBitmapData() const;
 
@@ -228,6 +249,46 @@ public:
     uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
 
      /*
+     * @brief  return imageNineObject index, negative is error.
+     */
+    uint32_t AddImageNineObject(const std::shared_ptr<ExtendImageNineObject>& object);
+
+    /*
+     * @brief  get imageNineObject by index.
+     */
+    std::shared_ptr<ExtendImageNineObject> GetImageNineObject(uint32_t id);
+
+    /*
+     * @brief  return imageNineObject size, 0 is no imageNineObject.
+     */
+    uint32_t GetAllImageNineObject(std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList);
+
+    /*
+     * @brief  return real setup imageNineObject size.
+     */
+    uint32_t SetupImageNineObject(const std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList);
+
+     /*
+     * @brief  return imageLatticeObject index, negative is error.
+     */
+    uint32_t AddImageLatticeObject(const std::shared_ptr<ExtendImageLatticeObject>& object);
+
+    /*
+     * @brief  get imageLatticeObject by index.
+     */
+    std::shared_ptr<ExtendImageLatticeObject> GetImageLatticeObject(uint32_t id);
+
+    /*
+     * @brief  return imageLatticeObject size, 0 is no imageLatticeObject.
+     */
+    uint32_t GetAllImageLatticeObject(std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList);
+
+    /*
+     * @brief  return real setup imageLatticeObject size.
+     */
+    uint32_t SetupImageLatticeObject(const std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList);
+
+     /*
      * @brief  return DrawFuncObj index, negative is error.
      */
     uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
@@ -278,13 +339,16 @@ public:
 #endif
 
 protected:
+    void ProfilerPushObjects(std::stringstream& stream, size_t size);
+    void ProfilerPopObjects(std::stringstream& stream, size_t size);
+
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
-    std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
+    std::optional<size_t> lastOpItemOffset_ = std::nullopt;
     std::recursive_mutex mutex_;
-    std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
-    std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+    std::map<size_t, std::shared_ptr<Image>> imageMap_;
+    std::vector<std::pair<size_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;
 
     std::vector<std::shared_ptr<RecordCmd>> recordCmdVec_;
@@ -293,6 +357,10 @@ protected:
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
     std::mutex imageBaseObjMutex_;
+    std::vector<std::shared_ptr<ExtendImageNineObject>> imageNineObjectVec_;
+    std::mutex imageNineObjectMutex_;
+    std::vector<std::shared_ptr<ExtendImageLatticeObject>> imageLatticeObjectVec_;
+    std::mutex imageLatticeObjectMutex_;
     std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
     std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS

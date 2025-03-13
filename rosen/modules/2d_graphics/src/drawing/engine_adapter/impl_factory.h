@@ -24,9 +24,11 @@
 #include "impl_interface/color_space_impl.h"
 #include "impl_interface/core_canvas_impl.h"
 #include "impl_interface/data_impl.h"
+#include "impl_interface/document_impl.h"
 #ifdef RS_ENABLE_GPU
 #include "impl_interface/gpu_context_impl.h"
 #endif
+#include "impl_interface/file_w_stream_impl.h"
 #include "impl_interface/font_impl.h"
 #include "impl_interface/font_mgr_impl.h"
 #include "impl_interface/image_filter_impl.h"
@@ -38,15 +40,20 @@
 #include "impl_interface/matrix44_impl.h"
 #include "impl_interface/path_effect_impl.h"
 #include "impl_interface/path_impl.h"
+#include "impl_interface/path_iterator_impl.h"
 #include "impl_interface/picture_impl.h"
+#include "impl_interface/picture_recorder_impl.h"
 #include "impl_interface/region_impl.h"
 #include "impl_interface/resource_holder_impl.h"
 #include "impl_interface/runtime_blender_builder_impl.h"
 #include "impl_interface/runtime_effect_impl.h"
 #include "impl_interface/runtime_shader_builder_impl.h"
+#include "impl_interface/serial_procs_impl.h"
 #include "impl_interface/shader_effect_impl.h"
+#include "impl_interface/sharing_serial_context_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
+#include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {
@@ -56,7 +63,6 @@ class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(DrawingType type);
-    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(void* rawCanvas);
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(int32_t width, int32_t height);
     static std::unique_ptr<DataImpl> CreateDataImpl();
 #ifdef RS_ENABLE_GPU
@@ -68,12 +74,16 @@ public:
     static std::unique_ptr<PixmapImpl> CreatePixmapImpl(const ImageInfo& imageInfo, const void* addr, size_t rowBytes);
     static std::unique_ptr<ImageImpl> CreateImageImpl();
     static std::unique_ptr<ImageImpl> CreateImageImpl(void* rawImage);
+    static std::unique_ptr<PathIteratorImpl> CreatePathIteratorImpl(const Path& path);
     static std::unique_ptr<PathImpl> CreatePathImpl();
     static std::unique_ptr<ColorFilterImpl> CreateColorFilterImpl();
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilterImpl();
     static std::unique_ptr<ImageFilterImpl> CreateImageFilterImpl();
     static std::unique_ptr<PictureImpl> CreatePictureImpl();
+    static std::unique_ptr<PictureRecorderImpl> CreatePictureRecorderImpl();
+    static std::unique_ptr<SerialProcsImpl> CreateSerialProcsImpl();
     static std::unique_ptr<ShaderEffectImpl> CreateShaderEffectImpl();
+    static std::unique_ptr<SharingSerialContextImpl> CreateSharingSerialContextImpl();
     static std::unique_ptr<BlenderImpl> CreateBlenderImpl();
     static std::unique_ptr<RuntimeEffectImpl> CreateRuntimeEffectImpl();
     static std::unique_ptr<RuntimeShaderBuilderImpl> CreateRuntimeShaderBuilderImpl(std::shared_ptr<RuntimeEffect>);
@@ -87,6 +97,7 @@ public:
     static std::unique_ptr<Matrix44Impl> CreateMatrix44Impl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
     static std::unique_ptr<RegionImpl> CreateRegionImpl();
+    static std::unique_ptr<FileWStreamImpl> CreateFileWStreamImpl(const char path[]);
     static std::unique_ptr<FontImpl> CreateFontImpl();
     static std::unique_ptr<FontImpl> CreateFontImpl(std::shared_ptr<Typeface> typeface,
         scalar size, scalar scaleX, scalar skewX);

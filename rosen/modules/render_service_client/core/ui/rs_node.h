@@ -42,7 +42,8 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
-
+#include "transaction/rs_transaction_handler.h"
+#include "transaction/rs_sync_transaction_handler.h"
 #include "recording/recording_canvas.h"
 
 namespace OHOS {
@@ -50,12 +51,15 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
+using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
 class RSObjAbsGeometry;
+class RSUIContext;
 
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
@@ -95,6 +99,11 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void SetIsCrossNode(bool isCrossNode);
+
+    // PC extend screen use this
+    void AddCrossScreenChild(SharedPtr child, int index, bool autoClearCloneNode = false);
+    void RemoveCrossScreenChild(SharedPtr child);
 
     NodeId GetId() const
     {
@@ -161,8 +170,9 @@ public:
     static bool CloseImplicitCancelAnimation();
     static bool IsImplicitAnimationOpen();
 
-    static void ExecuteWithoutAnimation(
-        const PropertyCallback& callback, std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
+    static void ExecuteWithoutAnimation(const PropertyCallback& callback,
+        const std::shared_ptr<RSUIContext> rsUIContext = nullptr,
+        std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
 
     static void AddKeyFrame(
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
@@ -170,6 +180,36 @@ public:
     static void AddDurationKeyFrame(
         int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
 
+    // multi-instance
+    static std::vector<std::shared_ptr<RSAnimation>> Animate(const std::shared_ptr<RSUIContext> rsUIContext,
+        const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
+    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
+        const std::shared_ptr<RSUIContext> rsUIContext, const PropertyCallback& callback,
+        const std::function<void()>& finishCallback, bool timingSensitive = true);
+    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentCallback(
+        const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+
+    static void RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext,
+        NodeId inNodeId, NodeId outNodeId);
+    static void UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext,
+        NodeId inNodeId, NodeId outNodeId);
+
+    static void OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContext,
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        const std::function<void()>& finishCallback = nullptr);
+    static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation(
+        const std::shared_ptr<RSUIContext> rsUIContext);
+    static bool CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext);
+    static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
+        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(
+        const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& callback);
+    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
+        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);
@@ -203,6 +243,7 @@ public:
     void SetSandBox(std::optional<Vector2f> parentPosition);
 
     void SetPositionZ(float positionZ);
+    void SetPositionZApplicableCamera3D(bool isApplicable);
 
     void SetPivot(const Vector2f& pivot);
     void SetPivot(float pivotX, float pivotY);
@@ -231,18 +272,24 @@ public:
     void SetScale(const Vector2f& scale);
     void SetScaleX(float scaleX);
     void SetScaleY(float scaleY);
+    void SetScaleZ(const float& scaleZ);
 
     void SetSkew(float skew);
     void SetSkew(float skewX, float skewY);
-    void SetSkew(const Vector2f& skew);
+    void SetSkew(float skewX, float skewY, float skewZ);
+    void SetSkew(const Vector3f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
+    void SetSkewZ(float skewZ);
 
     void SetPersp(float persp);
     void SetPersp(float perspX, float perspY);
-    void SetPersp(const Vector2f& persp);
+    void SetPersp(float perspX, float perspY, float perspZ, float perspW);
+    void SetPersp(const Vector4f& persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
+    void SetPerspZ(float perspZ);
+    void SetPerspW(float perspW);
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
@@ -256,6 +303,7 @@ public:
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
+    void SetBackgroundShaderProgress(const float& process);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     void SetBgImageInnerRect(const Vector4f& innerRect);
@@ -295,6 +343,7 @@ public:
     void SetVisualEffect(const VisualEffect* visualEffect);
 
     void SetForegroundEffectRadius(const float blurRadius);
+    void SetForegroundEffectDisableSystemAdaptation(bool disableSystemAdaptation);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
@@ -339,6 +388,7 @@ public:
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
     void SetCustomClipToFrame(const Vector4f& clipRect);
+    void SetHDRBrightness(const float& hdrBrightness);
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
@@ -366,6 +416,7 @@ public:
     }
 
     void SetUseEffect(bool useEffect);
+    void SetUseEffectType(UseEffectType useEffectType);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -398,9 +449,12 @@ public:
 
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
-
-    // Mark uifirst node
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -458,6 +512,12 @@ public:
         return isTextureExportNode_;
     }
 
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
+    }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
+
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
@@ -472,12 +532,10 @@ public:
 
     std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
-    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap_;
 
-    // key: status : 1 appear, -1 invalid, value:symbol node animation config
-    std::unordered_map<int,
-        std::unordered_map<NodeId,
-            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
+    // key: status : 0 invalid, 1 appear, value:symbol node animation config
+    std::array<std::vector<OHOS::Rosen::AnimationNodeConfig>, 2> replaceNodesSwapArr_;
 
     void SetInstanceId(int32_t instanceId);
     int32_t GetInstanceId() const
@@ -489,13 +547,33 @@ public:
     {
         return nodeName_;
     }
+
+    static DrawNodeChangeCallback drawNodeChangeCallback_;
+    static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
+    bool GetIsDrawn();
+    void SetDrawNode();
+
+    std::shared_ptr<RSUIContext> GetRSUIContext()
+    {
+        return rsUIContext_.lock();
+    }
+    void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
+
+    void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 protected:
-    explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
-    explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
+    explicit RSNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
+
+    // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
 
@@ -517,6 +595,12 @@ protected:
     {
         return propertyMutex_;
     }
+    bool CheckMultiThreadAccess(const std::string& func) const;
+    virtual void RegisterNodeMap() {}
+    std::shared_ptr<RSTransactionHandler> GetRSTransaction() const;
+    bool AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
+        FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
+
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -529,7 +613,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateTextureExportRenderNodeInRT() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -550,6 +634,7 @@ private:
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
+    bool FallbackAnimationsToContext();
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
@@ -560,7 +645,6 @@ private:
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
-    void UpdateImplicitAnimator();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
     // Planning: refactor RSUIAnimationManager and remove this method
@@ -574,7 +658,6 @@ private:
     float globalPositionX_ = 0.f;
     float globalPositionY_ = 0.f;
 
-    pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };
 
     bool isNodeGroup_ = false;
@@ -582,8 +665,14 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isDrawNode_ = false;
 
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
+    bool isSkipCheckInMultiInstance_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
@@ -596,10 +685,9 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::shared_ptr<RSMotionPathOption> motionPathOption_;
-    std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

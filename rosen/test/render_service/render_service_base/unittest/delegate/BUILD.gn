@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/Delegate"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/Delegate"
 
 ##############################  RSRenderServiceBaseDelegateTest  ##################################
 ohos_unittest("RSRenderServiceBaseDelegateTest") {
@@ -56,6 +56,11 @@ config("delegate_test") {
   include_dirs = [
     "$ace_root",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 }
 

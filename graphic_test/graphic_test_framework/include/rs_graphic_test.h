@@ -34,6 +34,7 @@ public:
     void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
     void RegisterNode(std::shared_ptr<RSNode> node);
+    void StartUIAnimation();
 
     // overrides gtest functions
     static void SetUpTestCase();
@@ -45,6 +46,7 @@ public:
     virtual void BeforeEach() {};
     virtual void AfterEach() {};
 
+    void AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath);
 private:
     std::string GetImageSavePath(const std::string path);
 

@@ -80,6 +80,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Le
 {
     BootAnimationOperation operation;
     int32_t degree = 0;
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     ASSERT_NE(nullptr, operation.rsSurfaceNode_);
 }
@@ -93,6 +94,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Le
 {
     BootAnimationOperation operation;
     int32_t degree = 0;
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
     operation.InitRsSurface();
     ASSERT_NE(nullptr, operation.rsSurface_);
@@ -153,7 +155,9 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Le
     BootAnimationOperation operation;
     int32_t degree = 0;
     system::SetParameter(BOOT_ANIMATION_READY, "true");
+    operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
+    ASSERT_NE(nullptr, operation.rsSurfaceNode_);
 }
 
 /**
@@ -165,11 +169,13 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_010, TestSize.Le
 {
     BootAnimationOperation operation;
     std::string path = "abc";
+    operation.runner_ = AppExecFwk::EventRunner::Create(false);
     system::SetParameter(BOOT_ANIMATION_STARTED, "false");
     operation.PlayPicture(path);
     
     system::SetParameter(BOOT_ANIMATION_STARTED, "true");
     operation.PlayPicture(path);
+    EXPECT_EQ(system::GetParameter(BOOT_ANIMATION_STARTED, "false"), "true");
 }
 
 /**
@@ -200,11 +206,13 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_012, TestSize.Le
     operation.mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(operation.runner_);
     system::SetParameter(BOOT_ANIMATION_STARTED, "false");
     operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
+    EXPECT_EQ(system::GetParameter(BOOT_ANIMATION_STARTED, "true"), "false");
     operation.runner_->Run();
 
     operation.mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(operation.runner_);
     system::SetParameter(BOOT_ANIMATION_STARTED, "true");
     operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
+    EXPECT_EQ(system::GetParameter(BOOT_ANIMATION_STARTED, "false"), "true");
     operation.runner_->Run();
 }
 }

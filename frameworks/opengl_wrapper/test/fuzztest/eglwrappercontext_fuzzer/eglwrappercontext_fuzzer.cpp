@@ -72,7 +72,8 @@ namespace OHOS {
         wrapperContext->SetCurrentSurface(draw, read);
         wrapperContext->GetCurrentSurface(type);
         wrapperContext->GetWrapperContext(ctx);
-
+        wrapperContext->Destroy();
+        wrapperContext = nullptr;
         return true;
     }
 }

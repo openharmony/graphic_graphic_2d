@@ -17,6 +17,8 @@
 #include "boot_animation_utils.h"
 #include "log.h"
 #include <media_errors.h>
+#include <parameters.h>
+#include <util.h>
 
 using namespace OHOS;
 BootSoundPlayer::BootSoundPlayer(const PlayerParams& params)
@@ -40,12 +42,19 @@ void BootSoundPlayer::Play()
         return;
     }
 
-    int waitMediaCreateTime = 0;
-    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
-        && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
-        LOGI("mediaPlayer is nullptr, try create again");
+    int customizedVolume = system::GetIntParameter(BOOT_SOUND, INVALID_VOLUME, MIN_VOLUME, MAX_VOLUME);
+    if (customizedVolume == MIN_VOLUME) {
+        LOGI("boot animation sound set volume 0");
+        return;
+    }
+
+    int64_t startTime = GetSystemCurrentTime();
+    int64_t endTime = startTime;
+    while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+        && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
+        endTime = GetSystemCurrentTime();
         usleep(SLEEP_TIME_US);
-        waitMediaCreateTime += SLEEP_TIME_US;
+        LOGI("mediaPlayer is nullptr, try create again");
     }
 
     if (mediaPlayer_ == nullptr) {
@@ -53,9 +62,23 @@ void BootSoundPlayer::Play()
         return;
     }
 
+    if (customizedVolume != INVALID_VOLUME) {
+        SetCustomizedVolume(customizedVolume);
+    }
+
     std::string path = GetResPath(TYPE_SOUND);
     LOGI("sound res path: %{public}s", path.c_str());
-    mediaPlayer_->SetSource(path);
+    int ret = mediaPlayer_->SetSource(path);
+    if (ret != 0) {
+        LOGE("PlaySound SetSource fail, errorCode: %{public}d", ret);
+        return;
+    }
+
+    ret = mediaPlayer_->SetParameter(buildMediaFormat());
+    if (ret != 0) {
+        LOGE("PlaySound SetParameter fail, errorCode:%{public}d", ret);
+        return;
+    }
     mediaPlayer_->SetLooping(false);
     mediaPlayer_->PrepareAsync();
     mediaPlayer_->Play();

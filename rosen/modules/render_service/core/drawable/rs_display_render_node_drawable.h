@@ -22,18 +22,19 @@
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
-#include "pipeline/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
+#include "pipeline/slr_scale/rs_slr_scale.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    ~RSDisplayRenderNodeDrawable() override = default;
+    ~RSDisplayRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
@@ -42,7 +43,11 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
-    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
+        bool displayP3Enable = false) const;
+    void SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas, ColorFilterMode colorFilterMode,
+        float hdrBrightnessRatio = 1.f) const;
+    void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -118,21 +123,25 @@ public:
     {
         return originScreenRotation_;
     }
-    bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, RSDisplayRenderParams& params,
+        RSRenderThreadParams& uniParam);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void FindHardwareEnabledNodes(RSDisplayRenderParams& params);
     void AdjustZOrderAndDrawSurfaceNode(std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorOnDraw(RSDisplayRenderNodeDrawable& mirroredDrawable, RSDisplayRenderParams& params);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
-    void RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight);
+    void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
 
     void DrawMirrorScreen(RSDisplayRenderParams& params,
         std::shared_ptr<RSProcessor> processor);
@@ -145,30 +154,45 @@ private:
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void DrawCurtainScreen() const;
+    void InitTranslateForWallpaper();
+    void CalculateTranslationForWallpaper();
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);
+    void SetSecurityMask(RSProcessor& processor);
+    void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     // Prepare for off-screen render
+    void UpdateSlrScale(ScreenInfo& screenInfo);
+    void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
+        bool useFixedSize = false, bool useCanvasSize = true);
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
-    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeBrightnessAdjustmentShader(
+        const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& sampling,
+        float hdrBrightnessRatio);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
+        bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
-    int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
+    int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
     bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
+    void FindHardCursorNodes(RSDisplayRenderParams& params);
     // For P3-scRGB Control
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
+    void RenderOverDraw();
+    bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
-    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
-    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen rende
+    std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
+    std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::unordered_set<NodeId> currentBlackList_ = {};
     std::unordered_set<NodeId> lastBlackList_ = {};
     bool curSecExemption_ = false;
@@ -195,12 +219,24 @@ private:
     bool surfaceCreated_ = false;
     std::shared_ptr<RSSurface> surface_ = nullptr;
     std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
+    std::unique_ptr<RSSLRScaleFunction> slrScale_;
 
+    static std::shared_ptr<Drawing::RuntimeEffect> brightnessAdjustmentShaderEffect_;
+
+    std::shared_ptr<RSSLRScaleFunction> scaleManager_ = nullptr;
+    bool isMirrorSLRCopy_ = false;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
     int64_t lastRefreshTime_ = 0;
     bool virtualDirtyRefresh_ = false;
+    bool enableVisibleRect_ = false;
+    Drawing::RectI curVisibleRect_;
+    Drawing::RectI lastVisibleRect_;
+    int32_t offscreenTranslateX_ = 0;
+    int32_t offscreenTranslateY_ = 0;
+
+    bool isRenderSkipIfScreenOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

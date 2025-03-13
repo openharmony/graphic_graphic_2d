@@ -14,7 +14,7 @@
  */
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
-#include "utils/log.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -143,6 +143,31 @@ static bool IsMaskLayer(RSPath& multPath, const std::vector<RSGroupInfo>& groupI
     return true;
 }
 
+void SymbolNodeBuild::MergeDrawingPath(RSPath& multPath, const RSRenderGroup& group, std::vector<RSPath>& pathLayers)
+{
+    for (const auto& groupInfo : group.groupInfos) {
+        RSPath pathTemp;
+        for (auto i : groupInfo.layerIndexes) {
+            if (i < pathLayers.size()) {
+                pathTemp.AddPath(pathLayers[i]);
+            }
+        }
+        RSPath maskPath;
+        for (auto j : groupInfo.maskIndexes) {
+            if (j < pathLayers.size()) {
+                maskPath.AddPath(pathLayers[j]);
+            }
+        }
+        if (maskPath.IsValid()) {
+            Drawing::Path outPath;
+            auto isOk = outPath.Op(pathTemp, maskPath, Drawing::PathOp::DIFFERENCE);
+            pathTemp = isOk ? outPath : pathTemp;
+            multPath.SetFillStyle(pathTemp.GetFillStyle());
+        }
+        multPath.AddPath(pathTemp);
+    }
+}
+
 SymbolNodeBuild::SymbolNodeBuild(const RSAnimationSetting &animationSetting, const RSHMSymbolData &symbolData,
     const RSEffectStrategy &effectStrategy,
     const std::pair<float, float> &offset) : animationSetting_(animationSetting),
@@ -155,6 +180,22 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     TextEngine::SymbolNode symbolNode;
     symbolNode.symbolData = symbolData;
     symbolNode.nodeBoundary = nodeBounds;
+
+    std::vector<RSPath> paths;
+    RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
+    std::vector<RSPath> pathLayers;
+    RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
+    std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
+    TEXT_LOGD("Render group size %{public}zu", groups.size());
+    for (const auto& group : groups) {
+        RSPath multPath;
+        MergeDrawingPath(multPath, group, pathLayers);
+        TextEngine::NodeLayerInfo pathInfo;
+        pathInfo.path = multPath;
+        pathInfo.color = group.color;
+        symbolNode.pathsInfo.push_back(pathInfo);
+    }
+
     symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
@@ -210,12 +251,12 @@ void SymbolNodeBuild::ClearAnimation()
 
 bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 {
-    if (symbolData_.symbolInfo_.renderGroups.size() <= 0) {
-        LOGD("[%{public}s] HmSymbol: symbolInfo_.renderGroups is empty\n", __func__);
+    if (symbolData_.symbolInfo_.renderGroups.empty()) {
+        TEXT_LOGD("Render group is empty");
         return false;
     }
     if (animationFunc_ == nullptr) {
-        LOGD("[%{public}s] HmSymbol: animationFunc_ is nullprt\n", __func__);
+        TEXT_LOGD("Null animation func");
         return false;
     }
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
@@ -239,6 +280,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
+    symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

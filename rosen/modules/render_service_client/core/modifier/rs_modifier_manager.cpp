@@ -119,7 +119,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     return hasRunningAnimation;
 }
 
-bool RSModifierManager::HasFirstFrameAnimation()
+bool RSModifierManager::GetAndResetFirstFrameAnimationState()
 {
     // UI animation need this info to get expected frame rate, each window will call it once per frame
     return std::exchange(hasFirstFrameAnimation_, false);
@@ -166,11 +166,12 @@ void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimat
 {
     NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
+    uint64_t token = animation->GetToken();
     displaySyncs_.erase(animationId);
 
     RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
 
     animation->Detach();

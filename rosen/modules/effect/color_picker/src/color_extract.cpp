@@ -36,7 +36,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
     }
     pixelmap_ = pixmap;
     if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
-        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with non-positive pixmap width or height.");
         return;
     }
     colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
@@ -67,7 +67,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
     }
     pixelmap_ = pixmap;
     if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
-        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with non-positive pixmap width or height.");
         return;
     }
     uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]); // 0 is index of left

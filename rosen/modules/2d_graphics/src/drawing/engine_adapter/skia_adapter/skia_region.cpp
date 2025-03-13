@@ -130,10 +130,6 @@ void SkiaRegion::Clone(const Region& other)
 
 std::shared_ptr<Data> SkiaRegion::Serialize() const
 {
-    if (skRegion_ == nullptr || skRegion_->isEmpty()) {
-        LOGE("SkiaRegion::Serialize, region is empty!");
-        return nullptr;
-    }
     SkBinaryWriteBuffer writer;
     writer.writeRegion(*skRegion_);
     size_t length = writer.bytesWritten();
@@ -146,7 +142,7 @@ std::shared_ptr<Data> SkiaRegion::Serialize() const
 bool SkiaRegion::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaRegion::Deserialize, data is invalid!");
+        LOGD("SkiaRegion::Deserialize, data is invalid!");
         return false;
     }
     SkReadBuffer reader(data->GetData(), data->GetSize());

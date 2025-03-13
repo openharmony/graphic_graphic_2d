@@ -62,50 +62,46 @@ public:
     }
 
 protected:
+    sk_sp<SkSurface> onNewSurface(const SkImageInfo&, const SkSurfaceProps&) override;
     SaveLayerStrategy getSaveLayerStrategy(const SaveLayerRec&) override;
-    bool onDoSaveBehind(const SkRect* rect) override;
+    bool onDoSaveBehind(const SkRect*) override;
     void onDrawPaint(const SkPaint&) override;
     void onDrawBehind(const SkPaint&) override;
     void onDrawPoints(PointMode, size_t count, const SkPoint pts[], const SkPaint&) override;
-    void onDrawRect(const SkRect&, const SkPaint&) override;
-    void onDrawRRect(const SkRRect&, const SkPaint&) override;
     void onDrawDRRect(const SkRRect&, const SkRRect&, const SkPaint&) override;
-    void onDrawRegion(const SkRegion&, const SkPaint&) override;
+    void onDrawRRect(const SkRRect&, const SkPaint&) override;
+    void onDrawRect(const SkRect&, const SkPaint&) override;
     void onDrawOval(const SkRect&, const SkPaint&) override;
-    void onDrawArc(const SkRect&, SkScalar, SkScalar, bool, const SkPaint&) override;
+    void onDrawRegion(const SkRegion&, const SkPaint&) override;
     void onDrawPath(const SkPath&, const SkPaint&) override;
+    void onDrawArc(const SkRect&, SkScalar, SkScalar, bool, const SkPaint&) override;
+    bool onPeekPixels(SkPixmap* pixmap) override;
 
-    void onDrawImage2(const SkImage*, SkScalar, SkScalar, const SkSamplingOptions&,
-        const SkPaint*) override;
-    void onDrawImageRect2(const SkImage*, const SkRect&, const SkRect&, const SkSamplingOptions&,
-        const SkPaint*, SrcRectConstraint) override;
-    void onDrawImageLattice2(const SkImage*, const Lattice&, const SkRect&, SkFilterMode,
-        const SkPaint*) override;
-    void onDrawAtlas2(const SkImage*, const SkRSXform[], const SkRect[], const SkColor[], int,
-        SkBlendMode, const SkSamplingOptions&, const SkRect*, const SkPaint*) override;
+    void onDrawImage2(const SkImage*, SkScalar, SkScalar, const SkSamplingOptions&, const SkPaint*) override;
+    void onDrawImageRect2(const SkImage*, const SkRect&, const SkRect&, const SkSamplingOptions&, const SkPaint*,
+        SrcRectConstraint) override;
+    void onDrawImageLattice2(const SkImage*, const Lattice&, const SkRect&, SkFilterMode, const SkPaint*) override;
+    void onDrawAtlas2(const SkImage*, const SkRSXform[], const SkRect[], const SkColor[], int, SkBlendMode,
+        const SkSamplingOptions&, const SkRect*, const SkPaint*) override;
+    bool onAccessTopLayerPixels(SkPixmap* pixmap) override;
 
     void onDrawVerticesObject(const SkVertices*, SkBlendMode, const SkPaint&) override;
-    void onDrawPatch(const SkPoint cubics[12], const SkColor colors[4],
-        const SkPoint texCoords[4], SkBlendMode, const SkPaint& paint) override;
+    void onDrawPatch(const SkPoint cubics[12], const SkColor colors[4], const SkPoint texCoords[4],
+        SkBlendMode, const SkPaint& paint) override;
     void onDrawPicture(const SkPicture*, const SkMatrix*, const SkPaint*) override;
     void onDrawDrawable(SkDrawable*, const SkMatrix*) override;
+    SkImageInfo onImageInfo() const override;
 
     void onDrawGlyphRunList(const SkGlyphRunList&, const SkPaint&) override;
-    void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y,
-        const SkPaint& paint) override;
+    void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint) override;
     void onDrawAnnotation(const SkRect& rect, const char key[], SkData* value) override;
     void onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec) override;
 
-    void onDrawEdgeAAQuad(const SkRect&, const SkPoint[4], QuadAAFlags, const SkColor4f&,
-        SkBlendMode) override;
+    void onDrawEdgeAAQuad(const SkRect&, const SkPoint[4], QuadAAFlags, const SkColor4f&, SkBlendMode) override;
     void onDrawEdgeAAImageSet2(const ImageSetEntry[], int count, const SkPoint[], const SkMatrix[],
         const SkSamplingOptions&, const SkPaint*, SrcRectConstraint) override;
 
     // draw on actual canvas
-    sk_sp<SkSurface> onNewSurface(const SkImageInfo&, const SkSurfaceProps&) override;
-    bool onPeekPixels(SkPixmap* pixmap) override;
-    bool onAccessTopLayerPixels(SkPixmap* pixmap) override;
-    SkImageInfo onImageInfo() const override;
     bool onGetProps(SkSurfaceProps* props) const override;
 
 private:

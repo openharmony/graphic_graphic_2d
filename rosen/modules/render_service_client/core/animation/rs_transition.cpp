@@ -70,8 +70,15 @@ void RSTransition::StartRenderTransition()
 {
     auto target = GetTarget().lock();
     if (target == nullptr) {
+        ROSEN_LOGE("Failed to start transition animation, target is null!");
         return;
     }
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start transition animation, transaction proxy is null!");
+        return;
+    }
+
     std::vector<std::shared_ptr<RSRenderTransitionEffect>> transitionEffects;
     if (isTransitionIn_) {
         transitionEffects = effect_->transitionInEffects_;
@@ -85,14 +92,11 @@ void RSTransition::StartRenderTransition()
 
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationCreateTransition>(target->GetId(), transition);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 } // namespace Rosen

@@ -33,23 +33,28 @@ enum RSRootNodeCommandType : uint16_t {
 class RSB_EXPORT RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
-    static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
+    static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId, uint64_t token = 0);
     static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void SetEnableRender(RSContext& context, NodeId id, bool flag);
     static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height);
 };
 
-ADD_COMMAND(RSRootNodeCreate, ARG(ROOT_NODE, ROOT_NODE_CREATE, RootNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSRootNodeCreate,
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_CREATE,
+        RootNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
-    ARG(ROOT_NODE, ROOT_NODE_ATTACH, RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_ATTACH,
+        RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId, uint64_t))
 ADD_COMMAND(RSRootNodeSetEnableRender,
-    ARG(ROOT_NODE, SET_ENABLE_RENDER, RootNodeCommandHelper::SetEnableRender, NodeId, bool))
+    ARG(PERMISSION_APP, ROOT_NODE, SET_ENABLE_RENDER,
+        RootNodeCommandHelper::SetEnableRender, NodeId, bool))
 // unirender
 ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
-    ARG(ROOT_NODE, ATTACH_TO_UNI_SURFACENODE, RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
+    ARG(PERMISSION_APP, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
+        RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
-    ARG(ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE, RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float,
-        float))
+    ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
+        RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
 
 } // namespace Rosen
 } // namespace OHOS

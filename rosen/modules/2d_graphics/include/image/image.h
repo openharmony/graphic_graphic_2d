@@ -51,11 +51,20 @@ enum class TextureOrigin {
 class Surface;
 
 #ifdef RS_ENABLE_VK
+/* This class is noly used for memory dfx. */
+enum class VKMemSource : uint8_t {
+    NATIVE,     // memory is allocated from gpu memory
+    EXTERNAL,   // memory is allocated from external source, such as native buffer
+    EXISTING,   // memory is the copy of an existing memory handle
+    DEFAULT = NATIVE
+};
+
 struct VKAlloc {
     VkDeviceMemory memory = VK_NULL_HANDLE;
     VkDeviceSize offset = 0;
     VkDeviceSize size = 0;
     uint32_t flags = 0;
+    VKMemSource source = VKMemSource::DEFAULT;
     std::string statName = "";
 };
 
@@ -273,9 +282,11 @@ public:
      * @return            True if Image is created succeeded.
      */
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap);
+#endif
 
     bool MakeFromEncoded(const std::shared_ptr<Data>& data);
 
+#ifdef RS_ENABLE_GPU
     /**
      * @brief             Create a GPU-backed Image from compressed data.
      * @param gpuContext  GPU context.

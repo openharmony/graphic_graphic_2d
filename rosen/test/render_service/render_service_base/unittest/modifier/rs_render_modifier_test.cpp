@@ -37,6 +37,7 @@ public:
         0.0f, 485.44f, 2.0f,
         std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
         };
+    Color colorData[3] = { Color(255, 0, 0), Color(0, 255, 0), Color(0, 0, 255)};
     PropertyId id = 100;
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -196,6 +197,27 @@ HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorStrategyRenderModifier001, Te
     auto RSEFCS = std::make_shared<RSEnvForegroundColorRenderModifier>(property);
     RSEFCS->Update(prop, isDelta);
     ASSERT_NE(nullptr, RSEFCS->property_);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessRenderModifier
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderModifierTest, RSHDRBrightnessRenderModifier, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>();
+    auto modifier = std::make_shared<RSHDRBrightnessRenderModifier>(property);
+    Parcel parcel;
+    EXPECT_TRUE(modifier->Marshalling(parcel));
+
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>();
+    auto modifier2 = std::make_shared<RSHDRBrightnessRenderModifier>(property2);
+    RSProperties properties;
+    RSModifierContext context(properties);
+    const std::shared_ptr<RSRenderPropertyBase> prop;
+    bool isDelta = false;
+    modifier2->Update(prop, isDelta);
 }
 
 /**
@@ -514,5 +536,105 @@ HWTEST_F(RSRenderModifierTest, RSCustomClipToFrameRenderModifier002, TestSize.Le
     auto RSEFC = std::make_shared<RSCustomClipToFrameRenderModifier>(property);
     RSEFC->Update(prop, isDelta);
     ASSERT_NE(nullptr, RSEFC->property_);
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterRadiusRenderModifier001
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterRadiusRenderModifier001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[0], id);
+    ASSERT_TRUE(prop != nullptr);
+    auto modifier = std::make_shared<RSBehindWindowFilterRadiusRenderModifier>(prop);
+    ASSERT_EQ(modifier->GetProperty(), prop);
+
+    auto prop1 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[1], id);
+    modifier->Update(prop1, false);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1]);
+    auto prop2 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[2], id);
+    modifier->Update(prop2, true);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1] + floatData[2]);
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterSaturationRenderModifier001
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterSaturationRenderModifier001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[0], id);
+    ASSERT_TRUE(prop != nullptr);
+    auto modifier = std::make_shared<RSBehindWindowFilterSaturationRenderModifier>(prop);
+    ASSERT_EQ(modifier->GetProperty(), prop);
+
+    auto prop1 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[1], id);
+    modifier->Update(prop1, false);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1]);
+    auto prop2 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[2], id);
+    modifier->Update(prop2, true);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1] + floatData[2]);
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterBrightnessRenderModifier001
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterBrightnessRenderModifier001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[0], id);
+    ASSERT_TRUE(prop != nullptr);
+    auto modifier = std::make_shared<RSBehindWindowFilterBrightnessRenderModifier>(prop);
+    ASSERT_EQ(modifier->GetProperty(), prop);
+
+    auto prop1 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[1], id);
+    modifier->Update(prop1, false);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1]);
+    auto prop2 = std::make_shared<RSRenderAnimatableProperty<float>>(floatData[2], id);
+    modifier->Update(prop2, true);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty())->Get(),
+        floatData[1] + floatData[2]);
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterMaskColorRenderModifier001
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterMaskColorRenderModifier001, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<Color>>(colorData[0], id);
+    ASSERT_TRUE(prop != nullptr);
+    auto modifier = std::make_shared<RSBehindWindowFilterMaskColorRenderModifier>(prop);
+    ASSERT_EQ(modifier->GetProperty(), prop);
+
+    auto prop1 = std::make_shared<RSRenderAnimatableProperty<Color>>(colorData[1], id);
+    modifier->Update(prop1, false);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(modifier->GetProperty())->Get(),
+        colorData[1]);
+    auto prop2 = std::make_shared<RSRenderAnimatableProperty<Color>>(colorData[2], id);
+    modifier->Update(prop2, true);
+    ASSERT_EQ(std::static_pointer_cast<RSRenderProperty<Color>>(modifier->GetProperty())->Get(),
+        colorData[1] + colorData[2]);
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
 }
 }

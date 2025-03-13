@@ -40,6 +40,15 @@ public:
     static constexpr uint64_t SCREEN_ID = 10;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
+
+    class RSIScreenChangeCallbackConfig : public RSIScreenChangeCallback {
+    public:
+        RSIScreenChangeCallbackConfig() = default;
+        ~RSIScreenChangeCallbackConfig() = default;
+        void OnScreenChanged(ScreenId id, ScreenEvent event,
+            ScreenChangeReason reason = ScreenChangeReason::DEFAULT) override;
+        sptr<IRemoteObject> AsObject() override;
+    };
 };
 
 void RSScreenManagerTest::SetUpTestCase()
@@ -55,6 +64,41 @@ void RSScreenManagerTest::SetUpTestCase()
 void RSScreenManagerTest::TearDownTestCase() {}
 void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
+void RSScreenManagerTest::RSIScreenChangeCallbackConfig::OnScreenChanged(ScreenId id,
+    ScreenEvent event, ScreenChangeReason reason)
+{
+    return;
+}
+
+sptr<IRemoteObject> RSScreenManagerTest::RSIScreenChangeCallbackConfig::AsObject()
+{
+    return nullptr;
+}
+
+/*
+ * @tc.name: HandlePostureData
+ * @tc.desc: Test CreateOrGetScreenManager
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, HandlePostureData, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->HandlePostureData(nullptr);
+    SensorEvent event[10];
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData1[7] = {0, 0, 0, 0, 0, 0, -1};
+    event[0].data = sensorData1;
+    event[0].dataLen = sizeof(PostureData);
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData2[7] = {0, 0, 0, 0, 0, 0, 150};
+    event[0].data = sensorData2;
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData3[7] = {0, 0, 0, 0, 0, 0, 180};
+    event[0].data = sensorData3;
+    screenManager->HandlePostureData(event);
+}
 
 /*
  * @tc.name: CreateOrGetScreenManager_001
@@ -261,6 +305,27 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_001, TestSize.Level1)
     ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager->SetVirtualScreenSurface(id, psurface)));
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
+}
+
+/*
+ * @tc.name: SetPhysicalScreenResolution_001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetPhysicalScreenResolution_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    ScreenId id = mockScreenId_;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    auto result = screenManager->SetPhysicalScreenResolution(id, width, height);
+    ASSERT_EQ(result, SCREEN_NOT_FOUND);
 }
 
 /*
@@ -736,6 +801,30 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveMode_001, testing::ext::TestSize.Le
 }
 
 /*
+ * @tc.name: SetScreenActiveRect001
+ * @tc.desc: Test SetScreenActiveRect
+ * @tc.type: FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = 1;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+
+    GraphicIRect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
  * @tc.name: GetScreenActiveMode_001
  * @tc.desc: Test GetScreenActiveMode
  * @tc.type: FUNC
@@ -1138,6 +1227,10 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF_ADVANCED);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE_SUSPEND);
 }
 
 /*
@@ -1194,6 +1287,10 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_OFF_ADVANCED);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE_SUSPEND);
 }
 
 /*
@@ -1254,68 +1351,6 @@ HWTEST_F(RSScreenManagerTest, GetScreenCorrection_002, TestSize.Level1)
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270);
     ASSERT_EQ(screenManager->GetScreenCorrection(screenId), ScreenRotation::ROTATION_270);
-}
-
-/*
- * @tc.name: GetScreenPowerStatusLocked_001
- * @tc.desc: Test GetScreenPowerStatusLocked, with INVALID_SCREEN_ID
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenPowerStatusLocked_001, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ScreenId screenId = INVALID_SCREEN_ID;
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), INVALID_POWER_STATUS);
-}
-
-/*
- * @tc.name: GetScreenPowerStatusLocked_002
- * @tc.desc: Test GetScreenPowerStatusLocked, with virtual screen
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenPowerStatusLocked_002, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ScreenId screenId = 1;
-    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
-    screenManager->MockHdiScreenConnected(rsScreen);
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), INVALID_POWER_STATUS);
-}
-
-/*
- * @tc.name: GetScreenPowerStatusLocked_003
- * @tc.desc: Test GetScreenPowerStatusLocked, test POWER_STATUS_OFF_ADVANCED with mock HDI device
- * @tc.type: FUNC
- * @tc.require: issueI7AABN
- */
-HWTEST_F(RSScreenManagerTest, GetScreenPowerStatusLocked_003, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ScreenId screenId = mockScreenId_;
-    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
-    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    screenManager->MockHdiScreenConnected(rsScreen);
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_ON);
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_ON_ADVANCED);
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_OFF);
-    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
-    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_OFF_ADVANCED);
 }
 
 /*
@@ -2003,7 +2038,7 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-        
+
     ScreenId id = 1;
     screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     ASSERT_FALSE(screenManager->IsScreenPowerOff(id));
@@ -2041,8 +2076,11 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId id = 1;
+    screenManagerImpl.screens_.erase(id);
     std::vector<uint64_t> blackList = {};
     ASSERT_EQ(screenManager->SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
 }
@@ -2107,6 +2145,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList005, TestSize.Level1)
     ScreenId id = 1;
     ScreenId mainId = 0;
     screenManagerImpl.SetDefaultScreenId(mainId);
+    screenManagerImpl.screens_.erase(mainId);
 
     screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
     std::vector<uint64_t> blackList = {};
@@ -2140,6 +2179,192 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList006, TestSize.Level1)
 }
 
 /*
+ * @tc.name: AddVirtualScreenBlackList001
+ * @tc.desc: Test AddVirtualScreenBlackList, when id is INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList002
+ * @tc.desc: Test AddVirtualScreenBlackList, input id in screens_, and screens_[id] is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList003
+ * @tc.desc: Test AddVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, screens_[mainId]==null
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    std::vector<uint64_t> blackList = {};
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[mainId] = nullptr;
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList004
+ * @tc.desc: Test AddVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId,  screens_[mainId]!=nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList001
+ * @tc.desc: Test RemoveVirtualScreenBlackList, when id is INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList002
+ * @tc.desc: Test RemoveVirtualScreenBlackList, input id in screens_, and screens_[id] is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList003
+ * @tc.desc: Test RemoveVirtualScreenBlackList, id!=mainId, screens_[id]!=nullptr,screens_[mainId]==nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    std::vector<uint64_t> blackList = {};
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    screenManagerImpl.screens_[mainId] = nullptr;
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList004
+ * @tc.desc: Test RemoveVirtualScreenBlackList, id!=mainId, screens_[id]!=nullptr, screens_[mainId]!=nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
  * @tc.name: SetVirtualScreenBlackList007
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
  * screens_[mainId]!=nullptr screens_[]!=null id==DefaultScreenId
@@ -2162,6 +2387,228 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
     std::vector<uint64_t> blackList = {};
 
     ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+
+    ScreenId id = 11;  // screenId for test
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = nullptr;
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+    screenManagerImpl.screens_.erase(id);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
+    }
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect001
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rect = {0, 0, width, height};
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(INVALID_SCREEN_ID, rect);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+
+    screenManagerImpl.screens_.erase(id);
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = nullptr;
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect002
+ * @tc.desc: Test SetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rect = {0, 0, width, height};
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+
+    rect = {-10, -10, -100, -100};  // test rect value
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect003
+ * @tc.desc: Test SetMirrorScreenVisibleRect with zero rect.
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E4C
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id]->SetEnableVisibleRect(true);
+    Rect rect = {0, 0, 0, 0};
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.screens_[id]->GetEnableVisibleRect(), false);
+}
+
+/*
+ * @tc.name: GetMirrorScreenVisibleRect001
+ * @tc.desc: Test GetMirrorScreenVisibleRect with abnormal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenVisibleRect001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    auto rect = screenManagerImpl.GetMirrorScreenVisibleRect(INVALID_SCREEN_ID);
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    rect = screenManagerImpl.GetMirrorScreenVisibleRect(id);
+}
+
+/*
+ * @tc.name: GetMirrorScreenVisibleRect002
+ * @tc.desc: Test GetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenVisibleRect002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rectSet = {0, 0, width, height};
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rectSet);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+
+    auto rectGet = screenManagerImpl.GetMirrorScreenVisibleRect(id);
+    ASSERT_EQ(rectSet.x, rectGet.x);
+    ASSERT_EQ(rectSet.y, rectGet.y);
+    ASSERT_EQ(rectSet.w, rectGet.w);
+    ASSERT_EQ(rectSet.h, rectGet.h);
 }
 
 /*
@@ -2339,6 +2786,58 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList003, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetAllBlackList001
+ * @tc.desc: Test GetAllBlackList
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSScreenManagerTest, GetAllBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    ScreenId id = 1;
+    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screen->SetCastScreenEnableSkipWindow(false);
+    screenManagerImpl.screens_[id] = std::move(screen);
+
+    const std::vector<uint64_t>& screenBlackList = { 1, 2, 3, 4 };
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    EXPECT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, screenBlackList), StatusCode::SUCCESS);
+
+    auto allBlackList = screenManagerImpl.GetAllBlackList();
+    for (const auto nodeId : screenBlackList) {
+        EXPECT_EQ(allBlackList.count(nodeId), 1);
+    }
+}
+
+/*
+ * @tc.name: GetAllWhiteList001
+ * @tc.desc: Test GetAllWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSScreenManagerTest, GetAllWhiteList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    ScreenId id = 1;
+    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    const std::unordered_set<NodeId>& whiteList = { 1, 2, 3, 4 };
+    screen->whiteList_ = whiteList;
+    screenManagerImpl.screens_[id] = std::move(screen);
+
+    auto allWhiteList = screenManagerImpl.GetAllWhiteList();
+    for (const auto nodeId : whiteList) {
+        EXPECT_EQ(allWhiteList.count(nodeId), 1);
+    }
+}
+
+/*
  * @tc.name: TrySimpleProcessHotPlugEvents_001
  * @tc.desc: Test TrySimpleProcessHotPlugEvents when isHwcDead_ equals true, expect false.
  * @tc.type: FUNC
@@ -2377,7 +2876,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_002, TestSize.Level1
 
 /*
  * @tc.name: TrySimpleProcessHotPlugEvents_003
- * @tc.desc: Test TrySimpleProcessHotPlugEvents when connectedIds_ is not empty, expect false.
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents when pendingConnectedIds_ is not empty, expect false.
  * @tc.type: FUNC
  * @tc.require: issueIAJ6B9
  */
@@ -2391,7 +2890,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_003, TestSize.Level1
     screenManagerImpl.isHwcDead_ = false;
     screenManagerImpl.pendingHotPlugEvents_.clear();
     ScreenId screenId = SCREEN_ID;
-    screenManagerImpl.connectedIds_.push_back(screenId);
+    screenManagerImpl.pendingConnectedIds_.push_back(screenId);
     ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 
@@ -2410,7 +2909,7 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_004, TestSize.Level1
 
     screenManagerImpl.isHwcDead_ = false;
     screenManagerImpl.pendingHotPlugEvents_.clear();
-    screenManagerImpl.connectedIds_.clear();
+    screenManagerImpl.pendingConnectedIds_.clear();
     ASSERT_TRUE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 
@@ -2490,6 +2989,1165 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
 
     screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
     impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
-    ASSERT_NE(screenManagerImpl.GetOutput(screenId), nullptr);
+    ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
+}
+
+/*
+ * Function: SetScreenHasProtectedLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create screenManager
+ *                  2. operation: SetScreenHasProtectedLayer
+ *                  3. result: screenManager is nullptr
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetScreenHasProtectedLayer(SCREEN_ID, true);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->SetVirtualScreenStatus(SCREEN_ID, VIRTUAL_SCREEN_PLAY);
+    ASSERT_EQ(res, false);
+}
+
+/*
+ * @tc.name: GetVirtualScreenStatus
+ * @tc.desc: Test GetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenStatus, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->GetVirtualScreenStatus(SCREEN_ID);
+    ASSERT_EQ(res, VIRTUAL_SCREEN_PLAY);
+}
+
+/*
+ * @tc.name: GetDisplayPropertyForHardCursor
+ * @tc.desc: Test GetDisplayPropertyForHardCursor
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, GetDisplayPropertyForHardCursor, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->GetDisplayPropertyForHardCursor(SCREEN_ID);
+    ASSERT_EQ(res, false);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask001
+ * @tc.desc: Test SetScreenSecurityMask001 with nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenSecurityMask001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr);
+    auto ret = screenManager->SetScreenSecurityMask(virtualScreenId, nullptr);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask002
+ * @tc.desc: Test SetScreenSecurityMask002 with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenSecurityMask002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto virtualScreenId = screenManager->CreateVirtualScreen(
+        "VirtualScreen01", sizeWidth, sizeHeight, psurface);
+    const uint32_t color[1] = { 0x6f0000ff };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    auto ret = screenManager->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSecurityMask001
+ * @tc.desc: Test GetScreenSecurityMask001 with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSecurityMask001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr);
+    screenManager->SetScreenSecurityMask(virtualScreenId, nullptr);
+    auto ScreenSecurityMaskGet = screenManager->GetScreenSecurityMask(virtualScreenId);
+    ASSERT_EQ(ScreenSecurityMaskGet, nullptr);
+}
+
+/*
+ * @tc.name: SetScreenLinearMatrix
+ * @tc.desc: Test SetScreenLinearMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenLinearMatrix, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    std::vector<float> vecMatix(5, 3.14f);
+
+    screenManagerImpl->screens_.clear();
+
+    auto res = screenManagerImpl->RSScreenManager::SetScreenLinearMatrix(100, vecMatix);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::SetScreenLinearMatrix(100, vecMatix);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::SetScreenLinearMatrix(100, vecMatix);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: SetScreenHasProtectedLayer
+ * @tc.desc: Test SetScreenHasProtectedLayer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->RSScreenManager::SetScreenHasProtectedLayer(100, true);
+    EXPECT_EQ(false, rsScreen0->GetHasProtectedLayer());
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->RSScreenManager::SetScreenHasProtectedLayer(100, true);
+    EXPECT_EQ(false, rsScreen0->GetHasProtectedLayer());
+   
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->RSScreenManager::SetScreenHasProtectedLayer(100, true);
+    EXPECT_EQ(true, rsScreen0->GetHasProtectedLayer());
+}
+
+/*
+ * @tc.name: GetDisplayPropertyForHardCursor001
+ * @tc.desc: Test GetDisplayPropertyForHardCursor001
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetDisplayPropertyForHardCursor001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    rsScreen0->isHardCursorSupport_ = true;
+    
+    screenManagerImpl->screens_.clear();
+    auto res = screenManagerImpl->RSScreenManager::GetDisplayPropertyForHardCursor(100);
+    EXPECT_EQ(false, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::GetDisplayPropertyForHardCursor(100);
+    EXPECT_EQ(false, res);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::GetDisplayPropertyForHardCursor(100);
+    EXPECT_EQ(true, res);
+}
+
+/*
+ * @tc.name: GetVirtualScreenStatus001
+ * @tc.desc: Test GetVirtualScreenStatus001
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenStatus001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    VirtualScreenStatus status = VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE;
+    rsScreen0->screenStatus_ = status;
+
+    screenManagerImpl->screens_.clear();
+    auto res = screenManagerImpl->RSScreenManager::GetVirtualScreenStatus(100);
+    EXPECT_EQ(VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::GetVirtualScreenStatus(100);
+    EXPECT_EQ(VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS, res);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::GetVirtualScreenStatus(100);
+    EXPECT_EQ(VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE, res);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus003
+ * @tc.desc: Test SetVirtualScreenStatus003
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus003, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    VirtualScreenStatus status = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
+
+    screenManagerImpl->screens_.clear();
+    auto res = screenManagerImpl->RSScreenManager::SetVirtualScreenStatus(100, status);
+    EXPECT_EQ(false, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::SetVirtualScreenStatus(100, status);
+    EXPECT_EQ(false, res);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::SetVirtualScreenStatus(100, status);
+    EXPECT_EQ(true, res);
+}
+
+/*
+ * @tc.name: GetActualScreenMaxResolution
+ * @tc.desc: Test GetActualScreenMaxResolution
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetActualScreenMaxResolution, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(200, true, HdiOutput::CreateHdiOutput(200), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen0));
+
+    auto rsScreen1 =
+        std::make_shared<impl::RSScreen>(300, false, HdiOutput::CreateHdiOutput(300), nullptr);
+    EXPECT_NE(nullptr, rsScreen1);
+    screenManagerImpl->screens_.insert(std::make_pair(300, rsScreen1));
+    rsScreen1->phyWidth_ = 0;
+    rsScreen1->phyHeight_ = 0;
+
+    auto rsScreen2 =
+        std::make_shared<impl::RSScreen>(400, false, HdiOutput::CreateHdiOutput(400), nullptr);
+    EXPECT_NE(nullptr, rsScreen2);
+    screenManagerImpl->screens_.insert(std::make_pair(400, rsScreen2));
+    rsScreen2->phyWidth_ = 1;
+    rsScreen2->phyHeight_ = 1;
+    rsScreen2->width_ = 20;
+    rsScreen2->height_ = 25;
+    auto screenInfo = screenManagerImpl->RSScreenManager::GetActualScreenMaxResolution();
+    EXPECT_EQ(20, screenInfo.width);
+    EXPECT_EQ(25, screenInfo.height);
+}
+
+/*
+ * @tc.name: GetScreenSupportedMetaDataKeys
+ * @tc.desc: Test GetScreenSupportedMetaDataKeys
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedMetaDataKeys, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    ScreenHDRMetadataKey dataKey = ScreenHDRMetadataKey::MATAKEY_HDR10_PLUS;
+    std::vector<ScreenHDRMetadataKey> metaDataKey(1, dataKey);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(200, false, HdiOutput::CreateHdiOutput(200), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen0));
+
+    auto rsScreen1 =
+        std::make_shared<impl::RSScreen>(300, true, HdiOutput::CreateHdiOutput(300), nullptr);
+    EXPECT_NE(nullptr, rsScreen1);
+    screenManagerImpl->screens_.insert(std::make_pair(300, rsScreen1));
+
+    auto res = screenManagerImpl->RSScreenManager::GetScreenSupportedMetaDataKeys(100, metaDataKey);
+    EXPECT_EQ(1, res);
+}
+
+/*
+ * @tc.name: GetScreenColorSpaceLocked
+ * @tc.desc: Test GetScreenColorSpaceLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenColorSpaceLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+    GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL;
+    auto res = screenManagerImpl->RSScreenManager::GetScreenColorSpaceLocked(100, colorSpace);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::GetScreenColorSpaceLocked(100, colorSpace);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorSpacesLocked
+ * @tc.desc: Test GetScreenSupportedColorSpacesLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorSpacesLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+    GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL;
+    std::vector<GraphicCM_ColorSpaceType> spaceType(1, colorSpace);
+    auto res = screenManagerImpl->RSScreenManager::GetScreenSupportedColorSpacesLocked(100, spaceType);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::GetScreenSupportedColorSpacesLocked(100, spaceType);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: SetScreenHDRFormatLocked
+ * @tc.desc: Test SetScreenHDRFormatLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenHDRFormatLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+    auto res = screenManagerImpl->RSScreenManager::SetScreenHDRFormatLocked(100, 10);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::SetScreenHDRFormatLocked(100, 10);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: GetScreenHDRFormatLocked
+ * @tc.desc: Test GetScreenHDRFormatLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenHDRFormatLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    ScreenHDRFormat format = {ScreenHDRFormat::IMAGE_HDR_VIVID_DUAL};
+    screenManagerImpl->screens_.clear();
+    auto res = screenManagerImpl->RSScreenManager::GetScreenHDRFormatLocked(100, format);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::GetScreenHDRFormatLocked(100, format);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: GetScreenSupportedHDRFormatsLocked
+ * @tc.desc: Test GetScreenSupportedHDRFormatsLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedHDRFormatsLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+
+    ScreenHDRFormat format = { ScreenHDRFormat::IMAGE_HDR_VIVID_DUAL };
+    std::vector<ScreenHDRFormat> screenFormat(5, format);
+    auto res = screenManagerImpl->RSScreenManager::GetScreenSupportedHDRFormatsLocked(100, screenFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::GetScreenSupportedHDRFormatsLocked(100, screenFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: SetPixelFormatLocked
+ * @tc.desc: Test SetPixelFormatLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetPixelFormatLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+
+    GraphicPixelFormat pixelFormat = { GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRA_8888 };
+    auto res = screenManagerImpl->RSScreenManager::SetPixelFormatLocked(100, pixelFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::SetPixelFormatLocked(100, pixelFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: GetPixelFormatLocked
+ * @tc.desc: Test GetPixelFormatLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetPixelFormatLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+
+    GraphicPixelFormat pixelFormat = { GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BGRA_8888 };
+    auto res = screenManagerImpl->RSScreenManager::GetPixelFormatLocked(100, pixelFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::GetPixelFormatLocked(100, pixelFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: GetDisplayIdentificationData
+ * @tc.desc: Test GetDisplayIdentificationData
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetDisplayIdentificationData, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+
+    uint8_t outPort = 1;
+    std::vector<uint8_t> edidData(5);
+
+    int res = screenManagerImpl->RSScreenManager::
+        GetDisplayIdentificationData(100, outPort, edidData);
+    EXPECT_EQ(SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::
+        GetDisplayIdentificationData(100, outPort, edidData);
+    EXPECT_EQ(SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::
+        GetDisplayIdentificationData(100, outPort, edidData);
+    EXPECT_EQ(HDI_ERROR, res);
+}
+
+/*
+ * @tc.name: SetEqualVsyncPeriod
+ * @tc.desc: Test SetEqualVsyncPeriod
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetEqualVsyncPeriod, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+
+    screenManagerImpl->RSScreenManager::SetEqualVsyncPeriod(100, false);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->RSScreenManager::SetEqualVsyncPeriod(100, false);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->RSScreenManager::SetEqualVsyncPeriod(100, true);
+    EXPECT_EQ(true, rsScreen0->RSScreen::GetEqualVsyncPeriod());
+}
+
+/*
+ * @tc.name: SetVirtualScreenRefreshRate
+ * @tc.desc: Test SetVirtualScreenRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenRefreshRate, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+
+    uint32_t maxRefreshRate1 = 0;
+    uint32_t actualRefreshRate = 8;
+
+    int res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate1, actualRefreshRate);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate1, actualRefreshRate);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_[100] = rsScreen0;
+    rsScreen0->isVirtual_ = false;
+    res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate1, actualRefreshRate);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    rsScreen0->isVirtual_ = true;
+    res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate1, actualRefreshRate);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    uint32_t maxRefreshRate2 = 6;
+    res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate2, actualRefreshRate);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+
+    uint32_t maxRefreshRate3 = 200;
+    res = screenManagerImpl->RSScreenManager::
+        SetVirtualScreenRefreshRate(100, maxRefreshRate3, actualRefreshRate);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+
+/*
+ * @tc.name: SetScreenSkipFrameInterval002
+ * @tc.desc: Test SetScreenSkipFrameInterval002
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenSkipFrameInterval002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+
+    auto res = screenManagerImpl->RSScreenManager::SetScreenSkipFrameInterval(100, 0);
+    EXPECT_EQ(INVALID_ARGUMENTS, res);
+
+    res = screenManagerImpl->RSScreenManager::SetScreenSkipFrameInterval(100, 1800);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+}
+
+/*
+ * @tc.name: GetScreenSupportedMetaDataKeysLocked
+ * @tc.desc: Test GetScreenSupportedMetaDataKeysLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedMetaDataKeysLocked, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+
+    ScreenHDRMetadataKey key = ScreenHDRMetadataKey::MATAKEY_BLUE_PRIMARY_X;
+    std::vector<ScreenHDRMetadataKey> dataKey(5, key);
+    auto res = screenManagerImpl->RSScreenManager::
+        GetScreenSupportedMetaDataKeysLocked(100, dataKey);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::
+        GetScreenSupportedMetaDataKeysLocked(100, dataKey);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    rsScreen0->isVirtual_  = true;
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::
+        GetScreenSupportedMetaDataKeysLocked(100, dataKey);
+    EXPECT_EQ(INVALID_BACKLIGHT_VALUE, res);
+}
+
+/*
+ * @tc.name: SetScreenConstraint001
+ * @tc.desc: Test SetScreenConstraint001
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenConstraint001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+
+    rsScreen0->isVirtual_ = true;
+    ScreenConstraintType type = ScreenConstraintType::CONSTRAINT_ABSOLUTE;
+    auto res = screenManagerImpl->RSScreenManager::
+        SetScreenConstraint(100, 1000, type);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+
+/*
+ * @tc.name: RemoveScreenChangeCallback
+ * @tc.desc: Test RemoveScreenChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, RemoveScreenChangeCallback, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+
+    sptr<RSIScreenChangeCallback> callback1 =
+        sptr<RSScreenManagerTest::RSIScreenChangeCallbackConfig>::MakeSptr();
+    EXPECT_NE(nullptr, callback1);
+
+    sptr<RSIScreenChangeCallback> callback2 =
+        sptr<RSScreenManagerTest::RSIScreenChangeCallbackConfig>::MakeSptr();
+    EXPECT_NE(nullptr, callback2);
+
+    screenManagerImpl->screenChangeCallbacks_.push_back(callback1);
+    screenManagerImpl->screenChangeCallbacks_.push_back(callback2);
+    EXPECT_EQ(2, screenManagerImpl->screenChangeCallbacks_.size());
+
+    screenManagerImpl->RSScreenManager::RemoveScreenChangeCallback(callback2);
+    EXPECT_EQ(1, screenManagerImpl->screenChangeCallbacks_.size());
+}
+
+/*
+ * @tc.name: AddScreenChangeCallback001
+ * @tc.desc: Test AddScreenChangeCallback001
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    auto rsScreen1 =
+        std::make_shared<impl::RSScreen>(200, true, HdiOutput::CreateHdiOutput(200), nullptr);
+    EXPECT_NE(nullptr, rsScreen1);
+    rsScreen0->isVirtual_ = false;
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen1));
+
+    auto rsScreen2 =
+        std::make_shared<impl::RSScreen>(300, true, HdiOutput::CreateHdiOutput(300), nullptr);
+    EXPECT_NE(nullptr, rsScreen2);
+    rsScreen0->isVirtual_ = true;
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen1));
+
+    sptr<RSScreenManagerTest::RSIScreenChangeCallbackConfig> callback =
+        sptr<RSScreenManagerTest::RSIScreenChangeCallbackConfig>::MakeSptr();
+    EXPECT_NE(nullptr, callback);
+
+    auto res = screenManagerImpl->RSScreenManager::AddScreenChangeCallback(callback);
+    EXPECT_EQ(SUCCESS, res);
+}
+
+/*
+ * @tc.name: SetVirtualScreenResolution003
+ * @tc.desc: Test SetVirtualScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenResolution003, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t width1 = 68800;
+    uint32_t height1 = 100;
+    auto result = screenManagerImpl->SetVirtualScreenResolution(screenId, width1, height1);
+    EXPECT_EQ(result, INVALID_ARGUMENTS);
+
+    uint32_t width2 = 100;
+    uint32_t height2 = 68800;
+    result = screenManagerImpl->SetVirtualScreenResolution(screenId, width2, height2);
+    EXPECT_EQ(result, INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetPhysicalScreenResolution002
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetPhysicalScreenResolution002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    rsScreen0->isVirtual_ = true;
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+
+    ScreenId screenId = 100;
+    uint32_t width = 100;
+    uint32_t height = 100;
+    auto res = screenManagerImpl->RSScreenManager::SetPhysicalScreenResolution(screenId, width, height);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+
+/*
+ * @tc.name: SetScreenActiveRect002
+ * @tc.desc: Test SetScreenActiveRect
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenActiveRect002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    ScreenId screenId = 100;
+    GraphicIRect rect = {1, 2, 3, 4};
+    auto res = screenManagerImpl->RSScreenManager::SetScreenActiveRect(screenId, rect);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    rsScreen0->isVirtual_ = true;
+    screenManagerImpl->screens_[100] = rsScreen0;
+    res = screenManagerImpl->RSScreenManager::SetScreenActiveRect(screenId, rect);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+
+/*
+ * @tc.name: GetAndResetVirtualSurfaceUpdateFlag002
+ * @tc.desc: Test get virtualSurface update flag correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIA9QG0
+ */
+HWTEST_F(RSScreenManagerTest, GetAndResetVirtualSurfaceUpdateFlag002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    screenManagerImpl->screens_.clear();
+    ScreenId id = 10086;
+    auto res = screenManagerImpl->RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(id);
+    EXPECT_EQ(false, res);
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(id);
+    EXPECT_EQ(false, res);
+}
+
+/*
+ * @tc.name: GetScreenSecurityMask002
+ * @tc.desc: Test GetScreenSecurityMask001 with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSecurityMask002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+
+    ScreenId id = 100;
+
+    screenManagerImpl->screens_.clear();
+    rsScreen0->securityMask_ = nullptr;
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+    auto res = screenManagerImpl->RSScreenManager::GetScreenSecurityMask(id);
+    EXPECT_EQ(nullptr, res);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask003
+ * @tc.desc: Test SetScreenSecurityMask003
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenSecurityMask003, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    auto res = screenManagerImpl->RSScreenManager::SetScreenSecurityMask(INVALID_SCREEN_ID, nullptr);
+    EXPECT_EQ(INVALID_ARGUMENTS, res);
+
+    screenManagerImpl->screens_.clear();
+    ScreenId id = 100;
+    res = screenManagerImpl->RSScreenManager::SetScreenSecurityMask(id, nullptr);
+    EXPECT_EQ(SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::SetScreenSecurityMask(id, nullptr);
+    EXPECT_EQ(SCREEN_NOT_FOUND, res);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(200, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    EXPECT_NE(nullptr, rsScreen0);
+    rsScreen0->isVirtual_ = true;
+    screenManagerImpl->screens_[100] =  rsScreen0;
+    res = screenManagerImpl->RSScreenManager::SetScreenSecurityMask(id, nullptr);
+    EXPECT_EQ(SUCCESS, res);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList005
+ * @tc.desc: Test RemoveVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require: issueIB2WOT
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList005, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> black;
+    black.emplace_back(1024);
+    black.emplace_back(2048);
+
+    screenManagerImpl->castScreenBlackList_.clear();
+    screenManagerImpl->castScreenBlackList_.insert(10086);
+    screenManagerImpl->castScreenBlackList_.insert(1024);
+    auto res = screenManagerImpl->RemoveVirtualScreenBlackList(id, black);
+    EXPECT_EQ(SUCCESS, res);
+}
+
+/*
+ * @tc.name: CreateVirtualScreen004
+ * @tc.desc: Test CreateVirtualScreen004
+ * @tc.type: FUNC
+ * @tc.require: issueIB2WOT
+ */
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen004, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    std::string name = "WeChat";
+    uint32_t width1 = 68000;
+    uint32_t height1 = 100;
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    sptr<IBufferProducer> producer = consumer->GetProducer();
+    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    ScreenId mirrorId = 10086;
+    int32_t flag = 32;
+
+    NodeId node = 100;
+    std::vector<NodeId> whiteList(1, node);
+
+    screenManagerImpl->currentVirtualScreenNum_ = 64;
+    auto res = screenManagerImpl->CreateVirtualScreen(
+        name, width1, height1, surface, mirrorId, flag, whiteList);
+    EXPECT_EQ(INVALID_SCREEN_ID, res);
+
+    screenManagerImpl->currentVirtualScreenNum_ = 2;
+    res = screenManagerImpl->CreateVirtualScreen(
+        name, width1, height1, surface, mirrorId, flag, whiteList);
+    EXPECT_EQ(INVALID_SCREEN_ID, res);
+
+    uint32_t width2 = 100;
+    uint32_t height2 = 68000;
+    res = screenManagerImpl->CreateVirtualScreen(
+        name, width2, height2, surface, mirrorId, flag, whiteList);
+    EXPECT_EQ(INVALID_SCREEN_ID, res);
+}
+
+/*
+ * @tc.name: GetScreenCapabilityLocked002
+ * @tc.desc: Test GetScreenCapabilityLocked002
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapabilityLocked002, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    screenManagerImpl->screens_.clear();
+    ScreenId id = 100;
+    auto res = screenManagerImpl->RSScreenManager::GetScreenCapabilityLocked(id);
+    EXPECT_EQ(0, res.GetPhyWidth());
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    res = screenManagerImpl->RSScreenManager::GetScreenCapabilityLocked(id);
+    EXPECT_EQ(0, res.GetPhyHeight());
+}
+
+/*
+ * @tc.name: HandleDefaultScreenDisConnected
+ * @tc.desc: Test HandleDefaultScreenDisConnected
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, HandleDefaultScreenDisConnected, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->RSScreenManager::HandleDefaultScreenDisConnected();
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->RSScreenManager::HandleDefaultScreenDisConnected();
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(200), nullptr);
+    rsScreen0->isVirtual_ = false;
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->RSScreenManager::HandleDefaultScreenDisConnected();
+    EXPECT_EQ(screenManagerImpl->defaultScreenId_, 100);
+
+    rsScreen0->isVirtual_ = true;
+    screenManagerImpl->RSScreenManager::HandleDefaultScreenDisConnected();
+    EXPECT_EQ(screenManagerImpl->defaultScreenId_, 100);
+}
+
+/*
+ * @tc.name: RegSetScreenVsyncEnabledCallbackForMainThread
+ * @tc.desc: Test RegSetScreenVsyncEnabledCallbackForMainThread
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, RegSetScreenVsyncEnabledCallbackForMainThread, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    ScreenId id = 100;
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(id);
+
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(200), nullptr);
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(id);
+    auto sampler = CreateVSyncSampler();
+    OHOS::Rosen::impl::VSyncSampler& implSampler =
+        static_cast<OHOS::Rosen::impl::VSyncSampler&>(*sampler);
+    EXPECT_EQ(implSampler.vsyncEnabledScreenId_, 100);
+}
+
+/*
+ * @tc.name: ProcessScreenDisConnectedLocked
+ * @tc.desc: Test ProcessScreenDisConnectedLocked
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, ProcessScreenDisConnected, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    uint32_t id = 100;
+    std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->defaultScreenId_.store(static_cast<ScreenId>(id));
+    screenManagerImpl->RSScreenManager::ProcessScreenDisConnected(output);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    screenManagerImpl->screens_.insert(std::make_pair(100, rsScreen0));
+    screenManagerImpl->defaultScreenId_.store(static_cast<ScreenId>(1000));
+    screenManagerImpl->RSScreenManager::ProcessScreenDisConnected(output);
+    EXPECT_EQ(1, screenManagerImpl->screens_.size());
+}
+
+/*
+ * @tc.name: ProcessScreenConnected
+ * @tc.desc: Test ProcessScreenConnected
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, ProcessScreenConnected, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    uint32_t id = 100;
+    std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->isFoldScreenFlag_ = false;
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->isFoldScreenFlag_ = true;
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen0));
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+    EXPECT_EQ(2, screenManagerImpl->screens_.size());
+}
+
+/*
+ * @tc.name: OnScreenVBlankIdleEvent
+ * @tc.desc: Test OnScreenVBlankIdleEvent
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenVBlankIdleEvent, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    uint32_t id = 100;
+    uint64_t ns = 1024;
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+    screenManagerImpl->RSScreenManager::OnScreenVBlankIdleEvent(id, ns);
+
+    auto rsScreen0 =
+        std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
+    screenManagerImpl->screens_[100] = rsScreen0;
+    screenManagerImpl->RSScreenManager::OnScreenVBlankIdleEvent(id, ns);
+    EXPECT_EQ(false, screenManagerImpl->screens_.empty());
+}
+
+/*
+ * @tc.name: OnRefresh
+ * @tc.desc: Test OnRefresh
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    ScreenId sId = 100;
+    RSScreenManager* screenManager = new OHOS::Rosen::impl::RSScreenManager();
+    screenManagerImpl->RSScreenManager::OnRefresh(sId, nullptr);
+    screenManagerImpl->RSScreenManager::OnRefresh(sId, screenManager);
+    EXPECT_NE(screenManager, nullptr);
 }
 } // namespace OHOS::Rosen

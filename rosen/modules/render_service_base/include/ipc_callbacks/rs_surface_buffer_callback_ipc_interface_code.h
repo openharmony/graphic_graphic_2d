@@ -22,6 +22,7 @@ namespace OHOS {
 namespace Rosen {
 enum class RSISurfaceBufferCallbackInterfaceCode : CodeUnderlyingType {
     ON_FINISH,
+    ON_AFTER_ACQUIRE_BUFFER,
 };
 } // namespace Rosen
 } // namespace OHOS

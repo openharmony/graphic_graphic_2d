@@ -200,6 +200,7 @@ ohos_static_library("rs_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",

@@ -39,26 +39,31 @@ std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data
 bool MaskCmdList::Playback(MaskPlayer &player) const
 {
     uint32_t offset = 0;
+    uint32_t count = 0;
     size_t totalSize = opAllocator_.GetSize();
     do {
+        count++;
         if (totalSize < offset || totalSize - offset < sizeof(OpItem)) {
             LOGD("MaskCmdList::Playback size error");
             return false;
         }
-        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             if (!player.Playback(curOpItemPtr->GetType(), itemPtr, totalSize - offset)) {
                 LOGD("MaskCmdList::Playback failed!");
                 break;
             }
-
+            
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("MaskCmdList::Playback failed, opItem is nullptr");
             break;
         }
-    } while (offset != 0);
+    } while (offset != 0 && count <= MAX_OPITEMSIZE);
 
     return true;
 }
@@ -122,6 +127,8 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
         cmdList, brushHandle_.colorSpaceHandle);
     auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
+    auto blender = CmdListHelper::GetBlenderFromCmdList(
+        cmdList, brushHandle_.blenderHandle);
     auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
     auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
@@ -140,6 +147,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
 
     brush.SetColor(color4f, colorSpace);
     brush.SetShaderEffect(shaderEffect);
+    brush.SetBlender(blender);
     brush.SetBlendMode(brushHandle_.mode);
     brush.SetAntiAlias(brushHandle_.isAntiAlias);
     brush.SetFilter(filter);

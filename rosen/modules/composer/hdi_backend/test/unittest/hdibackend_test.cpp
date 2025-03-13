@@ -157,6 +157,8 @@ HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
 HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest| Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hdiBackend_->SetVsyncSamplerEnabled(nullptr, false);
+    ASSERT_EQ(hdiBackend_->GetVsyncSamplerEnabled(nullptr), false);
     hdiBackend_->SetVsyncSamplerEnabled(output, false);
     ASSERT_EQ(hdiBackend_->GetVsyncSamplerEnabled(output), false);
 }
@@ -173,6 +175,8 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
 {
     hdiBackend_->ResetDevice();
     hdiBackend_->OnScreenHotplug(-1, true);
+    auto iter = hdiBackend_->outputs_.find(-1);
+    EXPECT_EQ(iter, hdiBackend_->outputs_.end());
 }
 
 /*
@@ -193,6 +197,61 @@ HWTEST_F(HdiBackendTest, OnPrepareComplete001, Function | MediumTest| Level3)
         newLayerInfos.emplace_back(nullptr);
     }
     hdiBackend_->OnPrepareComplete(true, output, newLayerInfos);
+}
+
+/*
+ * Function: RegScreenVBlankIdleCallback001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegScreenVBlankIdleCallback()
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegScreenVBlankIdleCallback001, Function | MediumTest | Level3)
+{
+    RosenError res = hdiBackend_->RegScreenVBlankIdleCallback(nullptr, nullptr);
+    EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+ * Function: SetPendingMode001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPendingMode()
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, SetPendingMode001, Function | MediumTest | Level3)
+{
+    int64_t period = 1;
+    int64_t timestamp = 1;
+    hdiBackend_->SetPendingMode(nullptr, period, timestamp);
+
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hdiBackend_->SetPendingMode(output, period, timestamp);
+    output->sampler_->Reset();
+    auto pendingPeriod = output->sampler_->GetHardwarePeriod();
+    EXPECT_EQ(pendingPeriod, period);
+}
+
+/*
+ * Function: StartSample001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call StartSample()
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
+{
+    hdiBackend_->StartSample(nullptr);
+
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hdiBackend_->SetPendingMode(output, 0, 0);
+    output->sampler_->SetHardwareVSyncStatus(false);
+    output->sampler_->SetVsyncSamplerEnabled(true);
+    hdiBackend_->StartSample(output);
+    EXPECT_TRUE(output->sampler_->GetHardwareVSyncStatus());
 }
 } // namespace
 } // namespace Rosen

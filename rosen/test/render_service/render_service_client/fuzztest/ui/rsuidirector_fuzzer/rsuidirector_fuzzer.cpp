@@ -590,8 +590,9 @@ bool DoAnimationCallbackProcessor(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     NodeId nodeId = GetData<NodeId>();
     AnimationId animId = GetData<AnimationId>();
+    uint64_t token = GetData<uint64_t>();
     AnimationCallbackEvent event = GetData<AnimationCallbackEvent>();
-    director->AnimationCallbackProcessor(nodeId, animId, event);
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
     return true;
 }
 
@@ -612,6 +613,100 @@ bool DoPostTask(const uint8_t* data, size_t size)
         std::cout << "for test" << std::endl;
     };
     director->PostTask(task);
+    return true;
+}
+
+bool DoHasFirstFrameAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->HasFirstFrameAnimation();
+    return true;
+}
+
+bool DoHasUIRunningAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->HasUIRunningAnimation();
+    return true;
+}
+
+bool DoGetIndex(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->GetIndex();
+    return true;
+}
+
+bool DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    NodeId nodeId = GetData<NodeId>();
+    pid_t pid = GetData<pid_t>();
+    uint32_t taskId = GetData<uint32_t>();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->DumpNodeTreeProcessor(nodeId, pid, taskId);
+    return true;
+}
+
+bool DoPostDelayTask(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    uint32_t delay = GetData<uint32_t>();
+    int32_t instanceId = GetData<int32_t>();
+    director->PostDelayTask(task);
+    director->PostDelayTask(task, delay, instanceId);
     return true;
 }
 } // namespace Rosen
@@ -652,6 +747,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProcessMessages(data, size);
     OHOS::Rosen::DoAnimationCallbackProcessor(data, size);
     OHOS::Rosen::DoPostTask(data, size);
+    OHOS::Rosen::DoHasFirstFrameAnimation(data, size);
+    OHOS::Rosen::DoHasUIRunningAnimation(data, size);
+    OHOS::Rosen::DoGetIndex(data, size);
+    OHOS::Rosen::DoDumpNodeTreeProcessor(data, size);
+    OHOS::Rosen::DoPostDelayTask(data, size);
     return 0;
 }
 

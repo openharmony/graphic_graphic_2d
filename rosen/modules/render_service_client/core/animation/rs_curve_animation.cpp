@@ -62,12 +62,8 @@ void RSCurveAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderCurveA
         ROSEN_LOGE("Failed to start curve animation, target is null!");
         return;
     }
-
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateCurve>(target->GetId(), animation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-    }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
 }
 
 void RSCurveAnimation::StartUIAnimation(const std::shared_ptr<RSRenderCurveAnimation>& animation)
@@ -95,6 +91,12 @@ void RSCurveAnimation::OnStart()
 bool RSCurveAnimation::IsSupportInteractiveAnimator()
 {
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+
+    if (interpolator == nullptr) {
+        ROSEN_LOGD("RSCurveAnimation::IsSupportInteractiveAnimator, interpolator is null!");
+        return false;
+    }
+
     if (interpolator->GetType() == InterpolatorType::CUSTOM || interpolator->GetType() == InterpolatorType::STEPS) {
         return false;
     }

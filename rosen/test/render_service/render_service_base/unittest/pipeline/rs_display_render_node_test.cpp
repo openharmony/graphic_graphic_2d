@@ -16,9 +16,10 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "display_engine/rs_luminance_control.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -565,7 +566,7 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize
 
 /**
  * @tc.name: HandleCurMainAndLeashSurfaceNodes004
- * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and on the tree
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
@@ -575,10 +576,60 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
-    
+    surfaceNode->isOnTheTree_ = true;
     displayNode->RecordMainAndLeashSurfaces(surfaceNode);
     displayNode->HandleCurMainAndLeashSurfaceNodes();
     ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 1);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes005
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and not on the tree
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isOnTheTree_ = false;
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
+}
+
+/**
+ * @tc.name: HasUniRenderHdrSurface
+ * @tc.desc: test results of Get and Set HasUniRenderHdrSurface
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    EXPECT_EQ(node->GetHasUniRenderHdrSurface(), false);
+    node->SetHasUniRenderHdrSurface(true);
+    EXPECT_EQ(node->GetHasUniRenderHdrSurface(), true);
+}
+
+/**
+ * @tc.name: IsLuminanceStatusChange
+ * @tc.desc: test results of Get and Set IsLuminanceStatusChange
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, IsLuminanceStatusChangeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    EXPECT_EQ(node->GetIsLuminanceStatusChange(), false);
+    node->SetIsLuminanceStatusChange(true);
+    EXPECT_EQ(node->GetIsLuminanceStatusChange(), true);
 }
 
 /**
@@ -637,5 +688,146 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
+}
+
+/**
+ * @tc.name: AddSecurityVisibleLayer001
+ * @tc.desc: test results of AddSecurityVisibleLayer
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 1);
+}
+
+/**
+ * @tc.name: ClearSecurityVisibleLayerList001
+ * @tc.desc: test results of ClearSecurityVisibleLayerList
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    id = 2;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 2);
+    displayNode->ClearSecurityVisibleLayerList();
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 0);
+}
+
+/**
+ * @tc.name: SetHasSecLayerInVisibleRect001
+ * @tc.desc: test results of SetHasSecLayerInVisibleRect001
+ * @tc.type:FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, false);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, false);
+
+    displayNode->SetHasSecLayerInVisibleRect(true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, true);
+}
+
+/**
+ * @tc.name: GetColorSpaceTest
+ * @tc.desc: test results of GetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, colorSpace);
+}
+
+/**
+ * @tc.name: SetColorSpaceTest
+ * @tc.desc: test results of SetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
+}
+
+/**
+ * @tc.name: SetPixelFormat GetPixelFormat
+ * @tc.desc: test results of SetPixelFormat GetPixelFormat
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, PixelFormatTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_EQ(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888, node->GetPixelFormat());
+    node->SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102, node->GetPixelFormat());
+}
+
+/**
+ * @tc.name: HdrStatusTest
+ * @tc.desc: test results of CollectHdrStatus, GetDisplayHdrStatus, ResetDisplayHdrStatus
+ * @tc.type: FUNC
+ * @tc.require: issuesIBANP9
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HdrStatusTest, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    displayNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    displayNode->CollectHdrStatus(HdrStatus::AI_HDR_VIDEO);
+    EXPECT_EQ(displayNode->GetDisplayHdrStatus(), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO |
+        HdrStatus::AI_HDR_VIDEO);
+    displayNode->ResetDisplayHdrStatus();
+    EXPECT_EQ(displayNode->GetDisplayHdrStatus(), HdrStatus::NO_HDR);
+}
+
+/**
+ * @tc.name: SetWindowContainer
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->SetWindowContainer(nullptr);
+    ASSERT_NE(displayNode, nullptr);
+}
+
+/**
+ * @tc.name: GetWindowContainer
+ * @tc.desc: test results of GetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    std::ignore = displayNode->GetWindowContainer();
+    ASSERT_NE(displayNode, nullptr);
 }
 } // namespace OHOS::Rosen

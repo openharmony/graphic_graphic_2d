@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -52,7 +52,7 @@ void RSBaseRenderEngineTest::TearDown() {}
 HWTEST_F(RSBaseRenderEngineTest, TestRSBaseRenderEngine001, TestSize.Level1)
 {
     std::vector<LayerInfoPtr> layerInfo;
-    renderEngine_->NeedForceCPU(layerInfo);
+    ASSERT_FALSE(renderEngine_->NeedForceCPU(layerInfo));
 }
 
 /**

@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest02 : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -56,9 +56,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Color_Tes
 
     const int nodeCount = 4;
     const int columnCount = 2;
-    const int nodeSize = 500;
-    const int nodeHalfSize = 250;
-    const int nodePos = 520;
+    const int nodeSize = 400;
+    const int nodeHalfSize = 200;
+    const int nodePos = 420;
     const int testPos = 50;
 
     for (int i = 0; i < nodeCount; i++) {
@@ -265,7 +265,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Touch_Tes
     uint32_t styleList[] = { 0, 1, 0, 1 };
     float xList[] = { 50, 50, 505, 505 };
     float yList[] = { 50, 50, 0, 0 };
-    
+
     const int nodeCount = 4;
     const int columnCount = 2;
     const int nodeSize = 500;
@@ -285,9 +285,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Touch_Tes
         auto testNode1 = RSCanvasNode::Create();
         testNode1->SetBounds({ x, y, nodeSize, nodeSize });
         testNode1->SetBackgroundColor(0xff000000);
-        testNode1->SetBorderStyle(styleList[i], styleList[i], styleList[i], styleList[i]);
+        testNode1->SetBorderStyle(Vector4<BorderStyle>(static_cast<BorderStyle>(styleList[i])));
         testNode1->SetBorderDashGap({ dashGap, dashGap, dashGap, dashGap });
-        testNode1->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+        testNode1->SetBorderWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
         testNode1->SetBorderColor(0xffff0000, 0xffff0000, 0xffff0000, 0xffff0000);
         GetRootNode()->AddChild(testNode1);
         RegisterNode(testNode1);
@@ -296,12 +296,75 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Touch_Tes
         testNode2->SetBounds({ x, y, nodeSize, nodeSize });
         testNode2->SetTranslate(xList[i], yList[i], 0);
         testNode2->SetBackgroundColor(0xff000000);
-        testNode2->SetBorderStyle(styleList[i], styleList[i], styleList[i], styleList[i]);
+        testNode2->SetBorderStyle(Vector4<BorderStyle>(static_cast<BorderStyle>(styleList[i])));
         testNode2->SetBorderDashGap({ dashGap, dashGap, dashGap, dashGap });
-        testNode2->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+        testNode2->SetBorderWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
         testNode2->SetBorderColor(0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff0000ff);
         GetRootNode()->AddChild(testNode2);
         RegisterNode(testNode2);
     }
+}
+
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Bounds_Test)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<uint32_t> valueList = { -10, 0, 10, 100 };
+
+    // each row we draw a node with bounds width, and a node with bounds height
+    for (int i = 0; i < rowCount; i++) {
+        // node with bounds width
+        int y = (i % rowCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff00ffff); // Node BgColor set to Blue
+        testNodeBackGround->SetBounds({ 0, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBoundsWidth(valueList[i]);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+
+        // node with bounds height
+        auto testNodeBackGround2 = RSCanvasNode::Create();
+        testNodeBackGround2->SetBackgroundColor(0xffff0000); // Node BgColor set to Red
+        testNodeBackGround2->SetBounds({ sizeX, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround2->SetBoundsHeight(valueList[i]);
+        GetRootNode()->AddChild(testNodeBackGround2);
+        RegisterNode(testNodeBackGround2);
+    };
+}
+
+GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_OuterBorder_Style_Test_1)
+{
+    const int nodeCount = 4;
+    const int columnCount = 2;
+    const int nodeSize = 450;
+    const int nodePos = 510;
+    const int borderWidth = 10;
+
+    for (int i = 0; i < nodeCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
+        auto testNodeStyle = RSCanvasNode::Create();
+        testNodeStyle->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeStyle->SetOuterBorderStyle(Vector4<BorderStyle>(static_cast<BorderStyle>(i)));
+        testNodeStyle->SetOuterBorderWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
+        testNodeStyle->SetOuterBorderColor(Vector4<Color>(Color::FromArgbInt(0xff000000)));
+        testNodeStyle->SetOuterBorderRadius({ 50.0, 50.0, 50.0, 50.0 });
+        GetRootNode()->AddChild(testNodeStyle);
+        RegisterNode(testNodeStyle);
+    }
+
+    // four different style
+    auto testNodeFourStyle = RSCanvasNode::Create();
+    testNodeFourStyle->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourStyle->SetOuterBorderStyle(
+        { BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE });
+    testNodeFourStyle->SetOuterBorderWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
+    testNodeFourStyle->SetOuterBorderColor(Vector4<Color>(Color::FromArgbInt(0xff000000)));
+    testNodeFourStyle->SetOuterBorderRadius({ 50.0, 50.0, 50.0, 50.0 });
+    GetRootNode()->AddChild(testNodeFourStyle);
+    RegisterNode(testNodeFourStyle);
 }
 } // namespace OHOS::Rosen

@@ -17,6 +17,7 @@
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 #include "rs_parameter_parse.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 
@@ -91,7 +92,7 @@ void RSGraphicTest::TearDown()
     if (!shouldRunTest_) {
         return;
     }
-
+    StartUIAnimation();
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
@@ -104,6 +105,7 @@ void RSGraphicTest::TearDown()
         isManualTest = (extInfo->testMode == RSGraphicTestMode::MANUAL);
     } else {
         LOGE("RSGraphicTest no testinfo %{public}s-%{public}s", testInfo->test_case_name(), testInfo->name());
+        return;
     }
 
     if (isManualTest) {
@@ -139,6 +141,18 @@ void RSGraphicTest::TearDown()
 void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
 {
     nodes_.push_back(node);
+}
+
+void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath)
+{
+    //need flush client node to rs firstly
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+
+    std::cout << "load subbtree to node file path is " << filePath << std::endl;
+    RSInterfaces::GetInstance().TestLoadFileSubTreeToNode(node->GetId(), filePath);
+    RSGraphicTestDirector::Instance().FlushMessage();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 }
 
 std::shared_ptr<RSGraphicRootNode> RSGraphicTest::GetRootNode() const
@@ -187,5 +201,9 @@ std::string RSGraphicTest::GetImageSavePath(const std::string path)
     return imagePath;
 }
 
+void RSGraphicTest::StartUIAnimation()
+{
+    RSGraphicTestDirector::Instance().StartRunUIAnimation();
+}
 } // namespace Rosen
 } // namespace OHOS

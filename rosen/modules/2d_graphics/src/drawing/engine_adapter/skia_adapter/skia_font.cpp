@@ -19,12 +19,12 @@
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkPath.h"
 #include "include/utils/SkTextUtils.h"
-#include "src/core/SkFontPriv.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
 #include "skia_path.h"
 #include "skia_typeface.h"
+#include "src/core/SkFontPriv.h"
 #include "text/font.h"
 #include "utils/log.h"
 
@@ -259,7 +259,7 @@ int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encodi
 bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
 {
     if (!path) {
-        LOGE("path param is nullptr, fatal error");
+        LOGE("Path param is nullptr, fatal error");
         return false;
     }
     auto skPathImpl = path->GetImpl<SkiaPath>();
@@ -267,20 +267,18 @@ bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
         SkPath& skpath = skPathImpl->GetMutablePath();
         bool ret = skFont_.getPath(glyph, &skpath);
         if (!ret) {
-            LOGW("no path found for glyph:%{public}hu", glyph);
+            LOGE("No path found for glyph:%{public}hu", glyph);
             return false;
         }
     }
-    LOGD("glyph:%{public}hu path = %s", glyph, path->ConvertToSVGString().c_str());
-    
     return true;
 }
 
-void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encoding,
+void SkiaFont::GetTextPath(const void* text, size_t byteLength, TextEncoding encoding,
     float x, float y, Path* path) const
 {
     if (path == nullptr || text == nullptr) {
-        LOGE("param is invalid, fatal error");
+        LOGE("Param is invalid, fatal error");
         return;
     }
     auto skPathImpl = path->GetImpl<SkiaPath>();
@@ -305,13 +303,13 @@ void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encodin
             break;
         }
         case TextEncoding::GLYPH_ID: {
-            strLength = length;
+            strLength = byteLength;
             break;
         }
         default:
             break;
     }
-    SkTextUtils::GetPath(text, std::min(strLength, length), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
+    SkTextUtils::GetPath(text, std::min(strLength, byteLength), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
         &skpath);
 }
 

@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
@@ -77,12 +78,37 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
 {
     return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return {};
+}
+
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
+{
+    return {};
+}
+
+DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};
 }
@@ -127,17 +153,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -180,15 +196,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
@@ -226,6 +233,11 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSLRScaleEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
@@ -247,6 +259,11 @@ float RSSystemProperties::GetAnimationScale()
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
 {
     return false;
 }
@@ -321,7 +338,22 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
+}
+
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
 {
     return false;
 }
@@ -443,14 +475,19 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
 {
     return false;
+}
+
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
@@ -513,6 +550,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
@@ -554,6 +596,31 @@ std::string RSSystemProperties::GetVersionType()
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }

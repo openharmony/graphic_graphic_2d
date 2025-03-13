@@ -38,6 +38,7 @@
 #include "rs_transition_effect.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 
 namespace OHOS {
     using namespace Rosen;
@@ -407,6 +408,9 @@ namespace OHOS {
         auto finishCallbackType = GetData<FinishCallbackType>();
 
         auto finishCallback = std::make_shared<AnimationFinishCallback>(nullptr, finishCallbackType);
+        finishCallback->IsValid();
+        finishCallback->SetAnimationBeenPaused();
+        finishCallback->HasAnimationBeenPaused();
         finishCallback->Execute();
         auto repeatCallback = std::make_shared<AnimationRepeatCallback>(nullptr);
         repeatCallback->Execute();
@@ -462,6 +466,145 @@ namespace OHOS {
         secondAnimation->IsSupportInteractiveAnimator();
     }
 
+
+    void RSAnimation1FuzzTest()
+    {
+        // get data
+        auto isFirstStart = GetData<bool>();
+        auto animationId = GetData<AnimationId>();
+
+        auto animation = std::make_shared<RSAnimation>();
+        std::function<void()> func = nullptr;
+        animation->SetFinishCallback(func);
+        auto interactiveCallback = std::make_shared<InteractiveAnimatorFinishCallback>([]() {});
+        animation->SetInteractiveFinishCallback(interactiveCallback);
+        auto repeatCallback = std::make_shared<AnimationRepeatCallback>([]() {});
+        animation->SetRepeatCallback(repeatCallback);
+        animation->CallRepeatCallback();
+        animation->SetRepeatCallback(nullptr);
+        animation->CallRepeatCallback();
+        animation->GetId();
+        animation->IsStarted();
+        animation->IsRunning();
+        animation->IsPaused();
+        animation->IsFinished();
+        animation->IsReversed();
+        animation->IsUiAnimation();
+        animation->GetPropertyId();
+        animation->UpdateStagingValue(isFirstStart);
+        animation->UpdateParamToRenderAnimation(nullptr);
+        animation->DumpAnimation();
+
+        // have target
+        auto canvasNode = RSCanvasNode::Create();
+        animation->Start(canvasNode);
+        animation->StartInner(canvasNode);
+        animation->SetFinishCallback([]() {});
+        animation->CallFinishCallback();
+        animation->CallLogicallyFinishCallback();
+
+        //have uianimation
+        auto renderAnimation = std::make_shared<RSRenderAnimation>(animationId);
+        animation->UpdateParamToRenderAnimation(renderAnimation);
+        animation->StartCustomAnimation(renderAnimation);
+        animation->UpdateParamToRenderAnimation(renderAnimation);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
+    }
+
+    void RSAnimation2FuzzTest()
+    {
+        // get data
+        auto fraction = GetData<float>();
+        auto pos = GetData<RSInteractiveAnimationPosition>();
+
+        // do status error
+        auto animation1 = std::make_shared<RSAnimation>();
+        animation1->Start(nullptr);
+        animation1->StartInner(nullptr);
+        animation1->Pause();
+        animation1->OnPause();
+        animation1->Resume();
+        animation1->OnResume();
+        animation1->Finish();
+        animation1->OnFinish();
+        animation1->Reverse();
+        animation1->OnReverse();
+        animation1->SetFraction(fraction);
+        animation1->OnSetFraction(fraction);
+        animation1->InteractivePause();
+        animation1->InteractiveContinue();
+        animation1->InteractiveFinish(pos);
+        animation1->InteractiveReverse();
+        animation1->InteractiveSetFraction(fraction);
+
+        // have target
+        auto animation2 = std::make_shared<RSAnimation>();
+        auto canvasNode = RSCanvasNode::Create();
+        animation2->Start(canvasNode);
+        animation2->StartInner(canvasNode);
+        animation2->Start(canvasNode);
+        animation2->Pause();
+        animation2->OnPause();
+        animation2->SetFraction(fraction);
+        animation2->OnSetFraction(fraction);
+        animation2->Resume();
+        animation2->OnResume();
+        animation2->Reverse();
+        animation2->OnReverse();
+        animation2->InteractivePause();
+        animation2->InteractiveSetFraction(fraction);
+        animation2->InteractiveReverse();
+        animation2->InteractiveContinue();
+        animation2->Finish();
+        animation2->OnFinish();
+
+        auto animation3 = std::make_shared<RSAnimation>();
+        animation3->Start(canvasNode);
+        animation3->StartInner(canvasNode);
+        animation3->InteractiveFinish(pos);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
+    }
+
+    void RSAnimation3FuzzTest()
+    {
+        // get data
+        auto animationId = GetData<AnimationId>();
+        auto fraction = GetData<float>();
+        auto pos = GetData<RSInteractiveAnimationPosition>();
+
+        // have uianiamtion
+        auto animation1 = std::make_shared<RSAnimation>();
+        auto canvasNode = RSCanvasNode::Create();
+        auto renderAnimation = std::make_shared<RSRenderAnimation>(animationId);
+        animation1->Start(canvasNode);
+        animation1->StartInner(canvasNode);
+        animation1->StartCustomAnimation(renderAnimation);
+        animation1->Pause();
+        animation1->OnPause();
+        animation1->SetFraction(fraction);
+        animation1->OnSetFraction(fraction);
+        animation1->Resume();
+        animation1->OnResume();
+        animation1->Reverse();
+        animation1->OnReverse();
+        animation1->InteractivePause();
+        animation1->InteractiveSetFraction(fraction);
+        animation1->InteractiveReverse();
+        animation1->InteractiveContinue();
+        animation1->Finish();
+        animation1->OnFinish();
+
+        auto animation2 = std::make_shared<RSAnimation>();
+        animation2->Start(canvasNode);
+        animation2->StartInner(canvasNode);
+        animation2->StartCustomAnimation(renderAnimation);
+        animation2->InteractiveFinish(pos);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -489,6 +632,9 @@ namespace OHOS {
         RSImplicitAnimatorMapFuzzTest();
         RSInteractiveImplictAnimatorFuzzTest();
         RSInterpolatingSpringAnimationFuzzTest();
+        RSAnimation1FuzzTest();
+        RSAnimation2FuzzTest();
+        RSAnimation3FuzzTest();
         return true;
     }
 } // namespace OHOS

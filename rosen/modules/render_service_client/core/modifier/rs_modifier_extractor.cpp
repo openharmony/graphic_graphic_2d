@@ -22,23 +22,29 @@
 #include "pipeline/rs_node_map.h"
 #include "property/rs_properties_def.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-RSModifierExtractor::RSModifierExtractor(RSNode* node) : node_(node) {}
+RSModifierExtractor::RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
+    : id_(id), rsUIContext_(rsUIContext)
+{}
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
-        if (!node_) {                                                                                                \
+        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
+        if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                      \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         T value = defaultValue;                                                                                     \
-        if (node_->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node_->modifiers_.size());                \
+        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
+            RS_LOGE_LIMIT(                                                                                          \
+                __func__, __line__, "RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());   \
         }                                                                                                           \
-        for (auto& [_, modifier] : node_->modifiers_) {                                                              \
+        for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
             }                                                                                                       \
@@ -48,18 +54,20 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
-        if (node_ == nullptr) {                                                                                     \
+        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
+        if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                     \
-        auto typeIter = node_->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
-        if (typeIter != node_->modifiersTypeMap_.end()) {                                                            \
-            auto modifier = typeIter->second;                                                                         \
-            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
-        } else {                                                                                                     \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
+        auto typeIter = node->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
+        if (typeIter != node->modifiersTypeMap_.end()) {                                                            \
+            auto modifier = typeIter->second;                                                                       \
+            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                         \
+        } else {                                                                                                    \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-    } while (0)                                                                                                      \
+    } while (0)                                                                                                     \
 
 Vector4f RSModifierExtractor::GetBounds() const
 {
@@ -126,14 +134,19 @@ Vector2f RSModifierExtractor::GetScale() const
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, SCALE, Vector2f(1.f, 1.f), *=);
 }
 
-Vector2f RSModifierExtractor::GetSkew() const
+float RSModifierExtractor::GetScaleZ() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, SKEW, Vector2f(0.f, 0.f), +=);
+    GET_PROPERTY_FROM_MODIFIERS(float, SCALE_Z, 1.f, *=);
 }
 
-Vector2f RSModifierExtractor::GetPersp() const
+Vector3f RSModifierExtractor::GetSkew() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, PERSP, Vector2f(0.f, 0.f), +=);
+    GET_PROPERTY_FROM_MODIFIERS(Vector3f, SKEW, Vector3f(0.f, 0.f, 0.f), +=);
+}
+
+Vector4f RSModifierExtractor::GetPersp() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, PERSP, Vector4f(0.f, 0.f, 0.f, 1.f), =);
 }
 
 float RSModifierExtractor::GetAlpha() const

@@ -121,18 +121,18 @@ HWTEST_F(UtilTest, UtilTest_002, TestSize.Level1)
 HWTEST_F(UtilTest, UtilTest_003, TestSize.Level1)
 {
     BootAnimationConfig config;
-    std::string jsonStr1 = "[nullptr]";
+    std::string jsonStr1 = "{}";
     cJSON* jsonData1 = cJSON_Parse(jsonStr1.c_str());
     OHOS::ParseVideoExtraPath(jsonData1, config);
 
-    std::string jsonStr2 = "[1]";
+    std::string jsonStr2 = "[]";
     cJSON* jsonData2 = cJSON_Parse(jsonStr2.c_str());
     OHOS::ParseVideoExtraPath(jsonData2, config);
 
-    std::string jsonStr3 = "[\"abc\"]";
+    std::string jsonStr3 = "{\"1\":\"abc\"}";
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseVideoExtraPath(jsonData3, config);
-    EXPECT_EQ(config.videoExtPath.front(), "abc");
+    EXPECT_EQ(config.videoExtPath.size(), 1);
 }
 
 /**
@@ -156,5 +156,85 @@ HWTEST_F(UtilTest, UtilTest_004, TestSize.Level1)
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseBootDuration(jsonData3, duration);
     EXPECT_EQ(duration, 10);
+}
+
+/**
+ * @tc.name: UtilTest_005
+ * @tc.desc: Verify the IsFileExisted
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_005, TestSize.Level1)
+{
+    std::string filePath = "";
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(false, isFileExist);
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
+    isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(false, isFileExist);
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
+    isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(true, isFileExist);
+}
+
+/**
+ * @tc.name: UtilTest_006
+ * @tc.desc: Verify the ParseBootConfig
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_006, TestSize.Level1)
+{
+    std::string filePath = "";
+    std::vector<BootAnimationConfig> animationConfigs;
+    bool isMultiDisplay = false;
+    bool isCompatible = false;
+    int32_t duration = 60;
+    bool parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
+    EXPECT_EQ(false, parseResult);
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
+    parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
+    EXPECT_EQ(false, parseResult);
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
+    parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
+    EXPECT_EQ(true, parseResult);
+}
+
+/**
+ * @tc.name: UtilTest_007
+ * @tc.desc: Verify the ReadFile
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_007, TestSize.Level1)
+{
+    std::string filePath = "";
+    std::string content = OHOS::ReadFile(filePath);
+    EXPECT_EQ(0, content.length());
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
+    content = OHOS::ReadFile(filePath);
+    EXPECT_EQ(0, content.length());
+
+    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
+    content = OHOS::ReadFile(filePath);
+    EXPECT_NE(0, content.length());
+}
+
+/**
+ * @tc.name: UtilTest_008
+ * @tc.desc: Verify the GetHingeStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_008, TestSize.Level1)
+{
+    std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
+    std::string content = OHOS::GetHingeStatus();
+    if (OHOS::IsFileExisted(HING_STATUS_INFO_PATH)) {
+        EXPECT_NE(0, content.length());
+    } else {
+        EXPECT_EQ(0, content.length());
+    }
 }
 }

@@ -18,36 +18,22 @@
 #include <algorithm>
 #include <numeric>
 
-#include "include/core/SkMatrix.h"
 #include "drawing_painter_impl.h"
+#include "text_font_utils.h"
+#include "include/core/SkMatrix.h"
+#include "modules/skparagraph/include/Paragraph.h"
+#include "paragraph_builder_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "text/font_metrics.h"
-#include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-namespace skt = skia::textlayout;
 using PaintID = skt::ParagraphPainter::PaintID;
 
 namespace {
-FontWeight GetTxtFontWeight(int fontWeight)
-{
-    constexpr int minWeight = static_cast<int>(FontWeight::W100);
-    constexpr int maxWeight = static_cast<int>(FontWeight::W900);
-
-    int weight = std::clamp((fontWeight - 100) / 100, minWeight, maxWeight);
-    return static_cast<FontWeight>(weight);
-}
-
-FontStyle GetTxtFontStyle(RSFontStyle::Slant slant)
-{
-    return slant == RSFontStyle::Slant::UPRIGHT_SLANT ?
-        FontStyle::NORMAL : FontStyle::ITALIC;
-}
-
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 {
     std::vector<TextBox> boxes;
@@ -276,7 +262,7 @@ Range<size_t> ParagraphImpl::GetEllipsisTextRange()
     return Range<size_t>(range.start, range.end);
 }
 
-std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
+std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     std::vector<skt::LineMetrics> metrics;
@@ -302,8 +288,8 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.decorationColor = skStyle.getDecorationColor();
     txt.decorationStyle = static_cast<TextDecorationStyle>(skStyle.getDecorationStyle());
     txt.decorationThicknessMultiplier = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
-    txt.fontWeight = GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
-    txt.fontStyle = GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
+    txt.fontWeight = TextFontUtils::GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
+    txt.fontStyle = TextFontUtils::GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
 
     txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
 
@@ -322,7 +308,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
             txt.background = paints_[backgroundId];
         } else {
-            TEXT_LOGW("Invalid background Id:%{public}d", backgroundId);
+            TEXT_LOGW("Invalid background id %{public}d", backgroundId);
         }
     }
     if (skStyle.hasForeground()) {
@@ -330,7 +316,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
             txt.foreground = paints_[foregroundId];
         } else {
-            TEXT_LOGW("Invalid foreground Id:%{public}d", foregroundId);
+            TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }
     }
 
@@ -415,6 +401,31 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
             threadId_, caller);
         threadId_ = currenetThreadId;
     }
+}
+
+Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
+{
+    RecordDifferentPthreadCall("GeneratePaintRegion");
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    SkIRect skIRect = paragraph_->generatePaintRegion(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
+}
+
+bool ParagraphImpl::IsLalyoutDone()
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    return paragraph_->getState() >= skt::kFormatted ? true : false;
+}
+
+void ParagraphImpl::SetLayoutState(size_t state)
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 } // namespace SPText
 } // namespace Rosen

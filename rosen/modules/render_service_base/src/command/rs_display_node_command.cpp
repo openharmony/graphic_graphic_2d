@@ -73,6 +73,7 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
+        node->NotifyScreenNotSwitching();
     }
 }
 
@@ -114,7 +115,7 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
             auto& nodeMap = context.GetNodeMap();
             auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
             if (mirrorSourceNode == nullptr) {
-                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
+                ROSEN_LOGW("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
                     "mirrorNodeId:[%{public}" PRIu64 "]", id, mirrorNodeId);
                 return;
             }

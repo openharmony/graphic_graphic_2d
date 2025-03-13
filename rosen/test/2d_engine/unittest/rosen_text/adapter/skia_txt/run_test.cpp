@@ -154,5 +154,55 @@ HWTEST_F(OHDrawingRunTest, RunTest007, TestSize.Level1)
     EXPECT_EQ(runNull->GetOffsets(), std::vector<Drawing::Point>());
     EXPECT_EQ(runNull->GetPositions(), std::vector<Drawing::Point>());
 }
+
+/*
+ * @tc.name: RunTest007
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunTest008, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 5);
+    EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 5);
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 5);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, 10).size(), 5);
+}
+
+/*
+ * @tc.name: RunTest009
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetPositions(-1, 10), std::vector<Drawing::Point>());
+    EXPECT_EQ(runs_[0]->GetPositions(0, -1), std::vector<Drawing::Point>());
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(nullptr, &length);
+    EXPECT_EQ(length, 0);
+
+    runs_[0]->GetStringRange(&location, nullptr);
+    EXPECT_EQ(location, 0);
+
+    std::unique_ptr<OHOS::Rosen::Run> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
+    location = 10;
+    length = 10;
+    runNull->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(-1, 10), std::vector<uint64_t>());
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, -1), std::vector<uint64_t>());
+}
 } // namespace Rosen
 } // namespace OHOS

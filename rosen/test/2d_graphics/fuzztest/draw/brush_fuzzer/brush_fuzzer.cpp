@@ -26,6 +26,17 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+/**
+ * 依次调用 Brush 的下列接口以验证其在异常或边界输入下的稳定性和正确性：
+ * - GetColor4f()
+ * - GetColorSpace()
+ * - SetColor(...)
+ * - SetAlpha(...)
+ * - GetAlpha()
+ * - SetAlphaF(...)
+ * - GetAlphaF()
+ * - GetBlendMode()
+ */
 void BrushFuzzTestInner01(Brush& brush)
 {
     float redF = GetObject<float>();
@@ -53,6 +64,15 @@ void BrushFuzzTestInner01(Brush& brush)
     brush.GetBlendMode();
 }
 
+/**
+ * 该函数首先从模糊测试框架获取随机的 BlendMode 值，并调用以下接口对 Brush 进行设置和验证：
+ * - SetBlendMode(...)
+ * - SetFilter(...)
+ * - GetFilter()
+ * - IsAntiAlias()
+ * - SetAntiAlias(...)
+ * - Reset()
+ */
 void BrushFuzzTestInner02(Brush& brush)
 {
     BlendMode mode = GetObject<BlendMode>();
@@ -66,6 +86,11 @@ void BrushFuzzTestInner02(Brush& brush)
     brush.Reset();
 }
 
+/**
+ * 分别测试 Brush 不同形式的构造函数（Brush(brush)、Brush(color)、Brush(shaderEffect)、Brush(rgba)）。
+ * 随机生成 ColorQuad 并使用 ShaderEffect::CreateColorShader(...) 创建 ShaderEffect，然后通过
+ *    SetShaderEffect(...) 和 GetShaderEffect() 对 ShaderEffect 功能进行设置和验证。
+ */
 void BrushFuzzTestInner03(Brush& brush)
 {
     Brush brushOne = Brush(brush);
@@ -82,6 +107,14 @@ void BrushFuzzTestInner03(Brush& brush)
     if (brushOne != brushTwo) {}
 }
 
+/*
+ * 测试了以下 Brush 接口：
+ * 1. HasFilter()
+ * 2. SetBlender(...)
+ * 3. GetBlender()
+ * 4. CanComputeFastBounds()
+ * 5. ComputeFastBounds(...)
+ */
 void BrushFuzzTestInner04(Brush& brush)
 {
     brush.HasFilter();
@@ -100,9 +133,16 @@ void BrushFuzzTestInner04(Brush& brush)
         right,
         bottom,
     };
-    brush.ComputeFastBounds(rect, &rect);
+    RectF rect2 {GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>()};
+    brush.ComputeFastBounds(rect, &rect2);
 }
 
+/**
+ * 该函数会测试 Brush 的以下接口：
+ * - AsBlendMode()
+ * - Reset()
+ * - SetLooper(...) / GetLooper()（这里通过 BlurDrawLooper）
+ */
 void BrushFuzzTestInner05(Brush& brush)
 {
     brush.AsBlendMode();

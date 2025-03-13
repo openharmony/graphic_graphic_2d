@@ -17,7 +17,6 @@
 #include "draw/path.h"
 #include "utils/region.h"
 #include "path_napi/js_path.h"
-#include "js_common.h"
 #include "native_value.h"
 #include "js_drawing_utils.h"
 

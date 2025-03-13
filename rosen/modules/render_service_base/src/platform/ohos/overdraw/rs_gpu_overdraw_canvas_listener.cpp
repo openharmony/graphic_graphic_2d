@@ -27,6 +27,7 @@ namespace Rosen {
 RSGPUOverdrawCanvasListener::RSGPUOverdrawCanvasListener(Drawing::Canvas& canvas)
     : RSCanvasListener(canvas)
 {
+#ifdef RS_ENABLE_GPU
     auto gpuContext = canvas.GetGPUContext();
     if (gpuContext == nullptr) {
         ROSEN_LOGE("RSGPUOverdrawCanvasListener, construction failed: need gpu canvas");
@@ -45,6 +46,7 @@ RSGPUOverdrawCanvasListener::RSGPUOverdrawCanvasListener(Drawing::Canvas& canvas
     surface->Bind(image);
     listenedSurface_ = surface;
     overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(surface->GetCanvas());
+#endif
 }
 
 RSGPUOverdrawCanvasListener::~RSGPUOverdrawCanvasListener()

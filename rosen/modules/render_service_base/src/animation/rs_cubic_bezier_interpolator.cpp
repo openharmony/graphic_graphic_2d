@@ -50,37 +50,6 @@ float RSCubicBezierInterpolator::InterpolateImpl(float input) const
     return GetCubicBezierValue(SEARCH_STEP * BinarySearch(input), controlY1_, controlY2_);
 }
 
-bool RSCubicBezierInterpolator::Marshalling(Parcel& parcel) const
-{
-    if (!parcel.WriteUint16(InterpolatorType::CUBIC_BEZIER)) {
-        return false;
-    }
-    if (!parcel.WriteUint64(id_)) {
-        return false;
-    }
-    if (!(parcel.WriteFloat(controlX1_) && parcel.WriteFloat(controlY1_) && parcel.WriteFloat(controlX2_) &&
-            parcel.WriteFloat(controlY2_))) {
-        return false;
-    }
-    return true;
-}
-
-RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parcel)
-{
-    auto id = parcel.ReadUint64();
-    if (id == 0) {
-        return nullptr;
-    }
-    float x1 = 0;
-    float y1 = 0;
-    float x2 = 0;
-    float y2 = 0;
-    if (!(parcel.ReadFloat(x1) && parcel.ReadFloat(y1) && parcel.ReadFloat(x2) && parcel.ReadFloat(y2))) {
-        return nullptr;
-    }
-    return new RSCubicBezierInterpolator(id, x1, y1, x2, y2);
-}
-
 int RSCubicBezierInterpolator::BinarySearch(float key) const
 {
     int low = 0;

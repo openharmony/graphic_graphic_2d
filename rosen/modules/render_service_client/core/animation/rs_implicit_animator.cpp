@@ -115,17 +115,33 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
     auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
     // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
     // execute it asynchronously, in order to avoid timing issues.
-    if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
-        ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
-                   "callback asynchronously");
-        RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+    if (!rsUIContext_.expired()) {
+        auto rsUIContext = rsUIContext_.lock();
+        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
+            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                       "callback asynchronously");
+            rsUIContext->PostTask([finishCallback]() { finishCallback->Execute(); });
+        } else {
+            // we are the only one who holds the finish callback, if the callback is timing sensitive, we need to create
+            // a delay task, in order to execute it on the right time.
+            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                       "callback on delay duration");
+            rsUIContext->PostDelayTask(
+                [finishCallback]() { finishCallback->Execute(); }, static_cast<uint32_t>(protocol.GetDuration()));
+        }
     } else {
-        // we are the only one who holds the finish callback, if the callback is timing sensitive, we need to create
-        // a delay task, in order to execute it on the right time.
-        ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
-                   "callback on delay duration");
-        RSUIDirector::PostDelayTask(
-            [finishCallback]() { finishCallback->Execute(); }, static_cast<uint32_t>(protocol.GetDuration()));
+        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
+            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                       "callback asynchronously");
+            RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+        } else {
+            // we are the only one who holds the finish callback, if the callback is timing sensitive, we need to create
+            // a delay task, in order to execute it on the right time.
+            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
+                       "callback on delay duration");
+            RSUIDirector::PostDelayTask(
+                [finishCallback]() { finishCallback->Execute(); }, static_cast<uint32_t>(protocol.GetDuration()));
+        }
     }
 }
 
@@ -138,7 +154,8 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
 
     // Special case: if implicit animation param type is CANCEL, we need to cancel all implicit animations
     if (implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
-        std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
+        std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->
+        SyncProperties(rsUIContext_.lock());
     }
 
     const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
@@ -150,10 +167,14 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         CloseImplicitAnimationInner();
         return {};
     }
+    bool hasUiAnimation = false;
+
+    auto rsUIContext = rsUIContext_.lock();
     std::vector<std::shared_ptr<RSAnimation>> resultAnimations;
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
     for (const auto& [animationInfo, keyframeAnimation] : currentKeyframeAnimations) {
-        auto target = RSNodeMap::Instance().GetNode<RSNode>(animationInfo.first);
+        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(animationInfo.first) :
+            RSNodeMap::Instance().GetNode<RSNode>(animationInfo.first);
         if (target == nullptr) {
             ROSEN_LOGE("Failed to start implicit keyframe animation[%{public}" PRIu64 "], target is null!",
                 keyframeAnimation->GetId());
@@ -169,6 +190,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         }
         target->AddAnimation(keyframeAnimation, !isAddInteractiveAnimator_);
         resultAnimations.emplace_back(keyframeAnimation);
+        hasUiAnimation = hasUiAnimation || keyframeAnimation->IsUiAnimation();
     }
 
     for (const auto& [animation, nodeId] : currentAnimations) {
@@ -177,10 +199,58 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         if (isAddInteractiveAnimator_) {
             interactiveImplicitAnimations_.top().emplace_back(animation, nodeId);
         }
+        hasUiAnimation = hasUiAnimation || animation->IsUiAnimation();
     }
 
+    if (!hasUiAnimation) {
+        ProcessAnimationFinishCallbackGuaranteeTask();
+    }
     CloseImplicitAnimationInner();
     return resultAnimations;
+}
+
+void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
+{
+    constexpr float SECOND_TO_MILLISECOND = 1e3;
+    constexpr float MIN_DURATION = 1000.0f;
+    constexpr int MULTIPLES_DURATION = 2;
+    constexpr float BLEND_DURATION = 1.0f;
+
+    const auto& [protocol, curve, finishCallback, unused] = globalImplicitParams_.top();
+    if (finishCallback == nullptr || protocol.GetRepeatCount() == -1) {
+        return;
+    }
+
+    // estimate duration
+    float duration = 0;
+    if (curve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        // Interpolating curves
+        duration = protocol.GetDuration() * protocol.GetRepeatCount() + protocol.GetStartDelay();
+    } else if (const auto& params = curve.springParams_) {
+        // Spring curves
+        auto model = std::make_unique<RSSpringModel<float>>(params->response_, params->dampingRatio_, BLEND_DURATION,
+            params->initialVelocity_, params->minimumAmplitudeRatio_);
+        duration = std::lroundf(model->EstimateDuration() * SECOND_TO_MILLISECOND) * protocol.GetRepeatCount() +
+            protocol.GetStartDelay();
+    }
+    duration *= RSSystemProperties::GetAnimationScale();
+    if (duration < EPSILON) {
+        return;
+    }
+    auto callbackSafetyNetLambda = [weakCallback = std::weak_ptr<AnimationFinishCallback>(finishCallback),
+        type = curve.type_, duration]() -> void {
+        auto callback = weakCallback.lock();
+        if (callback && callback->IsValid() && !callback->HasAnimationBeenPaused()) {
+            ROSEN_LOGW("Animation finish callback is not executed in estimated time. params : type[%{public}d] "
+                       "duration[%{public}f]",
+                type, duration);
+            callback->Execute();
+        }
+    };
+    auto estimateDuration = std::max(duration * MULTIPLES_DURATION, MIN_DURATION);
+    // Double-check the finish callback is called by the timing when the estimateDuration. This is a safety net
+    // to ensure that the callback is executed even if the timing is not triggered due to some reason.
+    RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
 }
 
 bool RSImplicitAnimator::CloseImplicitCancelAnimation()
@@ -195,7 +265,8 @@ bool RSImplicitAnimator::CloseImplicitCancelAnimation()
     }
 
     bool ret =
-        std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
+        std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->
+        SyncProperties(rsUIContext_.lock());
     const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
     ProcessEmptyAnimations(finishCallback);
     CloseImplicitAnimationInner();
@@ -324,7 +395,12 @@ void RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation()
         return;
     }
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
-    totalDuration += currentDuration;
+    if (totalDuration > INT32_MAX - currentDuration) {
+        ROSEN_LOGD("RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation, totalDuration overflow!");
+        totalDuration = INT32_MAX;
+    } else {
+        totalDuration += currentDuration;
+    }
     currentDuration = 0;
     PopImplicitParam();
 }

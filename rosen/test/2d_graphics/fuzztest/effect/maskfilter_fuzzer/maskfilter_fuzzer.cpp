@@ -18,12 +18,14 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/mask_filter.h"
+#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 constexpr size_t BLURTYPE_SIZE = 4;
 constexpr size_t FILTERTYPE_SIZE = 2;
+constexpr size_t MAX_SIZE = 5000;
 
 bool MaskFilterFuzzTest(const uint8_t* data, size_t size)
 {
@@ -47,7 +49,19 @@ bool MaskFilterFuzzTest(const uint8_t* data, size_t size)
         static_cast<BlurType>(blurType % BLURTYPE_SIZE), sigma, respectCTM);
     MaskFilter(static_cast<MaskFilter::FilterType>(t % FILTERTYPE_SIZE));
     maskFilter->Serialize();
-    maskFilter->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    maskFilter->Deserialize(dataVal);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
     return true;
 }
 } // namespace Drawing

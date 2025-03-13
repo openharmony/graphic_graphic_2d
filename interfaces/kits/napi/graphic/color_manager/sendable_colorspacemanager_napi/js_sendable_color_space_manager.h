@@ -36,4 +36,4 @@ private:
 } // namespace ColorManager
 } // namespace OHOS
 
-#endif // OHOS_JS_COLOR_SPACE_MANAGER_H
+#endif // OHOS_JS_SENDABLE_COLOR_SPACE_MANAGER_H

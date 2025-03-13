@@ -34,11 +34,6 @@ static const Brush& CastToBrush(const OH_Drawing_Brush& cBrush)
     return reinterpret_cast<const Brush&>(cBrush);
 }
 
-static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
-{
-    return reinterpret_cast<ShaderEffect*>(cShaderEffect);
-}
-
 static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
 {
     return reinterpret_cast<const Filter&>(cFilter);
@@ -140,7 +135,8 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush* cBrush, OH_Drawing_Shader
         brush->SetShaderEffect(nullptr);
         return;
     }
-    brush->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
+    auto shaderEffectHandle = Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(cShaderEffect);
+    brush->SetShaderEffect(shaderEffectHandle->value);
 }
 
 void OH_Drawing_BrushSetShadowLayer(OH_Drawing_Brush* cBrush, OH_Drawing_ShadowLayer* cShadowLayer)

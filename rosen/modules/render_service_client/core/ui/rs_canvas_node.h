@@ -34,7 +34,8 @@ public:
 
     ~RSCanvasNode() override;
 
-    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     ExtendRecordingCanvas* BeginRecording(int width, int height);
     bool IsRecording() const;
@@ -50,8 +51,21 @@ public:
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     void CheckThread();
+
+    /**
+     * @brief Set linked node id in PC window resize scenario.
+     * @param rootNodeId source RSRootNode id.
+     */
+    void SetLinkedRootNodeId(NodeId rootNodeId);
+    NodeId GetLinkedRootNodeId();
+
+    bool Marshalling(Parcel& parcel) const;
+    static SharedPtr Unmarshalling(Parcel& parcel);
 protected:
-    RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    RSCanvasNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasNode(const RSCanvasNode&) = delete;
     RSCanvasNode(const RSCanvasNode&&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&) = delete;
@@ -61,7 +75,6 @@ protected:
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
     bool recordingUpdated_ = false;
-    bool hdrPresent_ = false;
     mutable std::mutex mutex_;
 
     friend class RSUIDirector;
@@ -69,9 +82,14 @@ private:
     friend class RSPathAnimation;
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
+    friend class RSNodeMapV2;
     void OnBoundsSizeChanged() const override;
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
+    void RegisterNodeMap() override;
     pid_t tid_;
+
+    // [Attention] Only used in PC window resize scene now
+    NodeId linkedRootNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

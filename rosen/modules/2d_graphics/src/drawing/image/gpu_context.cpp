@@ -106,6 +106,21 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
+void GPUContext::ReclaimResources()
+{
+    impl_->ReclaimResources();
+}
+
+void GPUContext::DumpAllResource(std::stringstream& dump) const
+{
+    impl_->DumpAllResource(dump);
+}
+
+void GPUContext::DumpAllCoreTrace(std::stringstream& dump) const
+{
+    impl_->DumpAllCoreTrace(dump);
+}
+
 void GPUContext::DumpGpuStats(std::string& out) const
 {
     impl_->DumpGpuStats(out);
@@ -129,6 +144,11 @@ void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GP
 void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
 {
     impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
+void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+{
+    impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
 
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
@@ -213,9 +233,9 @@ void GPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     impl_->SetGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
-    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void GPUContext::FlushGpuMemoryInWaitQueue()
@@ -228,6 +248,15 @@ void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void
     impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
 }
 
+void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
+{
+    filePath_ = filePath;
+}
+
+std::string GPUContextOptions::GetStoreCachePath() const
+{
+    return filePath_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -64,7 +64,15 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
+
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
@@ -75,11 +83,11 @@ public:
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
- 
+
     int32_t SetPointerColorInversionEnabled(bool enable);
- 
+
     int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
- 
+
     int32_t UnRegisterPointerLuminanceChangeCallback();
 #endif
 
@@ -88,8 +96,14 @@ public:
     // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
+    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
+
+    bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -98,7 +112,14 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
+        bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+
+    bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
+
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
@@ -112,6 +133,9 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
+    // width and height should be greater than physical width and height
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 #endif // !ROSEN_ARKUI_X
 
@@ -126,6 +150,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -148,7 +174,9 @@ public:
 
     bool GetShowRefreshRateEnabled();
 
-    void SetShowRefreshRateEnabled(bool enable);
+    void SetShowRefreshRateEnabled(bool enabled, int32_t type = 1);
+
+    uint32_t GetRealtimeRefreshRate(ScreenId id);
 
     std::string GetRefreshInfo(pid_t pid);
 
@@ -199,12 +227,16 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
+
     /* skipFrameInterval : decide how many frames apart to refresh a frame,
        DEFAULT_SKIP_FRAME_INTERVAL means refresh each frame,
        change screen refresh rate finally */
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
+
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
@@ -214,7 +246,8 @@ public:
         const std::string& name,
         uint64_t id,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
 
@@ -233,10 +266,20 @@ public:
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
+
     void SetAppWindowNum(uint32_t num);
 
-    // Set the system overload Animated Scenes to RS for special load shedding
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+    /*
+    * @brief Set the system overload Animated Scenes to RS for special load shedding
+    * @param systemAnimatedScenes indicates the system animation scene
+    * @param isRegularAnimation indicates irregular windows in the animation scene
+    * @return true if succeed, otherwise false
+    */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
@@ -244,15 +287,20 @@ public:
 
     void ReportJankStats();
 
-    void NotifyLightFactorStatus(bool isSafe);
+    void NotifyLightFactorStatus(int32_t lightFactorStatus);
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+
+    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
+
+    void NotifyHgmConfigEvent(const std::string &eventName, bool state);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -262,7 +310,9 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
+    void ReportRsSceneJankStart(AppInfo info);
+
+    void ReportRsSceneJankEnd(AppInfo info);
 
     void EnableCacheForRotation();
 
@@ -272,6 +322,8 @@ public:
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
@@ -280,14 +332,17 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
+    int64_t GetHdrOnDuration() const;
+
     void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
-    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
@@ -302,6 +357,22 @@ public:
 
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    void NotifyScreenSwitched();
+
+    void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
+
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    int32_t SetOverlayDisplayMode(int32_t mode);
+#endif
+
+    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

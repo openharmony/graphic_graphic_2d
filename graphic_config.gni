@@ -30,7 +30,7 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
-  graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
@@ -43,12 +43,14 @@ declare_args() {
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
-  graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
   graphic_2d_feature_enable_rspipeline = true
   graphic_2d_feature_enable_prefetch = true
+  graphic_2d_feature_bootanimation_ext_enable = "default"
+  graphic_2d_support_access_token = true
+  graphic_2d_feature_overlay_display_enable = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -67,7 +69,6 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "tablet" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
-  graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
 }
 
@@ -91,10 +92,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
-    if (graphic_2d_feature_enable_ddgr) {
-      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
-      import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
-    }
   }
   if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [
@@ -110,12 +107,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 
-  if (graphic_2d_feature_enable_recording_dcl) {
-    rs_enable_recording_dcl = true
-    gpu_defines += [ "ENABLE_RECORDING_DCL" ]
-  } else {
-    rs_enable_recording_dcl = false
+  if (graphic_2d_feature_rs_enable_profiler) {
+    gpu_defines += [ "SKP_RECORDING_ENABLED" ]
   }
+
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true
@@ -125,7 +120,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
     libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
   }
 } else {
-  gpu_defines = [ "ACE_DISABLE_GL" ]
+  gpu_defines += [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
@@ -161,12 +156,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_dvsync = true
+  graphic_2d_feature_enable_sdf = true
   if (graphic_2d_feature_product == "phone") {
     graphic_2d_feature_enable_chipset_vsync = true
   }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
   graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_chipset_vsync = false
 }
 
@@ -180,7 +177,7 @@ if (graphic_2d_feature_parallel_render_enable) {
 }
 
 if (graphic_2d_feature_enable_dvsync) {
-  gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+  gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
 }
 if (graphic_2d_feature_enable_chipset_vsync) {
   gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
@@ -193,11 +190,15 @@ if (graphic_2d_feature_tp_switch_enbale) {
   tp_defines = [ "TP_FEATURE_ENABLE" ]
 }
 
+if (graphic_2d_feature_overlay_display_enable) {
+  gpu_defines += [ "RS_ENABLE_OVERLAY_DISPLAY" ]
+}
+
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
 
 check_ddgr_ext_file_args = [
   "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
+  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/config.gni"),
 ]
 check_igraphics_core_file_args = [
   "--filename",
@@ -222,6 +223,11 @@ check_broker_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
 ]
+check_math_tools_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
+]
 check_hgm_ext_file_args = [
   "--filename",
   rebase_path(
@@ -232,7 +238,14 @@ if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
                 "string") == "True") {
   ddgr_ext_configs = {
-    import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
+    import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+  }
+  if (graphic_2d_feature_ace_enable_gpu && graphic_2d_feature_enable_vulkan) {
+    import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+    if (defined(graphic_2d_ext_feature_enable_ddgr) &&
+        graphic_2d_ext_feature_enable_ddgr) {
+      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+    }
   }
 }
 if (exec_script(check_graphic_ext_file_script,
@@ -281,6 +294,17 @@ if (exec_script(check_graphic_ext_file_script,
   graphic_2d_hgm_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
+  }
+}
+
+graphic_2d_math_tools_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_math_tools_ext_file_args,
+                "string") == "True") {
+  graphic_2d_math_tools_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
   }
 }
 
@@ -365,7 +389,6 @@ adapters = exec_script("$ace_root/build/search.py",
                        "list lines")
 if (defined(use_clang_coverage) && use_clang_coverage) {
   graphic_2d_feature_rs_enable_profiler = false
-  graphic_2d_feature_enable_recording_dcl = false
 }
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -374,4 +397,9 @@ if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
 
 if (defined(graphic_2d_feature_enable_prefetch)) {
   gpu_defines += [ "RS_ENABLE_PREFETCH" ]
+}
+
+if (defined(global_parts_info) &&
+    !defined(global_parts_info.security_access_token)) {
+  graphic_2d_support_access_token = false
 }

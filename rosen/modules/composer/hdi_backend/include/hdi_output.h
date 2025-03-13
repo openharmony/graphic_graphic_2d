@@ -32,7 +32,6 @@ namespace OHOS {
 namespace Rosen {
 
 using LayerPtr = std::shared_ptr<HdiLayer>;
-static constexpr uint32_t LAYER_COMPOSITION_CAPACITY_INVALID = 0;
 
 // dump layer
 struct LayerDumpInfo {
@@ -52,8 +51,6 @@ public:
     void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
     void SetOutputDamages(const std::vector<GraphicIRect> &outputDamages);
     uint32_t GetScreenId() const;
-    void SetLayerCompCapacity(uint32_t layerCompositionCapacity);
-    uint32_t GetLayerCompCapacity() const;
     // only used when composer_host dead
     void ResetDevice()
     {
@@ -76,8 +73,6 @@ public:
     void DumpFps(std::string &result, const std::string &arg) const;
     void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
-    void SetDirectClientCompEnableStatus(bool enableStatus);
-    bool GetDirectClientCompEnableStatus() const;
     GSError ClearFrameBuffer();
 
     RosenError InitDevice();
@@ -98,6 +93,15 @@ public:
     int32_t GetBufferCacheSize();
     void SetVsyncSamplerEnabled(bool enabled);
     bool GetVsyncSamplerEnabled();
+    void SetProtectedFrameBufferState(bool state)
+    {
+        isProtectedBufferAllocated_.store(state);
+    }
+    bool GetProtectedFrameBufferState()
+    {
+        return isProtectedBufferAllocated_.load();
+    }
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
 private:
     HdiDevice *device_ = nullptr;
@@ -118,7 +122,6 @@ private:
     // surface unique id -- layer ptr
     std::unordered_map<uint64_t, LayerPtr> surfaceIdMap_;
     uint32_t screenId_;
-    uint32_t layerCompCapacity_ = LAYER_COMPOSITION_CAPACITY_INVALID;
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;
 
@@ -133,6 +136,8 @@ private:
     bool arsrPreEnabled_ = false;
     bool arsrPreEnabledForVm_ = false;
     std::string vmArsrWhiteList_ = "";
+    // Protected framebuffer is allocated in advance
+    std::atomic<bool> isProtectedBufferAllocated_ = false;
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
@@ -151,7 +156,6 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
-    std::atomic<bool> enableVsyncSample_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

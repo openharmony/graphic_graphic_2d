@@ -37,9 +37,11 @@ public:
     static napi_value CreateJsTypeface(napi_env env, const std::shared_ptr<Typeface> typeface);
 
     static napi_value GetFamilyName(napi_env env, napi_callback_info info);
+    static napi_value ConvertTypefaceToJsValue(napi_env env, JsTypeface* typeface);
     static napi_value MakeFromFile(napi_env env, napi_callback_info info);
+    static napi_value MakeFromRawFile(napi_env env, napi_callback_info info);
     // Default typeface does not support chinese characters, needs to load chinese character ttf file.
-    static std::shared_ptr<Typeface> LoadZhCnTypeface();
+    static std::shared_ptr<Typeface> GetZhCnTypeface();
 
     std::shared_ptr<Typeface> GetTypeface();
 

@@ -94,6 +94,42 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateMaterialStyle003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle003, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::AVERAGE;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_BACKGROUND_XLARGE_DARK;
+
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+    EXPECT_NE(rsMaterialFilter.GetImageFilter(), nullptr);
+
+    rsMaterialFilter.GetDescription();
+    rsMaterialFilter.PreProcess(nullptr);
+
+    auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
+    EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
+    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Multiply(1.0f);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = rsMaterialFilter.Negate();
+    EXPECT_TRUE(filter != nullptr);
+
+    auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
+    EXPECT_TRUE(result != nullptr);
+}
+
+/**
  * @tc.name: RadiusVp2SigmaTest001
  * @tc.desc: Verify function RadiusVp2Sigma
  * @tc.type:FUNC
@@ -103,6 +139,18 @@ HWTEST_F(RSMaterialFilterTest, RadiusVp2SigmaTest001, TestSize.Level1)
     MaterialParam materialParam;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
     EXPECT_EQ(rsMaterialFilter->RadiusVp2Sigma(0.f, 0.f), 0.0f);
+}
+
+/**
+ * @tc.name: RadiusVp2SigmaTest002
+ * @tc.desc: Verify function RadiusVp2Sigma
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, RadiusVp2SigmaTest002, TestSize.Level1)
+{
+    MaterialParam materialParam;
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+    EXPECT_EQ(rsMaterialFilter->RadiusVp2Sigma(1.f, 1.f), BLUR_SIGMA_SCALE + 0.5f);
 }
 
 /**
@@ -119,6 +167,35 @@ HWTEST_F(RSMaterialFilterTest, GetDescriptionTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDescriptionTest002
+ * @tc.desc: Verify function GetDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDescriptionTest002, TestSize.Level1)
+{
+    // float radius 1.0 ,float saturation 1.0 ,float brightness 1.0 ,RSColor maskColor 0xffffffff;
+    MaterialParam materialParam { 1.0, 1.0, 1.0, RSColor(0xffffffff) };
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+    EXPECT_EQ(rsMaterialFilter->GetDescription(),
+        "RSMaterialFilter blur radius is " + std::to_string(materialParam.radius) + " sigma");
+}
+
+/**
+ * @tc.name: GetDescriptionTest003
+ * @tc.desc: Verify function GetDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDescriptionTest003, TestSize.Level1)
+{
+    // float radius 1.0 ,float saturation 1.0 ,float brightness 1.0 ,RSColor maskColor 0xffffffff;
+    MaterialParam materialParam { 1.0, 1.0, 1.0, RSColor(0xffffffff) };
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::FASTAVERAGE);
+    EXPECT_EQ(rsMaterialFilter->GetDescription(),
+        "RSMaterialFilter blur radius is " + std::to_string(materialParam.radius) + " sigma");
+}
+
+
+/**
  * @tc.name: ComposeTest001
  * @tc.desc: Verify function Compose
  * @tc.type:FUNC
@@ -130,6 +207,24 @@ HWTEST_F(RSMaterialFilterTest, ComposeTest001, TestSize.Level1)
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
     EXPECT_EQ(rsMaterialFilter->Compose(other), nullptr);
 }
+
+/**
+ * @tc.name: ComposeTest002
+ * @tc.desc: Verify function Compose
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, ComposeTest002, TestSize.Level1)
+{
+    // float radius 1.0 ,float saturation 1.0 ,float brightness 1.0 ,RSColor maskColor 0xffffffff;
+    MaterialParam materialParam { 1.0, 1.0, 1.0, RSColor(0xffffffff) };
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+
+    MaterialParam materialParam2 { 2.0, 1.0, 1.0, RSColor(0xff0000ff) };
+    auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(materialParam2, BLUR_COLOR_MODE::DEFAULT);
+
+    EXPECT_NE(rsMaterialFilter->Compose(rsMaterialFilter2), rsMaterialFilter);
+}
+
 
 /**
  * @tc.name: GetColorFilterTest001
@@ -226,6 +321,19 @@ HWTEST_F(RSMaterialFilterTest, IsValidTest001, TestSize.Level1)
     materialParam.radius = 1.0f;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
     EXPECT_EQ(rsMaterialFilter->IsValid(), true);
+}
+
+/**
+ * @tc.name: IsValidTest002
+ * @tc.desc: Verify function IsValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsValidTest002, TestSize.Level1)
+{
+    MaterialParam materialParam;
+    materialParam.radius = 0.1f;
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_EQ(rsMaterialFilter->IsValid(), false);
 }
 
 /**
@@ -352,6 +460,20 @@ HWTEST_F(RSMaterialFilterTest, CanSkipFrameTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanSkipFrameTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, CanSkipFrameTest002, TestSize.Level1)
+{
+    // float radius 1.0 ,float saturation 1.0 ,float brightness 1.0 ,RSColor maskColor 0xffffffff;
+    MaterialParam materialParam { 1.0, 1.0, 1.0, RSColor(0xffffffff) };
+    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+    auto res = rsMaterialFilter->CanSkipFrame();
+    EXPECT_FALSE(res);
+}
+
+/**
  * @tc.name: IsNearEqual001
  * @tc.desc: Verify function IsNearEqual
  * @tc.type:FUNC
@@ -415,4 +537,73 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
     ASSERT_EQ(rsMaterialFilter.colorMode_, mode);
     ASSERT_EQ(rsMaterialFilter.type_, RSDrawingFilterOriginal::FilterType::MATERIAL);
 }
+
+/**
+ * @tc.name: IsEqual001
+ * @tc.desc: Verify function IsEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsEqual001, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    std::shared_ptr<RSFilter> rsMaterialFilterOhter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->IsEqual(rsMaterialFilterOhter));
+}
+
+/**
+ * @tc.name: IsEqual002
+ * @tc.desc: Verify function IsEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsEqual002, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->IsEqual(nullptr));
+}
+
+/**
+ * @tc.name: GetDetailedDescription002
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDetailedDescription002, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor(255) };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->GetDetailedDescription().find("RSMaterialFilterBlur, radius: ")!=std::string::npos);
+}
+
+/**
+ * @tc.name: GetDetailedDescription003
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDetailedDescription003, TestSize.Level1)
+{
+    float dipScale = 1.0f;
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::AVERAGE;
+    float ratio = 1.0f;
+    MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
+    RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
+
+    EXPECT_EQ(rsMaterialFilter.GetDetailedDescription(),
+        "RSMaterialFilterBlur, radius: 29.367500 sigma, saturation: 2.150000, brightness: 1.000000, greyCoef1: "
+        "0.000000, greyCoef2: 0.000000, color: D11F1F1F, colorMode: 1");
+}
+
+
 } // namespace OHOS::Rosen

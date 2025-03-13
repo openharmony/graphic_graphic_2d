@@ -68,6 +68,7 @@ void RSUIDirectorTest::TearDown() {}
 HWTEST_F(RSUIDirectorTest, SetTimeStamp001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SetTimeStamp(g_normalUInt64_1, "test");
 }
 
@@ -79,6 +80,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetTimeStamp002, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SetTimeStamp(-std::numeric_limits<uint64_t>::max(), "test");
 }
 
@@ -90,6 +92,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp002, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetTimeStamp003, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SetTimeStamp(std::numeric_limits<int64_t>::min(), "test");
 }
 
@@ -101,6 +104,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp003, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
@@ -114,6 +118,7 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SetRSSurfaceNode(nullptr);
 }
 
@@ -142,6 +147,7 @@ HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
 }
 
@@ -185,6 +191,7 @@ HWTEST_F(RSUIDirectorTest, StartTextureExport001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     director->SendMessages();
 }
 
@@ -199,6 +206,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
      * @tc.steps: step1. set parentSize, childSize and alignment
      */
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     RSNode::SharedPtr testNode = RSCanvasNode::Create();
     director->SetRoot(testNode->GetId());
     director->SetRoot(testNode->GetId());
@@ -223,6 +231,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     child1->AddChild(child3, 1);
 
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
 
     director->SetRoot(rootNode->GetId());
 
@@ -247,6 +256,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
      * @tc.steps: step1. set parentSize, childSize and alignment
      */
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     std::string cacheDir = "/data/log";
     director->SetAbilityBGAlpha(0);
     director->SetContainerWindow(true, rrect);
@@ -270,6 +280,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     NodeId nodeId = 10;
     director->SetRoot(nodeId);
     director->Destroy();
@@ -283,6 +294,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetRootTest, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
     NodeId nodeId = 10;
     director->SetRoot(nodeId);
     director->SetRoot(nodeId);
@@ -531,8 +543,9 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
     // for test
     NodeId nodeId = 0;
     AnimationId animId = 0;
+    uint64_t token = 0;
     AnimationCallbackEvent event = REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, event);
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
 }
 
 /**
@@ -643,5 +656,18 @@ HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
     director->SendMessages();
     uint32_t index = director->GetIndex();
     EXPECT_TRUE(index != 0);
+}
+
+/**
+ * @tc.name: HasFirstFrameAnimationTest
+ * @tc.desc: test HasFirstFrameAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool res = director->HasFirstFrameAnimation();
+    ASSERT_FALSE(res);
 }
 } // namespace OHOS::Rosen

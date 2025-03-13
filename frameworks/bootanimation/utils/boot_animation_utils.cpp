@@ -20,15 +20,15 @@
 namespace OHOS {
 bool BootAnimationUtils::GetBootAnimationSoundEnabled()
 {
-    static bool soundEnabled =
+    bool soundEnabled =
         std::atoi((system::GetParameter("persist.graphic.bootsound.enabled", "1")).c_str()) != 0;
-    LOGI("BootAnimationUtils::GetBootAnimationSoundEnabled is %d", soundEnabled);
+    LOGI("BootAnimationUtils::GetBootAnimationSoundEnabled is %{public}d", soundEnabled);
     return soundEnabled;
 }
 
 void BootAnimationUtils::SetBootAnimationSoundEnabled(bool isEnabled)
 {
-    LOGI("BootAnimationUtils::SetBootAnimationSoundEnabled is %d", isEnabled);
+    LOGI("BootAnimationUtils::SetBootAnimationSoundEnabled is %{public}d", isEnabled);
     system::SetParameter("persist.graphic.bootsound.enabled", isEnabled ? "1" : "0");
 }
 } // namespace OHOS

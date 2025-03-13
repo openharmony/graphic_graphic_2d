@@ -57,6 +57,7 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
     if (!skRuntimeShaderBuilder_ || !grContext) {
         return nullptr;
     }
+#ifdef RS_ENABLE_GPU
     sk_sp<SkImage> skImage = skRuntimeShaderBuilder_->makeImage(
         grContext->GetImpl<SkiaGPUContext>()->GetGrContext().get(),
         localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr,
@@ -65,6 +66,9 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
     image->GetImpl<SkiaImage>()->SetSkImage(skImage);
 
     return image;
+#else
+    return {};
+#endif
 }
 
 void SkiaRuntimeShaderBuilder::SetChild(const std::string& name, std::shared_ptr<ShaderEffect> shader)

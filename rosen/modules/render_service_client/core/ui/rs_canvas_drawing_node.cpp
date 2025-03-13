@@ -23,54 +23,57 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "ui/rs_ui_context.h"
 
 namespace OHOS {
 namespace Rosen {
-RSCanvasDrawingNode::RSCanvasDrawingNode(bool isRenderServiceNode, bool isTextureExportNode)
-    : RSCanvasNode(isRenderServiceNode, isTextureExportNode) {}
+RSCanvasDrawingNode::RSCanvasDrawingNode(
+    bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
+    : RSCanvasNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
+{}
 
 RSCanvasDrawingNode::~RSCanvasDrawingNode() {}
 
-RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
+RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
+    bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
 {
-    SharedPtr node(new RSCanvasDrawingNode(isRenderServiceNode, isTextureExportNode));
-    RSNodeMap::MutableInstance().RegisterNode(node);
-
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (!transactionProxy) {
-        return node;
+    SharedPtr node(new RSCanvasDrawingNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
+    if (rsUIContext != nullptr) {
+        rsUIContext->GetMutableNodeMap().RegisterNode(node);
+    } else {
+        RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode);
-    transactionProxy->AddCommand(command, node->IsRenderServiceNode());
+    node->AddCommand(command, node->IsRenderServiceNode());
     return node;
 }
 
 bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (!transactionProxy) {
-        return false;
-    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId(), width, height);
-    transactionProxy->AddCommand(command, IsRenderServiceNode());
-    return true;
+    if (AddCommand(command, IsRenderServiceNode())) {
+        return true;
+    }
+    return false;
 }
 
-void RSCanvasDrawingNode::CreateTextureExportRenderNodeInRT()
+void RSCanvasDrawingNode::CreateRenderNodeForTextureExportSwitch()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), true);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, false);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_);
+    if (IsRenderServiceNode()) {
+        hasCreateRenderNodeInRS_ = true;
+    } else {
+        hasCreateRenderNodeInRT_ = true;
     }
+    AddCommand(command, IsRenderServiceNode());
 }
 
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-    if (IsUniRenderEnabled()) {
+    if (IsRenderServiceNode()) {
         auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
         if (renderServiceClient == nullptr) {
@@ -109,6 +112,16 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     return true;
 }
 
+void RSCanvasDrawingNode::RegisterNodeMap()
+{
+    auto rsContext = GetRSUIContext();
+    if (rsContext == nullptr) {
+        return;
+    }
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterNode(shared_from_this());
+}
+
 bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
@@ -116,7 +129,7 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
         return false;
     }
-    if (IsUniRenderEnabled()) {
+    if (IsRenderServiceNode()) {
         auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
         if (renderServiceClient == nullptr) {

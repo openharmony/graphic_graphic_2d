@@ -25,6 +25,7 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/data.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/system_properties.h"
 
@@ -61,12 +62,13 @@ void SkiaImage::PostSkImgToTargetThread()
     if (skiaImage_ == nullptr) {
         return;
     }
+#ifdef RS_ENABLE_GPU
     auto context = as_IB(skiaImage_.get())->directContext();
     auto func = SkiaGPUContext::GetPostFunc(sk_ref_sp(context));
     if (func) {
-        auto image = skiaImage_;
-        func([image]() {});
+        func([image = skiaImage_.release()]() { SkSafeUnref(image); });
     }
+#endif
 }
 
 std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
@@ -191,6 +193,8 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIAIMAGE_BUILDFROMCOMPRESSED);
     if (data == nullptr) {
         LOGD("SkiaImage::BuildFromCompressed, build failed, data is invalid");
         return false;
@@ -222,6 +226,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIAIMAGE_BUILDFROMTEXTURE);
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {
         LOGD("SkiaImage BuildFromTexture grContext_ is null");
@@ -558,7 +564,7 @@ sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 std::shared_ptr<Data> SkiaImage::Serialize() const
 {
     if (skiaImage_ == nullptr) {
-        LOGE("SkiaImage::Serialize, SkImage is nullptr!");
+        LOGD("SkiaImage::Serialize, SkImage is nullptr!");
         return nullptr;
     }
 
@@ -577,21 +583,18 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 
         auto context = as_IB(skiaImage_.get())->directContext();
         if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
-            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            LOGD("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
             return nullptr;
         }
         SkPixmap pixmap;
         if (!bitmap.peekPixels(&pixmap)) {
-            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            LOGD("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
             return nullptr;
         }
         size_t rb = pixmap.rowBytes();
         int32_t width = pixmap.width();
         int32_t height = pixmap.height();
         const void* addr = pixmap.addr();
-        if (addr == nullptr) {
-            return nullptr;
-        }
         size_t size = pixmap.computeByteSize();
 
         writer.writeUInt(size);
@@ -621,7 +624,7 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaImage::Deserialize, data is invalid!");
+        LOGD("SkiaImage::Deserialize, data is invalid!");
         return false;
     }
 

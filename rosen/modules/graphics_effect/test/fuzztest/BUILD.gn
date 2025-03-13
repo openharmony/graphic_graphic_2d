@@ -17,8 +17,16 @@ group("fuzztest") {
   deps = []
 
   deps += [
+    "geaibarshaderfilter_fuzzer:fuzztest",
+    "geexternaldynamicloader_fuzzer:fuzztest",
+    "gegreyshaderfilter_fuzzer:fuzztest",
+    "gekawaseblurshaderfilter_fuzzer:fuzztest",
+    "gelineargradientblurshaderfilter_fuzzer:fuzztest",
+    "gemagnifiershaderfilter_fuzzer:fuzztest",
+    "gemesablurshaderfilter_fuzzer:fuzztest",
     "gerender_fuzzer:fuzztest",
     "gevisualeffect_fuzzer:fuzztest",
     "gevisualeffectcontainer_fuzzer:fuzztest",
+    "gewaterrippleshaderfilter_fuzzer:fuzztest",
   ]
 }

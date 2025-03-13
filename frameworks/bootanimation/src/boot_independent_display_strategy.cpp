@@ -41,12 +41,16 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
     }
 
     for (const auto& op : operators_) {
-        op->GetThread().join();
+        if (op->GetThread().joinable()) {
+            op->GetThread().join();
+        }
     }
 
-    if (CheckNeedOtaCompile()) {
+    bool needOtaCompile = CheckNeedOtaCompile();
+    bool needBundleScan = CheckNeedBundleScan();
+    if (needOtaCompile || needBundleScan) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(screenConfig);
+        bootCompileProgress_->Init(screenConfig, needOtaCompile, needBundleScan);
     }
 
     while (!CheckExitAnimation()) {

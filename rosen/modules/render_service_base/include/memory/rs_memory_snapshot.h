@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 struct MemorySnapshotInfo {
+    pid_t pid = 0;
     size_t cpuMemory = 0;
     size_t gpuMemory = 0;
 
@@ -43,6 +44,9 @@ public:
     void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
         std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
     void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
+    void GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map);
+    size_t GetTotalMemory();
+    void PrintMemorySnapshotToHilog();
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;
@@ -50,6 +54,11 @@ private:
     MemorySnapshot(const MemorySnapshot&&) = delete;
     MemorySnapshot& operator=(const MemorySnapshot&) = delete;
     MemorySnapshot& operator=(const MemorySnapshot&&) = delete;
+    
+    void FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
+        size_t& maxCpu, size_t& maxGpu, size_t& maxSum);
+    float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
+
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
 
@@ -58,6 +67,7 @@ private:
     uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
     size_t totalMemory_ = 0; // record the total memory of all processes
     MemoryOverflowCalllback callback_ = nullptr;
+    int memorySnapshotHilogTime_ = 0;
 };
 } // namespace OHOS
 } // namespace Rosen

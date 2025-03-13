@@ -155,6 +155,7 @@ HWTEST_F(RSInterfacesSystemTest, ShowWatermark, Function | MediumTest | Level2)
     sleep(TEST_SLEEP_S);
     (void)system("snapshot_display -i 0");
     sleep(3 * TEST_SLEEP_S);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
 
 /**
@@ -166,6 +167,7 @@ HWTEST_F(RSInterfacesSystemTest, ShowWatermark, Function | MediumTest | Level2)
 HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus001, Function | MediumTest | Level2)
 {
     RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(true);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
 
 /**
@@ -177,6 +179,7 @@ HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus001, Function | Medi
 HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus002, Function | MediumTest | Level2)
 {
     RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(false);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
 
 /**
@@ -241,6 +244,7 @@ HWTEST_F(RSInterfacesSystemTest, SetLayerTop001, Function | MediumTest | Level2)
 {
     std::string nodeIdStr = "123456";
     RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, false);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
 
 /**
@@ -253,6 +257,7 @@ HWTEST_F(RSInterfacesSystemTest, SetLayerTop002, Function | MediumTest | Level2)
 {
     std::string nodeIdStr = "123456";
     RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, true);
+    EXPECT_TRUE(RSInterfaces::GetInstance().renderServiceClient_ != nullptr);
 }
 }
 } // namespace Rosen

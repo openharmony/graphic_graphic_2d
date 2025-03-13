@@ -86,6 +86,7 @@ bool MemAllocatorFuzzTest002(const uint8_t* data, size_t size)
     }
     return true;
 }
+
 bool MemAllocatorFuzzTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -130,6 +131,7 @@ bool MemAllocatorFuzzTest004(const uint8_t* data, size_t size)
 
     MemAllocator memAllocator;
     size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
+    size_t offset = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     if (dataText == nullptr) {
         return false;
@@ -140,7 +142,7 @@ bool MemAllocatorFuzzTest004(const uint8_t* data, size_t size)
     dataText[length - 1] = '\0';
     memAllocator.BuildFromData(dataText, length);
     memAllocator.AddrToOffset(dataText);
-    memAllocator.OffsetToAddr(length);
+    memAllocator.OffsetToAddr(offset, length);
     MemAllocator memAllocatorTwo = MemAllocator(memAllocator);
     memAllocator = memAllocatorTwo;
     if (dataText != nullptr) {

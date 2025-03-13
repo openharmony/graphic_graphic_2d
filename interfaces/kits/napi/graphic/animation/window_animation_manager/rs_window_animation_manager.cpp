@@ -161,26 +161,6 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
     uint32_t windowId = 0;
     napi_value object = argv[0];
     int32_t errCode = GetWindowId(env, argc, object, windowId);
-    WALOGD("Window animation target windowId is:%{public}u!", windowId);
-    NapiAsyncTask::CompleteCallback complete =
-        [windowId, errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
-            if (errCode != ERR_OK) {
-                task.Reject(env, CreateJsError(env, errCode, "Invalid params."));
-                return;
-            }
-            std::vector<uint32_t> windowIds = {windowId};
-            sptr<RSIWindowAnimationFinishedCallback> finishedCallback;
-            SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, true, finishedCallback);
-            if (finishedCallback == nullptr) {
-                WALOGE("Window animation finished callback is null!");
-                task.Reject(env, CreateJsError(env, errCode, "Animation finished callback is null!"));
-                return;
-            }
-
-            WALOGD("Resolve minimize window with animation!");
-            task.Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
-        };
-
     napi_value lastParam = nullptr;
     if (argc > 1) {
         napi_valuetype type;
@@ -190,8 +170,34 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
         }
     }
     napi_value result = nullptr;
-    NapiAsyncTask::Schedule("RSWindowAnimationManager::OnMinimizeWindowWithAnimation",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+
+    std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
+    auto asyncTask = [windowId, errCode, env, task = napiAsyncTask.get()]() {
+            if (errCode != ERR_OK) {
+                task->Reject(env, CreateJsError(env, errCode, "Invalid params."));
+                delete task;
+                return;
+            }
+            std::vector<uint32_t> windowIds = {windowId};
+            sptr<RSIWindowAnimationFinishedCallback> finishedCallback;
+            SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, true, finishedCallback);
+            if (finishedCallback == nullptr) {
+                WALOGE("Window animation finished callback is null!");
+                task->Reject(env, CreateJsError(env, errCode, "Animation finished callback is null!"));
+                delete task;
+                return;
+            }
+
+            WALOGD("Resolve minimize window with animation!");
+            task->Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
+            delete task;
+        };
+    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
+            napiAsyncTask->Reject(env, CreateJsError(env,
+                errCode, "send event failed!"));
+        } else {
+            napiAsyncTask.release();
+        }
     return result;
 }
 
@@ -243,22 +249,6 @@ napi_value RSWindowAnimationManager::OnGetWindowAnimationTargets(napi_env env, n
     std::vector<uint32_t> missionIds;
     napi_value array = argv[0];
     int32_t errCode = GetMissionIds(env, argc, array, missionIds);
-    NapiAsyncTask::CompleteCallback complete =
-        [missionIds, errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
-            WALOGE("RSWindowAnimationManager::OnGetWindowAnimationTargets");
-            if (errCode != ERR_OK) {
-                task.Reject(env, CreateJsError(env, errCode, "Invalid params."));
-                return;
-            }
-            std::vector<sptr<RSWindowAnimationTarget>> targets;
-            if (!missionIds.empty()) {
-                SingletonContainer::Get<WindowAdapter>().GetWindowAnimationTargets(missionIds, targets);
-            }
-
-            WALOGD("Resolve get window animation targets!");
-            task.Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env, targets));
-        };
-
     napi_value lastParam = nullptr;
     if (argc > 1) {
         napi_valuetype type;
@@ -268,8 +258,30 @@ napi_value RSWindowAnimationManager::OnGetWindowAnimationTargets(napi_env env, n
         }
     }
     napi_value result = nullptr;
-    NapiAsyncTask::Schedule("RSWindowAnimationManager::OnGetWindowAnimationTargets",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+
+    std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
+    auto asyncTask = [missionIds, errCode, env, task = napiAsyncTask.get()]() {
+            WALOGE("RSWindowAnimationManager::OnGetWindowAnimationTargets");
+            if (errCode != ERR_OK) {
+                task->Reject(env, CreateJsError(env, errCode, "Invalid params."));
+                delete task;
+                return;
+            }
+            std::vector<sptr<RSWindowAnimationTarget>> targets;
+            if (!missionIds.empty()) {
+                SingletonContainer::Get<WindowAdapter>().GetWindowAnimationTargets(missionIds, targets);
+            }
+
+            WALOGD("Resolve get window animation targets!");
+            task->Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env, targets));
+            delete task;
+        };
+    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
+            napiAsyncTask->Reject(env, CreateJsError(env,
+                errCode, "send event failed!"));
+        } else {
+            napiAsyncTask.release();
+        }
     return result;
 }
 } // namespace Rosen

@@ -439,6 +439,325 @@ bool DoUpdateOnAllAnimationFinish(const uint8_t* data, size_t size)
     prop->UpdateOnAllAnimationFinish();
     return true;
 }
+
+bool DoRSPropertyBase(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSPropertyBase propertyBase;
+    propertyBase.MarkModifierDirty();
+    propertyBase.MarkNodeDirty();
+    return true;
+}
+
+bool DoOperator(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto a = std::make_shared<RSPropertyBase>();
+    auto b = std::make_shared<RSPropertyBase>();
+    a += b;
+    a -= b;
+    float value = GetData<float>();
+    a *= value;
+    a = a + b;
+    a = a - b;
+    a = a * value;
+    if (a == b) {
+    }
+    if (a != b) {
+    }
+    return true;
+}
+
+bool DoUpdateToRender001(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    bool valuebool = GetData<bool>();
+    RSProperty rsPropertyBool(valuebool);
+    rsPropertyBool.UpdateToRender(valuebool, EnumNumber);
+    float valuefloat = GetData<float>();
+    RSProperty rsPropertyFloat(valuefloat);
+    rsPropertyFloat.UpdateToRender(valuefloat, EnumNumber);
+    int valueint = GetData<int>();
+    RSProperty rsPropertyInt(valueint);
+    rsPropertyInt.UpdateToRender(valueint, EnumNumber);
+    Color valueColor = GetData<Color>();
+    RSProperty rsPropertyColor(valueColor);
+    rsPropertyColor.UpdateToRender(valueColor, EnumNumber);
+    Gravity valueGravity = GetData<Gravity>();
+    RSProperty rsPropertyGravity(valueGravity);
+    rsPropertyGravity.UpdateToRender(valueGravity, EnumNumber);
+    Matrix3f valueMatrix3f = GetData<Matrix3f>();
+    RSProperty rsPropertyMatrix3f(valueMatrix3f);
+    rsPropertyMatrix3f.UpdateToRender(valueMatrix3f, EnumNumber);
+    Quaternion valueQuaternion = GetData<Quaternion>();
+    RSProperty rsPropertyQuaternion(valueQuaternion);
+    rsPropertyQuaternion.UpdateToRender(valueQuaternion, EnumNumber);
+    auto rsFilter = std::make_shared<RSFilter>();
+    RSProperty rsPropertyRSFilter(rsFilter);
+    rsPropertyRSFilter.UpdateToRender(rsFilter, EnumNumber);
+    auto rsImage = std::make_shared<RSImage>();
+    RSProperty rsPropertyRSImage(rsImage);
+    rsPropertyRSImage.UpdateToRender(rsImage, EnumNumber);
+    auto rsMask = std::make_shared<RSMask>();
+    RSProperty rsPropertyRSMask(rsMask);
+    rsPropertyRSMask.UpdateToRender(rsMask, EnumNumber);
+    auto rsPath = std::make_shared<RSPath>();
+    RSProperty rsPropertyRSPath(rsPath);
+    rsPropertyRSPath.UpdateToRender(rsPath, EnumNumber);
+    RSDynamicBrightnessPara rsDynamicBrightnessPara;
+    RSProperty rsPropertyRSDynamicBrightnessPara(rsDynamicBrightnessPara);
+    rsPropertyRSDynamicBrightnessPara.UpdateToRender(rsDynamicBrightnessPara, EnumNumber);
+    return true;
+}
+
+bool DoUpdateToRender002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float valuefloat = GetData<float>();
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    GradientDirection direction = static_cast<GradientDirection>(GetData<int>() % 11);
+    std::vector<std::pair<float, float>> fractionStops;
+    auto rsLinearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(valuefloat, fractionStops, direction);
+    RSProperty rsPropertyRSLinearGradientBlurPara(rsLinearGradientBlurPara);
+    rsPropertyRSLinearGradientBlurPara.UpdateToRender(rsLinearGradientBlurPara, EnumNumber);
+    RSWaterRipplePara rsWaterRipplePara;
+    RSProperty rsPropertyRSWaterRipplePara(rsWaterRipplePara);
+    rsPropertyRSWaterRipplePara.UpdateToRender(rsWaterRipplePara, EnumNumber);
+    RSFlyOutPara rsFlyOutPara;
+    RSProperty rsPropertyRSWaterRippleParaRSFlyOutPara(rsFlyOutPara);
+    rsPropertyRSWaterRippleParaRSFlyOutPara.UpdateToRender(rsFlyOutPara, EnumNumber);
+    Vector2f valueVector2f = GetData<Vector2f>();
+    auto motionBlurParam = std::make_shared<MotionBlurParam>(valuefloat, valueVector2f);
+    RSProperty rsPropertyMotionBlurParam(motionBlurParam);
+    rsPropertyMotionBlurParam.UpdateToRender(motionBlurParam, EnumNumber);
+    auto rsMagnifierParams = std::make_shared<RSMagnifierParams>();
+    RSProperty rsPropertyRSMagnifierParams(rsMagnifierParams);
+    rsPropertyRSMagnifierParams.UpdateToRender(rsMagnifierParams, EnumNumber);
+    uint32_t emitterIndex = GetData<uint32_t>();
+    auto emitterUpdater = std::make_shared<EmitterUpdater>(emitterIndex);
+    RSProperty rsPropertyEmitterUpdater(emitterUpdater);
+    rsPropertyEmitterUpdater.UpdateToRender(emitterUpdater, EnumNumber);
+    auto particleNoiseFields = std::make_shared<ParticleNoiseFields>();
+    RSProperty rsPropertyParticleNoiseFields(particleNoiseFields);
+    rsPropertyParticleNoiseFields.UpdateToRender(particleNoiseFields, EnumNumber);
+    auto rsShader = std::make_shared<RSShader>();
+    RSProperty rsPropertyRSShader(rsShader);
+    rsPropertyRSShader.UpdateToRender(rsShader, EnumNumber);
+    RSProperty rsPropertyVector2f(valueVector2f);
+    rsPropertyVector2f.UpdateToRender(valueVector2f, EnumNumber);
+    return true;
+}
+
+bool DoUpdateToRender003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    Vector4<uint32_t> valueVector4u32 = GetData<Vector4<uint32_t>>();
+    RSProperty rsPropertyVector4u32(valueVector4u32);
+    rsPropertyVector4u32.UpdateToRender(valueVector4u32, EnumNumber);
+    Vector4<Color> valueVector4Color = GetData<Vector4<Color>>();
+    RSProperty rsPropertyVector4Color(valueVector4Color);
+    rsPropertyVector4Color.UpdateToRender(valueVector4Color, EnumNumber);
+    Vector4f valueVector4f = GetData<Vector4f>();
+    RSProperty rsPropertyVector4f(valueVector4f);
+    rsPropertyVector4f.UpdateToRender(valueVector4f, EnumNumber);
+    RRect valueRRect = GetData<RRect>();
+    RSProperty rsPropertyRRect(valueRRect);
+    rsPropertyRRect.UpdateToRender(valueRRect, EnumNumber);
+    return true;
+}
+
+bool DoIsValid(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float valuefloat = GetData<float>();
+    RSProperty rsPropertyFloat(valuefloat);
+    rsPropertyFloat.IsValid(valuefloat);
+    Vector2f valueVector2f = GetData<Vector2f>();
+    RSProperty rsPropertyVector2f(valueVector2f);
+    rsPropertyVector2f.IsValid(valueVector2f);
+    Vector4f valueVector4f = GetData<Vector4f>();
+    RSProperty rsPropertyVector4f(valueVector4f);
+    rsPropertyVector4f.IsValid(valueVector4f);
+    return true;
+}
+
+bool DoGetPropertyType(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float valuefloat = GetData<float>();
+    RSAnimatableProperty rsAnimatablePropertyFloat(valuefloat);
+    rsAnimatablePropertyFloat.GetPropertyType();
+    Color valueColor = GetData<Color>();
+    RSAnimatableProperty rsAnimatablePropertyColor(valueColor);
+    rsAnimatablePropertyColor.GetPropertyType();
+    Matrix3f valueMatrix3f = GetData<Matrix3f>();
+    RSAnimatableProperty rsAnimatablePropertyMatrix3f(valueMatrix3f);
+    rsAnimatablePropertyMatrix3f.GetPropertyType();
+    Vector2f valueVector2f = GetData<Vector2f>();
+    RSAnimatableProperty rsAnimatablePropertyVector2f(valueVector2f);
+    rsAnimatablePropertyVector2f.GetPropertyType();
+    Vector4f valueVector4f = GetData<Vector4f>();
+    RSAnimatableProperty rsAnimatablePropertyVector4f(valueVector4f);
+    rsAnimatablePropertyVector4f.GetPropertyType();
+    Quaternion valueQuaternion = GetData<Quaternion>();
+    RSAnimatableProperty rsAnimatablePropertyQuaternion(valueQuaternion);
+    rsAnimatablePropertyQuaternion.GetPropertyType();
+    auto rsFilter = std::make_shared<RSFilter>();
+    RSAnimatableProperty rsAnimatablePropertyRSFilter(rsFilter);
+    rsAnimatablePropertyRSFilter.GetPropertyType();
+    Vector4<Color> valueVector4Color = GetData<Vector4<Color>>();
+    RSAnimatableProperty rsAnimatablePropertyVector4Color(valueVector4Color);
+    rsAnimatablePropertyVector4Color.GetPropertyType();
+    RRect valueRRect = GetData<RRect>();
+    RSAnimatableProperty rsAnimatablePropertyRRect(valueRRect);
+    rsAnimatablePropertyRRect.GetPropertyType();
+    return true;
+}
+
+bool DoRSPropertyBase002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto property = std::make_shared<RSPropertyBase>();
+    property->GetThreshold();
+    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
+    property->SetValueFromRender(rsRenderPropertyBase);
+    bool isCustom = property->GetIsCustom();
+    property->SetIsCustom(isCustom);
+    auto propertyBase = std::make_shared<RSPropertyBase>();
+    property->SetValue(propertyBase);
+    property->GetPropertyType();
+    property->UpdateOnAllAnimationFinish();
+    property->UpdateCustomAnimation();
+    property->AddPathAnimation();
+    property->RemovePathAnimation();
+    property->UpdateShowingValue(rsRenderPropertyBase);
+    property->GetRenderProperty();
+    property->GetShowingValueAndCancelAnimation();
+    property->IsEqual(propertyBase);
+    return true;
+}
+
+bool DoRSProperty(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float value = GetData<float>();
+    auto property = std::make_shared<RSProperty<float>>(value);
+    auto property2 = std::make_shared<RSProperty<float>>(value);
+    property->SetValue(property2);
+    property->Clone();
+    return true;
+}
+
+bool DoRSAnimatableProperty(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float value = GetData<float>();
+    uint64_t id = GetData<uint64_t>();
+    auto property = std::make_shared<RSAnimatableProperty<float>>(value);
+    bool isDelta = GetData<bool>();
+    property->UpdateExtendedAnimatableProperty(value, isDelta);
+    property->RemovePathAnimation();
+    auto rsRenderProperty = std::make_shared<RSRenderProperty<float>>(value, id);
+    property->UpdateShowingValue(rsRenderProperty);
+    property->NotifyPropertyChange();
+    property->Multiply(value);
+    auto property2 = std::make_shared<RSAnimatableProperty<float>>(value);
+    property->IsEqual(property2);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -467,6 +786,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetPropertyUnit(data, size);
     OHOS::Rosen::DoUpdateCustomAnimation(data, size);
     OHOS::Rosen::DoUpdateOnAllAnimationFinish(data, size);
+    OHOS::Rosen::DoRSPropertyBase(data, size);
+    OHOS::Rosen::DoOperator(data, size);
+    OHOS::Rosen::DoUpdateToRender001(data, size);
+    OHOS::Rosen::DoUpdateToRender002(data, size);
+    OHOS::Rosen::DoUpdateToRender003(data, size);
+    OHOS::Rosen::DoIsValid(data, size);
+    OHOS::Rosen::DoGetPropertyType(data, size);
+    OHOS::Rosen::DoRSPropertyBase002(data, size);
+    OHOS::Rosen::DoRSProperty(data, size);
+    OHOS::Rosen::DoRSAnimatableProperty(data, size);
     return 0;
 }
 

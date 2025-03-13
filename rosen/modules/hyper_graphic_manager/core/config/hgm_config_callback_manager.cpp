@@ -40,7 +40,6 @@ HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
     animDynamicCfgCallbacks_.clear();
     pendingAnimDynamicCfgCallbacks_.clear();
     refreshRateModeCallbacks_.clear();
-    instance_ = nullptr;
 }
 
 void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
@@ -66,6 +65,12 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
                 data->AddAnimDynamicItem({
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
             }
+        }
+    }
+
+    if (configData != nullptr) {
+        for (auto item : configData->pageNameList_) {
+            data->AddPageName(item);
         }
     }
 
@@ -154,6 +159,12 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
                 data->AddAnimDynamicItem({
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
             }
+        }
+    }
+
+    if (configData != nullptr) {
+        for (auto item : configData->pageNameList_) {
+            data->AddPageName(item);
         }
     }
 

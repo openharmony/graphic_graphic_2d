@@ -31,6 +31,8 @@ ohos_fuzztest("HdiLayerFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "hdilayer_fuzzer.cpp" ]
   deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]

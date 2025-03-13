@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
-sptr<Window> RSAnimationBaseTest::window = nullptr;
 std::shared_ptr<RSSurfaceNode> RSAnimationBaseTest::animationSurfaceNode = nullptr;
 std::shared_ptr<RSNode> RSAnimationBaseTest::rootNode = nullptr;
 std::shared_ptr<RSCanvasNode> RSAnimationBaseTest::canvasNode = nullptr;
@@ -70,31 +69,12 @@ void RSAnimationBaseTest::InitNode(int width, int height)
 void RSAnimationBaseTest::InitAnimationWindow()
 {
     std::cout << "InitAnimationWindow start" << std::endl;
-    if (window != nullptr) {
-        return;
-    }
-    sptr<WindowOption> option = new WindowOption();
-    option->SetWindowType(WindowType::WINDOW_TYPE_PANEL);
-    option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
-    option->SetWindowRect({ 0, 0, 720, 1280 });
-    window = Window::Create("animation_ut", option);
-    while (!window) {
-        window = Window::Create("animation_ut", option);
-    }
-    window->Show();
-    sleep(1);
-    auto rect = window->GetRequestRect();
-    while (rect.width_ == 0 && rect.height_ == 0) {
-        std::cout << "animation_ut create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
-        window->Hide();
-        window->Destroy();
-        window = Window::Create("animation_ut", option);
-        window->Show();
-        sleep(1);
-        rect = window->GetRequestRect();
-    }
-    std::cout << "animation_ut create window " << rect.width_ << " " << rect.height_ << std::endl;
-    animationSurfaceNode = window->GetSurfaceNode();
+    constexpr int width = 720;
+    constexpr int height = 1280;
+    std::string surfaceNodeName = "AnimationSurface";
+    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
+    animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
+
     rsUiDirector = RSUIDirector::Create();
     rsUiDirector->Init();
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
@@ -105,7 +85,7 @@ void RSAnimationBaseTest::InitAnimationWindow()
     RSTransaction::FlushImplicitTransaction();
     sleep(DELAY_TIME_ONE);
     rsUiDirector->SetRSSurfaceNode(animationSurfaceNode);
-    InitNode(rect.width_, rect.height_);
+    InitNode(width, height);
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_THREE);
     std::cout << "InitAnimationWindow end " << std::endl;
@@ -114,9 +94,6 @@ void RSAnimationBaseTest::InitAnimationWindow()
 void RSAnimationBaseTest::DestoryAnimationWindow()
 {
     std::cout << "DestoryAnimationWindow start" << std::endl;
-    window->Hide();
-    window->Destroy();
-    window = nullptr;
     animationSurfaceNode = nullptr;
     rootNode = nullptr;
     rsUiDirector->Destroy();

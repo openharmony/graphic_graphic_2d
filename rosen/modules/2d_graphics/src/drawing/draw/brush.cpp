@@ -101,6 +101,7 @@ void Brush::SetAlphaF(scalar a)
 
 void Brush::SetBlendMode(const BlendMode& mode)
 {
+    blender_ = nullptr;
     blendMode_ = mode;
 }
 

@@ -58,6 +58,8 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetMatrix001, TestSize
         1, 0, 0,
         0, -1, 0,
         0, 0, 1);
+    float value = OH_Drawing_MatrixGetValue(matrix, 0);
+    EXPECT_TRUE(IsScalarAlmostEqual(value, 1.0f));
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_MatrixDestroy(nullptr);
 }

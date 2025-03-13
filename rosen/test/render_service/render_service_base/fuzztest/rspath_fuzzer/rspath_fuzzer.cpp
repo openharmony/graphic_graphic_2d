@@ -55,41 +55,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoOtherFunc(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RSPath::CreateRSPath();
-    rsPath->GetDistance();
-    rsPath->Reverse();
-    rsPath->GetDrawingPath();
-    return true;
-}
-bool DoCreateRSPath(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    Path path;
-    RSPath::CreateRSPath(path);
-
-    std::string emptyString;
-    RSPath::CreateRSPath(emptyString);
-    return true;
-}
 bool DoGetPosTan(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -112,30 +77,12 @@ bool DoGetPosTan(const uint8_t* data, size_t size)
     rsPath->GetPosTan(distance, postions, degrees);
     return true;
 }
-bool DoSetDrawingPath(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    Path path;
-    rsPath->SetDrawingPath(path);
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoOtherFunc(data, size);      // CreateRSPath
-    OHOS::Rosen::DoCreateRSPath(data, size);   // CreateRSPath
     OHOS::Rosen::DoGetPosTan(data, size);      // GetPosTan
-    OHOS::Rosen::DoSetDrawingPath(data, size); // SetDrawingPath
     return 0;
 }

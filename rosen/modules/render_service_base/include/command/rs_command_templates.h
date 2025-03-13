@@ -41,12 +41,18 @@ class RSUIDirector;
 #define ADD_COMMAND(ALIAS, TYPE) using ALIAS = RSCommandTemplate<TYPE>;
 #endif
 
-template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typename... Params>
+template<RSCommandPermissionType permissionType, uint16_t commandType, uint16_t commandSubType, auto processFunc,
+    typename... Params>
 class RSCommandTemplate : public RSCommand {
 public:
     RSCommandTemplate(const Params&... params) : params_(params...) {}
     RSCommandTemplate(std::tuple<Params...>&& params) : params_(std::move(params)) {}
     ~RSCommandTemplate() override = default;
+
+    RSCommandPermissionType GetAccessPermission() const override
+    {
+        return permissionType;
+    }
 
     uint16_t GetType() const override
     {
@@ -78,6 +84,18 @@ public:
         using idType = typename std::tuple_element<0, decltype(params_)>::type;
         if (std::is_same<NodeId, idType>::value) {
             return std::get<0>(params_);
+        }
+        return 0; // invalidId
+    }
+
+    uint64_t GetToken() const override
+    {
+        if constexpr (std::tuple_size<decltype(params_)>::value > 3) {                 // 3:For RSAnimationCallback
+            using aniIdType = typename std::tuple_element<1, decltype(params_)>::type; // 1:animationId
+            using tokenType = typename std::tuple_element<2, decltype(params_)>::type; // 2:token
+            if (std::is_same<AnimationId, aniIdType>::value && std::is_same<uint64_t, tokenType>::value) {
+                return std::get<2>(params_);                                           // 2:return token
+            }
         }
         return 0; // invalidId
     }

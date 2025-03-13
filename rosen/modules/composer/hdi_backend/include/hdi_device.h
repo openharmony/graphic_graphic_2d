@@ -41,6 +41,7 @@ public:
     virtual int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) = 0;
     virtual int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) = 0;
     virtual int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) = 0;
+    virtual int32_t SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect) = 0;
     virtual int32_t SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height) = 0;
     virtual int32_t GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status) = 0;
     virtual int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) = 0;
@@ -65,6 +66,8 @@ public:
     virtual int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) = 0;
     virtual int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState,
         bool &needFlush, std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) = 0;
+    virtual int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort,
+        std::vector<uint8_t>& edidData) = 0;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
@@ -92,6 +95,10 @@ public:
     virtual std::vector<std::string>& GetSupportedLayerPerFrameParameterKey() = 0;
     virtual int32_t SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
                                               const std::vector<int8_t>& value) = 0;
+    virtual int32_t SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t layerId, const std::string& key,
+                                                 const std::vector<int8_t>& value) = 0;
+    virtual int32_t SetDisplayPerFrameParameterSmq(uint32_t devId, const std::string& key,
+                                                   const std::vector<int8_t>& value) = 0;
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;

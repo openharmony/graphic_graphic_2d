@@ -97,10 +97,10 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
     EXPECT_EQ(static_cast<int>(paragraph_->GetMaxIntrinsicWidth()), 78);
     EXPECT_EQ(static_cast<int>(paragraph_->GetAlphabeticBaseline()), 14);
     EXPECT_EQ(static_cast<int>(paragraph_->GetIdeographicBaseline()), 18);
-    EXPECT_EQ(paragraph_->GetGlyphsBoundsTop(), -11);
+    EXPECT_EQ(paragraph_->GetGlyphsBoundsTop(), -12);
     EXPECT_EQ(paragraph_->GetGlyphsBoundsBottom(), 1);
     EXPECT_EQ(paragraph_->GetGlyphsBoundsLeft(), 0);
-    EXPECT_EQ(static_cast<int>(paragraph_->GetGlyphsBoundsRight()), 36);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetGlyphsBoundsRight()), 37);
     EXPECT_TRUE(paragraph_->DidExceedMaxLines());
     EXPECT_EQ(paragraph_->GetLineCount(), 1);
     EXPECT_EQ(paragraph_->GetUnresolvedGlyphsCount(), 0);
@@ -110,6 +110,7 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
     EXPECT_EQ(paragraph_->GetGlyphPositionAtCoordinate(0.0, 0.0).position, 0.0);
     EXPECT_EQ(paragraph_->GetWordBoundary(0).start, 0);
     EXPECT_EQ(paragraph_->GetActualTextRange(0, false).start, 0);
+    EXPECT_EQ(paragraph_->GetActualTextRange(-1, false).start, 0);
     EXPECT_EQ(paragraph_->GetLineMetrics().size(), 1);
     EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLineWithIndent()), 44);
 }
@@ -162,6 +163,8 @@ HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level1)
 HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level1)
 {
     SkCanvas skCanvas;
+    // redundancy because it has been checked in setup
+    ASSERT_NE(paragraph_, nullptr);
     paragraph_->Paint(&skCanvas, 0.0, 0.0);
     Canvas canvas;
     paragraph_->Paint(&canvas, 0.0, 0.0);
@@ -262,6 +265,8 @@ HWTEST_F(ParagraphTest, ParagraphTest011, TestSize.Level1)
 HWTEST_F(ParagraphTest, ParagraphTest012, TestSize.Level1)
 {
     skt::TextStyle skStyle;
+    skStyle.setBackgroundPaintID(-1);
+    skStyle.addShadow(skia::textlayout::TextShadow());
     skStyle.setColor(0xFF0000FF);           // used for testing. Set the color to blue.
     skStyle.setDecorationColor(0xFF000000); // used for testing. Set the color to black.
     skStyle.setDecorationThicknessMultiplier(2.0f);

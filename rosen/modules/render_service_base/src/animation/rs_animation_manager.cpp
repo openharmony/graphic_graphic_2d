@@ -197,9 +197,19 @@ void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFu
     frameRateGetFunc_ = func;
 }
 
-void RSAnimationManager::SetRateDeciderScaleSize(float width, float height)
+void RSAnimationManager::SetRateDeciderSize(float width, float height)
 {
-    rateDecider_.SetScaleReferenceSize(width, height);
+    rateDecider_.SetNodeSize(width, height);
+}
+
+void RSAnimationManager::SetRateDeciderScale(float scaleX, float scaleY)
+{
+    rateDecider_.SetNodeScale(scaleX, scaleY);
+}
+
+void RSAnimationManager::SetRateDeciderAbsRect(int32_t width, int32_t height)
+{
+    rateDecider_.SetAbsRect(width, height);
 }
 
 const FrameRateRange& RSAnimationManager::GetDecideFrameRateRange() const
@@ -226,11 +236,12 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
 {
     NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
+    uint64_t token = animation->GetToken();
 
     RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
+        std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     animation->Detach();
 }

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 
 #include "common/rs_common_hook.h"
@@ -69,6 +70,7 @@ void HgmEnergyConsumptionPolicyTest::SetIdleStateEnable(bool isIdle)
 HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest1, TestSize.Level1)
 {
     SetConfigEnable("true");
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
 }
 
 /**
@@ -80,6 +82,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest1, TestSi
 HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest2, TestSize.Level1)
 {
     SetConfigEnable("false");
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, false);
 }
 
 /**
@@ -91,8 +94,11 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionConfigTest2, TestSi
 HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest1, TestSize.Level1)
 {
     SetConfigEnable("true");
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
     SetIdleStateEnable(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
     SetIdleStateEnable(false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
 }
 
 /**
@@ -106,19 +112,8 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest2,
     SetConfigEnable("true");
     SetIdleStateEnable(true);
     SetIdleStateEnable(true);
-}
-
-/**
- * @tc.name: SetEnergyConsumptionAssuranceModeTest3
- * @tc.desc: test results of SetEnergyConsumptionAssuranceModeTest3
- * @tc.type: FUNC
- * @tc.require: issuesIA96Q3
- */
-HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3, TestSize.Level1)
-{
-    SetConfigEnable("false");
-    SetIdleStateEnable(false);
-    SetIdleStateEnable(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
 }
 
 /**
@@ -129,10 +124,12 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3,
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.Level1)
 {
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
     SetConfigEnable("false");
     SetIdleStateEnable(false);
     uint64_t currentTime = 1719544264071;
     HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_, currentTime);
 }
 
 /**
@@ -143,10 +140,12 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest1, TestSize.L
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.Level1)
 {
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
     SetConfigEnable("true");
     SetIdleStateEnable(false);
-    uint64_t currentTime = 1719544264071;
+    uint64_t currentTime = 1719544264072;
     HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_, currentTime);
 }
 
 /**
@@ -157,10 +156,12 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest2, TestSize.L
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.Level1)
 {
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
     SetConfigEnable("true");
     SetIdleStateEnable(true);
-    uint64_t currentTime = 1719544264071;
+    uint64_t currentTime = 1719544264073;
     HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(currentTime);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_, currentTime);
 }
 
 /**
@@ -171,22 +172,12 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticAnimationTimeTest3, TestSize.L
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level1)
 {
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
     SetConfigEnable("true");
     std::string componentName = "SWIPER_FLING";
+    HgmCore::Instance().SetTimestamp(0);
     HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(componentName);
-}
-
-/**
- * @tc.name: StartNewAnimationTest2
- * @tc.desc: test results of StartNewAnimationTest2
- * @tc.type: FUNC
- * @tc.require: issuesIA96Q3
- */
-HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1)
-{
-    SetConfigEnable("true");
-    std::string componentName = "SWIPER_FLING";
-    HgmEnergyConsumptionPolicy::Instance().StartNewAnimation(componentName);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_, 0);
 }
 
 /**
@@ -251,16 +242,18 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetUiAnimationIdleFpsTest1, TestSize.Le
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, UI_ANIMATION_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 30);
     ASSERT_EQ(rsRange.min_, 30);
     ASSERT_EQ(rsRange.preferred_, 30);
+    HgmEnergyConsumptionPolicy::Instance().isTouchIdle_ = true;
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
 }
 
 /**
@@ -273,13 +266,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySyncIdleFpsTest1, TestSize.Le
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SYNC_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 31);
     ASSERT_EQ(rsRange.min_, 31);
     ASSERT_EQ(rsRange.preferred_, 31);
@@ -295,13 +288,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAceComponentIdleFpsTest1, TestSize.L
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, ACE_COMPONENT_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 32);
     ASSERT_EQ(rsRange.min_, 32);
     ASSERT_EQ(rsRange.preferred_, 32);
@@ -317,13 +310,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SOLOIST_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 33);
     ASSERT_EQ(rsRange.min_, 33);
     ASSERT_EQ(rsRange.preferred_, 33);
@@ -374,6 +367,8 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, PrintEnergyConsumptionLogTest, TestSize
     rsRange.componentScene_ = ComponentScene::SWIPER_FLING;
     HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
     ASSERT_EQ(rsRange.componentScene_, ComponentScene::SWIPER_FLING);
+    rsRange.isEnergyAssurance_ = false;
+    HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
 }
 
 /**
@@ -386,6 +381,126 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetTouchStateTest, TestSize.Level1)
 {
     HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
+}
+
+/**
+ * @tc.name: SetVideoCallSceneInfoTest
+ * @tc.desc: test results of SetVideoCallSceneInfoTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetVideoCallSceneInfoTest, TestSize.Level1)
+{
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "flutterVsyncName");
+    EventInfo eventInfo2 = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = false,
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo2);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "");
+}
+
+/**
+ * @tc.name: StatisticsVideoCallBufferCountTest
+ * @tc.desc: test results of StatisticsVideoCallBufferCountTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StatisticsVideoCallBufferCountTest, TestSize.Level1)
+{
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
+    std::string bufferNamePrefix = "buffer";
+    HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_ = bufferNamePrefix;
+    pid_t pid = 1234;
+    for (int i = 0; i < 100; i++) {
+        HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCount(
+            pid, std::string(bufferNamePrefix) + std::to_string(i));
+    }
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoBufferCount_.load(), 100);
+}
+
+/**
+ * @tc.name: CheckOnlyVideoCallExistTest
+ * @tc.desc: test results of CheckOnlyVideoCallExistTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, CheckOnlyVideoCallExistTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.isEnableVideoCall_.store(true);
+    hgmEnergyConsumptionPolicy.videoBufferCount_.store(1);
+    hgmEnergyConsumptionPolicy.CheckOnlyVideoCallExist();
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isSubmitDecisionTask_.load(), true);
+}
+
+/**
+ * @tc.name: GetVideoCallVsyncChangeTest
+ * @tc.desc: test results of GetVideoCallVsyncChangeTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetVideoCallVsyncChangeTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.store(true);
+    auto result = hgmEnergyConsumptionPolicy.GetVideoCallVsyncChange();
+    ASSERT_EQ(result, true);
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.load(), false);
+}
+
+/**
+ * @tc.name: GetVideoCallFrameRateTest
+ * @tc.desc: test results of GetVideoCallFrameRateTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, GetVideoCallFrameRateTest, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    EventInfo eventInfo = {
+        .eventName = "VOTER_VIDEO_CALL",
+        .maxRefreshRate = 15,
+        .description = "flutterVsyncName:1234",
+        .eventStatus = true,
+
+    };
+    hgmEnergyConsumptionPolicy.SetVideoCallSceneInfo(eventInfo);
+    std::string vsyncName = "flutterVsyncName";
+    pid_t pid = 1234;
+    FrameRateRange frameRateRange;
+    hgmEnergyConsumptionPolicy.GetVideoCallFrameRate(pid, vsyncName, frameRateRange);
+    ASSERT_EQ(frameRateRange.preferred_, 0);
+}
+
+/**
+ * @tc.name: SetCurrentPkgNameTest
+ * @tc.desc: test results of SetCurrentPkgNameTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level1)
+{
+    std::vector<std::string> pkgNames;
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
 }
 
 } // namespace Rosen

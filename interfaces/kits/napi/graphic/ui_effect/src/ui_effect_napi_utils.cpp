@@ -16,13 +16,13 @@
 #include "ui_effect_napi_utils.h"
 #ifdef ENABLE_IPC_SECURITY
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
+#include "accesstoken_kit.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
 
-napi_valuetype UIEffectNapiUtils::getType(napi_env env, napi_value root)
+napi_valuetype UIEffectNapiUtils::GetType(napi_env env, napi_value root)
 {
     napi_valuetype res = napi_undefined;
     napi_typeof(env, root, &res);
@@ -33,7 +33,7 @@ bool UIEffectNapiUtils::IsSystemApp()
 {
 #ifdef ENABLE_IPC_SECURITY
     uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+    return Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
 #else
     return true;
 #endif

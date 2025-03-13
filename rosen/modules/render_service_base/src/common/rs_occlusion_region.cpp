@@ -23,6 +23,29 @@
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {
+namespace {
+inline int Align(int num, int alignmentSize, bool upward)
+{
+    if (alignmentSize <= 1) {
+        return num;
+    }
+    int remainder = num % alignmentSize;
+    if (remainder == 0) {
+        return num;
+    }
+    return (num > 0 && upward) ? (num + (alignmentSize - remainder)) : (num - remainder);
+}
+
+inline int AlignUp(int num, int alignmentSize)
+{
+    return Align(num, alignmentSize, true);
+}
+
+inline int AlignDown(int num, int alignmentSize)
+{
+    return Align(num, alignmentSize, false);
+}
+}
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
@@ -198,14 +221,34 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
 void Region::MakeBound()
 {
     if (rects_.size()) {
-        bound_ = rects_[0];
+        // Tell compiler there is no alias.
+        int left = rects_[0].left_;
+        int top = rects_[0].top_;
+        int right = rects_[0].right_;
+        int bottom = rects_[0].bottom_;
         for (const auto& r : rects_) {
-            bound_.left_ = std::min(r.left_, bound_.left_);
-            bound_.top_ = std::min(r.top_, bound_.top_);
-            bound_.right_ = std::max(r.right_, bound_.right_);
-            bound_.bottom_ = std::max(r.bottom_, bound_.bottom_);
+            left = std::min(r.left_, left);
+            top = std::min(r.top_, top);
+            right = std::max(r.right_, right);
+            bottom = std::max(r.bottom_, bottom);
         }
+        bound_.left_ = left;
+        bound_.top_ = top;
+        bound_.right_ = right;
+        bound_.bottom_ = bottom;
     }
+}
+
+Region Region::GetAlignedRegion(int alignmentSize) const
+{
+    Region alignedRegion;
+    for (const auto& rect : rects_) {
+        Rect alignedRect(AlignDown(rect.left_, alignmentSize), AlignDown(rect.top_, alignmentSize),
+            AlignUp(rect.right_, alignmentSize), AlignUp(rect.bottom_, alignmentSize));
+        Region alignedSubRegion{alignedRect};
+        alignedRegion.OrSelf(alignedSubRegion);
+    }
+    return alignedRegion;
 }
 
 void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)

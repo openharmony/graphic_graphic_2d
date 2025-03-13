@@ -37,7 +37,7 @@ CmdList::~CmdList()
 #endif
 }
 
-uint32_t CmdList::AddCmdListData(const CmdListData& data)
+size_t CmdList::AddCmdListData(const CmdListData& data)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!lastOpItemOffset_.has_value()) {
@@ -56,9 +56,9 @@ uint32_t CmdList::AddCmdListData(const CmdListData& data)
     return opAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetCmdListData(uint32_t offset) const
+const void* CmdList::GetCmdListData(size_t offset, size_t size) const
 {
-    return opAllocator_.OffsetToAddr(offset);
+    return opAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetData() const
@@ -71,7 +71,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
     return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 
-uint32_t CmdList::AddImageData(const void* data, size_t size)
+size_t CmdList::AddImageData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
@@ -82,9 +82,9 @@ uint32_t CmdList::AddImageData(const void* data, size_t size)
     return imageAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetImageData(uint32_t offset) const
+const void* CmdList::GetImageData(size_t offset, size_t size) const
 {
-    return imageAllocator_.OffsetToAddr(offset);
+    return imageAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetAllImageData() const
@@ -114,8 +114,8 @@ OpDataHandle CmdList::AddImage(const Image& image)
         LOGD("CmdList AddImageData failed!");
         return ret;
     }
-    uint32_t offset = imageAllocator_.AddrToOffset(addr);
-    imageHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
+    size_t offset = imageAllocator_.AddrToOffset(addr);
+    imageHandleVec_.push_back(std::pair<size_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
 
     return {offset, data->GetSize()};
 }
@@ -133,7 +133,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
         return nullptr;
     }
 
-    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset);
+    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         LOGD("get image data failed");
         return nullptr;
@@ -150,7 +150,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
     return image;
 }
 
-uint32_t CmdList::AddBitmapData(const void* data, size_t size)
+size_t CmdList::AddBitmapData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = bitmapAllocator_.Add(data, size);
@@ -161,9 +161,9 @@ uint32_t CmdList::AddBitmapData(const void* data, size_t size)
     return bitmapAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetBitmapData(uint32_t offset) const
+const void* CmdList::GetBitmapData(size_t offset, size_t size) const
 {
-    return bitmapAllocator_.OffsetToAddr(offset);
+    return bitmapAllocator_.OffsetToAddr(offset, size);
 }
 
 bool CmdList::SetUpBitmapData(const void* data, size_t size)
@@ -312,6 +312,74 @@ uint32_t CmdList::SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBase
     return imageBaseObjVec_.size();
 }
 
+uint32_t CmdList::AddImageNineObject(const std::shared_ptr<ExtendImageNineObject>& object)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    imageNineObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(imageNineObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendImageNineObject> CmdList::GetImageNineObject(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    if (id >= imageNineObjectVec_.size()) {
+        return nullptr;
+    }
+    return imageNineObjectVec_[id];
+}
+
+uint32_t CmdList::GetAllImageNineObject(std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    for (const auto &object : imageNineObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupImageNineObject(const std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    for (const auto &object : objectList) {
+        imageNineObjectVec_.emplace_back(object);
+    }
+    return imageNineObjectVec_.size();
+}
+
+uint32_t CmdList::AddImageLatticeObject(const std::shared_ptr<ExtendImageLatticeObject>& object)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    imageLatticeObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(imageLatticeObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendImageLatticeObject> CmdList::GetImageLatticeObject(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    if (id >= imageLatticeObjectVec_.size()) {
+        return nullptr;
+    }
+    return imageLatticeObjectVec_[id];
+}
+
+uint32_t CmdList::GetAllImageLatticeObject(std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    for (const auto &object : imageLatticeObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupImageLatticeObject(const std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    for (const auto &object : objectList) {
+        imageLatticeObjectVec_.emplace_back(object);
+    }
+    return imageLatticeObjectVec_.size();
+}
+
 void CmdList::CopyObjectTo(CmdList& other) const
 {
 #ifdef SUPPORT_OHOS_PIXMAP
@@ -377,6 +445,7 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
     return drawFuncObjVec_[id];
 }
 
+// ATTENTION: WHEN NEW ALLOCATOR OR OBJECT ADDED IT MUST BE ADDED IN SIMILAR WAY TO PUSH/POP FUNCTIONS
 std::string CmdList::ProfilerPushAllocators()
 {
     std::stringstream stream;
@@ -401,33 +470,30 @@ std::string CmdList::ProfilerPushAllocators()
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
-    {
-        std::lock_guard<std::mutex> lock(imageObjectMutex_);
-        size = imageObjectVec_.size();
+    ProfilerPushObjects(stream, size);
+
+    bool hasOpItemOffset = lastOpItemOffset_.has_value();
+    stream.write(reinterpret_cast<const char*>(&hasOpItemOffset), sizeof(hasOpItemOffset));
+    if (hasOpItemOffset) {
+        size = lastOpItemOffset_.value();
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     }
 
     {
-        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
-        size = imageBaseObjVec_.size();
+#ifdef ROSEN_OHOS
+        std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+        size = surfaceBufferEntryVec_.size();
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(extendObjectMutex_);
-        size = extendObjectVec_.size();
+#else
+        size = 0;
         stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
-        size = drawFuncObjVec_.size();
-        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+#endif
     }
 
     return stream.str();
 }
 
+// ATTENTION: WHEN NEW ALLOCATOR OR OBJECT ADDED IT MUST BE ADDED IN SIMILAR WAY TO PUSH/POP FUNCTIONS
 void CmdList::ProfilerPopAllocators(const std::string& data)
 {
     std::vector<uint8_t> buffer;
@@ -457,16 +523,84 @@ void CmdList::ProfilerPopAllocators(const std::string& data)
         imageHandleVec_.resize(size);
     }
 
+    ProfilerPopObjects(stream, size);
+
+    bool hasOpItemOffset;
+    stream.read(reinterpret_cast<char*>(&hasOpItemOffset), sizeof(hasOpItemOffset));
+    if (hasOpItemOffset) {
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        lastOpItemOffset_ = size;
+    } else {
+        lastOpItemOffset_ = std::nullopt;
+    }
+
+    {
+#ifdef ROSEN_OHOS
+        std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        surfaceBufferEntryVec_.resize(size);
+#else
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+#endif
+    }
+}
+
+void CmdList::ProfilerPushObjects(std::stringstream& stream, size_t size)
+{
     {
         std::lock_guard<std::mutex> lock(imageObjectMutex_);
-        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
-        imageObjectVec_.resize(size);
+        imageObjectVec_.clear();
     }
 
     {
         std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        size = imageBaseObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        size = imageNineObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        size = imageLatticeObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(extendObjectMutex_);
+        size = extendObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+        size = drawFuncObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+}
+
+void CmdList::ProfilerPopObjects(std::stringstream& stream, size_t size)
+{
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
         stream.read(reinterpret_cast<char*>(&size), sizeof(size));
         imageBaseObjVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageNineObjectVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageLatticeObjectVec_.resize(size);
     }
 
     {

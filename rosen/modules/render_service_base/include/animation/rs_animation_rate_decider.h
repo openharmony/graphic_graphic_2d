@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderPropertyBase;
-using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float)>;
+using FrameRateGetFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
 using PropertyValue = std::shared_ptr<RSRenderPropertyBase>;
 
 class RSB_EXPORT RSAnimationRateDecider {
@@ -35,7 +35,23 @@ public:
     {
         isEnabled_ = enabled;
     }
-    void SetScaleReferenceSize(float width, float height);
+    void SetNodeSize(float width, float height)
+    {
+        nodeWidth_ = width;
+        nodeHeight_ = height;
+    }
+    void SetNodeScale(float scaleX, float scaleY)
+    {
+        nodeScaleX_ = scaleX;
+        nodeScaleY_ = scaleY;
+    }
+    void SetAbsRect(int32_t width, int32_t height)
+    {
+        absWidth_ = width;
+        absHeight_ = height;
+        absArea_ = absWidth_ * absHeight_;
+        absLength_ = std::max(absWidth_, absHeight_);
+    }
     void Reset();
     void AddDecisionElement(PropertyId id, const PropertyValue& velocity, FrameRateRange range);
     void MakeDecision(const FrameRateGetFunc& func);
@@ -47,8 +63,15 @@ private:
     int32_t ProcessFloat(const PropertyValue& property, const FrameRateGetFunc& func);
 
     bool isEnabled_ = true;
-    float scaleWidth_ = 0.0f;
-    float scaleHeight_ = 0.0f;
+    float nodeWidth_ = 0.0f;    // unit: pixel
+    float nodeHeight_ = 0.0f;   // unit: pixel
+    float nodeScaleX_ = 1.0f;
+    float nodeScaleY_ = 1.0f;
+    int32_t absWidth_ = 0;
+    int32_t absHeight_ = 0;
+    int32_t absArea_ = 0;
+    int32_t absLength_ = 0;
+
     FrameRateRange frameRateRange_;
     std::unordered_map<PropertyId, std::pair<PropertyValue, FrameRateRange>> decisionElements_;
 };

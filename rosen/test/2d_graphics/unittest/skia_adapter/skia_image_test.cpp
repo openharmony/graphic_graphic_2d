@@ -151,10 +151,13 @@ HWTEST_F(SkiaImageTest, BuildFromTexture001, TestSize.Level1)
     TextureInfo textureInfo;
     textureInfo.SetWidth(10);
     BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
+    bool ret1 = skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT,
+        bitmapFormat, nullptr, nullptr, nullptr);
+    ASSERT_FALSE(ret1);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    skiaImage->BuildFromTexture(
+    bool ret2 = skiaImage->BuildFromTexture(
         context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace, nullptr, nullptr);
+    ASSERT_FALSE(ret2);
 }
 
 /**

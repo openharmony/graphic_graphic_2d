@@ -135,7 +135,8 @@ bool DoSetDirty(const uint8_t* data, size_t size)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     bool dirty = GetData<bool>();
-    modifier->SetDirty(dirty);
+    auto modifierManager = std::make_shared<RSModifierManager>();
+    modifier->SetDirty(dirty, modifierManager);
     std::unordered_map<int32_t, std::shared_ptr<RSModifierManager>>().swap(
         RSModifierManagerMap::Instance()->managerMap_);
 

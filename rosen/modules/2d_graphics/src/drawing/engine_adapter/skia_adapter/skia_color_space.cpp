@@ -55,6 +55,8 @@ static inline skcms_TransferFunction ConvertToSkCMSTransferFunction(const CMSTra
             return SkNamedTransferFn::kLinear;
         case CMSTransferFuncType::REC2020:
             return SkNamedTransferFn::kRec2020;
+        default:
+            return SkNamedTransferFn::kSRGB;
     }
 }
 
@@ -71,6 +73,8 @@ static inline skcms_Matrix3x3 ConvertToSkCMSMatrix3x3(const CMSMatrixType& matri
             return SkNamedGamut::kRec2020;
         case CMSMatrixType::XYZ:
             return SkNamedGamut::kXYZ;
+        default:
+            return SkNamedGamut::kSRGB;
     }
 }
 
@@ -109,20 +113,25 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
 std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 {
     if (colorSpace_ == nullptr) {
-        LOGE("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
+        LOGD("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
         return nullptr;
     }
 
     auto skData = colorSpace_->serialize();
     std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->GetImpl<SkiaData>()->SetSkData(skData);
+    auto dataImpl = data->GetImpl<SkiaData>();
+    if (dataImpl == nullptr) {
+        LOGD("SkiaColorSpace::Serialize, dataImpl is nullptr!");
+        return nullptr;
+    }
+    dataImpl->SetSkData(skData);
     return data;
 }
 
 bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaColorSpace::Deserialize, data is invalid!");
+        LOGD("SkiaColorSpace::Deserialize, data is invalid!");
         return false;
     }
 
@@ -151,6 +160,28 @@ bool SkiaColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
     return SkColorSpace::Equals(colorSpace_.get(), skColorSpace.get());
 }
 
+CMSMatrix3x3 SkiaColorSpace::ToXYZD50(bool& hasToXYZD50)
+{
+    CMSMatrix3x3 xyzGamut;
+    if (colorSpace_ == nullptr) {
+        hasToXYZD50 = false;
+        return xyzGamut;
+    }
+    skcms_ICCProfile encodedProfile;
+    colorSpace_->toProfile(&encodedProfile);
+    hasToXYZD50 = encodedProfile.has_toXYZD50;
+    if (!hasToXYZD50) {
+        LOGW("This profile's gamut can not be represented by a 3x3 tranform to XYZD50");
+        return xyzGamut;
+    }
+    skcms_Matrix3x3 skiaXYZGamut = encodedProfile.toXYZD50;
+    for (int i = 0; i < MATRIX3_SIZE; i++) {
+        for (int j = 0; j < MATRIX3_SIZE; j++) {
+            xyzGamut.vals[i][j] = skiaXYZGamut.vals[i][j];
+        }
+    }
+    return xyzGamut;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

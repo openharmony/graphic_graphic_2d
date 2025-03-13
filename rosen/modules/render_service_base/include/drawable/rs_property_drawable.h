@@ -138,7 +138,10 @@ public:
     bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
     bool IsSkippingFrame() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarCacheValid();
+    bool WouldDrawLargeAreaBlur();
+    bool WouldDrawLargeAreaBlurPrecisely();
 
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -146,60 +149,32 @@ public:
 
     bool IsFilterCacheValidForOcclusion();
 
-private:
-    void ClearFilterCache();
-    void UpdateFlags(FilterCacheType type, bool cacheValid);
+    void SetDrawBehindWindowRegion(RectI region);
 
 protected:
     void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
 
     bool needSync_ = false;
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
+    bool needDrawBehindWindow_ = false;
+    bool stagingNeedDrawBehindWindow_ = false;
 
-    // flags for clearing filter cache
-    // All stagingXXX variables should be read & written by render_service thread
-    bool stagingForceUseCache_ = false;
-    bool stagingForceClearCache_ = false;
-    uint32_t stagingCachedFilterHash_ = 0;
-    bool stagingFilterHashChanged_ = false;
-    bool stagingFilterRegionChanged_ = false;
-    bool stagingFilterInteractWithDirty_ = false;
-    bool stagingRotationChanged_ = false;
-    bool stagingForceClearCacheForLastFrame_ = false;
-    bool stagingIsAIBarInteractWithHWC_ = false;
-    bool stagingIsEffectNode_ = false;
     bool stagingIntersectWithDRM_ = false;
     bool stagingIsDarkColorMode_ = false;
 
-    // clear one of snapshot cache and filtered cache after drawing
-    // All renderXXX variables should be read & written by render_thread or OnSync() function
-    bool renderClearFilteredCacheAfterDrawing_ = false;
-    bool renderFilterHashChanged_ = false;
-    bool renderForceClearCacheForLastFrame_ = false;
-    bool renderIsEffectNode_ = false;
-    bool renderIsSkipFrame_ = false;
     bool renderIntersectWithDRM_  = false;
     bool renderIsDarkColorMode_  = false;
 
-    // the type cache needed clear before drawing
-    FilterCacheType stagingClearType_ = FilterCacheType::NONE;
-    FilterCacheType renderClearType_ = FilterCacheType::NONE;
-    FilterCacheType lastCacheType_ = FilterCacheType::NONE;
-    bool stagingIsOccluded_ = false;
-
-    // force cache with cacheUpdateInterval_
-    bool stagingIsLargeArea_ = false;
-    bool canSkipFrame_ = false;
-    bool stagingIsSkipFrame_  = false;
-    RSFilter::FilterType filterType_ = RSFilter::NONE;
-    int cacheUpdateInterval_ = 0;
-    bool isFilterCacheValid_ = false; // catch status in current frame
-    bool pendingPurge_ = false;
-
-    std::unique_ptr<RSFilterCacheManager> cacheManager_;
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId renderNodeId_ = INVALID_NODEID;
+    std::string stagingNodeName_ = "invalid0";
+    std::string renderNodeName_ = "invalid0";
+
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
+    std::unique_ptr<RSFilterCacheManager> stagingCacheManager_;
+    std::unique_ptr<RSFilterCacheManager> cacheManager_;
+    RectI drawBehindWindowRegion_;
+    RectI stagingDrawBehindWindowRegion_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

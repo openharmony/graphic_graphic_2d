@@ -15,17 +15,15 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_client/pipeline"
+module_output_path = "graphic_2d/graphic_2d/render_service_client/pipeline"
 
 ##############################  RSRenderClientPipelineTest  ##################################
 ohos_unittest("RSRenderClientPipelineTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_divided_ui_capture_test.cpp",
     "rs_node_map_test.cpp",
     "rs_render_thread_test.cpp",
-    "rs_render_thread_visitor_test.cpp",
   ]
 
   configs = [

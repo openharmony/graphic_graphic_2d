@@ -84,8 +84,10 @@ public:
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheWithSelfDirty() override;
+#ifdef RS_ENABLE_GPU
     void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync) override;
+#endif
     
 private:
     explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},

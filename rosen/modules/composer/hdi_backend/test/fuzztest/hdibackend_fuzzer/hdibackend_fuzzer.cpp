@@ -63,6 +63,47 @@ namespace OHOS {
         return str;
     }
 
+    void HdiBackendFuzzTest001()
+    {
+        // get data
+        void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data2 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data3 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data4 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data5 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        uint32_t deviceId = GetData<uint32_t>();
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool enabled = GetData<bool>();
+        uint32_t screenId = GetData<uint32_t>();
+        auto onScreenRefreshFunc = [](uint32_t, void*) -> void {};
+        HdiDevice* hdiDevice = HdiDevice::GetInstance();
+        HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
+
+        // test
+        OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
+        outputptr->Init();
+
+        hdiBackend_->RegScreenHotplug(nullptr, data1);
+        hdiBackend_->RegScreenRefresh(onScreenRefreshFunc, data2);
+        hdiBackend_->RegPrepareComplete(nullptr, data3);
+        hdiBackend_->RegHwcDeadListener(nullptr, data4);
+        hdiBackend_->RegScreenVBlankIdleCallback(nullptr, data5);
+        hdiBackend_->SetPendingMode(nullptr, period, timestamp);
+        hdiBackend_->PrepareCompleteIfNeed(outputptr, false);
+        hdiBackend_->Repaint(nullptr);
+        hdiBackend_->Repaint(outputptr);
+        hdiBackend_->StartSample(nullptr);
+        hdiBackend_->SetVsyncSamplerEnabled(nullptr, enabled);
+        hdiBackend_->GetVsyncSamplerEnabled(nullptr);
+
+        hdiBackend_->OnHdiBackendHotPlugEvent(deviceId, enabled, nullptr);
+        hdiBackend_->OnScreenHotplug(screenId, false);
+        hdiBackend_->OnScreenHotplug(screenId, true);
+        hdiBackend_->SetHdiBackendDevice(nullptr);
+        hdiBackend_->SetHdiBackendDevice(hdiDevice);
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -78,6 +119,13 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         void* data2 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data3 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data4 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data5 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool enabled = GetData<bool>();
 
         // test
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
@@ -90,12 +138,26 @@ namespace OHOS {
         outputptr->SetLayerInfo(layerInfos);
 
         HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
+        HdiDevice* hdiDevice = HdiDevice::GetInstance();
         auto onScreenHotplugFunc = [](OutputPtr &, bool, void*) -> void {};
+        auto onScreenRefreshFunc = [](uint32_t, void*) -> void {};
         auto onPrepareCompleteFunc = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
+        auto onHwcDeadCallback = [](void*) -> void {};
+        auto onVBlankIdleCallback = [](uint32_t, uint64_t, void*) -> void {};
         hdiBackend_->RegScreenHotplug(onScreenHotplugFunc, data1);
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, data2);
+        hdiBackend_->RegScreenRefresh(onScreenRefreshFunc, data3);
+        hdiBackend_->RegHwcDeadListener(onHwcDeadCallback, data4);
+        hdiBackend_->RegScreenVBlankIdleCallback(onVBlankIdleCallback, data5);
+        hdiBackend_->SetPendingMode(outputptr, period, timestamp);
         hdiBackend_->Repaint(outputptr);
+        hdiBackend_->StartSample(outputptr);
+        hdiBackend_->SetVsyncSamplerEnabled(outputptr, enabled);
+        hdiBackend_->GetVsyncSamplerEnabled(outputptr);
+        hdiBackend_->ResetDevice();
+        hdiBackend_->SetHdiBackendDevice(hdiDevice);
 
+        HdiBackendFuzzTest001();
         return true;
     }
 }

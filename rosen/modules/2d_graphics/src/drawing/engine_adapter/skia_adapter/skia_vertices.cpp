@@ -115,7 +115,7 @@ bool SkiaVertices::MakeCopy(VertexMode mode,
 std::shared_ptr<Data> SkiaVertices::Serialize() const
 {
     if (skiaVertices_ == nullptr) {
-        LOGE("SkiaVertices::Serialize, SkVertices is nullptr!");
+        LOGD("SkiaVertices::Serialize, SkVertices is nullptr!");
         return nullptr;
     }
 
@@ -131,7 +131,7 @@ std::shared_ptr<Data> SkiaVertices::Serialize() const
 bool SkiaVertices::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaVertices::Deserialize, data is invalid!");
+        LOGD("SkiaVertices::Deserialize, data is invalid!");
         return false;
     }
 

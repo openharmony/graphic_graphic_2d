@@ -365,12 +365,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 
 
 // Drawing::DrawCmdList
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
+    bool isRecordCmd)
 {
     return {};
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
+    uint32_t* opItemCount)
 {
     return {};
 }
@@ -419,8 +421,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     template<typename T>                                                                                              \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val)                    \
     {                                                                                                                 \
-        return parcel.WriteInt16(static_cast<int16_t>(val->GetPropertyType())) && parcel.WriteUint64(val->GetId()) && \
-               Marshalling(parcel, val->Get());                                                                       \
+        bool flag = parcel.WriteInt16(static_cast<int16_t>(val->GetPropertyType())) &&                                \
+               parcel.WriteUint64(val->GetId()) &&Marshalling(parcel, val->Get());                                    \
+        if (!flag) {                                                                                                  \
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling failed");                                                    \
+        }                                                                                                             \
+        return flag;                                                                                                  \
     }                                                                                                                 \
     template<typename T>                                                                                              \
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE<T>>& val)                        \
@@ -428,14 +434,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
         PropertyId id = 0;                                                                                            \
         int16_t typeId = 0;                                                                                           \
         if (!parcel.ReadInt16(typeId)) {                                                                              \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadInt16 failed");                                        \
             return false;                                                                                             \
         }                                                                                                             \
         RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);                                        \
         if (!parcel.ReadUint64(id)) {                                                                                 \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                                       \
             return false;                                                                                             \
         }                                                                                                             \
         T value;                                                                                                      \
         if (!Unmarshalling(parcel, value)) {                                                                          \
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Unmarshalling failed");                                    \
             return false;                                                                                             \
         }                                                                                                             \
         val.reset(new TEMPLATE<T>(value, id, type));                                                                  \
@@ -477,6 +486,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
@@ -500,6 +510,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
@@ -539,6 +550,7 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
 {
     return true;
 }
+void RSMarshallingHelper::SetCallingPid(pid_t callingPid) {}
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;

@@ -16,7 +16,9 @@
 #include "skia_static_factory.h"
 
 #include "skia_adapter/skia_blender.h"
+#include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
+#include "skia_document.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
 #include "skia_adapter/skia_hm_symbol_config_ohos.h"
@@ -132,6 +134,12 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeFromRaster(const Pixmap& pixmap,
     return SkiaImage::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Document> SkiaStaticFactory::MakeMultiPictureDocument(FileWStream* fileStream,
+    SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext)
+{
+    return SkiaDocument::MakeMultiPictureDocument(fileStream, procs, serialContext);
+}
+
 std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
     size_t rowBytes)
 {
@@ -222,6 +230,89 @@ std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
 void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
 {
     SkiaUtils::SetVmaCacheStatus(flag);
+}
+
+void SkiaStaticFactory::RecordCoreTrace(int functionType)
+{
+    SkiaUtils::RecordCoreTrace(functionType);
+}
+
+void SkiaStaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
+{
+    SkiaUtils::RecordCoreTrace(functionType, nodeId);
+}
+
+void SkiaStaticFactory::ResetStatsData()
+{
+    GrPerfMonitorReporter::GetInstance().resetStatsData();
+}
+
+void SkiaStaticFactory::ResetPerfEventData()
+{
+    GrPerfMonitorReporter::GetInstance().resetPerfEventData();
+}
+
+std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetBlurStatsData()
+{
+    return GrPerfMonitorReporter::GetInstance().getBlurStatsData();
+}
+
+std::map<std::string, RsBlurEvent> SkiaStaticFactory::GetBlurPerfEventData()
+{
+    std::map<std::string, RsBlurEvent> rsBlurEvent;
+    std::map<std::string, BlurEvent> grBlurEvent =
+        GrPerfMonitorReporter::GetInstance().getBlurPerfEventData();
+    GrBlurEventConvert2Rs(rsBlurEvent, grBlurEvent);
+    return rsBlurEvent;
+}
+
+std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetTextureStatsData()
+{
+    return GrPerfMonitorReporter::GetInstance().getTextureStatsData();
+}
+
+std::map<std::string, RsTextureEvent> SkiaStaticFactory::GetTexturePerfEventData()
+{
+    std::map<std::string, RsTextureEvent> rsTextureEvent;
+    std::map<std::string, TextureEvent> grTextureEvent =
+        GrPerfMonitorReporter::GetInstance().getTexturePerfEventData();
+    GrTextureEventConvert2Rs(rsTextureEvent, grTextureEvent);
+    return rsTextureEvent;
+}
+
+int16_t SkiaStaticFactory::GetSplitRange(int64_t duration)
+{
+    return GrPerfMonitorReporter::getSplitRange(duration);
+}
+
+bool SkiaStaticFactory::IsOpenPerf()
+{
+    return GrPerfMonitorReporter::GetInstance().isOpenPerf();
+}
+
+int64_t SkiaStaticFactory::GetCurrentTime()
+{
+    return GrPerfMonitorReporter::getCurrentTime();
+}
+
+void SkiaStaticFactory::GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
+    const std::map<std::string, TextureEvent>& grTextureEvent)
+{
+    for (const auto& [nodeName, node] : grTextureEvent) {
+        RsTextureEvent event;
+        SkiaConvertUtils::DrawingTextureEventToRsTextureEvent(node, event);
+        rsTextureEvent[nodeName] = event;
+    }
+}
+
+void SkiaStaticFactory::GrBlurEventConvert2Rs(std::map<std::string, RsBlurEvent>& rsBlurEvent,
+    const std::map<std::string, BlurEvent>& grBlurEvent)
+{
+    for (const auto& [nodeName, node] : grBlurEvent) {
+        RsBlurEvent event;
+        SkiaConvertUtils::DrawingBlurEventToRsBlurEvent(node, event);
+        rsBlurEvent[nodeName] = event;
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

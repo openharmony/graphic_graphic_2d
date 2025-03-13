@@ -30,8 +30,8 @@
 // fresh rate
 #include "hgm_core.h"
 
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
-#include "pipeline/rs_uni_render_util.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -55,92 +55,85 @@ static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, "SUBTREE_SKIP_OUT_OF_PARENT_RECT" },
 };
 
-void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
+void RSDirtyRectsDfx::OnDraw(RSPaintFilterCanvas& canvas)
 {
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!renderThreadParams)) {
         RS_LOGE("RSDirtyRectsDfx::OnDraw render thread params is nullptr!");
         return;
     }
-    if (!canvas) {
-        RS_LOGE("RSDirtyRectsDfx::OnDraw canvas is nullptr!");
-        return;
-    }
-    canvas_ = canvas;
+
     // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
     if (renderThreadParams->isPartialRenderEnabled_) {
         if (renderThreadParams->isDirtyRegionDfxEnabled_) {
-            DrawAllSurfaceDirtyRegionForDFX();
+            DrawAllSurfaceDirtyRegionForDFX(canvas);
         }
         if (renderThreadParams->isTargetDirtyRegionDfxEnabled_) {
-            DrawTargetSurfaceDirtyRegionForDFX();
+            DrawTargetSurfaceDirtyRegionForDFX(canvas);
         }
         if (renderThreadParams->isDisplayDirtyDfxEnabled_) {
-            DrawDirtyRegionForDFX(targetDrawable_.GetSyncDirtyManager()->GetMergedDirtyRegions());
+            DrawDirtyRegionForDFX(canvas, targetDrawable_.GetSyncDirtyManager()->GetMergedDirtyRegions());
         }
     }
 
     if (renderThreadParams->isOpaqueRegionDfxEnabled_) {
-        DrawAllSurfaceOpaqueRegionForDFX();
+        DrawAllSurfaceOpaqueRegionForDFX(canvas);
     }
     if (renderThreadParams->isVisibleRegionDfxEnabled_) {
-        DrawTargetSurfaceVisibleRegionForDFX();
+        DrawTargetSurfaceVisibleRegionForDFX(canvas);
     }
 
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
-        DrawCurrentRefreshRate();
+        DrawCurrentRefreshRate(canvas);
     }
 
     if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
-        DrawHwcRegionForDFX();
+        DrawHwcRegionForDFX(canvas);
     }
 
-    DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(*canvas_);
+    DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(canvas);
 }
 
-void RSDirtyRectsDfx::OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas)
+void RSDirtyRectsDfx::OnDrawVirtual(RSPaintFilterCanvas& canvas)
 {
-    if (!canvas) {
-        RS_LOGE("RSDirtyRectsDfx::OnDraw canvas is nullptr!");
-        return;
-    }
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!renderThreadParams)) {
         RS_LOGE("RSDirtyRectsDfx::OnDraw render thread params is nullptr!");
         return;
     }
 
-    canvas_ = canvas;
     if (renderThreadParams->isVirtualDirtyDfxEnabled_) {
-        DrawDirtyRegionInVirtual();
+        DrawDirtyRegionInVirtual(canvas);
     }
 }
 
-void RSDirtyRectsDfx::DrawHwcRegionForDFX() const
+void RSDirtyRectsDfx::DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
+#ifdef RS_ENABLE_GPU
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     static uint32_t updateCnt = 0;
     if (++updateCnt == UINT32_MAX) {
         updateCnt = 0;
     }
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
         if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         std::string extraInfo = surfaceParams->GetName() + " UpdateCnt: " + std::to_string(updateCnt);
         if (surfaceParams->GetHardwareEnabled()) {
-            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_BLUE,
+            RSUniRenderUtil::DrawRectForDfx(canvas, surfaceParams->GetDstRect(), Drawing::Color::COLOR_BLUE,
                 HWC_DFX_FILL_ALPHA, extraInfo);
         } else {
-            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_RED,
+            RSUniRenderUtil::DrawRectForDfx(canvas, surfaceParams->GetDstRect(), Drawing::Color::COLOR_RED,
                 HWC_DFX_FILL_ALPHA, extraInfo);
         }
     }
+#endif
 }
 
-void RSDirtyRectsDfx::DrawDirtyRegionInVirtual() const
+void RSDirtyRectsDfx::DrawDirtyRegionInVirtual(RSPaintFilterCanvas& canvas) const
 {
     for (const auto& subRect : virtualDirtyRects_) {
         RectI tmpRect;
@@ -158,25 +151,40 @@ void RSDirtyRectsDfx::DrawDirtyRegionInVirtual() const
             static_cast<int32_t>(screenInfo_.GetRotatedHeight()) - subRect.GetTop() - subRect.GetHeight(),
             subRect.GetWidth(), subRect.GetHeight());
 #endif
-        DrawDirtyRectForDFX(tmpRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, DFXFillAlpha);
+        DrawDirtyRectForDFX(canvas, tmpRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE);
     }
 }
 
-bool RSDirtyRectsDfx::RefreshRateRotationProcess(ScreenRotation rotation, uint64_t screenId)
+bool RSDirtyRectsDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
+    ScreenRotation rotation, int translateWidth, int translateHeight)
 {
+    auto screenManager = CreateOrGetScreenManager();
+    if (UNLIKELY(displayParams_ == nullptr || screenManager == nullptr)) {
+        return false;
+    }
+    auto screenId = displayParams_->GetScreenId();
+    auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+    if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
+        screenCorrection != ScreenRotation::ROTATION_0) {
+        // Recaculate rotation if mirrored screen has additional rotation angle
+        rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
+            - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
+    }
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        std::swap(translateWidth, translateHeight);
+    }
+
     if (rotation != ScreenRotation::ROTATION_0) {
-        auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
         if (rotation == ScreenRotation::ROTATION_90) {
-            canvas_->Rotate(-90, 0, 0); // 90 degree for text draw
-            canvas_->Translate(-(static_cast<float>(mainScreenInfo.height)), 0);
+            canvas.Rotate(-90, 0, 0); // 90 degree for text draw
+            canvas.Translate(-(static_cast<float>(translateWidth)), 0);
         } else if (rotation == ScreenRotation::ROTATION_180) {
             // 180 degree for text draw
-            canvas_->Rotate(-180, static_cast<float>(mainScreenInfo.width) / 2, // 2 half of screen width
-                static_cast<float>(mainScreenInfo.height) / 2);                 // 2 half of screen height
+            canvas.Rotate(-180, static_cast<float>(translateWidth) / 2, // 2 half of screen width
+                static_cast<float>(translateHeight) / 2);                 // 2 half of screen height
         } else if (rotation == ScreenRotation::ROTATION_270) {
-            canvas_->Rotate(-270, 0, 0); // 270 degree for text draw
-            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.width)));
+            canvas.Rotate(-270, 0, 0); // 270 degree for text draw
+            canvas.Translate(0, -(static_cast<float>(translateHeight)));
         } else {
             return false;
         }
@@ -184,7 +192,7 @@ bool RSDirtyRectsDfx::RefreshRateRotationProcess(ScreenRotation rotation, uint64
     return true;
 }
 
-void RSDirtyRectsDfx::DrawCurrentRefreshRate()
+void RSDirtyRectsDfx::DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_FUNC();
     if (UNLIKELY(!displayParams_)) {
@@ -192,20 +200,18 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     }
     auto screenId = displayParams_->GetScreenId();
     static const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    const char DUAL_DISPLAY = '2';
-    const char DUAL_DISPLAY_NEWFMT = '4';
+    const char dualDisplay = '2';
     // fold device with two logic screens
-    if ((FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY || FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY_NEWFMT) &&
-        screenId != 0) {
+    if ((FOLD_SCREEN_TYPE[0] == dualDisplay) && screenId != 0) {
         return;
     }
     uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
-    uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate();
-    if (realtimeRefreshRate > currentRefreshRate) {
-        realtimeRefreshRate = currentRefreshRate;
+    uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate(screenId);
+    static bool showRealtimeRefreshRate = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    std::string info = std::to_string(currentRefreshRate);
+    if (showRealtimeRefreshRate || RSSystemParameters::GetShowRefreshRateEnabled()) {
+        info += " " + std::to_string(realtimeRefreshRate);
     }
-
-    std::string info = std::to_string(currentRefreshRate) + " " + std::to_string(realtimeRefreshRate);
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
     font.SetSize(100); // 100:Scalar of setting font size
@@ -215,29 +221,34 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     Drawing::Brush brush;
     brush.SetColor(currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN); // low refresh rate 60
     brush.SetAntiAlias(true);
-    RSAutoCanvasRestore acr(canvas_);
-    canvas_->AttachBrush(brush);
+    RSAutoCanvasRestore acr(&canvas);
+    canvas.AttachBrush(brush);
     auto rotation = displayParams_->GetScreenRotation();
-    // fold device with one logic screen
-    if (RSSystemProperties::IsFoldScreenFlag() &&
-        (FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY && FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY_NEWFMT) &&
-        screenId == 0) {
-        rotation =
-            (rotation == ScreenRotation::ROTATION_270 ? ScreenRotation::ROTATION_0
-                                                      : static_cast<ScreenRotation>(static_cast<int>(rotation) + 1));
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        return;
     }
-    auto saveCount = canvas_->Save();
-    if (!RefreshRateRotationProcess(rotation, screenId)) {
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    auto screenWidth = screenInfo.width;
+    auto screenHeight = screenInfo.height;
+    auto activeRect = screenInfo.activeRect;
+    if (!activeRect.IsEmpty()) {
+        canvas.Translate(activeRect.left_, activeRect.top_);
+        screenWidth = static_cast<uint32_t>(activeRect.width_);
+        screenHeight = static_cast<uint32_t>(activeRect.height_);
+    }
+    auto saveCount = canvas.Save();
+    if (!RefreshRateRotationProcess(canvas, rotation, screenWidth, screenHeight)) {
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
-    canvas_->DrawTextBlob(textBlob.get(), 100.f, 200.f);
-    canvas_->RestoreToCount(saveCount);
-    canvas_->DetachBrush();
+    canvas.DrawTextBlob(textBlob.get(), 100.f, 200.f);
+    canvas.RestoreToCount(saveCount);
+    canvas.DetachBrush();
 }
 
-void RSDirtyRectsDfx::DrawDirtyRectForDFX(
-    RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType, float alpha, int edgeWidth) const
+void RSDirtyRectsDfx::DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
+    const RSPaintStyle fillType, int edgeWidth, bool isTextOutsideRect) const
 {
     if (dirtyRect.width_ <= 0 || dirtyRect.height_ <= 0) {
         ROSEN_LOGD("DrawDirtyRectForDFX dirty rect is invalid.");
@@ -246,11 +257,11 @@ void RSDirtyRectsDfx::DrawDirtyRectForDFX(
     ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = %{public}s", dirtyRect.ToString().c_str());
     auto rect = Drawing::Rect(
         dirtyRect.left_, dirtyRect.top_, dirtyRect.left_ + dirtyRect.width_, dirtyRect.top_ + dirtyRect.height_);
-    RSAutoCanvasRestore acr(canvas_);
+    RSAutoCanvasRestore acr(&canvas);
     Drawing::Matrix invertMatrix;
     if (displayParams_ && displayParams_->GetMatrix().Invert(invertMatrix)) {
         // Modifying the drawing origin does not affect the actual drawing content
-        canvas_->ConcatMatrix(displayParams_->GetMatrix());
+        canvas.ConcatMatrix(displayParams_->GetMatrix());
         invertMatrix.MapRect(rect, rect);
         dirtyRect.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
     }
@@ -266,32 +277,36 @@ void RSDirtyRectsDfx::DrawDirtyRectForDFX(
     if (fillType == RSPaintStyle::STROKE) {
         rectPen.SetColor(color);
         rectPen.SetAntiAlias(true);
-        rectPen.SetAlphaF(alpha);
+        rectPen.SetAlphaF(DFXFillAlpha);
         rectPen.SetWidth(edgeWidth);
         rectPen.SetJoinStyle(Drawing::Pen::JoinStyle::ROUND_JOIN);
-        canvas_->AttachPen(rectPen);
+        canvas.AttachPen(rectPen);
     } else {
         rectBrush.SetColor(color);
         rectBrush.SetAntiAlias(true);
-        rectBrush.SetAlphaF(alpha);
-        canvas_->AttachBrush(rectBrush);
+        rectBrush.SetAlphaF(DFXFillAlpha);
+        canvas.AttachBrush(rectBrush);
     }
-    canvas_->DrawRect(rect);
-    canvas_->DetachPen();
-    canvas_->DetachBrush();
-    canvas_->AttachBrush(Drawing::Brush());
-    canvas_->DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
-    canvas_->DetachBrush();
+    canvas.DrawRect(rect);
+    canvas.DetachPen();
+    canvas.DetachBrush();
+    canvas.AttachBrush(Drawing::Brush());
+    if (isTextOutsideRect) {
+        canvas.DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ - edgeWidth);
+    } else {
+        canvas.DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
+    }
+    canvas.DetachBrush();
 }
 
-void RSDirtyRectsDfx::DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects) const
+void RSDirtyRectsDfx::DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const
 {
     for (const auto& subRect : dirtyRects) {
-        DrawDirtyRectForDFX(subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, DFXFillAlpha);
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE);
     }
 }
 
-void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(
+void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(RSPaintFilterCanvas& canvas,
     DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, DirtyRegionType dirtyType, bool isDrawn) const
 {
     auto dirtyManager = surfaceDrawable.GetSyncDirtyManager();
@@ -311,7 +326,7 @@ void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(
         subInfo += (" " + info.first + "node amount: " + std::to_string(dirtyInfo.size()));
         for (const auto& [nid, rect] : dirtyInfo) {
             if (isDrawn) {
-                DrawDirtyRectForDFX(rect, info.second, RSPaintStyle::STROKE, DFXFillAlpha);
+                DrawDirtyRectForDFX(canvas, rect, info.second, RSPaintStyle::STROKE);
             }
         }
     }
@@ -323,7 +338,7 @@ void RSDirtyRectsDfx::DrawAndTraceSingleDirtyRegionTypeForDFX(
         surfaceDrawable.GetName().c_str(), surfaceDrawable.GetId(), matchType->second.c_str(), subInfo.c_str());
 }
 
-bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
+bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,
     DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const
 {
     auto dirtyRegionDebugType = RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_;
@@ -333,7 +348,7 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
     if (dirtyRegionDebugType == DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE) {
         auto i = DirtyRegionType::UPDATE_DIRTY_REGION;
         for (; i < DirtyRegionType::TYPE_AMOUNT; i = static_cast<DirtyRegionType>(i + 1)) {
-            DrawAndTraceSingleDirtyRegionTypeForDFX(surfaceDrawable, i, false);
+            DrawAndTraceSingleDirtyRegionTypeForDFX(canvas, surfaceDrawable, i, false);
         }
         return true;
     }
@@ -351,35 +366,46 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
     };
     auto matchType = DIRTY_REGION_DEBUG_TYPE_MAP.find(dirtyRegionDebugType);
     if (matchType != DIRTY_REGION_DEBUG_TYPE_MAP.end()) {
-        DrawAndTraceSingleDirtyRegionTypeForDFX(surfaceDrawable, matchType->second);
+        DrawAndTraceSingleDirtyRegionTypeForDFX(canvas, surfaceDrawable, matchType->second);
     }
     return true;
 }
-
-void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const
+#ifdef RS_ENABLE_GPU
+void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams) const
 {
+    if (!displayParams_) {
+        return;
+    }
+    auto params = static_cast<RSDisplayRenderParams*>(displayParams_.get());
+    if (surfaceParams.IsFirstLevelCrossNode() && !params->IsFirstVisitCrossNodeDisplay()) {
+        return;
+    }
     const auto& opaqueRegionRects = surfaceParams.GetOpaqueRegion().GetRegionRects();
     for (const auto& subRect : opaqueRegionRects) {
-        DrawDirtyRectForDFX(subRect.ToRectI(), Drawing::Color::COLOR_GREEN, RSPaintStyle::FILL, DFXFillAlpha, 0);
+        DrawDirtyRectForDFX(canvas, subRect.ToRectI(), Drawing::Color::COLOR_GREEN, RSPaintStyle::FILL, 0);
     }
 }
-
-void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX() const
+#endif
+void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
     const auto& visibleDirtyRects = dirtyRegion_.GetRegionRects();
     std::vector<RectI> rects;
     for (auto& rect : visibleDirtyRects) {
         rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
     }
-    DrawDirtyRegionForDFX(rects);
+    DrawDirtyRegionForDFX(canvas, rects);
 
-    // draw display dirtyregion with red color
-    RectI dirtySurfaceRect = targetDrawable_.GetSyncDirtyManager()->GetDirtyRegion();
-    DrawDirtyRectForDFX(dirtySurfaceRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE, DFXFillAlpha);
+    // draw expanded dirtyregion with cyan color
+    constexpr int edgeWidth = 6;
+    for (const auto& subRect : expandedDirtyRegion_.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_CYAN, RSPaintStyle::STROKE, edgeWidth, true);
+    }
 }
 
-void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
+void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
+#ifdef RS_ENABLE_GPU
     if (!displayParams_) {
         RS_LOGE("RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX displayParams is null ptr.");
         return;
@@ -388,12 +414,13 @@ void RSDirtyRectsDfx::DrawAllSurfaceOpaqueRegionForDFX() const
     for (auto it = curAllSurfacesDrawables.rbegin(); it != curAllSurfacesDrawables.rend(); ++it) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>((*it)->GetRenderParams().get());
         if (surfaceParams && surfaceParams->IsMainWindowType()) {
-            DrawSurfaceOpaqueRegionForDFX(*surfaceParams);
+            DrawSurfaceOpaqueRegionForDFX(canvas, *surfaceParams);
         }
     }
+#endif
 }
 
-void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
+void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
     if (UNLIKELY(!displayParams_)) {
         return;
@@ -409,7 +436,7 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
             continue;
         }
         if (CheckIfSurfaceTargetedForDFX(surfaceDrawable->GetName())) {
-            if (DrawDetailedTypesOfDirtyRegionForDFX(*surfaceDrawable)) {
+            if (DrawDetailedTypesOfDirtyRegionForDFX(canvas, *surfaceDrawable)) {
                 continue;
             }
             auto dirtyManager = targetDrawable_.GetSyncDirtyManager();
@@ -425,13 +452,14 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
                 auto intersectRegion = displayDirtyRegion.IntersectRect(visibleRect);
                 rects.emplace_back(intersectRegion);
             }
-            DrawDirtyRegionForDFX(rects);
+            DrawDirtyRegionForDFX(canvas, rects);
         }
     }
 }
 
-void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
+void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
+#ifdef RS_ENABLE_GPU
     if (!displayParams_) {
         RS_LOGE("RSDirtyRectsDfx: displayParams is null ptr.");
         return;
@@ -448,9 +476,10 @@ void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
             for (auto& rect : visibleRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
             }
-            DrawDirtyRegionForDFX(rects);
+            DrawDirtyRegionForDFX(canvas, rects);
         }
     }
+#endif
 }
 
 } // namespace OHOS::Rosen

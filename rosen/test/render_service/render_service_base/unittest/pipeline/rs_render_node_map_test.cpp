@@ -79,7 +79,9 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
     surfaceNode->name_ = "SCBNegativeScreen";
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    ASSERT_EQ(rsRenderNodeMap.entryViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
+    ASSERT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 1);
 }
 
 /**
@@ -165,10 +167,10 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
-    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
+    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     pid_t pid = 1;
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
-    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
+    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
     EXPECT_TRUE(true);
 }
@@ -182,11 +184,12 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 {
     NodeId id = 0;
+    pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.FilterNodeByPid(1);
 
-    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
+    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     rsRenderNodeMap.FilterNodeByPid(1);
     RSDisplayNodeConfig config;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -221,12 +224,13 @@ HWTEST_F(RSRenderNodeMapTest, GetRenderNode, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 {
     NodeId id = 0;
+    pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.GetAnimationFallbackNode();
 
-    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
+    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     EXPECT_NE(rsRenderNodeMap.GetAnimationFallbackNode(), nullptr);
 }
 
@@ -317,5 +321,26 @@ HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
     rsRenderNodeMap.UnregisterRenderNode(id);
     isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
     EXPECT_FALSE(isUIExtensionSurfaceNode);
+}
+
+/**
+ * @tc.name: InsertAndEraseSelfDrawingNodeOfProcessTest
+ * @tc.desc: test results of InsertSelfDrawingNodeOfProcess And EraseSelfDrawingNodeOfProcess
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+HWTEST_F(RSRenderNodeMapTest, InsertAndEraseSelfDrawingNodeOfProcessTest, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
+    NodeId id = 1;
+    surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    rsRenderNodeMap.InsertSelfDrawingNodeOfProcess(surfaceNode);
+    pid_t pid = ExtractPid(id);
+    ASSERT_NE(rsRenderNodeMap.GetSelfDrawingNodeInProcess(pid).size(), 0);
+
+    rsRenderNodeMap.EraseSelfDrawingNodeOfProcess(id);
+    ASSERT_EQ(rsRenderNodeMap.GetSelfDrawingNodeInProcess(pid).size(), 0);
 }
 } // namespace OHOS::Rosen

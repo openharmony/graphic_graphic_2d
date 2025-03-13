@@ -17,6 +17,7 @@
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "sandbox_utils.h"
 #include "platform/common/rs_log.h"
 
@@ -47,7 +48,12 @@ void RSPropertyBase::MarkModifierDirty()
 {
     auto modifier = modifier_.lock();
     if (modifier != nullptr) {
-        modifier->SetDirty(true);
+        auto node = target_.lock();
+        if (node && node->GetRSUIContext()) {
+            modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
+        } else {
+            modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager(gettid()));
+        }
     }
 }
 
@@ -121,7 +127,11 @@ std::shared_ptr<RSPropertyBase> operator+(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Add(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Add(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSPropertyBase>& a,
@@ -131,7 +141,11 @@ std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Minus(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Minus(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSPropertyBase>& value, const float scale)
@@ -140,7 +154,11 @@ std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return value->Clone()->Multiply(scale);
+    const auto clone = value->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Multiply(scale);
 }
 
 bool operator==(const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b)
@@ -161,20 +179,36 @@ bool operator!=(const std::shared_ptr<const RSPropertyBase>& a, const std::share
     return !a->IsEqual(b);
 }
 
-#define UPDATE_TO_RENDER(Command, value, type)                                                                        \
-    do {                                                                                                              \
-        auto node = target_.lock();                                                                                   \
-        auto transactionProxy = RSTransactionProxy::GetInstance();                                                    \
-        if (transactionProxy && node) {                                                                               \
-            std::unique_ptr<RSCommand> command = std::make_unique<Command>(node->GetId(), value, id_, type);          \
-            transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId()); \
-            if (node->NeedForcedSendToRemote()) {                                                                     \
-                std::unique_ptr<RSCommand> commandForRemote =                                                         \
-                    std::make_unique<Command>(node->GetId(), value, id_, type);                                       \
-                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());           \
-            }                                                                                                         \
-        }                                                                                                             \
-    } while (0)
+#define UPDATE_TO_RENDER(Command, value, type)                                                                       \
+    auto node = target_.lock();                                                                                      \
+    if (node != nullptr) {                                                                                           \
+        auto transaction = node->GetRSTransaction();                                                                 \
+        if (!transaction) {                                                                                          \
+            do {                                                                                                     \
+                auto transactionProxy = RSTransactionProxy::GetInstance();                                           \
+                if (transactionProxy) {                                                                              \
+                    std::unique_ptr<RSCommand> command = std::make_unique<Command>(node->GetId(), value, id_, type); \
+                    transactionProxy->AddCommand(                                                                    \
+                        command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());                 \
+                    if (node->NeedForcedSendToRemote()) {                                                            \
+                        std::unique_ptr<RSCommand> commandForRemote =                                                \
+                            std::make_unique<Command>(node->GetId(), value, id_, type);                              \
+                        transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());  \
+                    }                                                                                                \
+                }                                                                                                    \
+            } while (0);                                                                                             \
+        } else {                                                                                                     \
+            do {                                                                                                     \
+                std::unique_ptr<RSCommand> command = std::make_unique<Command>(node->GetId(), value, id_, type);     \
+                transaction->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId()); \
+                if (node->NeedForcedSendToRemote()) {                                                                \
+                    std::unique_ptr<RSCommand> commandForRemote =                                                    \
+                        std::make_unique<Command>(node->GetId(), value, id_, type);                                  \
+                    transaction->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());           \
+                }                                                                                                    \
+            } while (0);                                                                                             \
+        }                                                                                                            \
+    }
 
 template<>
 void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const
@@ -295,6 +329,11 @@ void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateT
     UPDATE_TO_RENDER(RSUpdatePropertyVector2f, value, type);
 }
 template<>
+void RSProperty<Vector3f>::UpdateToRender(const Vector3f& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyVector3f, value, type);
+}
+template<>
 void RSProperty<Vector4<uint32_t>>::UpdateToRender(const Vector4<uint32_t>& value,
     PropertyUpdateType type) const
 {
@@ -353,6 +392,11 @@ template<>
 RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
 {
     return RSRenderPropertyType::PROPERTY_VECTOR2F;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_VECTOR3F;
 }
 template<>
 RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const

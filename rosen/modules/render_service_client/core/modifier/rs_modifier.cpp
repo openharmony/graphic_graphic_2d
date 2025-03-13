@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
 {
-    if (property != nullptr) {
+    if (property != nullptr && property_ != nullptr) {
         property->target_ = property_->target_;
         property->SetIsCustom(true);
         property->AttachModifier(shared_from_this());
@@ -32,7 +32,7 @@ void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
     }
 }
 
-void RSModifier::SetDirty(const bool isDirty)
+void RSModifier::SetDirty(const bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
 {
     if (!isDirty) {
         isDirty_ = isDirty;
@@ -43,9 +43,10 @@ void RSModifier::SetDirty(const bool isDirty)
         return;
     }
     isDirty_ = isDirty;
-    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+
     if (modifierManager == nullptr) {
-        ROSEN_LOGE("Modifier manager is null while mark modifier dirty Id: %{public}" PRIu64 "!", GetPropertyId());
+        ROSEN_LOGE("multi-instance, Modifier manager is null while mark modifier dirty Id: %{public}" PRIu64 "!",
+            GetPropertyId());
         return;
     }
 
@@ -54,6 +55,10 @@ void RSModifier::SetDirty(const bool isDirty)
 
 void RSModifier::ResetRSNodeExtendModifierDirty()
 {
+    if (property_ == nullptr) {
+        return;
+    }
+
     auto target = property_->target_.lock();
     if (target == nullptr) {
         return;

@@ -25,12 +25,15 @@
 
 namespace OHOS {
 namespace Rosen {
-RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id) : id_(id) {}
+RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
+    : id_(id), rsUIContext_(rsUIContext)
+{}
 
 template<typename T, RSModifierType Type>
 std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
 {
-    auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);
+    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
+            : RSNodeMap::Instance().GetNode<RSNode>(id_);
     if (node == nullptr) {
         return std::nullopt;
     }
@@ -123,14 +126,19 @@ std::optional<Vector2f> RSShowingPropertiesFreezer::GetScale() const
     return GetPropertyImpl<Vector2f, RSModifierType::SCALE>();
 }
 
-std::optional<Vector2f> RSShowingPropertiesFreezer::GetSkew() const
+std::optional<float> RSShowingPropertiesFreezer::GetScaleZ() const
 {
-    return GetPropertyImpl<Vector2f, RSModifierType::SKEW>();
+    return GetPropertyImpl<float, RSModifierType::SCALE_Z>();
 }
 
-std::optional<Vector2f> RSShowingPropertiesFreezer::GetPersp() const
+std::optional<Vector3f> RSShowingPropertiesFreezer::GetSkew() const
 {
-    return GetPropertyImpl<Vector2f, RSModifierType::PERSP>();
+    return GetPropertyImpl<Vector3f, RSModifierType::SKEW>();
+}
+
+std::optional<Vector4f> RSShowingPropertiesFreezer::GetPersp() const
+{
+    return GetPropertyImpl<Vector4f, RSModifierType::PERSP>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetAlpha() const

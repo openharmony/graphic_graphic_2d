@@ -15,6 +15,7 @@
 
 #include "platform/common/rs_event_manager.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -186,6 +187,7 @@ void RSEventManager::EventReport(const RSSysEventMsg& eventMsg)
     uint64_t currentTimeMs = RSEventTimer::GetSysTimeMs();
     if (currentTimeMs > state.prevEventTimeStampMs&&
     	currentTimeMs - state.prevEventTimeStampMs > static_cast<uint64_t>(state.eventIntervalMs)) {
+            RS_TRACE_NAME("RSEventManager::EventReport HiSysEventWrite");
             if (eventMsg.pid != -1) {
                 HiSysEventWrite(
                     OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC,

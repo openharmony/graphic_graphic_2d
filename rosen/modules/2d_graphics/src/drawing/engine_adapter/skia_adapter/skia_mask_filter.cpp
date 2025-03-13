@@ -42,7 +42,6 @@ void SkiaMaskFilter::SetSkMaskFilter(const sk_sp<SkMaskFilter>& filter)
 std::shared_ptr<Data> SkiaMaskFilter::Serialize() const
 {
     if (filter_ == nullptr) {
-        LOGE("SkiaMaskFilter::Serialize, filter is nullptr!");
         return nullptr;
     }
 
@@ -52,7 +51,7 @@ std::shared_ptr<Data> SkiaMaskFilter::Serialize() const
 bool SkiaMaskFilter::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaMaskFilter::Deserialize, data is invalid!");
+        LOGD("SkiaMaskFilter::Deserialize, data is invalid!");
         return false;
     }
 

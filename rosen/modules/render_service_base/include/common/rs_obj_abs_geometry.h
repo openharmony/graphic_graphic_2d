@@ -46,6 +46,18 @@ public:
     }
     RectI MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const;
     RectI MapAbsRect(const RectF& rect) const;
+
+    // Converts RectF to RectI by inward rounding (ceil for left/top, floor for right/bottom)
+    // to ensure the resulting integer rect is fully contained within the original floating-point rect.
+    // attention: used in render node's opaque area calculations
+    static RectI DeflateToRectI(const RectF& rect);
+
+    // Converts a RectF to RectI by outward rounding (floor for left/top, ceil for right/bottom)
+    // to ensure the original floating-point rect is fully contained within the resulting integer rect.
+    // attention: used in render node's draw area calculations
+    static RectI InflateToRectI(const RectF& rect);
+
+    static RectF MapRectWithoutRounding(const RectF& rect, const Drawing::Matrix& matrix);
     static RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix);
 
     // return transform matrix (context + self)

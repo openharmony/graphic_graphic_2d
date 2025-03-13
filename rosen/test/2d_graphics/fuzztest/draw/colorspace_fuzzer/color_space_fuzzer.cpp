@@ -28,9 +28,18 @@ namespace {
 constexpr size_t CMSMATRIX_SIZE = 3;
 constexpr size_t FUNCTYPE_SIZE = 4;
 constexpr size_t MATRIXTYPE_SIZE = 5;
+constexpr size_t MAX_SIZE = 5000;
 }
 namespace Drawing {
-
+/*
+ * 测试以下 ColorSpace 接口：
+ * 1. CreateSRGB()
+ * 2. Deserialize(...)
+ * 3. Serialize()
+ * 4. GetSkColorSpace()
+ * 5. GetType()
+ * 6. GetDrawingType()
+ */
 bool ColorSpaceFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -42,15 +51,33 @@ bool ColorSpaceFuzzTest001(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-    colorSpace->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    colorSpace->Deserialize(dataVal);
     colorSpace->Serialize();
     colorSpace->GetSkColorSpace();
     colorSpace->GetType();
     colorSpace->GetDrawingType();
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }
 
+/*
+ * 测试以下 ColorSpace 接口：
+ * 1. CreateSRGBLinear()
+ * 2. CreateRGB(...)
+ * 3. CreateCustomRGB(...)
+ */
 bool ColorSpaceFuzzTest002(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

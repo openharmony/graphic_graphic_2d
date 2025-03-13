@@ -196,24 +196,38 @@ namespace OHOS {
         filter->GetAllPara();
     }
 
+    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+        // initialize
+        g_data = data;
+        g_size = size;
+        g_pos = 0;
+
+        BlenderFuzzTest();
+        BackgroundColorEffectParaFuzzTest();
+        BrightnessBlenderFuzzTest();
+        VisualEffectParaFuzzTest();
+        VisualEffectFuzzTest();
+        FilterBlurParaFuzzTest();
+        FlyOutParaFuzzTest();
+        DistortParaFuzzTest();
+        FilterParaFuzzTest();
+        PixelStretchParaFuzzTest();
+        WaterRippleParaFuzzTest();
+        FilterFuzzTest();
+
+        return true;
+    }
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::BlenderFuzzTest();
-    OHOS::BackgroundColorEffectParaFuzzTest();
-    OHOS::BrightnessBlenderFuzzTest();
-    OHOS::VisualEffectParaFuzzTest();
-    OHOS::VisualEffectFuzzTest();
-    OHOS::FilterBlurParaFuzzTest();
-    OHOS::FlyOutParaFuzzTest();
-    OHOS::DistortParaFuzzTest();
-    OHOS::FilterParaFuzzTest();
-    OHOS::PixelStretchParaFuzzTest();
-    OHOS::WaterRippleParaFuzzTest();
-    OHOS::FilterFuzzTest();
+    OHOS::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
 

@@ -23,6 +23,8 @@ namespace OHOS {
 namespace Rosen {
 std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
     const OHOS::Media::Rect &srcRect);
+std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
+    const OHOS::Media::Rect &srcRect);
 } // namespace Rosen
 } // namespace OHOS
 

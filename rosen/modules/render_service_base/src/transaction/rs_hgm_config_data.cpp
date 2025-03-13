@@ -30,24 +30,45 @@ RSHgmConfigData::~RSHgmConfigData() noexcept
 RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
-    data->ppi_ = parcel.ReadFloat();
-    data->xDpi_ = parcel.ReadFloat();
-    data->yDpi_ = parcel.ReadFloat();
-    auto size = parcel.ReadUint32();
+    uint32_t size;
+    uint32_t pageNameSize;
+    if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
+        !parcel.ReadUint32(size)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read failed");
+        return data;
+    }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > data->configData_.max_size()) {
         RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
         return data;
     }
+    std::string type;
+    std::string name;
+    int32_t minSpeed;
+    int32_t maxSpeed;
+    int32_t preferredFps;
     for (uint32_t i = 0; i < size; i++) {
-        std::string type = parcel.ReadString();
-        std::string name = parcel.ReadString();
-        auto minSpeed = parcel.ReadInt32();
-        auto maxSpeed = parcel.ReadInt32();
-        auto preferredFps = parcel.ReadInt32();
+        if (!parcel.ReadString(type) || !parcel.ReadString(name) || !parcel.ReadInt32(minSpeed) ||
+            !parcel.ReadInt32(maxSpeed) || !parcel.ReadInt32(preferredFps)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+            return data;
+        }
         AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
         data->AddAnimDynamicItem(item);
+    }
+
+    if (!parcel.ReadUint32(pageNameSize)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+        return data;
+    }
+    for (uint32_t i = 0; i < pageNameSize; i++) {
+        std::string pageName;
+        if (!parcel.ReadString(pageName)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+            return data;
+        }
+        data->AddPageName(pageName);
     }
     return data;
 }
@@ -55,20 +76,29 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
-    parcel.WriteFloat(ppi_);
-    parcel.WriteFloat(xDpi_);
-    parcel.WriteFloat(yDpi_);
-    parcel.WriteUint32(configData_.size());
-
-    for (auto& item : configData_) {
-        parcel.WriteString(item.animType);
-        parcel.WriteString(item.animName);
-        parcel.WriteInt32(item.minSpeed);
-        parcel.WriteInt32(item.maxSpeed);
-        parcel.WriteInt32(item.preferredFps);
+    bool flag = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
+        parcel.WriteUint32(configData_.size());
+    if (!flag) {
+        RS_LOGE("RSHgmConfigData::Marshalling parse dpi failed");
+        return flag;
     }
 
-    return true;
+    for (auto& item : configData_) {
+        flag = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
+               parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
+               parcel.WriteInt32(item.preferredFps);
+        if (!flag) {
+            RS_LOGE("RSHgmConfigData::Marshalling parse config item failed");
+            return flag;
+        }
+    }
+
+    parcel.WriteUint32(pageNameList_.size());
+    for (auto& item : pageNameList_) {
+        parcel.WriteString(item);
+    }
+
+    return flag;
 }
 } // namespace Rosen
 } // namespace OHOS

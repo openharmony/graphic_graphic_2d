@@ -47,6 +47,15 @@ struct DirtyRegionInfoForDFX {
 };
 struct RSLayerInfo;
 struct ScreenInfo;
+
+typedef enum {
+    RS_PARAM_DEFAULT,
+    RS_PARAM_OWNED_BY_NODE,
+    RS_PARAM_OWNED_BY_DRAWABLE,
+    RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
+    RS_PARAM_INVALID,
+} RSRenderParamsType;
+
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -96,6 +105,16 @@ public:
     inline NodeId GetId() const
     {
         return id_;
+    }
+
+    void SetParamsType(RSRenderParamsType paramsType)
+    {
+        paramsType_ = paramsType;
+    }
+
+    inline RSRenderParamsType GetParamsType() const
+    {
+        return paramsType_;
     }
 
     Gravity GetFrameGravity() const
@@ -259,16 +278,19 @@ public:
     {
         return absDrawRect_;
     }
+
     void SetAbsDrawRect(RectI& absRect)
     {
         absDrawRect_ = absRect;
     }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
-    virtual bool IsHardCursorEnabled() const { return false; }
+    virtual bool GetNeedMakeImage() const { return false; }
+    virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
     virtual void SetLayerCreated(bool layerCreated) {}
@@ -304,27 +326,60 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetPreScalingMode() const
-    {
-        return ScalingMode::SCALING_MODE_FREEZE;
-    }
     virtual void SetNeedClient(bool needClient) {}
     virtual bool GetNeedClient() const { return false; }
     virtual bool GetFingerprint() { return false; }
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
+    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
+    virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
+    virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
+    {
+        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
+    }
+
+    void SetAbsRotation(float degree)
+    {
+        absRotation_ = degree;
+    }
+
+    float GetAbsRotation() const
+    {
+        return absRotation_;
+    }
+
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC(bool flag);
+
+    virtual void SetNeedOffscreen(bool needOffscreen);
+    virtual bool GetNeedOffscreen() const;
+
+    // [Attention] Only used in PC window resize scene now
+    void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable();
+    void SetNeedSwapBuffer(bool needSwapBuffer);
+    bool GetNeedSwapBuffer() const;
+    void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
+    const Drawing::RectF& GetCacheNodeFrameRect() const;
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
     NodeId id_;
+    RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
@@ -336,7 +391,7 @@ private:
     RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
-
+    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
@@ -362,9 +417,20 @@ private:
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_ = false;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    bool isFirstLevelCrossNode_ = false;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
+    // The angle at which the node rotates about the Z-axis
+    float absRotation_ = 0.f;
+    bool hasUnobscuredUEC_ = false;
+    bool needOffscreen_ = false;
+
+    // [Attention] Only used in PC window resize scene now
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr linkedRootNodeDrawable_;
+    bool needSwapBuffer_ = false;
+    Drawing::RectF cacheNodeFrameRect_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

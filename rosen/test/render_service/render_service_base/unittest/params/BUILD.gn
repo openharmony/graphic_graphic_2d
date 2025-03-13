@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/params"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/params"
 
 ##############################  RSRenderServiceBaseParamsTest  ##################################
 ohos_unittest("RSRenderServiceBaseParamsTest") {
@@ -25,6 +25,7 @@ ohos_unittest("RSRenderServiceBaseParamsTest") {
     "rs_canvas_drawing_render_params_test.cpp",
     "rs_display_render_params_test.cpp",
     "rs_effect_render_params_test.cpp",
+    "rs_rcd_render_params_test.cpp",
     "rs_render_params_test.cpp",
     "rs_surface_render_params_test.cpp",
   ]

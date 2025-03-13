@@ -73,5 +73,20 @@ void RSCanvasNodeCommandHelper::ClearRecording(RSContext& context, NodeId id)
     }
 }
 
+void RSCanvasNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+        node->SetHDRPresent(hdrPresent);
+    }
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSCanvasNodeCommandHelper::SetLinkedRootNodeId(RSContext& context, NodeId nodeId, NodeId rootNodeId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+        node->SetLinkedRootNodeId(rootNodeId);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

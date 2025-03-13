@@ -34,11 +34,27 @@ static AnimationCommandHelper::AnimationCallbackProcessor animationCallbackProce
 }
 
 void AnimationCommandHelper::AnimationCallback(
-    RSContext& context, NodeId targetId, AnimationId animId, AnimationCallbackEvent event)
+    RSContext& context, NodeId targetId, AnimationId animId, uint64_t token, AnimationCallbackEvent event)
 {
     if (animationCallbackProcessor != nullptr) {
-        animationCallbackProcessor(targetId, animId, event);
+        animationCallbackProcessor(targetId, animId, token, event);
     }
+}
+
+AnimationCommandHelper::NodeAndAnimationPair AnimationCommandHelper::GetNodeAndAnimation(
+    RSContext& context, NodeId& nodeId, AnimationId& animId, const char* funcName)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        RS_LOGE("%{public}s, node is nullptr", funcName);
+        return {nullptr, nullptr};
+    }
+    auto animation = node->GetAnimationManager().GetAnimation(animId);
+    if (animation == nullptr) {
+        RS_LOGE("%{public}s, animation is nullptr", funcName);
+        return {node, nullptr};
+    }
+    return {node, animation};
 }
 
 void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor processor)
@@ -57,7 +73,7 @@ void AnimationCommandHelper::CreateAnimation(
     if (node == nullptr) {
         RS_LOGE("AnimationCommandHelper::CreateAnimation, node[%{public}" PRIu64 "] is nullptr,"
             " animation is %{public}" PRIu64, targetId, animation->GetAnimationId());
-        context.AddSyncFinishAnimationList(targetId, animation->GetAnimationId());
+        context.AddSyncFinishAnimationList(targetId, animation->GetAnimationId(), animation->GetToken());
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());

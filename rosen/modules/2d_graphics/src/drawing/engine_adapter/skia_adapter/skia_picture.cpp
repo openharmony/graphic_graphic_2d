@@ -14,7 +14,9 @@
  */
 
 #include "skia_picture.h"
-#include "skia_adapter/skia_data.h"
+
+#include "skia_data.h"
+#include "skia_serial_procs.h"
 #include "utils/data.h"
 #include "utils/log.h"
 namespace OHOS {
@@ -30,7 +32,7 @@ const sk_sp<SkPicture> SkiaPicture::GetPicture() const
 std::shared_ptr<Data> SkiaPicture::Serialize() const
 {
     if (skiaPicture_ == nullptr) {
-        LOGE("SkiaPicture::Serialize, SkPicture is nullptr!");
+        LOGD("SkiaPicture::Serialize, SkPicture is nullptr!");
         return nullptr;
     }
 
@@ -44,12 +46,41 @@ std::shared_ptr<Data> SkiaPicture::Serialize() const
 bool SkiaPicture::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaPicture::Deserialize, data is nullptr!");
         return false;
     }
 
     skiaPicture_ = SkPicture::MakeFromData(data->GetData(), data->GetSize());
     return skiaPicture_ != nullptr;
+}
+
+void SkiaPicture::SetSkPicture(const sk_sp<SkPicture>& skPicture)
+{
+    skiaPicture_ = skPicture;
+}
+
+int SkiaPicture::ApproximateOpCount(bool nested)
+{
+    if (skiaPicture_ == nullptr) {
+        return -1;
+    }
+    return skiaPicture_->approximateOpCount(nested);
+}
+
+std::shared_ptr<Data> SkiaPicture::Serialize(SerialProcs* proc)
+{
+    if (proc == nullptr) {
+        return nullptr;
+    }
+    auto skProc = proc->GetImpl<SkiaSerialProcs>()->GetSkSerialProcs();
+    if (proc->HasTypefaceProc()) {
+        skProc->fTypefaceProc = [](SkTypeface* tf, void* ctx) {
+            return tf->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
+        };
+    }
+    auto data = std::make_shared<Data>();
+    auto skData = skiaPicture_->serialize(skProc);
+    data->GetImpl<SkiaData>()->SetSkData(skData);
+    return data;
 }
 } // namespace Drawing
 } // namespace Rosen

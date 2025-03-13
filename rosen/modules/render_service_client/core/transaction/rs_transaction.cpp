@@ -31,59 +31,109 @@ void RSTransaction::FlushImplicitTransaction()
     }
 }
 
-void RSTransaction::OpenSyncTransaction()
+void RSTransaction::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
     syncId_ = GenerateSyncId();
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
+    if (rsTransactionHandler_ != nullptr) {
         RS_TRACE_NAME("OpenSyncTransaction");
-        transactionProxy->FlushImplicitTransaction();
-        transactionProxy->StartSyncTransaction();
-        transactionProxy->Begin();
+        ROSEN_LOGI("OpenSyncTransaction");
+        rsTransactionHandler_->FlushImplicitTransaction();
+        rsTransactionHandler_->StartSyncTransaction();
+        rsTransactionHandler_->Begin();
         isOpenSyncTransaction_ = true;
         transactionCount_ = 0;
         parentPid_ = GetRealPid();
+        rsTransactionHandler_->StartCloseSyncTransactionFallbackTask(handler, true);
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            RS_TRACE_NAME("OpenSyncTransaction");
+            ROSEN_LOGI("OpenSyncTransaction");
+            transactionProxy->FlushImplicitTransaction();
+            transactionProxy->StartSyncTransaction();
+            transactionProxy->Begin();
+            isOpenSyncTransaction_ = true;
+            transactionCount_ = 0;
+            parentPid_ = GetRealPid();
+            transactionProxy->StartCloseSyncTransactionFallbackTask(handler, true);
+        }
     }
 }
 
-void RSTransaction::CloseSyncTransaction()
+void RSTransaction::CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
+    if (rsTransactionHandler_ != nullptr) {
         RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
-        ROSEN_LOGD(
+        ROSEN_LOGI(
             "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
         isOpenSyncTransaction_ = false;
-        transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
-        transactionProxy->SetSyncId(syncId_);
-        transactionProxy->CommitSyncTransaction();
-        transactionProxy->CloseSyncTransaction();
+        rsTransactionHandler_->MarkTransactionNeedCloseSync(transactionCount_);
+        rsTransactionHandler_->SetSyncId(syncId_);
+        rsTransactionHandler_->CommitSyncTransaction();
+        rsTransactionHandler_->CloseSyncTransaction();
+        rsTransactionHandler_->StartCloseSyncTransactionFallbackTask(handler, false);
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
+            ROSEN_LOGI(
+                "CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d", syncId_, transactionCount_);
+            isOpenSyncTransaction_ = false;
+            transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
+            transactionProxy->SetSyncId(syncId_);
+            transactionProxy->CommitSyncTransaction();
+            transactionProxy->CloseSyncTransaction();
+            transactionProxy->StartCloseSyncTransactionFallbackTask(handler, false);
+        }
     }
     ResetSyncTransactionInfo();
 }
 
 void RSTransaction::Begin()
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
+    if (rsTransactionHandler_ != nullptr) {
         RS_TRACE_NAME("BeginSyncTransaction");
-        transactionProxy->StartSyncTransaction();
-        transactionProxy->Begin();
+        ROSEN_LOGI("BeginSyncTransaction");
+        rsTransactionHandler_->StartSyncTransaction();
+        rsTransactionHandler_->Begin();
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            RS_TRACE_NAME("BeginSyncTransaction");
+            ROSEN_LOGI("BeginSyncTransaction");
+            transactionProxy->StartSyncTransaction();
+            transactionProxy->Begin();
+        }
     }
 }
 
 void RSTransaction::Commit()
 {
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
+    if (rsTransactionHandler_ != nullptr) {
         RS_TRACE_NAME_FMT(
             "CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_, transactionCount_, parentPid_);
-        transactionProxy->SetSyncTransactionNum(transactionCount_);
-        transactionProxy->SetSyncId(syncId_);
-        transactionProxy->SetParentPid(parentPid_);
-        transactionProxy->CommitSyncTransaction();
-        transactionProxy->CloseSyncTransaction();
+        ROSEN_LOGI("CommitSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d parentPid: %{public}d",
+            syncId_, transactionCount_, parentPid_);
+        rsTransactionHandler_->SetSyncTransactionNum(transactionCount_);
+        rsTransactionHandler_->SetSyncId(syncId_);
+        rsTransactionHandler_->SetParentPid(parentPid_);
+        rsTransactionHandler_->CommitSyncTransaction();
+        rsTransactionHandler_->CloseSyncTransaction();
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_,
+                transactionCount_, parentPid_);
+            ROSEN_LOGI("CommitSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d parentPid: %{public}d",
+                syncId_, transactionCount_, parentPid_);
+            transactionProxy->SetSyncTransactionNum(transactionCount_);
+            transactionProxy->SetSyncId(syncId_);
+            transactionProxy->SetParentPid(parentPid_);
+            transactionProxy->CommitSyncTransaction();
+            transactionProxy->CloseSyncTransaction();
+        }
     }
+
     ResetSyncTransactionInfo();
 }
 

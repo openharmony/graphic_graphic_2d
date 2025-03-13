@@ -72,48 +72,6 @@ void RSRenderPropertyAnimation::AttachRenderProperty(const std::shared_ptr<RSRen
     }
 }
 
-bool RSRenderPropertyAnimation::Marshalling(Parcel& parcel) const
-{
-    if (!RSRenderAnimation::Marshalling(parcel)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, RenderAnimation failed");
-        return false;
-    }
-    if (!parcel.WriteUint64(propertyId_)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write PropertyId failed");
-        return false;
-    }
-    if (!(RSMarshallingHelper::Marshalling(parcel, isAdditive_) &&
-            RSRenderPropertyBase::Marshalling(parcel, originValue_))) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::Marshalling, write value failed");
-        return false;
-    }
-    return true;
-}
-
-bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
-{
-    if (!RSRenderAnimation::ParseParam(parcel)) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, RenderAnimation failed");
-        return false;
-    }
-
-    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, isAdditive_))) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, Unmarshalling failed");
-        return false;
-    }
-    RS_PROFILER_PATCH_NODE_ID(parcel, propertyId_);
-    if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
-        return false;
-    }
-    if (originValue_ == nullptr) {
-        ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, originValue_ is nullptr!");
-        return false;
-    }
-    lastValue_ = originValue_->Clone();
-
-    return true;
-}
-
 void RSRenderPropertyAnimation::SetPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value)
 {
     if (property_ != nullptr) {
@@ -146,6 +104,10 @@ const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetLastV
 
 void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value)
 {
+    if (value == nullptr) {
+        ROSEN_LOGD("RSRenderPropertyAnimation::SetAnimationValue, input is null!");
+        return;
+    }
     std::shared_ptr<RSRenderPropertyBase> animationValue;
     if (GetAdditive() && (property_ != nullptr)) {
         animationValue = property_->Clone() + (value - lastValue_);
@@ -160,6 +122,10 @@ void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRender
 const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetAnimationValue(
     const std::shared_ptr<RSRenderPropertyBase>& value)
 {
+    if (value == nullptr) {
+        ROSEN_LOGD("RSRenderPropertyAnimation::GetAnimationValue, input is null!");
+        return value;
+    }
     std::shared_ptr<RSRenderPropertyBase> animationValue;
     if (GetAdditive()) {
         animationValue = GetPropertyValue() + (value - lastValue_);
@@ -219,6 +185,10 @@ void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
 void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float frameInterval)
 {
     auto currAnimateValue = property_->Clone();
+    if (currAnimateValue == nullptr) {
+        ROSEN_LOGE("%{public}s, currAnimateValue is null", __func__);
+        return;
+    }
     float currAnimateFloatValue = currAnimateValue->ToFloat();
     auto diffValue = currAnimateValue - lastAnimateValue_;
     auto diffFloatValue = currAnimateFloatValue - lastAnimateValue_->ToFloat();

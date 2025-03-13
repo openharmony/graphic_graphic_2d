@@ -77,6 +77,8 @@ HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniform001, TestSize.Level1)
     skiaRuntimeShaderBuilder.SetUniform("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
     Matrix44 matrix;
     skiaRuntimeShaderBuilder.SetUniform("lightPos", matrix);
+    Matrix matrix2;
+    EXPECT_TRUE(skiaRuntimeShaderBuilder.MakeShader(&matrix2, false) == nullptr);
 }
 
 /**
@@ -89,6 +91,8 @@ HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4001, TestSize.Level1)
 {
     SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder;
     skiaRuntimeShaderBuilder.SetUniformVec4("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
+    Matrix matrix;
+    EXPECT_TRUE(skiaRuntimeShaderBuilder.MakeShader(&matrix, false) == nullptr);
 }
 
 /**
@@ -110,6 +114,8 @@ HWTEST_F(SkiaRuntimeShaderBuilderTest, SetUniformVec4002, TestSize.Level1)
     std::shared_ptr<RuntimeEffect> effect = RuntimeEffect::CreateForShader(shaderString);
     SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder{effect};
     skiaRuntimeShaderBuilder.SetUniformVec4("lightPos", 1.0f, 1.0f, 1.0f, 1.0f);
+    Matrix matrix;
+    EXPECT_TRUE(skiaRuntimeShaderBuilder.MakeShader(&matrix, false) != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

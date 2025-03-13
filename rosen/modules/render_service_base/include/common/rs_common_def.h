@@ -17,12 +17,14 @@
 
 #include <cmath>
 #include <functional>
+#include <limits.h>
 #include <limits>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#include <utils/rect.h>
 
 #include "common/rs_macros.h"
 
@@ -36,11 +38,15 @@ using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
 using InteractiveImplictAnimatorId = uint64_t;
+using LeashPersistentId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 constexpr uint32_t RGBA_MAX = 255;
+constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
+constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
+constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -52,6 +58,7 @@ enum class RSUINodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -74,6 +81,7 @@ enum class RSRenderNodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -172,6 +180,7 @@ enum DrawAreaEnableState : uint8_t {
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_FOCUSNODE_PRIORITY, // node render in sub thread with the highest priority
+    SUB_VIDEO_PRIORITY, // node render in sub thread with the second highest priority
     SUB_HIGH_PRIORITY, // node render in sub thread with the second priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
@@ -200,6 +209,14 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+#ifdef TP_FEATURE_ENABLE
+// the type of TpFeatureConfig
+enum class TpFeatureConfigType : uint8_t {
+    DEFAULT_TP_FEATURE = 0,
+    AFT_TP_FEATURE,
+};
+#endif
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -207,6 +224,16 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    Drawing::Rect mainScreenRect = {};
+    bool operator==(const RSSurfaceCaptureConfig& config) const
+    {
+        return mainScreenRect == config.mainScreenRect;
+    }
+};
+
+struct RSSurfaceCaptureBlurParam {
+    bool isNeedBlur = false;
+    float blurRadius = 1E-6;
 };
 
 struct RSSurfaceCapturePermissions {
@@ -214,6 +241,20 @@ struct RSSurfaceCapturePermissions {
     bool isSystemCalling = false;
     bool selfCapture = false;
 };
+
+#define CHECK_FALSE_RETURN(var)      \
+    do {                             \
+        if (!(var)) {                \
+            return;                  \
+        }                            \
+    } while (0)                      \
+
+#define CHECK_FALSE_RETURN_VALUE(var, value)     \
+    do {                                         \
+        if (!(var)) {                            \
+            return value;                        \
+        }                                        \
+    } while (0)
 
 enum class DeviceType : uint8_t {
     PHONE,
@@ -246,6 +287,9 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
     ENTER_RECENTS, // Enter recents only for phone, end with EXIT_RECENTS instead of OTHERS
     EXIT_RECENTS, // Exit recents only for phone
+    LOCKSCREEN_TO_LAUNCHER, // Enter unlock screen for pc scene
+    ENTER_MIN_WINDOW, // Enter the window minimization state
+    RECOVER_MIN_WINDOW, // Recover minimized window
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
@@ -277,14 +321,30 @@ enum class UiFirstModeType : uint8_t {
     MULTI_WINDOW_MODE,
 };
 
+enum class RSUIFirstSwitch {
+    NONE,               // follow RS rules
+    MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
+    FORCE_DISABLE,      // force close uifirst
+    FORCE_ENABLE,       // force open uifirst
+    FORCE_ENABLE_LIMIT, // force open uifirst, but for limited
+    FORCE_DISABLE_NONFOCUS, // force close uifirst when only in nonfocus window
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+    XCOM,
 };
 
 enum class SurfaceWindowType : uint8_t {
     DEFAULT_WINDOW = 0,
     SYSTEM_SCB_WINDOW = 1,
+};
+
+enum class SurfaceHwcNodeType : uint8_t {
+    DEFAULT_HWC_TYPE = 0,
+    DEFAULT_HWC_VIDEO = 1,
+    DEFAULT_HWC_ROSENWEB = 2,
 };
 
 struct RSSurfaceRenderNodeConfig {
@@ -297,6 +357,26 @@ struct RSSurfaceRenderNodeConfig {
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
+struct RSAdvancedDirtyConfig {
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles to one
+    static const int RECT_NUM_MERGING_ALL = 35;
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles by level
+    static const int RECT_NUM_MERGING_BY_LEVEL = 20;
+    // maximal number of dirty rectangles in one surface/display node when advancedDirty is opened
+    static const int MAX_RECT_NUM_EACH_NODE = 10;
+    // number of dirty rectangles in one surface/display node when advancedDirty is closed
+    static const int DISABLED_RECT_NUM_EACH_NODE = 1;
+    // expected number of rectangles after merging
+    static const int EXPECTED_OUTPUT_NUM = 3;
+    // maximal tolerable cost in merging
+    // if the merging cost of two rectangles is larger than it, we will not merge
+    // later it could be set to a quantity related to screen area
+    static const int MAX_TOLERABLE_COST = INT_MAX;
+};
+
+static RSAdvancedDirtyConfig advancedDirtyConfig;
+
+// codes for arkui-x start
 // types for RSSurfaceExt
 enum class RSSurfaceExtType : uint8_t {
     NONE,
@@ -312,6 +392,7 @@ using RSSurfaceTextureConfig = RSSurfaceExtConfig;
 using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
 using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
+// codes for arkui-x end
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
@@ -326,9 +407,16 @@ enum class RSSurfaceNodeAbilityState : uint8_t {
     FOREGROUND,
 };
 
+struct SubSurfaceCntUpdateInfo {
+    int updateCnt_ = 0;
+    NodeId preParentId_ = INVALID_NODEID;
+    NodeId curParentId_ = INVALID_NODEID;
+};
+
 constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 constexpr uint32_t SIZE_UPPER_LIMIT = 1000;
+constexpr uint32_t PARTICLE_EMMITER_UPPER_LIMIT = 2000;
 constexpr uint32_t PARTICLE_UPPER_LIMIT = 1000000;
 
 #if defined(M_PI)
@@ -357,6 +445,12 @@ template<typename T>
 inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
 {
     return !(x.owner_before(y) || y.owner_before(x));
+}
+
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
 }
 
 inline bool ROSEN_LNE(float left, float right) // less not equal
@@ -404,6 +498,12 @@ inline constexpr pid_t ExtractPid(uint64_t id)
     return static_cast<pid_t>(id >> 32);
 }
 
+inline constexpr int32_t ExtractTid(uint64_t token)
+{
+    // extract high 32 bits of token as tid
+    return static_cast<int32_t>(token >> 32);
+}
+
 template<class Container, class Predicate>
 inline typename Container::size_type EraseIf(Container& container, Predicate pred)
 {
@@ -434,10 +534,11 @@ enum class AncoHebcStatus : int32_t {
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR
     NO_ERROR = 0,
-    NOT_SELF_CALLING,
     NONSYSTEM_CALLING,
-    UNKNOWN_ERROR,
+    NOT_SELF_CALLING,
     WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
+    NULLPTR_ERROR,
 };
 
 } // namespace Rosen

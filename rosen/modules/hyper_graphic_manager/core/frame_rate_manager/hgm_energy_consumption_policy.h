@@ -20,9 +20,12 @@
 #include <string>
 #include <unordered_map>
 
+#include "hgm_command.h"
 #include "hgm_touch_manager.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 
 #include "animation/rs_frame_rate_range.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
 class HgmEnergyConsumptionPolicy {
@@ -31,30 +34,53 @@ public:
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    // called by RSMainThread
     void StatisticAnimationTime(uint64_t timestamp);
     void StartNewAnimation(const std::string &componentName);
+    // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
-    void GetUiIdleFps(FrameRateRange& rsRange);
+    bool GetUiIdleFps(FrameRateRange& rsRange);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
+    void SetVideoCallSceneInfo(const EventInfo &eventInfo);
+    // called by RSMainThread
+    void StatisticsVideoCallBufferCount(pid_t pid, const std::string &surfaceName);
+    // called by RSMainThread
+    void CheckOnlyVideoCallExist();
+    // called by RSMainThread
+    bool GetVideoCallVsyncChange();
+    void GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
+    void SetCurrentPkgName(const std::vector<std::string> &pkgs);
 
 private:
     // <rateType, <isEnable, idleFps>>
-    std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
-    bool isAnimationEnergyAssuranceEnable_ = false;
-    bool isAnimationEnergyConsumptionAssuranceMode_ = false;
+    std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
+    std::atomic<bool> isAnimationEnergyAssuranceEnable_ = false;
+    std::atomic<bool> isAnimationEnergyConsumptionAssuranceMode_ = false;
     bool isTouchIdle_ = false;
     int64_t rsAnimationTouchIdleTime_ = 1000;
-    uint64_t firstAnimationTimestamp_ = 0;
-    uint64_t lastAnimationTimestamp_ = 0;
+    std::atomic<uint64_t> firstAnimationTimestamp_ = 0;
+    std::atomic<uint64_t> lastAnimationTimestamp_ = 0;
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
     std::string lastAssuranceLog_ = "";
     int32_t currentRefreshMode_ = -1;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
+    std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
+    std::string videoCallVsyncName_ = "";
+    int videoCallMaxFrameRate_ = 0;
+    std::atomic<bool> isEnableVideoCall_ = { false };
+    std::atomic<int32_t> videoBufferCount_ = { 0 };
+    std::atomic<bool> isSubmitDecisionTask_ = { false };
+    std::atomic<bool> isOnlyVideoCallExist_ = { false };
+    std::atomic<bool> isVideoCallVsyncChange_ = { false };
+    // concurrency protection >>>
+    mutable std::mutex videoCallLock_;
+    std::string videoCallLayerName_ = "";
+    // concurrency protection <<<
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

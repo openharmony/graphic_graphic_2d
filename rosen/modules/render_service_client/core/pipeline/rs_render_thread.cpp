@@ -22,16 +22,19 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_background_thread.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
 #include "rs_frame_report.h"
@@ -115,8 +118,10 @@ RSRenderThread::RSRenderThread()
 #endif
         prevTimestamp_ = timestamp_;
         ProcessCommands();
+#ifdef RS_ENABLE_GPU
         ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
             prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+#endif
         Animate(prevTimestamp_);
         Render();
         SendCommands();
@@ -125,6 +130,7 @@ RSRenderThread::RSRenderThread()
             context_->activeNodesInRoot_.clear();
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        ReleasePixelMapInBackgroundThread();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -147,16 +153,47 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+#ifdef ROSEN_OHOS
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback({
+        .OnFinish = RSSurfaceBufferCallbackManager::Instance().GetOnFinishCb(),
+        .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
+    });
+    Drawing::DrawSurfaceBufferOpItem::SetIsUniRender(false);
+    Drawing::DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(
+        [this]() {
+            if (visitor_) {
+                return visitor_->GetActiveSubtreeRootId();
+            }
+            return INVALID_NODEID;
+        }
+    );
+#endif
+    RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSRenderThread::Instance().RequestNextVSync();
+        },
+        .isRequestedNextVSync = [this]() {
+#ifdef __OHOS__
+            if (receiver_ != nullptr) {
+                return receiver_->IsRequestedNextVSync();
+            }
+#endif
+            return false;
+        },
+    });
 }
 
 RSRenderThread::~RSRenderThread()
 {
     Stop();
+#ifdef RS_ENABLE_GPU
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
         delete renderContext_;
         renderContext_ = nullptr;
     }
+#endif
 }
 
 void RSRenderThread::Start()
@@ -166,6 +203,14 @@ void RSRenderThread::Start()
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
+    }
+}
+
+void RSRenderThread::ReleasePixelMapInBackgroundThread()
+{
+    if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+        static std::function<void()> task = []() -> void { RSImageCache::Instance().ReleaseUniqueIdList(); };
+        RSBackgroundThread::Instance().PostTask(task);
     }
 }
 
@@ -246,6 +291,9 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
         }
 #endif
 #ifdef RS_ENABLE_VK
+    if (!cacheDir_.empty()) {
+        renderContex_->SetCacheDir(cacheDir_);
+    }
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->SetUpGpuContext(nullptr);
     }
@@ -384,7 +432,11 @@ void RSRenderThread::ProcessCommands()
 
     ROSEN_LOGD("RSRenderThread ProcessCommands size: %{public}lu\n", (unsigned long)cmds_.size());
     std::vector<std::unique_ptr<RSTransactionData>> cmds;
+#ifdef CROSS_PLATFORM
+    PrepareCommandForCrossPlatform(cmds);
+#else
     std::swap(cmds, cmds_);
+#endif
     cmdLock.unlock();
 
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
@@ -406,6 +458,34 @@ void RSRenderThread::ProcessCommands()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
 }
+
+#ifdef CROSS_PLATFORM
+void RSRenderThread::PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds)
+{
+    if (cmds_.empty()) {
+        return;
+    }
+    int index = 0;
+    uint64_t firstCmdTimestamp = cmds_[0]->GetTimestamp();
+    uint64_t lastCmdTimestamp = cmds_.back()->GetTimestamp();
+    while (index < cmds_.size()) {
+        if (cmds_[index]->GetTimestamp() <
+            std::max({timestamp_, firstCmdTimestamp + 1, lastCmdTimestamp})) {
+            index++;
+        } else {
+            break;
+        }
+    }
+    for (int i = 0; i < index; i++) {
+        cmds.emplace_back(std::move(cmds_[i]));
+    }
+
+    cmds_.erase(cmds_.begin(), cmds_.begin() + index);
+    if (!cmds_.empty()) {
+        RequestNextVSync();
+    }
+}
+#endif
 
 void RSRenderThread::Animate(uint64_t timestamp)
 {
@@ -475,6 +555,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

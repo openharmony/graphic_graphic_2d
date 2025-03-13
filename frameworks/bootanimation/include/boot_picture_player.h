@@ -22,6 +22,8 @@
 #include "vsync_receiver.h"
 
 namespace OHOS {
+static const int MAX_WAIT_VSYNCRECEIVER_CREATE_TIME = 5000000; // 5S
+
 class BootPicturePlayer : public BootPlayer {
 public:
     BootPicturePlayer(const PlayerParams& params);
@@ -33,6 +35,7 @@ public:
 private:
     void OnVsync();
     bool Draw();
+    bool Stop();
     bool OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo);
     void InitPicCoordinates(Rosen::ScreenId screenId);
     bool ReadPicZipFile(ImageStructVec& imgVec, int32_t& freq);

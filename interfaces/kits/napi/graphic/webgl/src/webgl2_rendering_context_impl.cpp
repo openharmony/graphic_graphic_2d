@@ -458,7 +458,7 @@ napi_value WebGL2RenderingContextImpl::ClientWaitSync(
     }
     int64_t syncId = webGlSync->GetSync();
     if (timeout < WebGL2RenderingContextBase::TIMEOUT_IGNORED) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "timeout %{pulic}" PRIi64, timeout);
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "timeout %{public}" PRIi64, timeout);
         return NVal::CreateInt64(env, WebGL2RenderingContextBase::WAIT_FAILED).val_;
     }
     GLuint64 timeout64 = (timeout == -1) ? GL_TIMEOUT_IGNORED : static_cast<GLuint64>(timeout);
@@ -477,7 +477,7 @@ napi_value WebGL2RenderingContextImpl::WaitSync(napi_env env, napi_value syncObj
     }
     int64_t syncId = webGlSync->GetSync();
     if (timeout < WebGL2RenderingContextBase::TIMEOUT_IGNORED) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "timeout %{pulic}" PRIi64, timeout);
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "timeout %{public}" PRIi64, timeout);
         return NVal::CreateNull(env).val_;
     }
     GLuint64 timeout64 = (timeout == -1) ? GL_TIMEOUT_IGNORED : static_cast<GLuint64>(timeout);
@@ -1385,7 +1385,7 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
     GLsizeiptr dstSize = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
                                            : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
     GLuint dstOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
-    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{public}p",
+    LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
          static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
 
     void *mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);
@@ -1683,7 +1683,7 @@ napi_value WebGL2RenderingContextImpl::GetInternalFormatParameter(
     napi_env env, GLenum target, GLenum internalFormat, GLenum pname)
 {
     if (target != WebGLRenderingContextBase::RENDERBUFFER) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "target %{publuc}u", target);
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "target %{public}u", target);
         return NVal::CreateNull(env).val_;
     }
     LOGD("WebGL2 getInternalformatParameter target %{public}u %{public}u %{public}u", target, internalFormat, pname);
@@ -1700,7 +1700,7 @@ napi_value WebGL2RenderingContextImpl::GetInternalFormatParameter(
         glGetInternalformativ(target, internalFormat, GL_NUM_SAMPLE_COUNTS, 1, &length);
         LOGD("WebGL2 getInternalformatParameter length %{public}u", length);
     } else {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "pname %{publuc}u", pname);
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "pname %{public}u", pname);
         return NVal::CreateNull(env).val_;
     }
     if (length > 0) {

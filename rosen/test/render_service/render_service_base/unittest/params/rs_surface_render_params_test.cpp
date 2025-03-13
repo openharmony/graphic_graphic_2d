@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
+#include "limit_number.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -292,20 +293,164 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetNeedCacheSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHardCursorEnabled
- * @tc.desc: SetHardCursorEnabled and IsHardCursorEnabled test
+ * @tc.name: SetHardCursorStatus
+ * @tc.desc: SetHardCursorStatus and GetHardCursorStatus test
  * @tc.type:FUNC
  * @tc.require: issueIAX2SN
  */
-HWTEST_F(RSSurfaceRenderParamsTest, SetHardCursorEnabledTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, SetHardCursorStatusTest, TestSize.Level1)
 {
     RSSurfaceRenderParams params(114);
-    params.SetHardCursorEnabled(false);
+    params.SetHardCursorStatus(false);
     EXPECT_EQ(params.needSync_, false);
-    EXPECT_EQ(params.IsHardCursorEnabled(), false);
+    EXPECT_EQ(params.GetHardCursorStatus(), false);
 
-    params.SetHardCursorEnabled(true);
+    params.SetHardCursorStatus(true);
     EXPECT_EQ(params.needSync_, true);
-    EXPECT_EQ(params.IsHardCursorEnabled(), true);
+    EXPECT_EQ(params.GetHardCursorStatus(), true);
 }
+
+/**
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test function SetLayerTop
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_001, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isLayerTop_  = false;
+
+    bool isLayerTop = params.isLayerTop_;
+    params.SetLayerTop(isLayerTop);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.isLayerTop_, isLayerTop);
 }
+
+/**
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test function SetLayerTop
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isLayerTop_  = false;
+
+    bool isLayerTop = !params.isLayerTop_;
+    params.SetLayerTop(isLayerTop);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.isLayerTop_, isLayerTop);
+}
+
+/**
+ * @tc.name: SetIsBufferFlushed
+ * @tc.desc: SetIsBufferFlushed and GetIsBufferFlushed test
+ * @tc.type:FUNC
+ * @tc.require: issueIBEBTA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsBufferFlushed, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(116);
+    params.SetIsBufferFlushed(false);
+    EXPECT_EQ(params.GetIsBufferFlushed(), false);
+
+    params.SetIsBufferFlushed(true);
+    EXPECT_EQ(params.GetIsBufferFlushed(), true);
+}
+
+/**
+ * @tc.name: GetClonedNodeRenderDrawable
+ * @tc.desc: Test function GetClonedNodeRenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetClonedNodeRenderDrawable, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(117);
+    auto clonedNodeRenderDrawable = params.GetClonedNodeRenderDrawable();
+    EXPECT_TRUE(clonedNodeRenderDrawable.expired());
+}
+
+/**
+ * @tc.name: IsCloneNode
+ * @tc.desc: Test function IsCloneNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, IsCloneNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(118);
+    auto result = params.IsCloneNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ClonedSourceNode
+ * @tc.desc: Test function ClonedSourceNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClonedSourceNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(119);
+    auto result = params.ClonedSourceNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetIsCloned
+ * @tc.desc: Test function SetIsCloned
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsCloned, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(120);
+    params.SetIsCloned(true);
+    EXPECT_TRUE(params.clonedSourceNode_);
+}
+
+/**
+ * @tc.name: isClonedNodeOnTheTree
+ * @tc.desc: Test function isClonedNodeOnTheTree
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, isClonedNodeOnTheTree, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(121);
+    auto result = params.IsClonedNodeOnTheTree();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SdrNitTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SdrNitTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(122);
+    params.SetSdrNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetSdrNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: LayerLinearMatrixTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(123);
+    std::vector<float> matrix = {1.0f, 2.0f, 3.0f};
+    params.SetLayerLinearMatrix(matrix);
+    EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
+}
+} // namespace OHOS::Rosen

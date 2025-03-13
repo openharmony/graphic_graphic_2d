@@ -17,6 +17,7 @@ group("fuzztest") {
   deps = [
     "hdibackend_fuzzer:fuzztest",
     "hdidevice_fuzzer:fuzztest",
+    "hdiframebuffersurface_fuzzer:fuzztest",
     "hdilayer_fuzzer:fuzztest",
     "hdioutput_fuzzer:fuzztest",
     "hdiscreen_fuzzer:fuzztest",

@@ -95,6 +95,10 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     RSImage rsImage;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     float fLeft = 1.0f;
     float ftop = 1.0f;
     float fRight = 1.0f;
@@ -128,6 +132,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.SetImageFit(8);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
+    EXPECT_EQ(rsImage.GetImageFit(), ImageFit::TOP);
 }
 
 /**
@@ -140,6 +145,10 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
 {
     RSImage rsImage;
     Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.recordingState_ = true;
     Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
     Drawing::Brush brush;
@@ -153,6 +162,7 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
     // for test
     rsImage.innerRect_ = Drawing::RectI { 0, 0, 10, 10 };
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    EXPECT_NE(&rsImage, nullptr);
 }
 
 /**
@@ -286,7 +296,6 @@ HWTEST_F(RSImageTest, DrawImageRepeatRectTest001, TestSize.Level1)
     auto image = std::make_shared<RSImage>();
     Drawing::SamplingOptions samplingOptions;
     Drawing::Canvas canvas;
-    canvas.impl_ = std::make_shared<Drawing::SkiaCanvas>();
     image->DrawImageRepeatRect(samplingOptions, canvas);
     image->pixelMap_ = std::make_shared<Media::PixelMap>();
     image->pixelMap_->SetAstc(true);
@@ -404,11 +413,16 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
     Drawing::Rect rect;
     Drawing::Brush brush;
     bool isBackground = false;
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     isBackground = true;
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_NE(&canvas, nullptr);
 }
 
 /**
@@ -425,6 +439,10 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     Drawing::Brush brush;
     bool isBackground = false;
     image.SetImageFit(0);
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     image.SetImageFit(5);
@@ -444,6 +462,7 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.SetImageFit(8);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_EQ(image.GetImageFit(), ImageFit::TOP);
 }
 
 /**
@@ -461,6 +480,10 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     Drawing::Brush brush;
     image.SetDstRect(dstRect);
     image.SetImageRepeat(1);
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     image.SetImageRepeat(2);
@@ -468,6 +491,7 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     image.SetImageRepeat(3);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     canvas.DetachBrush();
+    EXPECT_NE(&image, nullptr);
 }
 
 /**
@@ -481,6 +505,7 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     RectF rect(0, 0, 100, 100);
     imageBase.SetSrcRect(rect);
     imageBase.SetDstRect(rect);
+    imageBase.GetUniqueId();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Brush brush;
@@ -593,17 +618,17 @@ HWTEST_F(RSImageTest, dumpTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDyamicRangeModeTest
- * @tc.desc: Test RSImageTest.SetDyamicRangeMode while dynamicRangeMode = 1
+ * @tc.name: SetDynamicRangeModeTest
+ * @tc.desc: Test RSImageTest.SetDynamicRangeMode while dynamicRangeMode = 1
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST_F(RSImageTest, SetDyamicRangeModeTest, TestSize.Level1)
+HWTEST_F(RSImageTest, SetDynamicRangeModeTest, TestSize.Level1)
 {
     auto rsImage = std::make_shared<RSImage>();
     ASSERT_NE(rsImage, nullptr);
     constexpr uint32_t dynamicRangeMode = 1;
-    rsImage->SetDyamicRangeMode(dynamicRangeMode);
+    rsImage->SetDynamicRangeMode(dynamicRangeMode);
     EXPECT_EQ(rsImage->dynamicRangeMode_, dynamicRangeMode);
 }
 
@@ -637,5 +662,439 @@ HWTEST_F(RSImageTest, GetFitMatrixTest, TestSize.Level1)
     matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
     rsImage->fitMatrix_ = matrix;
     EXPECT_EQ(rsImage->GetFitMatrix(), matrix);
+}
+
+/**
+ * @tc.name: addImageMatrixTest001
+ * @tc.desc: addImageMatrixtest001.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixTest001, TestSize.Level1)
+{
+    RSImage image;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Rect rect;
+    Drawing::Brush brush;
+    image.SetImageFit(17);
+    EXPECT_EQ(image.GetImageFit(), ImageFit::MATRIX);
+}
+
+/**
+ * @tc.name: addImageMatrixTest002
+ * @tc.desc: addImageMatrixTest002.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixTest002, TestSize.Level1)
+{
+    RSImage image;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    bool isBackground = false;
+    Drawing::Rect rect;
+    Drawing::Brush brush;
+    image.SetImageFit(17);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    image.SetFitMatrix(matrix);
+    canvas.AttachBrush(brush);
+    image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
+    canvas.DetachBrush();
+    EXPECT_EQ(image.GetFitMatrix(), matrix);
+}
+
+/**
+ * @tc.name: addImageMatrixMarshallingTest
+ * @tc.desc: addImageMatrixMarshallingTest .
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, addImageMatrixMarshallingTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->SetFitMatrix(matrix);
+
+    MessageParcel parcel;
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(parcel, rsImage), true);
+    std::shared_ptr<RSImage> newImage;
+    EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
+}
+
+/**
+ * @tc.name: GetAdaptiveImageInfoWithFrameRectTest002
+ * @tc.desc: Verify function GetAdaptiveImageInfoWithFrameRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetAdaptiveImageInfoWithFrameRectTest002, TestSize.Level1)
+{
+    Drawing::Rect frameRect;
+    auto image = std::make_shared<RSImage>();
+    image->imageFit_ = ImageFit::MATRIX;
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    image->SetFitMatrix(matrix);
+    EXPECT_EQ(
+        image->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect).fitMatrix, matrix);
+}
+
+/**
+ * @tc.name: LifeCycle003
+ * @tc.desc: fLeft is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, LifeCycle003, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    RSImage rsImage;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float fLeft = -1.0f;
+    float ftop = 1.0f;
+    float fRight = 1.0f;
+    float fBottom = 1.0f;
+    rsImage.SetImageFit(0);
+    Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+    Drawing::Brush brush;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    rsImage.SetPixelMap(pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    EXPECT_NE(pixelmap, nullptr);
+    rsImage.SetPixelMap(pixelmap);
+    canvas.AttachBrush(brush);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
+}
+
+/**
+ * @tc.name: LifeCycle004
+ * @tc.desc: ftop is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, LifeCycle004, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    RSImage rsImage;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float fLeft = 1.0f;
+    float ftop = -1.0f;
+    float fRight = 1.0f;
+    float fBottom = 1.0f;
+    rsImage.SetImageFit(0);
+    Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+    Drawing::Brush brush;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    rsImage.SetPixelMap(pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    EXPECT_NE(pixelmap, nullptr);
+    rsImage.SetPixelMap(pixelmap);
+    canvas.AttachBrush(brush);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
+}
+
+/**
+ * @tc.name: LifeCycle005
+ * @tc.desc: fRight is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, LifeCycle005, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    RSImage rsImage;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float fLeft = 1.0f;
+    float ftop = 1.0f;
+    float fRight = -1.0f;
+    float fBottom = 1.0f;
+    rsImage.SetImageFit(0);
+    Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+    Drawing::Brush brush;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    rsImage.SetPixelMap(pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    EXPECT_NE(pixelmap, nullptr);
+    rsImage.SetPixelMap(pixelmap);
+    canvas.AttachBrush(brush);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
+}
+
+/**
+ * @tc.name: LifeCycle006
+ * @tc.desc: fBottom is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, LifeCycle006, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    RSImage rsImage;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float fLeft = 1.0f;
+    float ftop = 1.0f;
+    float fRight = 1.0f;
+    float fBottom = -1.0f;
+    rsImage.SetImageFit(0);
+    Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+    Drawing::Brush brush;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    rsImage.SetPixelMap(pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    EXPECT_NE(pixelmap, nullptr);
+    rsImage.SetPixelMap(pixelmap);
+    canvas.AttachBrush(brush);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
+}
+
+/**
+ * @tc.name: LifeCycle010
+ * @tc.desc: canvas's rect is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, LifeCycle010, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. create RSMask by Gradient
+     */
+    RSImage rsImage;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    float fLeft = -2.0f;
+    float ftop = -2.0f;
+    float fRight = -1.0f;
+    float fBottom = -1.0f;
+    rsImage.SetImageFit(0);
+    Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+    Drawing::Brush brush;
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    rsImage.SetPixelMap(pixelmap);
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    EXPECT_NE(pixelmap, nullptr);
+    rsImage.SetPixelMap(pixelmap);
+    canvas.AttachBrush(brush);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(1);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(2);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(3);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(4);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(5);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(6);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(0);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    rsImage.SetImageFit(8);
+    rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
+}
+
+/**
+ * @tc.name: PurgeTest001
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242048;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    rsImage->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->Purge();
+    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
+    rsImage->DePurge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest002
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest002, TestSize.Level1)
+{
+    auto rsImage1 = std::make_shared<RSImage>();
+    auto rsImage2 = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242047;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+
+    rsImage1->SetPixelMap(pixelmap);
+    rsImage1->uniqueId_ = uniqueId;
+    rsImage1->MarkRenderServiceImage();
+    rsImage1->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+
+    rsImage2->SetPixelMap(pixelmap);
+    rsImage2->uniqueId_ = uniqueId;
+    rsImage2->MarkRenderServiceImage();
+    rsImage2->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+
+    rsImage1->Purge();
+    EXPECT_FALSE(rsImage1->pixelMap_->IsUnMap());
+
+    rsImage1 = nullptr;
+    rsImage2 = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest003
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest003, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242046;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    rsImage->MarkPurgeable();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->ConvertPixelMapToDrawingImage();
+    rsImage->Purge();
+    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
+    rsImage->DePurge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
+}
+
+/**
+ * @tc.name: PurgeTest004
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PurgeTest004, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    uint64_t uniqueId = 10242045;
+    auto pixelmap = CreatePixelMap(width, height);
+    RSImageCache::Instance().CachePixelMap(uniqueId, pixelmap);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->uniqueId_ = uniqueId;
+    rsImage->MarkRenderServiceImage();
+    RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
+    pixelmap.reset();
+    rsImage->Purge();
+    EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
+    rsImage = nullptr;
+    RSImageCache::Instance().ReleaseUniqueIdList();
 }
 } // namespace OHOS::Rosen

@@ -32,6 +32,7 @@
 #include "image/gpu_context.h"
 #include "memory_handler.h"
 #include "surface_type.h"
+#include "effect/color_space.h"
 
 #define GLES_VERSION 2
 namespace OHOS {
@@ -129,6 +130,9 @@ public:
     {
         isUniRenderMode_ = isUni;
     }
+#if defined(RS_ENABLE_VK)
+    bool CheckShaderCacheOverSoftLimit() const;
+#endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     virtual std::string GetShaderCacheSize() const;
 
@@ -136,12 +140,12 @@ public:
 #endif
     EGLContext CreateShareContext();
 #ifdef ROSEN_IOS
-    sk_sp<SkColorSpace> ColorSpace() const { return color_space_; }
+    std::shared_ptr<Drawing::ColorSpace> ColorSpace() const { return color_space_; }
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
     static const EGLContext GetResourceContext();
 #endif
-    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut);
 
 protected:
     std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
@@ -154,7 +158,7 @@ protected:
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
     EGLSurface pbufferSurface_= EGL_NO_SURFACE;
 #ifdef ROSEN_IOS
-    sk_sp<SkColorSpace> color_space_ = nullptr;
+    std::shared_ptr<Drawing::ColorSpace> color_space_ = nullptr;
     void *layer_ = nullptr;
     static EGLContext resourceContext;
     static std::mutex resourceContextMutex;

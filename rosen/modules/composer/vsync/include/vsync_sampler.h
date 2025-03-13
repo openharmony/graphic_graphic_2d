@@ -36,7 +36,7 @@ public:
     virtual int64_t GetPeriod() const = 0;
     virtual int64_t GetPhase() const = 0;
     virtual int64_t GetRefrenceTime() const = 0;
-    virtual bool AddPresentFenceTime(int64_t timestamp) = 0;
+    virtual bool AddPresentFenceTime(uint32_t screenId, int64_t timestamp) = 0;
     virtual void SetHardwareVSyncStatus(bool enabled) = 0;
     virtual bool GetHardwareVSyncStatus() const = 0;
     virtual void RegSetScreenVsyncEnabledCallback(SetScreenVsyncEnabledCallback cb) = 0;
@@ -45,6 +45,11 @@ public:
     virtual void SetPendingPeriod(int64_t period) = 0;
     virtual void Dump(std::string &result) = 0;
     virtual void ClearAllSamples() = 0;
+    virtual void SetVsyncSamplerEnabled(bool enabled) = 0;
+    virtual bool GetVsyncSamplerEnabled() = 0;
+    virtual int32_t StartSample(bool forceReSample) = 0;
+    virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) = 0;
+    virtual uint64_t GetVsyncEnabledScreenId() = 0;
 protected:
     SetScreenVsyncEnabledCallback setScreenVsyncEnabledCallback_ = nullptr;
 };
@@ -65,7 +70,7 @@ public:
     virtual int64_t GetPeriod() const override;
     virtual int64_t GetPhase() const override;
     virtual int64_t GetRefrenceTime() const override;
-    virtual bool AddPresentFenceTime(int64_t timestamp) override;
+    virtual bool AddPresentFenceTime(uint32_t screenId, int64_t timestamp) override;
     virtual void SetHardwareVSyncStatus(bool enabled) override;
     virtual bool GetHardwareVSyncStatus() const override;
     virtual void RegSetScreenVsyncEnabledCallback(SetScreenVsyncEnabledCallback cb) override;
@@ -74,6 +79,11 @@ public:
     virtual void SetPendingPeriod(int64_t period) override;
     virtual void Dump(std::string &result) override;
     virtual void ClearAllSamples() override;
+    virtual void SetVsyncSamplerEnabled(bool enabled) override;
+    virtual bool GetVsyncSamplerEnabled() override;
+    virtual int32_t StartSample(bool forceReSample) override;
+    virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
+    virtual uint64_t GetVsyncEnabledScreenId() override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
@@ -111,6 +121,8 @@ private:
     static sptr<OHOS::Rosen::VSyncSampler> instance_;
     bool hardwareVSyncStatus_ = true;
     int64_t pendingPeriod_ = 0;
+    std::atomic<bool> enableVsyncSample_ = true;
+    uint64_t vsyncEnabledScreenId_ = UINT64_MAX;
 };
 } // impl
 } // namespace Rosen

@@ -55,12 +55,19 @@ public:
     bool ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
         const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
         ScreenId screenId, uint32_t dynamicRangeMode);
+    void GetHDRStaticMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+        std::vector<uint8_t>& hdrStaticMetadata, GSError& ret);
+    void GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+        std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret);
+    void GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer, std::vector<uint8_t>& adaptiveFOVMetadata,
+        GSError& ret);
     bool SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer, VPEParameter& parameter,
         GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode);
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
 
 private:
     RSColorSpaceConvert();
+    void CloseLibraryHandle();
     std::shared_ptr<VPEConvert> colorSpaceConverterDisplay_ = nullptr;
     VPEColorSpaceConvertDisplayCreate colorSpaceConvertDisplayCreate_ = nullptr;
     VPEColorSpaceConvertDisplayDestroy colorSpaceConvertDisplayDestroy_ = nullptr;

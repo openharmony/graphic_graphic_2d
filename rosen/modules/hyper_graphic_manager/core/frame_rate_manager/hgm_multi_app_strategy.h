@@ -16,6 +16,7 @@
 #ifndef HGM_MULTI_APP_STRATEGY_H
 #define HGM_MULTI_APP_STRATEGY_H
 
+#include <algorithm>
 #include <functional>
 #include <tuple>
 #include <unordered_map>
@@ -47,26 +48,38 @@ public:
 
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const TouchInfo& touchInfo);
-    void HandleLightFactorStatus(bool isSafe);
+    void HandleLightFactorStatus(int32_t state);
+    void HandleLowAmbientStatus(bool isEffect);
+    void SetScreenType(bool isLtpo);
 
     void CalcVote();
     HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
 
-    void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
-    bool CheckPidValid(pid_t pid);
+    void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback)
+    {
+        strategyChangeCallbacks_.emplace_back(callback);
+    }
+    bool CheckPidValid(pid_t pid, bool onlyCheckForegroundApp = false);
 
+    std::string GetGameNodeName(const std::string& pkgName);
     std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType() const;
-    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp() const;
-    HgmLRUCache<pid_t> GetBackgroundPid() const;
-    std::vector<std::string> GetPackages() const;
+    std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType() const { return pidAppTypeMap_; }
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp() const
+    {
+        return foregroundPidAppMap_;
+    }
+    HgmLRUCache<pid_t> GetBackgroundPid() const { return backgroundPid_; }
+    std::vector<std::string> GetPackages() const { return pkgs_; }
     void CleanApp(pid_t pid);
     void UpdateXmlConfigCache();
-    PolicyConfigData::ScreenSetting GetScreenSetting() const;
-    void SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting);
-    PolicyConfigData::StrategyConfigMap GetStrategyConfigs() const;
-    void SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs);
+    PolicyConfigData::ScreenSetting GetScreenSetting() const { return screenSettingCache_; }
+    void SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting) { screenSettingCache_ = screenSetting; }
+    PolicyConfigData::StrategyConfigMap GetStrategyConfigs() const { return strategyConfigMapCache_; }
+    void SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
+    {
+        strategyConfigMapCache_ = strategyConfigs;
+    }
     HgmErrCode GetStrategyConfig(const std::string& strategyName, PolicyConfigData::StrategyConfig& strategyRes);
     HgmErrCode GetAppStrategyConfig(const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes);
 
@@ -74,6 +87,10 @@ public:
 
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
+    void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
+    void SetAppStrategyConfig(
+        const std::string& pkgName, const std::vector<std::pair<std::string, std::string>>& newConfig);
+    void UpdateAppStrategyConfigCache();
 private:
     void UseStrategyNum();
     void FollowFocus();
@@ -83,6 +100,8 @@ private:
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
+    void HandleAppBufferStrategy(const std::string& configName, const std::string& configValue,
+        PolicyConfigData::StrategyConfig& appStrategyConfig);
 
     std::vector<std::string> pkgs_;
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;
@@ -99,11 +118,19 @@ private:
     }};
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE, OLED_120_HZ }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
-    std::atomic<bool> lightFactorStatus_{ false };
+    std::atomic<int32_t> lightFactorStatus_{ 0 };
+    bool lowAmbientStatus_ = false;
+    bool isLtpo_ = true;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
+    bool disableSafeVote_ = false;
+
+    PolicyConfigData::StrategyConfigMap& appStrategyConfigMapCache_;
+    PolicyConfigData::StrategyConfigMap& appStrategyConfigMapPreCache_;
+    bool appStrategyConfigMapChanged_ = false;
+    std::vector<std::string>& appBufferListCache_;
 };
 } // namespace Rosen
 } // namespace OHOS

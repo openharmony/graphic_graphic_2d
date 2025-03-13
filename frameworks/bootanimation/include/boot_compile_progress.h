@@ -16,10 +16,13 @@
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_COMPILE_PROGRESS_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_COMPILE_PROGRESS_H
 
+#ifdef RS_ENABLE_GPU
 #include <render_context/render_context.h>
+#endif
 #include <ui/rs_canvas_node.h>
 #include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
+#include "ui/rs_ui_director.h"
 
 #include "draw/canvas.h"
 #include "event_handler.h"
@@ -30,7 +33,7 @@
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const BootAnimationConfig& config);
+    void Init(const BootAnimationConfig& config, bool needOtaCompile, bool needBundleScan);
 
 private:
     void OnVsync();
@@ -40,6 +43,11 @@ private:
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
+    bool WaitParamsIfNeeded();
+    bool WaitBundleScanIfNeeded();
+    bool CheckParams();
+    bool CheckBundleScanParam();
+    bool CheckBmsStartParam();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -53,16 +61,20 @@ private:
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
 
-    bool isBmsCompileDone_ = false;
     volatile bool isUpdateOptEnd_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;
+    std::shared_ptr<Rosen::RSUIDirector> rsUIDirector_;
     std::shared_ptr<Rosen::Drawing::Typeface> tf_;
     std::shared_ptr<Rosen::VSyncReceiver> receiver_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
     std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
+
+    bool needOtaCompile_ = false;
+    bool needBundleScan_ = false;
+    std::set<std::string> paramNeeded_;
 };
 } // namespace OHOS
 

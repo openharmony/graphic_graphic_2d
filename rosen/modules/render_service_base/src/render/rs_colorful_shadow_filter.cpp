@@ -21,8 +21,10 @@
 
 namespace OHOS {
 namespace Rosen {
-RSColorfulShadowFilter::RSColorfulShadowFilter(float blurRadius, float offsetX, float offsetY)
-    : RSForegroundEffectFilter(blurRadius), blurRadius_(blurRadius), offsetX_(offsetX), offsetY_(offsetY)
+RSColorfulShadowFilter::RSColorfulShadowFilter(
+    float blurRadius, float offsetX, float offsetY, Drawing::Path path, bool isFill)
+    : RSForegroundEffectFilter(blurRadius), blurRadius_(blurRadius), offsetX_(offsetX), offsetY_(offsetY), path_(path),
+      isFilled_(isFill)
 {
     type_ = FilterType::COLORFUL_SHADOW;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
@@ -47,10 +49,15 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
         return;
     }
 
-    // draw blur image
-    canvas.Translate(offsetX_, offsetY_);
-    RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
-    canvas.Translate(-offsetX_, -offsetY_);
+    if (IsValid()) {
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        if (!isFilled_) {
+            canvas.ClipPath(path_, Drawing::ClipOp::DIFFERENCE, true);
+        }
+        // draw blur image
+        canvas.Translate(offsetX_, offsetY_);
+        RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
+    }
 
     // draw clear image
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);

@@ -36,7 +36,9 @@ bool HMSymbolTxt::operator ==(HMSymbolTxt const &symbol) const
             return false;
         }
     }
-    return true;
+
+    return (animationMode_ == symbol.animationMode_) && (animationStart_ == symbol.animationStart_) &&
+        (commonSubType_ == symbol.commonSubType_) && (familyName_ == symbol.familyName_);
 }
 
 void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
@@ -74,17 +76,17 @@ RSEffectStrategy HMSymbolTxt::GetEffectStrategy() const
     return effectStrategy_;
 }
 
-void HMSymbolTxt::SetAnimationMode(const uint16_t animationMode)
+void HMSymbolTxt::SetAnimationMode(uint16_t animationMode)
 {
     animationMode_ = animationMode > 0 ? 1 : 0; // 1 is whole or add, 0 is hierarchical or iterate
 }
 
-void HMSymbolTxt::SetRepeatCount(const int repeatCount)
+void HMSymbolTxt::SetRepeatCount(int repeatCount)
 {
     repeatCount_ = repeatCount;
 }
 
-void HMSymbolTxt::SetAnimationStart(const bool animationStart)
+void HMSymbolTxt::SetAnimationStart(bool animationStart)
 {
     animationStart_ = animationStart;
 }
@@ -112,6 +114,16 @@ void HMSymbolTxt::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
 Drawing::DrawingCommonSubType HMSymbolTxt::GetCommonSubType() const
 {
     return commonSubType_;
+}
+
+void HMSymbolTxt::SetSymbolType(SymbolType symbolType)
+{
+    symbolType_ = symbolType;
+}
+
+SymbolType HMSymbolTxt::GetSymbolType() const
+{
+    return symbolType_;
 }
 } // SPText
 } // Rosen

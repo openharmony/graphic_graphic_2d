@@ -24,6 +24,37 @@
 using namespace OHOS;
 using namespace Rosen;
 
+OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapNine(Drawing::Canvas* canvas,
+    std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* center, const Drawing::Rect* dst,
+    const Drawing::FilterMode mode)
+{
+#ifdef OHOS_PLATFORM
+    if (!canvas || !pixelMap || !dst) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Drawing::RectI centerRectI;
+    if (center) {
+        centerRectI = Drawing::RectI(Drawing::DrawingFloatSaturate2Int(center->GetLeft()),
+            Drawing::DrawingFloatSaturate2Int(center->GetTop()),
+            Drawing::DrawingFloatSaturate2Int(center->GetRight()),
+            Drawing::DrawingFloatSaturate2Int(center->GetBottom()));
+    } else {
+        centerRectI = Drawing::RectI(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight());
+    }
+    if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(canvas);
+        canvas_->DrawPixelMapNine(pixelMap, centerRectI, *dst, mode);
+        return OH_DRAWING_SUCCESS;
+    }
+    std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    if (!image) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawImageNine(image.get(), centerRectI, *dst, mode);
+#endif
+    return OH_DRAWING_SUCCESS;
+}
+
 void DrawingCanvasUtils::DrawPixelMapRect(Drawing::Canvas* canvas, std::shared_ptr<Media::PixelMap> pixelMap,
     const Drawing::Rect* src, const Drawing::Rect* dst, const Drawing::SamplingOptions* sampling)
 {

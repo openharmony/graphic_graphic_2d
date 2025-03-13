@@ -86,7 +86,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level1)
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
     EXPECT_EQ(textLine_.at(0)->GetTextRange().start, 0);
-    EXPECT_EQ(textLine_.at(0)->GetTextRange().end, 6);
+    EXPECT_EQ(textLine_.at(0)->GetTextRange().end, 5);
 }
 
 /*
@@ -118,5 +118,62 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level1)
     EXPECT_EQ(textLineImpl->GetGlyphRuns().size(), 0);
     EXPECT_EQ(textLineImpl->GetTextRange().start, 0);
     EXPECT_EQ(textLineImpl->GetTextRange().end, 0);
+}
+
+/*
+ * @tc.name: TextLineBaseTest005
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
+{
+    std::string ellipsisStr;
+    std::unique_ptr<SPText::TextLineBase> line
+        = textLine_[0]->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_NE(line, nullptr);
+    EXPECT_EQ(line->GetGlyphCount(), 5);
+
+    line = textLine_[0]->CreateTruncatedLine(10, static_cast<SPText::EllipsisModal>(-1), ellipsisStr);
+    EXPECT_EQ(line, nullptr);
+
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 41.936081);
+    EXPECT_FLOAT_EQ(ascent, 14.848000);
+    EXPECT_FLOAT_EQ(descent, 3.904000);
+    EXPECT_FLOAT_EQ(leading, 0.000000);
+
+    EXPECT_EQ(textLine_[0]->GetImageBounds().GetLeft(), 1);
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTrailingSpaceWidth(), 4.1600037);
+    EXPECT_EQ(textLine_[0]->GetStringIndexForPosition({11.920029, 0}), 1);
+}
+
+/*
+ * @tc.name: TextLineBaseTest006
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level1)
+{
+    std::vector<PaintRecord> paints;
+    std::unique_ptr<SPText::TextLineBase> textLineBase = std::make_unique<SPText::TextLineImpl>(nullptr, paints);
+
+    std::string ellipsisStr;
+    std::unique_ptr<SPText::TextLineBase> line
+        = textLineBase->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_EQ(line, nullptr);
+
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLineBase->GetTypographicBounds(&ascent, &descent, &leading), 0.0);
+    EXPECT_FLOAT_EQ(ascent, 0.0);
+    EXPECT_FLOAT_EQ(descent, 0.0);
+    EXPECT_FLOAT_EQ(leading, 0.0);
+
+    EXPECT_EQ(textLineBase->GetImageBounds().GetLeft(), 0);
+    EXPECT_FLOAT_EQ(textLineBase->GetTrailingSpaceWidth(), 0.0);
+    EXPECT_EQ(textLineBase->GetStringIndexForPosition({11.920029, 1}), 0);
 }
 } // namespace txt

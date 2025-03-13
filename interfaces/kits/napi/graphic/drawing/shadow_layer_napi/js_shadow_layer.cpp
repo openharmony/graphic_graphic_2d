@@ -103,25 +103,12 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 
     double dy = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, dy);
-    bool isJsColor = false;
+    
     ColorQuad color;
-    napi_has_named_property(env, argv[ARGC_THREE], JSPROPERTY[0], &isJsColor);
-    if (isJsColor) {
-        int32_t argb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsColor(env, argv[ARGC_THREE], argb, ARGC_FOUR)) {
-            ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Parameter verification failed. The range of color channels must be [0, 255].");
-        }
-        color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
-    } else {
-        uint32_t hexNumber = 0;
-        GET_UINT32_PARAM(ARGC_THREE, hexNumber);
-        uint32_t alpha = (hexNumber >> 24) & 0xFF;
-        uint32_t red = (hexNumber >> 16) & 0xFF;
-        uint32_t green = (hexNumber >> 8) & 0xFF;
-        uint32_t blue = hexNumber & 0xFF;
-        color = Color::ColorQuadSetARGB(alpha, red, green, blue);
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_THREE], color)) {
+        ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter verification failed. The range of color channels must be [0, 255].");
     }
 
     std::shared_ptr<BlurDrawLooper> looper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);

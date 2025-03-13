@@ -63,6 +63,14 @@ class VulkanCleanupHelper;
 }
 struct SharedTransitionParam;
 
+struct CurFrameInfoDetail {
+    uint32_t curFramePrepareSeqNum = 0;
+    uint32_t curFramePostPrepareSeqNum = 0;
+    uint64_t curFrameVsyncId = 0;
+    bool curFrameSubTreeSkipped = false;
+    bool curFrameReverseChildren = false;
+};
+
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -89,6 +97,8 @@ public:
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
+    virtual bool GetGlobalPositionEnabled() const;
+
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
@@ -97,12 +107,37 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
     void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
+    void SetIsCrossNode(bool isCrossNode);
+
+    // Only used in PC extend screen
+    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1,
+        bool autoClearCloneNode = false);
+    void RemoveCrossScreenChild(const SharedPtr& child);
+    void ClearCloneCrossNode();
+
+    WeakPtr GetSourceCrossNode() const
+    {
+        return sourceCrossNode_;
+    }
+
+    bool IsCloneCrossNode() const
+    {
+        return isCloneCrossNode_;
+    }
+
+    void SetCurCloneNodeParent(SharedPtr node)
+    {
+        curCloneNodeParent_ = node;
+    }
+    WeakPtr GetCurCloneNodeParent() const
+    {
+        return curCloneNodeParent_;
+    }
 
     virtual void CollectSurface(const std::shared_ptr<RSRenderNode>& node,
                                 std::vector<RSRenderNode::SharedPtr>& vec,
                                 bool isUniRender,
                                 bool onlyFirstLevel);
-    virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
@@ -143,27 +178,19 @@ public:
         return id_;
     }
 
-    inline const std::map<NodeId, std::vector<WeakPtr>>& GetSubSurfaceNodes() const
-    {
-        return subSurfaceNodes_;
-    }
-
     bool IsFirstLevelNode();
-    void AddSubSurfaceNode(SharedPtr parent);
-    void RemoveSubSurfaceNode(SharedPtr parent);
     void UpdateChildSubSurfaceNode();
     bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
-    inline static const bool isSubSurfaceEnabled_ =
-        RSSystemProperties::GetSubSurfaceEnabled() && RSSystemProperties::IsPhoneType();
 
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID);
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID);
     void SetIsOntheTreeOnlyFlag(bool flag)
     {
-        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
+            uifirstRootNodeId_, displayNodeId_);
     }
     inline bool IsOnTheTree() const
     {
@@ -242,6 +269,7 @@ public:
         childrenRect_.Clear();
     }
     RectI GetChildrenRect() const;
+    RectI GetRemovedChildrenRect() const;
 
     bool ChildHasVisibleFilter() const;
     void SetChildHasVisibleFilter(bool val);
@@ -256,6 +284,7 @@ public:
     {
         return instanceRootNodeId_;
     }
+
     const std::shared_ptr<RSRenderNode> GetInstanceRootNode() const;
     inline NodeId GetFirstLevelNodeId() const
     {
@@ -307,6 +336,7 @@ public:
     void UpdateAbsDrawRect();
 
     void ResetChangeState();
+    void NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAreaBlur);
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
         const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
@@ -347,6 +377,11 @@ public:
         return shouldPaint_;
     }
 
+    inline RectI GetInnerAbsDrawRect() const noexcept
+    {
+        return innerAbsDrawRect_;
+    }
+
     // dirty rect of current frame after update dirty, last frame before update
     RectI GetOldDirty() const;
     // dirty rect in display of current frame after update dirty, last frame before update
@@ -361,6 +396,8 @@ public:
     void RemoveModifier(const PropertyId& id);
     void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
+
+    size_t GetAllModifierSize();
 
     bool IsShadowValidLastFrame() const;
     void SetShadowValidLastFrame(bool isShadowValidLastFrame)
@@ -469,6 +506,7 @@ public:
         curFrameHasAnimation_ = b;
     }
 
+    float GetHDRBrightness() const;
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
     bool GetCommandExecuted() const
@@ -537,9 +575,12 @@ public:
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+#ifdef RS_ENABLE_GPU
     void CheckFilterCacheAndUpdateDirtySlots(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
+#endif
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
 
@@ -563,6 +604,9 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
+
+    // mark cross node in physical extended screen model
+    bool IsCrossNode() const;
 
     // mark stable node
     void OpincSetInAppStateStart(bool& unchangeMarkInApp);
@@ -620,9 +664,9 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
-    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -668,13 +712,13 @@ public:
     {
         return;
     }
-
+#ifdef RS_ENABLE_GPU
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
 
     // Deprecated! Do not use this interface.
     // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
-
+#endif
     void UpdatePointLightDirtySlot();
     void AccmulateDirtyInOcclusion(bool isOccluded);
     void RecordCurDirtyStatus();
@@ -711,9 +755,6 @@ public:
 
     void SkipSync()
     {
-        lastFrameSynced_ = false;
-        // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
-        addedToPendingSyncList_ = false;
         OnSkipSync();
     }
     void Sync()
@@ -726,8 +767,14 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
+    RSUIFirstSwitch GetUIFirstSwitch() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -762,24 +809,80 @@ public:
 
     virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
 
-    int32_t GetCurDisplayOffsetX() const
+    int32_t GetPreparedDisplayOffsetX() const
     {
-        return curDisplayOffsetX_;
+        return preparedDisplayOffsetX_;
     }
-    void SetCurDisplayOffsetX(int32_t offsetX)
+    void SetPreparedDisplayOffsetX(int32_t offsetX)
     {
-        curDisplayOffsetX_ = offsetX;
+        preparedDisplayOffsetX_ = offsetX;
     }
-    int32_t GetCurDisplayOffsetY() const
+    int32_t GetPreparedDisplayOffsetY() const
     {
-        return curDisplayOffsetY_;
+        return preparedDisplayOffsetY_;
     }
-    void SetCurDisplayOffsetY(int32_t offsetY)
+    void SetPreparedDisplayOffsetY(int32_t offsetY)
     {
-        curDisplayOffsetY_ = offsetY;
+        preparedDisplayOffsetY_ = offsetY;
+    }
+    bool IsFirstLevelCrossNode() const
+    {
+        return isFirstLevelCrossNode_;
+    }
+    void SetFirstLevelCrossNode(bool isFirstLevelCrossNode)
+    {
+        isFirstLevelCrossNode_ = isFirstLevelCrossNode;
+    }
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
+
+    void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+    {
+        isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
     }
 
+    bool IsAccessibilityConfigChanged() const
+    {
+        return isAccessibilityConfigChanged_;
+    }
+
+    NodeId GetDisplayNodeId() const
+    {
+        return displayNodeId_;
+    }
+
+    // recursive update subSurfaceCnt
+    void UpdateSubSurfaceCnt(int updateCnt);
+
+    void ProcessBehindWindowOnTreeStateChanged();
+    void ProcessBehindWindowAfterApplyModifiers();
+    void UpdateDrawableBehindWindow();
+    virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
+    virtual bool NeedDrawBehindWindow() const { return false; }
+    virtual void AddChildBlurBehindWindow(NodeId id) {}
+    virtual void RemoveChildBlurBehindWindow(NodeId id) {}
+    virtual void CalDrawBehindWindowRegion() {}
+    virtual RectI GetBehindWindowRegion() const { return {}; };
+    virtual void SetNeedOffscreen(bool needOffscreen);
+
+    void SetAbsRotation(float degree)
+    {
+        absRotation_ = degree;
+    }
+
+    float GetAbsRotation() const
+    {
+        return absRotation_;
+    }
+
+    CurFrameInfoDetail& GetCurFrameInfoDetail() { return curFrameInfoDetail_; }
+
+    bool HasUnobscuredUEC() const;
+    void SetHasUnobscuredUEC();
+
 protected:
+    // only be called in node's constructor if it's generated by render service
+    static NodeId GenerateId();
+
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
@@ -801,37 +904,24 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     virtual void OnTreeStateChanged();
-    // recursive update subSurfaceCnt
-    void UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent);
+    void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     virtual void InitRenderParams();
     virtual void OnSync();
-    virtual void OnSkipSync() {};
+    virtual void OnSkipSync();
     virtual void ClearResource() {};
     virtual void ClearNeverOnTree() {};
 
-    void UpdateDrawableVecV2();
+    void AddUIExtensionChild(SharedPtr child);
+    void MoveUIExtensionChild(SharedPtr child);
+    void RemoveUIExtensionChild(SharedPtr child);
+    bool NeedRoutedBasedOnUIExtension(SharedPtr child);
 
-    mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
-    NodeId drawingCacheRootId_ = INVALID_NODEID;
-    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
-    int isUifirstDelay_ = 0;
-    std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
-    // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
-    bool isRenderUpdateIgnored_ = false;
-    bool isShadowValidLastFrame_ = false;
-    bool IsSelfDrawingNode() const;
-    bool lastFrameHasAnimation_ = false;
-    bool mustRenewedInfo_ = false;
-    bool needClearSurface_ = false;
-    bool isBootAnimation_ = false;
-    std::atomic<bool> isStaticCached_ = false;
-    bool lastFrameHasVisibleEffect_ = false;
-    RectI filterRegion_;
-    bool waitSync_ = false;
+    void UpdateDrawableVecV2();
+    void ClearDrawableVec2();
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -842,34 +932,57 @@ protected:
     {
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
-
+#endif
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
+    bool isRenderUpdateIgnored_ = false;
+    bool isShadowValidLastFrame_ = false;
+    bool IsSelfDrawingNode() const;
+    bool lastFrameHasAnimation_ = false;
+    bool mustRenewedInfo_ = false;
+    bool needClearSurface_ = false;
+    bool isBootAnimation_ = false;
+    bool lastFrameHasVisibleEffect_ = false;
+    bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
-    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
-    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
-    ModifierDirtyTypes dirtyTypes_;
-    ModifierDirtyTypes curDirtyTypes_;
-    std::unique_ptr<RSRenderParams> stagingRenderParams_;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
     bool lastFrameSynced_ = true;
-    bool absDrawRectChange_ = false;
+    bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
     bool flagIntersectWithDRM_ = false;
+    std::atomic<bool> isStaticCached_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
+    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
+    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
+    int isUifirstDelay_ = 0;
+    NodeId drawingCacheRootId_ = INVALID_NODEID;
+    mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
+    std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
+    std::unique_ptr<RSRenderParams> stagingRenderParams_;
+    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
+    RectI filterRegion_;
+    ModifierDirtyTypes dirtyTypes_;
+    ModifierDirtyTypes curDirtyTypes_;
+
+    CurFrameInfoDetail curFrameInfoDetail_;
+
 private:
-    // shadowRectOffset means offset between shadowRect and absRect of node
-    int shadowRectOffsetX_ = 0;
-    int shadowRectOffsetY_ = 0;
-    int32_t curDisplayOffsetX_ = 0;
-    int32_t curDisplayOffsetY_ = 0;
+    // mark cross node in physical extended screen model
+    bool isCrossNode_ = false;
+    bool isCloneCrossNode_ = false;
+    bool isFirstLevelCrossNode_ = false;
+    bool autoClearCloneNode_ = false;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
@@ -879,28 +992,20 @@ private:
     bool isTextureExportNode_ = false;
     uint8_t drawableVecStatus_ = 0;
     bool isOnlyBasicGeoTransform_ = true;
-    const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
-    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
-    std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-    std::unordered_set<RSDrawableSlot> dirtySlots_;
-    std::weak_ptr<RSContext> context_ = {};
-    uint32_t disappearingTransitionCount_ = 0;
     // Test pipeline
     bool addedToPendingSyncList_ = false;
     bool drawCmdListNeedSync_ = false;
+    bool drawableVecNeedClear_ = false;
+    bool unobscuredUECChildrenNeedSync_ = false;
     // accumulate all children's region rect for dirty merging when any child has been removed
     bool hasRemovedChild_ = false;
     bool lastFrameSubTreeSkipped_ = false;
-    DrawCmdIndex stagingDrawCmdIndex_;
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
-    std::vector<NodeId> visibleFilterChild_;
-    std::unordered_set<NodeId> visibleEffectChild_;
     bool isSubTreeDirty_ = false;
     bool isContentDirty_ = false;
     bool nodeGroupIncludeProperty_ = false;
@@ -910,16 +1015,6 @@ private:
     bool isSelfDrawingNode_ = false;
     bool isDirtyRegionUpdated_ = false;
     bool isLastVisible_ = false;
-    // including enlarged draw region
-    RectF selfDrawRect_;
-    RectI localShadowRect_;
-    RectI localOutlineRect_;
-    RectI localPixelStretchRect_;
-    RectI localForegroundEffectRect_;
-    RectI localDistortionEffectRect_;
-    // map parentMatrix
-    RectI absDrawRect_;
-    RectI oldAbsDrawRect_;
     bool isAccumulatedClipFlagChanged_ = false;
     bool hasAccumulatedClipFlag_ = false;
     bool isOpincNodeSupportFlag_ = true;
@@ -930,72 +1025,15 @@ private:
     bool isOpincRootFlag_ = false;
     bool lastFrameHasChildrenOutOfRect_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
-    float globalAlpha_ = 1.0f;
-    RectI oldDirty_;
-    RectI oldDirtyInSurface_;
-    RectI childrenRect_;
-    RectI oldChildrenRect_;
-    RectI oldClipRect_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<RSRenderModifier> boundsModifier_;
-    std::shared_ptr<RSRenderModifier> frameModifier_;
-    Drawing::Matrix oldAbsMatrix_;
-    RSDrawable::Vec drawableVec_;
-    // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
-    // `for (auto child : *GetSortedChildren()) { ... }` will crash.
-    // When an empty list is needed, use EmptyChildrenList instead.
-    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
-    ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
-    WeakPtr parent_;
-    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    RSAnimationManager animationManager_;
-
-    NodeId id_;
-    NodeId instanceRootNodeId_ = INVALID_NODEID;
-    std::list<WeakPtr> children_;
-    std::set<NodeId> preFirstLevelNodeIdSet_ = {};
-    NodeId firstLevelNodeId_ = INVALID_NODEID;
-    NodeId uifirstRootNodeId_ = INVALID_NODEID;
-    std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
-    friend class RSRenderPropertyBase;
-    friend class RSRenderTransition;
-    std::atomic<bool> isTunnelHandleChange_ = false;
     bool isContainBootAnimation_ = false;
     bool isUnchangeMarkEnable_ = false;
     bool isNeedCalculate_ = false;
-    int tryCacheTimes_ = 0;
-    // aim to record children rect in abs coords, without considering clip
-    RectI absChildrenRect_;
-    // aim to record current frame clipped children dirty region, in abs coords
-    RectI subTreeDirtyRegion_;
-    int unchangeCount_ = 0;
-    int unchangeCountUpper_ = 3; // 3 time is the default to cache
-    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cacheBackendTexture_;
-    Drawing::BackendTexture cacheCompletedBackendTexture_;
-#ifdef RS_ENABLE_VK
-    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
-    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
-#endif
-    bool isTextureValid_ = false;
-#endif
     bool isUnchangeMarkInApp_ = false;
-    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
-    std::string nodeName_ = "";
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
     bool drawingCacheNeedUpdate_ = false;
-    std::atomic<bool> commandExecuted_ = false;
-    // collect subtree's surfaceNode including itself
-    uint32_t subSurfaceCnt_ = 0;
-    std::unordered_set<NodeId> curCacheFilterRects_ = {};
-    std::unordered_set<NodeId> visitedCacheRoots_ = {};
-    mutable std::recursive_mutex surfaceMutex_;
-    ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
-    uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
-    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool isScaleInPreFrame_ = false;
@@ -1007,24 +1045,9 @@ private:
     bool isParentScbScreen_ = false;
     bool hasCacheableAnim_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
-    OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
-    Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
-    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
-    float boundsWidth_ = 0.0f;
-    float boundsHeight_ = 0.0f;
-    RectF selfDrawingNodeDirtyRect_;
-    RectI selfDrawingNodeAbsDirtyRect_;
-    // used in old pipline
-    RectI oldRectFromRenderProperties_;
-    std::atomic_bool isUsedBySubThread_ = false;
     bool lastIsNeedAssignToSubThread_ = false;
     uint8_t drawableVecStatusV1_ = 0;
     bool uifirstNeedSync_ = false; // both cmdlist&param
-    pid_t appPid_ = 0;
-    std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
-    // for blur cache
-    RectI lastFilterRegion_;
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;
     bool backgroundFilterRegionChanged_ = false;
@@ -1034,10 +1057,129 @@ private:
     bool isOccluded_ = false;
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    bool isAccessibilityConfigChanged_ = false;
+    const bool isPurgeable_;
+    std::atomic<bool> isTunnelHandleChange_ = false;
+    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
+    std::atomic<bool> commandExecuted_ = false;
+    std::atomic_bool isUsedBySubThread_ = false;
+    int32_t crossScreenNum_ = 0;
+    // shadowRectOffset means offset between shadowRect and absRect of node
+    int shadowRectOffsetX_ = 0;
+    int shadowRectOffsetY_ = 0;
+    int32_t preparedDisplayOffsetX_ = 0;
+    int32_t preparedDisplayOffsetY_ = 0;
+    uint32_t disappearingTransitionCount_ = 0;
+    float globalAlpha_ = 1.0f;
+    int tryCacheTimes_ = 0;
+    int unchangeCount_ = 0;
+    int unchangeCountUpper_ = 3; // 3 time is the default to cache
+    // collect subtree's surfaceNode including itself
+    int subSurfaceCnt_ = 0;
+    uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
+    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
+    float boundsWidth_ = 0.0f;
+    float boundsHeight_ = 0.0f;
+    pid_t appPid_ = 0;
+    NodeId id_;
+    NodeId instanceRootNodeId_ = INVALID_NODEID;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    NodeId displayNodeId_ = INVALID_NODEID;
+    const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
+    std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
+    // bounds and frame modifiers must be unique
+    std::shared_ptr<RSRenderModifier> boundsModifier_;
+    std::shared_ptr<RSRenderModifier> frameModifier_;
+    // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
+    // `for (auto child : *GetSortedChildren()) { ... }` will crash.
+    // When an empty list is needed, use EmptyChildrenList instead.
+    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
+    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
+    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+    std::shared_ptr<RectF> drawRegion_ = nullptr;
+    std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
+        std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
+    WeakPtr sourceCrossNode_;
+    WeakPtr curCloneNodeParent_;
+    std::weak_ptr<RSContext> context_ = {};
+    WeakPtr parent_;
+    // including enlarged draw region
+    RectF selfDrawRect_;
+    RectI localShadowRect_;
+    RectI localOutlineRect_;
+    RectI localPixelStretchRect_;
+    RectI localForegroundEffectRect_;
+    RectI localDistortionEffectRect_;
+    // map parentMatrix
+    RectI absDrawRect_;
+    RectF absDrawRectF_;
+    RectI oldAbsDrawRect_;
+    // round in by absDrawRectF_ or selfDrawingNodeAbsDirtyRectF_, and apply the clip of parent component
+    RectI innerAbsDrawRect_;
+    RectI oldDirty_;
+    RectI oldDirtyInSurface_;
+    RectI childrenRect_;
+    RectI oldChildrenRect_;
+    RectI removedChildrenRect_;
+    RectI oldClipRect_;
+    // aim to record children rect in abs coords, without considering clip
+    RectI absChildrenRect_;
+    // aim to record current frame clipped children dirty region, in abs coords
+    RectI subTreeDirtyRegion_;
+    Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
+    RectF selfDrawingNodeAbsDirtyRectF_;
+    // used in old pipline
+    RectI oldRectFromRenderProperties_;
+    // for blur cache
+    RectI lastFilterRegion_;
+    std::vector<SharedPtr> cloneCrossNodeVec_;
+    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
+    std::unordered_set<RSDrawableSlot> dirtySlots_;
+    DrawCmdIndex stagingDrawCmdIndex_;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
+    std::vector<NodeId> visibleFilterChild_;
+    std::unordered_set<NodeId> visibleEffectChild_;
+    Drawing::Matrix oldAbsMatrix_;
+    RSDrawable::Vec drawableVec_;
+    RSAnimationManager animationManager_;
+
+    std::list<WeakPtr> children_;
+    std::set<NodeId> preFirstLevelNodeIdSet_ = {};
+    std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
+    friend class RSRenderPropertyBase;
+    friend class RSRenderTransition;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::BackendTexture cacheBackendTexture_;
+    Drawing::BackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_VK
+    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
+    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
+#endif
+    bool isTextureValid_ = false;
+#endif
+    std::string nodeName_ = "";
+    std::unordered_set<NodeId> curCacheFilterRects_ = {};
+    std::unordered_set<NodeId> visitedCacheRoots_ = {};
+    mutable std::recursive_mutex surfaceMutex_;
+    ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
+
+    // for blur effct count
+    static std::unordered_map<pid_t, size_t> blurEffectCounter_;
+    // The angle at which the node rotates about the Z-axis
+    float absRotation_ = 0.f;
+    void UpdateBlurEffectCounter(int deltaCount);
+    int GetBlurEffectDrawbleCount();
 
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateAbsDrawRectChangeState();
+    void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
@@ -1079,12 +1221,15 @@ private:
     void UpdateDisplayList();
     void UpdateShadowRect();
 
+    void RecordCloneCrossNode(SharedPtr node);
+
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
+    friend class RSPointerWindowManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
@@ -1104,18 +1249,25 @@ struct SharedTransitionParam {
     SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode);
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
-    bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    bool IsLower(const NodeId nodeId) const;
+    void UpdateHierarchy(const NodeId nodeId);
     bool IsInAppTranSition() const
     {
         return !crossApplication_;
     }
     void InternalUnregisterSelf();
+    bool HasRelation();
+    void SetNeedGenerateDrawable(const bool needGenerateDrawable);
+    static void UpdateUnpairedSharedTransitionMap(const std::shared_ptr<SharedTransitionParam>& param);
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
+    RSB_EXPORT void GenerateDrawable(const RSRenderNode& node);
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;
     NodeId inNodeId_;
     NodeId outNodeId_;
+    bool needGenerateDrawable_ = false;
 
     RSB_EXPORT static std::map<NodeId, std::weak_ptr<SharedTransitionParam>> unpairedShareTransitions_;
     bool paired_ = true; // treated as paired by default, until we fail to pair them

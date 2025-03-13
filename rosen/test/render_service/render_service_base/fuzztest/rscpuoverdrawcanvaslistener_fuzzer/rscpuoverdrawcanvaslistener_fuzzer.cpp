@@ -219,17 +219,6 @@ bool DoDrawCircle(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDrawPath(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Path path;
-    rsCpu->DrawPath(path);
-    return true;
-}
-
 bool DoDrawBackground(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -278,17 +267,6 @@ bool DoDrawShadow(const uint8_t* data, size_t size)
     auto flag = (Drawing::ShadowFlags)value;
 
     rsCpu->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
-    return true;
-}
-
-bool DoDrawRegion(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Region region;
-    rsCpu->DrawRegion(region);
     return true;
 }
 
@@ -360,17 +338,6 @@ bool DoDrawImageRect(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDrawPicture(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Picture picture;
-    rsCpu->DrawPicture(picture);
-    return true;
-}
-
 bool DoClear(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -381,18 +348,6 @@ bool DoClear(const uint8_t* data, size_t size)
     rsCpu->Clear(color);
     return true;
 }
-
-bool DoAppendRegion(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Path path;
-    rsCpu->AppendRegion(path);
-    return true;
-}
-
 } // namespace Rosen
 } // namespace OHOS
 
@@ -412,16 +367,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoDrawPie(data, size);
     OHOS::Rosen::DoDrawOval(data, size);
     OHOS::Rosen::DoDrawCircle(data, size);
-    OHOS::Rosen::DoDrawPath(data, size);
     OHOS::Rosen::DoDrawBackground(data, size);
     OHOS::Rosen::DoDrawShadow(data, size);
-    OHOS::Rosen::DoDrawRegion(data, size);
     OHOS::Rosen::DoDrawTextBlob(data, size);
     OHOS::Rosen::DoDrawBitmap(data, size);
     OHOS::Rosen::DoDrawImage(data, size);
     OHOS::Rosen::DoDrawImageRect(data, size);
-    OHOS::Rosen::DoDrawPicture(data, size);
     OHOS::Rosen::DoClear(data, size);
-    OHOS::Rosen::DoAppendRegion(data, size);
     return 0;
 }

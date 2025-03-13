@@ -70,6 +70,14 @@ namespace OHOS {
             return;
         }
         GraphicGamutMap gamutMap = GetData<GraphicGamutMap>();
+        GraphicColorGamut gamut = GetData<GraphicColorGamut>();
+        std::vector<GraphicColorGamut> gamuts = { gamut };
+        GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
+        std::vector<GraphicHDRMetadataKey> keys = { key };
+        uint64_t frameId = GetData<uint64_t>();
+        uint64_t timestamp = GetData<uint64_t>();
+        uint32_t type = GetData<uint32_t>();
+
         g_hdiScreen->SetScreenGamutMap(gamutMap);
         g_hdiScreen->GetScreenGamutMap(gamutMap);
         GraphicDisplayCapability dcap = {};
@@ -77,6 +85,9 @@ namespace OHOS {
 
         GraphicHDRCapability info = {};
         g_hdiScreen->GetHDRCapabilityInfos(info);
+        g_hdiScreen->GetScreenSupportedColorGamuts(gamuts);
+        g_hdiScreen->GetSupportedMetaDataKey(keys);
+        g_hdiScreen->SetScreenConstraint(frameId, timestamp, type);
         g_hdiScreen = nullptr;
     }
 
@@ -117,6 +128,7 @@ namespace OHOS {
             }
         }
         
+        g_hdiScreen->Init();
         g_hdiScreen->SetScreenMode(modeId);
         uint32_t width = 1080;
         uint32_t height = 1920;

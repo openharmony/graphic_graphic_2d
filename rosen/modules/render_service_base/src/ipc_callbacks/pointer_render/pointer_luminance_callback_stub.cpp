@@ -20,14 +20,6 @@ namespace Rosen {
 int RSPointerLuminanceChangeCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    RSInterfaceCodeSecurityManager securityManager =
-        RSInterfaceCodeSecurityManager::CreateInstance<RSIPointerLuminanceChangeCallbackInterfaceCodeAccessVerifier>();
-    if (!securityManager.IsInterfaceCodeAccessible(code)) {
-        RS_LOGE("RSPointerLuminanceChangeCallbackStub::OnRemoteRequest no permission to access codeID=%{public}u",
-            code);
-        return ERR_INVALID_STATE;
-    }
- 
     auto token = data.ReadInterfaceToken();
     if (token != RSIPointerLuminanceChangeCallback::GetDescriptor()) {
         return ERR_INVALID_STATE;
@@ -36,7 +28,12 @@ int RSPointerLuminanceChangeCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIPointerLuminanceChangeCallbackInterfaceCode::ON_POINTER_LUMINANCE_CHANGED): {
-            int32_t brightness = data.ReadInt32();
+            int32_t brightness{0};
+            if (!data.ReadInt32(brightness)) {
+                RS_LOGE("RSPointerLuminanceChangeCallbackStub::ON_POINTER_LUMINANCE_CHANGED read brightness failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnPointerLuminanceChanged(brightness);
             break;
         }

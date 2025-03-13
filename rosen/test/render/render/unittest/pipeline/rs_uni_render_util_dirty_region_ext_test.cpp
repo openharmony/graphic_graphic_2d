@@ -19,8 +19,8 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
@@ -186,7 +186,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionExtTest, SetAllSurfaceDrawableGlobalDirtyRegi
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -209,7 +209,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionExtTest, SetAllSurfaceDrawableGlobalDirtyRegi
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -233,7 +233,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionExtTest, SetAllSurfaceDrawableGlobalDirtyRegi
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     allSurfaceDrawables.push_back(drawable);

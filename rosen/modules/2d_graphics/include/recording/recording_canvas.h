@@ -133,6 +133,8 @@ public:
     void SetIsCustomTypeface(bool isCustomTypeface);
     bool IsCustomTypeface() const;
 
+    void SetIsRecordCmd(bool isRecordCmd);
+
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
 protected:
     bool addDrawOpImmediate_ = true;
@@ -150,6 +152,7 @@ private:
     void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y, Paint& paint);
     bool isCustomTextType_ = false;
     bool isCustomTypeface_ = false;
+    bool isRecordCmd_ = false;
     std::optional<Brush> customTextBrush_ = std::nullopt;
     std::optional<Pen> customTextPen_ = std::nullopt;
     std::stack<SaveOpState> saveOpStateStack_;

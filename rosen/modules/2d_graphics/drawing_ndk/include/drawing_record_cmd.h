@@ -33,7 +33,9 @@
  *
  * @brief Declares functions related to the <b>RecordCmd</b> object in the drawing module.
  *
+ * @kit ArkGraphics2D
  * @library libnative_drawing.so
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @since 13
  * @version 1.0
  */

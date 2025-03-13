@@ -32,14 +32,18 @@ config("texgine_test_config") {
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing/src",
   ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  defines = [ "OHOS_TEXT_ENABLE" ]
 }
 
 group("common_deps") {
   testonly = true
   public_deps = [
-    "$graphic_2d_root/rosen/build/icu:rosen_libicu_ohos",
-    "$graphic_2d_root/rosen/modules/texgine:libtexgine",
-    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
     "$graphic_2d_root/utils/test_header:test_header",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest",
@@ -70,6 +74,20 @@ ohos_unittest("texgine_unittest_part6") {
   module_out_path = module_output_path
 
   sources = [ "font_parser_test.cpp" ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part7") {
+  module_out_path = module_output_path
+
+  sources = [ "font_descriptor_cache_test.cpp" ]
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]

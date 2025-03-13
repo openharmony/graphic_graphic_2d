@@ -111,12 +111,12 @@ bool RSCanvasParagraphPainterTest::AnimationFunc(const std::shared_ptr<SymbolAni
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     std::string str("TextBlob");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecords_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -130,12 +130,12 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest001, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest002, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     std::string str("drawTextShadow");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     SkColor color = 255; // 255 just fot test
     canvasParagraphPainter_->drawTextShadow(textBlob, 0.0, 0.0, color, 0.5); // 0.5 just fot test
 }
@@ -147,8 +147,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest002, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest003, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecords_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -163,8 +163,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest003, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest004, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     SkRRect rect = SkRRect::MakeEmpty();
     SkColor color = 255; // 255 just fot test
     canvasParagraphPainter_->drawRRect(rect, color);
@@ -177,8 +177,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest004, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest005, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     SkRect rect = SkRect::MakeEmpty();
     ParagraphPainter::DecorationStyle decorStyle;
     canvasParagraphPainter_->drawFilledRect(rect, decorStyle);
@@ -191,8 +191,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest005, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest006, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     ParagraphPainter::DecorationStyle decorStyle;
     Path path;
     canvasParagraphPainter_->drawPath(path, decorStyle);
@@ -205,8 +205,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest006, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest007, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     ParagraphPainter::DecorationStyle decorStyle;
     canvasParagraphPainter_->drawLine(0.0, 0.0, 0.0, 0.0, decorStyle);
 }
@@ -218,8 +218,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest007, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest008, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     PaintRecord paintRecord;
     canvasParagraphPainter_->SymbolAnimation(paintRecord);
 }
@@ -231,16 +231,16 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest008, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
 
     PaintRecord paintRecord;
     Point offset;
     std::string str("DrawSymbolSkiaTxt");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecord);
+    ASSERT_NE(textBlob, nullptr);
+    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob, offset, paintRecord);
 }
 
 /*
@@ -250,8 +250,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest010, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     SkRect rect = SkRect::MakeEmpty();
     canvasParagraphPainter_->clipRect(rect);
 }
@@ -263,8 +263,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest010, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest011, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     canvasParagraphPainter_->translate(0.0, 0.0);
 }
 
@@ -275,8 +275,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest011, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest012, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     canvasParagraphPainter_->save();
 }
 
@@ -287,8 +287,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest012, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest013, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     canvasParagraphPainter_->restore();
 }
 
@@ -299,25 +299,12 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest013, TestSize
  */
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest014, TestSize.Level1)
 {
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
+    ASSERT_NE(canvasParagraphPainter_, nullptr);
+    ASSERT_NE(recordingCanvas_, nullptr);
     std::function<bool(const std::shared_ptr<SymbolAnimationConfig>&)> animationFunc =
         RSCanvasParagraphPainterTest::AnimationFunc;
     canvasParagraphPainter_->SetAnimation(animationFunc);
-    EXPECT_EQ(canvasParagraphPainter_->animationFunc_ != nullptr, true);
-}
-
-/*
- * @tc.name: RSCanvasParagraphPainterTest015
- * @tc.desc: test for SetParagraphId
- * @tc.type: FUNC
- */
-HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest015, TestSize.Level1)
-{
-    EXPECT_EQ(canvasParagraphPainter_ != nullptr, true);
-    EXPECT_EQ(recordingCanvas_ != nullptr, true);
-    canvasParagraphPainter_->SetParagraphId(1);
-    EXPECT_EQ(canvasParagraphPainter_->paragraphId_, 1);
+    ASSERT_NE(canvasParagraphPainter_->animationFunc_, nullptr);
 }
 
 /*
@@ -330,7 +317,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest016, TestSize
     std::string str("TextBlob");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPen_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -347,7 +334,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest017, TestSize
     std::string str("TextBlob");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutBrush_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -364,7 +351,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest018, TestSize
     std::string str("TextBlob");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -381,7 +368,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest019, TestSize
     std::string str(u8"\U0001F60A");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
+    ASSERT_NE(textBlob, nullptr);
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
@@ -399,8 +386,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize
     std::string str("DrawSymbolSkiaTxt");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecord_);
+    ASSERT_NE(textBlob, nullptr);
+    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob, offset, paintRecord_);
 }
 
 /*
@@ -414,8 +401,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize
     std::string str("DrawSymbolSkiaTxt");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainterWithoutPen_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutPen_);
+    ASSERT_NE(textBlob, nullptr);
+    canvasParagraphPainterWithoutPen_->DrawSymbolSkiaTxt(textBlob, offset, paintRecordWithoutPen_);
 }
 
 /*
@@ -429,8 +416,8 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize
     std::string str("DrawSymbolSkiaTxt");
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
-    EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainterWithoutBrush_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutBrush_);
+    ASSERT_NE(textBlob, nullptr);
+    canvasParagraphPainterWithoutBrush_->DrawSymbolSkiaTxt(textBlob, offset, paintRecordWithoutBrush_);
 }
 
 /*
@@ -441,6 +428,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize.Level1)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPen_.size()) - 1;
+    ASSERT_GE(paintID, 0);
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
     SkRect rect = SkRect::MakeEmpty();
@@ -455,6 +443,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize.Level1)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutBrush_.size()) - 1;
+    ASSERT_GE(paintID, 0);
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
     SkRect rect = SkRect::MakeEmpty();
@@ -469,6 +458,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize
 HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest025, TestSize.Level1)
 {
     ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
+    ASSERT_GE(paintID, 0);
     ParagraphPainter::SkPaintOrID paint;
     paint.emplace<ParagraphPainter::PaintID>(paintID);
     SkRect rect = SkRect::MakeEmpty();

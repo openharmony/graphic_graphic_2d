@@ -103,7 +103,7 @@ napi_value MyXNode::NapiPerformance(napi_env env, napi_callback_info info)
     
     uint32_t time = TestPerformance(canvas, caseName, testCount);
     napi_value value = nullptr;
-    (void)napi_create_int32(env, time, &value);
+    (void)napi_create_uint32(env, time, &value);
     return value;
 }
 

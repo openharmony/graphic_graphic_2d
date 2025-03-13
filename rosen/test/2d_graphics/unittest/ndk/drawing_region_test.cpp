@@ -85,6 +85,7 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionContainsTest_region003, Tes
     OH_Drawing_RegionSetRect(region, rect);
     EXPECT_TRUE(OH_Drawing_RegionContains(region, 150, 180)); // 150: point's x, 180 point's y
     EXPECT_FALSE(OH_Drawing_RegionContains(region, 10, 20)); // 10: point's x, 20 point's y
+    EXPECT_FALSE(OH_Drawing_RegionContains(nullptr, 10, 20)); // 10: point's x, 20 point's y
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RectDestroy(rect);
 }
@@ -111,9 +112,14 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionOpTest_region004, TestSize.
     OH_Drawing_Rect* rect3 = OH_Drawing_RectCreate(10.0f, 10.0f, 26.0f, 26.0f);
     OH_Drawing_RegionSetRect(region2, rect3);
     EXPECT_FALSE(OH_Drawing_RegionOp(region, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_INTERSECT));
+    EXPECT_FALSE(OH_Drawing_RegionOp(nullptr, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_INTERSECT));
+    EXPECT_FALSE(OH_Drawing_RegionOp(region, nullptr, OH_Drawing_RegionOpMode::REGION_OP_MODE_INTERSECT));
+    EXPECT_FALSE(OH_Drawing_RegionOp(region, region2, static_cast<OH_Drawing_RegionOpMode>(-1))); // illegal input
+    EXPECT_FALSE(OH_Drawing_RegionOp(region, region2, static_cast<OH_Drawing_RegionOpMode>(99))); // illegal input
 
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RegionDestroy(nullptr);
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(rect2);
     OH_Drawing_RectDestroy(rect3);
@@ -135,6 +141,8 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingSetPathTest_region005, TestSize.L
     OH_Drawing_RegionSetRect(clip, rect);
     // rect left[100.0f], top[100.0f],right[256.0f], bottom[256.0f]
     OH_Drawing_PathAddRect(path, 100.0f, 100.0f, 256.0f, 256.0f, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
+    EXPECT_FALSE(OH_Drawing_RegionSetPath(nullptr, path, clip));
+    EXPECT_FALSE(OH_Drawing_RegionSetPath(region, nullptr, clip));
     EXPECT_FALSE(OH_Drawing_RegionSetPath(region, path, nullptr));
     EXPECT_TRUE(OH_Drawing_RegionSetPath(region, path, clip));
 

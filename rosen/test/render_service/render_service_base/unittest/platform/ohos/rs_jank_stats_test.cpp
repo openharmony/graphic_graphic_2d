@@ -169,6 +169,95 @@ HWTEST_F(RSJankStatsTest, SetReportEventCompleteTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetReportSceneJankStatsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, SetReportSceneJankStatsTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->lastSceneReportTime_ = 1;
+    rsJankStats->lastSceneReportTimeSteady_ = 1;
+    rsJankStats->lastSceneJankFrame6FreqTimeSteady_ = 1;
+    rsJankStats->isNeedReportSceneJankStats_ = true;
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->SetReportRsSceneJankStart(appInfo);
+    EXPECT_FALSE(rsJankStats->isLastReportSceneDone_);
+    appInfo.endTime = 1;
+    rsJankStats->SetReportRsSceneJankEnd(appInfo);
+    EXPECT_EQ((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).pid, 0);
+    EXPECT_TRUE(rsJankStats->isLastReportSceneDone_);
+}
+
+/**
+ * @tc.name: SetReportSceneJankStatsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, SetReportSceneJankStatsTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->lastSceneReportTime_ = 1;
+    rsJankStats->lastSceneReportTimeSteady_ = 1;
+    rsJankStats->lastSceneJankFrame6FreqTimeSteady_ = 1;
+    rsJankStats->isNeedReportSceneJankStats_ = true;
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    appInfo.endTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->ReportSceneJankStats(rsJankStats->appInfo_);
+    EXPECT_EQ((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_EQ((rsJankStats->appInfo_).pid, 0);
+    EXPECT_TRUE(rsJankStats->isLastReportSceneDone_);
+}
+
+/**
+ * @tc.name: ReportSceneJankFrameTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, ReportSceneJankFrameTest, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    rsJankStats->rtEndTimeSteady_ = 100;
+    rsJankStats->rtLastEndTimeSteady_ = 10;
+    rsJankStats->rsStartTimeSteady_ = 20;
+    EXPECT_EQ(rsJankStats->GetEffectiveFrameTime(true), 80);
+
+    AppInfo appInfo;
+    appInfo.bundleName = "com.rs.scene.test";
+    appInfo.pid = 1;
+    appInfo.startTime = 1;
+    appInfo.endTime = 1;
+    rsJankStats->appInfo_ = appInfo;
+    rsJankStats->accumulatedBufferCount_ = 12;
+    rsJankStats->ReportSceneJankFrame(0);
+    EXPECT_NE((rsJankStats->appInfo_).startTime, 0);
+    EXPECT_NE((rsJankStats->appInfo_).endTime, 0);
+    EXPECT_NE((rsJankStats->appInfo_).pid, 0);
+}
+
+/**
  * @tc.name: SetReportEventJankFrameTest
  * @tc.desc:
  * @tc.type:FUNC
@@ -568,7 +657,7 @@ HWTEST_F(RSJankStatsTest, CheckAnimationTraceTimeoutTest008, TestSize.Level1)
     rsJankStats->CheckAnimationTraceTimeout();
     EXPECT_EQ(rsJankStats->animationTraceCheckCnt_, 0);
 
-    rsJankStats->rtEndTimeSteady_ = 5000;
+    rsJankStats->rtEndTimeSteady_ = 10000;
     rsJankStats->animationTraceCheckCnt_ = 20;
     rsJankStats->explicitAnimationTotal_ = 1;
     rsJankStats->implicitAnimationTotal_ = 1;
@@ -628,38 +717,71 @@ HWTEST_F(RSJankStatsTest, GetMaxJankInfoTest010, TestSize.Level1)
     EXPECT_NE(rsJankStats, nullptr);
 
     JankFrames jankFrames;
-    rsJankStats->GetMaxJankInfo(jankFrames, false);
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    int64_t maxFrameTimeFromStart = 0;
+    int64_t maxHitchTimeFromStart = 0;
+    int64_t duration = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, false, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
 
     jankFrames.traceCreateTimeSteady_ = -1;
     jankFrames.startTimeSteady_ = -1;
     jankFrames.endTimeSteady_ = -1;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     jankFrames.traceCreateTimeSteady_ = -1;
     jankFrames.startTimeSteady_ = -1;
     jankFrames.endTimeSteady_ = 0;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     jankFrames.traceCreateTimeSteady_ = -1;
     jankFrames.startTimeSteady_ = 0;
     jankFrames.endTimeSteady_ = -1;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     jankFrames.traceCreateTimeSteady_ = -1;
     jankFrames.startTimeSteady_ = 0;
     jankFrames.endTimeSteady_ = 0;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
     jankFrames.traceCreateTimeSteady_ = 0;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
 
     jankFrames.maxFrameOccurenceTimeSteady_ = 0;
     jankFrames.maxHitchOccurenceTimeSteady_ = 0;
-    rsJankStats->GetMaxJankInfo(jankFrames, false);
+    rsJankStats->GetMaxJankInfo(jankFrames, false, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
 
     jankFrames.lastMaxFrameOccurenceTimeSteady_ = 0;
     jankFrames.lastMaxHitchOccurenceTimeSteady_ = 0;
-    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
 
     jankFrames.isFrameRateRecorded_ = false;
     EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
+}
+
+/**
+ * @tc.name: IsAnimationEmptyTest001
+ * @tc.desc: test IsAnimationEmpty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+    rsJankStats->SetStartTime();
+    rsJankStats->SetEndTime(false, true);
+    EXPECT_TRUE(rsJankStats->IsAnimationEmpty());
+}
+
+/**
+ * @tc.name: IsAnimationEmptyTest002
+ * @tc.desc: test IsAnimationEmpty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+    rsJankStats->implicitAnimationTotal_ = 0;
+    rsJankStats->explicitAnimationTotal_ = 0;
+    EXPECT_EQ(rsJankStats->IsAnimationEmpty(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

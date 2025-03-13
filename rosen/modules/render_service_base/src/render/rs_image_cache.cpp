@@ -163,34 +163,24 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
     pixelMap.reset();
 }
 
-int RSImageCache::ReleasePixelMapCacheUnique(uint64_t uniqueId)
+bool RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn)
 {
-    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    int refCount = -1;
+    if (!pixelMapIn) {
+        return false;
+    }
     {
         // release the pixelMap if no RSImage holds it
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = pixelMapCache_.find(uniqueId);
-        if (it != pixelMapCache_.end()) {
-            if (it->second.second > 1) { // release unique pixelmap in cache
-                return it->second.second; // pixelmap's ref count
-            }
-            pixelMap = it->second.first;
-            bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
-            pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-            if (shouldCount && pid) {
-                auto realSize = pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC
-                    ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-                    : pixelMap->GetCapacity();
-                MemorySnapshot::Instance().RemoveCpuMemory(pid, realSize);
-            }
-            pixelMapCache_.erase(it);
-            refCount = 0;
+        if (it == pixelMapCache_.end()) {
+            return false;
+        }
+        if (it->second.first != pixelMapIn || it->second.second > 1) {
+            return false; // skip purge if pixelMap mismatch
         }
         ReleaseDrawingImageCacheByPixelMapId(uniqueId);
     }
-    pixelMap.reset();
-    return refCount;
+    return true;
 }
 
 void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId,

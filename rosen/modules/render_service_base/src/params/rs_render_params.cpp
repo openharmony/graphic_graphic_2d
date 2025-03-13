@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_render_params.h"
+
 #include <string>
 
 #include "params/rs_surface_render_params.h"
@@ -66,6 +67,16 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
+}\
+
+bool RSRenderParams::HasUnobscuredUEC() const
+{
+    return hasUnobscuredUEC_;
+}
+
+void RSRenderParams::SetHasUnobscuredUEC(bool flag)
+{
+    hasUnobscuredUEC_ = flag;
 }
 
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
@@ -412,6 +423,9 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 
@@ -428,17 +442,6 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
-RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
-{
-    return surfaceParams_;
-}
-
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
-{
-    surfaceParams_.width = width;
-    surfaceParams_.height = height;
-}
-
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -451,6 +454,17 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     }
     foregroundFilterCache_ = foregroundFilterCache;
     needSync_ = true;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -470,7 +484,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->contentEmpty_ = contentEmpty_;
     target->hasSandBox_ = hasSandBox_;
     target->localDrawRect_ = localDrawRect_;
-    target->absDrawRect_ = absDrawRect_;
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
@@ -492,11 +505,24 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
-    target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
+    target->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    target->cloneSourceDrawable_ = cloneSourceDrawable_;
+    target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
+    target->absRotation_ = absRotation_;
+    target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
+
+    // [Attention] Only used in PC window resize scene now
+    target->needOffscreen_ = needOffscreen_;
+    target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
+    target->needSwapBuffer_ = needSwapBuffer_;
+    target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+
     needSync_ = false;
 }
 
@@ -582,5 +608,74 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSource
 {
     static DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr defaultPtr;
     return defaultPtr;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceDrawable() const
+{
+    return cloneSourceDrawable_;
+}
+
+void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    cloneSourceDrawable_ = drawable;
+}
+
+void RSRenderParams::SetNeedOffscreen(bool needOffscreen)
+{
+    if (needOffscreen_ == needOffscreen) {
+        return;
+    }
+    needOffscreen_ = needOffscreen;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetNeedOffscreen() const
+{
+    return needOffscreen_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    linkedRootNodeDrawable_ = drawable;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetLinkedRootNodeDrawable()
+{
+    return linkedRootNodeDrawable_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
+{
+    if (needSwapBuffer_ == needSwapBuffer) {
+        return;
+    }
+    needSwapBuffer_ = needSwapBuffer;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+bool RSRenderParams::GetNeedSwapBuffer() const
+{
+    return needSwapBuffer_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
+{
+    if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
+        return;
+    }
+    cacheNodeFrameRect_ = cacheNodeFrameRect;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+const Drawing::RectF& RSRenderParams::GetCacheNodeFrameRect() const
+{
+    return cacheNodeFrameRect_;
 }
 } // namespace OHOS::Rosen

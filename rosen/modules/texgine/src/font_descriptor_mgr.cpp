@@ -16,6 +16,8 @@
 
 #include "font_descriptor_mgr.h"
 
+#include "utils/text_log.h"
+
 namespace OHOS::Rosen {
 FontDescriptorMgr& FontDescriptorMgr::GetInstance()
 {
@@ -23,19 +25,7 @@ FontDescriptorMgr& FontDescriptorMgr::GetInstance()
     return instance;
 }
 
-FontDescriptorMgr::FontDescriptorMgr()
-{
-    ParseAllFontSource();
-}
-
 FontDescriptorMgr::~FontDescriptorMgr() {}
-
-void FontDescriptorMgr::ParseAllFontSource()
-{
-    std::unique_lock<std::mutex> guard(parserMtx_);
-    descCache_.ParserSystemFonts();
-    descCache_.ParserStylishFonts();
-}
 
 void FontDescriptorMgr::ClearFontFileCache()
 {
@@ -57,9 +47,24 @@ void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullNa
 }
 
 void FontDescriptorMgr::GetSystemFontFullNamesByType(
-    const int32_t& systemFontType, std::unordered_set<std::string>& fontList)
+    const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
+}
+
+void FontDescriptorMgr::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName)
+{
+    if (typeface == nullptr) {
+        return;
+    }
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.CacheDynamicTypeface(typeface, familyName);
+}
+
+void FontDescriptorMgr::DeleteDynamicTypefaceFromCache(const std::string &familyName)
+{
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.DeleteDynamicTypefaceFromCache(familyName);
 }
 } // namespace OHOS::Rosen

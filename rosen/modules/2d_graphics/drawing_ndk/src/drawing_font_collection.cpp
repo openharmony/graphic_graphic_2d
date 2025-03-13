@@ -127,3 +127,13 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
     }
     return;
 }
+
+OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)
+{
+    std::shared_ptr<OHOS::Rosen::FontCollection> fc = OHOS::Rosen::FontCollection::Create();
+    OH_Drawing_FontCollection* pointer = reinterpret_cast<OH_Drawing_FontCollection*>(fc.get());
+    if (!FontCollectionMgr::GetInstance().Find(pointer)) {
+        FontCollectionMgr::GetInstance().Insert(pointer, fc);
+    }
+    return pointer;
+}

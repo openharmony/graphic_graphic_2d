@@ -18,6 +18,11 @@
 #include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
+constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+}
+
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
     HGM_LOGI("XMLParser opening xml file");
@@ -62,7 +67,7 @@ void XMLParser::Destroy()
     }
 }
 
-int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
+int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode& node)
 {
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("Param"))) {
         return HGM_XML_PARAM;
@@ -74,7 +79,7 @@ int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
     return HGM_XML_UNDEFINED;
 }
 
-bool XMLParser::ParseInternal(xmlNode &node)
+bool XMLParser::ParseInternal(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing an internal node");
     xmlNode *currNode = &node;
@@ -102,7 +107,7 @@ bool XMLParser::ParseInternal(xmlNode &node)
     return true;
 }
 
-int32_t XMLParser::ParseParam(xmlNode &node)
+int32_t XMLParser::ParseParam(xmlNode& node)
 {
     HGM_LOGI("XMLParser parsing a parameter");
     if (!mParsedData_) {
@@ -123,7 +128,7 @@ int32_t XMLParser::ParseParam(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
+int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
 {
     int32_t setResult = EXEC_SUCCESS;
 
@@ -150,6 +155,10 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
         setResult = ParseVideoFrameVoteConfig(node);
     } else if (paraName == "source_tuning_for_yuv420") {
         setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
+    } else if (paraName == "rs_solid_color_layer_config") {
+        setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
+    } else if (paraName == "video_call_layer_config") {
+        setResult = ParseSimplex(node, mParsedData_->videoCallLayerConfig_);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -157,7 +166,7 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
     return setResult;
 }
 
-int32_t XMLParser::ParseParams(xmlNode &node)
+int32_t XMLParser::ParseParams(xmlNode& node)
 {
     std::string paraName = ExtractPropertyValue("name", node);
     if (paraName.empty()) {
@@ -195,13 +204,13 @@ int32_t XMLParser::ParseParams(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode &node)
+int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode& node)
 {
     mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
     return ParseSimplex(node, mParsedData_->videoFrameRateList_);
 }
 
-int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
+int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing strategyConfig");
     xmlNode *currNode = &node;
@@ -222,11 +231,13 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto pointerMode = ExtractPropertyValue("pointerMode", *currNode);
         auto idleFps = ExtractPropertyValue("idleFps", *currNode);
         auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
         auto down = ExtractPropertyValue("down", *currNode);
+        auto supportAS = ExtractPropertyValue("supportAS", *currNode) == "1"; // 1: true, other: false
         if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
             return HGM_ERROR;
         }
@@ -235,6 +246,9 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.pointerMode = IsNumber(pointerMode) ?
+            static_cast<PointerModeType>(std::stoi(pointerMode)) :
+            PointerModeType::POINTER_DISENABLED;
         strategy.idleFps = IsNumber(idleFps) ?
             std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
             std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
@@ -242,6 +256,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
+        strategy.supportAS = supportAS;
         ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -251,7 +266,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ParseAppBufferList(xmlNode &node)
+void XMLParser::ParseAppBufferList(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing ParseAppBufferList");
     xmlNode *currNode = &node;
@@ -271,40 +286,25 @@ void XMLParser::ParseAppBufferList(xmlNode &node)
     }
 }
 
-void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy)
+void XMLParser::ParseBufferStrategyList(xmlNode& node, PolicyConfigData::StrategyConfig& strategy)
 {
     if (mParsedData_->appBufferList_.empty()) {
         return;
     }
-    std::unordered_map<std::string, std::string> config;
-    for (auto &name : mParsedData_->appBufferList_) {
-        auto fps = ExtractPropertyValue(name, node);
-        if (IsNumber(fps)) {
-            config.insert(make_pair(name, fps));
+    for (auto& name : mParsedData_->appBufferList_) {
+        auto fpsStr = ExtractPropertyValue(name, node);
+        if (fpsStr == "") {
+            strategy.bufferFpsMap[name] = FPS_MAX;
+        } else if (IsNumber(fpsStr)) {
+            auto fpsNum = std::stoi(fpsStr);
+            if (fpsNum >= 0) {
+                strategy.bufferFpsMap[name] = fpsNum;
+            }
         }
     }
-    if (config.empty()) {
-        return;
-    }
-    for (auto &it : config) {
-        if (std::stoi(it.second) == 0) {
-            strategy.appBufferBlackList.push_back(it.first);
-        } else {
-            strategy.appBufferList.push_back(make_pair(it.first, std::stoi(it.second)));
-        }
-    }
-    if (strategy.appBufferList.empty()) {
-        return;
-    }
-    std::sort(strategy.appBufferList.begin(), strategy.appBufferList.end(),
-        [](const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b) {
-        return a.second > b.second;
-    });
-
-    return;
 }
 
-int32_t XMLParser::ParseScreenConfig(xmlNode &node)
+int32_t XMLParser::ParseScreenConfig(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing screenConfig");
     xmlNode *currNode = &node;
@@ -320,6 +320,15 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
+        auto name = ExtractPropertyValue("name", *currNode);
+        if (name == "supported_mode") {
+            PolicyConfigData::SupportedModeConfig supportedModeConfig;
+            if (ParseSupportedModeConfig(*currNode, supportedModeConfig) != EXEC_SUCCESS) {
+                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+            }
+            mParsedData_->supportedModeConfigs_[type] = supportedModeConfig;
+            continue;
+        }
         PolicyConfigData::ScreenSetting screenSetting;
         auto id = ExtractPropertyValue("id", *currNode);
         screenSetting.strategy = ExtractPropertyValue("strategy", *currNode);
@@ -329,11 +338,20 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         screenConfig[id] = screenSetting;
         HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
     }
+    if (size_t pos = type.find(HGM_CONFIG_TYPE_THERMAL_SUFFIX); pos != std::string::npos) {
+        auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
+        if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
+            ReplenishMissThermalConfig(defaultScreenConfig->second, screenConfig);
+        } else {
+            HGM_LOGE("XMLParser failed to ReplenishMissThermalConfig %{public}s", type.c_str());
+            return EXEC_SUCCESS;
+        }
+    }
     mParsedData_->screenConfigs_[type] = screenConfig;
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+int32_t XMLParser::ParseSubScreenConfig(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
 {
     xmlNode *thresholdNode = &node;
     if (thresholdNode->type != XML_ELEMENT_NODE) {
@@ -344,9 +362,11 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
     if (name == "LTPO_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.ltpoConfig);
     } else if (name == "property_animation_dynamic_settings") {
-        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
+        setResult = ParseDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
     } else if (name == "ace_scene_dynamic_settings") {
-        setResult = ParserDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+        setResult = ParseDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+    } else if (name == "small_size_property_animation_dynamic_settings") {
+        setResult = ParseSmallSizeDynamicSetting(*thresholdNode, screenSetting);
     } else if (name == "scene_list") {
         setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
     } else if (name == "game_scene_list") {
@@ -363,6 +383,10 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else if (name == "component_power_config") {
         setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
+    } else if (name == "app_page_url_config") {
+        setResult = ParsePageUrlStrategy(*thresholdNode, screenSetting.pageUrlConfig);
+    } else if (name == "performance_config") {
+        setResult = ParsePerformanceConfig(*thresholdNode, screenSetting.performanceConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -373,8 +397,9 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
     return setResult;
 }
 
-int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string &valueName, const std::string &keyName)
+int32_t XMLParser::ParseSimplex(xmlNode& node, std::unordered_map<std::string, std::string>& config,
+                                const std::string& valueName, const std::string& keyName,
+                                const bool canBeEmpty)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -393,9 +418,17 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
 
         auto key = ExtractPropertyValue(keyName, *currNode);
         auto value = ExtractPropertyValue(valueName, *currNode);
-        if (key.empty() || value.empty()) {
+        if (key.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }
+
+        if (value.empty()) {
+            if (canBeEmpty) {
+                continue;
+            }
+            return XML_PARSE_INTERNAL_FAIL;
+        }
+
         config[key] = value;
 
         HGM_LOGI("HgmXMLParser ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
@@ -405,7 +438,7 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::string, int32_t> &powerConfig)
+int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::string, int32_t>& powerConfig)
 {
     std::unordered_map<std::string, std::string> configs;
     auto result = ParseSimplex(node, configs);
@@ -423,7 +456,19 @@ int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::str
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)
+int32_t XMLParser::ParseSmallSizeDynamicSetting(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
+{
+    auto area = ExtractPropertyValue("area", node);
+    auto length = ExtractPropertyValue("length", node);
+    if (!IsNumber(area) || !IsNumber(length)) {
+        return HGM_ERROR;
+    }
+    screenSetting.smallSizeArea = std::stoi(area);
+    screenSetting.smallSizeLength = std::stoi(length);
+    return ParseDynamicSetting(node, screenSetting.smallSizeAnimationDynamicSettings);
+}
+
+int32_t XMLParser::ParseDynamicSetting(xmlNode& node, PolicyConfigData::DynamicSettingMap& dynamicSettingMap)
 {
     HGM_LOGD("XMLParser parsing dynamicSetting");
     xmlNode *currNode = &node;
@@ -457,14 +502,14 @@ int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::Dynamic
             dynamicConfig.preferred_fps = std::stoi(preferred_fps);
             dynamicSettingMap[dynamicSettingType][name] = dynamicConfig;
 
-            HGM_LOGI("HgmXMLParser ParserDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
+            HGM_LOGI("HgmXMLParser ParseDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
                      dynamicSettingType.c_str(), name.c_str(), dynamicSettingMap[dynamicSettingType][name].min);
         }
     }
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList)
+int32_t XMLParser::ParseSceneList(xmlNode& node, PolicyConfigData::SceneConfigMap& sceneList)
 {
     HGM_LOGD("XMLParser parsing sceneList");
     xmlNode *currNode = &node;
@@ -484,16 +529,48 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
         auto name = ExtractPropertyValue("name", *currNode);
         sceneConfig.strategy = ExtractPropertyValue("strategy", *currNode);
         sceneConfig.priority = ExtractPropertyValue("priority", *currNode);
-
+        sceneConfig.doNotAutoClear = ExtractPropertyValue("doNotAutoClear", *currNode) == "1";
+        sceneConfig.disableSafeVote = ExtractPropertyValue("disableSafeVote", *currNode) == "1";
         sceneList[name] = sceneConfig;
-        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",
-                 name.c_str(), sceneList[name].strategy.c_str(), sceneList[name].priority.c_str());
+        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s \
+                 doNotAutoClear=%{public}s disableSafeVote=%{public}s", name.c_str(),
+                 sceneList[name].strategy.c_str(), sceneList[name].priority.c_str(),
+                 sceneList[name].doNotAutoClear ? "true" : "false",
+                 sceneList[name].disableSafeVote ? "true" : "false");
     }
 
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting)
+int32_t XMLParser::ParseSupportedModeConfig(xmlNode& node, PolicyConfigData::SupportedModeConfig& supportedModeConfig)
+{
+    HGM_LOGD("XMLParser parsing supportedModeConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing supportedModeConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    supportedModeConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        std::vector<uint32_t> supportedModeVec;
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        supportedModeVec = StringToVector(value);
+
+        supportedModeConfig[name] = supportedModeVec;
+        HGM_LOGI("HgmXMLParser ParseSupportedModeConfig name=%{public}s value=%{public}s",
+            name.c_str(), value.c_str());
+    }
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseMultiAppStrategy(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
 {
     auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
     if (multiAppStrategy == "focus") {
@@ -505,11 +582,12 @@ int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::Screen
     } else {
         screenSetting.multiAppStrategyType = MultiAppStrategyType::USE_MAX;
     }
+    ParseSimplex(node, screenSetting.gameAppNodeList, "nodeName", "name", true);
     return ParseSimplex(node, screenSetting.appList, "strategy");
 }
 
 
-int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes)
+int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std::string>& appTypes)
 {
     HGM_LOGD("XMLParser parsing appTypes");
     xmlNode *currNode = &node;
@@ -537,7 +615,46 @@ int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
+int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
+                                              PolicyConfigData::ScreenConfig& screenConfig)
+{
+    HGM_LOGD("HgmXMLParser ReplenishMissThermalConfig");
+    for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
+        if (screenConfig.find(id) == screenConfig.end()) {
+            screenConfig[id] = screenSettingDefalut;
+        }
+    }
+
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParsePerformanceConfig(
+    xmlNode& node, std::unordered_map<std::string, std::string>& performanceConfig)
+{
+    HGM_LOGD("XMLParser parsing performanceConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing performanceConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    performanceConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        performanceConfig[std::move(name)] = std::move(value);
+        HGM_LOGI("HgmXMLParser performanceConfig name=%{public}s strategy=%{public}s", name.c_str(), value.c_str());
+    }
+
+    return EXEC_SUCCESS;
+}
+
+std::string XMLParser::ExtractPropertyValue(const std::string& propName, xmlNode& node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
     std::string propValue = "";
@@ -559,7 +676,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
 
 bool XMLParser::IsNumber(const std::string& str)
 {
-    if (str.length() == 0) {
+    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
         return false;
     }
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {
@@ -568,4 +685,65 @@ bool XMLParser::IsNumber(const std::string& str)
     return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
 }
 
+std::vector<uint32_t> XMLParser::StringToVector(const std::string &str, const std::string &pattern)
+{
+    std::vector<std::string> vstr;
+    std::string::size_type wordBegin = 0;
+    std::string::size_type wordEnd = str.find(pattern);
+    while (wordEnd != std::string::npos) {
+        vstr.push_back(str.substr(wordBegin, wordEnd - wordBegin));
+        wordBegin = wordEnd + pattern.size();
+        wordEnd = str.find(pattern, wordBegin);
+    }
+    if (wordBegin != str.length()) {
+        vstr.push_back(str.substr(wordBegin));
+    }
+
+    std::vector<uint32_t> vec;
+    for (const auto& s : vstr) {
+        if (!IsNumber(s)) {
+            continue;
+        }
+        vec.emplace_back(std::stoi(s));
+    }
+    return vec;
+}
+
+int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
+    std::unordered_map<std::string, PolicyConfigData::PageUrlConfig>& pageUrlConfigMap)
+{
+    pageUrlConfigMap.clear();
+    HGM_LOGD("XMLParser parsing PageUrlConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGE("XMLParser stop parsing PageUrlConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        if (currNode->xmlChildrenNode == nullptr) {
+            HGM_LOGE("XMLParser stop parsing Package, no children nodes");
+            return HGM_ERROR;
+        }
+
+        xmlNode *childNode = currNode->xmlChildrenNode;
+        PolicyConfigData::PageUrlConfig pageUrlConfig;
+        for (; childNode; childNode = childNode->next) {
+            if (childNode->type != XML_ELEMENT_NODE) {
+                continue;
+            }
+            auto name = ExtractPropertyValue("name", *childNode);
+            auto strategy = ExtractPropertyValue("strategy", *childNode);
+            mParsedData_->pageNameList_.push_back(name);
+            pageUrlConfig[name] = strategy;
+        }
+        auto packageName = ExtractPropertyValue("name", *currNode);
+        pageUrlConfigMap[packageName] = pageUrlConfig;
+    }
+    return EXEC_SUCCESS;
+}
 } // namespace OHOS::Rosen

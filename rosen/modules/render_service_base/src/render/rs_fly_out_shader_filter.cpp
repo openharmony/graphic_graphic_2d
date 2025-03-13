@@ -31,7 +31,6 @@ static const float FLYIN_DEFORM_PERCENTAGE_ONE = 0.07f;
 static const float FLYIN_DEFORM_PERCENTAGE_HEIGHT = 0.04f;
 // 0.21 means the ratio of deformation distance of the points e, e2, f, f2 to width when fly in
 static const float FLYIN_DEFORM_PERCENTAGE_TWO = 0.21f;
-static const size_t POINT_NUM = 12; // 12 anchor points of a patch
 static const uint32_t FLY_OUT_MODE = 0;
 static const uint32_t FLY_IN_MODE = 1;
 
@@ -78,8 +77,39 @@ Drawing::Brush RSFlyOutShaderFilter::GetBrush(const std::shared_ptr<Drawing::Ima
     return brush;
 }
 
-void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, POINT_NUM>& flyUp,
-    std::array<Drawing::Point, POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const
+void RSFlyOutShaderFilter::SetPathTo(Drawing::Path &path, const float width,
+    const std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+    const std::array<Drawing::Point, FLY_POINT_NUM>& flyDown) const
+{
+    // The 0th point is the starting point of drawing.
+    path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
+    // The 3th point is the upper right corner of the bound.
+    path.LineTo(flyUp[3].GetX(), flyUp[3].GetY());
+    // The 4th, 5th and 6th control points are connected to represent the right edge of upper part.
+    path.CubicTo(CloserToHalf(flyUp[4], width, width), CloserToHalf(flyUp[5], width, width), flyUp[6]);
+    // The 4th, 5th and 6th control points are connected to represent the right edge of lower part.
+    path.CubicTo(flyDown[4], flyDown[5], flyDown[6]);
+    // The 9th point is the bottom left corner of the bound.
+    path.LineTo(flyDown[9].GetX(), flyDown[9].GetY());
+    // The 10th, 11th and 0th control points are connected to represent the left edge of lower part.
+    path.CubicTo(flyDown[10], flyDown[11], flyDown[0]);
+    // The 10th, 11th and 0th control points are connected to represent the left edge of upper part.
+    path.CubicTo(CloserToHalf(flyUp[10], 0, width), CloserToHalf(flyUp[11], 0, width), flyUp[0]);
+}
+
+Drawing::Point RSFlyOutShaderFilter::CloserToHalf(const Drawing::Point &pointOfPatch,
+    const float nodeBounds, const float width) const
+{
+    Drawing::Point newBounds;
+    newBounds.SetY(pointOfPatch.GetY());
+    // 0.5 means the center of the node
+    float center = 0.5 * width;
+    newBounds.SetX((fabs(pointOfPatch.GetX() - center) < fabs(nodeBounds - center)) ? pointOfPatch.GetX() : nodeBounds);
+    return newBounds;
+}
+
+void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, FLY_POINT_NUM>& flyUp,
+    std::array<Drawing::Point, FLY_POINT_NUM>& flyDown, const float deformWidth, const float deformHeight) const
 {
     float flyOutOffsetOne = FLYOUT_DEFORM_PERCENTAGE_ONE * deformWidth * degree_;
     float flyOutOffsetTwo = FLYOUT_DEFORM_PERCENTAGE_TWO * deformWidth * degree_;
@@ -140,7 +170,7 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
     float segmentWidthTwo = width / 3.0 * 2.0; // Anchor point 2 is located at two-thirds of the width.
     float segmentHeightOne = height / 3.0; // Anchor point 1 is located at one-third of the height.
     float segmentHeightTwo = height / 3.0 * 2.0; // Anchor point 2 is located at two-thirds of the height.
-    std::array<Drawing::Point, POINT_NUM> flyUp = {
+    std::array<Drawing::Point, FLY_POINT_NUM> flyUp = {
         // top edge control points of upper part
         Drawing::Point{0.0f, 0.0f}, Drawing::Point{segmentWidthOne, 0.0f},
         Drawing::Point{segmentWidthTwo, 0.0f}, Drawing::Point{width, 0.0f},
@@ -152,7 +182,7 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
         // left edge control points of upper part
         Drawing::Point{0.0f, segmentHeightTwo}, Drawing::Point{0.0f, segmentHeightOne}
     };
-    std::array<Drawing::Point, POINT_NUM> flyDown = {
+    std::array<Drawing::Point, FLY_POINT_NUM> flyDown = {
         // top edge control points of lower part
         Drawing::Point{0.0f, height}, Drawing::Point{segmentWidthOne, height},
         Drawing::Point{segmentWidthTwo, height}, Drawing::Point{width, height},
@@ -165,25 +195,13 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
         Drawing::Point{0.0f, height + segmentHeightTwo}, Drawing::Point{0.0f, height + segmentHeightOne}
     };
 
-    // deformation coordinate
+    // calculate deformation coordinate
     CalculateDeformation(flyUp, flyDown, width, imageHeight);
 
     Drawing::Path path;
-    // The 0th point is the starting point of drawing.
-    path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
-    // The 1st, 2nd, and 3rd control points are connected to represent the upper edge.
-    path.CubicTo(flyUp[1], flyUp[2], flyUp[3]);
-    // The 4th, 5th and 6th control points are connected to represent the right edge of upper part.
-    path.CubicTo(flyUp[4], flyUp[5], flyUp[6]);
-    // The 4th, 5th and 6th control points are connected to represent the right edge of lower part.
-    path.CubicTo(flyDown[4], flyDown[5], flyDown[6]);
-    // The 7th, 8th, and 9th control points are connected to represent the bottom edge.
-    path.CubicTo(flyDown[7], flyDown[8], flyDown[9]);
-    // The 0th, 10th, and 11th control points are connected to represent the left edge of lower part.
-    path.CubicTo(flyDown[10], flyDown[11], flyDown[0]);
-    // The 0th, 10th, and 11th control points are connected to represent the left edge upper part.
-    path.CubicTo(flyUp[10], flyUp[11], flyUp[0]);
+    SetPathTo(path, width, flyUp, flyDown);
     canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
+
     canvas.DrawPatch(flyUp.data(), nullptr, texCoordsUp.data(), Drawing::BlendMode::SRC_OVER);
     canvas.DrawPatch(flyDown.data(), nullptr, texCoordsDown.data(), Drawing::BlendMode::SRC_OVER);
     canvas.DetachBrush();

@@ -20,9 +20,11 @@
 #include <hilog/log.h>
 #endif
 
+template<typename... Args>
+void ignore_unused(Args&&...)
+{}
 namespace OHOS {
 namespace Rosen {
-
 #ifdef OHOS_TEXT_ENABLE
 
 #undef LOG_DOMAIN
@@ -132,18 +134,18 @@ namespace Rosen {
     } while (0)
 
 #else
-#define TEXT_LOGD(fmt, ...)
-#define TEXT_LOGI(fmt, ...)
-#define TEXT_LOGW(fmt, ...)
-#define TEXT_LOGE(fmt, ...)
+#define TEXT_LOGD(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGI(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGW(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGE(...) ignore_unused(__VA_ARGS__)
 
-#define TEXT_LOGI_LIMIT3_HOUR(fmt, ...)
-#define TEXT_LOGW_LIMIT3_HOUR(fmt, ...)
-#define TEXT_LOGE_LIMIT3_HOUR(fmt, ...)
+#define TEXT_LOGI_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGW_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGE_LIMIT3_HOUR(...) ignore_unused(__VA_ARGS__)
 
-#define TEXT_LOGI_LIMIT3_MIN(fmt, ...)
-#define TEXT_LOGW_LIMIT3_MIN(fmt, ...)
-#define TEXT_LOGE_LIMIT3_MIN(fmt, ...)
+#define TEXT_LOGI_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGW_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
+#define TEXT_LOGE_LIMIT3_MIN(...) ignore_unused(__VA_ARGS__)
 
 #endif
 

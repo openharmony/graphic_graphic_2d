@@ -17,7 +17,6 @@
 
 #include "native_value.h"
 
-#include "js_common.h"
 #include "js_drawing_utils.h"
 #include "font_napi/js_font.h"
 
@@ -121,6 +120,10 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTextBlob::MakeFromRunBuffer font is nullptr");
         return nullptr;
     }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
 
     TextBlobBuilder::RunBuffer runBuffer;
     std::shared_ptr<TextBlobBuilder> textBlobBuilder = std::make_shared<TextBlobBuilder>();
@@ -206,27 +209,39 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTextBlob::MakeFromString font is nullptr");
         return nullptr;
     }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
 
     // Chinese characters need to be encoded with UTF16
     size_t len = 0;
     if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
-    char16_t buffer[len + 1];
+    char16_t* buffer = new(std::nothrow) char16_t[len + 1];
+    if (!buffer) {
+        ROSEN_LOGE("JsTextBlob::MakeFromString fail to create buffer");
+        return nullptr;
+    }
     if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer, len + 1, &len) != napi_ok) {
+        delete[] buffer;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(buffer, CHAR16_SIZE * len, *font, TextEncoding::UTF16);
 
     if (textBlob == nullptr) {
+        delete[] buffer;
         ROSEN_LOGE("JsTextBlob::MakeFromString textBlob is nullptr");
         return nullptr;
     }
     napi_value jsTextBlob = JsTextBlob::CreateJsTextBlob(env, textBlob);
     if (jsTextBlob == nullptr) {
+        delete[] buffer;
         ROSEN_LOGE("JsTextBlob::MakeFromString jsTextBlob is nullptr");
         return nullptr;
     }
+    delete[] buffer;
     return jsTextBlob;
 }
 
@@ -332,12 +347,20 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     }
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, jsFont);
+    if ((napi_unwrap(env, argv[ARGC_THREE], reinterpret_cast<void**>(&jsFont)) != napi_ok) || jsFont == nullptr) {
+        delete[] buffer;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_THREE) + " type.");
+    }
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
         delete[] buffer;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: font is nullptr");
         return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
     }
 
     Point* points = new(std::nothrow) Point[pointsSize];
@@ -352,7 +375,10 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: Argv[2] is invalid");
         return nullptr;
     }
-    return getJsTextBlob(buffer, bufferLen, points, font, env);
+    napi_value jsTextBlob = getJsTextBlob(buffer, bufferLen, points, font, env);
+    delete[] buffer;
+    delete[] points;
+    return jsTextBlob;
 }
 
 napi_value JsTextBlob::CreateJsTextBlob(napi_env env, const std::shared_ptr<TextBlob> textBlob)

@@ -15,20 +15,57 @@
 
 #include "txt/platform.h"
 
-#ifndef OHOS_STANDARD_SYSTEM
-#include "third_party/skia/src/ports/SkFontMgr_ohos.h"
-#endif
+#include <mutex>
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-std::vector<std::string> GetDefaultFontFamilies()
+DefaultFamilyNameMgr::DefaultFamilyNameMgr()
 {
 #ifdef OHOS_STANDARD_SYSTEM
-    return { "OhosThemeFont", "HarmonyOS-Sans" };
+    defaultFamilies_ = { "HarmonyOS-Sans" };
 #else
-    return { "sans-serif" };
+    defaultFamilies_ = { "sans-serif" };
 #endif
+}
+
+DefaultFamilyNameMgr& DefaultFamilyNameMgr::GetInstance()
+{
+    static DefaultFamilyNameMgr instance;
+    return instance;
+}
+
+std::vector<std::string> DefaultFamilyNameMgr::GetDefaultFontFamilies() const
+{
+    std::shared_lock<std::shared_mutex> readLock(lock_);
+    std::vector<std::string> res(themeFamilies_);
+    res.insert(res.end(), defaultFamilies_.begin(), defaultFamilies_.end());
+    return res;
+}
+
+std::vector<std::string> DefaultFamilyNameMgr::GetThemeFontFamilies() const
+{
+    std::shared_lock<std::shared_mutex> readLock(lock_);
+    return themeFamilies_;
+}
+
+void DefaultFamilyNameMgr::ModifyThemeFontFamilies(size_t index)
+{
+    std::unique_lock<std::shared_mutex> writeLock(lock_);
+    themeFamilies_.clear();
+    for (size_t i = 0; i < index; i += 1) {
+        themeFamilies_.emplace_back(GenerateThemeFamilyName(i));
+    }
+}
+
+std::string DefaultFamilyNameMgr::GenerateThemeFamilyName(size_t index)
+{
+    if (index == 0) {
+        return OHOS_THEME_FONT;
+    }
+    std::string res { OHOS_THEME_FONT };
+    res.push_back('0' + index);
+    return res;
 }
 
 std::shared_ptr<Drawing::FontMgr> GetDefaultFontManager()

@@ -281,6 +281,12 @@ void SkiaPath::SetFillStyle(PathFillType fillstyle)
     isChanged_ = true;
 }
 
+PathFillType SkiaPath::GetFillStyle() const
+{
+    PathFillType fillType = static_cast<PathFillType>(path_.getFillType());
+    return fillType;
+}
+
 bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
 {
     bool isSuccess = false;
@@ -445,6 +451,19 @@ bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& ta
     return ret;
 }
 
+bool SkiaPath::GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed)
+{
+    if (dst == nullptr) {
+        return false;
+    }
+    auto skiaPath = dst->GetImpl<SkiaPath>();
+    if (skiaPath == nullptr) {
+        return false;
+    }
+    PathMeasureUpdate(forceClosed);
+    return pathMeasure_->getSegment(start, stop, &skiaPath->GetMutablePath(), startWithMoveTo);
+}
+
 bool SkiaPath::IsClosed(bool forceClosed)
 {
     PathMeasureUpdate(forceClosed);
@@ -471,7 +490,6 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {
         LOGE("SkiaPath::Serialize, path is empty!");
-        return nullptr;
     }
     SkBinaryWriteBuffer writer;
     writer.writePath(path_);

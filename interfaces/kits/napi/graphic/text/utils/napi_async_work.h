@@ -24,6 +24,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 #define MAX_LOG_SIZE 1024
@@ -68,7 +69,7 @@ struct ContextBase : RefBase {
     napi_value output = nullptr;
     napi_status status = napi_invalid_arg;
     std::string errMessage;
-    int32_t errCode;
+    int32_t errCode = -1;
     napi_value self = nullptr;
     void* native = nullptr;
 

@@ -494,7 +494,7 @@ typedef struct {
  * @version 1.0
  */
 typedef struct {
-    /** A pointer to a byte string containing UTF-16BE(Big Endian) encoded entities */
+    /** A pointer to a byte string containing UTF-16 encoded entities */
     uint8_t* strData;
     /** The length of `strData` in bytes */
     uint32_t strLen;

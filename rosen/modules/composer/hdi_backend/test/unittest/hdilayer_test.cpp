@@ -223,7 +223,20 @@ HWTEST_F(HdiLayerTest, CreateLayer001, Function | MediumTest| Level1)
     EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, layerId)).WillRepeatedly(testing::Return(0));
     HdiLayerTest::layerInfo_->SetSurface(tmpSurface);
     EXPECT_CALL(*hdiDeviceMock_, CloseLayer(_, _)).WillRepeatedly(testing::Return(1));
-    HdiLayerTest::hdiLayer_ = nullptr;
+}
+
+/*
+* Function: ClearBufferCache001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ClearBufferCache()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, ClearBufferCache001, Function | MediumTest| Level1)
+{
+    HdiLayerTest::hdiLayer_->ClearBufferCache();
+    EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
 }
 } // namespace
 } // namespace Rosen

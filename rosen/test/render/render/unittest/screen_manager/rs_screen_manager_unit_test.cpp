@@ -651,6 +651,29 @@ HWTEST_F(RsScreenManagerTest, SetScreenActiveMode001, testing::ext::TestSize.Lev
 }
 
 /*
+ * @tc.name: SetScreenActiveRect001
+ * @tc.desc: Test SetScreenActiveRect
+ * @tc.type: FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RsScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetDefaultScreenId(0);
+    ScreenId screenId = screenManager->GetDefaultScreenId();
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+
+    GraphicIRect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
  * @tc.name: GetScreenActiveMode001
  * @tc.desc: Test GetScreenActiveMode
  * @tc.type: FUNC

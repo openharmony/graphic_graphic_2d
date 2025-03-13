@@ -19,6 +19,7 @@ import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 config("skia_libtxt_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/skia_txt",
   ]
 
@@ -56,15 +57,19 @@ template("skia_libtxt") {
     ]
 
     sources = [
+      "$txt_root/common_utils/string_util.cpp",
       "$txt_root/impl/drawing_painter_impl.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
       "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
+      "$txt_root/impl/paragraph_relayout_impl.cpp",
       "$txt_root/impl/run_impl.cpp",
+      "$txt_root/impl/text_font_utils.cpp",
       "$txt_root/impl/text_line_impl.cpp",
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
       "$txt_root/symbol_engine/hm_symbol_run.cpp",
       "$txt_root/symbol_engine/hm_symbol_txt.cpp",
+      "$txt_root/symbol_resource/symbol_config_parser.cpp",
       "$txt_root/txt/asset_font_manager.cpp",
       "$txt_root/txt/font_asset_provider.cpp",
       "$txt_root/txt/font_collection.cpp",
@@ -77,7 +82,7 @@ template("skia_libtxt") {
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
 
-    external_deps = []
+    external_deps = [ "jsoncpp:jsoncpp" ]
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [
         "bundle_framework:appexecfwk_base",
@@ -106,7 +111,6 @@ template("skia_libtxt") {
       }
     }
 
-    defines += [ "OHOS_STANDARD_SYSTEM" ]
     deps = [
       ":skia_paragraph",
       ":skia_shaper",
@@ -116,6 +120,7 @@ template("skia_libtxt") {
     if (is_arkui_x) {
       deps += [
         "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
       ]
     } else {
@@ -124,6 +129,7 @@ template("skia_libtxt") {
         "hilog:libhilog",
         "skia:skia_canvaskit",
       ]
+      defines += [ "OHOS_STANDARD_SYSTEM" ]
     }
 
     if (!is_cross_platform) {
@@ -174,6 +180,8 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/Decorations.cpp",
     "//third_party/skia/modules/skparagraph/src/FontArguments.cpp",
     "//third_party/skia/modules/skparagraph/src/FontCollection.cpp",
+    "//third_party/skia/modules/skparagraph/src/HyphenTrie.cpp",
+    "//third_party/skia/modules/skparagraph/src/Hyphenator.cpp",
     "//third_party/skia/modules/skparagraph/src/OneLineShaper.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphCache.cpp",
@@ -185,6 +193,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/RunBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLine.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextLineJustify.cpp",
     "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
     "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",
@@ -215,12 +224,14 @@ ohos_source_set("skia_paragraph") {
     deps += [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/icu/icu4c:static_icuuc",
       "//third_party/skia:skia_$platform",
     ]
   } else {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "hilog:libhilog",
+      "icu:shared_icuuc",
       "skia:skia_canvaskit",
     ]
   }
@@ -244,7 +255,7 @@ ohos_source_set("skia_unicode") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = []
-  defines = []
+  defines = [ "OHOS_SUPPORT" ]
   sources = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]
@@ -266,8 +277,10 @@ ohos_source_set("skia_unicode") {
   if (platform == "mingw") {
     platform = "windows"
   }
-  external_deps = [ "skia:skia_canvaskit" ]
-  public_deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+  external_deps = [
+    "icu:shared_icuuc",
+    "skia:skia_canvaskit",
+  ]
 }
 
 ohos_source_set("skia_shaper") {

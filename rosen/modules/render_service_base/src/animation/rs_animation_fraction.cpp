@@ -89,13 +89,13 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
 {
     float animationScale = GetAnimationScale();
     if (direction_ == ForwardDirection::NORMAL) {
-        if (animationScale == 0.0) {
+        if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
         } else {
             runningTime_ += static_cast<int64_t>(deltaTime * speed_ / animationScale);
         }
     } else {
-        if (animationScale == 0.0) {
+        if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ -= static_cast<int64_t>(deltaTime * MAX_SPEED);
         } else {
             runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
@@ -110,16 +110,18 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
     int64_t deltaTime = time - lastFrameTime_;
-    lastFrameTime_ = time;
     bool isInStartDelay = false;
     bool isRepeatFinished = false;
     bool isFinished = true;
 
-    if (deltaTime < 0) {
+    // When the UI animation and spring animation are inherited, time will be passed the default value of -1 for
+    // lastFrameTime_, which is a normal situation.
+    if (deltaTime < 0 && time != -1) {
         ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, "
             "current time: %{public}lld is earlier than last frame time: %{public}lld",
             static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
     }
+    lastFrameTime_ = time;
 
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
@@ -176,9 +178,10 @@ bool RSAnimationFraction::IsFinished() const
 {
     if (direction_ == ForwardDirection::NORMAL) {
         if (repeatCount_ == INFINITE) {
-            return false;
+            // When the animation scale is zero, the infinitely looping animation is considered to be finished
+            return ROSEN_EQ(RSAnimationFraction::GetAnimationScale(), 0.0f);
         }
-        int64_t totalDuration = (duration_ * repeatCount_ + startDelay_) * MS_TO_NS;
+        int64_t totalDuration = (static_cast<int64_t>(duration_) * repeatCount_ + startDelay_) * MS_TO_NS;
         return runningTime_ >= totalDuration;
     } else {
         return runningTime_ <= 0;

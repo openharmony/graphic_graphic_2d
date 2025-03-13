@@ -17,6 +17,7 @@
 
 #include "boot_animation_utils.h"
 #include "boot_sound_player.h"
+#include "parameters.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -56,12 +57,39 @@ HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_001, TestSize.Level1)
     params3.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player3 = std::make_shared<BootSoundPlayer>(params3);
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), false);
     player3->Play();
+}
 
-    PlayerParams params4;
-    params4.soundEnabled = true;
-    std::shared_ptr<BootSoundPlayer> player4 = std::make_shared<BootSoundPlayer>(params4);
+/**
+ * @tc.name: BootSoundPlayerTest_002
+ * @tc.desc: Verify the Play
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_002, TestSize.Level1)
+{
+    PlayerParams params;
+    params.soundEnabled = true;
+    std::shared_ptr<BootSoundPlayer> player = std::make_shared<BootSoundPlayer>(params);
     BootAnimationUtils::SetBootAnimationSoundEnabled(true);
-    player4->Play();
+    system::SetParameter(BOOT_SOUND, std::to_string(MIN_VOLUME));
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), true);
+    player->Play();
+}
+
+/**
+ * @tc.name: BootSoundPlayerTest_003
+ * @tc.desc: Verify the Play
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_003, TestSize.Level1)
+{
+    PlayerParams params;
+    params.soundEnabled = true;
+    std::shared_ptr<BootSoundPlayer> player = std::make_shared<BootSoundPlayer>(params);
+    BootAnimationUtils::SetBootAnimationSoundEnabled(true);
+    system::SetParameter(BOOT_SOUND, std::to_string(MIN_VOLUME + 1));
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), true);
+    player->Play();
 }
 }

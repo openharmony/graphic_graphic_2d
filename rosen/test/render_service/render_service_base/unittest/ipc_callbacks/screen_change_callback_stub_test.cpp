@@ -25,7 +25,8 @@ class RSScreenChangeCallbackStubMock : public RSScreenChangeCallbackStub {
 public:
     RSScreenChangeCallbackStubMock() = default;
     virtual ~RSScreenChangeCallbackStubMock() = default;
-    void OnScreenChanged(ScreenId id, ScreenEvent event) override {};
+    void OnScreenChanged(ScreenId id, ScreenEvent event,
+        ScreenChangeReason reason) override {};
 };
 
 class RSScreenChangeCallbackStubTest : public testing::Test {
@@ -56,7 +57,7 @@ HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
     data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
     int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_NONE);
+    EXPECT_TRUE(res == ERR_INVALID_DATA);
 }
 
 /**

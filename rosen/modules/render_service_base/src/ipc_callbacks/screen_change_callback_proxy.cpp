@@ -25,18 +25,30 @@ RSScreenChangeCallbackProxy::RSScreenChangeCallbackProxy(const sptr<IRemoteObjec
 {
 }
 
-void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event)
+void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event,
+    ScreenChangeReason reason)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     if(!data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteInterfaceToken failed");
         return;
     }
 
-    data.WriteUint64(id);
-    data.WriteUint8(ECast(event));
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteUint64 failed");
+        return;
+    }
+    if (!data.WriteUint8(ECast(event))) {
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteUint8 failed");
+        return;
+    }
+    if (!data.WriteUint8(ECast(reason))) {
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteUint8 reason failed");
+        return;
+    }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);

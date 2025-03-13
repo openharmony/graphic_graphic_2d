@@ -19,6 +19,7 @@
 #include "draw/surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 #include "src/core/SkOpts.h"
 
 namespace OHOS {
@@ -43,7 +44,7 @@ RSMotionBlurFilter::~RSMotionBlurFilter() = default;
 void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    RS_OPTIONAL_TRACE_NAME("RSMotionBlurFilter::MotionBlur");
+    RS_TRACE_NAME("RSMotionBlurFilter::MotionBlur");
 
     if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
         lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
@@ -99,14 +100,25 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
     auto builder = MakeMotionBlurShader(imageShader, scaleAnchorCoord, scaleSize, rectOffset, motionBlurPara_->radius);
+    if (builder == nullptr) {
+        ROSEN_LOGE("RSMotionBlurFilter::DrawMotionBlur shader builder is nullptr");
+        return;
+    }
 
     auto originImageInfo = image->GetImageInfo();
     auto scaledInfo = Drawing::ImageInfo(std::ceil(image->GetWidth() * FLOAT_IMAGE_SCALE),
         std::ceil(image->GetHeight() * FLOAT_IMAGE_SCALE), originImageInfo.GetColorType(),
         originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
-        canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#ifdef RS_ENABLE_GPU
+    auto tmpBlur = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    auto tmpBlur = builder->MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
+    if (tmpBlur == nullptr) {
+        ROSEN_LOGE("RSMotionBlurFilter::DrawMotionBlur blur image is nullptr");
+        return;
+    }
 
     float invBlurScale = 1.0f / FLOAT_IMAGE_SCALE;
     Drawing::Matrix invBlurMatrix;

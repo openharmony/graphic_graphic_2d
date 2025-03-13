@@ -112,7 +112,13 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitDurationKeyFrameAnimation001, TestSi
     implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
     implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
     implicitAnimator->EndImplicitDurationKeyFrameAnimation();
+    int duration2 = INT32_MAX;
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration2, timingCurve);
+    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
     EXPECT_TRUE(implicitAnimator != nullptr);
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] =
+        implicitAnimator->durationKeyframeParams_.top();
+    EXPECT_EQ(totalDuration, INT32_MAX);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitDurationKeyFrameAnimation001 end";
 }
 
@@ -315,6 +321,46 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessAnimationFinishCallbackGuaranteeTaskTest001
+ * @tc.desc: Verify the ProcessAnimationFinishCallbackGuaranteeTaskTest001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest ProcessAnimationFinishCallbackGuaranteeTaskTest001 start";
+    RSAnimationTimingProtocol timingProtocol;
+    auto timingCurve = RSAnimationTimingCurve::SPRING;
+    timingProtocol.duration_ = 300;
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    std::shared_ptr<AnimationFinishCallback> callback =
+        std::make_shared<AnimationFinishCallback>([&]() {}, FinishCallbackType::TIME_INSENSITIVE);
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(callback));
+    EXPECT_TRUE(implicitAnimator != nullptr);
+    implicitAnimator->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    auto implicitAnimator2 = std::make_shared<RSImplicitAnimator>();
+    std::shared_ptr<AnimationFinishCallback> callback2 = std::make_shared<AnimationFinishCallback>([&]() {});
+    implicitAnimator2->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator2 != nullptr);
+    implicitAnimator2->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    auto timingCurve3 = RSAnimationTimingCurve::EASE;
+    auto implicitAnimator3 = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator3->OpenImplicitAnimation(timingProtocol, timingCurve3, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator3 != nullptr);
+    implicitAnimator3->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    RSAnimationTimingProtocol timingProtocol4;
+    timingProtocol4.duration_ = 0;
+    auto implicitAnimator4 = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator4->OpenImplicitAnimation(timingProtocol4, timingCurve3, std::move(callback2));
+    EXPECT_TRUE(implicitAnimator4 != nullptr);
+    implicitAnimator4->ProcessAnimationFinishCallbackGuaranteeTask();
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest ProcessAnimationFinishCallbackGuaranteeTaskTest001 end";
+}
+
+/**
  * @tc.name: RSImplicitAnimationParamTest001
  * @tc.desc: Verify the RSImplicitAnimationParamTest001
  * @tc.type:FUNC
@@ -324,7 +370,8 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 start";
     RSAnimationTimingProtocol timingProtocol;
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<RSCanvasNode> node = nullptr;
     auto prop_start = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
@@ -347,7 +394,7 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
 
     std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->AddPropertyToPendingSyncList(prop);
-    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->SyncProperties();
+    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->SyncProperties(rsUIContext);
 
     prop->isCustom_ = true;
     prop->id_ = 1;

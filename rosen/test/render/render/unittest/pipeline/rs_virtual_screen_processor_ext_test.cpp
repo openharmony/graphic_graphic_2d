@@ -15,11 +15,11 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_uni_render_engine.h"
-#include "pipeline/rs_virtual_screen_processor.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/render_thread/rs_virtual_screen_processor.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;

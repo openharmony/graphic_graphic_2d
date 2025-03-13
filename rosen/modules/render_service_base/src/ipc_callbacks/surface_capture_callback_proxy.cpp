@@ -25,17 +25,43 @@ RSSurfaceCaptureCallbackProxy::RSSurfaceCaptureCallbackProxy(const sptr<IRemoteO
 {
 }
 
-void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
+    const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
+        !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
+        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.bottom_)) {
+        return false;
+    }
+    return true;
+}
+
+void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+    Media::PixelMap* pixelmap)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor())) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: data.WriteInterfaceToken error");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteInterfaceToken failed");
         return;
     }
-    data.WriteUint64(id);
-    data.WriteParcelable(pixelmap);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteUint64 failed");
+        return;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteSurfaceCaptureConfig failed");
+        return;
+    }
+    if (!data.WriteParcelable(pixelmap)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteParcelable failed");
+        return;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

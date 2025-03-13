@@ -66,6 +66,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int load = GetData<int>();
     int schedFrameNum = GetData<int>();
     int value = GetData<int>();
+    RsFrameReport::GetInstance().frameSchedSoLoaded_ = GetData<bool>();
 
     RsFrameReport::GetInstance().GetEnable();
     RsFrameReport::GetInstance().RenderStart(timestamp);

@@ -18,9 +18,8 @@
 #include <functional>
 #include <set>
 
-#include "trace_memory_dump.h"
-
 #include "impl_interface/gpu_context_impl.h"
+#include "trace_memory_dump.h"
 #include "utils/data.h"
 #include "utils/drawing_macros.h"
 
@@ -94,9 +93,13 @@ public:
     void SetAllowPathMaskCaching(bool allowPathMaskCaching);
     bool GetAllowPathMaskCaching() const;
 
+    void SetStoreCachePath(const std::string& filename);
+    std::string GetStoreCachePath() const;
+
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
+    std::string filePath_ = "";
 };
 
 class DRAWING_API GPUContext {
@@ -166,10 +169,19 @@ public:
      */
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const;
 
+    void DumpAllResource(std::stringstream& dump) const;
+
+    void DumpAllCoreTrace(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
+
+    /**
+     * @brief                   Deeply clean resources in Relcaim.
+     */
+    void ReclaimResources();
 
     /**
      * @brief                   Dump GPU stats.
@@ -204,6 +216,13 @@ public:
      * @param exitedPidSet            GPU resource exitedPidSet used to purge unlocked resources.
      */
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
+
+    /**
+     * @brief                         Register LeashWindow callback function
+     *                                provided callback function when gpu reset with device lost error.
+     * @param LeashWindowCallback     callback function for skia recall
+     */
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback);
 
     /**
      * @brief                       Purge unlocked resources in every frame
@@ -276,7 +295,7 @@ public:
 
     void SetGpuCacheSuppressWindowSwitch(bool enabled);
 
-    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled);
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority);
 
     void FlushGpuMemoryInWaitQueue();
     

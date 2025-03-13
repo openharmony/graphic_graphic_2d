@@ -27,70 +27,95 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 #ifdef OHOS_TEXT_ENABLE
-bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& metaData)
+const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
+const size_t VERSION_DIVISOR = 100;
+
+bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData,
+    const AppExecFwk::BundleInfo& bundleInfo)
 {
-    auto bundleMgr = GetSystemAbilityManager();
-    if (bundleMgr == nullptr) {
-        TEXT_LOGE("Bundle manager is nullptr");
+    for (const auto& info : bundleInfo.hapModuleInfos) {
+        for (const auto& data : info.metadata) {
+            if (data.name == metaData) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool TextBundleConfigParser::GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        TEXT_LOGE("Failed to get system ability manager");
         return false;
     }
 
-    AppExecFwk::BundleInfo bundleInfo;
+    sptr<IRemoteObject> remoteObject =
+        systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (remoteObject == nullptr) {
+        TEXT_LOGE("Failed to get remote object");
+        return false;
+    }
+
+    sptr<AppExecFwk::IBundleMgr> bundleMgr =
+        iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (bundleMgr == nullptr) {
+        TEXT_LOGE("Failed to get bundle manager");
+        return false;
+    }
     ErrCode errCode = bundleMgr->GetBundleInfoForSelf(
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA),
         bundleInfo);
-    if (FAILED(errCode)) {
-        TEXT_LOGE("Get bundle info for self failed, errcode: %{public}x", errCode);
+    if (errCode != ERR_OK) {
+        TEXT_LOGE("Failed to get bundle info, errcode: %{public}x", errCode);
         return false;
     }
-
-    auto infoIter = std::find_if(bundleInfo.hapModuleInfos.begin(), bundleInfo.hapModuleInfos.end(),
-        [](const AppExecFwk::HapModuleInfo info) {
-            return info.moduleType == AppExecFwk::ModuleType::ENTRY;
-        });
-    if (infoIter == bundleInfo.hapModuleInfos.end()) {
-        TEXT_LOGD("Entry module not found");
-        return false;
-    }
-
-    auto& dataList = infoIter->metadata;
-    return std::find_if(dataList.begin(), dataList.end(),
-        [&metaData](const AppExecFwk::Metadata& data) {
-            return data.name == metaData;
-        }) != dataList.end();
-}
-
-sptr<AppExecFwk::IBundleMgr> TextBundleConfigParser::GetSystemAbilityManager()
-{
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        TEXT_LOGE("System ability manager is nullptr");
-        return nullptr;
-    }
-
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        TEXT_LOGE("Remote object is nullptr");
-        return nullptr;
-    }
-
-    return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    return true;
 }
 #endif
 
-bool TextBundleConfigParser::IsAdapterTextHeightEnabled()
+bool TextBundleConfigParser::IsAdapterTextHeightEnabled() const
+{
+    return initStatus_ && adapterTextHeightEnable_;
+}
+
+bool TextBundleConfigParser::IsTargetApiVersion(size_t targetVersion) const
+{
+    return initStatus_ && bundleApiVersion_ >= targetVersion;
+}
+
+#ifdef OHOS_TEXT_ENABLE
+void TextBundleConfigParser::InitTextBundleConfig()
+{
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!GetBundleInfo(bundleInfo)) {
+        InitTextBundleFailed();
+        return;
+    }
+
+    initStatus_ = true;
+    bundleApiVersion_ = bundleInfo.targetVersion % VERSION_DIVISOR;
+    adapterTextHeightEnable_ = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA, bundleInfo);
+    TEXT_LOGI("Adapter text height enabled %{public}d", adapterTextHeightEnable_);
+}
+#endif
+
+void TextBundleConfigParser::InitTextBundleFailed()
+{
+    initStatus_ = false;
+    adapterTextHeightEnable_ = false;
+    bundleApiVersion_ = std::numeric_limits<uint32_t>::max();
+}
+
+void TextBundleConfigParser::InitBundleInfo()
 {
 #ifdef OHOS_TEXT_ENABLE
-    static bool adapterTextHeight = []() {
-        const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
-        auto enabled = IsMetaDataExistInEntryModule(ADAPTER_TEXT_HEIGHT_META_DATA);
-        TEXT_LOGI("Adapter text height enabled: %{public}d", enabled);
-        return enabled;
-    }();
-    return adapterTextHeight;
+    InitTextBundleConfig();
 #else
-    return false;
+    InitTextBundleFailed();
 #endif
 }
 } // namespace SPText

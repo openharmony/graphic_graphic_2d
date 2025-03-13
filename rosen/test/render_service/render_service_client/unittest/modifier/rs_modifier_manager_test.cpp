@@ -47,6 +47,7 @@ HWTEST_F(RSModifierManagerTest, CreateDrawingContextTest, TestSize.Level1)
 {
     RSModifierManager rsModifierManager;
     rsModifierManager.Draw();
+    ASSERT_TRUE(rsModifierManager.modifiers_.empty());
 }
 
 /**
@@ -83,9 +84,11 @@ HWTEST_F(RSModifierManagerTest, RemoveAnimationTest, TestSize.Level1)
     AnimationId key = renderCurveAnimation->GetAnimationId();
 
     RSModifierManager rsModifierManager;
-    rsModifierManager.SetFrameRateGetFunc(
-        [PREFERRED](const RSPropertyUnit unit, float velocity) -> int32_t {return PREFERRED;});
+    rsModifierManager.SetFrameRateGetFunc([PREFERRED](const RSPropertyUnit unit,
+        float velocity, int32_t area, int32_t length) -> int32_t { return PREFERRED; });
     rsModifierManager.AddAnimation(renderCurveAnimation);
+    ASSERT_TRUE(rsModifierManager.GetAndResetFirstFrameAnimationState());
+    ASSERT_FALSE(rsModifierManager.GetAndResetFirstFrameAnimationState());
     renderCurveAnimation->Start();
     ASSERT_EQ(rsModifierManager.HasUIRunningAnimation(), true);
     rsModifierManager.RemoveAnimation(key);

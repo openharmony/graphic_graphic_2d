@@ -51,6 +51,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     }
     cacheData_.reset();
     size_t totalSize = isUni ? MAX_UNIRENDER_SIZE : MAX_TOTAL_SIZE;
+    saveDelaySeconds_ = isUni ? UNI_DELAY_SECONDS : DEFAULT_DELAY_SECONDS;
     cacheData_ = std::make_unique<CacheData>(MAX_KEY_SIZE, MAX_VALUE_SIZE, totalSize, filePath_);
     cacheData_->ReadFromFile();
     if (identity == nullptr || size == 0) {
@@ -198,10 +199,13 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
         LOGD("store: cachedata has been destructed");
         return;
     }
+    RS_TRACE_BEGIN("Rewrite valueSize = " + std::to_string(valueSize) + ", keySize = " + std::to_string(keySize));
     cacheData_->Rewrite(key.GetData(), keySize, value, valueSize);
+    RS_TRACE_END();
 
     if (!savePending_ && saveDelaySeconds_ > 0) {
         savePending_ = true;
+        RS_TRACE_NAME("Post Writing Task");
         std::thread deferredSaveThread([this]() {
             sleep(saveDelaySeconds_);
             std::lock_guard<std::mutex> lock(mutex_);
@@ -234,6 +238,25 @@ void ShaderCache::CleanAllShaders() const
     if (cacheData_) {
         cacheData_->Clear();
     }
+}
+
+bool ShaderCache::CheckShaderCacheOverSoftLimit() const
+{
+    if (!cacheData_) {
+        LOGD("CheckShaderCacheOverSoftLimit: cachedata has been destructed");
+        return false;
+    }
+    return cacheData_->CheckShaderCacheOverSoftLimit();
+}
+
+void ShaderCache::PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    OptionalLockGuard lock(mutex_);
+    if (!cacheData_) {
+        LOGD("PurgeShaderCacheAfterAnimate: cachedata has been destructed");
+        return;
+    }
+    cacheData_->PurgeShaderCacheAfterAnimate(nextFrameHasArrived);
 }
 }   // namespace Rosen
 }   // namespace OHOS

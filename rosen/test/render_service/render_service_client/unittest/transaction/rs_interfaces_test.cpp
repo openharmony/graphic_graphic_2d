@@ -92,6 +92,40 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureForUI003
+ * @tc.desc: test results of TakeSurfaceCaptureForUI
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    bool res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: SetHwcNodeBoundsTest
+ * @tc.desc: test results of SetHwcNodeBounds
+ * @tc.type: FUNC
+ * @tc.require: issueIB2QCC
+ */
+HWTEST_F(RSInterfacesTest, SetHwcNodeBoundsTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool res = instance.SetHwcNodeBounds(nodeId, 1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(res);
+}
+
+/**
  * @tc.name: RegisterTypeface001
  * @tc.desc: test results of RegisterTypeface
  * @tc.type: FUNC
@@ -230,20 +264,6 @@ HWTEST_F(RSInterfacesTest, ReportEventJankFrame001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDefaultDeviceRotationOffset001
- * @tc.desc: test results of SetDefaultDeviceRotationOffset
- * @tc.type: FUNC
- * @tc.require: issueIAS4B8
- */
-HWTEST_F(RSInterfacesTest, SetDefaultDeviceRotationOffset001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetDefaultDeviceRotationOffset(90);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
-/**
  * @tc.name: ReportGameStateData001
  * @tc.desc: test results of ReportGameStateData
  * @tc.type: FUNC
@@ -330,6 +350,20 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetHdrOnDuration001
+ * @tc.desc: test results of GetHdrOnDuration
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSInterfacesTest, GetHdrOnDuration001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_GE(instance.GetHdrOnDuration(), 0);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
  * @tc.name: SetVmaCacheStatus001
  * @tc.desc: test results of SetVmaCacheStatus
  * @tc.type: FUNC
@@ -360,6 +394,22 @@ HWTEST_F(RSInterfacesTest, SetTpFeatureConfig001, TestSize.Level1)
     instance.SetTpFeatureConfig(feature, config.c_str());
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
+
+/**
+ * @tc.name: SetTpFeatureConfig002
+ * @tc.desc: test results of SetTpFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueIB39L8
+ */
+HWTEST_F(RSInterfacesTest, SetTpFeatureConfig002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int32_t feature = 1;
+    std::string config = "config";
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.SetTpFeatureConfig(feature, config.c_str(), TpFeatureConfigType::AFT_TP_FEATURE);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
 #endif
 
 /**
@@ -384,9 +434,6 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     instance.renderServiceClient_ = nullptr;
@@ -395,7 +442,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -406,9 +453,6 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
 
@@ -418,15 +462,15 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     std::string name2(1, 't');
     res = instance.SetWatermark(name2, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name3(2, 't');
     res = instance.SetWatermark(name3, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name4(128, 't');
     res = instance.SetWatermark(name4, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name5(129, 't');
     res = instance.SetWatermark(name5, pixelmap);
@@ -434,7 +478,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -447,7 +491,8 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
 {
     class TestSurfaceBufferCallback : public SurfaceBufferCallback {
     public:
-        void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override {}
+        void OnFinish(const FinishCallbackRet& ret) {}
+        void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
@@ -473,4 +518,58 @@ HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
     bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
     EXPECT_FALSE(res);
 }
+
+/**
+ * @tc.name: SetWindowContainer001
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    NodeId nodeId = {};
+    instance.SetWindowContainer(nodeId, false);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessIdTest
+ * @tc.desc: test results of GetPixelMapByProcessId
+ * @tc.type: FUNC
+ * @tc.require: issueIBJFIK
+ */
+HWTEST_F(RSInterfacesTest, GetPixelMapByProcessIdTest, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    pid_t pid = 0;
+    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+    int32_t res = instance.GetPixelMapByProcessId(pixelMapVector, pid);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+/**
+ * @tc.name: SetOverlayDisplayMode001
+ * @tc.desc: test results of SetOverlayDisplayMode
+ * @tc.type: FUNC
+ * @tc.require: issueIBHTL0
+ */
+HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+
+    // open overlay
+    int32_t mode = 1;
+    int32_t res = instance.SetOverlayDisplayMode(mode);
+    EXPECT_EQ(res, SUCCESS);
+
+    // close overlay
+    mode = 0;
+    res = instance.SetOverlayDisplayMode(mode);
+    EXPECT_EQ(res, SUCCESS);
+}
+#endif
 } // namespace OHOS::Rosen

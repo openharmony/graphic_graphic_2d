@@ -542,6 +542,9 @@ bool DoModifier010(const uint8_t* data, size_t size)
     auto useEffectmodifier = std::make_shared<RSUseEffectModifier>(property);
     useEffectmodifier->GetModifierType();
     useEffectmodifier->CreateRenderModifier();
+    auto useEffectTypeModifier = std::make_shared<RSUseEffectTypeModifier>(property);
+    useEffectTypeModifier->GetModifierType();
+    useEffectTypeModifier->CreateRenderModifier();
     auto colorBlendModemodifier = std::make_shared<RSColorBlendModeModifier>(property);
     colorBlendModemodifier->GetModifierType();
     colorBlendModemodifier->CreateRenderModifier();
@@ -577,7 +580,70 @@ bool DoModifier011(const uint8_t* data, size_t size)
     auto customClipToFramemodifier = std::make_shared<RSCustomClipToFrameModifier>(property);
     customClipToFramemodifier->GetModifierType();
     customClipToFramemodifier->CreateRenderModifier();
+    auto hdrBrightnessModifier = std::make_shared<RSHDRBrightnessModifier>(property);
+    hdrBrightnessModifier->GetModifierType();
+    hdrBrightnessModifier->CreateRenderModifier();
+    auto behindWindowFilterRadiusModifier = std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
+    behindWindowFilterRadiusModifier->GetModifierType();
+    behindWindowFilterRadiusModifier->CreateRenderModifier();
+    auto behindWindowFilterSaturationModifier = std::make_shared<RSBehindWindowFilterSaturationModifier>(property);
+    behindWindowFilterSaturationModifier->GetModifierType();
+    behindWindowFilterSaturationModifier->CreateRenderModifier();
+    auto behindWindowFilterBrightnessModifier = std::make_shared<RSBehindWindowFilterBrightnessModifier>(property);
+    behindWindowFilterBrightnessModifier->GetModifierType();
+    behindWindowFilterBrightnessModifier->CreateRenderModifier();
+    auto behindWindowFilterMaskColorModifier = std::make_shared<RSBehindWindowFilterMaskColorModifier>(property);
+    behindWindowFilterMaskColorModifier->GetModifierType();
+    behindWindowFilterMaskColorModifier->CreateRenderModifier();
     return true;
+}
+        
+bool DoApply(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto geometry = std::make_shared<RSObjAbsGeometry>();
+    float value = GetData<float>();
+    auto property = std::make_shared<RSAnimatableProperty<float>>(value);
+    auto rsboundsModifier = std::make_shared<RSBoundsModifier>(property);
+    rsboundsModifier->Apply(geometry);
+    auto rsboundsSizeModifier = std::make_shared<RSBoundsSizeModifier>(property);
+    rsboundsSizeModifier->Apply(geometry);
+    auto rsboundsPositionModifier = std::make_shared<RSBoundsPositionModifier>(property);
+    rsboundsPositionModifier->Apply(geometry);
+    auto rspivotModifier = std::make_shared<RSPivotModifier>(property);
+    rspivotModifier->Apply(geometry);
+    auto rspivotZModifier = std::make_shared<RSPivotZModifier>(property);
+    rspivotZModifier->Apply(geometry);
+    auto rsquaternionModifier = std::make_shared<RSQuaternionModifier>(property);
+    rsquaternionModifier->Apply(geometry);
+    auto rsrotationModifier = std::make_shared<RSRotationModifier>(property);
+    rsrotationModifier->Apply(geometry);
+    auto rsrotationXModifier = std::make_shared<RSRotationXModifier>(property);
+    rsrotationXModifier->Apply(geometry);
+    auto rsrotationYModifier = std::make_shared<RSRotationYModifier>(property);
+    rsrotationYModifier->Apply(geometry);
+    auto rscameraDistanceModifier = std::make_shared<RSCameraDistanceModifier>(property);
+    rscameraDistanceModifier->Apply(geometry);
+    auto rsscaleModifier = std::make_shared<RSScaleModifier>(property);
+    rsscaleModifier->Apply(geometry);
+    auto rsskewModifier = std::make_shared<RSSkewModifier>(property);
+    rsskewModifier->Apply(geometry);
+    auto rsperspModifier = std::make_shared<RSPerspModifier>(property);
+    rsperspModifier->Apply(geometry);
+    auto rstranslateModifier = std::make_shared<RSTranslateModifier>(property);
+    rstranslateModifier->Apply(geometry);
+    auto rstranslateZModifier = std::make_shared<RSTranslateZModifier>(property);
+    rstranslateZModifier->Apply(geometry);
+    return true ;
 }
 
 } // namespace Rosen
@@ -598,6 +664,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoModifier009(data, size);
     OHOS::Rosen::DoModifier010(data, size);
     OHOS::Rosen::DoModifier011(data, size);
+    OHOS::Rosen::DoApply(data, size);
     return 0;
 }
 

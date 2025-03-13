@@ -78,6 +78,29 @@ HWTEST_F(RSSystemParametersTest, GetDrawingCacheEnabledDfxTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShowRefreshRateEnabled
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBD7RE
+ */
+HWTEST_F(RSSystemParametersTest, GetShowRefreshRateEnabled, TestSize.Level1)
+{
+    system::SetParameter("rosen.showRefreshRate.enabled", "0");
+    int changed = 0;
+    auto result = RSSystemParameters::GetShowRefreshRateEnabled(&changed);
+    ASSERT_EQ(result, false);
+    ASSERT_EQ(changed, 0);
+    system::SetParameter("rosen.showRefreshRate.enabled", "1");
+    result = RSSystemParameters::GetShowRefreshRateEnabled(&changed);
+    ASSERT_EQ(result, true);
+    ASSERT_EQ(changed, 1);
+    system::SetParameter("rosen.showRefreshRate.enabled", "0");
+    result = RSSystemParameters::GetShowRefreshRateEnabled(&changed);
+    ASSERT_EQ(result, false);
+    ASSERT_EQ(changed, 1);
+}
+
+/**
  * @tc.name: GetQuickSkipPrepareTypeTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -101,6 +124,19 @@ HWTEST_F(RSSystemParametersTest, IsNeedScRGBForP3Test, TestSize.Level2)
     auto original = system::GetBoolParameter("persist.sys.graphic.scrgb.enabled", false);
     auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     auto result = RSSystemParameters::IsNeedScRGBForP3(currentGamut);
+    EXPECT_EQ(original, result);
+}
+
+/**
+ * @tc.name: GetAnimationOcclusionEnabled
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueIBLVD4
+ */
+HWTEST_F(RSSystemParametersTest, GetAnimationOcclusionEnabled, TestSize.Level2)
+{
+    auto original = system::GetBoolParameter("rosen.ani.occlusion.enabled", true);
+    auto result = RSSystemParameters::GetAnimationOcclusionEnabled();
     EXPECT_EQ(original, result);
 }
 } // namespace OHOS::Rosen

@@ -92,34 +92,33 @@ RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, cons
     : canvas_(canvas), paints_(paints)
 {}
 
-void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset,
+void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(const std::shared_ptr<RSTextBlob>& blob, const RSPoint& offset,
     const PaintRecord &pr)
 {
-    HMSymbolRun hmSymbolRun = HMSymbolRun();
     symbolCount_++;
     const uint32_t length32Bit = 32;
     auto symbolSpanId = (static_cast<uint64_t>(paragraphId_) << length32Bit) + symbolCount_;
-    hmSymbolRun.SetAnimation(animationFunc_);
-    hmSymbolRun.SetSymbolId(symbolSpanId);
+    HMSymbolRun hmSymbolRun = HMSymbolRun(symbolSpanId, pr.symbol, blob, animationFunc_);
     if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
         canvas_->AttachPen(pr.pen.value());
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, offset);
         canvas_->DetachPen();
         canvas_->DetachBrush();
     } else if (pr.pen.has_value() && !pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, offset);
         canvas_->DetachPen();
     } else if (!pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, offset);
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
+        brush.SetAntiAlias(true);
         canvas_->AttachBrush(brush);
-        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, offset);
         canvas_->DetachBrush();
     }
 }
@@ -139,7 +138,7 @@ void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& b
         } else {
             offset = RSPoint{ x, y };
         }
-        DrawSymbolSkiaTxt(blob.get(), offset, pr);
+        DrawSymbolSkiaTxt(blob, offset, pr);
     } else if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
         canvas_->DrawTextBlob(blob.get(), x, y);

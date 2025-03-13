@@ -18,6 +18,7 @@
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
 #include "drawing_gpu_context.h"
+#include "drawing_gpu_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -105,6 +106,33 @@ HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_CreateFromGL, 
     gpuContext_ = OH_Drawing_GpuContextCreateFromGL(options);
     EXPECT_NE(gpuContext_, nullptr);
     OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
+ * @tc.name: NativeDrawingGpuContextTest_Create
+ * @tc.desc: test for Create.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_Create, TestSize.Level1)
+{
+    gpuContext_ = OH_Drawing_GpuContextCreate();
+    EXPECT_NE(gpuContext_, nullptr);
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
+ * @tc.name: NativeDrawingGpuContextTest_Manager
+ * @tc.desc: test for Manager.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_Manager, TestSize.Level1)
+{
+    std::shared_ptr<GPUContext> context = DrawingGpuContextManager::GetInstance().Find(nullptr);
+    EXPECT_EQ(context, nullptr);
+    bool ret = DrawingGpuContextManager::GetInstance().Remove(nullptr);
+    EXPECT_EQ(ret, false);
 }
 
 /*

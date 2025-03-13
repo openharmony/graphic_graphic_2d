@@ -380,5 +380,25 @@ HWTEST_F(RSCurveAnimationTest, SetIsCustomTest002, TestSize.Level1)
     curveAnimation->IsSupportInteractiveAnimator();
     GTEST_LOG_(INFO) << "RSCurveAnimationTest SetIsCustomTest002 end" ;
 }
+
+/**
+ * @tc.name: IsSupportInteractiveAnimator001
+ * @tc.desc: Verify the IsSupportInteractiveAnimator
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCurveAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSCurveAnimationTest IsSupportInteractiveAnimator001 start";
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, startProperty, endProperty);
+    auto interpolator = std::shared_ptr<RSInterpolator>();
+    auto timingCurve = RSAnimationTimingCurve(interpolator);
+    curveAnimation->SetTimingCurve(timingCurve);
+    EXPECT_EQ(interpolator, nullptr);
+    EXPECT_FALSE(curveAnimation->IsSupportInteractiveAnimator());
+    GTEST_LOG_(INFO) << "RSCurveAnimationTest IsSupportInteractiveAnimator001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

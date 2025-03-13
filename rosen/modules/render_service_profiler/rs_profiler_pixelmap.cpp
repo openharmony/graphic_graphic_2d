@@ -20,53 +20,551 @@
 
 #include "media_errors.h"
 #include "pixel_map.h"
-#ifdef RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT
-#include "pixel_yuv_ext.h"
-#else
-#include "pixel_yuv.h"
-#endif
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
 #include "rs_profiler_log.h"
+#include "rs_profiler_pixelmap.h"
 
 #include "transaction/rs_marshalling_helper.h"
 #include "platform/common/rs_system_properties.h"
 
-namespace OHOS::Media {
+#ifdef ROSEN_OHOS
+#include "lz4.h"
+#endif
 
-static SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
+#include "image_packer.h"
+#include "image_source.h"
+#define ALPHA_OFFSET 4
+#define SIZE_OF_PIXEL 4
+#define RGB_OFFSET 3
+
+namespace OHOS::Rosen {
+
+ImageProperties::ImageProperties(PixelMap& map)
+    : format(map.GetPixelFormat()), width(map.GetWidth()), height(map.GetHeight()),
+      stride(map.GetRowStride())
+{}
+
+bool PixelMapStorage::IsSharedMemory(const PixelMap& map)
+{
+    return IsSharedMemory(const_cast<PixelMap&>(map).GetAllocatorType());
+}
+
+bool PixelMapStorage::IsSharedMemory(const PixelMemInfo& info)
+{
+    return IsSharedMemory(info.allocatorType);
+}
+
+bool PixelMapStorage::IsSharedMemory(AllocatorType type)
+{
+    return type == AllocatorType::SHARE_MEM_ALLOC;
+}
+
+bool PixelMapStorage::IsDmaMemory(const PixelMap& map)
+{
+    return IsDmaMemory(const_cast<PixelMap&>(map).GetAllocatorType());
+}
+
+bool PixelMapStorage::IsDmaMemory(const PixelMemInfo& info)
+{
+    return IsDmaMemory(info.allocatorType);
+}
+
+bool PixelMapStorage::IsDmaMemory(AllocatorType type)
+{
+    return type == AllocatorType::DMA_ALLOC;
+}
+
+bool PixelMapStorage::Fits(size_t size)
+{
+    constexpr size_t maxConsumption = 1024u * 1024u * 1024u;
+    return (ImageCache::Consumption() + size) <= maxConsumption;
+}
+
+bool PixelMapStorage::Push(uint64_t id, PixelMap& map)
+{
+    if (!Fits(static_cast<size_t>(const_cast<PixelMap&>(map).GetCapacity()))) {
+        return false;
+    }
+
+    if (IsDmaMemory(map)) {
+        PushDmaMemory(id, map);
+    } else if (IsSharedMemory(map)) {
+        PushSharedMemory(id, map);
+    }
+    return true;
+}
+
+bool PixelMapStorage::Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
+{
+    skipBytes = 0u;
+    if (IsSharedMemory(memory)) {
+        return PullSharedMemory(id, info, memory, skipBytes);
+    } else if (IsDmaMemory(memory)) {
+        return PullDmaMemory(id, info, memory, skipBytes);
+    }
+    return false;
+}
+
+bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+{
+    if (!Fits(static_cast<size_t>(memory.bufferSize))) {
+        return false;
+    }
+
+    if (IsSharedMemory(memory)) {
+        PushSharedMemory(id, info, memory, skipBytes);
+    } else if (IsDmaMemory(memory)) {
+        PushDmaMemory(id, info, memory, skipBytes);
+    }
+    return true;
+}
+
+bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
+{
+    skipBytes = 0u;
+    if (!ValidateBufferSize(memory)) {
+        return false;
+    }
+
+    auto image = ImageCache::Get(id);
+    if (!image) {
+        return false;
+    }
+
+    memory.allocatorType = AllocatorType::HEAP_ALLOC;
+    memory.base = reinterpret_cast<uint8_t*>(malloc(memory.bufferSize));
+    if (!memory.base) {
+        return false;
+    }
+
+    if (!CopyImageData(image, memory.base, memory.bufferSize)) {
+        free(memory.base);
+        memory.base = nullptr;
+        return false;
+    }
+
+    memory.context = nullptr;
+    skipBytes = image->parcelSkipBytes;
+    return true;
+}
+
+void PixelMapStorage::PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+{
+    PushImage(id, GenerateImageData(info, memory), skipBytes);
+}
+
+void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
+{
+    if (!map.GetFd()) {
+        return;
+    }
+
+    constexpr size_t skipBytes = 24u;
+    const auto size = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
+    const ImageProperties properties(map);
+    if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
+        PushImage(id, GenerateImageData(image, size, map), skipBytes, nullptr, &properties);
+        UnmapImage(image, size);
+    }
+}
+
+bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
+{
+    skipBytes = 0u;
+    if (!ValidateBufferSize(memory)) {
+        return false;
+    }
+
+    auto image = ImageCache::Get(id);
+    if (!image) {
+        return false;
+    }
+
+    auto surfaceBuffer = SurfaceBuffer::Create();
+    if (!surfaceBuffer) {
+        return false;
+    }
+
+    const BufferRequestConfig config = { .width = image->dmaWidth,
+        .height = image->dmaHeight,
+        .strideAlignment = image->dmaStride,
+        .format = image->dmaFormat,
+        .usage = image->dmaUsage };
+    surfaceBuffer->Alloc(config);
+
+    memory.base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
+    if (!CopyImageData(image, memory.base, image->dmaSize)) {
+        return false;
+    }
+
+    memory.context = IncrementSurfaceBufferReference(surfaceBuffer);
+    skipBytes = image->parcelSkipBytes;
+    return true;
+}
+
+void PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+{
+    auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(memory.context);
+    auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
+    if (buffer) {
+        const auto pixels = GenerateImageData(memory.base, buffer->size, memory.isAstc, GetBytesPerPixel(info));
+        PushImage(id, pixels, skipBytes, buffer);
+    }
+}
+
+void PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
+{
+    const auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(map.GetFd());
+    const auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
+    if (!buffer) {
+        return;
+    }
+    const ImageProperties properties(map);
+    const auto pixels =
+        GenerateImageData(reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), buffer->size, map);
+    MessageParcel parcel;
+    surfaceBuffer->WriteToMessageParcel(parcel);
+    PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
+}
+
+int32_t PixelMapStorage::EncodeSeqLZ4(const ImageData& source, ImageData& dst)
+{
+#ifdef ROSEN_OHOS
+    int32_t dstCap = LZ4_compressBound(source.size());
+    ImageData buf;
+    buf.reserve(dstCap);
+
+    auto start = reinterpret_cast<const char*>(source.data());
+    int32_t encodedSize = LZ4_compress_default(start, reinterpret_cast<char*>(buf.data()), source.size(), dstCap);
+    if (encodedSize < 0) {
+        HRPE("Error when encoding lz4");
+        return -1;
+    }
+
+    dst.insert(dst.end(), buf.data(), buf.data() + encodedSize);
+    return encodedSize;
+#else
+    HRPD("lz4 encoding is not supported on this platform");
+    return -1;
+#endif
+}
+
+int32_t PixelMapStorage::EncodeJpeg(const ImageData& source, ImageData& dst, const ImageProperties& properties)
+{
+    Media::InitializationOptions opts = { .size = { .width = properties.width, .height = properties.height },
+        .srcPixelFormat = properties.format,
+        .pixelFormat = properties.format,
+        .srcRowStride = properties.stride,
+        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE };
+    auto sourceRgb = Media::PixelMap::Create(reinterpret_cast<const uint32_t*>(source.data()), source.size(), opts);
+    if (!sourceRgb) {
+        HRPE("Failed to create source to encode to rgb");
+        return -1;
+    }
+    uint32_t err = 0;
+    Media::ImagePacker imagePacker;
+    Media::PackOption option;
+    option.format = "image/jpeg";
+    ImageData dstRgb;
+    dstRgb.reserve(source.size());
+    err = imagePacker.StartPacking(static_cast<uint8_t*>(dstRgb.data()), source.size(), option);
+    if (err != 0) {
+        HRPE("Failed to start packing to jpeg, errcode %{public}u", err);
+        return -1;
+    }
+    err = imagePacker.AddImage(*sourceRgb);
+    if (err != 0) {
+        HRPE("Failed to AddImage, errcode %{public}u", err);
+        return -1;
+    }
+    int64_t encodedSize = 0;
+    err = imagePacker.FinalizePacking(encodedSize);
+    if (err != 0) {
+        HRPE("Failed to FinalizePacking, errcode %{public}u", err);
+        return -1;
+    }
+    dst.insert(dst.end(), dstRgb.data(), dstRgb.data() + encodedSize);
+    return encodedSize;
+}
+
+void PixelMapStorage::ExtractAlpha(const ImageData& image, ImageData& alpha, const ImageProperties& properties)
+{
+    alpha.reserve(image.size() / ALPHA_OFFSET);
+    for (int32_t row = 0, rStart = 0; row < properties.height; ++row, rStart += properties.stride) {
+        for (int32_t pixIdx = 0, alphaIdx = rStart + RGB_OFFSET;
+                pixIdx < properties.width; ++pixIdx, alphaIdx += ALPHA_OFFSET) {
+            alpha.emplace_back(image[alphaIdx]);
+        }
+    }
+}
+
+void PixelMapStorage::PushImage(
+    uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer, const ImageProperties* properties)
+{
+    if (data.empty()) {
+        return;
+    }
+
+    if (buffer && ((buffer->width == 0) || (buffer->height == 0))) {
+        return;
+    }
+
+    Image image;
+    image.parcelSkipBytes = skipBytes;
+    if (buffer) {
+        image.dmaSize = static_cast<size_t>(buffer->size);
+        image.dmaWidth = buffer->width;
+        image.dmaHeight = buffer->height;
+        image.dmaStride = buffer->stride;
+        image.dmaFormat = buffer->format;
+        image.dmaUsage = buffer->usage;
+    }
+
+    EncodedType encodedType = EncodedType::NONE;
+    if (RSProfiler::IsWriteEmulationMode() && !RSProfiler::IsBetaRecordEnabled()) {
+        // COMPRESS WITH LZ4 OR JPEG
+        encodedType = TryEncodeTexture(properties, data, image);
+    }
+    if (encodedType == EncodedType::NONE) {
+        // NO COMPRESION
+        image.data = data;
+    }
+
+    ImageCache::Add(id, std::move(image));
+}
+
+EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties, const ImageData& data, Image& image)
+{
+    EncodedType encodedType = EncodedType::NONE;
+
+    image.data.resize(sizeof(TextureHeader));
+    if (properties &&
+        (properties->format == Media::PixelFormat::RGBA_8888 || properties->format == Media::PixelFormat::BGRA_8888) &&
+        static_cast<int32_t>(data.size()) == properties->stride * properties->height) {
+        int32_t rgbEncodedSize = EncodeJpeg(data, image.data, *properties);
+        if (rgbEncodedSize != -1) {
+            ImageData alpha;
+            ExtractAlpha(data, alpha, *properties);
+            int32_t alphaEncodedSize = EncodeSeqLZ4(alpha, image.data);
+            if (alphaEncodedSize != -1) {
+                encodedType = EncodedType::JPEG;
+                TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
+                header->magicNumber = 'JPEG';
+                header->properties = *properties;
+                header->totalOriginalSize = data.size();
+                header->rgbEncodedSize = rgbEncodedSize;
+                header->alphaOriginalSize = alpha.size();
+                header->alphaEncodedSize = alphaEncodedSize;
+            }
+        }
+    }
+    if (encodedType == EncodedType::NONE) {
+        int32_t encodedSize = EncodeSeqLZ4(data, image.data);
+        if (encodedSize != -1) {
+            encodedType = EncodedType::XLZ4;
+            TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
+            header->magicNumber = 'XLZ4';
+            header->totalOriginalSize = data.size();
+        }
+    }
+    return encodedType;
+}
+
+bool PixelMapStorage::ValidateBufferSize(const PixelMemInfo& memory)
+{
+    return (memory.bufferSize > 0) && (static_cast<size_t>(memory.bufferSize) <= Image::maxSize);
+}
+
+uint32_t PixelMapStorage::GetBytesPerPixel(const ImageInfo& info)
+{
+    const auto rowPitch = PixelMap::GetRGBxRowDataSize(info);
+    return (rowPitch > 0) ? static_cast<uint32_t>(rowPitch / info.size.width) : 0u;
+}
+
+uint8_t* PixelMapStorage::MapImage(int32_t file, size_t size, int32_t flags)
+{
+    auto image = ::mmap(nullptr, size, flags, MAP_SHARED, file, 0);
+    return (image != MAP_FAILED) ? reinterpret_cast<uint8_t*>(image) : nullptr; // NOLINT
+}
+
+void PixelMapStorage::UnmapImage(void* image, size_t size)
+{
+    if (IsDataValid(image, size)) {
+        ::munmap(image, size);
+    }
+}
+
+SurfaceBuffer* PixelMapStorage::IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
 {
     if (auto object = buffer.GetRefPtr()) {
-        auto ref = reinterpret_cast<OHOS::RefBase*>(object);
-        ref->IncStrongRef(ref);
+        object->IncStrongRef(object);
         return object;
     }
     return nullptr;
 }
 
-static bool IsDataValid(const void* data, size_t size)
+bool PixelMapStorage::IsDataValid(const void* data, size_t size)
 {
     return data && (size > 0);
 }
 
-static std::vector<uint8_t> GenerateRawCopy(const uint8_t* data, size_t size)
+bool PixelMapStorage::CopyImageData(const uint8_t* srcImage, size_t srcSize, uint8_t* dstImage, size_t dstSize)
 {
-    std::vector<uint8_t> out;
+    if (!srcImage || !dstImage || (srcSize == 0) || (dstSize == 0) || (srcSize > dstSize)) {
+        return false;
+    }
+
+    if (dstSize == srcSize) {
+        return Utils::Move(dstImage, dstSize, srcImage, srcSize);
+    }
+
+    for (size_t offset = 0; offset < dstSize;) {
+        const size_t size = std::min(dstSize - offset, srcSize);
+        if (!Utils::Move(dstImage + offset, size, srcImage, size)) {
+            return false;
+        }
+        offset += size;
+    }
+
+    return true;
+}
+
+bool PixelMapStorage::CopyImageData(const ImageData& data, uint8_t* dstImage, size_t dstSize)
+{
+    return CopyImageData(data.data(), data.size(), dstImage, dstSize);
+}
+
+void PixelMapStorage::ReplaceAlpha(ImageData& image, ImageData& alpha, const ImageProperties& properties)
+{
+    int32_t i = 0;
+    for (int32_t row = 0, rStart = 0; row < properties.height; ++row, rStart += properties.stride) {
+        for (int32_t pixIdx = 0, alphaIdx = rStart + RGB_OFFSET; pixIdx < properties.width;
+                ++pixIdx, alphaIdx += ALPHA_OFFSET) {
+            image[alphaIdx] = alpha[i++];
+        }
+    }
+}
+
+int32_t PixelMapStorage::MakeStride(
+    ImageData& noPadding, ImageData& dst, const ImageProperties& properties, int32_t pixelBytes)
+{
+    int32_t padding = properties.stride - properties.width * pixelBytes;
+    for (int32_t row = 0; row < properties.height; row++) {
+        int32_t rowStart = properties.width * pixelBytes * row;
+        int32_t nextRowStart = properties.width * pixelBytes + rowStart;
+        dst.insert(dst.end(), noPadding.begin() + rowStart, noPadding.begin() + nextRowStart);
+        dst.insert(dst.end(), padding, 0);
+    }
+
+    return dst.size();
+}
+
+int32_t PixelMapStorage::DecodeSeqLZ4(const char* source, ImageData& dst, int32_t sourceSize, int32_t originalSize)
+{
+#ifdef ROSEN_OHOS
+    dst.resize(originalSize);
+    int cnt = LZ4_decompress_safe_partial(
+        source, reinterpret_cast<char*>(dst.data()), sourceSize, originalSize, originalSize);
+    return cnt;
+#else
+    HRPE("lz4 encoding is not supported on this platform");
+    return -1;
+#endif
+}
+
+int32_t PixelMapStorage::DecodeJpeg(
+    const char* source, ImageData& dst, int32_t sourceSize, const ImageProperties& properties)
+{
+    Media::SourceOptions opts = { .formatHint = "image/jpeg",
+        .pixelFormat = properties.format,
+        .size = { .width = properties.width, .height = properties.height } };
+    uint32_t err;
+    auto src = Media::ImageSource::CreateImageSource(reinterpret_cast<const uint8_t*>(source), sourceSize, opts, err);
+    if (!src || err != 0) {
+        HRPE("Error when creating source, errcode %{public}u", err);
+        return -1;
+    }
+    Media::DecodeOptions dopts;
+    auto pmap = src->CreatePixelMap(dopts, err);
+    if (!pmap || err != 0) {
+        HRPE("Error when creating pixelmap, errcode %{public}u", err);
+        return -1;
+    }
+    ImageData noPadding;
+    noPadding.reserve(properties.width * properties.height * SIZE_OF_PIXEL);
+    err = pmap->ReadPixels(pmap->GetByteCount(), noPadding.data());
+    if (err != 0) {
+        HRPE("Error when reading pixels, errcode %{public}u", err);
+        return -1;
+    }
+
+    return MakeStride(noPadding, dst, properties, ALPHA_OFFSET);
+}
+
+bool PixelMapStorage::CopyImageData(Image* image, uint8_t* dstImage, size_t dstSize)
+{
+    if (!image) {
+        return false;
+    }
+
+    TextureHeader* header = reinterpret_cast<TextureHeader*>(image->data.data());
+    const char* srcStart = reinterpret_cast<const char*>(image->data.data()) + sizeof(TextureHeader);
+    ImageData result;
+
+    if (header->magicNumber == 'JPEG' && image->data.size() >= sizeof(TextureHeader)) {
+        int32_t decodedTotalBytes = DecodeJpeg(srcStart, result, header->rgbEncodedSize, header->properties);
+        if (decodedTotalBytes == header->totalOriginalSize) {
+            ImageData alpha;
+            const char* alphaStart = srcStart + header->rgbEncodedSize;
+            int32_t decodedAlphaBytes =
+                DecodeSeqLZ4(alphaStart, alpha, header->alphaEncodedSize, header->alphaOriginalSize);
+            if (decodedAlphaBytes == header->alphaOriginalSize) {
+                ReplaceAlpha(result, alpha, header->properties);
+                image->data.clear();
+                image->data.insert(image->data.end(), result.begin(), result.end());
+            } else {
+                HRPE("Error when decoding alpha got %{public}d bytes, expected %{public}d bytes", decodedAlphaBytes,
+                    header->alphaOriginalSize);
+            }
+        } else {
+            HRPE("Error when decoding rgb got %{public}d bytes, expected %{public}d bytes", decodedTotalBytes,
+                header->totalOriginalSize);
+        }
+    } else if (header->magicNumber == 'XLZ4' && image->data.size() >= sizeof(TextureHeader)) {
+        int32_t sourceSize = image->data.size() - sizeof(TextureHeader);
+        int32_t decodedTotalBytes = DecodeSeqLZ4(srcStart, result, sourceSize, header->totalOriginalSize);
+        if (decodedTotalBytes == header->totalOriginalSize) {
+            image->data.clear();
+            image->data.insert(image->data.end(), result.begin(), result.end());
+        } else {
+            HRPE("Error when decoding lz4 got %{public}d bytes, expected %{public}d bytes", decodedTotalBytes,
+                header->totalOriginalSize);
+        }
+    } else {
+        // assume image was not encoded, do nothing
+    }
+
+    return CopyImageData(image->data, dstImage, dstSize);
+}
+
+ImageData PixelMapStorage::GenerateRawCopy(const uint8_t* data, size_t size)
+{
+    ImageData out;
     if (IsDataValid(data, size)) {
         out.insert(out.end(), data, data + size);
     }
     return out;
 }
 
-static std::vector<uint8_t> GenerateMiniatureAstc(const uint8_t* data, size_t size)
+ImageData PixelMapStorage::GenerateMiniatureAstc(const uint8_t* data, size_t size)
 {
     constexpr uint32_t astcBytesPerPixel = 16u;
     return GenerateRawCopy(data, astcBytesPerPixel);
 }
 
-static std::vector<uint8_t> GenerateMiniature(const uint8_t* data, size_t size, uint32_t pixelBytes)
+ImageData PixelMapStorage::GenerateMiniature(const uint8_t* data, size_t size, uint32_t pixelBytes)
 {
     if (!IsDataValid(data, size)) {
         return {};
@@ -88,511 +586,39 @@ static std::vector<uint8_t> GenerateMiniature(const uint8_t* data, size_t size, 
         }
     }
 
-    std::vector<uint8_t> out(bytesPerPixel, 0);
+    ImageData out(bytesPerPixel, 0);
     for (uint32_t i = 0; i < bytesPerPixel; i++) {
         out[i] = static_cast<uint8_t>(averageValue[i] / sampleCount);
     }
     return out;
 }
 
-static std::vector<uint8_t> GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes)
+ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, const PixelMap& map)
 {
-    if (!Rosen::RSProfiler::IsBetaRecordEnabled()) {
+    const auto bytesPerPixel = static_cast<uint32_t>(const_cast<PixelMap&>(map).GetPixelBytes());
+    return GenerateImageData(data, size, const_cast<PixelMap&>(map).IsAstc(), bytesPerPixel);
+}
+
+ImageData PixelMapStorage::GenerateImageData(const ImageInfo& info, const PixelMemInfo& memory)
+{
+    return GenerateImageData(
+        memory.base, static_cast<size_t>(memory.bufferSize), memory.isAstc, GetBytesPerPixel(info));
+}
+
+ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes)
+{
+    if (!RSProfiler::IsBetaRecordEnabled()) {
         return GenerateRawCopy(data, size);
     }
 
     return isAstc ? GenerateMiniatureAstc(data, size) : GenerateMiniature(data, size, pixelBytes);
 }
 
-static std::vector<uint8_t> GenerateImageData(const uint8_t* data, size_t size, PixelMap& map)
-{
-    return GenerateImageData(data, size, map.IsAstc(), map.GetPixelBytes());
-}
-
-static bool CopyImageData(const uint8_t* srcImage, size_t srcSize, uint8_t* dstImage, size_t dstSize)
-{
-    if (!srcImage || !dstImage || (srcSize == 0) || (dstSize == 0) || (srcSize > dstSize)) {
-        return false;
-    }
-
-    if (dstSize == srcSize) {
-        return Rosen::Utils::Move(dstImage, dstSize, srcImage, srcSize);
-    }
-
-    for (size_t offset = 0; offset < dstSize;) {
-        const size_t size = std::min(dstSize - offset, srcSize);
-        if (!Rosen::Utils::Move(dstImage + offset, size, srcImage, size)) {
-            return false;
-        }
-        offset += size;
-    }
-
-    return true;
-}
-
-static bool CopyImageData(const std::vector<uint8_t>& data, uint8_t* dstImage, size_t dstSize)
-{
-    return CopyImageData(data.data(), data.size(), dstImage, dstSize);
-}
-
-static bool CopyImageData(const Rosen::Image* image, uint8_t* dstImage, size_t dstSize)
-{
-    return image ? CopyImageData(image->data, dstImage, dstSize) : false;
-}
-
-struct UnmarshallingContext {
-public:
-    static constexpr int headerLength = 24; // NOLINT
-
-public:
-    explicit UnmarshallingContext(Parcel& parcel) : parcel(parcel) {}
-
-    bool GatherImageFromFile(const Rosen::Image* image)
-    {
-        if ((size <= 0) || (size > Rosen::Image::maxSize)) {
-            return false;
-        }
-
-        base = new (std::nothrow) uint8_t[size];
-        if (!base) {
-            return false;
-        }
-
-        if (!CopyImageData(image, base, size)) {
-            delete[] base;
-            base = nullptr;
-            return false;
-        }
-
-        context = nullptr;
-        return true;
-    }
-
-    bool GatherDmaImageFromFile(const Rosen::Image* image)
-    {
-        if ((size <= 0) || (size > Rosen::Image::maxSize)) {
-            return false;
-        }
-
-        sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-        if (!surfaceBuffer) {
-            return false;
-        }
-
-        const BufferRequestConfig config = { .width = image->dmaWidth,
-            .height = image->dmaHeight,
-            .strideAlignment = image->dmaStride,
-            .format = image->dmaFormat,
-            .usage = image->dmaUsage };
-        surfaceBuffer->Alloc(config);
-
-        base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-        if (base && CopyImageData(image, base, image->dmaSize)) {
-            context = IncrementSurfaceBufferReference(surfaceBuffer);
-            return true;
-        }
-        return false;
-    }
-
-    bool IsAshmemSizeValid(int32_t file) const
-    {
-        return astc || (static_cast<int32_t>(size) == AshmemGetSize(file));
-    }
-
-    bool IsYUV() const
-    {
-        return (info.pixelFormat == PixelFormat::NV12) || (info.pixelFormat == PixelFormat::NV21) ||
-               (info.pixelFormat == PixelFormat::YCBCR_P010) || (info.pixelFormat == PixelFormat::YCRCB_P010);
-    }
-
-    bool IsASTC() const
-    {
-        return (info.pixelFormat == PixelFormat::ASTC_4x4) || (info.pixelFormat == PixelFormat::ASTC_6x6) ||
-               (info.pixelFormat == PixelFormat::ASTC_8x8);
-    }
-
-    bool IsRGBA() const
-    {
-        return (info.pixelFormat == PixelFormat::ARGB_8888) || (info.pixelFormat == PixelFormat::BGRA_8888) ||
-               (info.pixelFormat == PixelFormat::RGBA_8888) || (info.pixelFormat == PixelFormat::RGBA_1010102) ||
-               (info.pixelFormat == PixelFormat::CMYK) || (info.pixelFormat == PixelFormat::RGBA_F16) ||
-               (info.pixelFormat == PixelFormat::RGBA_U16);
-    }
-
-    bool IsRGB() const
-    {
-        return (info.pixelFormat == PixelFormat::RGB_888) || (info.pixelFormat == PixelFormat::RGB_565);
-    }
-
-    bool IsR8() const
-    {
-        return (info.pixelFormat == PixelFormat::ALPHA_8);
-    }
-
-    bool IsFormatValid() const
-    {
-        return IsR8() || IsRGB() || IsRGBA() || IsASTC() || IsYUV();
-    }
-
-    bool IsSizeValid() const
-    {
-        const auto rawSize = static_cast<size_t>(rowPitch * info.size.height);
-        return (astc || IsYUV() || (size == rawSize) || (info.pixelFormat == PixelFormat::RGBA_F16));
-    }
-
-public:
-    Parcel& parcel;
-    std::unique_ptr<PixelMap> map;
-    ImageInfo info;
-    bool editable = false;
-    bool astc = false;
-    int32_t csm = 0;
-    uint32_t versionId = 0u;
-    AllocatorType allocType = AllocatorType::DEFAULT;
-    size_t rowPitch = 0;
-    size_t size = 0;
-    uint8_t* base = nullptr;
-    void* context = nullptr;
-};
-
-// This class has to be 'reimplemented' here to get access to the PixelMap's private functions.
-// It works ONLY thanks to the 'friend class ImageSource' in PixelMap.
-class ImageSource {
-public:
-    static PixelMap* Unmarshal(Parcel& parcel);
-    static bool Marshal(Parcel& parcel, PixelMap& map);
-
-private:
-    static void CacheImage(
-        uint64_t id, const std::vector<uint8_t>& data, size_t skipBytes, BufferHandle* bufferHandle = nullptr);
-    static Rosen::Image* GetCachedImage(uint64_t id);
-
-    static uint8_t* MapImage(int32_t file, size_t size, int32_t flags);
-    static void UnmapImage(void* image, size_t size);
-
-    static void OnClientMarshalling(PixelMap& map, uint64_t id);
-
-    static bool InitUnmarshalling(UnmarshallingContext& context);
-    static bool UnmarshalFromSharedMemory(UnmarshallingContext& context, uint64_t id);
-    static bool UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id);
-    static bool UnmarshalFromData(UnmarshallingContext& context);
-    static PixelMap* FinalizeUnmarshalling(UnmarshallingContext& context);
-};
-
-void ImageSource::CacheImage(
-    uint64_t id, const std::vector<uint8_t>& data, size_t skipBytes, BufferHandle* bufferHandle)
-{
-    if (data.empty()) {
-        return;
-    }
-
-    if (bufferHandle && ((bufferHandle->width == 0) || (bufferHandle->height == 0))) {
-        return;
-    }
-
-    if (Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE && Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE_EMUL) {
-        return;
-    }
-
-    Rosen::Image image;
-    image.data = data;
-
-    if (bufferHandle) {
-        image.dmaSize = static_cast<size_t>(bufferHandle->size);
-        image.dmaWidth = bufferHandle->width;
-        image.dmaHeight = bufferHandle->height;
-        image.dmaStride = bufferHandle->stride;
-        image.dmaFormat = bufferHandle->format;
-        image.dmaUsage = bufferHandle->usage;
-    }
-
-    image.parcelSkipBytes = skipBytes;
-    Rosen::ImageCache::Add(id, std::move(image));
-}
-
-Rosen::Image* ImageSource::GetCachedImage(uint64_t id)
-{
-    return Rosen::ImageCache::Get(id);
-}
-
-uint8_t* ImageSource::MapImage(int32_t file, size_t size, int32_t flags)
-{
-    auto image = ::mmap(nullptr, size, flags, MAP_SHARED, file, 0);
-    return (image != MAP_FAILED) ? reinterpret_cast<uint8_t*>(image) : nullptr; // NOLINT
-}
-
-void ImageSource::UnmapImage(void* image, size_t size)
-{
-    if (IsDataValid(image, size)) {
-        ::munmap(image, size);
-    }
-}
-
-bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
-{
-    if (!PixelMap::ReadImageInfo(context.parcel, context.info)) {
-        HRPE("Unmarshal: PixelMap::ReadImageInfo failed");
-        return false;
-    }
-
-    if (context.IsYUV()) {
-#ifdef RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT
-        context.map = std::make_unique<PixelYuvExt>();
-        HRPI("Unmarshal: PixelYuvExt creation in progress...");
-#else
-        context.map = std::make_unique<PixelYuv>();
-        HRPI("Unmarshal: PixelYuv creation in progress...");
-#endif
-    } else {
-        context.map = std::make_unique<PixelMap>();
-        HRPI("Unmarshal: PixelMap creation in progress...");
-    }
-
-    if (!context.map) {
-        HRPE("Unmarshal: Pixel map creation failed");
-        return false;
-    }
-
-    context.editable = context.parcel.ReadBool();
-    context.astc = context.parcel.ReadBool();
-    context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
-    context.csm = context.parcel.ReadInt32();
-    context.rowPitch = static_cast<size_t>(context.parcel.ReadInt32());
-    context.versionId = context.parcel.ReadUint32();
-    context.size = static_cast<size_t>(context.parcel.ReadInt32());
-
-    if (!context.IsFormatValid()) {
-        HRPE("Unmarshal: Invalid pixel format");
-        return false;
-    }
-
-    if (!context.IsSizeValid()) {
-        HRPE("Unmarshal: Invalid size");
-        return false;
-    }
-
-    context.map->SetEditable(context.editable);
-    context.map->SetAstc(context.astc);
-    context.map->SetVersionId(context.versionId);
-    return true;
-}
-
-bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint64_t id)
-{
-    constexpr int32_t invalidFile = -1;
-    const auto file =
-        Rosen::RSProfiler::IsParcelMock(context.parcel) ? invalidFile : PixelMap::ReadFileDescriptor(context.parcel);
-    if (file < 0) {
-        if (auto image = GetCachedImage(id)) {
-            if (context.GatherImageFromFile(image)) {
-                context.parcel.SkipBytes(UnmarshallingContext::headerLength);
-                return true;
-            }
-        }
-        HRPE("Unmarshal: SharedMemory: Cached image fetch failed");
-        return false;
-    }
-
-    if (!context.IsAshmemSizeValid(file)) {
-        ::close(file);
-        HRPE("Unmarshal: SharedMemory: Invalid file size");
-        return false;
-    }
-
-    auto image = MapImage(file, context.size, PROT_READ | PROT_WRITE);
-    if (!image) {
-        image = MapImage(file, context.size, PROT_READ);
-    }
-
-    if (!image) {
-        ::close(file);
-        HRPE("Unmarshal: SharedMemory: Cannot map an image from a file");
-        return false;
-    }
-
-    const auto imageData = GenerateImageData(image, context.size, *context.map);
-    CacheImage(id, imageData, UnmarshallingContext::headerLength);
-
-    context.context = new int32_t();
-    if (!context.context) {
-        UnmapImage(image, context.size);
-        ::close(file);
-        HRPE("Unmarshal: SharedMemory: Cannot allocate memory for a file handle");
-        return false;
-    }
-    *static_cast<int32_t*>(context.context) = file;
-    context.base = image;
-    return true;
-}
-
-bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
-{
-    auto image = Rosen::RSProfiler::IsParcelMock(context.parcel) ? GetCachedImage(id) : nullptr;
-    if (image) {
-        // REPLAY IMAGE
-        context.parcel.SkipBytes(image->parcelSkipBytes);
-        return context.GatherDmaImageFromFile(image);
-    }
-
-    const size_t readPosition = context.parcel.GetReadPosition();
-
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-    surfaceBuffer->ReadFromMessageParcel(static_cast<MessageParcel&>(context.parcel));
-    context.base = static_cast<uint8_t*>(surfaceBuffer->GetVirAddr());
-    context.context = IncrementSurfaceBufferReference(surfaceBuffer);
-
-    if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
-        // RECORD IMAGE
-        const auto imageData = GenerateImageData(context.base, bufferHandle->size, *context.map);
-        CacheImage(id, imageData, context.parcel.GetReadPosition() - readPosition, bufferHandle);
-    }
-
-    return true;
-}
-
-bool ImageSource::UnmarshalFromData(UnmarshallingContext& context)
-{
-    context.base = PixelMap::ReadImageData(context.parcel, static_cast<int32_t>(context.size));
-    if (!context.base) {
-        HRPE("Unmarshal: PixelMap::ReadImageData failed");
-        return false;
-    }
-    return true;
-}
-
-PixelMap* ImageSource::FinalizeUnmarshalling(UnmarshallingContext& context)
-{
-    if (context.map->SetImageInfo(context.info) != SUCCESS) {
-        if (context.map->freePixelMapProc_) {
-            context.map->freePixelMapProc_(context.base, context.context, context.size);
-        }
-        PixelMap::ReleaseMemory(context.allocType, context.base, context.context, context.size);
-        if (context.context && (context.allocType == AllocatorType::SHARE_MEM_ALLOC)) {
-            delete static_cast<int32_t*>(context.context);
-        }
-
-        HRPE("Unmarshal: PixelMap::SetImageInfo failed");
-        return nullptr;
-    }
-
-    context.map->SetPixelsAddr(context.base, context.context, context.size, context.allocType, nullptr);
-
-    if (!context.map->ReadTransformData(context.parcel, context.map.get())) {
-        HRPE("Unmarshal: PixelMap::ReadTransformData failed");
-        return nullptr;
-    }
-
-    if (!context.map->ReadAstcRealSize(context.parcel, context.map.get())) {
-        HRPE("Unmarshal: PixelMap::ReadAstcRealSize failed");
-        return nullptr;
-    }
-
-    if (!context.map->ReadYuvDataInfoFromParcel(context.parcel, context.map.get())) {
-        HRPE("Unmarshal: PixelMap::ReadYuvDataInfoFromParcel failed");
-        return nullptr;
-    }
-
-    HRPI("Unmarshal: Done");
-    return context.map.release();
-}
-
-PixelMap* ImageSource::Unmarshal(Parcel& parcel)
-{
-    const uint64_t id = parcel.ReadUint64();
-    UnmarshallingContext context { parcel };
-
-    if (!InitUnmarshalling(context)) {
-        return nullptr;
-    }
-
-#if !defined(_WIN32) && !defined(_APPLE) && !defined(IOS_PLATFORM) && !defined(A_PLATFORM)
-    if (context.allocType == AllocatorType::SHARE_MEM_ALLOC) {
-        if (!UnmarshalFromSharedMemory(context, id)) {
-            return nullptr;
-        }
-    } else if (context.allocType == AllocatorType::DMA_ALLOC) {
-        if (!UnmarshalFromDMA(context, id)) {
-            return nullptr;
-        }
-    } else {
-        if (!UnmarshalFromData(context)) {
-            return nullptr;
-        }
-    }
-#else
-    if (!UnmarshalFromData(context)) {
-        return nullptr;
-    }
-#endif
-
-    return FinalizeUnmarshalling(context);
-}
-
-void ImageSource::OnClientMarshalling(Media::PixelMap& map, uint64_t id)
-{
-    if (Rosen::RSProfiler::IsSharedMemoryEnabled()) {
-        return;
-    }
-
-    const auto descriptor = map.GetFd();
-    if (!descriptor) {
-        return;
-    }
-
-    if (map.GetAllocatorType() == AllocatorType::DMA_ALLOC) {
-        auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(descriptor);
-        if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
-            const auto imageData = GenerateImageData(
-                reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), bufferHandle->size, map);
-            MessageParcel parcel2;
-            surfaceBuffer->WriteToMessageParcel(parcel2);
-            size_t bufferHandleSize = parcel2.GetReadableBytes();
-            CacheImage(id, imageData, bufferHandleSize, bufferHandle);
-        }
-    } else {
-        const size_t size = map.isAstc_ ? map.pixelsSize_ :
-            static_cast<size_t>(map.rowDataSize_ * map.imageInfo_.size.height);
-        if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-            const auto imageData = GenerateImageData(image, size, map);
-            CacheImage(id, imageData, UnmarshallingContext::headerLength);
-            UnmapImage(image, size);
-        }
-    }
-}
-
-bool ImageSource::Marshal(Parcel& parcel, Media::PixelMap& map)
-{
-    const uint64_t id = Rosen::ImageCache::New();
-    if (!parcel.WriteUint64(id) || !map.Marshalling(parcel)) {
-        return false;
-    }
-    OnClientMarshalling(map, id);
-    return true;
-}
-
-} // namespace OHOS::Media
-
-namespace OHOS::Rosen {
-
-using PixelMapHelper = Media::ImageSource;
-
-Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
-{
-    bool isClientEnabled = false;
-    if (!parcel.ReadBool(isClientEnabled)) {
-        HRPE("Unable to read is_client_enabled for image");
-        return nullptr;
-    }
-    if (!isClientEnabled) {
-        return Media::PixelMap::Unmarshalling(parcel);
-    }
-
-    return PixelMapHelper::Unmarshal(parcel);
-}
+// Profiler
 
 bool RSProfiler::SkipPixelMap(Parcel& parcel)
 {
-    if (RSProfiler::IsEnabled() && RSProfiler::GetMode() == Mode::WRITE) {
+    if (IsEnabled() && IsWriteMode()) {
         std::shared_ptr<Media::PixelMap> pixelMap;
         RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
         return true;
@@ -606,17 +632,77 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return false;
     }
 
-    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
-    if (!parcel.WriteBool(isClientEnabled)) {
-        HRPE("Unable to write is_client_enabled for image");
+    const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(profilerEnabled)) {
+        HRPE("MarshalPixelMap: Unable to write profilerEnabled");
         return false;
     }
 
-    if (!isClientEnabled) {
+    if (!profilerEnabled) {
         return map->Marshalling(parcel);
     }
 
-    return PixelMapHelper::Marshal(parcel, *map);
+    const uint64_t id = ImageCache::New();
+    if (!parcel.WriteUint64(id) || !map->Marshalling(parcel)) {
+        return false;
+    }
+
+    if (IsSharedMemoryEnabled()) {
+        return true;
+    }
+
+    if (!IsRecordAbortRequested() && (IsWriteMode() || IsWriteEmulationMode())) {
+        if (!PixelMapStorage::Push(id, *map)) {
+            RequestRecordAbort();
+        }
+    }
+    return true;
+}
+
+Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
+    std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc)
+{
+    bool profilerEnabled = false;
+    if (!parcel.ReadBool(profilerEnabled)) {
+        HRPE("UnmarshalPixelMap: Unable to read profilerEnabled");
+        return nullptr;
+    }
+
+    if (!profilerEnabled) {
+        return PixelMap::Unmarshalling(parcel, readSafeFdFunc);
+    }
+
+    const uint64_t id = parcel.ReadUint64();
+
+    if (IsRecordAbortRequested()) {
+        return PixelMap::Unmarshalling(parcel, readSafeFdFunc);
+    }
+
+    ImageInfo info;
+    PixelMemInfo memory;
+    PIXEL_MAP_ERR error;
+    auto map = PixelMap::StartUnmarshalling(parcel, info, memory, error);
+
+    if (IsReadMode() || IsReadEmulationMode()) {
+        size_t skipBytes = 0u;
+        if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
+            parcel.SkipBytes(skipBytes);
+            return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+        }
+    }
+
+    const auto parcelPosition = parcel.GetReadPosition();
+    if (map && !PixelMap::ReadMemInfoFromParcel(parcel, memory, error, readSafeFdFunc)) {
+        delete map;
+        return nullptr;
+    }
+
+    if (IsWriteMode() || IsWriteEmulationMode()) {
+        if (!PixelMapStorage::Push(id, info, memory, parcel.GetReadPosition() - parcelPosition)) {
+            RequestRecordAbort();
+        }
+    }
+    return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
 }
 
 } // namespace OHOS::Rosen

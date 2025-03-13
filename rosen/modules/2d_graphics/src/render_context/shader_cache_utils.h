@@ -24,7 +24,7 @@ class ShaderCacheUtils {
 public:
     static std::string GetPreloadCacheDir();
 
-    static void SetPreloadCacheDir(std::string dir);
+    static void SetPreloadCacheDir(const std::string dir);
 
 private:
     static const std::string preloadShaderCacheDir_;

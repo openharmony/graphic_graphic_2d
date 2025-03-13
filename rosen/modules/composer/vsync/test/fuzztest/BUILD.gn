@@ -15,10 +15,14 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "postvsyncevent_fuzzer:fuzztest",
+    "vsynccallbacklistener_fuzzer:fuzztest",
     "vsyncconnection_fuzzer:fuzztest",
     "vsynccontroller_fuzzer:fuzztest",
     "vsyncdistributor_fuzzer:fuzztest",
+    "vsyncgenerator_fuzzer:fuzztest",
     "vsyncreceiver_fuzzer:fuzztest",
+    "vsyncreceiverconcurrent_fuzzer:fuzztest",
     "vsyncsampler_fuzzer:fuzztest",
   ]
 }

@@ -15,7 +15,7 @@
 
 #include "cmap_parser.h"
 
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 
 #include "opentype_basic_type.h"
 
@@ -117,7 +117,7 @@ int CmapParser::Parse(const char *data, int32_t size)
         if (subtable.format.Get() == FORMAT4) {
             auto offset = record.subtableOffset.Get();
             if (ret = ParseFormat4(subtable, size - offset); ret) {
-                LOGSO_FUNC_LINE(WARN) << "ParseFormat4 failed with " << ret;
+                TEXT_LOGW("Failed to parse format4 with %{public}d", ret);
             } else {
                 ret = 0;
             }
@@ -126,7 +126,7 @@ int CmapParser::Parse(const char *data, int32_t size)
         if (subtable.format.Get() == FORMAT12) {
             auto offset = record.subtableOffset.Get();
             if (ret = ParseFormat12(subtable, size - offset); ret) {
-                LOGSO_FUNC_LINE(WARN) << "ParseFormat12 failed with " << ret;
+                TEXT_LOGW("Failed to parse format12 with %{public}d", ret);
             } else {
                 ret = 0;
             }

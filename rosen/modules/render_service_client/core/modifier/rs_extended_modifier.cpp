@@ -170,9 +170,9 @@ static std::shared_ptr<Drawing::DrawCmdList> MakePiexlMapDrawCmdList(std::shared
 }
 #endif
 
-RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(NodeId nodeId)
+RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(std::weak_ptr<RSCanvasNode> canvasnode)
 {
-    auto node = RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId);
+    auto node = canvasnode.lock();
     if (!node) {
         return { nullptr };
     }
@@ -207,7 +207,8 @@ std::shared_ptr<Drawing::DrawCmdList> RSExtendedModifierHelper::FinishDrawing(RS
         return nullptr;
     }
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN && RSSystemProperties::GetTextBlobAsPixelMap()) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetTextBlobAsPixelMap()) {
         auto pixelMapDrawCmdList = MakePiexlMapDrawCmdList(recording, ctx);
         if (pixelMapDrawCmdList) {
             delete ctx.canvas;

@@ -40,9 +40,10 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
-    void SetSkBlender(sk_sp<SkBlender> blender);
-
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
+
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 
 private:
     std::shared_ptr<BlenderImpl> impl_;

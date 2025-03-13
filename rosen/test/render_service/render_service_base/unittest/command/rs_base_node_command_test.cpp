@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_base_node_command.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,6 +28,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static inline std::shared_ptr<RSContext> context_ = {};
 };
 
 void RSBaseNodeCommandText::SetUpTestCase() {}
@@ -43,6 +46,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand001, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::Destroy(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -57,6 +61,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand002, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     int32_t index = static_cast<int32_t>(0);
     BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -87,6 +92,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand004, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     int32_t index = static_cast<int32_t>(1);
     BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -101,6 +107,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand005, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     NodeId newParentId = static_cast<NodeId>(-3);
     BaseNodeCommandHelper::RemoveCrossParentChild(context, nodeId, childNodeId, newParentId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -113,6 +120,7 @@ HWTEST_F(RSBaseNodeCommandText, TestRSBaseNodeCommand006, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::RemoveFromTree(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -125,6 +133,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand007, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::ClearChildren(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -298,6 +307,50 @@ HWTEST_F(RSBaseNodeCommandText, RemoveCrossParentChild001, TestSize.Level1)
     newParentId = 1;
     BaseNodeCommandHelper::RemoveCrossParentChild(context, nodeId, childNodeId, newParentId);
     EXPECT_TRUE(!childNodeId);
+}
+
+/**
+ * @tc.name: AddCrossScreenChild
+ * @tc.desc: test results of AddCrossScreenChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSBaseNodeCommandText, AddCrossScreenChild, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    NodeId childId = 2;
+    NodeId cloneNodeId = 3;
+    context_ = std::make_shared<RSContext>();
+    auto& nodeMap = context_->GetMutableNodeMap();
+    struct RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    bool res = nodeMap.RegisterDisplayRenderNode(displayRenderNode);
+    ASSERT_EQ(res, true);
+    auto surfaceChildRenderNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceChildRenderNode));
+    ASSERT_EQ(res, true);
+
+    BaseNodeCommandHelper::AddCrossScreenChild(*context_.get(), nodeId, childId, cloneNodeId, -1);
+}
+
+/**
+ * @tc.name: RemoveCrossScreenChild
+ * @tc.desc: test results of RemoveCrossScreenChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSBaseNodeCommandText, RemoveCrossScreenChild, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    NodeId childNodeId = 2;
+    auto& nodeMap = context_->GetMutableNodeMap();
+    auto node = nodeMap.GetRenderNode(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto child = nodeMap.GetRenderNode(childNodeId);
+    ASSERT_NE(child, nullptr);
+    BaseNodeCommandHelper::RemoveCrossScreenChild(*context_.get(), nodeId, childNodeId);
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.UnregisterRenderNode(childNodeId);
 }
 
 /**

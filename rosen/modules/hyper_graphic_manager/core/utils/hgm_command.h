@@ -31,6 +31,9 @@ constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 constexpr pid_t DEFAULT_PID = 0;
 constexpr int ADAPTIVE_SYNC_ENABLED = 1;
 constexpr int32_t SWITCH_SCREEN_SCENE = 1;
+constexpr int32_t STRING_BUFFER_MAX_SIZE = 256;
+constexpr int64_t IDEAL_PULSE = 2777778; // 2.777778ms
+const std::string HGM_CONFIG_TYPE_THERMAL_SUFFIX = "_THERMAL";
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -75,6 +78,11 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
+enum PointerModeType : int32_t {
+    POINTER_DISENABLED = 0,
+    POINTER_ENABLED = 1,
+};
+
 enum DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
@@ -96,14 +104,16 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        PointerModeType pointerMode;
         int32_t idleFps;
         bool isFactor;
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
+        // Does this game app require Adaptive Sync?
+        bool supportAS;
         // <bufferName, fps>
-        std::vector<std::pair<std::string, int32_t>> appBufferList;
-        std::vector<std::string> appBufferBlackList;
+        std::unordered_map<std::string, int32_t> bufferFpsMap;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -111,9 +121,16 @@ public:
     struct SceneConfig {
         std::string strategy;
         std::string priority;
+        bool doNotAutoClear;
+        bool disableSafeVote;
     };
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
+
+    // <"LowBright", <30, 60, 120>>
+    using SupportedModeConfig = std::unordered_map<std::string, std::vector<uint32_t>>;
+    // <"LTPO-DEFAULT", SupportedModeConfig>
+    using SupportedModeMap = std::unordered_map<std::string, SupportedModeConfig>;
 
     struct DynamicConfig {
         int32_t min;
@@ -124,6 +141,10 @@ public:
     using DynamicSetting = std::unordered_map<std::string, DynamicConfig>;
     // <"translate", DynamicSetting>
     using DynamicSettingMap = std::unordered_map<std::string, DynamicSetting>;
+
+    using PageUrlConfig = std::unordered_map<std::string, std::string>;
+    using PageUrlConfigMap = std::unordered_map<std::string, PageUrlConfig>;
+    std::vector<std::string> pageNameList_;
 
     struct ScreenSetting {
         std::string strategy;
@@ -140,6 +161,9 @@ public:
         std::unordered_map<std::string, std::string> gameSceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
+        int32_t smallSizeArea = -1;
+        int32_t smallSizeLength = -1;
+        DynamicSettingMap smallSizeAnimationDynamicSettings;
         // <CONFIG_NAME, VALUE>
         std::unordered_map<std::string, std::string> animationPowerConfig;
         // <rateTypeName, idleFps>
@@ -148,6 +172,11 @@ public:
         SceneConfigMap ancoSceneList;
         // <componentCode, idleFps>
         std::unordered_map<std::string, int32_t> componentPowerConfig;
+        // <"pkgName", "UnityPlayerSurface">
+        std::unordered_map<std::string, std::string> gameAppNodeList;
+        // <"pageName", min, max>
+        PageUrlConfigMap pageUrlConfig;
+        std::unordered_map<std::string, std::string> performanceConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
@@ -166,8 +195,15 @@ public:
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
+    std::unordered_map<std::string, std::string> solidLayerConfig_;
+    std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
+    // <"pkgName", "1">
+    std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
+    SupportedModeMap supportedModeConfigs_;
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;

@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -157,7 +157,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
-    RSUniRenderThread::Instance().renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());

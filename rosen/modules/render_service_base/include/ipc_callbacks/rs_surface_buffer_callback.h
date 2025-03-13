@@ -19,10 +19,28 @@
 #include <vector>
 #include <iremote_broker.h>
 
+#ifdef ROSEN_OHOS
+#include "sync_fence.h"
+#endif
 #include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
+struct FinishCallbackRet {
+    uint64_t uid;
+    std::vector<uint32_t> surfaceBufferIds;
+    std::vector<uint8_t> isRenderedFlags;
+#ifdef ROSEN_OHOS
+    std::vector<sptr<SyncFence>> releaseFences;
+#endif
+    bool isUniRender;
+};
+
+struct AfterAcquireBufferRet {
+    uint64_t uid;
+    bool isUniRender;
+};
+
 class RSISurfaceBufferCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.SurfaceBufferListener");
@@ -33,7 +51,28 @@ public:
     // Uid and BufferQueue are a one-to-one mapping relationship. This API is used
     // when an application has multiple XComponent components, and it notifies ArkUI
     // which BufferQueue's Buffer can be released after it has been consumed.
-    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+
+    // We send a callback to Arkui after Acquire-Buffer succeeds.
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
+};
+
+struct DefaultSurfaceBufferCallbackFuncs {
+    std::function<void(const FinishCallbackRet&)> OnFinish;
+    std::function<void(const AfterAcquireBufferRet&)> OnAfterAcquireBuffer;
+};
+
+class RSB_EXPORT RSDefaultSurfaceBufferCallback : public RSISurfaceBufferCallback {
+public:
+    RSDefaultSurfaceBufferCallback(DefaultSurfaceBufferCallbackFuncs funcs);
+    ~RSDefaultSurfaceBufferCallback() noexcept override = default;
+
+    void OnFinish(const FinishCallbackRet& ret) override;
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override;
+    sptr<IRemoteObject> AsObject() override;
+private:
+    std::function<void(const FinishCallbackRet&)> finishCallback_;
+    std::function<void(const AfterAcquireBufferRet&)> afterAcquireBufferCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

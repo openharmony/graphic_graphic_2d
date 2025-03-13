@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include "feature/uifirst/rs_sub_thread.h"
 #include "gtest/gtest.h"
-#include "pipeline/parallel_render/rs_sub_thread.h"
-#include "pipeline/rs_hardware_thread.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -43,11 +43,8 @@ void RSFeatureVkQueuePriorityTest::TearDown() {}
 HWTEST_F(RSFeatureVkQueuePriorityTest, Init_001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
-    auto ret1 = rsVulkanInterface.CreateDrawingContext(false);
+    auto ret1 = rsVulkanInterface.CreateDrawingContext();
     EXPECT_TRUE(ret1 != nullptr);
-
-    auto ret2 = rsVulkanInterface.CreateDrawingContext(true);
-    EXPECT_TRUE(ret2 != nullptr);
 
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);

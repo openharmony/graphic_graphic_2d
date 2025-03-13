@@ -18,6 +18,8 @@
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "pipeline/sk_resource_manager.h"
+#include "utils/graphic_coretrace.h"
+
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)
@@ -32,6 +34,10 @@ bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device
                                      VkNativeBufferFormatPropertiesOHOS* nbFormatProps,
                                      VkNativeBufferPropertiesOHOS* nbProps)
 {
+    if (!nbFormatProps || !nbProps) {
+        RS_LOGE("GetNativeBufferFormatProperties failed!");
+        return false;
+    }
     nbFormatProps->sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS;
     nbFormatProps->pNext = nullptr;
 
@@ -87,10 +93,11 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
         VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    if (imageSize.width * imageSize.height * imageSize.depth > VKIMAGE_LIMIT_SIZE) {
+    if (imageSize.width != 0 && imageSize.height != 0 &&
+        imageSize.depth > VKIMAGE_LIMIT_SIZE / imageSize.width / imageSize.height) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u,"
-                   "depth::%{public}u", imageSize.width,
-            imageSize.height, imageSize.depth);
+                   "depth::%{public}u",
+            imageSize.width, imageSize.height, imageSize.depth);
         return false;
     }
 
@@ -181,6 +188,8 @@ bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_NATIVEBUFFERUTILS_MAKEFROMNATIVEWINDOWBUFFER);
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
@@ -217,12 +226,15 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         return false;
     }
 
-    auto skColorSpace = RenderContext::ConvertColorGamutToSkColorSpace(nativeSurface.graphicColorGamut);
+    auto colorSpace = RenderContext::ConvertColorGamutToColorSpace(nativeSurface.graphicColorGamut);
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
     texture_info.SetHeight(height);
     std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
     vkTextureInfo->vkImage = image;
+    vkTextureInfo->vkAlloc.memory = memory;
+    vkTextureInfo->vkAlloc.size = npProps.allocationSize;
+    vkTextureInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     vkTextureInfo->format = nbFormatProps.format;
@@ -237,9 +249,6 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
     }
 
-    auto skiaColorSpace = std::make_shared<Drawing::SkiaColorSpace>();
-    skiaColorSpace->SetColorSpace(skColorSpace);
-    auto colorSpace = Drawing::ColorSpace::CreateFromImpl(skiaColorSpace);
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         skContext.get(),
         texture_info,
@@ -329,8 +338,9 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     std::shared_ptr<Drawing::VKTextureInfo> imageInfo = std::make_shared<Drawing::VKTextureInfo>();
     imageInfo->vkImage = image;
     imageInfo->vkAlloc.memory = memory;
+    imageInfo->vkAlloc.size = npProps.allocationSize;
+    imageInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     imageInfo->vkProtected = isProtected ? true : false;
-    imageInfo->vkAlloc.size = nbProps.allocationSize;
     imageInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo->format = nbFormatProps.format;
@@ -354,6 +364,78 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     textureInfo.SetVKTextureInfo(imageInfo);
     backendTexture.SetTextureInfo(textureInfo);
     return backendTexture;
+}
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface)
+{
+    OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeSurface.nativeWindowBuffer);
+    if (nativeBuffer == nullptr) {
+        ROSEN_LOGE("CreateFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
+        return nullptr;
+    }
+
+    auto& vkContext = RsVulkanContext::GetSingleton();
+
+    VkDevice device = vkContext.GetDevice();
+
+    VkNativeBufferFormatPropertiesOHOS nbFormatProps;
+    VkNativeBufferPropertiesOHOS nbProps;
+    if (!GetNativeBufferFormatProperties(vkContext, device, nativeBuffer, &nbFormatProps, &nbProps)) {
+        return nullptr;
+    }
+
+    VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
+        usageFlags = usageFlags | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+    }
+
+    VkImage image;
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {imageInfo.GetWidth(), imageInfo.GetHeight(), 1},
+        usageFlags, false)) {
+        return nullptr;
+    }
+
+    VkDeviceMemory memory;
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps, false)) {
+        return nullptr;
+    }
+
+    if (!BindImageMemory(device, vkContext, image, memory)) {
+        return nullptr;
+    }
+
+    Drawing::TextureInfo texture_info;
+    texture_info.SetWidth(imageInfo.GetWidth());
+    texture_info.SetHeight(imageInfo.GetHeight());
+    std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
+    vkTextureInfo->vkImage = image;
+    vkTextureInfo->vkAlloc.memory = memory;
+    vkTextureInfo->vkAlloc.size = npProps.allocationSize;
+    vkTextureInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
+    vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
+    vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    vkTextureInfo->format = nbFormatProps.format;
+    vkTextureInfo->imageUsageFlags = usageFlags;
+    vkTextureInfo->sampleCount = 1;
+    vkTextureInfo->levelCount = 1;
+    vkTextureInfo->vkProtected = false;
+    texture_info.SetVKTextureInfo(vkTextureInfo);
+
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeFromBackendTexture(
+        gpuContext,
+        texture_info,
+        Drawing::TextureOrigin::TOP_LEFT,
+        1,
+        imageInfo.GetColorType(),
+        Drawing::ColorSpace::CreateSRGB(),
+        DeleteVkImage,
+        new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            image, memory));
+
+    nativeSurface.image = image;
+    return surface;
 }
 } // namespace NativeBufferUtils
 } // namespace OHOS::Rosen

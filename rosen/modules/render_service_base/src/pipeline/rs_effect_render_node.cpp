@@ -52,7 +52,6 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     }
     ApplyModifiers();
     visitor->PrepareEffectRenderNode(*this);
-    preStaticStatus_ = IsStaticCached();
 }
 
 void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -82,7 +81,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 2. Background filter is null
     // 3. Canvas is offscreen
     if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
-        !RSSystemProperties::GetEffectMergeEnabled() ||
+        !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
         return;
@@ -127,6 +126,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 
 void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged, bool rotationStatusChanged)
 {
+#ifdef RS_ENABLE_GPU
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
@@ -144,14 +144,18 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     } else if (CheckFilterCacheNeedForceSave()) {
         filterDrawable->MarkFilterForceUseCache();
     }
+#endif
 }
 
 void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
-    if (!RSProperties::FilterCacheEnabled) {
+#ifdef RS_ENABLE_GPU
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!RSProperties::filterCacheEnabled_) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
+#endif
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
@@ -163,12 +167,13 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
     }
     // effect render node  only support background filter
     MarkFilterStatusChanged(false, true);
+#endif
 }
 
+#ifdef RS_ENABLE_GPU
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
-    preStaticStatus_ = IsStaticCached();
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
     if (IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
@@ -179,6 +184,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
     }
     RSRenderNode::MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
 }
+#endif
 
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 {
@@ -193,9 +199,15 @@ bool RSEffectRenderNode::CheckFilterCacheNeedForceClear()
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceClear foldStatusChanged_:%d,"
         " preRotationStatus_:%d, isRotationChanged_:%d, preStaticStatus_:%d, isStaticCached:%d",
         GetId(), foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
+    RS_LOGD("RSEffectRenderNode[%{public}lld]::CheckFilterCacheNeedForceClear foldStatusChanged_:%{public}d,"
+        " preRotationStatus_:%{public}d, isRotationChanged_:%{public}d,"
+        " preStaticStatus_:%{public}d, isStaticCached:%{public}d", static_cast<long long>(GetId()),
+        foldStatusChanged_, preRotationStatus_, isRotationChanged_, preStaticStatus_, IsStaticCached());
     // case 3: the state of freeze changed to false, and the last cache maybe wrong.
-    return foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
+    bool res = foldStatusChanged_ || (preRotationStatus_ != isRotationChanged_) ||
         (preStaticStatus_ != isStaticCached_ && isStaticCached_ == false);
+    preStaticStatus_ = IsStaticCached();
+    return res;
 }
 
 void RSEffectRenderNode::SetRotationChanged(bool isRotationChanged)
@@ -226,16 +238,19 @@ void RSEffectRenderNode::SetFoldStatusChanged(bool foldStatusChanged)
 
 void RSEffectRenderNode::InitRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
         RS_LOGE("RSEffectRenderNode::InitRenderParams failed");
         return;
     }
+#endif
 }
 
 void RSEffectRenderNode::MarkFilterHasEffectChildren()
 {
+#ifdef RS_ENABLE_GPU
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
@@ -244,19 +259,24 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
         return;
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
-    if (!RSProperties::FilterCacheEnabled) {
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
+#endif
+#endif
 }
 
 void RSEffectRenderNode::OnFilterCacheStateChanged()
 {
+#ifdef RS_ENABLE_GPU
     auto filterDrawable = GetFilterDrawable(false);
     auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
     if (filterDrawable == nullptr || effectParams == nullptr) {
         return;
     }
     effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
+#endif
 }
 
 bool RSEffectRenderNode::EffectNodeShouldPaint() const
@@ -280,6 +300,7 @@ bool RSEffectRenderNode::FirstFrameHasNoEffectChildren() const
 
 void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
 {
+#ifdef RS_ENABLE_GPU
     // the first frame node has no effect child, it should not be painted and filter cache need to be cleared.
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr || filterDrawable->IsForceClearFilterCache()) {
@@ -293,6 +314,7 @@ void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
     if (filterDrawable->IsForceUseFilterCache()) {
         filterDrawable->MarkFilterForceUseCache(false);
     }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

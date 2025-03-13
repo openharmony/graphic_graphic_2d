@@ -33,7 +33,6 @@ config("effect_SKeffectChian_config") {
 
 config("effect_SKeffectChian_public_config") {
   include_dirs = [
-    "../effectChain/include",
     "../egl/include",
     "$graphic_2d_root/utils/log",
     "include",
@@ -46,10 +45,6 @@ config("effect_SKeffectChian_public_config") {
       "//foundation/graphic/graphic_2d/utils/color_manager/export",
       "//base/hiviewdfx/hilog/interfaces/native/innerkits",
     ]
-  }
-
-  if (target_os == "ios") {
-    include_dirs -= [ "../egl/include" ]
   }
 }
 if (is_arkui_x) {
@@ -70,6 +65,7 @@ if (is_arkui_x) {
           [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
 
       if (rs_enable_gpu) {
+        defines += [ "RS_ENABLE_GPU" ]
         defines += gpu_defines
         public_deps += [
           "$graphic_2d_root/frameworks/opengl_wrapper:EGL",

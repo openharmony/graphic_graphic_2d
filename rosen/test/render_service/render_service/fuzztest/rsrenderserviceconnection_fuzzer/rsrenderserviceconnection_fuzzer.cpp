@@ -24,6 +24,11 @@
 #include <unistd.h>
 #include <unordered_map>
 
+#include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+#endif
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
@@ -34,8 +39,8 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "pipeline/rs_render_service.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_render_service_client.h"
@@ -44,16 +49,13 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr size_t MAX_SIZE = 4;
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
-
-
+sptr<RSIRenderServiceConnection> rsConn_ = nullptr;
 namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -71,13 +73,23 @@ T GetData()
     return object;
 }
 
-bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+} // namespace
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -85,8 +97,16 @@ bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    rsConn_ = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+bool DoRegisterApplicationAgent()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
 
@@ -94,27 +114,18 @@ bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
     MessageParcel message;
     auto remoteObject = message.ReadRemoteObject();
     sptr<IApplicationAgent> app = iface_cast<IApplicationAgent>(remoteObject);
-    rsConn->RegisterApplicationAgent(pid, app);
+    rsConn_->RegisterApplicationAgent(pid, app);
     return true;
 }
 
-bool DoCommitTransaction(const uint8_t* data, size_t size)
+bool DoCommitTransaction()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
     auto transactionData = std::make_unique<RSTransactionData>();
-    rsConn->CommitTransaction(transactionData);
+    rsConn_->CommitTransaction(transactionData);
     return true;
 }
 
@@ -135,368 +146,200 @@ public:
     }
     void Process(RSContext& context) override {}
 };
-bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
+bool DoExecuteSynchronousTask()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
     uint64_t timeoutNS = GetData<uint64_t>();
     auto task = std::make_shared<DerivedSyncTask>(timeoutNS);
-    rsConn->ExecuteSynchronousTask(task);
+    rsConn_->ExecuteSynchronousTask(task);
     return true;
 }
 
-bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
+bool DoGetMemoryGraphic()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
     int pid = GetData<int>();
-    rsConn->GetMemoryGraphic(pid);
+    MemoryGraphic memoryGraphic;
+    rsConn_->GetMemoryGraphic(pid, memoryGraphic);
     return true;
 }
 
-bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
+bool DoGetMemoryGraphics()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
+    std::vector<MemoryGraphic> memoryGraphics;
+    rsConn_->GetMemoryGraphics(memoryGraphics);
+    return true;
+}
 
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+bool DoCreateNodeAndSurface()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
     RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test" };
-    rsConn->CreateNode(config);
-    rsConn->CreateNodeAndSurface(config);
+    bool success;
+    rsConn_->CreateNode(config, success);
+    sptr<Surface> surface = nullptr;
+    rsConn_->CreateNodeAndSurface(config, surface);
     return true;
 }
 
-bool DoGetScreenBacklight(const uint8_t* data, size_t size)
+bool DoGetScreenBacklight()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
-    rsConn->SetScreenBacklight(id, level);
-    rsConn->GetScreenBacklight(id);
+    rsConn_->SetScreenBacklight(id, level);
+    rsConn_->GetScreenBacklight(id);
     return true;
 }
 
-bool DoGetScreenType(const uint8_t* data, size_t size)
+bool DoGetScreenType()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
     RSScreenType type = (RSScreenType)level;
-    rsConn->GetScreenType(id, type);
+    rsConn_->GetScreenType(id, type);
     return true;
 }
 
-bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
+bool DoRegisterBufferAvailableListener()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     uint64_t id = GetData<uint64_t>();
     bool isFromRenderThread = GetData<bool>();
     sptr<RSIBufferAvailableCallback> cb = nullptr;
-    rsConn->RegisterBufferAvailableListener(id, cb, isFromRenderThread);
+    rsConn_->RegisterBufferAvailableListener(id, cb, isFromRenderThread);
     return true;
 }
 
-bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
+bool DoSetScreenSkipFrameInterval()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
-    rsConn->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    rsConn_->SetScreenSkipFrameInterval(id, skipFrameInterval);
     return true;
 }
 
-bool DoSetVirtualScreenResolution(const uint8_t* data, size_t size)
+bool DoSetPhysicalScreenResolution()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    rsConn->SetVirtualScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
-    rsConn->GetVirtualScreenResolution(id);
+    rsConn_->SetPhysicalScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
     return true;
 }
 
-bool DoGetScreenSupportedColorGamuts(const uint8_t* data, size_t size)
+bool DoSetVirtualScreenResolution()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
+    ScreenId id = GetData<uint64_t>();
+    rsConn_->SetVirtualScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
+    rsConn_->GetVirtualScreenResolution(id);
+    return true;
+}
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+bool DoGetScreenSupportedColorGamuts()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
     std::vector<ScreenColorGamut> mode;
     ScreenId id = GetData<uint64_t>();
     uint32_t screenCol = GetData<uint32_t>();
     mode.push_back((ScreenColorGamut)screenCol);
-    rsConn->GetScreenSupportedColorGamuts(id, mode);
+    rsConn_->GetScreenSupportedColorGamuts(id, mode);
     std::vector<ScreenHDRMetadataKey> keys;
     keys.push_back((ScreenHDRMetadataKey)screenCol);
-    rsConn->GetScreenSupportedMetaDataKeys(id, keys);
+    rsConn_->GetScreenSupportedMetaDataKeys(id, keys);
     return true;
 }
 
-bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
+bool DoGetScreenSupportedModes()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    rsConn->GetScreenSupportedModes(id);
+    rsConn_->GetScreenSupportedModes(id);
     return true;
 }
 
-bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
+bool DoGetScreenColorGamut()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     int32_t modeIdx = GetData<int32_t>();
-    rsConn->SetScreenColorGamut(id, modeIdx);
+    rsConn_->SetScreenColorGamut(id, modeIdx);
     uint32_t mod = GetData<uint32_t>();
     ScreenColorGamut mode = (ScreenColorGamut)mod;
-    rsConn->GetScreenColorGamut(id, mode);
+    rsConn_->GetScreenColorGamut(id, mode);
     return true;
 }
 
-bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
+bool DoSetScreenPowerStatus()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t status = GetData<uint32_t>();
-    rsConn->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
-    rsConn->GetScreenPowerStatus(id);
+    rsConn_->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
+    rsConn_->GetScreenPowerStatus(id);
     return true;
 }
 
-bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
+bool DoSetScreenGamutMap()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t mapMode = GetData<uint32_t>();
     ScreenGamutMap mode = (ScreenGamutMap)mapMode;
-    rsConn->SetScreenGamutMap(id, mode);
-    rsConn->GetScreenGamutMap(id, mode);
+    rsConn_->SetScreenGamutMap(id, mode);
+    rsConn_->GetScreenGamutMap(id, mode);
     return true;
 }
 
-bool DoSetAppWindowNum(const uint8_t* data, size_t size)
+bool DoSetAppWindowNum()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     uint32_t num = GetData<uint32_t>();
-    rsConn->SetAppWindowNum(num);
+    rsConn_->SetAppWindowNum(num);
     return true;
 }
 
-bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
+bool DoCreateVirtualScreen()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
@@ -504,35 +347,33 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> bp = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-    rsConn->CreateVirtualScreen("name", SCREEN_WIDTH, SCREEN_HEIGHT, pSurface, id, flags);
-    rsConn->SetVirtualScreenSurface(id, pSurface);
-    rsConn->RemoveVirtualScreen(id);
+    rsConn_->CreateVirtualScreen("name", SCREEN_WIDTH, SCREEN_HEIGHT, pSurface, id, flags);
+    rsConn_->SetVirtualScreenSurface(id, pSurface);
+    rsConn_->RemoveVirtualScreen(id);
     return true;
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
+bool DoSetPointerColorInversionConfig()
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
-    if (size < MAX_SIZE) {
-        return false;
-    }
- 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
     int64_t interval = GetData<int64_t>();
     int32_t rangeSize = GetData<int32_t>();
-    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
+    rsConn_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
+    return true;
+}
+
+bool DoSetPointerColorInversionEnabled()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool enable = GetData<bool>();
+    rsConn_->SetPointerColorInversionEnabled(enable);
     return true;
 }
 
@@ -552,217 +393,140 @@ private:
     PointerLuminanceChangeCallback cb_;
 };
 
-bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
+bool DoRegisterPointerLuminanceChangeCallback()
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
-    if (size < MAX_SIZE) {
-        return false;
-    }
- 
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     PointerLuminanceChangeCallback callback = [](int32_t brightness) {};
     sptr<CustomPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
-    rsConn->RegisterPointerLuminanceChangeCallback(cb);
+    rsConn_->RegisterPointerLuminanceChangeCallback(cb);
+    return true;
+}
+
+bool DoUnRegisterPointerLuminanceChangeCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->UnRegisterPointerLuminanceChangeCallback();
     return true;
 }
 #endif
 
-bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
+bool DoSetScreenActiveMode()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t modeId = GetData<uint32_t>();
-    rsConn->SetScreenActiveMode(id, modeId);
-    rsConn->GetScreenActiveMode(id);
+    rsConn_->SetScreenActiveMode(id, modeId);
+    rsConn_->GetScreenActiveMode(id);
     return true;
 }
 
-bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
+bool DoSetScreenActiveRect()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
+    ScreenId id = GetData<uint64_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+    rsConn_->SetScreenActiveRect(id, activeRect);
+    return true;
+}
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+bool DoSetRefreshRateMode()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
     int32_t refreshRateMode = GetData<int32_t>();
-    rsConn->SetRefreshRateMode(refreshRateMode);
+    rsConn_->SetRefreshRateMode(refreshRateMode);
     return true;
 }
 
-bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
+bool DoCreateVSyncConnection()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     uint64_t id = GetData<uint64_t>();
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    rsConn->CreateVSyncConnection("test", token, id);
+    rsConn_->CreateVSyncConnection("test", token, id);
     return true;
 }
 
-bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
+bool DoSetScreenRefreshRate()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
-    rsConn->SetScreenRefreshRate(id, sceneId, rate);
-    rsConn->GetScreenCurrentRefreshRate(id);
-    rsConn->GetScreenSupportedRefreshRates(id);
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
+    rsConn_->SetScreenRefreshRate(id, sceneId, rate);
+    rsConn_->GetScreenCurrentRefreshRate(id);
+    rsConn_->GetScreenSupportedRefreshRates(id);
+    rsConn_->GetCurrentRefreshRateMode();
+    rsConn_->GetShowRefreshRateEnabled();
+    rsConn_->SetShowRefreshRateEnabled(enabled, type);
+    rsConn_->GetRealtimeRefreshRate(id);
     return true;
 }
 
-bool DoGetBitmap(const uint8_t* data, size_t size)
+bool DoGetBitmap()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
-    rsConn->GetBitmap(id, bm);
+    bool success;
+    rsConn_->GetBitmap(id, bm, success);
     return true;
 }
 
-bool DoGetScreenCapability(const uint8_t* data, size_t size)
+bool DoGetScreenCapability()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    rsConn->GetScreenCapability(id);
+    rsConn_->GetScreenCapability(id);
     return true;
 }
 
-bool DoGetScreenData(const uint8_t* data, size_t size)
+bool DoGetScreenData()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    rsConn->GetScreenData(id);
+    rsConn_->GetScreenData(id);
     return true;
 }
 
-bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
+bool DoGetScreenHDRCapability()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-    
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     ScreenId id = GetData<uint64_t>();
     RSScreenHDRCapability screenHDRCapability;
-    rsConn->GetScreenHDRCapability(id, screenHDRCapability);
+    rsConn_->GetScreenHDRCapability(id, screenHDRCapability);
     return true;
 }
 
@@ -782,66 +546,48 @@ private:
     OcclusionChangeCallback cb_;
 };
 
-bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
+bool DoRegisterOcclusionChangeCallback()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData> data) {};
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    rsConn->RegisterOcclusionChangeCallback(cb);
+    rsConn_->RegisterOcclusionChangeCallback(cb);
     return true;
 }
 
-bool DoShowWatermark(const uint8_t* data, size_t size)
+bool DoShowWatermark()
 {
-    if (data == nullptr) {
+#ifdef SUPPORT_ACCESS_TOKEN
+    if (rsConn_ == nullptr) {
         return false;
     }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
+    const char *perms[1];
+    perms[0] = "ohos.permission.UPDATE_CONFIGURATION";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "DoShowWatermark",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     bool isShow = GetData<bool>();
     std::shared_ptr<Media::PixelMap> pixelMap1;
-    rsConn->ShowWatermark(pixelMap1, isShow);
+    rsConn_->ShowWatermark(pixelMap1, isShow);
+#endif
     return true;
 }
 
-bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
+bool DoTakeSurfaceCapture()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
     uint64_t nodeId = GetData<uint64_t>();
@@ -854,171 +600,828 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     uint8_t type = GetData<uint8_t>();
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
-    rsConn->TakeSurfaceCapture(nodeId, callback, captureConfig);
+    rsConn_->TakeSurfaceCapture(nodeId, callback, captureConfig);
     return true;
 }
 
-bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
+bool DoSetHwcNodeBounds()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
+    uint64_t nodeId = GetData<uint64_t>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
+    float positionZ = GetData<float>();
+    float positionW = GetData<float>();
+    rsConn_->SetHwcNodeBounds(nodeId, positionX, positionY, positionZ, positionW);
+    return true;
+}
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-    
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
+bool DoSetScreenChangeCallback()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
     sptr<RSIScreenChangeCallback> callback = nullptr;
-    rsConn->SetScreenChangeCallback(callback);
+    rsConn_->SetScreenChangeCallback(callback);
     return true;
 }
 
-bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
+bool DoSetFocusAppInfo()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
-
-    MessageParcel datas;
-    datas.WriteBuffer(data, size);
-    int32_t pid = datas.ReadInt32();
-    int32_t uid = datas.ReadInt32();
-    std::string bundleName = datas.ReadString();
-    std::string abilityName = datas.ReadString();
-    uint64_t focusNodeId = datas.ReadUint64();
-    rsConn->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    int32_t pid = GetData<int32_t>();
+    int32_t uid = GetData<int32_t>();
+    std::string bundleName = GetData<std::string>();
+    std::string abilityName = GetData<std::string>();
+    uint64_t focusNodeId = GetData<uint64_t>();
+    rsConn_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
     return true;
 }
 
-bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
+bool DoSetAncoForceDoDirect()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
-
-    MessageParcel datas;
-    datas.WriteBuffer(data, size);
-    bool direct = datas.ReadBool();
-    rsConn->SetAncoForceDoDirect(direct);
+    bool direct = GetData<bool>();
+    bool res;
+    rsConn_->SetAncoForceDoDirect(direct, res);
     return true;
 }
 
-bool DoGetActiveDirtyRegionInfo(const uint8_t* data, size_t size)
+bool DoGetActiveDirtyRegionInfo()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
-
-    rsConn->GetActiveDirtyRegionInfo();
+    rsConn_->GetActiveDirtyRegionInfo();
     return true;
 }
 
-bool DoGetGlobalDirtyRegionInfo(const uint8_t* data, size_t size)
+bool DoGetGlobalDirtyRegionInfo()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
-
-    rsConn->GetGlobalDirtyRegionInfo();
+    rsConn_->GetGlobalDirtyRegionInfo();
     return true;
 }
 
-bool DoGetLayerComposeInfo(const uint8_t* data, size_t size)
+bool DoGetLayerComposeInfo()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
-    if (rsConn == nullptr) {
-        return false;
-    }
-
-    rsConn->GetLayerComposeInfo();
+    rsConn_->GetLayerComposeInfo();
     return true;
 }
 
-bool DoGetHwcDisabledReasonInfo(const uint8_t* data, size_t size)
+bool DoGetHwcDisabledReasonInfo()
 {
-    if (data == nullptr) {
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    if (size < MAX_SIZE) {
+    rsConn_->GetHwcDisabledReasonInfo();
+    return true;
+}
+
+bool DoGetUniRenderEnabled()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool enable;
+    rsConn_->GetUniRenderEnabled(enable);
+    return true;
+}
+
+bool DoCreateNode1()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    RSDisplayNodeConfig displayNodeConfig;
+    displayNodeConfig.screenId = GetData<uint64_t>();
+    displayNodeConfig.isMirrored = GetData<bool>();
+    displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
+    displayNodeConfig.isSync = GetData<bool>();
+    uint64_t nodeId = GetData<uint64_t>();
+    bool success;
+    rsConn_->CreateNode(displayNodeConfig, nodeId, success);
+    return true;
+}
+
+bool DoCreateNode2()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    RSSurfaceRenderNodeConfig config;
+    config.id = GetData<uint64_t>();
+    config.name = GetData<std::string>();
+    bool success;
+    rsConn_->CreateNode(config, success);
+    return true;
+}
+
+bool DoGetDefaultScreenId()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->GetDefaultScreenId();
+    return true;
+}
+
+bool DoGetActiveScreenId()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->GetActiveScreenId();
+    return true;
+}
+
+bool DoGetAllScreenIds()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->GetAllScreenIds();
+    return true;
+}
+
+bool DoGetTotalAppMemSize()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    float cpuMemSize = GetData<float>();
+    float gpuMemSize = GetData<float>();
+    bool success;
+    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success);
+    return true;
+}
+
+bool DoSetVirtualScreenBlackList()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint64_t nodeId = GetData<uint64_t>();
+    std::vector<uint64_t> blackListVector;
+    blackListVector.push_back(nodeId);
+    rsConn_->SetVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoSetVirtualScreenSecurityExemptionList()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint64_t nodeId = GetData<uint64_t>();
+    std::vector<uint64_t> securityExemptionList;
+    securityExemptionList.push_back(nodeId);
+    rsConn_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    return true;
+}
+
+bool DoSetCastScreenEnableSkipWindow()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    bool enable = GetData<bool>();
+    rsConn_->SetCastScreenEnableSkipWindow(id, enable);
+    return true;
+}
+
+bool DoSyncFrameRateRange()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    FrameRateRange range;
+    int32_t animatorExpectedFrameRate = GetData<int32_t>();
+    rsConn_->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
+    return true;
+}
+
+bool DoUnregisterFrameRateLinker()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    rsConn_->UnregisterFrameRateLinker(id);
+    return true;
+}
+
+bool DoMarkPowerOffNeedProcessOneFrame()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->MarkPowerOffNeedProcessOneFrame();
+    return true;
+}
+
+bool DoDisablePowerOffRenderControl()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    rsConn_->DisablePowerOffRenderControl(id);
+    return true;
+}
+
+bool DoSetScreenCorrection()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t screenRotation = GetData<uint32_t>();
+    rsConn_->SetScreenCorrection(id, static_cast<ScreenRotation>(screenRotation));
+    return true;
+}
+
+bool DoSetVirtualMirrorScreenCanvasRotation()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    bool canvasRotation = GetData<bool>();
+    rsConn_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+    return true;
+}
+
+bool DoSetVirtualMirrorScreenScaleMode()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t scaleMode = GetData<uint32_t>();
+    rsConn_->SetVirtualMirrorScreenScaleMode(id, static_cast<ScreenScaleMode>(scaleMode));
+    return true;
+}
+
+bool DoSetGlobalDarkColorMode()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool isDark = GetData<bool>();
+    rsConn_->SetGlobalDarkColorMode(isDark);
+    return true;
+}
+
+bool DoSetPixelFormat()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t pixelFormat = GetData<uint32_t>();
+    rsConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat));
+    GraphicPixelFormat pixelFormat1;
+    rsConn_->GetPixelFormat(id, pixelFormat1);
+    return true;
+}
+
+bool DOGetScreenSupportedHDRFormats()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    int32_t modeIdx = GetData<int32_t>();
+    rsConn_->SetScreenHDRFormat(id, modeIdx);
+    ScreenHDRFormat hdrFormat;
+    rsConn_->GetScreenHDRFormat(id, hdrFormat);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    rsConn_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    return true;
+}
+
+bool DOGetScreenSupportedColorSpaces()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t colorSpace = GetData<uint32_t>();
+    rsConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace));
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    rsConn_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    return true;
+}
+
+bool DOSetVirtualScreenRefreshRate()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t maxRefreshRate = GetData<uint32_t>();
+    uint32_t actualRefreshRate = GetData<uint32_t>();
+    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    return true;
+}
+
+bool DOSetSystemAnimatedScenes()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint32_t systemAnimatedScenes = GetData<uint32_t>();
+    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes), false);
+    return true;
+}
+
+bool DOResizeVirtualScreen()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    rsConn_->ResizeVirtualScreen(id, width, height);
+    return true;
+}
+
+bool DOReportJankStats()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    rsConn_->ReportJankStats();
+    return true;
+}
+
+bool DOReportEventResponse()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetData<std::string>();
+    info.versionName = GetData<std::string>();
+    info.bundleName = GetData<std::string>();
+    info.processName = GetData<std::string>();
+    info.abilityName = GetData<std::string>();
+    info.pageUrl = GetData<std::string>();
+    info.sourceType = GetData<std::string>();
+    info.note = GetData<std::string>();
+    rsConn_->ReportEventJankFrame(info);
+    rsConn_->ReportEventResponse(info);
+    return true;
+}
+
+bool DOReportEventComplete()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetData<std::string>();
+    info.versionName = GetData<std::string>();
+    info.bundleName = GetData<std::string>();
+    info.processName = GetData<std::string>();
+    info.abilityName = GetData<std::string>();
+    info.pageUrl = GetData<std::string>();
+    info.sourceType = GetData<std::string>();
+    info.note = GetData<std::string>();
+    rsConn_->ReportEventJankFrame(info);
+    rsConn_->ReportEventComplete(info);
+    return true;
+}
+
+bool DOReportEventJankFrame()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetData<std::string>();
+    info.versionName = GetData<std::string>();
+    info.bundleName = GetData<std::string>();
+    info.processName = GetData<std::string>();
+    info.abilityName = GetData<std::string>();
+    info.pageUrl = GetData<std::string>();
+    info.sourceType = GetData<std::string>();
+    info.note = GetData<std::string>();
+    rsConn_->ReportEventJankFrame(info);
+    return true;
+}
+
+bool DOReportGameStateData()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    GameStateData info;
+    info.pid = GetData<int32_t>();
+    info.uid = GetData<int32_t>();
+    info.state = GetData<int32_t>();
+    info.renderTid = GetData<int32_t>();
+    info.bundleName = GetData<std::string>();
+    rsConn_->ReportGameStateData(info);
+    return true;
+}
+
+bool DOSetHidePrivacyContent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint32_t id = GetData<uint32_t>();
+    bool needHidePrivacyContent = GetData<bool>();
+    uint32_t resCode;
+    rsConn_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+    return true;
+}
+
+bool DONotifyLightFactorStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t lightFactorStatus = GetData<int32_t>();
+    rsConn_->NotifyLightFactorStatus(lightFactorStatus);
+    return true;
+}
+
+bool DONotifyPackageEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint32_t listSize = GetData<uint32_t>();
+    std::string package = GetData<std::string>();
+    std::vector<std::string> packageList;
+    packageList.push_back(package);
+    rsConn_->NotifyPackageEvent(listSize, packageList);
+    return true;
+}
+
+
+bool DONotifyAppStrategyConfigChangeEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string pkgName = GetData<std::string>();
+    uint32_t listSize = GetData<uint32_t>();
+    std::string configKey = GetData<std::string>();
+    std::string configValue = GetData<std::string>();
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(make_pair(configKey, configValue));
+    rsConn_->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    return true;
+}
+
+bool DONotifyRefreshRateEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    EventInfo eventInfo;
+    eventInfo.eventName = GetData<std::string>();
+    eventInfo.eventStatus = GetData<bool>();
+    eventInfo.minRefreshRate = GetData<uint32_t>();
+    eventInfo.maxRefreshRate = GetData<uint32_t>();
+    eventInfo.description = GetData<std::string>();
+    rsConn_->NotifyRefreshRateEvent(eventInfo);
+    return true;
+}
+
+bool DONotifyTouchEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t touchStatus = GetData<int32_t>();
+    int32_t touchCnt = GetData<int32_t>();
+    rsConn_->NotifyTouchEvent(touchStatus, touchCnt);
+    return true;
+}
+
+bool DONotifyDynamicModeEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool enableDynamicMode = GetData<bool>();
+    rsConn_->NotifyDynamicModeEvent(enableDynamicMode);
+    return true;
+}
+
+bool DONotifyHgmConfigEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string eventName = GetData<std::string>();
+    bool state = GetData<bool>();
+    rsConn_->NotifyHgmConfigEvent(eventName, state);
+    return true;
+}
+
+bool DOSetCacheEnabledForRotation()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool isEnabled = GetData<bool>();
+    rsConn_->SetCacheEnabledForRotation(isEnabled);
+    return true;
+}
+
+bool DOSetOnRemoteDiedCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    OnRemoteDiedCallback callback;
+    rsConn_->SetOnRemoteDiedCallback(callback);
+    return true;
+}
+
+bool DOSetVmaCacheStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool flag = GetData<bool>();
+    rsConn_->SetVmaCacheStatus(flag);
+    return true;
+}
+
+#ifdef TP_FEATURE_ENABLE
+bool DOSetTpFeatureConfig()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t feature = GetData<int32_t>();
+    char config = GetData<char>();
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
+    rsConn_->SetTpFeatureConfig(feature, &config, tpFeatureConfigType);
+    return true;
+}
+#endif
+
+bool DOSetVirtualScreenUsingStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool isVirtualScreenUsingStatus = GetData<bool>();
+    rsConn_->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+    return true;
+}
+
+bool DOSetCurtainScreenUsingStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool isCurtainScreenOn = GetData<bool>();
+    rsConn_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    return true;
+}
+
+bool DOSetVirtualScreenStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    uint64_t screenStatus = GetData<uint64_t>();
+    rsConn_->SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus));
+    return true;
+}
+
+bool DOSetLayerTop()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    std::string nodeIdStr = GetData<std::string>();
+    bool isTop = GetData<bool>();
+    rsConn_->SetLayerTop(nodeIdStr, isTop);
+    return true;
+}
+
+bool DOSetFreeMultiWindowStatus()
+{
+    if (rsConn_ == nullptr) {
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    bool enable = GetData<bool>();
+    rsConn_->SetFreeMultiWindowStatus(enable);
+    return true;
+}
 
-    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+bool DoNotifySoftVsyncEvent()
+{
+    auto rsConn  = RSRenderServiceConnectHub::GetRenderService();
     if (rsConn == nullptr) {
         return false;
     }
-
-    rsConn->GetHwcDisabledReasonInfo();
+    uint32_t pid = GetData<uint32_t>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    rsConn->NotifySoftVsyncEvent(pid, rateDiscount);
     return true;
+}
+
+bool DoCreatePixelMapFromSurface()
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    if (pSurface == nullptr) {
+        return false;
+    }
+
+    auto srcRect = Rect {
+        .x = GetData<int32_t>(),
+        .y = GetData<int32_t>(),
+        .w = GetData<int32_t>(),
+        .h = GetData<int32_t>(),
+    };
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
+    return true;
+}
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+bool DoSetOverlayDisplayMode()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    int32_t mode = GetData<int32_t>();
+    rsConn_->SetOverlayDisplayMode(mode);
+    return true;
+}
+#endif
+
+void DoFuzzerTest1()
+{
+    DoRegisterApplicationAgent();
+    DoCommitTransaction();
+    DoExecuteSynchronousTask();
+    DoGetMemoryGraphic();
+    DoCreateNodeAndSurface();
+    DoGetScreenBacklight();
+    DoGetScreenType();
+    DoRegisterBufferAvailableListener();
+    DoSetScreenSkipFrameInterval();
+    DoSetPhysicalScreenResolution();
+    DoSetVirtualScreenResolution();
+    DoGetScreenSupportedColorGamuts();
+    DoGetScreenSupportedModes();
+    DoGetScreenColorGamut();
+    DoSetScreenPowerStatus();
+    DoSetScreenGamutMap();
+    DoSetAppWindowNum();
+    DoCreateVirtualScreen();
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    DoSetPointerColorInversionConfig();
+    DoSetPointerColorInversionEnabled();
+    DoRegisterPointerLuminanceChangeCallback();
+    DoUnRegisterPointerLuminanceChangeCallback();
+#endif
+    DoSetScreenActiveMode();
+    DoSetScreenActiveRect();
+    DoSetRefreshRateMode();
+    DoCreateVSyncConnection();
+    DoSetScreenRefreshRate();
+    DoGetBitmap();
+    DoGetScreenCapability();
+    DoGetScreenData();
+    DoGetScreenHDRCapability();
+    DoRegisterOcclusionChangeCallback();
+#ifdef SUPPORT_ACCESS_TOKEN
+    DoShowWatermark();
+#endif
+    DoTakeSurfaceCapture();
+    DoSetHwcNodeBounds();
+    DoSetScreenChangeCallback();
+    DoSetFocusAppInfo();
+    DoSetAncoForceDoDirect();
+    DoGetActiveDirtyRegionInfo();
+    DoGetGlobalDirtyRegionInfo();
+    DoGetLayerComposeInfo();
+    DoGetHwcDisabledReasonInfo();
+}
+
+void DoFuzzerTest2()
+{
+    DoGetUniRenderEnabled();
+    DoCreateNode1();
+    DoCreateNode2();
+    DoGetDefaultScreenId();
+    DoGetActiveScreenId();
+    DoGetAllScreenIds();
+    DoGetMemoryGraphics();
+    DoGetTotalAppMemSize();
+    DoSetVirtualScreenBlackList();
+    DoSetVirtualScreenSecurityExemptionList();
+    DoSetCastScreenEnableSkipWindow();
+    DoSyncFrameRateRange();
+    DoUnregisterFrameRateLinker();
+    DoMarkPowerOffNeedProcessOneFrame();
+    DoDisablePowerOffRenderControl();
+    DoSetScreenCorrection();
+    DoSetVirtualMirrorScreenCanvasRotation();
+    DoSetVirtualMirrorScreenScaleMode();
+    DoSetGlobalDarkColorMode();
+    DoSetPixelFormat();
+    DOGetScreenSupportedHDRFormats();
+    DOGetScreenSupportedColorSpaces();
+    DOSetVirtualScreenRefreshRate();
+    DOSetSystemAnimatedScenes();
+    DOResizeVirtualScreen();
+    DOReportJankStats();
+    DOReportEventResponse();
+    DOReportEventComplete();
+    DOReportEventJankFrame();
+    DOReportGameStateData();
+    DOSetHidePrivacyContent();
+    DONotifyLightFactorStatus();
+    DONotifyPackageEvent();
+    DONotifyAppStrategyConfigChangeEvent();
+    DONotifyRefreshRateEvent();
+    DONotifyTouchEvent();
+    DONotifyDynamicModeEvent();
+    DOSetCacheEnabledForRotation();
+    DOSetOnRemoteDiedCallback();
+    DOSetVmaCacheStatus();
+#ifdef TP_FEATURE_ENABLE
+    DOSetTpFeatureConfig();
+#endif
+    DOSetVirtualScreenUsingStatus();
+    DOSetCurtainScreenUsingStatus();
+    DOSetVirtualScreenStatus();
+    DOSetLayerTop();
+    DOSetFreeMultiWindowStatus();
+}
+
+void DoFuzzerTest3()
+{
+    DoNotifySoftVsyncEvent();
+    DONotifyHgmConfigEvent();
+    DoCreatePixelMapFromSurface();
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    DoSetOverlayDisplayMode();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -1026,45 +1429,12 @@ bool DoGetHwcDisabledReasonInfo(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return 0;
+    }
     /* Run your code on data */
-    OHOS::Rosen::DoRegisterApplicationAgent(data, size);
-    OHOS::Rosen::DoCommitTransaction(data, size);
-    OHOS::Rosen::DoExecuteSynchronousTask(data, size);
-    OHOS::Rosen::DoGetMemoryGraphic(data, size);
-    OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoGetScreenBacklight(data, size);
-    OHOS::Rosen::DoGetScreenType(data, size);
-    OHOS::Rosen::DoRegisterBufferAvailableListener(data, size);
-    OHOS::Rosen::DoSetScreenSkipFrameInterval(data, size);
-    OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
-    OHOS::Rosen::DoGetScreenSupportedColorGamuts(data, size);
-    OHOS::Rosen::DoGetScreenSupportedModes(data, size);
-    OHOS::Rosen::DoGetScreenColorGamut(data, size);
-    OHOS::Rosen::DoSetScreenPowerStatus(data, size);
-    OHOS::Rosen::DoSetScreenGamutMap(data, size);
-    OHOS::Rosen::DoSetAppWindowNum(data, size);
-    OHOS::Rosen::DoCreateVirtualScreen(data, size);
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
-    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
-#endif
-    OHOS::Rosen::DoSetScreenActiveMode(data, size);
-    OHOS::Rosen::DoSetRefreshRateMode(data, size);
-    OHOS::Rosen::DoCreateVSyncConnection(data, size);
-    OHOS::Rosen::DoSetScreenRefreshRate(data, size);
-    OHOS::Rosen::DoGetBitmap(data, size);
-    OHOS::Rosen::DoGetScreenCapability(data, size);
-    OHOS::Rosen::DoGetScreenData(data, size);
-    OHOS::Rosen::DoGetScreenHDRCapability(data, size);
-    OHOS::Rosen::DoRegisterOcclusionChangeCallback(data, size);
-    OHOS::Rosen::DoShowWatermark(data, size);
-    OHOS::Rosen::DoTakeSurfaceCapture(data, size);
-    OHOS::Rosen::DoSetScreenChangeCallback(data, size);
-    OHOS::Rosen::DoSetFocusAppInfo(data, size);
-    OHOS::Rosen::DoSetAncoForceDoDirect(data, size);
-    OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
-    OHOS::Rosen::DoGetGlobalDirtyRegionInfo(data, size);
-    OHOS::Rosen::DoGetLayerComposeInfo(data, size);
-    OHOS::Rosen::DoGetHwcDisabledReasonInfo(data, size);
+    OHOS::Rosen::DoFuzzerTest1();
+    OHOS::Rosen::DoFuzzerTest2();
+    OHOS::Rosen::DoFuzzerTest3();
     return 0;
 }

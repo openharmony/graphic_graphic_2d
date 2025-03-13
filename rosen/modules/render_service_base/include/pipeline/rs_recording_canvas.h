@@ -43,6 +43,10 @@ public:
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     void DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc);
+    void DrawPixelMapNine(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::RectI& center,
+        const Drawing::Rect& dst, Drawing::FilterMode filterMode);
+    void DrawPixelMapLattice(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Lattice& lattice,
+        const Drawing::Rect& dst, Drawing::FilterMode filterMode);
 #ifdef ROSEN_OHOS
     void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
 #endif

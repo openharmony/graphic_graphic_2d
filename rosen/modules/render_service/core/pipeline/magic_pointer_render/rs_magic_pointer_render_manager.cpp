@@ -14,12 +14,12 @@
  */
 
 #include "common/rs_background_thread.h"
-#include "src/gpu/gl/GrGLDefines.h"
-#include "rs_trace.h"
-#include "pipeline/rs_uni_render_processor.h"
-#include "pipeline/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_processor.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
 #include "rs_magic_pointer_render_manager.h"
+#include "rs_trace.h"
+#include "src/gpu/gl/GrGLDefines.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +28,10 @@ static const std::string DISPLAY = "DisplayNode";
 static const std::string POINTER = "pointer";
 static const float RGB = 255.0f;
 static const float HALF = 0.5f;
+static const float MIN_BUFFER_NUMBER = 0.0f;
+static const float MAX_BUFFER_NUMBER = 1.0f;
+static const int64_t MAX_INTERVAL_TIME = 1000;
+static const int32_t MAX_RANGE_SIZE = 100;
 static const int32_t CALCULATE_MIDDLE = 2;
 } // namespace
 static std::unique_ptr<RSMagicPointerRenderManager> g_pointerRenderManagerInstance =
@@ -61,36 +65,48 @@ int64_t RSMagicPointerRenderManager::GetCurrentTime()
 void RSMagicPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
 {
-    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
-    darkBuffer_ = darkBuffer;
-    brightBuffer_ = brightBuffer;
-    colorSamplingInterval_ = interval;
-    rangeSize_ = rangeSize;
+    std::lock_guard<std::mutex> locker(mtx_);
+    if (darkBuffer > MIN_BUFFER_NUMBER && darkBuffer < MAX_BUFFER_NUMBER) {
+        darkBuffer_ = darkBuffer;
+    }
+    if (brightBuffer > MIN_BUFFER_NUMBER && brightBuffer < MAX_BUFFER_NUMBER) {
+        brightBuffer_ = brightBuffer;
+    }
+    if (interval > 0 && interval < MAX_INTERVAL_TIME) {
+        colorSamplingInterval_ = interval;
+    }
+    if (rangeSize > 0 && rangeSize < MAX_RANGE_SIZE) {
+        rangeSize_ = rangeSize;
+    }
 }
- 
+
 void RSMagicPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
 {
-    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    std::lock_guard<std::mutex> locker(mtx_);
     isEnableCursorInversion_ = enable;
 }
- 
+
+bool RSMagicPointerRenderManager::GetPointerColorInversionEnabled()
+{
+    std::lock_guard<std::mutex> locker(mtx_);
+    return isEnableCursorInversion_;
+}
+
 void RSMagicPointerRenderManager::RegisterPointerLuminanceChangeCallback(pid_t pid,
     sptr<RSIPointerLuminanceChangeCallback> callback)
 {
-    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    std::lock_guard<std::mutex> locker(mtx_);
     colorChangeListeners_[pid] = callback;
 }
- 
+
 void RSMagicPointerRenderManager::UnRegisterPointerLuminanceChangeCallback(pid_t pid)
 {
-    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
+    std::lock_guard<std::mutex> locker(mtx_);
     colorChangeListeners_.erase(pid);
 }
- 
+
 void RSMagicPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brightness)
 {
-    std::lock_guard<std::mutex> lock(cursorInvertMutex_);
-    lastColorPickerTime_ = RSMagicPointerRenderManager::GetCurrentTime();
     for (auto it = colorChangeListeners_.begin(); it != colorChangeListeners_.end(); it++) {
         if (it->second) {
             it->second->OnPointerLuminanceChanged(brightness);
@@ -100,7 +116,8 @@ void RSMagicPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t 
 
 void RSMagicPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
 {
-    RS_LOGD("RSMagicPointerRenderManager::CallPointerLuminanceChange luminance_:%{public}d.", luminance_);
+    RS_LOGD("RSMagicPointerRenderManager::CallPointerLuminanceChange brightness:%{public}d.", brightness);
+    lastColorPickerTime_ = RSMagicPointerRenderManager::GetCurrentTime();
     if (brightnessMode_ == CursorBrightness::NONE) {
         brightnessMode_ = brightness < static_cast<int32_t>(RGB * HALF) ?
             CursorBrightness::DARK : CursorBrightness::BRIGHT;
@@ -139,7 +156,10 @@ bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
     }
     const auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
 
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
+        if (drawable == nullptr) {
+            continue;
+        }
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         if (surfaceDrawable != nullptr && surfaceDrawable->IsHardwareEnabledTopSurface()) {
             exists = true;
@@ -180,16 +200,22 @@ void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor
 
 bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
+    if (gpuContext == nullptr) {
+        return false;
+    }
     const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceDrawable == nullptr || !surfaceDrawable->IsHardwareEnabledTopSurface() ||
-            !surfaceDrawable->GetRenderParams()) {
+        if (surfaceDrawable == nullptr || !surfaceDrawable->IsHardwareEnabledTopSurface()) {
+            continue;
+        }
+        auto& surfaceParams = surfaceDrawable->GetRenderParams();
+        if (!surfaceParams) {
             continue;
         }
         image_ = std::make_shared<Drawing::Image>();
-        RectI pointerRect = surfaceDrawable->GetRenderParams()->GetAbsDrawRect();
+        RectI pointerRect = surfaceParams->GetAbsDrawRect();
         CalculateColorRange(pointerRect);
         Drawing::RectI drawingPointerRect = Drawing::RectI(pointerRect.GetLeft(), pointerRect.GetTop(),
             pointerRect.GetRight(), pointerRect.GetBottom());
@@ -205,6 +231,7 @@ bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Draw
 
 bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> processor)
 {
+#ifdef RS_ENABLE_GPU
     auto uniRenderProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
     if (uniRenderProcessor == nullptr) {
         ROSEN_LOGE("RSMagicPointerRenderManager::CalculateTargetLayer uniRenderProcessor is null!");
@@ -241,13 +268,13 @@ bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcess
     CalculateColorRange(pRect);
     // calculate the max intersection layer and rect
     GetRectAndTargetLayer(layers, pRect, displayNodeIndex);
-
+#endif
     return true;
 }
 
 void RSMagicPointerRenderManager::CalculateColorRange(RectI& pRect)
 {
-    if (rangeSize_ > 0) {
+    if (rangeSize_ > 0 && rangeSize_ < pRect.GetWidth() && rangeSize_ < pRect.GetHeight()) {
         int left = pRect.GetLeft() + (pRect.GetWidth() - rangeSize_) / CALCULATE_MIDDLE;
         int top = pRect.GetTop() + (pRect.GetHeight() - rangeSize_) / CALCULATE_MIDDLE;
         pRect.SetAll(left, top, rangeSize_, rangeSize_);
@@ -313,7 +340,7 @@ void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& 
     auto context = RSBackgroundThread::Instance().GetShareGPUContext().get();
     if (backendTexturePre_.IsValid()) {
         image = std::make_shared<Drawing::Image>();
-        SharedTextureContext* sharedContext = new SharedTextureContext(image_);
+        SharedTextureContext* sharedContext = new SharedTextureContext(imagePre_);
         bool ret = image->BuildFromTexture(*context, backendTexturePre_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat_, nullptr,
             SKResourceManager::DeleteSharedTextureContext, sharedContext);
@@ -337,22 +364,23 @@ void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& 
 
 void RSMagicPointerRenderManager::RunColorPickerTask()
 {
-    if (!image_ && (target_ == nullptr || rect_.IsEmpty())) {
+    if (!imagePre_ && (target_ == nullptr || rect_.IsEmpty())) {
         ROSEN_LOGE("RSMagicPointerRenderManager::RunColorPickerTask failed for null target or rect is empty!");
         return;
     }
 
     BufferDrawParam param;
-    if (!image_) {
+    if (!imagePre_) {
         param = RSUniRenderUtil::CreateLayerBufferDrawParam(target_, forceCPU_);
     }
     RSBackgroundThread::Instance().PostTask([this, param] () mutable {
         taskDoing_ = true;
         this->RunColorPickerTaskBackground(param);
-        taskDoing_ = false;
         backendTexturePre_ = backendTexture_;
         backendTexture_ = Drawing::BackendTexture(false);
+        imagePre_ = image_;
         image_ = nullptr;
+        taskDoing_ = false;
     });
 }
 

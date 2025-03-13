@@ -51,22 +51,22 @@ public:
 
 private:
     bool needSync_ = false;
-    Drawing::Path path_;
-    Drawing::Path stagingPath_;
-    Color color_;
-    Color stagingColor_;
+    bool isFilled_ = false;
+    bool stagingIsFilled_ = false;
     float offsetX_ = 0.0f;
     float stagingOffsetX_ = 0.0f;
     float offsetY_ = 0.0f;
     float stagingOffsetY_ = 0.0f;
     float elevation_ = 0.0f;
     float stagingElevation_ = 0.0f;
-    bool isFilled_ = false;
-    bool stagingIsFilled_ = false;
     float radius_ = 0.0f;
     float stagingRadius_ = 0.0f;
     int colorStrategy_ = 0;
     int stagingColorStrategy_ = 0;
+    Drawing::Path path_;
+    Drawing::Path stagingPath_;
+    Color color_;
+    Color stagingColor_;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
@@ -141,8 +141,13 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
     void RemovePixelStretch();
     bool FuzePixelStretch(const RSRenderNode& node);
+private:
+    static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
+    template <typename T>
+    static bool GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {
@@ -158,6 +163,7 @@ public:
 class RSUseEffectDrawable : public RSDrawable {
 public:
     RSUseEffectDrawable() = default;
+    RSUseEffectDrawable(UseEffectType useEffectType) : useEffectType_(useEffectType) {}
     RSUseEffectDrawable(DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable)
         : effectRenderNodeDrawableWeakRef_(drawable)
     {}
@@ -165,10 +171,13 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
+    bool needSync_ = false;
+    UseEffectType stagingUseEffectType_ = UseEffectType::DEFAULT;
+    UseEffectType useEffectType_ = UseEffectType::DEFAULT;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr effectRenderNodeDrawableWeakRef_;
 };
 

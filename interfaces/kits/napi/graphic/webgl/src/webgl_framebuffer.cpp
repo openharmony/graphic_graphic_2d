@@ -77,8 +77,7 @@ WebGLFramebuffer::~WebGLFramebuffer()
     auto it = attachments_.begin();
     while (it != attachments_.end()) {
         delete it->second;
-        attachments_.erase(it);
-        it = attachments_.begin();
+        it = attachments_.erase(it);
     }
 }
 

@@ -21,12 +21,12 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_hardware_thread.h"
-#include "pipeline/rs_render_engine.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_render_thread.h"
-#include "pipeline/rs_uni_render_util.h"
-#include "pipeline/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
 
 using namespace testing;

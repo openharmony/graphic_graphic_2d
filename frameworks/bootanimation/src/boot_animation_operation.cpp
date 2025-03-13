@@ -23,6 +23,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction.h"
 #include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
 
 using namespace OHOS;
 static const int DELAY_TIME_MS = 1000;
@@ -89,8 +90,10 @@ bool BootAnimationOperation::InitRsDisplayNode()
 {
     LOGI("InitRsDisplayNode start");
     OHOS::Rosen::RSDisplayNodeConfig config = {currentScreenId_, false, 0};
-
-    rsDisplayNode_ = OHOS::Rosen::RSDisplayNode::Create(config);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
+    rsUIDirector_->Init(false, false);
+    auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    rsDisplayNode_ = OHOS::Rosen::RSDisplayNode::Create(config, rsUIContext);
     if (rsDisplayNode_ == nullptr) {
         LOGE("init display node failed");
         return false;
@@ -99,13 +102,21 @@ bool BootAnimationOperation::InitRsDisplayNode()
     rsDisplayNode_->SetFrame(0, 0, windowWidth_, windowHeight_);
     rsDisplayNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     rsDisplayNode_->SetBootAnimation(true);
-    // flush transaction
-    auto transactionProxy = OHOS::Rosen::RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        LOGE("transactionProxy is nullptr");
-        return false;
+    if (rsUIContext != nullptr) {
+        auto transaction = rsUIContext->GetRSTransaction();
+        if (transaction == nullptr) {
+            LOGE("transaction is nullptr");
+            return false;
+        }
+        transaction->FlushImplicitTransaction();
+    } else {
+        auto transactionProxy = OHOS::Rosen::RSTransactionProxy::GetInstance();
+        if (transactionProxy == nullptr) {
+            LOGE("transactionProxy is nullptr");
+            return false;
+        }
+        transactionProxy->FlushImplicitTransaction();
     }
-    transactionProxy->FlushImplicitTransaction();
     return true;
 }
 
@@ -117,7 +128,8 @@ bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
         currentScreenId_ == 0 ? "BootAnimationNode" : "BootAnimationNodeExtra";
     rsSurfaceNodeConfig.isSync = false;
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
+    auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("create rsSurfaceNode failed");
         return false;
@@ -166,7 +178,10 @@ void BootAnimationOperation::PlayPicture(const std::string& path)
         LOGI("set boot animation started true");
     }
 
-    InitRsSurface();
+    if (!InitRsSurface()) {
+        runner_->Stop();
+        return;
+    }
     PlayerParams params;
     params.screenId = currentScreenId_;
     params.rsSurface = rsSurface_;

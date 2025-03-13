@@ -24,10 +24,14 @@
 #include "skia_trace_memory_dump.h"
 #include "utils/system_properties.h"
 #include "skia_task_executor.h"
+#ifdef ROSEN_OHOS
+#include "parameters.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static std::mutex g_registarMutex;
 SkiaPersistentCache::SkiaPersistentCache(GPUContextOptions::PersistentCache* cache) : cache_(cache) {}
 
 sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
@@ -91,6 +95,10 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef ROSEN_OHOS
+    grOptions.fRuntimeProgramCacheSize =
+        std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
+#endif
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
     return grContext_ != nullptr ? true : false;
 }
@@ -201,6 +209,11 @@ void SkiaGPUContext::FreeGpuResources()
     grContext_->freeGpuResources();
 }
 
+void SkiaGPUContext::ReclaimResources()
+{
+    //Skia Not Implement ReclaimResources.
+}
+
 void SkiaGPUContext::DumpGpuStats(std::string& out)
 {
     if (!grContext_) {
@@ -211,6 +224,24 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     grContext_->priv().dumpGpuStats(&stat);
     grContext_->dumpVmaStats(&stat);
     out = stat.c_str();
+}
+
+void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllResource, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllResource(dump);
+}
+
+void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllCoreTrace, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllCoreTrace(dump);
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
@@ -248,6 +279,15 @@ void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, cons
         return;
     }
     grContext_->purgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
+void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
+        return;
+    }
+    grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
 }
 
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
@@ -402,13 +442,13 @@ void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     grContext_->setGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
     if (!grContext_) {
         LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
         return;
     }
-    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled);
+    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
@@ -434,6 +474,7 @@ std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& ta
 
 void SkiaGPUContext::RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
 {
+    std::unique_lock lock(g_registarMutex);
     if (grContext_ != nullptr) {
         contextPostMap_[uintptr_t(grContext_.get())] = func;
     }
@@ -441,6 +482,7 @@ void SkiaGPUContext::RegisterPostFunc(const std::function<void(const std::functi
 
 std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFunc(sk_sp<GrDirectContext> grContext)
 {
+    std::unique_lock lock(g_registarMutex);
     if (grContext != nullptr && contextPostMap_.count(uintptr_t(grContext.get())) > 0) {
         return contextPostMap_[uintptr_t(grContext.get())];
     }

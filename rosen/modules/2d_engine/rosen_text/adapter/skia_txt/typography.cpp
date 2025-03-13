@@ -18,13 +18,17 @@
 #include <mutex>
 #include <numeric>
 
+#include "convert.h"
+#include "impl/paragraph_impl.h"
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
-#include "impl/paragraph_impl.h"
-#include "utils/text_trace.h"
-
-#include "convert.h"
 #include "text_line_base.h"
+#include "text_style.h"
+#include "txt/paragraph_style.h"
+#include "txt/text_style.h"
+#include "typography_style.h"
+#include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -117,6 +121,36 @@ float Typography::DetectIndents(size_t index)
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->DetectIndents(index);
+}
+
+void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, const std::vector<TextStyle> &textStyles)
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+
+    if (!paragraph_->IsLalyoutDone()) {
+        TEXT_LOGI_LIMIT3_MIN("Need to layout first");
+        return;
+    }
+
+    if (!typograhyStyle.relayoutChangeBitmap.any()) {
+        if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {
+            TEXT_LOGI("No relayout required");
+            return;
+        }
+        paragraph_->SetLayoutState(skt::InternalState::kShaped);
+        lineMetrics_.reset();
+        lineMetricsStyles_.clear();
+
+        paragraph_->Layout(width);
+    } else {
+        SPText::ParagraphStyle paragraphStyle = Convert(typograhyStyle);
+        std::vector<SPText::TextStyle> spTextStyles;
+        for (const TextStyle& style : textStyles) {
+            spTextStyles.push_back(Convert(style));
+        }
+
+        paragraph_->Relayout(width, paragraphStyle, spTextStyles);
+    }
 }
 
 void Typography::Layout(double width)
@@ -461,6 +495,18 @@ void Typography::UpdateColor(size_t from, size_t to, const Drawing::Color& color
         return;
     }
     paragraph_->UpdateColor(from, to, color);
+}
+
+Drawing::RectI Typography::GeneratePaintRegion(double x, double y) const
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    return paragraph_->GeneratePaintRegion(x, y);
 }
 } // namespace AdapterTxt
 } // namespace Rosen

@@ -291,15 +291,24 @@ template<typename T>
 Matrix3<T>& Matrix3<T>::operator=(const Matrix3<T>& other)
 {
     const T* oMat3Data = other.data_;
-    data_[0] = oMat3Data[0];
-    data_[1] = oMat3Data[1];
-    data_[2] = oMat3Data[2];
-    data_[3] = oMat3Data[3];
-    data_[4] = oMat3Data[4];
-    data_[5] = oMat3Data[5];
-    data_[6] = oMat3Data[6];
-    data_[7] = oMat3Data[7];
-    data_[8] = oMat3Data[8];
+    T data0 = oMat3Data[0];
+    T data1 = oMat3Data[1];
+    T data2 = oMat3Data[2];
+    T data3 = oMat3Data[3];
+    T data4 = oMat3Data[4];
+    T data5 = oMat3Data[5];
+    T data6 = oMat3Data[6];
+    T data7 = oMat3Data[7];
+    T data8 = oMat3Data[8];
+    data_[0] = data0;
+    data_[1] = data1;
+    data_[2] = data2;
+    data_[3] = data3;
+    data_[4] = data4;
+    data_[5] = data5;
+    data_[6] = data6;
+    data_[7] = data7;
+    data_[8] = data8;
 
     return *this;
 }

@@ -67,17 +67,42 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
 {
     return false;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
+{
+    return {};
+}
+
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
+{
+    return {};
+}
+
+DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};
 }
@@ -127,17 +152,7 @@ bool RSSystemProperties::GetVkQueuePriorityEnable()
     return false;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -182,15 +197,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -226,6 +232,11 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSLRScaleEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};
@@ -244,6 +255,11 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
@@ -321,7 +337,22 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
+}
+
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
 {
     return false;
 }
@@ -443,10 +474,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -497,9 +524,19 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return SubTreePrepareCheckType::ENABLED;
 }
 
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
 {
     return false;
+}
+
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetRenderParallelEnabled()
@@ -510,6 +547,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 bool RSSystemProperties::IsForceClient()
 {
     return false;
+}
+
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetTextBlobAsPixelMap()
@@ -553,6 +595,31 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }

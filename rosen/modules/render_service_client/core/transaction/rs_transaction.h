@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 
+#include <event_handler.h>
 #include <message_parcel.h>
 #include <mutex>
 #include <parcel.h>
@@ -23,6 +24,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "transaction/rs_transaction_handler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,9 +41,9 @@ public:
     static RSTransaction* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
 
-    static void FlushImplicitTransaction();
-    void OpenSyncTransaction();
-    void CloseSyncTransaction();
+    static void FlushImplicitTransaction();   // planing
+    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    void CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
 
     void Begin();
     void Commit();
@@ -74,14 +76,20 @@ private:
     void ResetSyncTransactionInfo();
     bool UnmarshallingParam(Parcel& parcel);
 
+    void SetTransactionHandler(std::shared_ptr<RSTransactionHandler> rsTransactionHandler)
+    {
+        rsTransactionHandler_ = rsTransactionHandler;
+    }
     uint64_t syncId_ { 0 };
     std::mutex mutex_;
     mutable int32_t transactionCount_ { 0 };
     int32_t duration_ = 0;
     int32_t parentPid_ { -1 };
     bool isOpenSyncTransaction_ = false;
+    std::shared_ptr<RSTransactionHandler> rsTransactionHandler_ = nullptr;
 
     friend class RSSyncTransactionController;
+    friend class RSSyncTransactionHandler;
 };
 
 } // namespace Rosen

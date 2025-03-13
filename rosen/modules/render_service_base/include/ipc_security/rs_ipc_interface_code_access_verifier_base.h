@@ -26,7 +26,6 @@
 #include "accesstoken_kit.h"
 #include "access_token.h"
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
 #endif
 
 #include "common/rs_macros.h"
@@ -47,6 +46,8 @@ public:
     static void GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling);
 
     static bool IsSystemCalling(const std::string& callingCode);
+
+    static bool IsStartByHdcd(bool isLocalSysCalling = false);
 protected:
     /* this class cannot be instantiated */
     RSInterfaceCodeAccessVerifierBase() = default;

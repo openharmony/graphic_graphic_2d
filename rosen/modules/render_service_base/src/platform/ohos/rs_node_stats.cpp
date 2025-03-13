@@ -23,8 +23,10 @@
 #include "hisysevent.h"
 #include "rs_trace.h"
 
+#include "common/rs_background_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/common/rs_hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -67,8 +69,11 @@ void RSNodeStats::ClearNodeStats()
 void RSNodeStats::ReportRSNodeLimitExceeded()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    const auto [rsNodeLimit, rsNodeReportLimit] = GetCurrentRSNodeLimit();
-    if (rsNodeCountTotal_ < rsNodeReportLimit) {
+    uint32_t rsNodeCountTotal = rsNodeCountTotal_;
+    uint32_t rsNodeLimit = 0;
+    uint32_t rsNodeReportLimit = 0;
+    GetCurrentRSNodeLimit(rsNodeLimit, rsNodeReportLimit);
+    if (rsNodeCountTotal < rsNodeReportLimit) {
         return;
     }
     int64_t curSysTime = GetCurrentSystimeMs();
@@ -82,23 +87,26 @@ void RSNodeStats::ReportRSNodeLimitExceeded()
     const auto nodeInfoTop1 = GetNodeStatsToReportByIndex(TOP1_INDEX);
     const auto nodeInfoTop2 = GetNodeStatsToReportByIndex(TOP2_INDEX);
     const auto nodeInfoTop3 = GetNodeStatsToReportByIndex(TOP3_INDEX);
+    uint32_t appWindowTotal = static_cast<uint32_t>(rsNodeStatsVec_.size());
     RS_TRACE_NAME_FMT("RSNodeStats::ReportRSNodeLimitExceeded "
                       "nodeCount=%u, top1=%u [%s], top2=%u [%s], top3=%u [%s], timestamp=%" PRId64,
-                      rsNodeCountTotal_, nodeInfoTop1.second, nodeInfoTop1.first.c_str(), nodeInfoTop2.second,
+                      rsNodeCountTotal, nodeInfoTop1.second, nodeInfoTop1.first.c_str(), nodeInfoTop2.second,
                       nodeInfoTop2.first.c_str(), nodeInfoTop3.second, nodeInfoTop3.first.c_str(), curSysTime);
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC,
-                    RS_NODE_LIMIT_EXCEEDED_EVENT_NAME,
-                    OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
-                    "RS_NODE_LIMIT", rsNodeLimit,
-                    "RS_ACTUAL_NODE", rsNodeCountTotal_,
-                    "TIMESTAMP", static_cast<uint64_t>(curSysTime),
-                    "RS_APP_WINDOW_TOTAL", static_cast<uint32_t>(rsNodeStatsVec_.size()),
-                    "RS_TOP1_APP_NAME", nodeInfoTop1.first,
-                    "RS_TOP1_APP_NODE", nodeInfoTop1.second,
-                    "RS_TOP2_APP_NAME", nodeInfoTop2.first,
-                    "RS_TOP2_APP_NODE", nodeInfoTop2.second,
-                    "RS_TOP3_APP_NAME", nodeInfoTop3.first,
-                    "RS_TOP3_APP_NODE", nodeInfoTop3.second);
+    RSBackgroundThread::Instance().PostTask([
+        rsNodeLimit, rsNodeCountTotal, curSysTime, appWindowTotal, nodeInfoTop1, nodeInfoTop2, nodeInfoTop3]() {
+        RS_TRACE_NAME("RSNodeStats::ReportRSNodeLimitExceeded in RSBackgroundThread");
+        RSHiSysEvent::EventWrite(RSEventName::RS_NODE_LIMIT_EXCEEDED, RSEventType::RS_BEHAVIOR,
+            "RS_NODE_LIMIT", rsNodeLimit,
+            "RS_ACTUAL_NODE", rsNodeCountTotal,
+            "TIMESTAMP", static_cast<uint64_t>(curSysTime),
+            "RS_APP_WINDOW_TOTAL", appWindowTotal,
+            "RS_TOP1_APP_NAME", nodeInfoTop1.first,
+            "RS_TOP1_APP_NODE", nodeInfoTop1.second,
+            "RS_TOP2_APP_NAME", nodeInfoTop2.first,
+            "RS_TOP2_APP_NODE", nodeInfoTop2.second,
+            "RS_TOP3_APP_NAME", nodeInfoTop3.first,
+            "RS_TOP3_APP_NODE", nodeInfoTop3.second);
+    });
     lastReportTime_ = curSysTime;
     lastReportTimeSteady_ = curSteadyTime;
 }
@@ -131,13 +139,12 @@ RSNodeDescription RSNodeStats::CheckEmptyAndReviseNodeDescription(const RSNodeDe
     return nodeDescription;
 }
 
-std::pair<uint32_t, uint32_t> RSNodeStats::GetCurrentRSNodeLimit() const
+void RSNodeStats::GetCurrentRSNodeLimit(uint32_t& rsNodeLimit, uint32_t& rsNodeReportLimit) const
 {
     int rsNodeLimitProperty = std::clamp(
         RSSystemProperties::GetRSNodeLimit(), RS_NODE_LIMIT_PROPERTY_MIN, RS_NODE_LIMIT_PROPERTY_MAX);
-    uint32_t rsNodeLimit = static_cast<uint32_t>(rsNodeLimitProperty);
-    uint32_t rsNodeReportLimit = static_cast<uint32_t>(rsNodeLimitProperty * RS_NODE_LIMIT_REPORT_RATIO);
-    return std::make_pair(rsNodeLimit, rsNodeReportLimit);
+    rsNodeLimit = static_cast<uint32_t>(rsNodeLimitProperty);
+    rsNodeReportLimit = static_cast<uint32_t>(rsNodeLimitProperty * RS_NODE_LIMIT_REPORT_RATIO);
 }
 
 int64_t RSNodeStats::GetCurrentSystimeMs() const

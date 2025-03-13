@@ -18,13 +18,12 @@
 
 #ifdef RS_PROFILER_ENABLED
 
-#include "include/core/SkRefCnt.h"
-
-class SkDocument;
-class SkPicture;
-class SkPictureRecorder;
-class SkFILEWStream;
-struct SkSharingSerialContext;
+#include "image/picture.h"
+#include "utils/document.h"
+#include "utils/file_w_stream.h"
+#include "utils/picture_recorder.h"
+#include "utils/serial_procs.h"
+#include "utils/sharing_serial_context.h"
 
 namespace OHOS::Rosen::Drawing {
 class Canvas;
@@ -42,6 +41,8 @@ public:
         return instance;
     }
 
+    void SetProfilerEnabled(bool val);
+
     Drawing::Canvas* TryInstantCapture(float width, float height);
     void EndInstantCapture();
     // Used for .skp capturing of DrawingCanvasNode's local canvas
@@ -53,8 +54,8 @@ public:
 
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
-    static std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
-    static bool IsRecordingEnabled();
+    std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
+    bool IsRecordingEnabled();
 
 private:
     RSCaptureRecorder();
@@ -71,24 +72,26 @@ private:
     // used for .rdc capturing
     std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
     // used for .skp capturing
-    std::unique_ptr<SkPictureRecorder> skRecorder_;
+    std::unique_ptr<Drawing::PictureRecorder> recorder_;
     std::shared_ptr<Drawing::Canvas> recordingSkpCanvas_;
     // to make sure the capture start/finish happen for the same frame / thread
     bool recordingTriggeredFullFrame_ = false;
     bool recordingTriggeredDrawingCanvas_ = false;
 
-    sk_sp<SkPicture> picture_;
+    std::shared_ptr<Drawing::Picture> picture_;
 
-    std::unique_ptr<SkSharingSerialContext> serialContext_;
-    std::unique_ptr<SkFILEWStream> openMultiPicStream_;
+    std::unique_ptr<Drawing::SharingSerialContext> serialContext_;
+    std::unique_ptr<Drawing::FileWStream> openMultiPicStream_;
 
-    sk_sp<SkDocument> multiPic_;
+    std::shared_ptr<Drawing::Document> multiPic_;
     int32_t mskpMaxLocal_ = 0;
     int32_t mskpIdxCurrent_ = -1;
     int32_t mskpIdxNext_ = -1;
     bool isPageActive_ = false;
     bool isMskpActive_ = false;
     uint64_t drawingCanvasNodeId_ = 0;
+
+    bool profilerEnabled_ = false;
 };
 
 } // namespace OHOS::Rosen

@@ -22,11 +22,15 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <hilog/log.h>
+#include <memory>
+#include <iservice_registry.h>
 #include <securec.h>
+#include <system_ability_definition.h>
 #include <unistd.h>
 
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -116,6 +120,46 @@ bool DoGetFrameRateLinker(const uint8_t* data, size_t size)
     rsRenderFrameRateLinkerMap.GetFrameRateLinker(id);
     return true;
 }
+bool DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    int listenerPid = GetData<int>();
+    uint32_t dstPid = GetData<uint32_t>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> rsIFrameRateLinkerExpectedFpsUpdateCallback =
+        iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
+    RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
+    rsRenderFrameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(listenerPid,
+        dstPid, rsIFrameRateLinkerExpectedFpsUpdateCallback);
+
+    return true;
+}
+bool DoUnRegisterExpectedFpsUpdateCallbackByListener(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    int listenerPid = GetData<int>();
+    RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
+    rsRenderFrameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(listenerPid);
+
+    return true;
+}
 bool DoGet(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -142,6 +186,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoUnregisterFrameRateLinker(data, size);
     OHOS::Rosen::DoFilterFrameRateLinkerByPid(data, size);
     OHOS::Rosen::DoGetFrameRateLinker(data, size);
+    OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
+    OHOS::Rosen::DoUnRegisterExpectedFpsUpdateCallbackByListener(data, size);
     OHOS::Rosen::DoGet(data, size);
     return 0;
 }

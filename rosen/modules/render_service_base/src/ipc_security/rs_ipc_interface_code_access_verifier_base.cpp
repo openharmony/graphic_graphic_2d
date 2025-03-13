@@ -147,7 +147,7 @@ int RSInterfaceCodeAccessVerifierBase::GetInterfacePermissionSize() const
 bool RSInterfaceCodeAccessVerifierBase::IsSystemApp()
 {
     uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    return Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode)
@@ -165,6 +165,21 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& calli
         RS_LOGE("%{public}s ipc interface code access denied: not system calling", callingCode.c_str());
     }
     return isSystemCalling;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsStartByHdcd(bool isLocalSysCalling)
+{
+    uint32_t tokenId = isLocalSysCalling ?
+        static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID()) :
+        IPCSkeleton::GetCallingTokenID();
+    OHOS::Security::AccessToken::NativeTokenInfo info;
+    if (Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(tokenId, info) != 0) {
+        return false;
+    }
+    if (info.processName.compare("hdcd") == 0) {
+        return true;
+    }
+    return false;
 }
 
 bool RSInterfaceCodeAccessVerifierBase::IsAncoCalling(const std::string& callingCode) const
@@ -237,6 +252,11 @@ bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
     return true;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsStartByHdcd(bool isLocalSysCalling)
+{
+    return false;
 }
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const

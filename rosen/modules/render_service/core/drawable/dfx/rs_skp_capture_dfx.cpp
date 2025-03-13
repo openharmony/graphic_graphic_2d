@@ -15,10 +15,9 @@
 
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 
-#include "benchmarks/rs_recording_thread.h"
 #include "rs_trace.h"
 
-#include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -43,43 +42,24 @@ void RSSkpCaptureDfx::TryCapture() const
         }
 #endif
         return;
+    } else {
+        RS_LOGE("TryCapture failed, the recording parameters have not been set.");
     }
-    recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(curCanvas_->GetWidth(), curCanvas_->GetHeight());
-    RS_TRACE_NAME("RSDisplayRenderNodeDrawable:Recording begin");
-    std::shared_ptr<RenderContext> renderContext;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
-    if (!recordingCanvas_) {
-        RS_LOGE("TryCapture recordingCanvas_ is nullptr");
-        return;
-    }
-    if (!renderContext) {
-        RS_LOGE("TryCapture renderContext is nullptr");
-        return;
-    }
-    recordingCanvas_->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
-#endif
-    curCanvas_->AddCanvas(recordingCanvas_.get());
-    RSRecordingThread::Instance(renderContext.get()).CheckAndRecording();
 }
 
 void RSSkpCaptureDfx::EndCapture() const
 {
+#ifdef RS_ENABLE_GPU
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     if (!renderContext) {
         RS_LOGE("EndCapture renderContext is nullptr");
         return;
     }
-    if (!RSRecordingThread::Instance(renderContext.get()).GetRecordingEnabled()) {
-#ifdef RS_PROFILER_ENABLED
-        RSCaptureRecorder::GetInstance().EndInstantCapture();
 #endif
-        return;
-    }
-    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
-    RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
-                  std::to_string(RSRecordingThread::Instance(renderContext.get()).GetCurDumpFrame()));
-    RSRecordingThread::Instance(renderContext.get()).RecordingToFile(drawCmdList);
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder::GetInstance().EndInstantCapture();
+#endif
+    return;
 }
 
 } // namespace OHOS::Rosen

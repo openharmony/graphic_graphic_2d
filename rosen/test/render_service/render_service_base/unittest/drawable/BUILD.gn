@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/ace_platforms.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/drawable"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/drawable"
 
 ##############################  RSRenderServiceBaseRSDrawableTest  ##################################
 ohos_unittest("RSRenderServiceBaseRSDrawableTest") {

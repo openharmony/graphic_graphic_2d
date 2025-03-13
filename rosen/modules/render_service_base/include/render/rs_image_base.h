@@ -27,8 +27,8 @@
 #include "transaction/rs_marshalling_helper.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "surface_buffer.h"
 #include "external_window.h"
+#include "surface_buffer.h"
 #endif
 
 namespace OHOS {
@@ -43,10 +43,26 @@ class VulkanCleanupHelper;
 #endif
 class RSB_EXPORT RSImageBase {
 public:
+#ifdef ROSEN_OHOS
+    /* This class is used to avoid Unmap is being called after ReMap and before pixelMap is used. */
+    class PixelMapUseCountGuard {
+    public:
+        PixelMapUseCountGuard(std::shared_ptr<Media::PixelMap> pixelMap, bool purgeable);
+        ~PixelMapUseCountGuard();
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+        bool purgeable_ = false;
+    };
+#endif
     RSImageBase() = default;
     virtual ~RSImageBase();
 
-    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions);
+    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    virtual void DrawImageNine(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
+    virtual void DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
@@ -58,6 +74,8 @@ public:
     void SetImagePixelAddr(void* addr);
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
+    void MarkPurgeable();
+    bool IsPurgeable() const;
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
     void DumpPicture(DfxString& info) const;
     uint64_t GetUniqueId() const;
@@ -68,20 +86,19 @@ public:
 
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
 
+    /*
+     * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
+     * Only the pixelMap_ with one RefCount and one UseCount can be purged.
+    */
     void Purge();
-    enum class CanPurgeFlag : int8_t {
-        UNINITED = -1,
-        DISABLED = 0,
-        ENABLED = 1,
-    };
-    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
+    void DePurge();
 
 protected:
     void GenUniqueId(uint32_t id);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
-    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #endif
@@ -111,6 +128,13 @@ protected:
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
+
+    enum class CanPurgeFlag : int8_t {
+        UNINITED = -1,
+        DISABLED = 0,
+        ENABLED = 1,
+    };
+    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 };
 } // namespace Rosen
 } // namespace OHOS

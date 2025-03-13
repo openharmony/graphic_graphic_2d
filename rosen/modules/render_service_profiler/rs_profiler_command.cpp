@@ -31,8 +31,14 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rstree_prepare_replay", PlaybackPrepare },
     { "rstree_save_frame", TestSaveFrame },
     { "rstree_load_frame", TestLoadFrame },
+    { "rssubtree_save", TestSaveFrame },
+    { "rssubtree_load", TestLoadFrame },
     { "rstree_switch", TestSwitch },
     { "rstree_dump_json", DumpTreeToJson },
+    { "rstree_clear_filter", ClearFilter },
+    { "rstree_blink_node", BlinkNode },
+    { "rstree_node_cache", PrintNodeCache },
+    { "rstree_node_cache_all", PrintNodeCacheAll },
     { "rsrecord_start", RecordStart },
     { "rsrecord_stop", RecordStop },
     { "rsrecord_replay_prepare", PlaybackPrepareFirstFrame },
@@ -62,6 +68,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
+    { "rsrecord_replay_speed", PlaybackSetSpeed },
+    { "rsrecord_replay_immediate", PlaybackSetImmediate },
 };
 
 void RSProfiler::Invoke(const std::vector<std::string>& line)

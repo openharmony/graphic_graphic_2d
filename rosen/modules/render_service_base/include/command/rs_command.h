@@ -45,6 +45,11 @@ enum RSCommandType : uint16_t {
     FRAME_RATE_LINKER,
 };
 
+enum RSCommandPermissionType : uint16_t {
+    PERMISSION_APP,
+    PERMISSION_SYSTEM,
+};
+
 // [attention]
 // RSCommand object is serializable, when use ADD_COMMAND macro to define a new RSCommand type,
 // use POD types or type with marshalling & unmarshalling func defined in RSMarshallingHelper for construction
@@ -60,6 +65,11 @@ public:
     ~RSCommand() noexcept override = default;
 
     virtual void Process(RSContext& context) = 0;
+
+    virtual RSCommandPermissionType GetAccessPermission() const
+    {
+        return RSCommandPermissionType::PERMISSION_SYSTEM;
+    }
 
     virtual uint16_t GetType() const
     {
@@ -82,6 +92,11 @@ public:
     }
 
     virtual NodeId GetNodeId() const
+    {
+        return 0;
+    }
+
+    virtual uint64_t GetToken() const
     {
         return 0;
     }
@@ -123,6 +138,14 @@ public:
 
     virtual bool CheckHeader(Parcel& parcel) const = 0;
     virtual bool ReadFromParcel(Parcel& parcel) = 0;
+    virtual bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
+    {
+        return true;
+    }
+    virtual uint16_t GetType() const override
+    {
+        return 0;
+    }
 
     inline uint64_t GetTimeout() const
     {

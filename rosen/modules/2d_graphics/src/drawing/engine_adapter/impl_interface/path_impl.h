@@ -84,6 +84,7 @@ public:
 
     virtual Rect GetBounds() const = 0;
     virtual void SetFillStyle(PathFillType fillstyle) = 0;
+    virtual PathFillType GetFillStyle() const = 0;
 
     virtual bool Interpolate(const Path& ending, scalar weight, Path& out) = 0;
     virtual void Transform(const Matrix& matrix) = 0;
@@ -99,6 +100,7 @@ public:
 
     virtual scalar GetLength(bool forceClosed) = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) = 0;
+    virtual bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) = 0;
     virtual bool IsClosed(bool forceClosed) = 0;
     virtual bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;

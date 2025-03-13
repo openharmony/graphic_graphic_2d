@@ -28,6 +28,7 @@
 #include "effect/path_effect.h"
 #include "utils/data.h"
 #include "utils/log.h"
+#include "utils/performanceCaculate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +44,7 @@ void SkiaPathEffect::InitWithPathDash(const Path& path, scalar advance, scalar p
 {
     auto p = path.GetImpl<SkiaPath>();
     if (p != nullptr) {
+        DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
         pathEffect_ =
             SkPath1DPathEffect::Make(p->GetPath(), advance, phase, static_cast<SkPath1DPathEffect::Style>(style));
     }
@@ -50,11 +52,13 @@ void SkiaPathEffect::InitWithPathDash(const Path& path, scalar advance, scalar p
 
 void SkiaPathEffect::InitWithCorner(scalar radius)
 {
+    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
     pathEffect_ = SkCornerPathEffect::Make(radius);
 }
 
 void SkiaPathEffect::InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist)
 {
+    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
     pathEffect_ = SkDiscretePathEffect::Make(segLength, dev, seedAssist);
 }
 
@@ -89,7 +93,7 @@ void SkiaPathEffect::SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect)
 std::shared_ptr<Data> SkiaPathEffect::Serialize() const
 {
     if (pathEffect_ == nullptr) {
-        LOGE("SkiaPathEffect::Serialize, pathEffect_ is nullptr!");
+        LOGD("SkiaPathEffect::Serialize, pathEffect_ is nullptr!");
         return nullptr;
     }
 
@@ -99,7 +103,7 @@ std::shared_ptr<Data> SkiaPathEffect::Serialize() const
 bool SkiaPathEffect::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaPathEffect::Deserialize, data is invalid!");
+        LOGD("SkiaPathEffect::Deserialize, data is invalid!");
         return false;
     }
 

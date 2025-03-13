@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "font_napi/js_typeface.h"
 #include "js_drawing_utils.h"
 
 #ifdef ROSEN_OHOS
@@ -20,6 +21,7 @@
 #endif
 
 #include "draw/color.h"
+#include "rosen_text/font_collection.h"
 
 namespace OHOS::Rosen {
 
@@ -31,7 +33,8 @@ bool JsDrawingTestUtils::closeDrawingTest_ = true;
 #endif
 
 namespace Drawing {
-const char* const JSPROPERTY[4] = {"alpha", "red", "green", "blue"};
+const char* const JSCOLOR[4] = {"alpha", "red", "green", "blue"};
+
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
     std::string fullName;
@@ -105,18 +108,20 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
     return true;
 }
 
-bool ConvertFromJsColorWithNumber(napi_env env, napi_value jsValue, int32_t* argb, size_t size, size_t argc)
+bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor)
 {
-    uint32_t tempColorValue = 0;
-    if (napi_get_value_uint32(env, jsValue, &tempColorValue) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");
-    }
-    int alphaShift = 24;  // Alpha shift
-    int channelShift = 8; // Each color channel is 8 bits
-    for (size_t idx = 0; idx < size; idx++) {
-        int32_t* curChannel = argb + idx;
-        *curChannel = (tempColorValue >> (alphaShift - idx * channelShift)) & 0xFF;
+    bool isJsColor = false;
+    napi_has_named_property(env, jsValue, JSCOLOR[0], &isJsColor);
+    if (isJsColor) {
+        int32_t argb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsColor(env, jsValue, argb, ARGC_FOUR)) {
+            return false;
+        }
+        jsColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+    } else {
+        if (napi_get_value_uint32(env, jsValue, &jsColor) != napi_ok) {
+            return false;
+        }
     }
     return true;
 }
@@ -187,6 +192,9 @@ bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d)
 
 bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size)
 {
+    if (point == nullptr) {
+        return false;
+    }
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         double* curEdge = point + idx;
@@ -200,12 +208,33 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t 
 
 bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
 {
+    if (points == nullptr) {
+        return false;
+    }
     for (uint32_t i = 0; i < count; i++)  {
         napi_value tempPoint = nullptr;
         if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
             return false;
         }
         if (!GetDrawingPointFromJsValue(env, tempPoint, points[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsPointsArrayOffset(napi_env env, napi_value array, Drawing::Point* points,
+    uint32_t count, uint32_t offset)
+{
+    if (points == nullptr) {
+        return false;
+    }
+    for (uint32_t i = offset; i < offset + count; i++)  {
+        napi_value tempPoint = nullptr;
+        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
+            return false;
+        }
+        if (!GetDrawingPointFromJsValue(env, tempPoint, points[i - offset])) {
             return false;
         }
     }
@@ -239,6 +268,29 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
             metrics->fStrikeoutPosition));
     }
     return objValue;
+}
+
+std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
+{
+    if (!font->IsThemeFontFollowed() || font->GetTypeface() != JsTypeface::GetZhCnTypeface()) {
+        return nullptr;
+    }
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    if (fontCollection == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<FontMgr> fontMgr = fontCollection->GetFontMgr();
+    if (fontMgr == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> themeTypeface =
+        std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyle(THEME_FONT, FontStyle()));
+    if (themeTypeface == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = std::make_shared<Font>(*font);
+    themeFont->SetTypeface(themeTypeface);
+    return themeFont;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

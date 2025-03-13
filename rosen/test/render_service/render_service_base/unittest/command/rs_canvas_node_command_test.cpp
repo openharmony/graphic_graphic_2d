@@ -47,6 +47,7 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand001, TestSize.Level1)
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = nullptr;
     RSModifierType type = RSModifierType::INVALID;
     RSCanvasNodeCommandHelper::UpdateRecording(context, nodeId, drawCmds, static_cast<uint16_t>(type));
+    ASSERT_EQ(nodeId, static_cast<NodeId>(-1));
 }
 
 /**
@@ -72,6 +73,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
+    ASSERT_EQ(targetId, static_cast<NodeId>(-1));
 }
 
 /**
@@ -85,6 +87,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create002, TestSize.Level1)
     RSContext context;
     NodeId targetId = 0;
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
+    ASSERT_EQ(targetId, static_cast<NodeId>(0));
 }
 
 /**
@@ -159,4 +162,21 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
     RSCanvasNodeCommandHelper::ClearRecording(context, 0);
     EXPECT_TRUE(id);
 }
+
+/**
+ * @tc.name: SetLinkedRootNodeId
+ * @tc.desc: test SetLinkedRootNodeId
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeCommandTest, SetLinkedRootNodeId, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    NodeId rootNodeId = static_cast<NodeId>(2);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    RSCanvasNodeCommandHelper::SetLinkedRootNodeId(context, id, rootNodeId);
+    EXPECT_TRUE(id);
+}
+
 } // namespace OHOS::Rosen

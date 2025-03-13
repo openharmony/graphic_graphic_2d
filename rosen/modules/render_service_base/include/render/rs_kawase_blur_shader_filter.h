@@ -24,6 +24,7 @@ public:
     RSKawaseBlurShaderFilter(int radius);
     ~RSKawaseBlurShaderFilter() override;
     int GetRadius() const;
+    std::string GetDescription() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
 private:

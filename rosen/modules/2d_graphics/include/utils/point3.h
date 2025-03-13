@@ -64,7 +64,16 @@ private:
 
 inline Point3::Point3() noexcept : x_(0.0), y_(0.0), z_(0.0) {}
 
-inline Point3::Point3(const Point3& p) noexcept : x_(p.GetX()), y_(p.GetY()), z_(p.GetZ()) {}
+inline Point3::Point3(const Point3& p) noexcept
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    scalar x = p.GetX();
+    scalar y = p.GetY();
+    scalar z = p.GetZ();
+    x_ = x;
+    y_ = y;
+    z_ = z;
+}
 
 inline Point3::Point3(scalar x, scalar y, scalar z) noexcept : x_(x), y_(y), z_(z) {}
 

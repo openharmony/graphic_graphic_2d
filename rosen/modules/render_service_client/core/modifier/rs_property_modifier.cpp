@@ -66,6 +66,116 @@ std::shared_ptr<RSRenderModifier> RSCustomClipToFrameModifier::CreateRenderModif
     return renderModifier;
 }
 
+RSHDRBrightnessModifier::RSHDRBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSForegroundModifier(property, RSModifierType::HDR_BRIGHTNESS)
+{}
+
+RSModifierType RSHDRBrightnessModifier::GetModifierType() const
+{
+    return RSModifierType::HDR_BRIGHTNESS;
+}
+
+std::shared_ptr<RSRenderModifier> RSHDRBrightnessModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSHDRBrightnessRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterEnabledModifier::RSBehindWindowFilterEnabledModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::BEHIND_WINDOW_FILTER_ENABLED)
+{
+    property_->SetThresholdType(ThresholdType::ZERO);
+}
+
+RSModifierType RSBehindWindowFilterEnabledModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_ENABLED;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterEnabledModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterEnabledRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterRadiusModifier::RSBehindWindowFilterRadiusModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSBackgroundModifier(property, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS)
+{
+    property_->SetThresholdType(ThresholdType::COARSE);
+}
+
+RSModifierType RSBehindWindowFilterRadiusModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_RADIUS;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterRadiusModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterRadiusRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterSaturationModifier::RSBehindWindowFilterSaturationModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::BEHIND_WINDOW_FILTER_SATURATION)
+{
+    property_->SetThresholdType(ThresholdType::COARSE);
+}
+
+RSModifierType RSBehindWindowFilterSaturationModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_SATURATION;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterSaturationModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterSaturationRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterBrightnessModifier::RSBehindWindowFilterBrightnessModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS)
+{
+    property_->SetThresholdType(ThresholdType::COARSE);
+}
+
+RSModifierType RSBehindWindowFilterBrightnessModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterBrightnessModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterBrightnessRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterMaskColorModifier::RSBehindWindowFilterMaskColorModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR)
+{
+    property_->SetThresholdType(ThresholdType::COLOR);
+}
+
+RSModifierType RSBehindWindowFilterMaskColorModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterMaskColorModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterMaskColorRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
 void RSBoundsModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
     auto value = std::static_pointer_cast<RSProperty<Vector4f>>(property_)->Get();
@@ -136,18 +246,25 @@ void RSScaleModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
     geometry->SetScale(value.x_, value.y_);
 }
 
+void RSScaleZModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
+{
+    auto value = std::static_pointer_cast<RSProperty<float>>(property_)->Get();
+    value *= geometry->GetScaleZ();
+    geometry->SetScaleZ(value);
+}
+
 void RSSkewModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
-    auto value = std::static_pointer_cast<RSProperty<Vector2f>>(property_)->Get();
-    value += Vector2f(geometry->GetSkewX(), geometry->GetSkewY());
-    geometry->SetSkew(value.x_, value.y_);
+    auto value = std::static_pointer_cast<RSProperty<Vector3f>>(property_)->Get();
+    value += Vector3f(geometry->GetSkewX(), geometry->GetSkewY(), geometry->GetSkewZ());
+    geometry->SetSkew(value.x_, value.y_, value.z_);
 }
 
 void RSPerspModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
-    auto value = std::static_pointer_cast<RSProperty<Vector2f>>(property_)->Get();
-    value += Vector2f(geometry->GetPerspX(), geometry->GetPerspY());
-    geometry->SetPersp(value.x_, value.y_);
+    auto value = std::static_pointer_cast<RSProperty<Vector4f>>(property_)->Get();
+    value = Vector4f(geometry->GetPerspX(), geometry->GetPerspY(), geometry->GetPerspZ(), geometry->GetPerspW());
+    geometry->SetPersp(value.x_, value.y_, value.z_, value.w_);
 }
 
 void RSTranslateModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)

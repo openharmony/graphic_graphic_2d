@@ -42,11 +42,11 @@ int RsFrameReport::GetEnable()
 void RsFrameReport::ProcessCommandsStart()
 {
 }
-
+ 
 void RsFrameReport::AnimateStart()
 {
 }
-
+ 
 void RsFrameReport::RenderStart(uint64_t timestamp)
 {
 }

@@ -48,7 +48,7 @@ HWTEST_F(SkiaPictureTest, SkiaPicture001, TestSize.Level1)
     skiaPicture.Deserialize(nullptr);
     std::shared_ptr<Data> data = std::make_shared<Data>();
     skiaPicture.Deserialize(data);
-    skiaPicture.Serialize();
+    ASSERT_TRUE(skiaPicture.Serialize() == nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

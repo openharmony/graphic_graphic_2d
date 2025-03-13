@@ -22,7 +22,7 @@
 #include <sys/time.h>
 
 #include "png.h"
-#include "pipeline/rs_surface_capture_task.h"
+#include "feature/capture/rs_surface_capture_task.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS::Rosen;
@@ -120,9 +120,11 @@ bool WriteToPng(const std::string &filename, const WriteToPngParam &param)
 bool WritePixelMapToPng(PixelMap& pixelMap, std::string filename)
 {
     struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = 0;
+    if (gettimeofday(&now, nullptr) == 0) {
+        constexpr int secToUsec = 1000 * 1000;
+        nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    }
     if (filename.size() == 0) {
         filename = "/data/PixelMap_" + std::to_string(nowVal) + ".png";
     }

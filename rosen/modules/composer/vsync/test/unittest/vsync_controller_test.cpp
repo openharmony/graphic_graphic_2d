@@ -32,6 +32,8 @@ class VSyncControllerCallback : public VSyncController::Callback {
 public:
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) override;
+    void OnDVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) override;
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) override;
 };
 
@@ -50,6 +52,8 @@ void VSyncControllerTest::TearDownTestCase()
 }
 
 void VSyncControllerCallback::OnVSyncEvent(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) {}
+void VSyncControllerCallback::OnDVSyncEvent(int64_t now, int64_t period,
     uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) {}
 
 void VSyncControllerCallback::OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)

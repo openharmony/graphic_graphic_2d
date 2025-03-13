@@ -29,7 +29,12 @@ rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @hengming-wang
+rosen/modules/render_service/core/transaction/ @chuchengcheng
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.h @chuchengcheng
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @chuchengcheng
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @chuchengcheng
 
 [animation]
 interfaces/kits/napi/graphic/animation/window_animation_manager/ @comicchang
@@ -37,3 +42,7 @@ rosen/modules/animation/window_animation/ @comicchang
 rosen/modules/render_service_base/include/animation/ @comicchang
 rosen/modules/render_service_base/src/animation/ @comicchang
 rosen/modules/render_service_client/core/animation/ @comicchang
+
+[uifirst]
+rosen/modules/render_service/core/feature/uifirst/ @conan13234
+rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @conan13234

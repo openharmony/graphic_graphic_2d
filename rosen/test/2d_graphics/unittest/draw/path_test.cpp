@@ -212,6 +212,7 @@ HWTEST_F(PathTest, ArcTo003, TestSize.Level2)
 {
     Path path;
     path.ArcTo(1.0f, 3.0f, 2.5f, PathDirection::CCW_DIRECTION, 1.0f, 3.0f);
+    ASSERT_TRUE(path.IsValid());
 }
 
 /**
@@ -774,6 +775,22 @@ HWTEST_F(PathTest, SetFillStyle002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetFillStyle001
+ * @tc.desc: Test Path's GetFillStyle
+ * @tc.type: FUNC
+ * @tc.require: IB742Z
+ */
+HWTEST_F(PathTest, GetFillStyle001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->SetFillStyle(PathFillType::WINDING);
+    EXPECT_TRUE(path->GetFillStyle() == PathFillType::WINDING);
+    path->SetFillStyle(PathFillType::INVERSE_WINDING);
+    EXPECT_TRUE(path->GetFillStyle() == PathFillType::INVERSE_WINDING);
+}
+
+/**
  * @tc.name: Interpolate001
  * @tc.desc:
  * @tc.type: FUNC
@@ -1023,6 +1040,30 @@ HWTEST_F(PathTest, GetPositionAndTangent003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSegment001
+ * @tc.desc: Test for Gets the path between the start and end points.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetSegment001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(100, 100);
+    path.LineTo(100, 200);
+    path.LineTo(200, 200);
+    Path newPath;
+    EXPECT_EQ(path.GetSegment(120, 180, &newPath, false, false), true);
+    EXPECT_EQ(path.GetSegment(120, 280, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(-50, 999, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(120, 180, &newPath, true, false), true);
+    EXPECT_EQ(path.GetSegment(120, 280, &newPath, true, true), true);
+    EXPECT_EQ(path.GetSegment(-50, 999, &newPath, true, true), true);
+    EXPECT_EQ(path.GetSegment(120, 120, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(130, 120, &newPath, false, true), false);
+    EXPECT_EQ(path.GetSegment(130, 120, nullptr, false, true), false);
+}
+
+/**
  * @tc.name: CopyConstruction001
  * @tc.desc: Bounds should be same by using copy construction
  * @tc.type: FUNC
@@ -1101,6 +1142,24 @@ HWTEST_F(PathTest, Dump001, TestSize.Level1)
     EXPECT_TRUE(out.empty());
     path.Dump(out);
     EXPECT_FALSE(out.empty());
+}
+
+/**
+ * @tc.name: Serialize001
+ * @tc.desc: Data returned shouldn't be nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, Serialize001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    auto data1 = path1.Serialize();
+    ASSERT_TRUE(data1 != nullptr);
+    Path path2;
+    auto data2 = path2.Serialize();
+    ASSERT_TRUE(data2 != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

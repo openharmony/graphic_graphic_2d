@@ -46,4 +46,9 @@ ohos_static_library("scoped_bytrace") {
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
+
+group("test") {
+  testonly = true
+  deps = [ "test:test" ]
+}
 ## Build scoped_bytrace.a }}}

@@ -20,7 +20,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_processor.h"
 #ifdef RS_ENABLE_VK
-#include "pipeline/rs_vk_image_manager.h"
+#include "feature/gpuComposition/rs_vk_image_manager.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -42,13 +42,14 @@ public:
     static int64_t GetCurrentTime();
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
     void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
-    void SetPointerColorInversionEnabled(bool enable);
     void RegisterPointerLuminanceChangeCallback(pid_t pid, sptr<RSIPointerLuminanceChangeCallback> callback);
     void UnRegisterPointerLuminanceChangeCallback(pid_t pid);
     void SetCacheImgForPointer(std::shared_ptr<Drawing::Image> cacheImgForPointer)
     {
         cacheImgForPointer_ = cacheImgForPointer;
     }
+    void SetPointerColorInversionEnabled(bool enable);
+    bool GetPointerColorInversionEnabled();
 
 private:
     void ExecutePointerLuminanceChangeCallback(int32_t brightness);
@@ -84,6 +85,7 @@ private:
     int16_t luminance_ = 0;
     bool forceCPU_ = false;
     std::shared_ptr<Drawing::Image> image_ = nullptr;
+    std::shared_ptr<Drawing::Image> imagePre_ = nullptr;
     Drawing::BackendTexture backendTexture_;
     Drawing::BackendTexture backendTexturePre_;
     Drawing::BitmapFormat bitmapFormat_;
@@ -91,7 +93,6 @@ private:
     bool isEnableCursorInversion_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForPointer_ = nullptr;
     std::mutex mtx_;
-    std::mutex cursorInvertMutex_;
     std::map<pid_t, sptr<RSIPointerLuminanceChangeCallback>> colorChangeListeners_;
     enum class CursorBrightness {
         NONE,

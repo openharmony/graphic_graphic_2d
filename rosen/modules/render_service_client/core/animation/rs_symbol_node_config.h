@@ -23,6 +23,7 @@ namespace Rosen {
 
 struct AnimationNodeConfig {
     TextEngine::SymbolNode symbolNode;
+    NodeId nodeId = 0;
     int animationIndex = -1;
 };
 }

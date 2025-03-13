@@ -24,8 +24,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -50,7 +50,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ClipFlame_Test_1)
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             auto testFaNode = RSCanvasNode::Create();
-            testFaNode->SetFrame({ i * 410.0, j * 500.0, 400.0, 400.0 });
+            testFaNode->SetBounds({ i * 410.0, j * 500.0, 400.0, 400.0 });
             testFaNode->SetFrame({ i * 410.0, j * 500.0, 400.0, 400.0 });
             auto imageModifier = std::make_shared<ImageCustomModifier>();
             imageModifier->SetWidth(400);
@@ -89,7 +89,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ClipFlame_Test_2)
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             auto testFaNode = RSCanvasNode::Create();
-            testFaNode->SetFrame({ i * 410.0, j * 500.0, 400.0, 400.0 });
+            testFaNode->SetFrame(i * 410.0, j * 500.0, 400.0, 400.0);
             auto imageModifier = std::make_shared<ImageCustomModifier>();
             imageModifier->SetWidth(400);
             imageModifier->SetHeight(400);
@@ -97,7 +97,11 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ClipFlame_Test_2)
             testFaNode->AddModifier(imageModifier);
             testFaNode->SetClipToFrame(false);
             auto testNode = RSCanvasNode::Create();
-            testNode->SetFrame({ 0.0, 50.0, 400.0, 400.0 });
+
+            // testNode->SetFrame({ 0.0, 50.0, 400.0, 400.0 }) convert to SetFramePositionXY
+            testNode->SetFrame(0.0, 0.0, 400.0, 400.0);
+            testNode->SetFramePositionX(0.0);
+            testNode->SetFramePositionY(50.0);
             testNode->SetBackgroundColor(0xff00ff00);
             testFaNode->AddChild(testNode);
             testFaNode->SetClipRRect(rect[i], radius[j]);

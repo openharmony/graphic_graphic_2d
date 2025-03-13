@@ -15,10 +15,10 @@
 
 #include "rs_processor_factory.h"
 
-#include "rs_physical_screen_processor.h"
-#include "rs_uni_render_processor.h"
-#include "rs_uni_render_virtual_processor.h"
-#include "rs_virtual_screen_processor.h"
+#include "render_thread/rs_physical_screen_processor.h"
+#include "render_thread/rs_uni_render_processor.h"
+#include "render_thread/rs_uni_render_virtual_processor.h"
+#include "render_thread/rs_virtual_screen_processor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,11 +30,15 @@ std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(RSDisplayRender
             return std::make_shared<RSVirtualScreenProcessor>();
         case RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE:
             return std::make_shared<RSPhysicalScreenProcessor>();
+#ifdef RS_ENABLE_GPU
         case RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE:
             return std::make_shared<RSUniRenderProcessor>();
+#endif
         case RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE:
         case RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE:
+#ifdef RS_ENABLE_GPU
             return std::make_shared<RSUniRenderVirtualProcessor>();
+#endif
         default:
             return nullptr;
     }

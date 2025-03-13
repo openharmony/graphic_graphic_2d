@@ -155,6 +155,20 @@ HWTEST_F(RSColorPickerTest, IsBlackOrWhiteOrGrayColorTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsBlackOrWhiteOrGrayColorTest001
+ * @tc.desc: Verify function IsBlackOrWhiteOrGrayColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, IsBlackOrWhiteOrGrayColorTest001, TestSize.Level1)
+{
+    // for test
+    EXPECT_TRUE(picker->IsBlackOrWhiteOrGrayColor(0x00000001));
+    EXPECT_FALSE(picker->IsBlackOrWhiteOrGrayColor(0x0000ffff));
+    EXPECT_TRUE(picker->IsBlackOrWhiteOrGrayColor(0x00ffffff));
+    EXPECT_FALSE(picker->IsBlackOrWhiteOrGrayColor(0x000000ff));
+}
+
+/**
  * @tc.name: IsEqualsTest
  * @tc.desc: Verify function IsEquals
  * @tc.type:FUNC
@@ -163,6 +177,16 @@ HWTEST_F(RSColorPickerTest, IsBlackOrWhiteOrGrayColorTest, TestSize.Level1)
 HWTEST_F(RSColorPickerTest, IsEqualsTest, TestSize.Level1)
 {
     EXPECT_FALSE(picker->IsEquals(0.0, 1.0));
+}
+
+/**
+ * @tc.name: IsEqualsTest002
+ * @tc.desc: Verify function IsEquals
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, IsEqualsTest002, TestSize.Level1)
+{
+    EXPECT_TRUE(picker->IsEquals(1.0, 1.0));
 }
 
 /**

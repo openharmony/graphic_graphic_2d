@@ -76,7 +76,10 @@ void RSSpringAnimation::OnStart()
     // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
     SetDuration(300);
     UpdateParamToRenderAnimation(animation);
-    animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.blendDuration_);
+    if (const auto& springParams = timingCurve_.springParams_) {
+        animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
+            springParams->blendDuration_, springParams->minimumAmplitudeRatio_);
+    }
     animation->SetAdditive(GetAdditive());
     if (GetIsLogicallyFinishCallback()) {
         animation->SetZeroThreshold(zeroThreshold_);
@@ -96,27 +99,30 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
 {
     auto target = GetTarget().lock();
     if (target == nullptr) {
-        ROSEN_LOGD("Failed to start spring animation, target is null!");
-        return;
-    }
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-    transactionProxy->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
     if (target->NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> commandForRemote =
             std::make_unique<RSAnimationCreateSpring>(target->GetId(), animation);
-        transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 
 void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)
 {
     StartCustomAnimation(animation);
-    auto& modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    auto target = GetTarget().lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("multi-instance, RSAnimation::StartUIAnimation, target is null!");
+        return;
+    }
+    auto rsUIContext = target->GetRSUIContext();
+    auto& modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
+                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
         ROSEN_LOGE("RSSpringAnimation::StartUIAnimation: failed to get modifier manager, "
             "animationId: %{public}" PRIu64 "!", GetId());

@@ -23,6 +23,7 @@
 #include "recording/recording_canvas.h"
 #include "memory/rs_memory_track.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -199,9 +200,10 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
             RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         // Just need to skip RSPropertyDrawableSlot::SHADOW
         DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     } else {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     }
 }
 
@@ -272,5 +274,34 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
             canvas);
     }
 }
+
+void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
+{
+    if (hasHdrPresent_ == hasHdrPresent) {
+        return;
+    }
+    if (IsOnTheTree()) {
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId());
+    }
+    hasHdrPresent_ = hasHdrPresent;
+}
+
+bool RSCanvasRenderNode::GetHDRPresent() const
+{
+    return hasHdrPresent_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
+{
+    linkedRootNodeId_ = rootNodeId;
+}
+
+// [Attention] Only used in PC window resize scene now
+NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
+{
+    return linkedRootNodeId_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

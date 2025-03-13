@@ -371,7 +371,8 @@ HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -394,7 +395,8 @@ HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     drawPixelMapRectOpItem.SetNodeId(id);
 
@@ -442,9 +444,12 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     int height = 1;
     pid_t pid = {};
     uint64_t uid = {};
+    GraphicTransformType transform =
+        GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Drawing::Rect srcRect { 0, 0, 1, 1 };
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -475,9 +480,12 @@ HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
     int height = 1;
     pid_t pid = {};
     uint64_t uid = {};
+    GraphicTransformType transform =
+        GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Drawing::Rect srcRect { 0, 0, 1, 1 };
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::BitmapFormat bitmapFormat =
         drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888);

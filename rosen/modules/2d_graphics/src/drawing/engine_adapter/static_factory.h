@@ -29,7 +29,12 @@
 #include "text/text_blob.h"
 #include "text/typeface.h"
 #include "utils/data.h"
+#include "utils/file_w_stream.h"
+#include "utils/document.h"
+#include "utils/perfevent.h"
 #include "utils/rect.h"
+#include "utils/serial_procs.h"
+#include "utils/sharing_serial_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +70,8 @@ public:
     static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+    static std::shared_ptr<Document> MakeMultiPictureDocument(FileWStream* fileStream,
+        SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);
@@ -86,6 +93,17 @@ public:
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
     static void SetVmaCacheStatus(bool flag);
+    static void RecordCoreTrace(int functionType);
+    static void RecordCoreTrace(int functionType, uint64_t nodeId);
+    static void ResetStatsData();
+    static void ResetPerfEventData();
+    static std::map<std::string, std::vector<uint16_t>> GetBlurStatsData();
+    static std::map<std::string, RsBlurEvent> GetBlurPerfEventData();
+    static std::map<std::string, std::vector<uint16_t>> GetTextureStatsData();
+    static std::map<std::string, RsTextureEvent> GetTexturePerfEventData();
+    static int16_t GetSplitRange(int64_t duration);
+    static bool IsOpenPerf();
+    static int64_t GetCurrentTime();
 };
 } // namespace Drawing
 } // namespace Rosen

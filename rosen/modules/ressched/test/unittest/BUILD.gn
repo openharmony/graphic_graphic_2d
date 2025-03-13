@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/rosen/modules/ressched"
+module_out_path = "graphic_2d/graphic_2d/rosen/modules/ressched"
 
 group("unittest") {
   testonly = true
@@ -37,6 +37,7 @@ ohos_unittest("graphic_ressched_test") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "resource_schedule_service:ressched_client",

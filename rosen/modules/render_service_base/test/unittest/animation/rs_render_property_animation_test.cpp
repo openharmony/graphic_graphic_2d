@@ -138,6 +138,8 @@ HWTEST_F(RSRenderPropertyAnimationTest, SetAnimationValue001, TestSize.Level1)
 
     EXPECT_TRUE(renderPropertyAnimation != nullptr);
     renderPropertyAnimation->SetAnimationValue(animationValue);
+    animationValue = nullptr;
+    renderPropertyAnimation->SetAnimationValue(animationValue);
     renderPropertyAnimation->Start();
     EXPECT_TRUE(renderPropertyAnimation->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest SetAnimationValue001 end";
@@ -160,6 +162,9 @@ HWTEST_F(RSRenderPropertyAnimationTest, GetAnimationValue001, TestSize.Level1)
     EXPECT_TRUE(renderPropertyAnimation != nullptr);
     auto newAnimationValue = renderPropertyAnimation->GetAnimationValue(animationValue);
     EXPECT_NE(newAnimationValue, nullptr);
+    animationValue = nullptr;
+    newAnimationValue = renderPropertyAnimation->GetAnimationValue(animationValue);
+    EXPECT_EQ(newAnimationValue, nullptr);
     GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest GetAnimationValue001 end";
 }
 

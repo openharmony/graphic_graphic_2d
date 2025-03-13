@@ -35,7 +35,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-int32_t g_iSize = 512;
 } // namespace
 
 template<class T>
@@ -53,23 +52,7 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoSavePixelmapToFile(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    Media::InitializationOptions opts;
-    opts.size.width = g_iSize;
-    opts.size.height = g_iSize;
-    opts.editable = true;
-    return true;
-}
 bool DoGetLocalTime(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -92,7 +75,6 @@ bool DoGetLocalTime(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoSavePixelmapToFile(data, size); // SavePixelmapToFile
     OHOS::Rosen::DoGetLocalTime(data, size); // GetLocalTime
     return 0;
 }

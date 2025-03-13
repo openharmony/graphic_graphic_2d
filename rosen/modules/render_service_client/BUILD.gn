@@ -24,6 +24,7 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
     "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   defines = rs_common_define
   if (defined(is_arkui_x) && is_arkui_x) {
@@ -91,6 +92,10 @@ template("render_service_client_source_set") {
       "core/animation/rs_transition.cpp",
       "core/animation/rs_transition_effect.cpp",
 
+      #feature
+      "core/feature/anco_manager/rs_ext_node_operation.cpp",
+      "core/feature/ui_capture/rs_divided_ui_capture.cpp",
+
       #modifier
       "core/modifier/rs_extended_modifier.cpp",
       "core/modifier/rs_modifier.cpp",
@@ -101,40 +106,43 @@ template("render_service_client_source_set") {
       "core/modifier/rs_property_modifier.cpp",
       "core/modifier/rs_showing_properties_freezer.cpp",
 
-      #jank_detector
-      "core/jank_detector/rs_jank_detector.cpp",
-
       #pipeline
-      "core/pipeline/rs_divided_ui_capture.cpp",
       "core/pipeline/rs_node_map.cpp",
+      "core/pipeline/rs_node_map_v2.cpp",
       "core/pipeline/rs_render_thread.cpp",
-      "core/pipeline/rs_render_thread_visitor.cpp",
+
+      #render_thread
+      "core/render_thread/rs_render_thread_util.cpp",
+      "core/render_thread/rs_render_thread_visitor.cpp",
+
+      #jank_detector
+      "core/render_thread/jank_detector/rs_jank_detector.cpp",
 
       #transaction
       "core/transaction/rs_application_agent_impl.cpp",
       "core/transaction/rs_interfaces.cpp",
       "core/transaction/rs_render_thread_client.cpp",
       "core/transaction/rs_sync_transaction_controller.cpp",
+      "core/transaction/rs_sync_transaction_handler.cpp",
       "core/transaction/rs_transaction.cpp",
 
       #ui
+      "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
+      "core/feature/hyper_graphic_manager/rs_frame_rate_policy.cpp",
+      "core/feature/hyper_graphic_manager/rs_ui_display_soloist.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
-      "core/ui/rs_ext_node_operation.cpp",
-      "core/ui/rs_frame_rate_linker.cpp",
-      "core/ui/rs_frame_rate_policy.cpp",
-      "core/ui/rs_hdr_manager.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
       "core/ui/rs_root_node.cpp",
       "core/ui/rs_surface_extractor.cpp",
       "core/ui/rs_surface_node.cpp",
       "core/ui/rs_texture_export.cpp",
+      "core/ui/rs_ui_context.cpp",
+      "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
-      "core/ui/rs_ui_display_soloist.cpp",
-      "core/ui/rs_ui_share_context.cpp",
     ]
 
     if (is_cross_platform) {
@@ -194,6 +202,11 @@ template("render_service_client_source_set") {
         defines += [ "WINDOWS_PLATFORM" ]
       }
     }
+
+    if (is_arkui_x) {
+      defines += [ "ARKUI_X_ENABLE" ]
+    }
+
     if (rosen_is_ohos) {
       deps += [
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
@@ -201,6 +214,8 @@ template("render_service_client_source_set") {
       ]
 
       external_deps = [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
         "c_utils:utils",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
@@ -233,6 +248,10 @@ template("render_service_client_source_set") {
     }
 
     external_deps += [ "graphic_surface:surface_headers" ]
+
+    if (!build_ohos_sdk && !is_mingw) {
+      external_deps += [ "samgr:samgr_proxy" ]
+    }
 
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]

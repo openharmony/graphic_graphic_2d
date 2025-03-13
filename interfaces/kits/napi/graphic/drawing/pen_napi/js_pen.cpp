@@ -165,25 +165,13 @@ napi_value JsPen::SetColor(napi_env env, napi_callback_info info)
 
     Drawing::Color drawingColor;
     if (argc == ARGC_ONE) {
-        bool isJsColor = false;
-        napi_has_named_property(env, argv[ARGC_ZERO], JSPROPERTY[0], &isJsColor);
-        if (isJsColor) {
-            int32_t argb[ARGC_FOUR] = {0};
-            if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
-                ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
-                return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Parameter verification failed. The range of color channels must be [0, 255].");
-            }
-            drawingColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
-        } else {
-            uint32_t hexNumber = 0;
-            GET_UINT32_PARAM(ARGC_ZERO, hexNumber);
-            uint32_t alpha = (hexNumber >> 24) & 0xFF;
-            uint32_t red = (hexNumber >> 16) & 0xFF;
-            uint32_t green = (hexNumber >> 8) & 0xFF;
-            uint32_t blue = hexNumber & 0xFF;
-            drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
+        ColorQuad color;
+        if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
+            ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter verification failed. The range of color channels must be [0, 255].");
         }
+        drawingColor.SetColorQuad(color);
     } else if (argc == ARGC_FOUR) {
         int32_t alpha = 0;
         GET_COLOR_PARAM(ARGC_ZERO, alpha);
@@ -751,7 +739,7 @@ napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)
     }
 
     Color color = pen->GetColor();
-    return GetHexColorAndConvertToJsValue(env, color);
+    return CreateJsNumber(env, color.CastToColorQuad());
 }
 
 Pen* JsPen::GetPen()

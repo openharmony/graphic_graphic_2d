@@ -846,6 +846,8 @@ HWTEST_F(CanvasTest, GetDrawingTypeTest001, TestSize.Level1)
     std::shared_ptr<Drawing::OverDrawCanvas> overDrawCanvas;
     DrawingType type = overDrawCanvas->GetDrawingType();
     ASSERT_TRUE(type == DrawingType::OVER_DRAW);
+    overDrawCanvas->SetGrContext(nullptr);
+    EXPECT_EQ(overDrawCanvas->GetGPUContext(), nullptr);
 }
 
 /**

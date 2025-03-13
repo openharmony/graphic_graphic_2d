@@ -35,7 +35,7 @@ struct RSDrawingContext {
 
 class RSC_EXPORT RSExtendedModifierHelper {
 public:
-    static RSDrawingContext CreateDrawingContext(NodeId nodeId);
+    static RSDrawingContext CreateDrawingContext(std::weak_ptr<RSCanvasNode> canvasnode);
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
@@ -56,6 +56,11 @@ public:
     }
     virtual void Draw(RSDrawingContext& context) const = 0;
 
+    void SetNoNeedUICaptured(bool noNeedUICaptured)
+    {
+        noNeedUICaptured_ = noNeedUICaptured;
+    }
+
 protected:
     explicit RSExtendedModifier(const RSModifierType type, const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, type)
@@ -74,7 +79,8 @@ protected:
         if (node == nullptr) {
             return nullptr;
         }
-        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
+        std::weak_ptr<RSCanvasNode> canvasnode = RSBaseNode::ReinterpretCast<RSCanvasNode>(node);
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(canvasnode);
         Draw(ctx);
         return RSExtendedModifierHelper::CreateRenderModifier(ctx, property_->GetId(), GetModifierType());
     }
@@ -85,29 +91,32 @@ protected:
         if (node == nullptr) {
             return;
         }
-        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(node->GetId());
+        std::weak_ptr<RSCanvasNode> canvasnode = RSBaseNode::ReinterpretCast<RSCanvasNode>(node);
+        RSDrawingContext ctx = RSExtendedModifierHelper::CreateDrawingContext(canvasnode);
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
         bool isEmpty = drawCmdList == nullptr;
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;
         }
+        if (drawCmdList) {
+            drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
+            drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
+        }
         lastDrawCmdListEmpty_ = isEmpty;
 
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
             node->GetId(), drawCmdList, property_->id_, UPDATE_TYPE_OVERWRITE);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, node->IsRenderServiceNode());
-            if (node->NeedForcedSendToRemote()) {
-                std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, UPDATE_TYPE_OVERWRITE);
-                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-            }
+        node->AddCommand(command, node->IsRenderServiceNode());
+        if (node->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
+                node->GetId(), drawCmdList, property_->id_, UPDATE_TYPE_OVERWRITE);
+            node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
         }
     }
 private:
     bool lastDrawCmdListEmpty_ = false;
+    bool noNeedUICaptured_ = false;
 };
 
 class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {
@@ -132,7 +141,13 @@ protected:
         if (node == nullptr) {
             return nullptr;
         }
-        auto canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        std::shared_ptr<RSCanvasNode> canvasnode;
+        auto uiContext = node->GetRSUIContext();
+        if (uiContext == nullptr) {
+            canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        } else {
+            canvasnode = uiContext->GetNodeMap().GetNode<RSCanvasNode>(node->GetId());
+        }
         if (canvasnode == nullptr) {
             return nullptr;
         }
@@ -148,21 +163,24 @@ protected:
         if (node == nullptr) {
             return;
         }
-        auto canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        std::shared_ptr<RSCanvasNode> canvasnode;
+        auto uiContext = node->GetRSUIContext();
+        if (uiContext == nullptr) {
+            canvasnode = RSNodeMap::Instance().GetNode<RSCanvasNode>(node->GetId());
+        } else {
+            canvasnode = uiContext->GetNodeMap().GetNode<RSCanvasNode>(node->GetId());
+        }
         if (canvasnode == nullptr) {
             return;
         }
         auto matrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawingMatrix>(
             node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, node->IsRenderServiceNode());
-            if (node->NeedForcedSendToRemote()) {
-                std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawingMatrix>(
-                    node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
-                transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-            }
+        node->AddCommand(command, node->IsRenderServiceNode());
+        if (node->NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawingMatrix>(
+                node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
+            node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
         }
     }
 };

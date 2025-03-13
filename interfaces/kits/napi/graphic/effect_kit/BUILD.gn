@@ -33,7 +33,6 @@ config("graphic_napi_effect_kit_config") {
 
   include_dirs = [
     "./include",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",

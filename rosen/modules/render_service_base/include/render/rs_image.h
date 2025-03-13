@@ -36,6 +36,7 @@ struct AdaptiveImageInfo {
     int32_t width = 0;
     int32_t height = 0;
     uint32_t dynamicRangeMode = 0;
+    int32_t rotateDegree = 0;
     Rect frameRect;
     Drawing::Matrix fitMatrix = Drawing::Matrix();
 };
@@ -94,6 +95,7 @@ public:
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
     void SetImageFit(int fitNum);
     void SetImageRepeat(int repeatNum);
+    void SetImageRotateDegree(int32_t degree);
     void SetRadius(const std::vector<Drawing::Point>& radius);
     void SetScale(double scale);
     void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
@@ -103,10 +105,10 @@ public:
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     void SetPaint(Drawing::Paint paint);
-    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
+    void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
-    
+
     void ApplyImageFit();
     ImageFit GetImageFit();
     Drawing::AdaptiveImageInfo GetAdaptiveImageInfoWithCustomizedFrameRect(const Drawing::Rect& frameRect) const;
@@ -140,15 +142,25 @@ private:
     bool HasRadius() const;
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
+    std::pair<float, float> CalculateByDegree(const Drawing::Rect& rect);
+    void DrawImageRect(
+            Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
+    bool CanDrawRectWithImageShader(const Drawing::Canvas& canvas) const;
+    std::shared_ptr<Drawing::ShaderEffect> GenerateImageShaderForDrawRect(
+        const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
+    void DrawImageShaderRectOnCanvas(
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
+    void DrawImageWithFirMatrixRotateOnCanvas(
+        const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
         Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
-        bool& hasFitMatrix, Drawing::Matrix& fitMatrix);
+        bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
@@ -161,9 +173,11 @@ private:
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
+    int32_t rotateDegree_;
     Drawing::Paint paint_;
     uint32_t dynamicRangeMode_ = 0;
     std::optional<Drawing::Matrix> fitMatrix_ = std::nullopt;
+    bool isFitMatrixValid_ = false;
 };
 
 template<>

@@ -23,6 +23,7 @@
 #include "ge_magnifier_shader_filter.h"
 #include "ge_visual_effect_impl.h"
 #include "ge_water_ripple_filter.h"
+#include "ge_external_dynamic_loader.h"
 
 namespace OHOS {
 namespace GraphicsEffectEngine {
@@ -68,6 +69,40 @@ std::shared_ptr<Drawing::Image> GERender::ApplyImageEffect(Drawing::Canvas& canv
     return resImage;
 }
 
+std::shared_ptr<GEShaderFilter> GERender::GenerateExtShaderFilter(
+    const std::shared_ptr<Drawing::GEVisualEffectImpl>& ve)
+{
+    auto type = ve->GetFilterType();
+    switch (type) {
+        case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
+            const auto& mesaParams = ve->GetMESAParams();
+            auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+                static_cast<uint32_t>(type), sizeof(Drawing::GEMESABlurShaderFilterParams),
+                static_cast<void*>(mesaParams.get()));
+            if (!object) {
+                return std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
+            }
+            std::shared_ptr<GEMESABlurShaderFilter> dmShader(static_cast<GEMESABlurShaderFilter*>(object));
+            return dmShader;
+        }
+        case Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR: {
+            const auto& linearGradientBlurParams = ve->GetLinearGradientBlurParams();
+            auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+                static_cast<uint32_t>(type), sizeof(Drawing::GELinearGradientBlurShaderFilterParams),
+                static_cast<void*>(linearGradientBlurParams.get()));
+            if (!object) {
+                return std::make_shared<GELinearGradientBlurShaderFilter>(*linearGradientBlurParams);
+            }
+            std::shared_ptr<GELinearGradientBlurShaderFilter>
+                dmShader(static_cast<GELinearGradientBlurShaderFilter*>(object));
+            return dmShader;
+        }
+        default:
+            break;
+    }
+    return nullptr;
+}
+
 std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
     Drawing::GEVisualEffectContainer& veContainer)
 {
@@ -84,8 +119,7 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
-                const auto& mesaParams = ve->GetMESAParams();
-                shaderFilter = std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
+                shaderFilter = GenerateExtShaderFilter(ve);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::AIBAR: {
@@ -99,18 +133,17 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR: {
-                const auto& linearGradientBlurParams = ve->GetLinearGradientBlurParams();
-                shaderFilter = std::make_shared<GELinearGradientBlurShaderFilter>(*linearGradientBlurParams);
-                break;
-            }
-            case Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE: {
-                const auto& waterRippleParams = ve->GetWaterRippleParams();
-                shaderFilter = std::make_shared<GEWaterRippleFilter>(*waterRippleParams);
+                shaderFilter = GenerateExtShaderFilter(ve);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER: {
                 const auto& magnifierParams = ve->GetMagnifierParams();
                 shaderFilter = std::make_shared<GEMagnifierShaderFilter>(*magnifierParams);
+                break;
+            }
+            case Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE: {
+                const auto& waterRippleParams = ve->GetWaterRippleParams();
+                shaderFilter = std::make_shared<GEWaterRippleFilter>(*waterRippleParams);
                 break;
             }
             default:

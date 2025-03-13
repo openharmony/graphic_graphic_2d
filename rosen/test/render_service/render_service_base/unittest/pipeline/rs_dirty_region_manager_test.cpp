@@ -106,6 +106,54 @@ HWTEST_F(RSDirtyRegionManagerTest, SetSurfaceSize001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ResetDirtyAsSurfaceSize001
+ * @tc.desc: test ResetDirtyAsSurfaceSize
+ * @tc.type: FUNC
+ * @tc.require: issueIB5YPQ
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ResetDirtyAsSurfaceSize001, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    RectI surfaceRect(0, 0, validWidth, validHeight);
+    bool ret = rsDirtyManager->SetSurfaceRect(surfaceRect);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(rsDirtyManager->GetSurfaceRect(), surfaceRect);
+    RectI emptyRect;
+    rsDirtyManager->SetActiveSurfaceRect(emptyRect);
+    EXPECT_EQ(rsDirtyManager->GetActiveSurfaceRect(), emptyRect);
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), surfaceRect);
+
+    RectI halfSurfaceRect(0, 0, validWidth, validHeight / 2);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->GetActiveSurfaceRect(), halfSurfaceRect);
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), halfSurfaceRect);
+}
+
+/*
+ * @tc.name: IsActiveSurfaceRectChanged001
+ * @tc.desc: test IsActiveSurfaceRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issueIB5YPQ
+ */
+HWTEST_F(RSDirtyRegionManagerTest, IsActiveSurfaceRectChanged001, Function | SmallTest | Level2)
+{
+    int32_t validWidth = 1920;
+    int32_t validHeight = 1080;
+    RectI surfaceRect(0, 0, validWidth, validHeight);
+    RectI halfSurfaceRect(0, 0, validWidth, validHeight / 2);
+    bool ret = rsDirtyManager->SetSurfaceRect(surfaceRect);
+    EXPECT_EQ(ret, true);
+    rsDirtyManager->SetActiveSurfaceRect(surfaceRect);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->IsActiveSurfaceRectChanged(), true);
+    rsDirtyManager->SetActiveSurfaceRect(halfSurfaceRect);
+    EXPECT_EQ(rsDirtyManager->IsActiveSurfaceRectChanged(), false);
+}
+
+/*
  * @tc.name: GetDefaultDirtyRegion
  * @tc.desc: Get dirtyManager's default dirty region
  * @tc.type: FUNC
@@ -217,10 +265,12 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyInvalid, Function | SmallTest | Le
         HiviewDFX::HiLog::Info(LOG_LABEL, "UpdateDirtyInvalid curDirtyRect %s invalidRect %s",
             curDirtyRect.ToString().c_str(), invalidRect.ToString().c_str());
         EXPECT_EQ(curDirtyRect, defaultRect);
+        EXPECT_EQ(static_cast<int>(rsDirtyManager->advancedDirtyHistory_[i].size()), 0);
 
         // get merged frames' dirty(buffer age)
         curDirtyRect = rsDirtyManager->GetDirtyRegion();
         EXPECT_EQ(curDirtyRect, defaultRect);
+        EXPECT_EQ(rsDirtyManager->GetAdvancedDirtyRegion().size(), 0);
     }
 }
 
@@ -238,6 +288,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
     validRects.push_back(RectI(20, -50, 180, 360));
     RectI joinedRect = RectI();
     RectI curDirtyRect = RectI();
+    std::vector<int> advancedDirtyRegionArea = {129600, 145800, 154800};
 
     for (int i = 0; i < validRects.size(); ++i) {
         rsDirtyManager->Clear();
@@ -250,6 +301,8 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
         HiviewDFX::HiLog::Info(LOG_LABEL, "UpdateDirtyValid curDirtyRect %s validRect %s",
             curDirtyRect.ToString().c_str(), validRect.ToString().c_str());
         EXPECT_EQ(curDirtyRect, validRect);
+        EXPECT_EQ(static_cast<int>(rsDirtyManager->advancedDirtyHistory_[i].size()), 1);
+        EXPECT_EQ(rsDirtyManager->advancedDirtyHistory_[i][0], validRects[i]);
 
         joinedRect = joinedRect.JoinRect(validRect);
         // get merged frames' dirty(buffer age)
@@ -257,6 +310,11 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
         HiviewDFX::HiLog::Info(LOG_LABEL, "UpdateDirtyValid hisDirtyRect %s joinedRect %s",
             curDirtyRect.ToString().c_str(), joinedRect.ToString().c_str());
         EXPECT_EQ(curDirtyRect, joinedRect);
+        int totalArea = 0;
+        for (const auto& rect : rsDirtyManager->GetAdvancedDirtyRegion()) {
+            totalArea += rect.GetWidth() * rect.GetHeight();
+        }
+        EXPECT_EQ(totalArea, advancedDirtyRegionArea[i]);
     }
 }
 
@@ -506,6 +564,10 @@ HWTEST_F(RSDirtyRegionManagerTest, IntersectDirtyRect, TestSize.Level1)
     RectI rect = DEFAULT_RECT;
     fun.IntersectDirtyRect(rect);
     EXPECT_TRUE(fun.GetCurrentFrameDirtyRegion().IsEmpty());
+    auto currentFrameAdvancedDirtyRegion = fun.GetCurrentFrameAdvancedDirtyRegion();
+    for (const auto& rect : currentFrameAdvancedDirtyRegion) {
+        EXPECT_TRUE(rect.IsEmpty());
+    }
 }
 
 /**
@@ -680,7 +742,147 @@ HWTEST_F(RSDirtyRegionManagerTest, AlignHistory, TestSize.Level1)
 {
     RSDirtyRegionManager fun;
     fun.dirtyHistory_.push_back(RectI(1, 1, 1, 1));
+    std::vector<RectI> rects = {};
+    rects.push_back(RectI(1, 1, 1, 1));
+    fun.advancedDirtyHistory_.push_back(rects);
     fun.AlignHistory();
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetDirtyRegionForQuickReject
+ * @tc.desc: test results of SetDirtyRegionForQuickReject
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetDirtyRegionForQuickReject, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = RectI(0, 0, 100, 100);
+    fun.SetDirtyRegionForQuickReject({rect});
+    auto rects = fun.GetDirtyRegionForQuickReject();
+    EXPECT_EQ(static_cast<int>(rects.size()), 1);
+    EXPECT_EQ(rects[0], rect);
+}
+
+/**
+ * @tc.name: MergeDirtyRectMultipleValidRects1
+ * @tc.desc: DirtyManager will save these valid rects in currentFrameAdvancedDirtyRegion_ without merging
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectMultipleValidRects1, Function | SmallTest | TestSize.Level2)
+{
+    std::vector<RectI> validRects;
+    for (int i = 0; i < 5; ++i) {
+        validRects.push_back(RectI(i * 100, i * 100, 50, 50));
+    }
+    RSDirtyRegionManager fun;
+    fun.SetMaxNumOfDirtyRects(10);
+    for (int i = 0; i < 5; ++i) {
+        fun.MergeDirtyRect(validRects[i]);
+    }
+    auto advancedDirtyRegion = fun.GetCurrentFrameAdvancedDirtyRegion();
+    EXPECT_EQ(static_cast<int>(advancedDirtyRegion.size()), 5);
+    for (int i = 0; i < 5; ++i) {
+        EXPECT_EQ(advancedDirtyRegion[i], validRects[i]);
+    }
+}
+
+/**
+ * @tc.name: MergeDirtyRectMultipleValidRects2
+ * @tc.desc: DirtyManager will save these valid rects put it in currentFrameAdvancedDirtyRegion_
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectMultipleValidRects2, Function | SmallTest | TestSize.Level2)
+{
+    std::vector<RectI> validRects;
+    for (int i = 0; i < 12; ++i) {
+        validRects.push_back(RectI(i * 50, i * 50, 10, 10));
+    }
+    RSDirtyRegionManager fun;
+    RectI joinedRect = RectI();
+    for (int i = 0; i < 12; ++i) {
+        fun.MergeDirtyRect(validRects[i]);
+        joinedRect = joinedRect.JoinRect(validRects[i]);
+    }
+    auto advancedDirtyRegion = fun.GetCurrentFrameAdvancedDirtyRegion();
+    EXPECT_EQ(static_cast<int>(advancedDirtyRegion.size()), 1);
+    EXPECT_EQ(advancedDirtyRegion[0], joinedRect);
+}
+
+/**
+ * @tc.name: GetDefaultAdvancedDirtyRegion
+ * @tc.desc: Get dirtyManager's default advanced dirty region
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetDefaultAdvancedDirtyRegion, Function | SmallTest | TestSize.Level2)
+{
+    rsDirtyManager->Clear();
+    EXPECT_EQ(rsDirtyManager->GetAdvancedDirtyRegion().size(), 0);
+}
+
+/**
+ * @tc.name: ClearAdvancedDirtyRegion
+ * @tc.desc: Reset dirtyManager's advanced dirty region
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ClearAdvancedDirtyRegion, Function | SmallTest | TestSize.Level2)
+{
+    rsDirtyManager->Clear();
+    auto advancedDirtyRegion = rsDirtyManager->GetAdvancedDirtyRegion();
+    auto currentFrameAdvancedDirtyRegion = rsDirtyManager->GetCurrentFrameAdvancedDirtyRegion();
+    EXPECT_EQ(static_cast<int>(advancedDirtyRegion.size()), 0);
+    EXPECT_EQ(static_cast<int>(currentFrameAdvancedDirtyRegion.size()), 0);
+}
+
+/**
+ * @tc.name: GetAdvancedDirtyHistory
+ * @tc.desc: test results of GetAdvancedDirtyHistory
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetAdvancedDirtyHistory, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager fun;
+    unsigned int i = 1;
+    fun.GetAdvancedDirtyHistory(i);
+
+    i = 10;
+    fun.historySize_ = 10;
+    fun.GetAdvancedDirtyHistory(i);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetMaxNumOfDirtyRects
+ * @tc.desc: test invalid input for SetMaxNumOfDirtyRects
+ * @tc.type:FUNC
+ * @tc.require: issuesIBQYHB
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetMaxNumOfDirtyRects, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager fun1;
+    fun1.SetMaxNumOfDirtyRects(0);
+    std::vector<RectI> validRects;
+    for (int i = 0; i < 5; ++i) {
+        validRects.push_back(RectI(i * 100, i * 100, 50, 50));
+    }
+    for (int i = 0; i < 5; ++i) {
+        fun1.MergeDirtyRect(validRects[i]);
+    }
+    auto advancedDirtyRegion1 = fun1.GetCurrentFrameAdvancedDirtyRegion();
+    EXPECT_EQ(static_cast<int>(advancedDirtyRegion1.size()), 1);
+
+    RSDirtyRegionManager fun2;
+    fun2.SetMaxNumOfDirtyRects(-1);
+    for (int i = 0; i < 5; ++i) {
+        fun2.MergeDirtyRect(validRects[i]);
+    }
+    auto advancedDirtyRegion2 = fun2.GetCurrentFrameAdvancedDirtyRegion();
+    EXPECT_EQ(static_cast<int>(advancedDirtyRegion2.size()), 1);
 }
 } // namespace OHOS::Rosen

@@ -96,7 +96,7 @@ void RunImpl::GetStringRange(uint64_t* location, uint64_t* length) const
     if (location == nullptr || length == nullptr) {
         return;
     } else if (runBase_ == nullptr) {
-        *location= 0;
+        *location = 0;
         *length = 0;
         return;
     }

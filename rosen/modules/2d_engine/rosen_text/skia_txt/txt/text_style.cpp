@@ -84,7 +84,7 @@ bool TextShadow::HasShadow() const
     return !offset.isZero() || blurSigma > blurThreshold;
 }
 
-TextStyle::TextStyle() : fontFamilies(GetDefaultFontFamilies()) {}
+TextStyle::TextStyle() : fontFamilies(SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies()) {}
 
 bool TextStyle::operator==(TextStyle const& other) const
 {

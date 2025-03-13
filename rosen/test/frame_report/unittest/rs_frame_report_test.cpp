@@ -67,7 +67,7 @@ HWTEST_F(RsFrameReportTest, ProcessCommandsStart001, TestSize.Level1)
     EXPECT_NE(fr.processCommandsStartFun_, nullptr);
     fr.ProcessCommandsStart();
 }
-
+ 
 /**
  * @tc.name: AnimateStart001
  * @tc.desc: test
@@ -82,7 +82,7 @@ HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
     EXPECT_NE(fr.animateStartFunc_, nullptr);
     fr.AnimateStart();
 }
-
+ 
 /**
  * @tc.name: RenderStart001
  * @tc.desc: test
@@ -94,13 +94,13 @@ HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     EXPECT_EQ(fr.renderStartFunc_, nullptr);
     uint64_t timestamp = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
     fr.RenderStart(timestamp);
     EXPECT_NE(fr.renderStartFunc_, nullptr);
     fr.RenderStart(timestamp);
 }
-
+ 
 /**
  * @tc.name: RSRenderStart001
  * @tc.desc: test
@@ -115,7 +115,7 @@ HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
     EXPECT_NE(fr.parallelRenderStartFunc_, nullptr);
     fr.RSRenderStart();
 }
-
+ 
 /**
  * @tc.name: RenderEnd001
  * @tc.desc: test
@@ -130,7 +130,7 @@ HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
     EXPECT_NE(fr.renderEndFunc_, nullptr);
     fr.RenderEnd();
 }
-
+ 
 /**
  * @tc.name: RSRenderEnd001
  * @tc.desc: test

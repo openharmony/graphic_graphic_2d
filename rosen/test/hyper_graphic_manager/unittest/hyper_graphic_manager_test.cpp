@@ -73,6 +73,73 @@ HWTEST_F(HyperGraphicManagerTest, Instance, Function | SmallTest | Level4)
 }
 
 /**
+ * @tc.name: Instance2
+ * @tc.desc: Verify the independency of HgmCore instance2
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto defaultRateMode = "0";
+            auto newRateMode = "1";
+            RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
+            auto &instance1 = HgmCore::Instance();
+            RSSystemProperties::SetHgmRefreshRateModesEnabled(defaultRateMode);
+            auto &instance2 = HgmCore::Instance();
+            STEP_ASSERT_EQ(&instance1, &instance2);
+        }
+    }
+}
+
+/**
+ * @tc.name: SetAsConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetAsConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto &instance1 = HgmCore::Instance();
+            auto curScreenStrategyId = instance1.hgmFrameRateMgr_->GetCurScreenStrategyId();
+            auto& curScreenSetting = instance1.mPolicyConfigData_->screenConfigs_[
+                curScreenStrategyId][std::to_string(instance1.customFrameRateMode_)];
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 0);
+            curScreenSetting.ltpoConfig["adaptiveSync"] = "1";
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 1);
+            curScreenSetting.ltpoConfig["adaptiveSync"] = "2";
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 0);
+        }
+    }
+}
+
+
+/**
+ * @tc.name: GetActiveScreenTest
+ * @tc.desc: Verify the independency of HgmCore GetActiveScreenTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, GetActiveScreenTest, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto &instance1 = HgmCore::Instance();
+            STEP_ASSERT_NE(instance1.GetActiveScreen(), nullptr);
+            instance1.hgmFrameRateMgr_->curScreenId_.store(INVALID_SCREEN_ID);
+            STEP_ASSERT_EQ(instance1.GetActiveScreen(), nullptr);
+        }
+    }
+}
+
+
+/**
  * @tc.name: IsInit
  * @tc.desc: Verify the result of initialization
  * @tc.type: FUNC
@@ -152,7 +219,6 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
 
             instance5.SetActiveScreenId(screenId);
             activeScreen = instance5.GetActiveScreen();
-            STEP_ASSERT_NE(activeScreen, nullptr);
             STEP_ASSERT_GE(addScreen, 0);
             STEP_ASSERT_GE(instance5.GetActiveScreenId(), 0);
         }
@@ -360,7 +426,10 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     instance.AddScreen(screenId1, 0, screenSize);
     EXPECT_GE(screen->GetActiveRefreshRate(), 0);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), 2);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(SWITCH_SCREEN_SCENE, rate2), 2);
     screen2->SetRateAndResolution(screenId2, rate2, width, height);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height), mode);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate3, width, height), -1);
@@ -574,6 +643,9 @@ HWTEST_F(HyperGraphicManagerTest, NotifyScreenPowerStatus, Function | SmallTest 
     ScreenId screenId = 8;
     auto &instance = HgmCore::Instance();
     instance.NotifyScreenPowerStatus(screenId, POWER_STATUS_ON);
+    if (instance.hgmFrameRateMgr_ != nullptr) {
+        EXPECT_NE(instance.hgmFrameRateMgr_->curScreenId_, screenId);
+    }
 }
 
 
@@ -602,6 +674,27 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
     EXPECT_EQ(instance.GetEnableDynamicMode(), true);
     instance.SetEnableDynamicMode(false);
     EXPECT_EQ(instance.GetEnableDynamicMode(), false);
+}
+
+/**
+ * @tc.name: SetHfbcConfigMap
+ * @tc.desc: Verify the result of SetHfbcConfigMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), 0);
+    std::unordered_map<std::string, std::string> hfbcConfig = {
+        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
+    };
+    hgmCore.SetHfbcConfigMap(hfbcConfig);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), hfbcConfig.size());
+    for (const auto& pkg : hfbcConfig) {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.find(pkg.first) !=
+            hgmCore.mPolicyConfigData_->hfbcConfig_.end(), true);
+    }
 }
 
 /**
@@ -643,6 +736,77 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     hgm.customFrameRateMode_ = savedFrameRateMode;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
+}
+
+/**
+ * @tc.name: SetActualTimestamp
+ * @tc.desc: Verify the result of SetActualTimestamp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    int64_t timestamp = 1700;
+    hgmCore.SetActualTimestamp(timestamp);
+    EXPECT_EQ(hgmCore.GetActualTimestamp() == timestamp, true);
+}
+
+/**
+ * @tc.name: SetVsyncId
+ * @tc.desc: Verify the result of SetVsyncId function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t vsyncId = 1800;
+    hgmCore.SetVsyncId(vsyncId);
+    EXPECT_EQ(hgmCore.GetVsyncId() == vsyncId, true);
+}
+
+/**
+ * @tc.name: SetForceRefreshFlag
+ * @tc.desc: Verify the result of SetForceRefreshFlag function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool isForceRefresh = false;
+    hgmCore.SetForceRefreshFlag(isForceRefresh);
+    EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
+}
+
+/**
+ * @tc.name: SetFastComposeTimeStampDiff
+ * @tc.desc: Verify the result of SetFastComposeTimeStampDiff function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool fastComposeTimeStampDiff = false;
+    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
+    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff() == fastComposeTimeStampDiff, true);
+}
+
+/**
+ * @tc.name: SetIdealPipelineOffset
+ * @tc.desc: Verify the result of SetIdealPipelineOffset function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    int32_t pipelineOffsetPulseNum = 6;
+    int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
+    hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
+    EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
 }
 } // namespace Rosen
 } // namespace OHOS

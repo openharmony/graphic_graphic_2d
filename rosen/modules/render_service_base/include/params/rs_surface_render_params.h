@@ -21,9 +21,11 @@
 #include <unordered_map>
 
 #include "common/rs_occlusion_region.h"
+#include "common/rs_special_layer_manager.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -101,6 +103,14 @@ public:
     {
         return alpha_;
     }
+    bool IsClonedNodeOnTheTree() const
+    {
+        return isClonedNodeOnTheTree_;
+    }
+    bool IsCrossNode() const
+    {
+        return isCrossNode_;
+    }
     bool IsSpherizeValid() const
     {
         return isSpherizeValid_;
@@ -125,68 +135,59 @@ public:
     {
         return rrect_;
     }
-
-    bool GetIsSecurityLayer() const
-    {
-        return isSecurityLayer_;
-    }
-    bool GetIsSkipLayer() const
-    {
-        return isSkipLayer_;
-    }
-    bool GetIsSnapshotSkipLayer() const
-    {
-        return isSnapshotSkipLayer_;
-    }
-    bool GetIsProtectedLayer() const
-    {
-        return isProtectedLayer_;
-    }
     bool GetAnimateState() const
     {
         return animateState_;
+    }
+    void SetStencilVal(int64_t stencilVal)
+    {
+        stencilVal_ = stencilVal;
+    }
+    int64_t GetStencilVal() const
+    {
+        return stencilVal_;
+    }
+    void SetIsOutOfScreen(bool isOutOfScreen)
+    {
+        if (isOutOfScreen_ == isOutOfScreen) {
+            return;
+        }
+        isOutOfScreen_ = isOutOfScreen;
+        needSync_ = true;
+    }
+    bool GetIsOutOfScreen()
+    {
+        return isOutOfScreen_;
     }
     bool GetIsRotating() const
     {
         return isRotating_;
     }
-    const std::set<NodeId>& GetSecurityLayerIds() const
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
     {
-        return securityLayerIds_;
+        return specialLayerManager_;
     }
-    const std::set<NodeId>& GetSkipLayerIds() const
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
     {
-        return skipLayerIds_;
-    }
-    const std::set<NodeId>& GetSnapshotSkipLayerIds() const
-    {
-        return snapshotSkipLayerIds_;
-    }
-    bool HasSecurityLayer()
-    {
-        return securityLayerIds_.size() != 0;
-    }
-    bool HasSkipLayer()
-    {
-        return skipLayerIds_.size() != 0;
-    }
-    bool HasSnapshotSkipLayer()
-    {
-        return snapshotSkipLayerIds_.size() != 0;
-    }
-    bool HasProtectedLayer()
-    {
-        return protectedLayerIds_.size() != 0;
+        return specialLayerManager_;
     }
     bool HasPrivacyContentLayer()
     {
         return privacyContentLayerIds_.size() != 0;
     }
 
+    LeashPersistentId GetLeashPersistentId() const
+    {
+        return leashPersistentId_;
+    }
+
     std::string GetName() const
     {
         return name_;
     }
+
+    // [Attention] The function only used for unlocking screen for PC currently
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
     void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
     {
@@ -202,31 +203,19 @@ public:
         return isLeashWindowVisibleRegionEmpty_;
     }
 
-    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
-            return;
+            return false;
         }
         uiFirstFlag_ = isUifirst;
         needSync_ = true;
+        return true;
     }
 
     MultiThreadCacheType GetUifirstNodeEnableParam() const
     {
         return uiFirstFlag_;
-    }
-
-    void SetBufferClearCacheSet(const std::set<int32_t> bufferCacheSet)
-    {
-        if (bufferCacheSet.size() > 0) {
-            bufferCacheSet_ = bufferCacheSet;
-            needSync_ = true;
-        }
-    }
-
-    const std::set<int32_t> GetBufferClearCacheSet()
-    {
-        return bufferCacheSet_;
     }
 
     void SetIsParentUifirstNodeEnableParam(bool isUifirstParent)
@@ -327,8 +316,12 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
-    void SetHardCursorEnabled(bool enabled);
-    bool IsHardCursorEnabled() const override;
+    void SetNeedMakeImage(bool enabled);
+    bool GetNeedMakeImage() const override;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const override;
+    void SetPreSubHighPriorityType(bool enabledType);
+    bool GetPreSubHighPriorityType() const;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -368,19 +361,6 @@ public:
     const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
     bool IsWatermarkEmpty() const;
 
-    void SetPreScalingMode(ScalingMode scalingMode) override
-    {
-        if (preScalingMode_ == scalingMode) {
-            return;
-        }
-        preScalingMode_ = scalingMode;
-        needSync_ = true;
-    }
-    ScalingMode GetPreScalingMode() const override
-    {
-        return preScalingMode_;
-    }
-
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
@@ -389,9 +369,27 @@ public:
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    inline void SetBufferSynced(bool bufferSynced)
+    {
+        bufferSynced_ = bufferSynced;
+    }
+    bool IsBufferSynced() const
+    {
+        return bufferSynced_;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
+    void SetRoundedCornerRegion(const Occlusion::Region& roundedCornerRegion)
+    {
+        roundedCornerRegion_ = roundedCornerRegion;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
+    }
 
     // DFX
     std::string ToString() const override;
@@ -399,18 +397,9 @@ public:
     void SetOpaqueRegion(const Occlusion::Region& opaqueRegion);
     const Occlusion::Region& GetOpaqueRegion() const;
 
-    void SetNeedOffscreen(bool needOffscreen)
+    bool GetNeedOffscreen() const override
     {
-        if (needOffscreen_ == needOffscreen) {
-            return;
-        }
-        needOffscreen_ = needOffscreen;
-        needSync_ = true;
-    }
-
-    bool GetNeedOffscreen() const
-    {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? RSRenderParams::GetNeedOffscreen() : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -446,7 +435,49 @@ public:
         return false;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        if (drmCornerRadiusInfo_ == drmCornerRadiusInfo) {
+            return;
+        }
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        needSync_ = true;
+    }
+
+    void SetForceDisableClipHoleForDRM(bool isForceDisable)
+    {
+        if (isForceDisableClipHoleForDRM_ == isForceDisable) {
+            return;
+        }
+        isForceDisableClipHoleForDRM_ = isForceDisable;
+        needSync_ = true;
+    }
+
+    bool GetForceDisableClipHoleForDRM() const
+    {
+        return isForceDisableClipHoleForDRM_;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
+    void SetHDRPresent(bool hasHdrPresent)
+    {
+        if (hasHdrPresent_ == hasHdrPresent) {
+            return;
+        }
+        hasHdrPresent_ = hasHdrPresent;
+        needSync_ = true;
+    }
+
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
+
+    void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
             return;
@@ -455,12 +486,12 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
             return;
@@ -469,7 +500,7 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -488,8 +519,119 @@ public:
         return brightnessRatio_;
     }
 
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
+    {
+        if (layerLinearMatrix_ == layerLinearMatrix) {
+            return;
+        }
+        layerLinearMatrix_ = layerLinearMatrix;
+        needSync_ = true;
+    }
+
+    std::vector<float> GetLayerLinearMatrix() const
+    {
+        return layerLinearMatrix_;
+    }
+
+    void SetSdrHasMetadata(bool hasMetadata)
+    {
+        if (hasMetadata_ == hasMetadata) {
+            return;
+        }
+        hasMetadata_ = hasMetadata;
+        needSync_ = true;
+    }
+
+    bool GetSdrHasMetadata() const
+    {
+        return hasMetadata_;
+    }
+
+    // [Attention] The function only used for unlocking screen for PC currently
+    bool IsCloneNode() const;
+
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
+
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetCrossNodeSkipDisplayConversionMatrix() const
+    {
+        return crossNodeSkipDisplayConversionMatrices_;
+    }
+
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+    {
+        if (ROSEN_EQ(apiCompatibleVersion_, apiCompatibleVersion)) {
+            return;
+        }
+        apiCompatibleVersion_ = apiCompatibleVersion;
+        needSync_ = true;
+    }
+    uint32_t GetApiCompatibleVersion() const
+    {
+        return apiCompatibleVersion_;
+    }
+
+    // [Attention] The function only used for unlocking screen for PC currently
+    bool ClonedSourceNode() const
+    {
+        return clonedSourceNode_;
+    }
+
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetIsCloned(bool isCloned)
+    {
+        if (clonedSourceNode_ == isCloned) {
+            return;
+        }
+        clonedSourceNode_ = isCloned;
+        needSync_ = true;
+    }
+
+    void SetIsBufferFlushed(bool isBufferFlushed)
+    {
+        if (isBufferFlushed_ == isBufferFlushed) {
+            return;
+        }
+        isBufferFlushed_ = isBufferFlushed;
+        needSync_ = true;
+    }
+
+    bool GetIsBufferFlushed() const
+    {
+        return isBufferFlushed_;
+    }
+
+    void SetIsUnobscuredUEC(bool flag)
+    {
+        IsUnobscuredUIExtension_ = flag;
+    }
+
+    bool IsUnobscuredUIExtension() const
+    {
+        return IsUnobscuredUIExtension_;
+    }
+
+    void MarkSurfaceCapturePipeline()
+    {
+        isSurfaceCapturePipeline_ = true;
+    }
 
 protected:
 private:
@@ -500,8 +642,13 @@ private:
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
 
     float alpha_ = 0;
+    bool isClonedNodeOnTheTree_ = false;
+    bool isCrossNode_ = false;
+    bool isCloneNode_ = false;
+    bool clonedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -510,6 +657,7 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -518,7 +666,12 @@ private:
     RRect rrect_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
+    Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
+
+    bool IsUnobscuredUIExtension_ = false;
+
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;
@@ -538,27 +691,24 @@ private:
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
+    bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
-    bool isHardCursorEnabled_ = false;
+    bool needMakeImage_ = false;
+    bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool subHighPriorityType_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
-    bool isSecurityLayer_ = false;
-    bool isSkipLayer_ = false;
-    bool isSnapshotSkipLayer_ = false;
-    bool isProtectedLayer_ = false;
     bool animateState_ = false;
+    bool isOutOfScreen_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
-    std::set<NodeId> skipLayerIds_= {};
-    std::set<NodeId> snapshotSkipLayerIds_= {};
-    std::set<NodeId> securityLayerIds_= {};
-    std::set<NodeId> protectedLayerIds_= {};
+    RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
@@ -566,24 +716,40 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
-    ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needHidePrivacyContent_ = false;
-    bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
+    std::vector<float> drmCornerRadiusInfo_;
+    bool isForceDisableClipHoleForDRM_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
     // hdr
-    int32_t sdrNit_ = 500; // default sdrNit
-    int32_t displayNit_ = 500; // default displayNit_
-    float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    bool hasHdrPresent_ = false;
+    float sdrNit_ = 500.0f; // default sdrNit
+    float displayNit_ = 500.0f; // default displayNit_
+    float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    // color temperature
+    std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
+    bool hasMetadata_ = false; // SDR with metadata
     bool needCacheSurface_ = false;
+    
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+    std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
+
+    uint32_t apiCompatibleVersion_ = 0;
+
+    bool isSurfaceCapturePipeline_ = false;
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
+
+    bool isBufferFlushed_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

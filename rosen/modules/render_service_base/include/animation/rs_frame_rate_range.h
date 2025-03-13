@@ -22,18 +22,19 @@
 namespace OHOS {
 namespace Rosen {
 // different ltpo frame rate vote type
-constexpr int32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
-constexpr int32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
-constexpr int32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
-constexpr int32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
-constexpr int32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
+constexpr uint32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
+constexpr uint32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
+constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
+constexpr uint32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
+constexpr uint32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
 // extent info of ltpo frame rate vote: it indicates the frame contains the first frame of animation,
 // its value should be independent from above types
-constexpr int32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;
+constexpr uint32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
     SWIPER_FLING = 1,
+    WEBVIEW = 2,
 };
 
 class FrameRateRange {
@@ -43,11 +44,11 @@ public:
 
     FrameRateRange(int min, int max, int preferred) : min_(min), max_(max), preferred_(preferred) {}
 
-    FrameRateRange(int min, int max, int preferred, int type) : min_(min), max_(max),
+    FrameRateRange(int min, int max, int preferred, uint32_t type) : min_(min), max_(max),
         preferred_(preferred), type_(type) {}
 
-    FrameRateRange(int min, int max, int preferred, int type, ComponentScene componentScene) : min_(min), max_(max),
-        preferred_(preferred), type_(type), componentScene_(componentScene) {}
+    FrameRateRange(int min, int max, int preferred, uint32_t type, ComponentScene componentScene)
+        : min_(min), max_(max), preferred_(preferred), type_(type), componentScene_(componentScene) {}
 
     bool IsZero() const
     {
@@ -82,7 +83,7 @@ public:
         this->preferred_ = preferred;
     }
 
-    void Set(int min, int max, int preferred, int type)
+    void Set(int min, int max, int preferred, uint32_t type)
     {
         this->min_ = min;
         this->max_ = max;
@@ -128,7 +129,7 @@ public:
                 return "";
         }
         if ((type_ & ANIMATION_STATE_FIRST_FRAME) != 0) {
-            extInfo += "FIRST_FRAME";
+            extInfo += "_FIRST_UI_ANIMATION_FRAME";
         }
         return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
     }
@@ -138,6 +139,8 @@ public:
         switch (componentScene_) {
             case ComponentScene::SWIPER_FLING:
                 return "SWIPER_FLING";
+            case ComponentScene::WEBVIEW:
+                return "WEBVIEW";
             default:
                 return "UNKNOWN_SCENE";
         }
@@ -157,7 +160,7 @@ public:
     int min_ = 0;
     int max_ = 0;
     int preferred_ = 0;
-    int type_ = 0;
+    uint32_t type_ = 0;
     bool isEnergyAssurance_ = false;
     ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
 };

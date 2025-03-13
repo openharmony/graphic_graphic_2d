@@ -42,7 +42,7 @@ public:
 
     bool Animate(int64_t time, int64_t vsyncPeriod = 0);
     void Draw();
-    bool HasFirstFrameAnimation();
+    bool GetAndResetFirstFrameAnimationState();
 
     void SetFrameRateGetFunc(const FrameRateGetFunc& func);
     const FrameRateRange GetFrameRateRange() const;

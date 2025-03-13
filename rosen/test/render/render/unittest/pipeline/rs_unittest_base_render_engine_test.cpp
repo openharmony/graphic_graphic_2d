@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/rs_base_render_engine.h"
-#include "pipeline/rs_render_engine.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "recording/recording_canvas.h"
 #include "rs_test_util.h"
 
@@ -102,31 +102,6 @@ HWTEST(RSBaseRenderEngineExtUnitTest, DrawDisplayNodeWithParams01, TestSize.Leve
         param.useCPU = true;
         renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
     }
-}
-
-/**
- * @tc.name: CheckIsHdrSurfaceBuffer01
- * @tc.desc: Test CheckIsHdrSurfaceBuffer
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST(RSBaseRenderEngineExtUnitTest, CheckIsHdrSurfaceBuffer01, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
-    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
-    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
-    bool ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, false);
-    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
-    ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, false);
 }
 
 #ifdef RS_ENABLE_EGLIMAGE

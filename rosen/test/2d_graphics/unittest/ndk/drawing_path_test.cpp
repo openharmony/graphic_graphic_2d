@@ -705,6 +705,7 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathAddPolygon031, TestSiz
     OH_Drawing_PathAddPolygon(nullptr, src, ADDPOLYGON_COUNT, true);
     OH_Drawing_PathAddPolygon(nullptr, nullptr, ADDPOLYGON_COUNT, true);
     OH_Drawing_PathAddPolygon(path, src, ADDPOLYGON_COUNT, true);
+    EXPECT_TRUE(reinterpret_cast<Path*>(path)->IsValid());
     OH_Drawing_PathDestroy(path);
 }
 
@@ -857,6 +858,58 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetMatrix038, TestSize
     EXPECT_TRUE(OH_Drawing_PathGetMatrix(path, false, distance, matrix, GET_POSITION_MATRIX));
     OH_Drawing_PathDestroy(path);
     OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetSegment039
+ * @tc.desc: test for Gets the path between the start and end points.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetSegment039, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, 100, 100);
+    OH_Drawing_PathLineTo(path, 100, 200);
+    OH_Drawing_PathLineTo(path, 200, 200);
+    OH_Drawing_Path* newPath = OH_Drawing_PathCreate();
+    bool result = false;
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, false, 120, 180, false, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 120, 280, false, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, -50, 999, false, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, false, 120, 180, true, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 120, 280, true, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, -50, 999, true, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 120, 120, false, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 130, 120, false, newPath, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(nullptr, true, 120, 180, false, newPath, &result),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 130, 120, false, nullptr, &result),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_PathGetSegment(path, true, 130, 120, false, newPath, nullptr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_PathDestroy(newPath);
+    OH_Drawing_PathDestroy(path);
 }
 } // namespace Drawing
 } // namespace Rosen

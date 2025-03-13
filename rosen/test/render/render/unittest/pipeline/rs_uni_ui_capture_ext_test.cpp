@@ -14,9 +14,9 @@
  */
 
 #include "gtest/gtest.h"
-#include "pipeline/rs_uni_ui_capture.h"
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "feature/capture/rs_uni_ui_capture.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "feature/round_corner_display/rs_round_corner_display.h"
 #include "common/rs_singleton.h"
 #include "limit_number.h"
 
@@ -171,9 +171,11 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
     captureConfig.scaleX = 0.0;
     captureConfig.scaleY = 0.0;
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
-    RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
+    std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
+    EXPECT_NE(rsUniUICaptureVisitor, nullptr);
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
-    rsUniUICaptureVisitor.SetCanvas(canvas);
+    rsUniUICaptureVisitor->SetCanvas(canvas);
 }
 
 /**
@@ -349,5 +351,6 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor->ProcessSurfaceRenderNodeWithUni(node);
+    EXPECT_NE(rsUniUICaptureVisitor, nullptr);
 }
 } // namespace OHOS::Rosen

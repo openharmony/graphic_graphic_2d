@@ -37,7 +37,7 @@ public:
     explicit HdiLayer(uint32_t screenId);
     virtual ~HdiLayer();
 
-    static constexpr int FRAME_RECORDS_NUM = 256;
+    static constexpr int FRAME_RECORDS_NUM = 384;
 
     /* output create and set layer info */
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
@@ -67,6 +67,7 @@ public:
 
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
+    void ClearBufferCache();
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -96,6 +97,8 @@ private:
     std::vector<uint32_t> bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
     mutable std::mutex mutex_;
+    sptr<SurfaceBuffer> currBuffer_ = nullptr;
+    bool alreadyClearBuffer_ = false;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();
@@ -127,10 +130,11 @@ private:
                                         std::vector<uint32_t>& deletingList);
 
     int32_t SetPerFrameParameters();
+    int32_t SetPerFrameParameterSdrNit();
     int32_t SetPerFrameParameterDisplayNit();
     int32_t SetPerFrameParameterBrightnessRatio();
+    int32_t SetPerFrameLayerLinearMatrix();
     int32_t SetPerFrameLayerSourceTuning(); // used for source crop tuning
-    void ClearBufferCache();
 };
 } // namespace Rosen
 } // namespace OHOS

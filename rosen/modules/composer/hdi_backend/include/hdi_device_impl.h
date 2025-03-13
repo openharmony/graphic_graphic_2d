@@ -38,6 +38,7 @@ public:
     int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) override;
     int32_t GetScreenMode(uint32_t screenId, uint32_t &modeId) override;
     int32_t SetScreenMode(uint32_t screenId, uint32_t modeId) override;
+    int32_t SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect) override;
     int32_t SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height) override;
     int32_t GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status) override;
     int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) override;
@@ -62,6 +63,7 @@ public:
     int32_t Commit(uint32_t screenId, sptr<SyncFence> &fence) override;
     int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush,
         std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) override;
+    int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
@@ -89,6 +91,10 @@ public:
     std::vector<std::string>& GetSupportedLayerPerFrameParameterKey() override;
     int32_t SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
                                       const std::vector<int8_t>& value) override;
+    int32_t SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t layerId, const std::string& key,
+                                         const std::vector<int8_t>& value) override;
+    int32_t SetDisplayPerFrameParameterSmq(uint32_t devId, const std::string& key,
+                                           const std::vector<int8_t>& value) override;
     int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) override;
     int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                              GraphicPresentTimestampType &type) override;

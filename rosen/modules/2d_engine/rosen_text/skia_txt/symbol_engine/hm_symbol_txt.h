@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "drawing.h"
+#include "rosen_text/symbol_constants.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,14 +40,16 @@ public:
     void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
 
     // set animation mode: the 1 is whole or iteratuve, 0 is hierarchical or cumulative
-    void SetAnimationMode(const uint16_t animationMode);
+    void SetAnimationMode(uint16_t animationMode);
 
-    void SetRepeatCount(const int repeatCount);
+    void SetRepeatCount(int repeatCount);
 
-    void SetAnimationStart(const bool animationStart);
+    void SetAnimationStart(bool animationStart);
 
     // set common subtype of symbol animation attribute
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);
+
+    void SetSymbolType(SymbolType symbolType);
 
     bool operator ==(HMSymbolTxt const &symbol) const;
 
@@ -64,6 +67,10 @@ public:
 
     Drawing::DrawingCommonSubType GetCommonSubType() const;
 
+    SymbolType GetSymbolType() const;
+
+    std::string familyName_;
+
 private:
     std::vector<RSSColor> colorList_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
@@ -72,6 +79,7 @@ private:
     int repeatCount_ = 1;
     bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
+    SymbolType symbolType_{SymbolType::SYSTEM};
 };
 }
 }

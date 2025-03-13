@@ -18,7 +18,6 @@
 
 #include "ability.h"
 #include "napi_async_work.h"
-#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -53,6 +52,7 @@ bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConc
 }
 
 thread_local napi_ref JsFontCollection::constructor_ = nullptr;
+
 napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -64,6 +64,10 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
     }
 
     JsFontCollection* jsFontCollection = new(std::nothrow) JsFontCollection();
+    if (jsFontCollection == nullptr) {
+        TEXT_LOGE("Failed to new font collection");
+        return nullptr;
+    }
     status = napi_wrap(env, jsThis, jsFontCollection,
         JsFontCollection::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
@@ -322,13 +326,13 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
 bool JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
 {
     if (fontcollection_ == nullptr) {
-        TEXT_LOGE("Font collection is nullptr");
+        TEXT_LOGE("Null font collection");
         return false;
     }
 
     char tmpPath[PATH_MAX] = {0};
     if (realpath(path.c_str(), tmpPath) == nullptr) {
-        TEXT_LOGE("Path is invalid");
+        TEXT_LOGE("Invalid path %{public}s", path.c_str());
         return false;
     }
 
@@ -387,6 +391,10 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
         return nullptr;
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("Null argv[0]");
+        return nullptr;
+    }
     std::string familyName;
     std::string familySrc;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
@@ -394,6 +402,10 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
         return nullptr;
     }
     napi_valuetype valueType = napi_undefined;
+    if (argv[1] == nullptr) {
+        TEXT_LOGE("Null arv[1]");
+        return nullptr;
+    }
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_object) {
         if (!ConvertFromJsValue(env, argv[1], familySrc)) {
@@ -423,7 +435,7 @@ napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
 napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info)
 {
     if (fontcollection_ == nullptr) {
-        TEXT_LOGE("JsFontCollection is nullptr");
+        TEXT_LOGE("Null font collection");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
             "JsFontCollection::OnClearCaches fontCollection is nullptr.");
     }
@@ -440,6 +452,7 @@ napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info
 napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
 {
     sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,

@@ -35,7 +35,8 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride) override;
+    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0,
+        std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr) override;
     bool Build(const ImageInfo& imageInfo, int32_t stride) override;
     int GetWidth() const override;
     int GetHeight() const override;

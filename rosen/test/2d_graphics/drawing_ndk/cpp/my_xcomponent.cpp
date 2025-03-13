@@ -448,7 +448,7 @@ napi_value MyXComponent::NapiGetTime(napi_env env, napi_callback_info info)
     if (render != nullptr) {
         DRAWING_LOGE("DrawingTest render->GetTime");
         napi_value value = nullptr;
-        (void)napi_create_int32(env, render->GetTime(), &value);
+        (void)napi_create_uint32(env, render->GetTime(), &value);
         return value;
     } else {
         DRAWING_LOGE("DrawingTest render is nullptr");

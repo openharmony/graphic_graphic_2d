@@ -26,11 +26,7 @@ ohos_source_set("webgl_src") {
     "$graphic_2d_root/interfaces/kits/napi/graphic/webgl/common",
   ]
 
-  sources = [
-    "common/napi/n_class.cpp",
-    "common/napi/n_func_arg.cpp",
-    "common/napi/n_val.cpp",
-  ]
+  sources = [ "common/napi/n_class.cpp" ]
 
   external_deps = [
     "c_utils:utils",
@@ -43,6 +39,8 @@ ohos_source_set("webgl_src") {
 
   if (rs_enable_gpu) {
     sources += [
+      "common/napi/n_func_arg.cpp",
+      "common/napi/n_val.cpp",
       "src/egl_manager.cpp",
       "src/module.cpp",
       "src/util.cpp",

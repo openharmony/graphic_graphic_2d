@@ -193,7 +193,7 @@ OH_Drawing_Array* OH_Drawing_RectCreateArray(size_t size)
         return nullptr;
     }
     obj->num = size;
-    obj->addr = (OH_Drawing_Rect*)new Rect[size];
+    obj->addr = reinterpret_cast<OH_Drawing_Rect*>(new Rect[size]);
     if (obj->addr == nullptr) {
         return nullptr;
     }

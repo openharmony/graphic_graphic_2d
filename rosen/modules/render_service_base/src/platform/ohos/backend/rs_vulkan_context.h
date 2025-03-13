@@ -36,6 +36,12 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class VulkanInterfaceType : uint32_t {
+    UNI_RENDER = 0,
+    PROTECTED_REDRAW,
+    UNPROTECTED_REDRAW,
+    MAX_INTERFACE_TYPE,
+};
 class MemoryHandler;
 class RsVulkanInterface {
 public:
@@ -90,13 +96,13 @@ public:
         T func_;
     };
 
-    RsVulkanInterface() = default;
+    RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(bool isProtected = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false);
-    bool CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew = false, bool isProtected = false);
+    bool CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected = false);
     RsVulkanMemStat& GetRsVkMemStat()
     {
         return mVkMemStat;
@@ -187,10 +193,9 @@ public:
         return backendContext_.fQueue;
     }
 
-    inline const GrVkBackendContext& GetGrVkBackendContext(
-        bool useHBackendContext = false) const noexcept
+    inline const GrVkBackendContext& GetGrVkBackendContext() const noexcept
     {
-        return useHBackendContext ? hbackendContext_ : backendContext_;
+        return backendContext_;
     }
 
     inline const std::string GetVulkanVersion() const
@@ -198,18 +203,12 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(bool independentContext = false,
-        bool isProtected = false);
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
-    std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext() const
+    VulkanInterfaceType GetInterfaceType() const
     {
-        return hcontext_;
-    }
-
-    VkQueue GetHardwareQueue() const
-    {
-        return hbackendContext_.fQueue;
+        return interfaceType_;
     }
 
     VkSemaphore RequireSemaphore();
@@ -221,25 +220,22 @@ private:
     std::mutex vkMutex_;
     std::mutex graphicsQueueMutex_;
     std::mutex hGraphicsQueueMutex_;
-    void* handle_ = nullptr;
+    static void* handle_;
     bool acquiredMandatoryProcAddresses_ = false;
     VkInstance instance_ = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
-    VkQueue hardwareQueue_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;
-    
-    std::shared_ptr<Drawing::GPUContext> hcontext_ = nullptr;
+
     // static thread_local GrVkBackendContext backendContext_;
     GrVkBackendContext backendContext_;
-    GrVkBackendContext hbackendContext_;
-
+    VulkanInterfaceType interfaceType_ = VulkanInterfaceType::UNI_RENDER;
     RsVulkanInterface(const RsVulkanInterface &) = delete;
     RsVulkanInterface &operator=(const RsVulkanInterface &) = delete;
 
@@ -268,7 +264,8 @@ private:
 class RsVulkanContext {
 public:
     static RsVulkanContext& GetSingleton();
-    RsVulkanContext();
+    static RsVulkanContext& GetSingletonWithCacheDir(std::string& cacheDir);
+    explicit RsVulkanContext(std::string cacheDir = "");
     ~RsVulkanContext() {};
 
     RsVulkanContext(const RsVulkanContext&) = delete;
@@ -311,10 +308,9 @@ public:
         return GetRsVulkanInterface().GetQueue();
     }
 
-    inline const GrVkBackendContext& GetGrVkBackendContext(
-        bool useHBackendContext = false) noexcept
+    inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
     {
-        return GetRsVulkanInterface().GetGrVkBackendContext(useHBackendContext);
+        return GetRsVulkanInterface().GetGrVkBackendContext();
     }
 
     inline const std::string GetVulkanVersion()
@@ -322,7 +318,7 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(bool isProtected = false);
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     void ClearGrContext(bool isProtected = false);
@@ -332,16 +328,6 @@ public:
 
     static VKAPI_ATTR VkResult HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
         const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd);
-
-    std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext()
-    {
-        return GetRsVulkanInterface().GetHardWareGrContext();
-    }
-
-    VkQueue GetHardwareQueue()
-    {
-        return GetRsVulkanInterface().GetHardwareQueue();
-    }
 
     const std::shared_ptr<MemoryHandler> GetMemoryHandler()
     {
@@ -355,6 +341,8 @@ public:
 
 private:
     static thread_local bool isProtected_;
+    static thread_local VulkanInterfaceType vulkanInterfaceType_;
+    std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec;
     static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
     static thread_local std::shared_ptr<Drawing::GPUContext> protectedDrawingContext_;
 };

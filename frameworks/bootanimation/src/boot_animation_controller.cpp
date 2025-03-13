@@ -27,6 +27,9 @@
 namespace OHOS {
 namespace {
     const std::string BOOT_CUSTOM_CONFIG_PATH_SUFFIX = "etc/bootanimation/bootanimation_custom_config.json";
+    const std::string BOOT_CUSTOM_CONFIG_PATH_ENTERPRISE_DEVICE
+        = "/data/service/el1/public/edm/config/system/all/graphic/bootanimation/bootanimation_custom_config.json";
+    const std::string SYS_PARAM_IS_ENTERPRISE_DEVICE = "const.edm.is_enterprise_device";
 }
 
 void BootAnimationController::Start()
@@ -70,6 +73,12 @@ void BootAnimationController::WaitRenderServiceInit() const
 
 std::string BootAnimationController::GetConfigFilePath()
 {
+    std::string isEnterpriseDevice = system::GetParameter(SYS_PARAM_IS_ENTERPRISE_DEVICE, "");
+    LOGI("isEnterpriseDevice: %{public}s", isEnterpriseDevice.c_str());
+    if (isEnterpriseDevice == "true" && IsFileExisted(BOOT_CUSTOM_CONFIG_PATH_ENTERPRISE_DEVICE)) {
+        LOGI("is enterprise device");
+        return BOOT_CUSTOM_CONFIG_PATH_ENTERPRISE_DEVICE;
+    }
     char buf[MAX_PATH_LEN] = {0};
     char *path = GetOneCfgFile(BOOT_CUSTOM_CONFIG_PATH_SUFFIX.c_str(), buf, MAX_PATH_LEN);
     if (path != nullptr) {

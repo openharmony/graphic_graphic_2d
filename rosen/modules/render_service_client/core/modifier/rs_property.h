@@ -42,6 +42,7 @@
 #include "render/rs_shader.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -329,7 +330,8 @@ protected:
 template<typename T>
 class RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
-                  std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> || std::is_same_v<Vector4f, T> ||
+                  std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> ||
+                  std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
                   std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
                   supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T>);
@@ -357,7 +359,9 @@ public:
 
         RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
-        auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        auto rsUIContext = node->GetRSUIContext();
+        auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
             auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
@@ -426,7 +430,19 @@ public:
             return true;
         }
         auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(node->GetId(), GetRenderProperty());
-        RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+        auto rsUIContext = node->GetRSUIContext();
+        if (rsUIContext != nullptr) {
+            auto transaction = rsUIContext->GetRSTransaction();
+            if (transaction != nullptr) {
+                transaction->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+            }
+        } else {
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->ExecuteSynchronousTask(task, node->IsRenderServiceNode());
+            }
+        }
+
         // when task is timeout, the caller need to decide whether to call this function again
         if (!task || task->IsTimeout()) {
             return false;
@@ -482,8 +498,9 @@ public:
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};
         }
-
-        const auto& implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        auto rsUIContext = node->GetRSUIContext();
+        const auto& implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
+            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (!implicitAnimator) {
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};
@@ -735,6 +752,8 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<Vector3f>::UpdateToRender(const Vector3f& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
     const Vector4<uint32_t>& value, PropertyUpdateType type) const;
 template<>
@@ -760,6 +779,8 @@ template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const;
 template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const;
+template<>
+RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const;
 template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const;
 template<>

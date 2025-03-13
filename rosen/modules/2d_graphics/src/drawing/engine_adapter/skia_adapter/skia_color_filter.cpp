@@ -107,7 +107,7 @@ void SkiaColorFilter::SetColorFilter(const sk_sp<SkColorFilter>& filter)
 std::shared_ptr<Data> SkiaColorFilter::Serialize() const
 {
     if (filter_ == nullptr) {
-        LOGE("SkiaColorFilter::Serialize, filter_ is nullptr!");
+        LOGD("SkiaColorFilter::Serialize, filter_ is nullptr!");
         return nullptr;
     }
 
@@ -117,7 +117,7 @@ std::shared_ptr<Data> SkiaColorFilter::Serialize() const
 bool SkiaColorFilter::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaColorFilter::Deserialize, data is invalid!");
+        LOGD("SkiaColorFilter::Deserialize, data is invalid!");
         return false;
     }
 

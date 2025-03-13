@@ -22,13 +22,15 @@
 #include "utils/matrix.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "render_thread/rs_base_render_engine.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
+#ifdef RS_ENABLE_GPU
 class RSDisplayRenderParams;
+#endif
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
@@ -62,10 +64,10 @@ public:
     virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
     virtual void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) {}
     virtual void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
+    virtual void ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) {}
 
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
-    void MirrorScenePerf();
 
     const Drawing::Matrix& GetScreenTransformMatrix() const
     {
@@ -102,7 +104,6 @@ protected:
     void SetMirrorScreenSwap(const RSDisplayRenderNode& node);
     void CalculateMirrorAdaptiveMatrix();
 
-    void MultiLayersPerf(size_t layerNum);
     void RequestPerf(uint32_t layerLevel, bool onOffTag);
 #ifdef FRAME_AWARE_TRACE
     bool FrameAwareTraceBoost(size_t layerNum);
@@ -120,7 +121,6 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
-    static bool needDisableMultiLayersPerf_;
 };
 } // namespace Rosen
 } // namespace OHOS

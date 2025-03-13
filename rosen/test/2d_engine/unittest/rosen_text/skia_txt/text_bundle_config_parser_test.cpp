@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-#include "text_bundle_config_parser.h"
 #include "gtest/gtest.h"
-
-#ifdef OHOS_TEXT_ENABLE
 #include "application_info.h"
 #include "bundle_info.h"
 #include "hap_module_info.h"
-#endif
+#include "txt/text_bundle_config_parser.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,29 +46,21 @@ void TextBundleConfigParserTest::TearDownTestCase() {}
  */
 HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
 {
-    EXPECT_FALSE(TextBundleConfigParser::IsAdapterTextHeightEnabled());
+    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
 }
 
 #ifdef OHOS_TEXT_ENABLE
 /*
- * @tc.name: GetSystemAbilityManagerTest001
- * @tc.desc: test for GetSystemAbilityManager
+ * @tc.name: IsTargetApiVersionText001
+ * @tc.desc: test for IsTargetApiVersion
  * @tc.type: FUNC
  */
-HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Level1)
+HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level1)
 {
-    EXPECT_EQ(TextBundleConfigParser::GetSystemAbilityManager(), nullptr);
-}
-
-/*
- * @tc.name: IsMetaDataExistInEntryModuleTest001
- * @tc.desc: test for IsMetaDataExistInEntryModule
- * @tc.type: FUNC
- */
-HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInEntryModuleTest001, TestSize.Level1)
-{
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInEntryModule(metaData));
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInEntryModule(""));
+    TextBundleConfigParser::GetInstance().initStatus_ = true;
+    TextBundleConfigParser::GetInstance().bundleApiVersion_ = SINCE_API18_VERSION;
+    ASSERT_TRUE(TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API18_VERSION));
+    TextBundleConfigParser::GetInstance().initStatus_ = false;
 }
 #endif
 } // namespace SPText

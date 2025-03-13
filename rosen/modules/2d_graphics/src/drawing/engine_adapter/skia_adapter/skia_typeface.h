@@ -50,6 +50,7 @@ public:
     int32_t GetUnitsPerEm() const override;
     std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const override;
     bool IsCustomTypeface() const override;
+    bool IsThemeTypeface() const override;
     sk_sp<SkTypeface> GetSkTypeface();
 
     static std::shared_ptr<Typeface> MakeDefault();
@@ -72,7 +73,6 @@ private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;
-    mutable uint32_t hash_ { 0 };
 };
 } // namespace Drawing
 } // namespace Rosen

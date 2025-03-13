@@ -21,7 +21,6 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "graphic_error.h"
-#include "hdi_log.h"
 #include "hdi_display_type.h"
 
 namespace OHOS {
@@ -173,19 +172,19 @@ public:
         boundRect_ = boundRect;
     }
 
-    void SetLayerAdditionalInfo(void *info)
-    {
-        additionalInfo_ = info;
-    }
-
-    void* GetLayerAdditionalInfo()
-    {
-        return additionalInfo_;
-    }
-
     void SetLayerColor(GraphicLayerColor layerColor)
     {
         layerColor_ = layerColor;
+    }
+
+    void SetBackgroundColor(GraphicLayerColor backgroundColor)
+    {
+        backgroundColor_ = backgroundColor;
+    }
+
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
     }
 
     void SetColorTransform(const std::vector<float> &matrix)
@@ -363,6 +362,16 @@ public:
         return layerColor_;
     }
 
+    GraphicLayerColor GetBackgroundColor() const
+    {
+        return backgroundColor_;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     std::vector<GraphicHDRMetaData> &GetMetaData()
     {
         return metaData_;
@@ -393,12 +402,12 @@ public:
         presentTimestamp_ = timestamp;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -408,12 +417,12 @@ public:
         return brightnessRatio_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         sdrNit_ = sdrNit;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         displayNit_ = displayNit;
     }
@@ -423,15 +432,16 @@ public:
         brightnessRatio_ = brightnessRatio;
     }
 
-    void SetScalingMode(ScalingMode scalingMode)
+    const std::vector<float>& GetLayerLinearMatrix() const
     {
-        scalingMode_ = scalingMode;
+        return layerLinearMatrix_;
     }
 
-    ScalingMode GetScalingMode() const
+    void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
     {
-        return scalingMode_;
+        layerLinearMatrix_ = layerLinearMatrix;
     }
+
     // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
@@ -463,6 +473,16 @@ public:
         return arsrTag_;
     }
 
+    void SetNeedBilinearInterpolation(bool need)
+    {
+        needBilinearInterpolation_ = need;
+    }
+
+    bool GetNeedBilinearInterpolation() const
+    {
+        return needBilinearInterpolation_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -489,12 +509,14 @@ public:
         pbuffer_= layerInfo->GetPreBuffer();
         acquireFence_ = layerInfo->GetAcquireFence();
         preMulti_ = layerInfo->IsPreMulti();
+        sdrNit_ = layerInfo->GetSdrNit();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
-        scalingMode_ = layerInfo->GetScalingMode();
+        layerLinearMatrix_ = layerInfo->GetLayerLinearMatrix();
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
+        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
     }
 
     void Dump(std::string &result) const
@@ -536,6 +558,10 @@ public:
                 std::to_string(dirtyRegions_[i].w) + ", " +
                 std::to_string(dirtyRegions_[i].h) + "], ";
         }
+        result += "layerColor = [R:" + std::to_string(layerColor_.r) + ", G:" +
+            std::to_string(layerColor_.g) + ", B:" +
+            std::to_string(layerColor_.b) + ", A:" +
+            std::to_string(layerColor_.a) + "],";
         if (cSurface_ != nullptr) {
             cSurface_->Dump(result);
         }
@@ -550,7 +576,6 @@ public:
             case LayerMask::LAYER_MASK_HBM_SYNC:
                 break;
             default:
-                HLOGE("Invalid argument [mask:%{public}d]", static_cast<int32_t>(mask));
                 return ROSEN_ERROR_INVALID_ARGUMENTS;
         }
 
@@ -591,6 +616,7 @@ private:
     GraphicBlendType blendType_;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_;
+    GraphicLayerColor backgroundColor_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -600,22 +626,24 @@ private:
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
-    void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
+    bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
     int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    std::vector<float> layerLinearMatrix_
+        = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
-    ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
+    std::vector<float> drmCornerRadiusInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

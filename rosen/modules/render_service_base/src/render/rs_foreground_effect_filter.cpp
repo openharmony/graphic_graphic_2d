@@ -23,6 +23,10 @@
 
 namespace OHOS {
 namespace Rosen {
+
+std::mutex RSForegroundEffectFilter::blurEffectMutex_;
+std::shared_ptr<Drawing::RuntimeEffect> RSForegroundEffectFilter::blurEffect_ = nullptr;
+
 RSForegroundEffectFilter::RSForegroundEffectFilter(float blurRadius)
     : RSDrawingFilterOriginal(nullptr)
 {
@@ -43,6 +47,11 @@ std::string RSForegroundEffectFilter::GetDescription()
         ", dirtyExtension: " + std::to_string(GetDirtyExtension());
 }
 
+float RSForegroundEffectFilter::GetRadius() const
+{
+    return blurRadius_;
+}
+
 bool RSForegroundEffectFilter::IsValid() const
 {
     constexpr float epsilon = 0.999f; // if blur radius less than 1, do not need to draw
@@ -51,7 +60,6 @@ bool RSForegroundEffectFilter::IsValid() const
 
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSForegroundEffectFilter::MakeForegroundEffect()
 {
-    static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_ = nullptr;
     std::string blurString(
         R"(
         uniform shader imageInput;
@@ -72,12 +80,16 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSForegroundEffectFilter::MakeFor
     )");
 
     if (blurEffect_ == nullptr) {
-        blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
+        std::lock_guard<std::mutex> lock(blurEffectMutex_);
         if (blurEffect_ == nullptr) {
-            ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
-            return nullptr;
+            blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
+            if (blurEffect_ == nullptr) {
+                ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
+                return nullptr;
+            }
         }
     }
+
     std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(blurEffect_);
     return blurBuilder;
@@ -188,14 +200,21 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
         imgInfo.GetAlphaType(), imgInfo.GetColorSpace());
     Drawing::Matrix blurMatrixGeo;
     blurMatrixGeo.Translate(halfExtension, halfExtension);
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(canvas.GetGPUContext().get(),
         false, scaledInfoGeo);
+#else
+    std::shared_ptr<Drawing::Surface> surface = nullptr;
+#endif
     if (!surface) {
         ROSEN_LOGE("RSForegroundEffectFilter surface is null");
         return;
     }
     std::shared_ptr<Drawing::Image> tmpBlur = MakeImage(surface, &blurMatrixGeo, blurBuilder);
+    if (!tmpBlur) {
+        ROSEN_LOGE("RSForegroundEffectFilter tmpBlur is null");
+        return;
+    }
     std::shared_ptr<Drawing::Surface> tmpSurface = surface->MakeSurface(scaledInfoGeo.GetWidth(),
         scaledInfoGeo.GetHeight());
     if (!tmpSurface) {
@@ -210,6 +229,10 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
             Drawing::TileMode::DECAL, Drawing::TileMode::DECAL, linear, Drawing::Matrix()));
         blurBuilder->SetUniform("in_blurOffset", radiusByPasses_ * stepScale, radiusByPasses_ * stepScale);
         tmpBlur = MakeImage(tmpSurface, nullptr, blurBuilder);
+        if (!tmpBlur) {
+            ROSEN_LOGE("RSForegroundEffectFilter tmpBlur is null when build our chain of scaled blur stages");
+            return;
+        }
         std::swap(surface, tmpSurface);
     }
 

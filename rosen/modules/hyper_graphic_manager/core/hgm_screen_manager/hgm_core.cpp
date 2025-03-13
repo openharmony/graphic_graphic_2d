@@ -29,6 +29,7 @@
 #include "parameters.h"
 #include "frame_rate_report.h"
 #include "sandbox_utils.h"
+#include "hgm_screen_info.h"
 
 namespace OHOS::Rosen {
 static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
@@ -149,11 +150,10 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
-void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
+void HgmCore::SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 {
     if (curScreenSetting.ltpoConfig.find("adaptiveSync") != curScreenSetting.ltpoConfig.end()) {
-        std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
- 
+        std::string asConfig = curScreenSetting.ltpoConfig.at("adaptiveSync");
         if (asConfig == "1" || asConfig == "0") {
             adaptiveSync_ = std::stoi(asConfig);
         } else {
@@ -177,47 +177,47 @@ void HgmCore::SetLtpoConfig()
     }
     auto curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
-    if (curScreenSetting.ltpoConfig.find("switch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["switch"])) {
-        ltpoEnabled_ = std::stoi(curScreenSetting.ltpoConfig["switch"]);
+    const auto& ltpoConfig = curScreenSetting.ltpoConfig;
+    if (ltpoConfig.find("switch") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("switch"))) {
+        ltpoEnabled_ = std::stoi(ltpoConfig.at("switch"));
     } else {
         ltpoEnabled_ = 0;
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["maxTE"])) {
-        maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+    if (ltpoConfig.find("maxTE") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("maxTE"))) {
+        maxTE_ = std::stoul(ltpoConfig.at("maxTE"));
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["alignRate"])) {
-        alignRate_ = std::stoul(curScreenSetting.ltpoConfig["alignRate"]);
+    if (ltpoConfig.find("alignRate") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("alignRate"))) {
+        alignRate_ = std::stoul(ltpoConfig.at("alignRate"));
     } else {
         alignRate_ = 0;
         HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("pipelineOffsetPulseNum") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"])) {
-        pipelineOffsetPulseNum_ = std::stoi(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"]);
+    if (ltpoConfig.count("pipelineOffsetPulseNum") != 0 &&
+        XMLParser::IsNumber(ltpoConfig.at("pipelineOffsetPulseNum"))) {
+        pipelineOffsetPulseNum_ = std::stoi(ltpoConfig.at("pipelineOffsetPulseNum"));
         CreateVSyncGenerator()->SetVSyncPhaseByPulseNum(pipelineOffsetPulseNum_);
     } else {
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
-
+    SetIdealPipelineOffset(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
-    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
-        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, lowRateToHighQuickSwitch: %{public}d",
+    SetPerformanceConfig();
+    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
+        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
+        "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
         ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
-        lowRateToHighQuickSwitch_.load());
+        lowRateToHighQuickSwitch_.load(), pluseNum_, isDelayMode_);
 }
 
 void HgmCore::SetScreenConstraintConfig()
@@ -227,22 +227,46 @@ void HgmCore::SetScreenConstraintConfig()
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
         return;
     }
-    auto curScreenSetting =
+    const auto& curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
     if (curScreenSetting.ltpoConfig.find("vBlankIdleCorrectSwitch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"])) {
-        vBlankIdleCorrectSwitch_.store(std::stoi(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"]));
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig.at("vBlankIdleCorrectSwitch"))) {
+        vBlankIdleCorrectSwitch_.store(std::stoi(curScreenSetting.ltpoConfig.at("vBlankIdleCorrectSwitch")));
     } else {
         vBlankIdleCorrectSwitch_.store(false);
         HGM_LOGW("HgmCore failed to find vBlankIdleCorrectSwitch strategy for LTPO");
     }
 
     if (curScreenSetting.ltpoConfig.find("lowRateToHighQuickSwitch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"])) {
-        lowRateToHighQuickSwitch_.store(std::stoi(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"]));
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig.at("lowRateToHighQuickSwitch"))) {
+        lowRateToHighQuickSwitch_.store(std::stoi(curScreenSetting.ltpoConfig.at("lowRateToHighQuickSwitch")));
     } else {
         lowRateToHighQuickSwitch_.store(false);
         HGM_LOGW("HgmCore failed to find lowRateToHighQuickSwitch strategy for LTPO");
+    }
+}
+
+void HgmCore::SetPerformanceConfig()
+{
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    if (mPolicyConfigData_->screenConfigs_.count(curScreenStrategyId) == 0 ||
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
+        return;
+    }
+    const auto& curScreenSetting =
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
+    if (curScreenSetting.performanceConfig.count("pluseNum") != 0 &&
+        XMLParser::IsNumber(curScreenSetting.performanceConfig.at("pluseNum"))) {
+        pluseNum_ = std::stoi(curScreenSetting.performanceConfig.at("pluseNum"));
+    } else {
+        pluseNum_ = -1;
+        HGM_LOGW("HgmCore failed to find pluseNum_ strategy for LTPO");
+    }
+    if (curScreenSetting.performanceConfig.count("piplineDelayModeEnable") != 0) {
+        isDelayMode_ = curScreenSetting.performanceConfig.at("piplineDelayModeEnable") != "0";
+    } else {
+        isDelayMode_ = true;
+        HGM_LOGW("HgmCore failed to find piplineDelayModeEnable_ strategy for LTPO");
     }
 }
 
@@ -271,6 +295,15 @@ void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback&
     }
 }
 
+void HgmCore::SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
+{
+    if (!mPolicyConfigData_) {
+        HGM_LOGE("Fail to set hfbcConfig, HgmCore is not initialized");
+        return;
+    }
+    mPolicyConfigData_->hfbcConfig_ = hfbcConfig;
+}
+
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     if (!IsEnabled()) {
@@ -279,9 +312,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     }
     // set the screen to the desired refreshrate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
-    if (mPolicyConfigData_ == nullptr) {
-        return HGM_ERROR;
-    }
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
@@ -300,7 +330,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     std::lock_guard<std::mutex> lock(modeListMutex_);
 
     // the rate is accepted and passed to a list, will be applied by hardwarethread before sending the composition
-    HGM_LOGI("HgmCore the rate of %{public}d is accepted, the target mode is %{public}d", rate, modeToSwitch);
+    HGM_LOGD("HgmCore the rate of %{public}d is accepted, the target mode is %{public}d", rate, modeToSwitch);
     if (modeListToApply_ == nullptr) {
         HGM_LOGD("HgmCore modeListToApply_ is invalid, buiding a new mode list");
         modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
@@ -356,6 +386,18 @@ void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     }
 }
 
+void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect)
+{
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenRectFrameRate(id, activeRect);
+    }
+
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        auto refreshRateModeName = GetCurrentRefreshRateModeName();
+        refreshRateModeChangeCallback_(refreshRateModeName);
+    }
+}
+
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
 {
     // add a physical screen to hgm during hotplug event
@@ -370,6 +412,18 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     }
 
     sptr<HgmScreen> newScreen = new HgmScreen(id, defaultMode, screenSize);
+    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+        auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+        std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
+        for (auto strategyConfig : configData->screenStrategyConfigs_) {
+            if (strategyConfig.first.find(curScreenName) == 0) {
+                newScreen->SetSelfOwnedScreenFlag(true);
+                break;
+            }
+        }
+    }
 
     std::lock_guard<std::mutex> lock(listMutex_);
     screenList_.push_back(newScreen);
@@ -463,6 +517,7 @@ sptr<HgmScreen> HgmCore::GetScreen(ScreenId id) const
 
 std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
 {
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to find screen " PUBU64 "", id);

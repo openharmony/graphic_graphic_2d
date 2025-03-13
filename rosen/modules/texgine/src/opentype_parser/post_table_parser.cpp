@@ -15,7 +15,7 @@
 
 #include "post_table_parser.h"
 
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,8 +28,8 @@ const struct PostTable* PostTableParser::Parse(const char* data, int32_t size)
 void PostTableParser::Dump() const
 {
     const auto& table = *reinterpret_cast<const struct PostTable*>(data_);
-    LOGSO_FUNC_LINE(INFO) << "postTable size: " << size_ << "version: " << table.version.Get()
-        << "italicAngle: " << table.italicAngle.Get() << "isFixedPitch: " << table.isFixedPitch.Get();
+    TEXT_LOGI("PostTable size %{public}d, version %{public}d, italic angle %{public}f, is fixed pitch %{public}d",
+        size_, table.version.Get(), table.italicAngle.Get(), table.isFixedPitch.Get());
 }
 } // namespace TextEngine
 } // namespace Rosen

@@ -19,7 +19,7 @@
 #include "drawable/rs_drawable.h"
 #include "params/rs_effect_render_params.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;
@@ -147,6 +147,7 @@ HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
     rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[0] = 1.f;
     rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[1] = 1.f;
     rsEffectRenderNode.SetEffectRegion(rectI);
+    ASSERT_FALSE(rsEffectRenderNode.GetMutableRenderProperties().GetHaveEffectRegion());
 }
 
 /**
@@ -197,8 +198,8 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsTest, TestSize.Level1)
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
     rsEffectRenderNode.isRotationChanged_ = true;
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
-    filterDrawable->stagingForceUseCache_ = true;
-    filterDrawable->stagingForceClearCache_ = true;
+    filterDrawable->MarkFilterForceUseCache(true);
+    filterDrawable->MarkFilterForceClearCache();
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
     EXPECT_TRUE(rsEffectRenderNode.isRotationChanged_);
 }

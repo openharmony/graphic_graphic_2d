@@ -219,4 +219,53 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level1)
     paragraphBuilder_->AddText(u"text");
     EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().isPlaceholder(), textStyle.isPlaceholder);
 }
+
+/*
+ * @tc.name: ParagraphBuilderTest013
+ * @tc.desc: test for BuildLineFetcher
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest013, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.textShadows.emplace_back();
+    EXPECT_EQ(textStyle.textShadows.size(), 1);
+    paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->BuildLineFetcher()->GetUnicodeSize(), 4);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest014
+ * @tc.desc: test for BuildLineFetcher
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
+{
+    EXPECT_EQ(paragraphBuilder_->BuildLineFetcher(), nullptr);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest015
+ * @tc.desc: test for TextStyleToSkStyle ParagraphSpacing
+ * @tc.type: FUNC
+ */
+ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest015, TestSize.Level1)
+ {
+     skia::textlayout::ParagraphStyle skStyle;
+     ParagraphStyle txt;
+     txt.paragraphSpacing = 100.0f;
+     txt.isEndAddParagraphSpacing = true;
+     skStyle.setParagraphSpacing(txt.paragraphSpacing);
+     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+     EXPECT_EQ(skStyle.getParagraphSpacing(), txt.paragraphSpacing);
+     EXPECT_EQ(skStyle.getIsEndAddParagraphSpacing(), txt.isEndAddParagraphSpacing);
+
+     txt.paragraphSpacing = 0.0f;
+     txt.isEndAddParagraphSpacing = true;
+     skStyle.setParagraphSpacing(txt.paragraphSpacing);
+     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+     EXPECT_EQ(skStyle.getParagraphSpacing(), txt.paragraphSpacing);
+     EXPECT_EQ(skStyle.getIsEndAddParagraphSpacing(), txt.isEndAddParagraphSpacing);
+ }
 } // namespace txt

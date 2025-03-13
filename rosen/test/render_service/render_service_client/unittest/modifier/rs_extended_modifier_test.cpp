@@ -115,13 +115,9 @@ public:
  */
 HWTEST_F(RSExtendedModifierTest, CreateDrawingContextTest, TestSize.Level1)
 {
-    NodeId nodeId = -1;
-    RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    EXPECT_EQ(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
-
-    nodeId = 0;
-    RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-    EXPECT_NE(RSNodeMap::Instance().GetNode<RSCanvasNode>(nodeId), nullptr);
+    std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
+    auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
+    EXPECT_TRUE(ctx.height == 0);
 }
 
 /**
@@ -226,5 +222,19 @@ HWTEST_F(RSExtendedModifierTest, DrawTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     RSDrawingContext rsDrawingContext = { &canvas, 1, 1 };
     geometryTransModifier.Draw(rsDrawingContext);
+    ASSERT_EQ(geometryTransModifier.GetModifierType(), RSModifierType::GEOMETRYTRANS);
+}
+
+/**
+ * @tc.name: SetNoNeedUICapturedTest
+ * @tc.desc: SetNoNeedUICaptured Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBDGY3
+ */
+HWTEST_F(RSExtendedModifierTest, SetNoNeedUICapturedTest, TestSize.Level1)
+{
+    ExtendedModifierTest extendedModifier;
+    extendedModifier.SetNoNeedUICaptured(true);
+    ASSERT_TRUE(extendedModifier.noNeedUICaptured_);
 }
 } // namespace OHOS::Rosen

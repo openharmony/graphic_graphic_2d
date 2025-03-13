@@ -19,6 +19,7 @@
 
 #include "render/rs_image_base.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,6 +37,9 @@ void RSImageBaseTest::SetUpTestCase() {}
 void RSImageBaseTest::TearDownTestCase() {}
 void RSImageBaseTest::SetUp() {}
 void RSImageBaseTest::TearDown() {}
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
+#endif
 
 /**
  * @tc.name: DrawImageTest
@@ -216,6 +220,19 @@ HWTEST_F(RSImageBaseTest, GetPixelMapTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PurgeTest
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
  * @tc.name: SetDmaImageTest
  * @tc.desc: Verify function SetDmaImage
  * @tc.type:FUNC
@@ -278,5 +295,1029 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest, TestSize.Level1)
     imageBase->SetPixelMap(pixelMap);
     imageBase->ProcessYUVImage(gpuContext);
     EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+
+
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is ARGB_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest013, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGB_565
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest012, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_565;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest011, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is BGRA_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest010, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::BGRA_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGB_888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest009, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is ALPHA_8
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_F16
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is NV21
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::NV21;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is CMYK
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::CMYK;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is YCBCR_P010
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::YCBCR_P010;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is YCRCB_P010
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::YCRCB_P010;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_1010102
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest001
+ * @tc.desc: Verify function MarkRenderServiceImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest002
+ * @tc.desc: Verify function MarkRenderServiceImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest103
+ * @tc.desc: allocatorType_ is DEFAULT
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest103, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::DEFAULT;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest004
+ * @tc.desc: allocatorType_ is CUSTOM_ALLOC
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::CUSTOM_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest005
+ * @tc.desc: allocatorType_ is DMA_ALLOC
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest003
+ * @tc.desc: Verify function MarkRenderServiceImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    auto ImageInfo = std::make_shared<Media::ImageInfo>();
+    ImageInfo->pixelFormat = Media::PixelFormat::RGBA_F16;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::UNINITED;
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
+}
+
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest001
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest001, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_F16);
+}
+
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest002
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest002, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_R5G6B5_UNORM_PACK16;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGB_565);
+}
+
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest003
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest003, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_1010102);
+}
+
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest004
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_R32_SFLOAT;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
+}
+#endif
+
+/**
+ * @tc.name: PurgeTest001
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageBase->SetPixelMap(pixelMap);
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest002
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = 1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::ENABLED;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest003
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = -1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::ENABLED;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest004
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = 1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::DISABLED;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest005
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = -1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::DISABLED;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest006
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = 1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::ENABLED;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
+    pixelMap->isUnMap_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest007
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = 1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::ENABLED;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
+    pixelMap->isUnMap_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: PurgeTest008
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->uniqueId_ = 1;
+    imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::ENABLED;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
+    pixelMap->isUnMap_ = false;
+    imageBase->SetPixelMap(pixelMap);
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest
+ * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest001
+ * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest002
+ * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    uint64_t uniqueId = 1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: MakeFromTextureForVKTest
+ * @tc.desc: Verify function MakeFromTextureForVK
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, nullptr), nullptr);
+}
+
+/**
+ * @tc.name: MakeFromTextureForVKTest001
+ * @tc.desc: Verify function MakeFromTextureForVK
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, surfaceBuffer), nullptr);
+}
+
+/**
+ * @tc.name: MakeFromTextureForVKTest002
+ * @tc.desc: Verify function MakeFromTextureForVK
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    imageBase->nativeWindowBuffer_ = nullptr;
+    EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, surfaceBuffer), nullptr);
+}
+
+/**
+ * @tc.name: MakeFromTextureForVKTest003
+ * @tc.desc: Verify function MakeFromTextureForVK
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    imageBase->nativeWindowBuffer_ = nullptr;
+    imageBase->backendTexture_.isValid_ = true;
+    EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, surfaceBuffer), nullptr);
+}
+
+/**
+ * @tc.name: MakeFromTextureForVKTest004
+ * @tc.desc: Verify function MakeFromTextureForVK
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    imageBase->nativeWindowBuffer_ = nullptr;
+    imageBase->backendTexture_.isValid_ = false;
+    EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, surfaceBuffer), nullptr);
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest001
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest002
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest003
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = false;
+    imageBase->SetPixelMap(pixelMap);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest004
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest005
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = false;
+    imageBase->SetPixelMap(pixelMap);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest006
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = false;
+    pixelMap->editable_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+
+/**
+ * @tc.name: BindPixelMapToDrawingImageTest007
+ * @tc.desc: Verify function BindPixelMapToDrawingImage
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->isAstc_ = false;
+    pixelMap->editable_ = false;
+    imageBase->SetPixelMap(pixelMap);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->BindPixelMapToDrawingImage(canvas);
+}
+#endif
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest003
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest004
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest005
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest006
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest007
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    void* addr = nullptr;
+    image = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest008
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = true;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest001
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest002
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
 }
 } // namespace OHOS::Rosen

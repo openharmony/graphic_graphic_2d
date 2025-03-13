@@ -26,11 +26,13 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
-#include "jank_detector/rs_jank_detector.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
+#ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"
+#endif
+#include "render_thread/jank_detector/rs_jank_detector.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "vsync_receiver.h"
 
@@ -55,10 +57,12 @@ public:
     int32_t GetTid();
 
     std::string DumpRenderTree() const;
+#ifdef RS_ENABLE_GPU
     RenderContext* GetRenderContext()
     {
         return renderContext_;
     }
+#endif
     RSContext& GetContext()
     {
         return *context_;
@@ -134,6 +138,10 @@ private:
     void Animate(uint64_t timestamp);
     void Render();
     void SendCommands();
+    void ReleasePixelMapInBackgroundThread();
+#ifdef CROSS_PLATFORM
+    void PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<RSTransactionData>>& cmds);
+#endif
 
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;
@@ -169,8 +177,9 @@ private:
     std::shared_ptr<RSJankDetector> jankDetector_;
 
     std::shared_ptr<RSContext> context_;
-
+#ifdef RS_ENABLE_GPU
     RenderContext* renderContext_ = nullptr;
+#endif
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
     std::atomic_bool isHighContrastEnabled_ = false;
     std::atomic_bool isHighContrastChanged_ = false;

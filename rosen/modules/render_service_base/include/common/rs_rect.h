@@ -55,17 +55,25 @@ public:
     }
     RectT(Vector4<T> vector)
     {
-        data_[0] = vector[0];
-        data_[1] = vector[1];
-        data_[2] = vector[2];
-        data_[3] = vector[3];
+        T data0 = vector[0];
+        T data1 = vector[1];
+        T data2 = vector[2];
+        T data3 = vector[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
     }
     explicit RectT(const T* v)
     {
-        data_[0] = v[0];
-        data_[1] = v[1];
-        data_[2] = v[2];
-        data_[3] = v[3];
+        T data0 = v[0];
+        T data1 = v[1];
+        T data2 = v[2];
+        T data3 = v[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
     }
     ~RectT() = default;
 
@@ -89,10 +97,14 @@ public:
     inline RectT& operator=(const RectT& other)
     {
         const T* oData = other.data_;
-        data_[0] = oData[0];
-        data_[1] = oData[1];
-        data_[2] = oData[2];
-        data_[3] = oData[3];
+        T data0 = oData[0];
+        T data1 = oData[1];
+        T data2 = oData[2];
+        T data3 = oData[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
         return *this;
     }
     void SetAll(T left, T top, T width, T height)
@@ -335,6 +347,7 @@ public:
             "(" + std::to_string(radius_[3].x_) + "," + std::to_string(radius_[3].y_) + ")]";  //3: bottomLeft Corner
     }
 
+    RRectT Inset(const Vector4<T> radius) const;
     RRectT operator-(const RRectT<T>& other) const;
     RRectT operator+(const RRectT<T>& other) const;
     RRectT operator/(float scale) const;
@@ -349,6 +362,21 @@ public:
 };
 
 typedef RRectT<float> RRect;
+
+template<typename T>
+RRectT<T> RRectT<T>::Inset(const Vector4<T> width) const
+{
+    RRectT<T> rrect;
+    rrect.rect_.SetAll(rect_.GetLeft() + width.x_, rect_.GetTop() + width.y_,
+        rect_.GetWidth() - (width.x_ + width.z_),
+        rect_.GetHeight() - (width.y_ + width.w_));
+    
+    rrect.radius_[0] = radius_[0] - Vector2(width.x_, width.y_); // 0: topLeft Corner
+    rrect.radius_[1] = radius_[1] - Vector2(width.z_, width.y_); // 1: topRight Corner
+    rrect.radius_[2] = radius_[2] - Vector2(width.z_, width.w_); // 2: bottomRight Corner
+    rrect.radius_[3] = radius_[3] - Vector2(width.x_, width.w_); // 3: bottomLeft Corner
+    return rrect;
+}
 
 template<typename T>
 RRectT<T> RRectT<T>::operator-(const RRectT<T>& other) const

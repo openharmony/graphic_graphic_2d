@@ -19,9 +19,11 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
 struct CaptureParam {
@@ -29,20 +31,18 @@ struct CaptureParam {
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
-    float scaleX_ = 0.0f;
-    float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
+    bool isNeedBlur_ = false;
     CaptureParam() {}
-    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
+    CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
+        bool isSystemCalling = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
-        scaleX_(scaleX),
-        scaleY_(scaleY),
         isFirstNode_(isFirstNode),
-        isSystemCalling_(isSystemCalling) {}
+        isSystemCalling_(isSystemCalling),
+        isNeedBlur_(isNeedBlur) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -50,6 +50,9 @@ struct HardCursorInfo {
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
@@ -93,6 +96,46 @@ public:
         isOpDropped_ = opDropped;
     }
 
+    bool IsDirtyAlignEnabled() const
+    {
+        return isDirtyAlignEnabled_;
+    }
+
+    bool IsStencilPixelOcclusionCullingEnabled() const
+    {
+        return isStencilPixelOcclusionCullingEnabled_;
+    }
+
+    bool HasDisplayHdrOn() const
+    {
+        return hasDisplayHdrOn_;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+
+    void SetIsFirstVisitCrossNodeDisplay(bool isFirstVisitCrossNodeDisplay)
+    {
+        isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
+    }
+
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
@@ -118,19 +161,59 @@ public:
         return timestamp_;
     }
 
+    void SetActualTimestamp(int64_t timestamp)
+    {
+        actualTimestamp_ = timestamp;
+    }
+
+    int64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_;
+    }
+
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_ = vsyncId;
+    }
+
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_ = isForceRefresh;
+    }
+
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_;
+    }
+
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
+    }
+
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
     }
 
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
+    const DrawablesVec& GetHardwareEnabledTypeDrawables() const
     {
         return hardwareEnabledTypeDrawables_;
     }
 
-    const std::vector<HardCursorInfo>& GetHardCursorDrawables() const
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawables() const
     {
-        return hardCursorDrawables_;
+        return hardCursorDrawableMap_;
     }
     
     void SetPendingScreenRefreshRate(uint32_t rate)
@@ -349,18 +432,57 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
-    bool IsAceDebugBoundaryEnabled() const
+    const ScreenInfo& GetScreenInfo() const
     {
-        return isAceDebugBoundaryEnabled_;
+        return screenInfo_;
     }
 
+    void SetScreenInfo(const ScreenInfo& info)
+    {
+        screenInfo_ = info;
+    }
+
+    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
+
+    void SetCompositeType(RSDisplayRenderNode::CompositeType type)
+    {
+        compositeType_ = type;
+    }
+    NodeId GetCurrentVisitDisplayDrawableId() const
+    {
+        return currentVisitDisplayDrawableId_;
+    }
+    void SetCurrentVisitDisplayDrawableId(NodeId displayId)
+    {
+        currentVisitDisplayDrawableId_ = displayId;
+    }
+
+    bool HasPhysicMirror() const
+    {
+        return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+    }
+
+    AdvancedDirtyRegionType GetAdvancedDirtyType() const
+    {
+        return advancedDirtyType_;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t fastComposeTimeStampDiff_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool hasDisplayHdrOn_ = false;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
     bool isRegionDebugEnabled_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isDirtyRegionDfxEnabled_ = false;
@@ -370,7 +492,10 @@ private:
     bool isVisibleRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
+    bool isDirtyAlignEnabled_ = false;
+    bool isStencilPixelOcclusionCullingEnabled_ = false;
     bool isOcclusionEnabled_ = false;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
     bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
@@ -378,10 +503,12 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
+    NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
+    AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
-    std::vector<HardCursorInfo> hardCursorDrawables_;
+    DrawablesVec hardwareEnabledTypeDrawables_;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
@@ -400,13 +527,14 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
-    bool isAceDebugBoundaryEnabled_ = false;
+    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    ScreenInfo screenInfo_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
@@ -417,6 +545,12 @@ class RSRenderThreadParamsManager {
 public:
     RSRenderThreadParamsManager() = default;
     ~RSRenderThreadParamsManager() = default;
+
+    static RSRenderThreadParamsManager& Instance()
+    {
+        static RSRenderThreadParamsManager instance;
+        return instance;
+    }
 
     inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
     {

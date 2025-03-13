@@ -218,12 +218,15 @@ HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
     /**
      * @tc.steps: step1. RegionOp
      */
+    Rect rect;
+    EXPECT_TRUE(rect.left_ == 0);
     Region region;
     Region region1;
     Region region2;
     Region res;
     Region::OP op = Region::OP::SUB;
     region.RegionOp(region1, region2, res, op);
+    EXPECT_TRUE(res.Area() == 0);
 }
 
 /**
@@ -243,6 +246,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal001, Function | MediumTest | Level2
     Region res;
     Region::OP op = Region::OP::AND;
     region.RegionOpLocal(region1, region2, res, op);
+    EXPECT_EQ(res.Area(), 0);
 }
 
 /**
@@ -263,6 +267,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal002, Function | MediumTest | Level2
     Region res;
     Region::OP op = static_cast<Region::OP>(0);
     region.RegionOpLocal(region1, region2, res, op);
+    EXPECT_EQ(res.Area(), 0);
 }
 
 /**
@@ -490,12 +495,15 @@ HWTEST_F(RSOcclusionRegionTest, UpdateRectsTest, Function | MediumTest | Level2)
  */
 HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
 {
+    Rect rect;
+    EXPECT_TRUE(rect.left_ == 0);
     Region emptyRegion(Rect { 0, 0, 0, 0 });
     Region baseRegion;
     Region resultRegion;
     Region::OP operationType = Region::OP::AND;
     Region regionOperator;
     regionOperator.RegionOp(emptyRegion, baseRegion, resultRegion, operationType);
+    EXPECT_EQ(resultRegion.Area(), 0);
 }
 
 /**

@@ -27,10 +27,10 @@
 #include "params/rs_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_thread.h"
 namespace OHOS::Rosen {
 
 class RSDirtyRectsDfx {
@@ -41,11 +41,16 @@ public:
     ~RSDirtyRectsDfx() = default;
 
     enum class RSPaintStyle { FILL, STROKE };
-    void OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas);
-    void OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void OnDraw(RSPaintFilterCanvas& canvas);
+    void OnDrawVirtual(RSPaintFilterCanvas& canvas);
     void SetDirtyRegion(Occlusion::Region& dirtyRegion)
     {
         dirtyRegion_ = dirtyRegion;
+    }
+
+    void SetExpandedDirtyRegion(Occlusion::Region& expandedDirtyRegion)
+    {
+        expandedDirtyRegion_ = expandedDirtyRegion;
     }
 
     void SetVirtualDirtyRects(const std::vector<RectI>& virtualDirtyRects, const ScreenInfo& screenInfo)
@@ -56,28 +61,32 @@ public:
 
 private:
     Occlusion::Region dirtyRegion_;
+    Occlusion::Region expandedDirtyRegion_;
     std::vector<RectI> virtualDirtyRects_;
     ScreenInfo screenInfo_;
     const DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable_;
-    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     const std::unique_ptr<RSRenderParams>& displayParams_;
 
-    bool RefreshRateRotationProcess(ScreenRotation rotation, uint64_t screenId);
-    void DrawCurrentRefreshRate();
-    void DrawDirtyRectForDFX(RectI dirtyRect, const Drawing::Color color, const RSPaintStyle fillType,
-        float alpha, int edgeWidth = 6) const;
-    bool DrawDetailedTypesOfDirtyRegionForDFX(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
-    void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const;
-    void DrawHwcRegionForDFX() const;
+    bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
+        ScreenRotation rotation, int translateWidth, int translateHeight);
+    void DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas);
+    void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
+        const RSPaintStyle fillType, int edgeWidth = 6, bool isTextOutsideRect = false) const;
+    bool DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
+#ifdef RS_ENABLE_GPU
+    void DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams) const;
+#endif
+    void DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const;
 
-    void DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects) const;
-    void DrawAllSurfaceDirtyRegionForDFX() const;
-    void DrawAllSurfaceOpaqueRegionForDFX() const;
-    void DrawTargetSurfaceDirtyRegionForDFX() const;
-    void DrawTargetSurfaceVisibleRegionForDFX() const;
-    void DrawAndTraceSingleDirtyRegionTypeForDFX(
+    void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const;
+    void DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
+    void DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const;
+    void DrawTargetSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
+    void DrawTargetSurfaceVisibleRegionForDFX(RSPaintFilterCanvas& canvas) const;
+    void DrawAndTraceSingleDirtyRegionTypeForDFX(RSPaintFilterCanvas& canvas,
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, DirtyRegionType dirtyType, bool isDrawn = true) const;
-    void DrawDirtyRegionInVirtual() const;
+    void DrawDirtyRegionInVirtual(RSPaintFilterCanvas& canvas) const;
 
     // dfx check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName) const

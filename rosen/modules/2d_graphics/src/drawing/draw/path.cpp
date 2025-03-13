@@ -215,6 +215,11 @@ void Path::SetFillStyle(PathFillType fillstyle)
     impl_->SetFillStyle(fillstyle);
 }
 
+PathFillType Path::GetFillStyle() const
+{
+    return impl_->GetFillStyle();
+}
+
 bool Path::Interpolate(const Path& ending, scalar weight, Path& out)
 {
     return impl_->Interpolate(ending, weight, out);
@@ -273,6 +278,11 @@ scalar Path::GetLength(bool forceClosed) const
 bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const
 {
     return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
+}
+
+bool Path::GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) const
+{
+    return impl_->GetSegment(start, stop, dst, startWithMoveTo, forceClosed);
 }
 
 bool Path::IsClosed(bool forceClosed) const

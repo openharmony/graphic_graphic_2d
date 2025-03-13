@@ -22,9 +22,32 @@ namespace Rosen {
 namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
-    constexpr uint32_t FPS_MAX = 120;
+    constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
     const std::string ACE_ANIMATOR_NAME = "AceAnimato";
     const std::string OTHER_SURFACE = "Other_SF";
+}
+
+void HgmIdleDetector::SetAppSupportedState(bool appSupported)
+{
+    appSupported_ = appSupported;
+    if (!appSupported_) {
+        aceAnimatorIdleState_ = true;
+        aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
+        surfaceTimeMap_.clear();
+        bufferFpsMap_.clear();
+    }
+}
+
+void HgmIdleDetector::SetAceAnimatorIdleState(bool aceAnimatorIdleState)
+{
+    if (!appSupported_ || bufferFpsMap_.find(ACE_ANIMATOR_NAME) == bufferFpsMap_.end() ||
+        bufferFpsMap_[ACE_ANIMATOR_NAME] == 0) {
+        // only if bufferFpsMap_ contains ACE_ANIMATOR_NAME, aceAnimatorIdleState_ can be set to false
+        aceAnimatorIdleState_ = true;
+        return;
+    }
+
+    aceAnimatorIdleState_ = aceAnimatorIdleState;
 }
 
 void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
@@ -34,41 +57,44 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         return;
     }
 
-    if (!GetAppSupportedState() || frameTimeMap_.size() > MAX_CACHED_VALID_SURFACE_NAME_COUNT) {
-        if (!frameTimeMap_.empty()) {
-            frameTimeMap_.clear();
-        }
+    if (!GetAppSupportedState() || surfaceTimeMap_.size() > MAX_CACHED_VALID_SURFACE_NAME_COUNT) {
+        surfaceTimeMap_.clear();
         return;
     }
 
-    std::string validSurfaceName = "";
-    bool needHighRefresh = false;
+    std::string validSurfaceType = "";
+    bool hasValidFramework = false;
     switch (uiFwkType) {
         case UIFWKType::FROM_UNKNOWN:
-            needHighRefresh = GetUnknownFrameworkState(surfaceName, validSurfaceName);
+            hasValidFramework = GetUnknownFrameworkState(surfaceName, validSurfaceType);
             break;
         case UIFWKType::FROM_SURFACE:
-            needHighRefresh = GetSurfaceFrameworkState(surfaceName, validSurfaceName);
+            hasValidFramework = GetSurfaceFrameworkState(surfaceName, validSurfaceType);
             break;
         default:
             break;
     }
-    if (!needHighRefresh) {
+    if (!hasValidFramework) {
         return;
     }
 
     RS_TRACE_NAME_FMT("UpdateSurfaceTime:: Not Idle SurFace Name = [%s]  From Pid = [%d]",
         surfaceName.c_str(), pid);
-    frameTimeMap_[validSurfaceName] = timestamp;
+    // only types contained by bufferFpsMap_ can be add to surfaceTimeMap_
+    surfaceTimeMap_[validSurfaceType] = timestamp;
 }
 
 bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
     std::string& uiFwkType)
 {
-    for (auto& supportedAppBuffer : supportAppBufferList_) {
+    for (const auto& [supportedAppBuffer, fps] : bufferFpsMap_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
-            uiFwkType = supportedAppBuffer;
-            return true;
+            if (fps > 0) {
+                uiFwkType = supportedAppBuffer;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
     return false;
@@ -77,94 +103,57 @@ bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
 bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
     std::string& validSurfaceName)
 {
-    for (auto& supportedAppBuffer : supportAppBufferList_) {
+    for (const auto& [supportedAppBuffer, fps] : bufferFpsMap_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
-            validSurfaceName = supportedAppBuffer;
-            return true;
+            if (fps > 0) {
+                validSurfaceName = supportedAppBuffer;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
-    if (std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE)) {
+    if (bufferFpsMap_.find(OTHER_SURFACE) != bufferFpsMap_.end() &&
+        bufferFpsMap_[OTHER_SURFACE] > 0) {
         validSurfaceName = OTHER_SURFACE;
         return true;
     }
     return false;
 }
 
-bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)
+void HgmIdleDetector::UpdateSurfaceState(uint64_t timestamp)
 {
-    if (frameTimeMap_.empty()) {
-        return true;
-    }
-
-    bool idle = true;
-    for (auto iter = frameTimeMap_.begin(); iter != frameTimeMap_.end();) {
-        if ((timestamp - iter->second) > BUFFER_IDLE_TIME_OUT) {
-            iter = frameTimeMap_.erase(iter);
+    for (auto iter = surfaceTimeMap_.begin(); iter != surfaceTimeMap_.end();) {
+        if (timestamp > iter->second && (timestamp - iter->second) > BUFFER_IDLE_TIME_OUT) {
+            iter = surfaceTimeMap_.erase(iter);
         } else {
-            idle = false;
             ++iter;
         }
     }
-
-    return idle;
-}
-
-bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
-{
-    if (appBufferBlackList_.empty() || (!aceAnimatorIdleState_ &&
-        !std::count(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACE_ANIMATOR_NAME))) {
-        return true;
-    }
-
-    if (frameTimeMap_.empty() ||
-        std::count(appBufferBlackList_.begin(), appBufferBlackList_.end(), OTHER_SURFACE)) {
-        return false;
-    }
-
-    for (auto &[surfaceName, _] : frameTimeMap_) {
-        if (!std::count(appBufferBlackList_.begin(), appBufferBlackList_.end(), surfaceName)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
 {
-    if (appBufferList_.empty()) {
-        return GetAceAnimatorExpectedFrameRate() > ANIMATOR_NO_EXPECTED_FRAME_RATE ? GetAceAnimatorExpectedFrameRate()
-                                                                                   : FPS_MAX;
+    if (aceAnimatorIdleState_ && surfaceTimeMap_.empty()) {
+        return 0;
     }
+
+    int32_t aceAnimatorVote = 0;
     if (!aceAnimatorIdleState_) {
-        auto iter = std::find_if(appBufferList_.begin(), appBufferList_.end(),
-            [&](const auto& appBuffer) {
-            return appBuffer.first == ACE_ANIMATOR_NAME;
-        });
-        if (iter != appBufferList_.end() && frameTimeMap_.empty()) {
-            return GetAceAnimatorExpectedFrameRate() > ANIMATOR_NO_EXPECTED_FRAME_RATE
-                    ? std::min(GetAceAnimatorExpectedFrameRate(), iter->second)
-                    : iter->second;
-        }
+        // only if bufferFpsMap_ contains ACE_ANIMATOR_NAME, aceAnimatorIdleState_ can be set to false
+        aceAnimatorVote = aceAnimatorExpectedFrameRate_ > ANIMATOR_NO_EXPECTED_FRAME_RATE
+                            ? std::min(aceAnimatorExpectedFrameRate_, bufferFpsMap_[ACE_ANIMATOR_NAME])
+                            : bufferFpsMap_[ACE_ANIMATOR_NAME];
     }
 
-    for (auto &[surfaceName, _] : frameTimeMap_) {
-        auto iter = std::find_if(appBufferList_.begin(), appBufferList_.end(),
-            [&surfaceName = surfaceName](const std::pair<std::string, int32_t>& appBuffer) {
-            return appBuffer.first == surfaceName;
-        });
-        if (iter == appBufferList_.end()) {
-            return FPS_MAX;
-        }
+    int32_t surfaceVote = 0;
+    for (const auto& [surfaceName, _] : surfaceTimeMap_) {
+        // only types contained by bufferFpsMap_ can be add to surfaceTimeMap_
+        surfaceVote = std::max(surfaceVote, bufferFpsMap_[surfaceName]);
     }
 
-    for (auto &[surfaceName, touchUpExpectedFPS] : appBufferList_) {
-        if ((surfaceName == ACE_ANIMATOR_NAME && !aceAnimatorIdleState_) ||
-            frameTimeMap_.count(surfaceName)) {
-            return touchUpExpectedFPS;
-        }
-    }
-
-    return FPS_MAX;
+    RS_TRACE_NAME_FMT("GetTouchUpExpectedFPS: aceAnimatorVote:[%d], surfaceVote:[%d]", aceAnimatorVote, surfaceVote);
+    return std::max(aceAnimatorVote, surfaceVote);
 }
 
 } // namespace Rosen

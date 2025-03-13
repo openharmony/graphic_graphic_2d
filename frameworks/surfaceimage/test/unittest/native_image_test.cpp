@@ -24,6 +24,7 @@
 #include "window.h"
 #include "GLES/gl.h"
 #include "buffer_log.h"
+#include "metadata_helper.h"
 #include "surface.h"
 #include "surface_image.h"
 
@@ -679,6 +680,102 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix004, Function | MediumT
         bool bRet = CheckMatricIsSame(matrix, matrixArrV2[i]);
         ASSERT_EQ(bRet, true);
     }
+    delete region;
+}
+
+/*
+ * Function: OH_NativeImage_GetBufferMatrix
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test with different transform types and crop regions
+ *                  2. verify matrix calculation with crop
+ * @tc.require: issueI5KG61
+ */
+HWTEST_F(NativeImageTest, OHNativeImageGetBufferMatrix001, Function | MediumTest | Level1)
+{
+    if (image == nullptr) {
+        image = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+        ASSERT_NE(image, nullptr);
+    }
+    if (nativeWindow == nullptr) {
+        nativeWindow = OH_NativeImage_AcquireNativeWindow(image);
+        ASSERT_NE(nativeWindow, nullptr);
+    }
+
+    // Setup frame available listener
+    OH_OnFrameAvailableListener listener;
+    listener.context = this;
+    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // Setup buffer and region
+    NativeWindowBuffer* buffer = nullptr;
+    int fenceFd = -1;
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    int32_t width = 600;
+    int32_t height = 800;
+    ret = NativeWindowHandleOpt(nativeWindow, SET_BUFFER_GEOMETRY, width, height);
+    float bufferMatrix[16] = {
+        0, -0.5, 0, 0,
+        -0.5, 0, 0, 0,
+        0, 0, 1, 0,
+        1, 1, 0, 1
+    };
+    EXPECT_EQ(ret, GSERROR_OK);
+
+    // Set transform
+    ret = NativeWindowHandleOpt(nativeWindow, SET_TRANSFORM, GraphicTransformType::GRAPHIC_ROTATE_90);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &buffer, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    BufferHandleMetaRegion metaRegion{300, 400, 300, 400};
+    vector<uint8_t> data;
+    MetadataHelper::ConvertMetadataToVec(metaRegion, data);
+    buffer->sfbuffer->SetMetadata(ATTRKEY_CROP_REGION, data);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, buffer, -1, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+    // Update surface to apply transform and crop
+    ret = OH_NativeImage_UpdateSurfaceImage(image);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+
+    // Get and verify buffer matrix
+    float matrix[16];
+    ret = OH_NativeImage_GetBufferMatrix(image, matrix);
+    std::cout << "{\n";
+    for (int i = 0; i < 4; i++) {
+        std::cout << "    {";
+        for (int j = 0; j < 4; j++) {
+            std::cout << matrix[i * 4 + j];
+            if (j < 3) std::cout << ", ";
+        }
+        std::cout << "},\n";
+    }
+    std::cout << "}" << std::endl;
+    ASSERT_EQ(ret, GSERROR_OK);
+    BufferHandleMetaRegion crop;
+    if (MetadataHelper::GetCropRectMetadata(buffer->sfbuffer, crop) != GSERROR_OK) {
+        const float initMatrix[] = {
+            0, -1, 0, 0,
+            -1, 0, 0, 0,
+            0, 0, 1, 0,
+            1, 1, 0, 1
+        };
+        std::copy(std::begin(initMatrix), std::end(initMatrix), bufferMatrix);
+    }
+
+    ASSERT_EQ(CheckMatricIsSame(matrix, bufferMatrix), true);
+    EXPECT_EQ(SURFACE_ERROR_INVALID_PARAM, OH_NativeImage_GetBufferMatrix(nullptr, matrix));
+    EXPECT_EQ(SURFACE_ERROR_INVALID_PARAM, OH_NativeImage_GetBufferMatrix(image, nullptr));
     delete region;
 }
 

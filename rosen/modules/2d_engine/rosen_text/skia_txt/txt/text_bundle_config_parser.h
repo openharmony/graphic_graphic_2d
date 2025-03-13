@@ -16,6 +16,11 @@
 #ifndef ROSEN_MODULES_SPTEXT_BUNDLE_MANAGER_H
 #define ROSEN_MODULES_SPTEXT_BUNDLE_MANAGER_H
 
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
+
 #ifdef OHOS_TEXT_ENABLE
 #include "bundlemgr/bundle_mgr_interface.h"
 #endif
@@ -23,13 +28,43 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+constexpr uint32_t SINCE_API18_VERSION = 18;
+
 class TextBundleConfigParser {
 public:
-    static bool IsAdapterTextHeightEnabled();
+    static TextBundleConfigParser& GetInstance()
+    {
+        static TextBundleConfigParser instance;
+        return instance;
+    }
+
+    bool IsAdapterTextHeightEnabled() const;
+    bool IsTargetApiVersion(size_t targetVersion) const;
+
 private:
+    TextBundleConfigParser()
+    {
+        InitBundleInfo();
+    };
+
+    ~TextBundleConfigParser() {};
+
+    TextBundleConfigParser(const TextBundleConfigParser&) = delete;
+    TextBundleConfigParser& operator=(const TextBundleConfigParser&) = delete;
+    TextBundleConfigParser(TextBundleConfigParser&&) = delete;
+    TextBundleConfigParser& operator=(TextBundleConfigParser&&) = delete;
+
+    uint32_t bundleApiVersion_{0};
+    bool adapterTextHeightEnable_{false};
+    bool initStatus_{false};
+
+    void InitBundleInfo();
+    void InitTextBundleConfig();
+    void InitTextBundleFailed();
+
 #ifdef OHOS_TEXT_ENABLE
-    static bool IsMetaDataExistInEntryModule(const std::string& metaData);
-    static sptr<AppExecFwk::IBundleMgr> GetSystemAbilityManager();
+    bool IsMetaDataExistInModule(const std::string& metaData, const AppExecFwk::BundleInfo& bundleInfo);
+    bool GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo);
 #endif
 };
 } // namespace SPText

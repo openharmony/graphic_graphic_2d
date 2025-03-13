@@ -140,4 +140,57 @@ HWTEST_F(RunTest, RunTest006, TestSize.Level1)
     runs_.at(0)->Paint(&canvas, 0.0, 0.0);
     runs_.at(0)->Paint(nullptr, 0.0, 0.0);
 }
+
+/*
+ * @tc.name: RunTest007
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunTest007, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 7);
+    EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 7);
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 7);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, 10).size(), 7);
+    EXPECT_EQ(runs_[0]->GetImageBounds().GetLeft(), 1.000000f);
+}
+
+/*
+ * @tc.name: RunTest009
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunTest008, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetPositions(-1, 10), std::vector<Drawing::Point>());
+    EXPECT_EQ(runs_[0]->GetPositions(0, -1), std::vector<Drawing::Point>());
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(nullptr, &length);
+    EXPECT_EQ(length, 0);
+
+    runs_[0]->GetStringRange(&location, nullptr);
+    EXPECT_EQ(location, 0);
+
+    std::vector<PaintRecord> testVec;
+    std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);
+    location = 10;
+    length = 10;
+    runNull->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+    EXPECT_EQ(runNull->GetImageBounds().GetLeft(), 0.000000f);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(-1, 10), std::vector<uint64_t>());
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, -1), std::vector<uint64_t>());
+}
 } // namespace txt

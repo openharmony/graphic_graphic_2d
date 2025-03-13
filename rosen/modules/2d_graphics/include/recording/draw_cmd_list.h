@@ -85,9 +85,11 @@ public:
         uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
 #ifdef CROSS_PLATFORM
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.__get(), sizeof(OpItem)));
 #else
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.value(), sizeof(OpItem)));
 #endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
@@ -129,12 +131,12 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
      */
-    void PatchTypefaceIds();
+    void PatchTypefaceIds(bool takeIdFromList = false);
 
     /**
      * @brief   Draw cmd is empty or not.
@@ -169,6 +171,16 @@ public:
     void SetHeight(int32_t height);
 
     /**
+     * @brief  Gets whether DrawCmdList needs to be UICaptured.
+     */
+    bool GetNoNeedUICaptured() const;
+
+    /**
+     * @brief  Sets whether DrawCmdList needs to be UICaptured.
+     */
+    void SetNoNeedUICaptured(bool noNeedUICaptured);
+
+    /**
      * @brief   Convert Textblob Op to Image Op, it is different for difference mode
      *          IMMEDIATE: the Image Op will add to the end of buffer, and the mapped offset will be recorded in
      *          replacedOpListForBuffer.
@@ -177,17 +189,17 @@ public:
      */
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
-    bool GetIsCache();
+    bool GetIsCache() const;
 
     void SetIsCache(bool isCached);
 
-    bool GetCachedHighContrast();
+    bool GetCachedHighContrast() const;
 
     void SetCachedHighContrast(bool cachedHighContrast);
 
-    std::vector<std::pair<uint32_t, uint32_t>> GetReplacedOpList();
+    std::vector<std::pair<size_t, size_t>> GetReplacedOpList();
 
-    void SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList);
+    void SetReplacedOpList(std::vector<std::pair<size_t, size_t>> replacedOpList);
 
     void UpdateNodeIdToPicture(NodeId nodeId);
 
@@ -196,6 +208,13 @@ public:
     void Dump(std::string& out);
 
     void Purge();
+
+    void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
+
+    size_t GetSize();
+
+    void SetCanvasDrawingOpLimitEnable(bool isEnable);
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -206,18 +225,23 @@ private:
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
 
+    void ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList);
+
     int32_t width_;
     int32_t height_;
     const UnmarshalMode mode_;
-    const uint32_t offset_ = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
+    const size_t offset_ = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     std::vector<std::shared_ptr<DrawOpItem>> drawOpItems_;
 
     size_t lastOpGenSize_ = 0;
-    std::vector<std::pair<uint32_t, uint32_t>> replacedOpListForBuffer_;
+    std::vector<std::pair<size_t, size_t>> replacedOpListForBuffer_;
     std::vector<std::pair<int, std::shared_ptr<DrawOpItem>>> replacedOpListForVector_;
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
+    bool isNeedUnmarshalOnDestruct_ = false;
+    bool noNeedUICaptured_ = false;
+    bool isCanvasDrawingOpLimitEnabled_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

@@ -67,6 +67,10 @@ public:
 
     void CleanAllShaders() const;
 
+    bool CheckShaderCacheOverSoftLimit() const;
+
+    void PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived);
+
 private:
     ShaderCache() = default;
     ~ShaderCache();
@@ -82,7 +86,7 @@ private:
     mutable std::mutex mutex_;
 
     bool savePending_ = false;
-    unsigned int saveDelaySeconds_ = 3;
+    unsigned int saveDelaySeconds_ = 900;
 
     size_t bufferSize_ = 16 * 1024;
     bool cacheDirty_ = false;
@@ -93,6 +97,8 @@ private:
     static constexpr size_t MAX_VALUE_SIZE = MAX_KEY_SIZE * 1024;
     static constexpr size_t MAX_TOTAL_SIZE = MAX_VALUE_SIZE * 4;
     static constexpr size_t MAX_UNIRENDER_SIZE = MAX_VALUE_SIZE * 10;
+    static constexpr unsigned int UNI_DELAY_SECONDS = 900;
+    static constexpr unsigned int DEFAULT_DELAY_SECONDS = 3;
 };
 }   // namespace Rosen
 }   // namespace OHOS

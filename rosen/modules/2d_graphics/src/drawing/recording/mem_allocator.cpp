@@ -24,7 +24,7 @@ namespace Drawing {
 namespace {
 constexpr size_t LARGE_MALLOC = 200000000;
 }
-static constexpr size_t MEM_SIZE_MAX = SIZE_MAX;
+static constexpr size_t MEM_SIZE_MAX = SIZE_MAX / 2;
 
 MemAllocator::MemAllocator() : isReadOnly_(false), capacity_(0), size_(0), startPtr_(nullptr) {}
 
@@ -110,7 +110,7 @@ bool MemAllocator::Resize(size_t size)
 
 void* MemAllocator::Add(const void* data, size_t size)
 {
-    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX) {
+    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX || size > MEM_SIZE_MAX - capacity_) {
         return nullptr;
     }
     auto current = startPtr_ + size_;
@@ -142,22 +142,23 @@ const void* MemAllocator::GetData() const
     return startPtr_;
 }
 
-uint32_t MemAllocator::AddrToOffset(const void* addr) const
+size_t MemAllocator::AddrToOffset(const void* addr) const
 {
     if (!addr) {
         return 0;
     }
 
-    auto offset = static_cast<uint32_t>(static_cast<const char*>(addr) - startPtr_);
-    if (offset > size_) {
+    size_t offset = static_cast<size_t>(static_cast<const char*>(addr) - startPtr_);
+    if (offset >= size_) {
         return 0;
     }
     return offset;
 }
 
-void* MemAllocator::OffsetToAddr(size_t offset) const
+void* MemAllocator::OffsetToAddr(size_t offset, size_t size) const
 {
-    if (offset >= size_) {
+    if (offset >= size_ || size > size_ || offset > size_ - size) {
+        LOGE("MemAllocator::OffsetToAddr return nullptr.");
         return nullptr;
     }
 

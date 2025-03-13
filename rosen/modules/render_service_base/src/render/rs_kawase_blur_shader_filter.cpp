@@ -37,9 +37,25 @@ int RSKawaseBlurShaderFilter::GetRadius() const
     return radius_;
 }
 
+std::string RSKawaseBlurShaderFilter::GetDescription() const
+{
+    std::string filterString = ", radius: " + std::to_string(radius_) + " sigma";
+    if (RSSystemProperties::GetForceKawaseDisabled()) {
+        filterString = filterString + ", replaced by Mesa.";
+    }
+    return filterString;
+}
+
 void RSKawaseBlurShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
+    if (RSSystemProperties::GetForceKawaseDisabled()) {
+        // Substitute the blur algorithm
+        auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR", Drawing::DrawingPaintType::BRUSH);
+        kawaseFilter->SetParam("MESA_BLUR_RADIUS", (int)radius_); // blur radius
+        visualEffectContainer->AddToChainedFilter(kawaseFilter);
+        return;
+    }
     auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR", Drawing::DrawingPaintType::BRUSH);
     kawaseFilter->SetParam("KAWASE_BLUR_RADIUS", (int)radius_); // blur radius
     visualEffectContainer->AddToChainedFilter(kawaseFilter);

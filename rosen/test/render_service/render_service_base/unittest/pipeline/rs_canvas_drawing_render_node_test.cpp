@@ -284,7 +284,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Lev
     rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
 
     auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNode->GetId()] = rsCanvasDrawingRenderNode;
+    NodeId rsCanvasDrawingRenderNodeId = rsCanvasDrawingRenderNode->GetId();
+    pid_t rsCanvasDrawingRenderNodePid = ExtractPid(rsCanvasDrawingRenderNodeId);
+    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNodePid][rsCanvasDrawingRenderNodeId] = rsCanvasDrawingRenderNode;
     ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
     EXPECT_TRUE(ctxNode != nullptr);
     int32_t width = 1;
@@ -627,5 +629,55 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->ClearResource();
     auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
     EXPECT_TRUE(lists.empty());
+}
+
+/**
+ * @tc.name: CheckCanvasDrawingPostPlaybacked
+ * @tc.desc: Test CheckCanvasDrawingPostPlaybacked
+ * @tc.type: FUNC
+ * @tc.require: issueIB8OVD
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, TestSize.Level1)
+{
+    NodeId nodeId = 7;
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
+    if (!drawable) {
+        return;
+    }
+    EXPECT_FALSE(drawable == nullptr);
+    rsCanvasDrawingRenderNode->isPostPlaybacked_ = true;
+    rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
+}
+
+/**
+ * @tc.name: ContentStyleSlotUpdateTest
+ * @tc.desc: Test ContentStyleSlotUpdateTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB8OVD
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Level1)
+{
+    NodeId nodeId = 7;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+
+    node->waitSync_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->isNeverOnTree_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->isNeverOnTree_ = false;
+    node->isTextureExportNode_ = true;
+    node->ContentStyleSlotUpdate();
 }
 } // namespace OHOS::Rosen

@@ -20,10 +20,12 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
+
+#include "accesstoken_kit.h"
 #include "event_handler.h"
 #include "graphic_common.h"
-#include "res_sched_client.h"
-#include "res_type.h"
+#include "ipc_skeleton.h"
+#include "parameters.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
@@ -34,118 +36,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t INVALID_FD = -1;
+static const int32_t APP_VSYNC_PRIORITY = system::GetIntParameter("const.graphic.app_vsync_priority", -1);
 }
-void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
-{
-    HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
-    if (fileDescriptor < 0) {
-        return;
-    }
-    // 3 is array size.
-    int64_t data[3];
-    ssize_t dataCount = 0;
-    if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
-        return;
-    }
-    HandleVsyncCallbacks(data, dataCount);
-}
-
-VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount)
-{
-    std::lock_guard<std::mutex> locker(fdMutex_);
-    if (fdClosed_) {
-        return VSYNC_ERROR_API_FAILED;
-    }
-    ssize_t ret = 0;
-    do {
-        // only take the latest timestamp
-        ret = read(fd, data, sizeof(data));
-        if (ret == 0) {
-            VLOGE("ReadFdInternal, ret is 0, read fd:%{public}d failed, errno:%{public}d", fd, errno);
-            return VSYNC_ERROR_OK;
-        }
-        if (ret == -1) {
-            if (errno == EINTR) {
-                ret = 0;
-                continue;
-            } else if (errno != EAGAIN) {
-                VLOGE("ReadFdInternal, read fd:%{public}d failed, errno:%{public}d", fd, errno);
-            }
-        } else {
-            dataCount += ret;
-        }
-    } while (ret != -1);
-
-    return VSYNC_ERROR_OK;
-}
-
-void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount)
-{
-    VSyncCallback cb = nullptr;
-    VSyncCallbackWithId cbWithId = nullptr;
-    void *userData = nullptr;
-    int64_t now = 0;
-    int64_t expectedEnd = 0;
-    std::vector<FrameCallback> callbacks;
-    {
-        std::lock_guard<std::mutex> locker(mtx_);
-        cb = vsyncCallbacks_;
-        cbWithId = vsyncCallbacksWithId_;
-        userData = userData_;
-        RNVFlag_ = false;
-        now = data[0];
-        period_ = data[1];
-        periodShared_ = data[1];
-        timeStamp_ = data[0];
-        timeStampShared_ = data[0];
-        expectedEnd = CalculateExpectedEndLocked(now);
-        callbacks = frameCallbacks_;
-        frameCallbacks_.clear();
-    }
-
-    VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
-    // 1, 2: index of array data.
-    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
-        dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
-    if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
-        // data[2] is frameCount
-        cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);
-    }
-    for (const auto& cb : callbacks) {
-        if (cb.callback_ != nullptr) {
-            cb.callback_(now, cb.userData_);
-        } else if (cb.callbackWithId_ != nullptr) {
-            cb.callbackWithId_(now, data[2], cb.userData_); // data[2] is vsyncId
-        }
-    }
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
-    }
-}
-
-int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
-{
-    int64_t expectedEnd = 0;
-    if (now < period_ || now > INT64_MAX - period_) {
-        RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
-        VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
-        return 0;
-    }
-    expectedEnd = now + period_;
-    if (name_ == "rs") {
-        // rs vsync offset is 5000000ns
-        expectedEnd = expectedEnd + period_ - 5000000;
-    }
-    return expectedEnd;
-}
-
-void VSyncCallBackListener::CloseFd(int32_t fd)
-{
-    std::lock_guard<std::mutex> locker(fdMutex_);
-    close(fd);
-    fdClosed_ = true;
-}
-
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     const sptr<IRemoteObject>& token,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper,
@@ -157,6 +49,22 @@ VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     name_(name)
 {
 };
+
+void VSyncReceiver::RegisterFileDescriptorListener()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
+    bool isAppMainThread = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) && (getpid() == gettid());
+    if (isAppMainThread && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
+        (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
+        listener_->SetDeamonWaiter();
+        listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
+            static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
+    } else {
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    }
+}
 
 VsyncError VSyncReceiver::Init()
 {
@@ -175,9 +83,8 @@ VsyncError VSyncReceiver::Init()
         }
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
-        looper_->PostTask([this] {
+        looper_->PostTask([] {
             SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
         });
     }
 
@@ -193,34 +100,49 @@ VsyncError VSyncReceiver::Init()
     }
 
     listener_->SetName(name_);
+    listener_->RegisterFdShutDownCallback([this](int32_t fileDescriptor) {
+        std::lock_guard<std::mutex> locker(initMutex_);
+        if (fileDescriptor != fd_) {
+            VLOGE("OnShutdown Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
+            return;
+        }
+        RemoveAndCloseFdLocked();
+    });
+    listener_->RegisterReadableCallback([this](int32_t fileDescriptor) -> bool {
+        std::lock_guard<std::mutex> locker(initMutex_);
+        if (fileDescriptor != fd_) {
+            VLOGE("OnReadable Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
+            return false;
+        }
+        return true;
+    });
 
-    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    RegisterFileDescriptorListener();
     init_ = true;
     return VSYNC_ERROR_OK;
 }
 
-void VSyncReceiver::ThreadCreateNotify()
-{
-    int32_t pid = getprocpid();
-    uint32_t uid = getuid();
-    int32_t tid = static_cast<int32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}u.", pid, tid, uid);
-
-    std::unordered_map<std::string, std::string> mapPayload;
-    mapPayload["pid"] = std::to_string(pid);
-    mapPayload["uid"] = std::to_string(uid);
-    mapPayload["tid"] = std::to_string(tid);
-    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, tid, mapPayload);
-}
-
 VSyncReceiver::~VSyncReceiver()
 {
-    if (fd_ != INVALID_FD) {
+    listener_->RegisterFdShutDownCallback(nullptr);
+    listener_->RegisterReadableCallback(nullptr);
+    std::lock_guard<std::mutex> locker(initMutex_);
+    RemoveAndCloseFdLocked();
+    DestroyLocked();
+}
+
+void VSyncReceiver::RemoveAndCloseFdLocked()
+{
+    if (looper_ != nullptr) {
         looper_->RemoveFileDescriptorListener(fd_);
-        listener_->CloseFd(fd_);
+        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
+    }
+
+    std::lock_guard<std::mutex> locker(listener_->fdMutex_);
+    if (fd_ >= 0) {
+        close(fd_);
+        listener_->SetFdClosedFlagLocked(true);
         fd_ = INVALID_FD;
-        Destroy();
     }
 }
 
@@ -320,20 +242,11 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
 void VSyncReceiver::CloseVsyncReceiverFd()
 {
     std::lock_guard<std::mutex> locker(initMutex_);
-    if (looper_ != nullptr) {
-        looper_->RemoveFileDescriptorListener(fd_);
-        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
-    }
-
-    if (fd_ >= 0) {
-        close(fd_);
-        fd_ = INVALID_FD;
-    }
+    RemoveAndCloseFdLocked();
 }
 
-VsyncError VSyncReceiver::Destroy()
+VsyncError VSyncReceiver::DestroyLocked()
 {
-    std::lock_guard<std::mutex> locker(initMutex_);
     if (connection_ == nullptr) {
         return VSYNC_ERROR_API_FAILED;
     }

@@ -15,6 +15,7 @@
 
 #include "static_factory.h"
 
+#include "utils/graphic_coretrace.h"
 #include "skia_adapter/skia_static_factory.h"
 #include "src/core/SkUtils.h"
 #include "utils/system_properties.h"
@@ -214,6 +215,17 @@ std::shared_ptr<Image> StaticFactory::MakeFromRaster(const Pixmap& pixmap,
     return EngineStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Document> StaticFactory::MakeMultiPictureDocument(FileWStream* fileStream,
+    SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeMultiPictureDocument(fileStream, procs, serialContext);
+    }
+#endif
+    return EngineStaticFactory::MakeMultiPictureDocument(fileStream, procs, serialContext);
+}
+
 std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
     size_t rowBytes)
 {
@@ -380,10 +392,125 @@ std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
 void StaticFactory::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_VK
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
+#endif
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         EngineStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
+}
+
+void StaticFactory::RecordCoreTrace(int functionType)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
+#endif
+    EngineStaticFactory::RecordCoreTrace(functionType);
+}
+
+void StaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
+#endif
+    EngineStaticFactory::RecordCoreTrace(functionType, nodeId);
+}
+
+void StaticFactory::ResetStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        DDGRStaticFactory::ResetStatsData();
+    }
+#endif
+    EngineStaticFactory::ResetStatsData();
+}
+
+void StaticFactory::ResetPerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        DDGRStaticFactory::ResetPerfEventData();
+    }
+#endif
+    EngineStaticFactory::ResetPerfEventData();
+}
+
+std::map<std::string, std::vector<uint16_t>> StaticFactory::GetBlurStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetBlurStatsData();
+    }
+#endif
+    return EngineStaticFactory::GetBlurStatsData();
+}
+
+std::map<std::string, RsBlurEvent> StaticFactory::GetBlurPerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetBlurPerfEventData();
+    }
+#endif
+    return EngineStaticFactory::GetBlurPerfEventData();
+}
+
+std::map<std::string, std::vector<uint16_t>> StaticFactory::GetTextureStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetTextureStatsData();
+    }
+#endif
+    return EngineStaticFactory::GetTextureStatsData();
+}
+
+std::map<std::string, RsTextureEvent> StaticFactory::GetTexturePerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetTexturePerfEventData();
+    }
+#endif
+    return EngineStaticFactory::GetTexturePerfEventData();
+}
+
+int16_t StaticFactory::GetSplitRange(int64_t duration)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetSplitRange(duration);
+    }
+#endif
+    return EngineStaticFactory::GetSplitRange(duration);
+}
+
+bool StaticFactory::IsOpenPerf()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::IsOpenPerf();
+    }
+#endif
+    return EngineStaticFactory::IsOpenPerf();
+}
+
+int64_t StaticFactory::GetCurrentTime()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetCurrentTime();
+    }
+#endif
+    return EngineStaticFactory::GetCurrentTime();
 }
 } // namespace Drawing
 } // namespace Rosen

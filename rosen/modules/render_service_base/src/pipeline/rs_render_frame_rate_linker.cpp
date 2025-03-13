@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_frame_rate_linker.h"
 
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
@@ -34,32 +35,123 @@ FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
     return ((FrameRateLinkerId)pid_ << 32) | (currentId);
 }
 
-RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : id_(id) {}
-RSRenderFrameRateLinker::RSRenderFrameRateLinker() : id_(GenerateId()) {}
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer)
+    : id_(id), observer_(observer)
+{
+    Notify();
+}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(ObserverType observer)
+    : RSRenderFrameRateLinker(GenerateId(), observer) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : RSRenderFrameRateLinker(id, nullptr) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker() : RSRenderFrameRateLinker(GenerateId(), nullptr) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(const RSRenderFrameRateLinker& other)
+{
+    Copy(std::move(other));
+}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(const RSRenderFrameRateLinker&& other)
+{
+    Copy(std::move(other));
+}
+
+RSRenderFrameRateLinker& RSRenderFrameRateLinker::operator=(const RSRenderFrameRateLinker& other)
+{
+    Copy(std::move(other));
+    return *this;
+}
+
+RSRenderFrameRateLinker& RSRenderFrameRateLinker::operator=(const RSRenderFrameRateLinker&& other)
+{
+    Copy(std::move(other));
+    return *this;
+}
+
+RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
+{
+    Notify();
+}
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
-    expectedRange_ = range;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (expectedRange_.preferred_ != range.preferred_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
+            if (cb) {
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), range.preferred_);
+            }
+        }
+    }
+
+    if (expectedRange_ != range) {
+        expectedRange_ = range;
+        Notify();
+    }
 }
 
 const FrameRateRange& RSRenderFrameRateLinker::GetExpectedRange() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return expectedRange_;
 }
 
 void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate)
 {
-    frameRate_ = rate;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (frameRate_ != rate) {
+        frameRate_ = rate;
+        Notify();
+    }
 }
 
 uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return frameRate_;
 }
 
 void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate)
 {
-    animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+    if (animatorExpectedFrameRate_ != animatorExpectedFrameRate) {
+        animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+        Notify();
+    }
+}
+
+void RSRenderFrameRateLinker::SetVsyncName(const std::string& vsyncName)
+{
+    vsyncName_ = vsyncName;
+}
+
+void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
+{
+    id_ = other.id_;
+    expectedRange_ = other.expectedRange_;
+    frameRate_ = other.frameRate_;
+    animatorExpectedFrameRate_ = other.animatorExpectedFrameRate_;
+}
+
+void RSRenderFrameRateLinker::Notify()
+{
+    if (observer_ != nullptr) {
+        observer_(*this);
+    }
+}
+
+void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (callback == nullptr) {
+        expectedFpsChangeCallbacks_.erase(listener);
+        return;
+    }
+
+    // if this listener has registered a callback before, replace it.
+    expectedFpsChangeCallbacks_[listener] = callback;
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), expectedRange_.preferred_);
 }
 
 } // namespace Rosen

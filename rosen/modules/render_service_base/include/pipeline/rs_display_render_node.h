@@ -29,6 +29,8 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
+#include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -43,13 +45,8 @@ typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
-    struct ScreenRenderParams
-    {
+    struct ScreenRenderParams {
         ScreenInfo screenInfo;
-        std::map<ScreenId, bool> displayHasSecSurface;
-        std::map<ScreenId, bool> displayHasSkipSurface;
-        std::map<ScreenId, bool> displayHasSnapshotSkipSurface;
-        std::map<ScreenId, bool> displayHasProtectedSurface;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
     };
@@ -69,15 +66,9 @@ public:
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
-    void SetScreenId(uint64_t screenId)
-    {
-        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
-            releaseScreenDmaBufferTask_(screenId_);
-        }
-        screenId_ = screenId;
-    }
+    void SetScreenId(uint64_t screenId);
 
     uint64_t GetScreenId() const
     {
@@ -113,6 +104,36 @@ public:
         return offsetX_;
     }
 
+    bool HasChildCrossNode() const
+    {
+        return hasChildCrossNode_;
+    }
+
+    void SetHasChildCrossNode(bool hasChildCrossNode)
+    {
+        hasChildCrossNode_ = hasChildCrossNode;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    void SetIsFirstVisitCrossNodeDisplay(bool isFirstVisitCrossNodeDisplay)
+    {
+        isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
+    }
+
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+
     int32_t GetDisplayOffsetY() const
     {
         return offsetY_;
@@ -123,10 +144,7 @@ public:
         return hasFingerprint_;
     }
 
-    void SetFingerprint(bool hasFingerprint)
-    {
-        hasFingerprint_ = hasFingerprint;
-    }
+    void SetFingerprint(bool hasFingerprint);
 
     void SetScreenRotation(const ScreenRotation& screenRotation)
     {
@@ -151,6 +169,16 @@ public:
     }
 
     bool IsMirrorDisplay() const;
+
+    inline bool HasMirroredDisplayChanged() const noexcept
+    {
+        return hasMirroredDisplayChanged_;
+    }
+
+    inline void ResetMirroredDisplayChangedFlag() noexcept
+    {
+        hasMirroredDisplayChanged_ = false;
+    }
 
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
@@ -218,6 +246,16 @@ public:
         return securityLayerList_;
     }
 
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
+    {
+        return specialLayerManager_;
+    }
+
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
+    {
+        return specialLayerManager_;
+    }
+
     void SetSecurityExemption(bool isSecurityExemption)
     {
         isSecurityExemption_ = isSecurityExemption;
@@ -226,6 +264,28 @@ public:
     bool GetSecurityExemption() const
     {
         return isSecurityExemption_;
+    }
+
+    void AddSecurityVisibleLayer(NodeId id)
+    {
+        securityVisibleLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityVisibleLayerList()
+    {
+        securityVisibleLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityVisibleLayerList()
+    {
+        return securityVisibleLayerList_;
+    }
+
+    void SetHasSecLayerInVisibleRect(bool hasSecLayer) {
+        bool lastHasSecLayerInVisibleRect = hasSecLayerInVisibleRect_;
+        hasSecLayerInVisibleRect_ = hasSecLayer;
+        hasSecLayerInVisibleRectChanged_ =
+            lastHasSecLayerInVisibleRect != hasSecLayerInVisibleRect_;
     }
 
     RectI GetLastFrameSurfacePos(NodeId id)
@@ -273,11 +333,13 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
     void UpdateRotation();
     bool IsRotationChanged() const;
+    bool IsRotationFinished() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
     }
@@ -315,11 +377,44 @@ public:
         offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
     }
 
+    void SetHasUniRenderHdrSurface(bool hasUniRenderHdrSurface)
+    {
+        hasUniRenderHdrSurface_ = hasUniRenderHdrSurface;
+    }
+
+    bool GetHasUniRenderHdrSurface() const
+    {
+        return hasUniRenderHdrSurface_;
+    }
+
+    void SetIsLuminanceStatusChange(bool isLuminanceStatusChange)
+    {
+        isLuminanceStatusChange_ = isLuminanceStatusChange;
+    }
+
+    bool GetIsLuminanceStatusChange() const
+    {
+        return isLuminanceStatusChange_;
+    }
+
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
 
     void SetBrightnessRatio(float brightnessRatio);
+
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    GraphicPixelFormat GetPixelFormat() const
+    {
+        return pixelFormat_;
+    }
+
+    void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetColorSpace() const;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
@@ -403,6 +498,7 @@ public:
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
     {
         oldScbPids_ = oldScbPids;
+        lastScbPid_ = currentScbPid_;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
         isFullChildrenListValid_ = false;
@@ -429,61 +525,132 @@ public:
     }
 
     bool IsZoomStateChange() const;
+    void HandleCurMainAndLeashSurfaceNodes();
+
+    void CollectHdrStatus(HdrStatus hdrStatus)
+    {
+        displayTotalHdrStatus_ = static_cast<HdrStatus>(displayTotalHdrStatus_ | hdrStatus);
+    }
+
+    void ResetDisplayHdrStatus()
+    {
+        displayTotalHdrStatus_ = HdrStatus::NO_HDR;
+    }
+
+    HdrStatus GetDisplayHdrStatus() const
+    {
+        return displayTotalHdrStatus_;
+    }
+
+    using ScreenStatusNotifyTask = std::function<void(bool)>;
+
+    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
+
+    void NotifyScreenNotSwitching();
+
+    // rcd node setter and getter, should be removed in OH 6.0 rcd refactoring
+    void SetRcdSurfaceNodeTop(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeTop_ = node;
+    }
+
+    void SetRcdSurfaceNodeBottom(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeBottom_ = node;
+    }
+
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeTop()
+    {
+        return rcdSurfaceNodeTop_;
+    }
+    
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeBottom()
+    {
+        return rcdSurfaceNodeBottom_;
+    }
+
+    // Window Container
+    void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+    std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
+
 protected:
     void OnSync() override;
 private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
-    void HandleCurMainAndLeashSurfaceNodes();
-    // vector of sufacenodes will records dirtyregions by itself
-    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
+
+    bool hasChildCrossNode_ = false;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
+    bool forceSoftComposite_ { false };
+    bool isMirroredDisplay_ = false;
+    bool hasMirroredDisplayChanged_ = false;
+    bool isSecurityDisplay_ = false;
+    bool hasUniRenderHdrSurface_ = false;
+    bool isLuminanceStatusChange_ = false;
+    bool preRotationStatus_ = false;
+    bool curRotationStatus_ = false;
+    bool lastRotationChanged_ = false;
+    bool isFirstTimeToProcessor_ = true;
+    bool hasFingerprint_ = false;
+    bool isSecurityExemption_ = false;
+    bool hasSecLayerInVisibleRect_ = false;
+    bool hasSecLayerInVisibleRectChanged_ = false;
+    // Use in vulkan parallel rendering
+    bool isParallelDisplayNode_ = false;
+    mutable bool isNeedWaitNewScbPid_ = false;
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
-    uint64_t screenId_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     uint32_t rogWidth_ = 0;
     uint32_t rogHeight_ = 0;
-    bool forceSoftComposite_ { false };
-    bool isMirroredDisplay_ = false;
-    bool isSecurityDisplay_ = false;
-    WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
-    bool preRotationStatus_ = false;
-    bool curRotationStatus_ = false;
-    bool lastRotationChanged_ = false;
+    int32_t currentScbPid_ = -1;
+    int32_t lastScbPid_ = -1;
+    HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
+    uint64_t screenId_ = 0;
+    // Use in MultiLayersPerf
+    size_t surfaceCountForMultiLayersPerf_ = 0;
+    int64_t lastRefreshTime_ = 0;
+    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    // Use in screen recording optimization
+    std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
+    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    WeakPtr mirrorSource_;
+    // vector of sufacenodes will records dirtyregions by itself
+    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     Drawing::Matrix initMatrix_;
-    bool isFirstTimeToProcessor_ = true;
-    bool hasFingerprint_ = false;
+    GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
-    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 
-    std::vector<NodeId> securityLayerList_;
-    bool isSecurityExemption_ = false;
+    // Use in virtual screen security exemption
+    std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
+    RSSpecialLayerManager specialLayerManager_;
+
+    // Use in mirror screen visible rect projection
+    std::vector<NodeId> securityVisibleLayerList_;  // surface node id
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
-    // Use in screen recording optimization
-    std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
-
-    // Use in vulkan parallel rendering
-    bool isParallelDisplayNode_ = false;
-
-    // Use in MultiLayersPerf
-    size_t surfaceCountForMultiLayersPerf_ = 0;
-
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 
-	// support multiscreen
+    // support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
@@ -491,17 +658,17 @@ private:
     std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
-    int32_t currentScbPid_ = -1;
-    mutable bool isNeedWaitNewScbPid_ = false;
-    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
-        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+
+    // Use in round corner display
+    // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeBottom_ = nullptr;
 
     friend class DisplayNodeCommandHelper;
-    int64_t lastRefreshTime_ = 0;
+    static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
 
-    bool curZoomState_ = false;
-    bool preZoomState_ = false;
-    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+    // Window Container
+    std::shared_ptr<RSBaseRenderNode> windowContainer_;
 };
 } // namespace Rosen
 } // namespace OHOS

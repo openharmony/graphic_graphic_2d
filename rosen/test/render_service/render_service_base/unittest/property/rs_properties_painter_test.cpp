@@ -28,6 +28,7 @@
 #include "skia_image.h"
 #include "skia_image_info.h"
 #include "skia_runtime_effect.h"
+#include "render/rs_colorful_shadow_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -154,6 +155,45 @@ HWTEST_F(RSPropertiesPainterTest, GetGravityMatrix002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetScalingModeMatrix
+ * @tc.desc: test results of GetScalingModeMatrix
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetScalingModeMatrix001, TestSize.Level1)
+{
+    constexpr float defaultBoundsWidth = 800.f;
+    constexpr float defaultBoundsHeight = 600.f;
+    RectF bounds(0.f, 0.f, defaultBoundsWidth, defaultBoundsHeight);
+    float bufferWidth = 30.f;
+    float bufferHeight = 40.f;
+    Drawing::Matrix scalingModeMatrix;
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_FREEZE, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix freezeMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, freezeMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleWindowMatrix = Drawing::Matrix();
+    ASSERT_EQ(scalingModeMatrix, scaleWindowMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleCropMatrix = Drawing::Matrix();
+    scaleCropMatrix.SetMatrix(26.666666f, 0.f, 0.f, 0.f, 26.666666f, -233.333328f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_NO_SCALE_CROP, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix noScaleCropMatrix = Drawing::Matrix();
+    noScaleCropMatrix.SetMatrix(1.f, 0.f, 385.f, 0.f, 1.f, 280.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, noScaleCropMatrix);
+    EXPECT_TRUE(RSPropertiesPainter::GetScalingModeMatrix(ScalingMode::SCALING_MODE_SCALE_FIT, bounds,
+        bufferWidth, bufferHeight, scalingModeMatrix));
+    Drawing::Matrix scaleFitMatrix = Drawing::Matrix();
+    scaleFitMatrix.SetMatrix(15.f, 0.f, 174.999985f, 0.f, 15.f, 0.f, 0.f, 0.f, 1.f);
+    ASSERT_EQ(scalingModeMatrix, scaleFitMatrix);
+}
+
+/**
  * @tc.name: Clip001
  * @tc.desc: test results of Clip
  * @tc.type:FUNC
@@ -216,6 +256,7 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect002, TestSize.Level1)
     properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
 }
 
 /**
@@ -235,6 +276,7 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect003, TestSize.Level1)
     properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
 }
 
 /**
@@ -254,6 +296,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect004, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
+    EXPECT_TRUE(properties.GetClipBounds());
 }
 
 /**
@@ -273,6 +317,8 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect005, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_FALSE(properties.IsShadowValid());
+    EXPECT_FALSE(properties.GetShadowPath());
 }
 
 /**
@@ -292,6 +338,7 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect006, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
 }
 
 /**
@@ -307,6 +354,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow001, TestSize.Level1)
     RSProperties properties;
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(!properties.IsShadowValid());
 }
 
 /**
@@ -324,6 +372,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow002, TestSize.Level1)
     properties.SetShadowRadius(10.f);
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
 }
 
 /**
@@ -344,6 +393,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow003, TestSize.Level1)
     properties.SetShadowPath(rsPath);
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetShadowPath());
 }
 
 /**
@@ -359,9 +409,11 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow004, TestSize.Level1)
     RSProperties properties;
     properties.SetShadowRadius(10.f);
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    EXPECT_NE(rsPath, nullptr);
     properties.SetClipBounds(rsPath);
     RRect rrect;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.GetClipBounds());
 }
 
 /**
@@ -380,6 +432,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow005, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_FALSE(properties.IsShadowValid());
 }
 
 /**
@@ -400,6 +453,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow006, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_FALSE(properties.IsShadowValid());
 }
 
 /**
@@ -420,6 +474,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow007, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     RRect rrect(rect, 1.f, 1.f);
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
 }
 
 /**
@@ -509,6 +564,30 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetForegroundEffectDirtyRect002
+ * @tc.desc: test results of GetForegroundEffectDirtyRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Level1)
+{
+    RectI dirtyForegroundEffect;
+    RSProperties properties;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
+
+    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+    properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    RSShadow shadow;
+    RRect rrect({ 0.0f, 0.0f, 10.0f, 10.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
+    shadow.SetMask(true);
+    shadow.SetRadius(1.0f);
+    properties.shadow_ = shadow;
+    properties.rrect_ = rrect;
+    RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
+    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
+}
+
+/**
  * @tc.name: MakeDynamicDimShader001
  * @tc.desc: test results of MakeDynamicDimShader
  * @tc.type: FUNC
@@ -537,6 +616,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawColorfulShadowInner001, TestSize.Level1)
     RSProperties properties;
     Drawing::Path path;
     RSPropertiesPainter::DrawColorfulShadowInner(properties, canvas, path);
+    EXPECT_TRUE(!properties.IsShadowValid());
 }
 
 /**
@@ -569,15 +649,18 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadowInner001, TestSize.Level1)
     RSProperties properties;
     Drawing::Path path;
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    ASSERT_EQ(properties.GetShadowElevation(), 0.f);
 
     properties.SetShadowElevation(1.0f);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    ASSERT_EQ(properties.GetShadowElevation(), 1.f);
 
     properties.SetShadowElevation(0.f);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
 
     properties.SetShadowColorStrategy(2);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
+    ASSERT_EQ(properties.GetShadowColorStrategy(), 2);
 }
 
 /**
@@ -641,9 +724,12 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
     properties.SetBackgroundFilter(rsFilter);
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
     properties.GenerateBackgroundFilter();
     RSPropertiesPainter::DrawFilter(
         properties, canvas, FilterType::BACKGROUND_FILTER, Drawing::Rect(0.f, 0.f, 1.f, 1.f));
+    EXPECT_NE(rsFilter, nullptr);
+    EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
 }
 
 /**
@@ -663,6 +749,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
+    EXPECT_NE(properties.clipPath_, nullptr);
 }
 
 /**
@@ -1178,6 +1265,17 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightUpEffect001, TestSize.Level1)
     EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
+/**
+ * @tc.name: MakeLightUpEffectBlender001
+ * @tc.desc: test results of MakeLightUpEffectBlender
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, MakeLightUpEffectBlender001, TestSize.Level1)
+{
+    auto blender = RSPropertiesPainter::MakeLightUpEffectBlender(1.0f);
+    EXPECT_NE(blender, nullptr);
+}
 
 /**
  * @tc.name: DynamicBrightnessBlenderTest001
@@ -1295,6 +1393,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
         std::make_shared<RSLinearGradientBlurPara>(16, fractionStops, GradientDirection::BOTTOM);
     RSProperties properties;
     properties.SetLinearGradientBlurPara(linearGradientBlurPara);
+    EXPECT_TRUE(properties.isDrawn_);
 
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
 }
@@ -1383,6 +1482,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     auto cmds = std::make_shared<Drawing::DrawCmdList>(5, 5);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
+    EXPECT_TRUE(cmds != nullptr);
+
     canvas.SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
 }
@@ -1454,6 +1555,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor002, TestSize.Level1)
     properties.SetClipBounds(rsPath);
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
 /**
@@ -1470,6 +1572,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundColor003, TestSize.Level1)
     properties.SetClipToBounds(true);
     Drawing::Canvas drawingCanvas;
     RSPropertiesPainter::DrawForegroundColor(properties, drawingCanvas);
+    EXPECT_TRUE(properties.clipToBounds_);
 }
 
 /**
@@ -1530,6 +1633,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.mask_->svgDom_ == nullptr);
 }
 
 /**
@@ -1549,6 +1654,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask003, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
 }
 
 /**
@@ -1568,6 +1674,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
+    EXPECT_TRUE(properties.mask_ != nullptr);
 }
 
 /**
@@ -1630,6 +1737,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
 }
 
 /**
@@ -1648,6 +1756,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter001, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+    EXPECT_TRUE(properties.foregroundFilter_ != nullptr);
 }
 
 /**
@@ -1666,6 +1776,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+    EXPECT_TRUE(canvas.GetSurface() == nullptr);
+    EXPECT_TRUE(properties.foregroundFilter_ != nullptr);
 }
 
 /**
@@ -1683,17 +1795,17 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     properties.SetBounds(bounds);
 
     // the distortionK is nullptr
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
     // the distortionK < 0
     properties.SetDistortionK(-0.2f);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
     // the distortionK > 0
     properties.SetDistortionK(0.2f);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
 }
 } // namespace Rosen

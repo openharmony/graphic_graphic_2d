@@ -49,11 +49,16 @@ HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointGetAndSet001, TestS
     EXPECT_EQ(OH_Drawing_PointSet(centerPt, 150, 250), OH_DRAWING_SUCCESS); // 150: point's x, 250: point's y
     float x, y;
     EXPECT_EQ(OH_Drawing_PointGetX(centerPt, &x), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PointGetX(nullptr, &x), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PointGetX(centerPt, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(OH_Drawing_PointGetY(centerPt, &y), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PointGetY(nullptr, &y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PointGetY(centerPt, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     EXPECT_TRUE(IsScalarAlmostEqual(x, 150));
     EXPECT_TRUE(IsScalarAlmostEqual(y, 250));
     OH_Drawing_PointDestroy(centerPt);
+    OH_Drawing_PointDestroy(nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

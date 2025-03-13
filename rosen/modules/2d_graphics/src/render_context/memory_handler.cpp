@@ -25,7 +25,13 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
 {
     context->SetAllowPathMaskCaching(true);
     auto& cache = ShaderCache::Instance();
-    cache.SetFilePath(cacheFilePath);
+    if (cacheFilePath.empty()) {
+        cache.SetFilePath(mUniRenderCacheDir);
+        context->SetStoreCachePath(mUniRenderCacheDir);
+    } else {
+        cache.SetFilePath(cacheFilePath);
+        context->SetStoreCachePath(cacheFilePath);
+    }
     cache.InitShaderCache(identity, size, isUni);
     context->SetPersistentCache(&cache);
 }

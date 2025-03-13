@@ -67,5 +67,46 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, Te
     EXPECT_EQ(typography != nullptr, true);
     typographyCreate->AppendSymbol(0);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyCreateTest003
+ * @tc.desc: test for constuctor of TypographyCreate
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    EXPECT_NE(fontCollection, nullptr);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
+    const char* text = "test";
+    const std::u16string wideText =
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    typographyCreate->AppendText(wideText);
+
+    std::unique_ptr<OHOS::Rosen::LineTypography> graphy = typographyCreate->CreateLineTypography();
+    EXPECT_NE(graphy, nullptr);
+    auto paragraph = graphy->GetTempTypography();
+    EXPECT_NE(paragraph, nullptr);
+    EXPECT_EQ(graphy->GetUnicodeSize(), 4);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyCreateTest004
+ * @tc.desc: test for constuctor of TypographyCreate
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest004, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    EXPECT_NE(fontCollection, nullptr);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
+
+    std::unique_ptr<OHOS::Rosen::LineTypography> graphy = typographyCreate->CreateLineTypography();
+    EXPECT_EQ(graphy, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -31,7 +31,9 @@ public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
 };
 
-ADD_COMMAND(RSEffectNodeCreate, ARG(EFFECT_NODE, EFFECT_NODE_CREATE, EffectNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSEffectNodeCreate,
+    ARG(PERMISSION_APP, EFFECT_NODE, EFFECT_NODE_CREATE,
+        EffectNodeCommandHelper::Create, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

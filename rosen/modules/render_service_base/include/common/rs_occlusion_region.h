@@ -119,6 +119,16 @@ public:
             std::to_string(bottom_ - top_) + "]");
     }
 
+    inline int GetWidth() const noexcept
+    {
+        return right_ - left_;
+    }
+
+    inline int GetHeight() const noexcept
+    {
+        return bottom_ - top_;
+    }
+
     RectI ToRectI() const
     {
         return RectI{left_, top_, right_ - left_, bottom_ - top_};
@@ -136,6 +146,14 @@ public:
     {
         Rect res = this->Intersect(r);
         return res.Area();
+    }
+
+    void Expand(int leftExpandSize, int topExpandSize, int rightExpandSize, int bottomExpandSize)
+    {
+        left_ -= leftExpandSize;
+        top_ -= topExpandSize;
+        right_ += rightExpandSize;
+        bottom_ += bottomExpandSize;
     }
 
 private:
@@ -334,6 +352,8 @@ public:
     // bound of all region rects
     void MakeBound();
 
+    Region GetAlignedRegion(int alignmentSize) const;
+    
     bool IsIntersectWith(const Rect& r) const
     {
         for (const Rect& rect : rects_) {

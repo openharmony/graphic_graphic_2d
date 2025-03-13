@@ -112,6 +112,7 @@ private:
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
         const DrawImageRectAttributes& attr);
+    std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_ = 0;

@@ -133,7 +133,7 @@ void RSPathAnimation::OnStart()
     RSPropertyAnimation::OnStart();
     auto target = GetTarget().lock();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to start curve animation, target is null!");
+        ROSEN_LOGE("Failed to start path animation, target is null!");
         return;
     }
 
@@ -155,15 +155,11 @@ void RSPathAnimation::OnStart()
         property_->AddPathAnimation();
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, target->IsRenderServiceNode(),
-            target->GetFollowType(), target->GetId());
-        if (target->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
-            transactionProxy->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
-        }
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    if (target->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSAnimationCreatePath>(target->GetId(), animation);
+        target->AddCommand(commandForRemote, true, target->GetFollowType(), target->GetId());
     }
 }
 

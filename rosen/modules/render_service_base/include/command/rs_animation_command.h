@@ -75,52 +75,38 @@ public:
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        [[maybe_unused]] auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (animation) {
+            (*animation.*OP)();
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)();
     }
     template<void (RSRenderAnimation::*OP)()>
     static void AnimOpReg(RSContext& context, NodeId nodeId, AnimationId animId)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (node && animation) {
+            (*animation.*OP)();
+            // register node on animation start or resume
+            context.RegisterAnimatingRenderNode(node);
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)();
-        // register node on animation start or resume
-        context.RegisterAnimatingRenderNode(node);
     }
     template<typename T, void (RSRenderAnimation::*OP)(T)>
     static void AnimOp(RSContext& context, NodeId nodeId, AnimationId animId, T param)
     {
-        auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
-        if (node == nullptr) {
-            return;
+        [[maybe_unused]] auto [node, animation] = GetNodeAndAnimation(context, nodeId, animId, __PRETTY_FUNCTION__);
+        if (animation) {
+            (*animation.*OP)(param);
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animId);
-        if (animation == nullptr) {
-            return;
-        }
-        (*animation.*OP)(param);
     }
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
     static void CreateParticleAnimation(RSContext& context, NodeId targetId,
         const std::shared_ptr<RSRenderParticleAnimation>& animation);
 
-    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, AnimationCallbackEvent);
+    using AnimationCallbackProcessor = void (*)(NodeId, AnimationId, uint64_t, AnimationCallbackEvent);
     static void AnimationCallback(RSContext& context,
-                                  NodeId targetId, AnimationId animId, AnimationCallbackEvent event);
+                                  NodeId targetId, AnimationId animId, uint64_t token,
+                                  AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 
@@ -137,76 +123,99 @@ public:
     static void ReverseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
     static void SetFractionInteractiveAnimator(RSContext& context,
         InteractiveImplictAnimatorId targetId, float fraction);
+private:
+    using NodeAndAnimationPair =
+    std::pair<const std::shared_ptr<RSRenderNode>, const std::shared_ptr<RSRenderAnimation>>;
+    static NodeAndAnimationPair GetNodeAndAnimation(
+    RSContext& context, NodeId& nodeId, AnimationId& animId, const char* funcName);
 };
 
 // animation operation
 ADD_COMMAND(RSAnimationStart,
-    ARG(ANIMATION, ANIMATION_START, AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Start>, NodeId, AnimationId))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_START,
+        AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Start>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationPause,
-    ARG(ANIMATION, ANIMATION_PAUSE, AnimationCommandHelper::AnimOp<&RSRenderAnimation::Pause>, NodeId, AnimationId))
-ADD_COMMAND(RSAnimationResume, ARG(ANIMATION, ANIMATION_RESUME,
-                                   AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Resume>, NodeId, AnimationId))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_PAUSE,
+        AnimationCommandHelper::AnimOp<&RSRenderAnimation::Pause>, NodeId, AnimationId))
+ADD_COMMAND(RSAnimationResume,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_RESUME,
+        AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Resume>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationFinish,
-    ARG(ANIMATION, ANIMATION_FINISH, AnimationCommandHelper::AnimOp<&RSRenderAnimation::Finish>, NodeId, AnimationId))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_FINISH,
+        AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Finish>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationReverse,
-    ARG(ANIMATION, ANIMATION_REVERSE, AnimationCommandHelper::AnimOp<bool, &RSRenderAnimation::SetReversed>, NodeId,
-        AnimationId, bool))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REVERSE,
+        AnimationCommandHelper::AnimOp<bool, &RSRenderAnimation::SetReversed>, NodeId, AnimationId, bool))
 ADD_COMMAND(RSAnimationSetFraction,
-    ARG(ANIMATION, ANIMATION_SET_FRACTION, AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>,
-        NodeId, AnimationId, float))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_SET_FRACTION,
+        AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>, NodeId, AnimationId, float))
 ADD_COMMAND(RSAnimationCancel,
-    ARG(ANIMATION, ANIMATION_CANCEL, AnimationCommandHelper::CancelAnimation, NodeId, PropertyId))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CANCEL,
+        AnimationCommandHelper::CancelAnimation, NodeId, PropertyId))
 
 ADD_COMMAND(RSAnimationCallback,
-    ARG(ANIMATION, ANIMATION_CALLBACK,
-        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CALLBACK,
+        AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, uint64_t, AnimationCallbackEvent))
 
 // create curve animation
-ADD_COMMAND(RSAnimationCreateCurve, ARG(ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
-    NodeId, std::shared_ptr<RSRenderCurveAnimation>))
+ADD_COMMAND(RSAnimationCreateCurve,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
+        NodeId, std::shared_ptr<RSRenderCurveAnimation>))
 
 // create particle animation
 ADD_COMMAND(RSAnimationCreateParticle,
-    ARG(ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
         std::shared_ptr<RSRenderParticleAnimation>))
 
 // create keyframe animation
-ADD_COMMAND(RSAnimationCreateKeyframe, ARG(ANIMATION, ANIMATION_CREATE_KEYFRAME,
-    AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderKeyframeAnimation>))
+ADD_COMMAND(RSAnimationCreateKeyframe,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_KEYFRAME,
+        AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderKeyframeAnimation>))
 
 // create path animation
-ADD_COMMAND(RSAnimationCreatePath, ARG(ANIMATION, ANIMATION_CREATE_PATH,
-    AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderPathAnimation>))
+ADD_COMMAND(RSAnimationCreatePath,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_PATH,
+        AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderPathAnimation>))
 
 // create transition animation
-ADD_COMMAND(RSAnimationCreateTransition, ARG(ANIMATION, ANIMATION_CREATE_TRANSITION,
-    AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderTransition>))
+ADD_COMMAND(RSAnimationCreateTransition,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_TRANSITION,
+        AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderTransition>))
 
 // create spring animation
-ADD_COMMAND(RSAnimationCreateSpring, ARG(ANIMATION, ANIMATION_CREATE_SPRING,
-    AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderSpringAnimation>))
+ADD_COMMAND(RSAnimationCreateSpring,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_SPRING,
+        AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderSpringAnimation>))
 
 // create interpolating spring animation
 ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
-    ARG(ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation, NodeId,
-        std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation,
+        NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
 
 // interactive implict animator operation
-ADD_COMMAND(RSInteractiveAnimatorCreate, ARG(ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
-    AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
-    std::vector<std::pair<NodeId, AnimationId>>, bool))
-ADD_COMMAND(RSInteractiveAnimatorDestory, ARG(ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
-    AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))
-ADD_COMMAND(RSInteractiveAnimatorPause, ARG(ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,
-    AnimationCommandHelper::PauseInteractiveAnimator, InteractiveImplictAnimatorId))
-ADD_COMMAND(RSInteractiveAnimatorContinue, ARG(ANIMATION, INTERACTIVE_ANIMATOR_CONTINUE,
-    AnimationCommandHelper::ContinueInteractiveAnimator, InteractiveImplictAnimatorId))
-ADD_COMMAND(RSInteractiveAnimatorFinish, ARG(ANIMATION, INTERACTIVE_ANIMATOR_FINISH,
-    AnimationCommandHelper::FinishInteractiveAnimator, InteractiveImplictAnimatorId, RSInteractiveAnimationPosition))
-ADD_COMMAND(RSInteractiveAnimatorReverse, ARG(ANIMATION, INTERACTIVE_ANIMATOR_REVERSE,
-    AnimationCommandHelper::ReverseInteractiveAnimator, InteractiveImplictAnimatorId))
-ADD_COMMAND(RSInteractiveAnimatorSetFraction, ARG(ANIMATION, INTERACTIVE_ANIMATOR_SET_FRACTION,
-    AnimationCommandHelper::SetFractionInteractiveAnimator, InteractiveImplictAnimatorId, float))
+ADD_COMMAND(RSInteractiveAnimatorCreate,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
+        AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
+        std::vector<std::pair<NodeId, AnimationId>>, bool))
+ADD_COMMAND(RSInteractiveAnimatorDestory,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
+        AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorPause,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,
+        AnimationCommandHelper::PauseInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorContinue,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CONTINUE,
+        AnimationCommandHelper::ContinueInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorFinish,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_FINISH,
+        AnimationCommandHelper::FinishInteractiveAnimator, InteractiveImplictAnimatorId,
+        RSInteractiveAnimationPosition))
+ADD_COMMAND(RSInteractiveAnimatorReverse,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_REVERSE,
+        AnimationCommandHelper::ReverseInteractiveAnimator, InteractiveImplictAnimatorId))
+ADD_COMMAND(RSInteractiveAnimatorSetFraction,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_SET_FRACTION,
+        AnimationCommandHelper::SetFractionInteractiveAnimator, InteractiveImplictAnimatorId, float))
 } // namespace Rosen
 } // namespace OHOS
 

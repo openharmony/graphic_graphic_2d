@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 #define RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 #include <chrono>
@@ -44,56 +45,22 @@ public:
     RSVsyncRateReduceManager() {};
     ~RSVsyncRateReduceManager() = default;
 
-    void SetFocusedNodeId(NodeId focusedNodeId)
+    void SetFocusedNodeId(NodeId focusedNodeId);
+    void PushWindowNodeId(NodeId nodeId);
+    void ClearLastVisMapForVsyncRate();
+    bool GetVRateReduceEnabled() const
     {
-        if (!vsyncControlEnabled_) {
-            return;
-        }
-        focusedNodeId_ = focusedNodeId;
-    }
-    void PushWindowNodeId(NodeId nodeId)
-    {
-        if (!vsyncControlEnabled_) {
-            return;
-        }
-        curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
-    }
-    void ClearLastVisMapForVsyncRate()
-    {
-        lastVisMapForVSyncVisLevel_.clear();
-    }
-    bool GetVsyncControlEnabled() const
-    {
-        return vsyncControlEnabled_;
+        return vRateReduceEnabled_;
     }
 
-    void FrameDurationBegin()
-    {
-        if (!vsyncControlEnabled_) {
-            return;
-        }
-        curTime_ = Now();
-    }
-    void FrameDurationEnd()
-    {
-        if (!vsyncControlEnabled_) {
-            return;
-        }
-        if (oneFramePeriod_ > 0) {
-            float val = (Now() - curTime_) / static_cast<float>(oneFramePeriod_);
-            EnqueueFrameDuration(val);
-        }
-        curTime_ = 0;
-    }
+    void FrameDurationBegin();
+    void FrameDurationEnd();
 
     bool GetIsReduceBySystemAnimatedScenes() const
     {
         return isReduceBySystemAnimatedScenes_;
     }
-    void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes)
-    {
-        isReduceBySystemAnimatedScenes_ = isReduceBySystemAnimatedScenes;
-    }
+    void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
     void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
     void ResetFrameValues(uint32_t refreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
@@ -101,8 +68,22 @@ public:
 
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
 
+    std::map<uint64_t, int> GetVrateMap()
+    {
+        return linkersRateMap_;
+    }
+
+    bool SetVSyncRatesChangeStatus(bool newState)
+    {
+        return needPostTask_.exchange(newState);
+    }
+    
+    bool GetVRateIsSupport();
+    bool GetVRateDeviceSupport() const
+    {
+        return isDeviceSupprotVRate_;
+    }
 private:
     void NotifyVRates();
     int UpdateRatesLevel();
@@ -110,9 +91,10 @@ private:
     bool CheckNeedNotify();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
+    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
     static Occlusion::Rect CalcMaxVisibleRect(const Occlusion::Region& region, int appWindowArea);
-    static float CalcVValByAreas(int windowArea, int maxVisRectArea, int visArea);
+    static float CalcVValByAreas(int windowArea, int maxVisRectArea, int visTotalArea);
 
     uint64_t Now();
     void SetVSyncRatesChanged(bool vSyncRatesChanged)
@@ -120,7 +102,8 @@ private:
         vSyncRatesChanged_ = vSyncRatesChanged_ || vSyncRatesChanged;
     }
 private:
-    bool vsyncControlEnabled_ = false;
+    bool vRateReduceEnabled_ = false;
+    bool vRateConditionQualified_ = false;
     bool vSyncRatesChanged_ = false;
     std::map<NodeId, int> vSyncRateMap_;
     std::map<NodeId, int> lastVSyncRateMap_;
@@ -141,9 +124,13 @@ private:
 
     bool isSystemAnimatedScenes_ = false;
     bool isReduceBySystemAnimatedScenes_ = false;
-    DeviceType deviceType_ = DeviceType::PC;
+
+    bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    std::map<NodeId, uint64_t> windowLinkerMap_;
+    std::map<uint64_t, int> linkersRateMap_;
+    std::atomic<bool> needPostTask_{ false };
 };
 
 } // namespace Rosen

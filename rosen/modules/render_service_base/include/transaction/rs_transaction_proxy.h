@@ -16,8 +16,10 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_RS_TRANSACTION_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_RS_TRANSACTION_PROXY_H
 
+#include <event_handler.h>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <stack>
 
 #include "command/rs_command.h"
@@ -72,6 +74,8 @@ public:
 
     bool IsEmpty() const;
 
+    void StartCloseSyncTransactionFallbackTask(std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen);
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -107,6 +111,7 @@ private:
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     uint32_t transactionDataIndex_ = 0;
+    std::queue<std::string> taskNames_ {};
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -66,7 +66,8 @@ bool EglManager::InitializeEGLDisplay()
         return false;
     }
 
-    EGLint eglMajVers, eglMinVers;
+    EGLint eglMajVers;
+    EGLint eglMinVers;
     if (!eglInitialize(EGLDisplay_, &eglMajVers, &eglMinVers)) {
         EGLDisplay_ = EGL_NO_DISPLAY;
         LOGE("EglManager Init unable to initialize display.");
@@ -188,6 +189,16 @@ void EglManager::Deinit()
 
 EGLBoolean EglManager::IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context)
 {
+    if (display == EGL_NO_DISPLAY) {
+        LOGE("EglManager IsEGLContextInCurrentThread display is EGL_NO_DISPLAY");
+        return EGL_FALSE;
+    }
+
+    if (context == EGL_NO_CONTEXT) {
+        LOGE("EglManager IsEGLContextInCurrentThread context is EGL_NO_CONTEXT");
+        return EGL_FALSE;
+    }
+
     EGLBoolean isContextInCurrent = EGL_FALSE;
     EGLint isContextLost = 0;
 
@@ -196,7 +207,7 @@ EGLBoolean EglManager::IsEGLContextInCurrentThread(EGLDisplay display, EGLContex
     if (!isContextLost && eglGetCurrentContext() == context) {
         isContextInCurrent = EGL_TRUE;
     }
- 
+
     return isContextInCurrent;
 }
 } // namespace Rosen

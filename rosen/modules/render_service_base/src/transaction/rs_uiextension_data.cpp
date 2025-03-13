@@ -64,6 +64,9 @@ bool RSUIExtensionData::Marshalling(Parcel& parcel) const
             }
         }
     }
+    if (!marshallingSuccess) {
+        RS_LOGE("RSUIExtensionData::Marshalling failed");
+    }
     return marshallingSuccess;
 }
 

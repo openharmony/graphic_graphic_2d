@@ -17,6 +17,7 @@
 
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
+#include "transaction/rs_marshalling_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -164,8 +165,8 @@ HWTEST_F(RSInterpolatorTest, Interpolate001, TestSize.Level1)
     std::vector<float> values = { 1.0f, 3.0f };
     Parcel parcel;
     parcel.WriteUint64(123125);
-    parcel.WriteFloatVector(times);
-    parcel.WriteFloatVector(values);
+    RSMarshallingHelper::MarshallingVec(parcel, times);
+    RSMarshallingHelper::MarshallingVec(parcel, values);
     std::shared_ptr<RSInterpolator> interpolator(RSCustomInterpolator::Unmarshalling(parcel));
     EXPECT_TRUE(interpolator != nullptr);
     if (interpolator != nullptr) {
@@ -180,6 +181,157 @@ HWTEST_F(RSInterpolatorTest, Interpolate001, TestSize.Level1)
         EXPECT_EQ(result, 3.0f);
     }
     GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate001 end";
+}
+
+/**
+ * @tc.name: Interpolate002
+ * @tc.desc: Verify the Interpolate of RSCustomInterpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, Interpolate002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate002 start";
+    std::vector<float> times = {};
+    std::vector<float> values = { 1.0f, 3.0f };
+    Parcel parcel;
+    parcel.WriteUint64(123125);
+    RSMarshallingHelper::MarshallingVec(parcel, times);
+    RSMarshallingHelper::MarshallingVec(parcel, values);
+    std::shared_ptr<RSInterpolator> interpolator(RSCustomInterpolator::Unmarshalling(parcel));
+    EXPECT_TRUE(interpolator != nullptr);
+    if (interpolator != nullptr) {
+        float input = -1.0f;
+        float result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, -1.0f);
+        input = 2.0f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 0.0f);
+        input = 4.0f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 0.0f);
+    }
+
+    std::vector<float> times1 = { 1.0f };
+    std::vector<float> values1 = { 1.0f, 3.0f };
+    Parcel parcel1;
+    parcel1.WriteUint64(123125);
+    RSMarshallingHelper::MarshallingVec(parcel1, times1);
+    RSMarshallingHelper::MarshallingVec(parcel1, values1);
+    std::shared_ptr<RSInterpolator> interpolator1(RSCustomInterpolator::Unmarshalling(parcel1));
+    EXPECT_TRUE(interpolator1 != nullptr);
+    if (interpolator1 != nullptr) {
+        float input = -1.0f;
+        float result = interpolator1->Interpolate(input);
+        EXPECT_EQ(result, -1.0f);
+        input = 2.0f;
+        result = interpolator1->Interpolate(input);
+        EXPECT_EQ(result, 0.0f);
+        input = 4.0f;
+        result = interpolator1->Interpolate(input);
+        EXPECT_EQ(result, 0.0f);
+    }
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate002 end";
+}
+
+/**
+ * @tc.name: Interpolate003
+ * @tc.desc: Verify the Interpolate of RSCustomInterpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, Interpolate003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate003 start";
+    std::vector<float> times = { 1.0f, 3.0f };
+    std::vector<float> values = { 1.0f, 8.0f };
+    Parcel parcel;
+    parcel.WriteUint64(123125);
+    RSMarshallingHelper::MarshallingVec(parcel, times);
+    RSMarshallingHelper::MarshallingVec(parcel, values);
+    std::shared_ptr<RSInterpolator> interpolator(RSCustomInterpolator::Unmarshalling(parcel));
+    EXPECT_TRUE(interpolator != nullptr);
+    if (interpolator != nullptr) {
+        float input = -1.0f;
+        float result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, -1.0f);
+        input = 0.5f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 1.0f);
+        input = 5.0f;
+        result = interpolator->Interpolate(input);
+        EXPECT_EQ(result, 8.0f);
+    }
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Interpolate003 end";
+}
+
+/**
+ * @tc.name: RSCustomInterpolatorUnmarshallingTest001
+ * @tc.desc: Verify the RSCustomInterpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCustomInterpolatorUnmarshallingTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorUnmarshallingTest001 start";
+    std::vector<float> times;
+    std::vector<float> values;
+    for (int i = 0; i < 300; i++) {
+        times.push_back(1.0f);
+        values.push_back(1.0f);
+    }
+    Parcel parcel1;
+    parcel1.WriteUint64(123125);
+    RSMarshallingHelper::MarshallingVec(parcel1, times);
+    RSMarshallingHelper::MarshallingVec(parcel1, values);
+    std::shared_ptr<RSInterpolator> interpolator1(RSCustomInterpolator::Unmarshalling(parcel1));
+    EXPECT_TRUE(interpolator1 != nullptr);
+
+    times.push_back(1.0f);
+    values.push_back(1.0f);
+    Parcel parcel2;
+    parcel2.WriteUint64(123125);
+    RSMarshallingHelper::MarshallingVec(parcel2, times);
+    RSMarshallingHelper::MarshallingVec(parcel2, values);
+    std::shared_ptr<RSInterpolator> interpolator2(RSCustomInterpolator::Unmarshalling(parcel2));
+    EXPECT_TRUE(interpolator2 == nullptr);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorUnmarshallingTest001 end";
+}
+
+/**
+ * @tc.name: RSCustomInterpolatorMarshallingTest001
+ * @tc.desc: Verify the Interpolate of RSCustomInterpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCustomInterpolatorMarshallingTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorMarshallingTest001 start";
+    std::vector<float> times = { 1.0f, 3.0f };
+    std::vector<float> values = { 1.0f, 3.0f };
+    auto interpolator = std::make_shared<RSCustomInterpolator>(123125, std::move(times), std::move(values));
+    Parcel parcel;
+    bool suc = interpolator->Marshalling(parcel);
+    EXPECT_TRUE(suc);
+    uint16_t interpolatorType = 0;
+    parcel.ReadUint16(interpolatorType);
+    std::shared_ptr<RSCustomInterpolator> copyInterpolator(RSCustomInterpolator::Unmarshalling(parcel));
+    EXPECT_TRUE(copyInterpolator != nullptr);
+    if (copyInterpolator != nullptr) {
+        float input = -1.0f;
+        float result = copyInterpolator->Interpolate(input);
+        EXPECT_EQ(result, -1.0f);
+        input = 2.0f;
+        result = copyInterpolator->Interpolate(input);
+        EXPECT_EQ(result, 2.0f);
+        input = 4.0f;
+        result = copyInterpolator->Interpolate(input);
+        EXPECT_EQ(result, 3.0f);
+
+        EXPECT_EQ(copyInterpolator->times_.size(), times.size());
+        EXPECT_EQ(copyInterpolator->values_.size(), values.size());
+        EXPECT_EQ(copyInterpolator->times_[0], times[0]);
+        EXPECT_EQ(copyInterpolator->times_[1], times[1]);
+        EXPECT_EQ(copyInterpolator->values_[0], values[0]);
+        EXPECT_EQ(copyInterpolator->values_[1], values[1]);
+    }
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorMarshallingTest001 end";
 }
 
 /**
@@ -229,6 +381,36 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling002, TestSize.Level1)
     Parcel parcel;
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     EXPECT_EQ(interpolator, nullptr);
+
+    Parcel parcel1;
+    parcel1.WriteUint16(InterpolatorType::LINEAR);
+    std::shared_ptr<RSInterpolator> interpolator1(RSInterpolator::UnmarshallingFromParcel(parcel1));
+    EXPECT_EQ(interpolator1, nullptr);
+
+    Parcel parcel2;
+    parcel2.WriteUint16(InterpolatorType::CUSTOM);
+    std::shared_ptr<RSInterpolator> interpolator2(RSInterpolator::UnmarshallingFromParcel(parcel2));
+    EXPECT_TRUE(interpolator2 != nullptr);
+
+    Parcel parcel3;
+    parcel3.WriteUint16(InterpolatorType::CUBIC_BEZIER);
+    std::shared_ptr<RSInterpolator> interpolator3(RSInterpolator::UnmarshallingFromParcel(parcel3));
+    EXPECT_EQ(interpolator3, nullptr);
+
+    Parcel parcel4;
+    parcel4.WriteUint16(InterpolatorType::SPRING);
+    std::shared_ptr<RSInterpolator> interpolator4(RSInterpolator::UnmarshallingFromParcel(parcel4));
+    EXPECT_EQ(interpolator4, nullptr);
+
+    Parcel parcel5;
+    parcel5.WriteUint16(InterpolatorType::STEPS);
+    std::shared_ptr<RSInterpolator> interpolator5(RSInterpolator::UnmarshallingFromParcel(parcel5));
+    EXPECT_EQ(interpolator5, nullptr);
+
+    Parcel parcel6;
+    std::shared_ptr<RSInterpolator> interpolator6(RSInterpolator::UnmarshallingFromParcel(parcel6));
+    EXPECT_EQ(interpolator6, nullptr);
+
     GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling002 end";
 }
 } // namespace Rosen

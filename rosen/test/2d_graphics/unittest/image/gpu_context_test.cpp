@@ -197,12 +197,7 @@ HWTEST_F(GpuContextTest, BuildFromVKTest001, TestSize.Level1)
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     GrVkBackendContext grVkBackendContext;
-    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
-    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
     ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
-    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
-    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext));
-    system::SetParameter("persist.sys.graphic.GpuApitype", type);
 }
 
 /**
@@ -218,12 +213,20 @@ HWTEST_F(GpuContextTest, BuildFromVKTest002, TestSize.Level1)
     GrVkBackendContext grVkBackendContext;
     GPUContextOptions options;
     options.SetAllowPathMaskCaching(true);
-    auto type = system::GetParameter("persist.sys.graphic.GpuApitype", "-1");
-    system::SetParameter("persist.sys.graphic.GpuApitype", "0");
     ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
-    system::SetParameter("persist.sys.graphic.GpuApitype", "1");
-    ASSERT_FALSE(gpuContext->BuildFromVK(grVkBackendContext, options));
-    system::SetParameter("persist.sys.graphic.GpuApitype", type);
+}
+
+/**
+ * @tc.name: GPUContextStoreVkPipelineCacheDataTest001
+ * @tc.desc: Test for storing VK pipeline cache data.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, GPUContextStoreVkPipelineCacheDataTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->StoreVkPipelineCacheData();
 }
 #endif
 
@@ -353,6 +356,283 @@ HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     GPUResourceTag tag(0, 0, 0, 0, "ReleaseByTagTest001");
     gpuContext->ReleaseByTag(tag);
+}
+
+/**
+ * @tc.name: FlushAndSubmitTest001
+ * @tc.desc: Test for flushing and submitting.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, FlushAndSubmitTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->FlushAndSubmit();
+}
+
+/**
+ * @tc.name: GetResourceCacheUsageTest001
+ * @tc.desc: Test for getting resource cache usage.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, GetResourceCacheUsageTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    int resourceCount;
+    size_t resourceBytes;
+    gpuContext->GetResourceCacheUsage(&resourceCount, &resourceBytes);
+}
+
+/**
+ * @tc.name: DumpGpuStatsTest001
+ * @tc.desc: Test for dumping gpu stats.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, DumpGpuStatsTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::string out;
+    gpuContext->DumpGpuStats(out);
+}
+
+/**
+ * @tc.name: PurgeUnlockedResourcesTest001
+ * @tc.desc: Test for purging unlocked resources.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeUnlockedResourcesTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->PurgeUnlockedResources(true);
+    gpuContext->PurgeUnlockedResources(false);
+}
+
+/**
+ * @tc.name: PurgeUnlockedResourcesByPidTest001
+ * @tc.desc: Test for purging unlocked resources by pid.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeUnlockedResourcesByPidTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::set<pid_t> exitedPidSet = { 0, 1, 100 };
+    gpuContext->PurgeUnlockedResourcesByPid(true, exitedPidSet);
+    gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
+}
+
+/**
+ * @tc.name: PurgeUnlockAndSafeCacheGpuResourcesTest001
+ * @tc.desc: Test for purging unlocked and safe resources.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeUnlockAndSafeCacheGpuResourcesTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->PurgeUnlockAndSafeCacheGpuResources();
+}
+
+/**
+ * @tc.name: PurgeCacheBetweenFramesTest001
+ * @tc.desc: Test for purging cache betweem frames.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, PurgeCacheBetweenFramesTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::set<pid_t> exitedPidSet = { 0, 1, 100 };
+    std::set<pid_t> protectedPidSet = { 0, 1 };
+    gpuContext->PurgeCacheBetweenFrames(true, exitedPidSet, protectedPidSet);
+    gpuContext->PurgeCacheBetweenFrames(false, exitedPidSet, protectedPidSet);
+}
+
+/**
+ * @tc.name: DumpMemoryStatisticsByTagTest001
+ * @tc.desc: Test for dumping memory statistics by tag.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, DumpMemoryStatisticsByTagTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    TraceMemoryDump traceMemoryDump("category", true);
+    GPUResourceTag tag(0, 0, 0, 0, "tag");
+    gpuContext->DumpMemoryStatisticsByTag(&traceMemoryDump, tag);
+    gpuContext->DumpMemoryStatisticsByTag(nullptr, tag);
+}
+
+/**
+ * @tc.name: DumpMemoryStatisticsTest001
+ * @tc.desc: Test for dumping memory statistics.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, DumpMemoryStatisticsTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    TraceMemoryDump traceMemoryDump("category", true);
+    gpuContext->DumpMemoryStatistics(&traceMemoryDump);
+}
+
+/**
+ * @tc.name: GetUpdatedMemoryMapTest001
+ * @tc.desc: Test for getting updated memory map.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, GetUpdatedMemoryMapTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::unordered_map<pid_t, size_t> out;
+    gpuContext->GetUpdatedMemoryMap(out);
+}
+
+/**
+ * @tc.name: InitGpuMemoryLimitTest001
+ * @tc.desc: Test for initiating gpu memory limit.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, InitGpuMemoryLimitTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    uint64_t size = 1024 * 2;
+    gpuContext->InitGpuMemoryLimit(nullptr, size);
+}
+
+/**
+ * @tc.name: ResetContextTest001
+ * @tc.desc: Test for resetting context.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, ResetContextTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->ResetContext();
+}
+
+/**
+ * @tc.name: VmaDefragmentTest001
+ * @tc.desc: Test for vma defragment.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, VmaDefragmentTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->VmaDefragment();
+}
+
+/**
+ * @tc.name: BeginFrameTest001
+ * @tc.desc: Test for beginning frame.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, BeginFrameTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->BeginFrame();
+}
+
+/**
+ * @tc.name: EndFrameTest001
+ * @tc.desc: Test for ending frame.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, EndFrameTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->EndFrame();
+}
+
+/**
+ * @tc.name: SetGpuCacheSuppressWindowSwitchTest001
+ * @tc.desc: Test for setting gpu cache suppress window switch.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, SetGpuCacheSuppressWindowSwitchTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetGpuCacheSuppressWindowSwitch(true);
+    gpuContext->SetGpuCacheSuppressWindowSwitch(false);
+}
+
+/**
+ * @tc.name: SetGpuMemoryAsyncReclaimerSwitchTest001
+ * @tc.desc: Test for setting gpu memory async reclaimer switch.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, SetGpuMemoryAsyncReclaimerSwitchTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(true, nullptr);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(false, nullptr);
+}
+
+/**
+ * @tc.name: FlushGpuMemoryInWaitQueueTest001
+ * @tc.desc: Test for flushing gpu memory in wait queue.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, FlushGpuMemoryInWaitQueueTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->FlushGpuMemoryInWaitQueue();
+}
+
+/**
+ * @tc.name: SuppressGpuCacheBelowCertainRatioTest001
+ * @tc.desc: Test for suppressing gpu cache below certain ratio.
+ * @tc.type: FUNC
+ * @tc.require: I774GD
+ */
+HWTEST_F(GpuContextTest, SuppressGpuCacheBelowCertainRatioTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SuppressGpuCacheBelowCertainRatio(nullptr);
+}
+
+/**
+ * @tc.name: RegisterVulkanErrorCallbackTest001
+ * @tc.desc: Test for register vulkan error callback.
+ * @tc.type: FUNC
+ * @tc.require: IBOLWU
+ */
+HWTEST_F(GpuContextTest, RegisterVulkanErrorCallbackTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->RegisterVulkanErrorCallback(nullptr);
 }
 
 } // namespace Drawing

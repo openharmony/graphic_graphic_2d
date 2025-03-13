@@ -55,7 +55,7 @@ HWTEST_F(SkiaBitmapTest, Build001, TestSize.Level1)
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888,
         AlphaType::ALPHATYPE_PREMUL};
     SkiaBitmap skiaBitmap;
-    skiaBitmap.Build(width, height, bitmapFormat, 0);
+    ASSERT_TRUE(skiaBitmap.Build(width, height, bitmapFormat, 0));
 }
 
 /**
@@ -71,7 +71,7 @@ HWTEST_F(SkiaBitmapTest, Build002, TestSize.Level1)
     ImageInfo offscreenInfo = { width, height, COLORTYPE_RGBA_8888,
         ALPHATYPE_PREMUL, nullptr};
     SkiaBitmap skiaBitmap;
-    skiaBitmap.Build(offscreenInfo, 0);
+    ASSERT_TRUE(skiaBitmap.Build(offscreenInfo, 0));
 }
 
 /**
@@ -238,6 +238,7 @@ HWTEST_F(SkiaBitmapTest, Free001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
     skiaBitmap.Free();
+    ASSERT_TRUE(skiaBitmap.IsValid());
 }
 
 /**
@@ -290,6 +291,7 @@ HWTEST_F(SkiaBitmapTest, TryAllocPixels001, TestSize.Level1)
         ALPHATYPE_PREMUL, nullptr};
     SkiaBitmap skiaBitmap;
     skiaBitmap.TryAllocPixels(offscreenInfo);
+    ASSERT_TRUE(!skiaBitmap.IsValid());
 }
 
 /**
@@ -309,7 +311,7 @@ HWTEST_F(SkiaBitmapTest, Serialize001, TestSize.Level1)
         AlphaType::ALPHATYPE_PREMUL};
     skiaBitmap.Build(100, 50, bitmapFormat, 0); // 100:width, 50:height
     skiaBitmap.ClearWithColor(0xFF000000);
-    skiaBitmap.Serialize();
+    ASSERT_TRUE(skiaBitmap.Serialize() != nullptr);
     skiaBitmap.Deserialize(std::make_shared<Data>());
 }
 

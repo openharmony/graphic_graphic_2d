@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,29 +14,44 @@
  */
 
 #include "drawing_gpu_context.h"
+#ifdef RS_ENABLE_GPU
+#include "drawing_gpu_context_manager.h"
+#endif
 
 #include "image/gpu_context.h"
+#include "utils/log.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static GPUContext* CastToGPUContext(OH_Drawing_GpuContext* cGpuContext)
-{
-    return reinterpret_cast<GPUContext*>(cGpuContext);
-}
-
 OH_Drawing_GpuContext* OH_Drawing_GpuContextCreateFromGL(OH_Drawing_GpuContextOptions ops)
 {
+#ifdef RS_ENABLE_GPU
     GPUContextOptions contextOps;
     contextOps.SetAllowPathMaskCaching(ops.allowPathMaskCaching);
-    GPUContext* context = new GPUContext();
+    std::shared_ptr<GPUContext> context = std::make_shared<GPUContext>();
     bool isSuccess = context->BuildFromGL(contextOps);
     if (isSuccess) {
-        return (OH_Drawing_GpuContext*)context;
+        DrawingGpuContextManager::GetInstance().Insert(context.get(), context);
+        return (OH_Drawing_GpuContext*)(context.get());
     }
-    delete context;
-    context = nullptr;
+#endif
+    return nullptr;
+}
+
+OH_Drawing_GpuContext* OH_Drawing_GpuContextCreate()
+{
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<GPUContext> context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
+    if (context == nullptr) {
+        LOGE("OH_Drawing_GpuContextCreate: create gpuContext failed.");
+        return nullptr;
+    }
+
+    DrawingGpuContextManager::GetInstance().Insert(context.get(), context);
+    return (OH_Drawing_GpuContext*)(context.get());
+#endif
     return nullptr;
 }
 
@@ -45,6 +60,7 @@ void OH_Drawing_GpuContextDestroy(OH_Drawing_GpuContext* cGpuContext)
     if (cGpuContext == nullptr) {
         return;
     }
-    delete CastToGPUContext(cGpuContext);
-    cGpuContext = nullptr;
+#ifdef RS_ENABLE_GPU
+    DrawingGpuContextManager::GetInstance().Remove(cGpuContext);
+#endif
 }

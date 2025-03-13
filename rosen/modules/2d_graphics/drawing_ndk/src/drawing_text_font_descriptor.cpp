@@ -17,9 +17,33 @@
 
 #include "array_mgr.h"
 #include "font_descriptor_mgr.h"
+#include "font_utils.h"
 #include "text/common_utils.h"
 
 using namespace OHOS::Rosen;
+namespace {
+size_t CalculateDrawingStringSize(const std::string& fullName, std::u16string& utf16String)
+{
+    if (fullName.empty()) {
+        return 0;
+    }
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+    utf16String = converter.from_bytes(fullName);
+    return utf16String.size() * sizeof(char16_t);
+}
+
+bool ConvertToDrawingString(std::u16string& utf16String, OH_Drawing_String& fullNameString)
+{
+    if (utf16String.empty() || fullNameString.strData == nullptr || fullNameString.strLen == 0) {
+        return false;
+    }
+    char16_t* u16Data = const_cast<char16_t*>(utf16String.c_str());
+    if (memcpy_s(fullNameString.strData, fullNameString.strLen, u16Data, fullNameString.strLen) == EOK) {
+        return true;
+    }
+    return false;
+}
+}
 
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
@@ -57,19 +81,18 @@ OH_Drawing_FontDescriptor* OH_Drawing_MatchFontDescriptors(OH_Drawing_FontDescri
         *num = 0;
         return nullptr;
     }
-    int i = 0;
+    
+    size_t i = 0;
     for (const auto& item : result) {
-        descriptors[i].path = strdup(item->path.c_str());
-        descriptors[i].postScriptName = strdup(item->postScriptName.c_str());
-        descriptors[i].fullName = strdup(item->fullName.c_str());
-        descriptors[i].fontFamily = strdup(item->fontFamily.c_str());
-        descriptors[i].fontSubfamily = strdup(item->fontSubfamily.c_str());
-        descriptors[i].weight = item->weight;
-        descriptors[i].width = item->width;
-        descriptors[i].italic = item->italic;
-        descriptors[i].monoSpace = item->monoSpace;
-        descriptors[i].symbolic = item->symbolic;
+        if (!OHOS::Rosen::Drawing::CopyFontDescriptor(&descriptors[i], *item)) {
+            break;
+        }
         ++i;
+    }
+    if (i != result.size()) {
+        OH_Drawing_DestroyFontDescriptors(descriptors, i);
+        *num = 0;
+        return nullptr;
     }
     return descriptors;
 }
@@ -89,45 +112,6 @@ void OH_Drawing_DestroyFontDescriptors(OH_Drawing_FontDescriptor* descriptors, s
     delete[] descriptors;
 }
 
-bool ConvertToDrawingString(const std::string& fullName, OH_Drawing_String& fullNameString)
-{
-    if (fullName.empty()) {
-        fullNameString.strData = nullptr;
-        fullNameString.strLen = 0;
-        return false;
-    }
-    std::u16string utf16String;
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    utf16String = converter.from_bytes(fullName);
-    char16_t* u16Data = const_cast<char16_t*>(utf16String.c_str());
-    size_t strByteLen = utf16String.size() * sizeof(char16_t);
-    if (strByteLen == 0) {
-        fullNameString.strData = nullptr;
-        fullNameString.strLen = 0;
-        return false;
-    }
-    using namespace OHOS::Rosen::Drawing;
-    if (!IsBigEndian()) {
-        for (uint32_t i = 0; i < strByteLen / sizeof(char16_t); i++) {
-            uint16_t temp = static_cast<uint16_t>(u16Data[i]);
-            u16Data[i] = static_cast<char16_t>((temp & LOW_BYTE_MASK) << BYTE_SHIFT |
-                (temp & HIGH_BYTE_MASK) >> BYTE_SHIFT);
-        }
-    }
-    uint8_t* strData = new (std::nothrow)uint8_t[strByteLen];
-    if (strData == nullptr) {
-        return false;
-    }
-    if (memcpy_s(strData, strByteLen, u16Data, strByteLen) == EOK) {
-        fullNameString.strData = strData;
-        fullNameString.strLen = static_cast<uint32_t>(strByteLen);
-        return true;
-    }
-    delete[] strData;
-    strData = nullptr;
-    return false;
-}
-
 OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawing_String* fullName,
     OH_Drawing_SystemFontType fontType)
 {
@@ -145,20 +129,14 @@ OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawi
     if (result == nullptr) {
         return nullptr;
     }
-    OH_Drawing_FontDescriptor* descriptor = new (std::nothrow)OH_Drawing_FontDescriptor();
+    OH_Drawing_FontDescriptor* descriptor = OH_Drawing_CreateFontDescriptor();
     if (descriptor == nullptr) {
         return nullptr;
     }
-    descriptor->path = strdup(result->path.c_str());
-    descriptor->postScriptName = strdup(result->postScriptName.c_str());
-    descriptor->fullName = strdup(result->fullName.c_str());
-    descriptor->fontFamily = strdup(result->fontFamily.c_str());
-    descriptor->fontSubfamily = strdup(result->fontSubfamily.c_str());
-    descriptor->weight = result->weight;
-    descriptor->width = result->width;
-    descriptor->italic = result->italic;
-    descriptor->monoSpace = result->monoSpace;
-    descriptor->symbolic = result->symbolic;
+    if (!OHOS::Rosen::Drawing::CopyFontDescriptor(descriptor, *result)) {
+        OH_Drawing_DestroyFontDescriptor(descriptor);
+        return nullptr;
+    }
     return descriptor;
 }
 
@@ -181,8 +159,16 @@ OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontT
     }
     size_t index = 0;
     for (const auto& fullName : fullNameList) {
-        if (!ConvertToDrawingString(fullName, drawingStringArray[index])) {
-            for (size_t i = 0; i < index; ++i) {
+        std::u16string utf16String;
+        size_t strByteLen = CalculateDrawingStringSize(fullName, utf16String);
+        if (strByteLen > 0) {
+            drawingStringArray[index].strData = new (std::nothrow) uint8_t[strByteLen];
+            drawingStringArray[index].strLen = static_cast<uint32_t>(strByteLen);
+        }
+
+        if (strByteLen == 0 || drawingStringArray[index].strData == nullptr ||
+            !ConvertToDrawingString(utf16String, drawingStringArray[index])) {
+            for (size_t i = 0; i <= index; ++i) {
                 delete[] drawingStringArray[i].strData;
             }
             delete[] drawingStringArray;

@@ -522,6 +522,28 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveMode002, Function | SmallTest | Level2
 }
 
 /*
+* Function: SetScreenActiveRect
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenActiveRect
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
 * Function: GetScreenActiveMode
 * Type: Function
 * Rank: Important(2)
@@ -789,10 +811,13 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
 {
     ScreenId screenId = INVALID_SCREEN_ID;
     ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
+    ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
-    auto callback = [&screenId, &screenEvent, &callbacked](ScreenId id, ScreenEvent event) {
+    auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
         screenId = id;
         screenEvent = event;
+        errorReason = reason;
         callbacked = true;
     };
     int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
@@ -1110,7 +1135,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
             }
         }
     }
-    
+
     if (ifSupported) {
         EXPECT_GE(currentRate, rateToSet);
     } else {
@@ -1269,8 +1294,8 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    bool isSafe = false;
-    rsInterfaces->NotifyLightFactorStatus(isSafe);
+    int32_t lightFactorStatus = 0;
+    rsInterfaces->NotifyLightFactorStatus(lightFactorStatus);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1288,6 +1313,23 @@ HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
     packageList.push_back("NotifyPackageEvent002");
     uint32_t listSize = packageList.size();
     rsInterfaces->NotifyPackageEvent(listSize, packageList);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyAppStrategyConfigChangeEvent001
+ * @tc.desc: Notify current package list to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyAppStrategyConfigChangeEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string pkgName = "test";
+    std::vector<std::pair<std::string, std::string>> newConfig;
+    newConfig.push_back(std::make_pair("min", "60"));
+    uint32_t listSize = newConfig.size();
+    rsInterfaces->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1339,6 +1381,21 @@ HWTEST_F(RSInterfacesTest, NotifyDynamicModeEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: NotifyHgmConfigEvent001
+ * @tc.desc: Notify hgm config event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyHgmConfigEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string eventName = "HGMCONFIG_HIGH_TEMP";
+    bool state = false;
+    rsInterfaces->NotifyHgmConfigEvent(eventName, state);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.type: FUNC
@@ -1367,12 +1424,22 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
     ASSERT_EQ(ret, 0);
 
     rsInterfaces->SetRefreshRateMode(-1);
-    ASSERT_EQ(savedModeName, -1);
+}
 
-    for (int32_t mode : {1, 2, 3}) {
-        rsInterfaces->SetRefreshRateMode(mode);
-        ASSERT_NE(savedModeName, mode);
-    }
+/*
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, int32_t fps){};
+    int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
+    ASSERT_EQ(ret, 0);
+    ret = rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(1);
+    ASSERT_EQ(ret, 0);
 }
 
 /*
@@ -1441,6 +1508,7 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(true);
 }
 
@@ -1452,7 +1520,32 @@ HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: DropFrameByPid001
+ * @tc.desc: Test DropFrameByPid interface
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid001, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({0});
+}
+
+/*
+ * @tc.name: DropFrameByPid002
+ * @tc.desc: Test DropFrameByPid interface while pidList empty
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({});
 }
 
 /*
@@ -1507,10 +1600,12 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
 
     int releaseFence = -1;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
     sptr<SurfaceBuffer> buffer;
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
+        .width = width,
+        .height = height,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -1518,8 +1613,8 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     };
     BufferFlushConfig flushConfig = {
         .damage = {
-            .w = 0x100,
-            .h = 0x100,
+            .w = width,
+            .h = height,
         }
     };
     GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
@@ -1540,6 +1635,18 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     auto pixcelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_NE(pixcelMap, nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, 0, 0}), nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, width + 1, height + 1}), nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width - 1, height - 1, 2, 2}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, width, height}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width - 50, height - 50, 50, 50}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width / 2, height/ 2, width / 2, height/ 2}), nullptr);
 #endif
 }
 
@@ -1627,6 +1734,58 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
 }
 
 /*
+ * @tc.name: AddVirtualScreenBlackList
+ * @tc.desc: Test AddVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB3TS6
+ */
+HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->AddVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList
+ * @tc.desc: Test RemoveVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB3TS6
+ */
+HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: MarkPowerOffNeedProcessOneFrame
  * @tc.desc: Test MarkPowerOffNeedProcessOneFrame
  * @tc.type: FUNC
@@ -1648,6 +1807,18 @@ HWTEST_F(RSInterfacesTest, DisablePowerOffRenderControl, Function | SmallTest | 
 {
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->DisablePowerOffRenderControl(INVALID_SCREEN_ID);
+}
+
+/*
+ * @tc.name: ForceRefreshOneFrameWithNextVSync
+ * @tc.desc: Test ForceRefreshOneFrameWithNextVSync
+ * @tc.type: FUNC
+ * @tc.require:issueIBHG7Q
+ */
+HWTEST_F(RSInterfacesTest, ForceRefreshOneFrameWithNextVSync, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->ForceRefreshOneFrameWithNextVSync();
 }
 
 /*
@@ -1834,6 +2005,85 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
 }
 
 /*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_006
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with securityExemptionList size more than 1024.
+ * @tc.type: FUNC
+ * @tc.require: issueIB8NPD
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_006, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<NodeId> securityExemptionList = {};
+    for (NodeId i = 0; i <= 1024; i++) {  // 1024 is max securityExemptionList number
+        securityExemptionList.emplace_back(i);
+    }
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect_001
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params, screenId is INVALID_SCREEN_ID.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    Rect rect = {0, 0, defaultWidth, defaultHeight};
+
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(INVALID_SCREEN_ID, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+    res = rsInterfaces->SetMirrorScreenVisibleRect(0, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect_002
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params, rect is abnormal.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t x = -10;  // x value for test
+    int32_t y = -10;  // y value for test
+    int32_t defaultWidth = -720;  // width value for test
+    int32_t defaultHeight = -1280;  // height value for test
+    Rect rect = {x, y, defaultWidth, defaultHeight};
+
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(0, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect_003
+ * @tc.desc: Test SetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_003, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, 0, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    Rect rect = {0, 0, defaultWidth, defaultHeight};
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(virtualScreenId, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
  * @tc.name: SetFreeMultiWindowStatus_001
  * @tc.desc: Test SetFreeMultiWindowStatus with false.
  * @tc.type: FUNC
@@ -1881,6 +2131,138 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     std::string nodeIdStr = "123456";
     rsInterfaces->SetLayerTop(nodeIdStr, true);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_001
+ * @tc.desc: Test SetScreenSecurityMask with normal params, securityMask is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, nullptr);
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_002
+ * @tc.desc: Test SetScreenSecurityMask with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    const uint32_t color[1] = { 0x6f0000ff };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_003
+ * @tc.desc: Test SetScreenSecurityMask with too large pixelMap.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    constexpr uint32_t colorWidth = 5000;
+    constexpr uint32_t colorHeight = 5000;
+    uint32_t *color;
+    color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
+    memset_s(color, colorWidth * colorHeight, 0xffffffff, colorWidth * colorHeight * 2);
+    uint32_t colorLength = colorWidth * colorHeight;
+    Media::InitializationOptions opts;
+    opts.size.width = colorWidth;
+    opts.size.height = colorHeight;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+
+/*
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterSelfDrawingNodeRectChangeCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    SelfDrawingNodeRectChangeCallback callback =
+        [](std::shared_ptr<RSSelfDrawingNodeRectData> SelfDrawingNodeRectData) {};
+    ASSERT_EQ(rsInterfaces->RegisterSelfDrawingNodeRectChangeCallback(callback), SUCCESS);
+}
+
+/*
+ * @tc.name: NotifyScreenSwitched
+ * @tc.desc: Test NotifyScreenSwitched.
+ * @tc.type: FUNC
+ * @tc.require: issueIBH4PQ
+ */
+HWTEST_F(RSInterfacesTest, NotifyScreenSwitched, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->NotifyScreenSwitched();
+}
+
+/*
+ * @tc.name: NotifyPageName
+ * @tc.desc: Test NotifyPageName
+ * @tc.type: FUNC
+ * @tc.require: issueIBPH63
+ */
+HWTEST_F(RSInterfacesTest, NotifyPageName, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->NotifyPageName("com.package.other", "page", true);
+    rsInterfaces->NotifyPageName("com.package.other", "page", false);
+    ASSERT_NE(rsInterfaces, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

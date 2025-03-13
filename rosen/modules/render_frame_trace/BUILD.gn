@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_source_set("render_frame_trace") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [ "include" ]
   sources = [
     "src/frame_rate_report.cpp",
@@ -45,6 +46,9 @@ ohos_source_set("render_frame_trace") {
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]
+    if (!is_mingw) {
+      external_deps += [ "samgr:samgr_proxy" ]
+    }
     if (!is_arkui_x) {
       defines = [ "QOS_MANAGER" ]
     }

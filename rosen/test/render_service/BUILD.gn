@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -25,15 +25,20 @@ group("test") {
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/drawable:unittest",
+    "render_service/unittest/feature:unittest",
+    "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",
     "render_service/unittest/pipeline:unittest",
     "render_service/unittest/screen_manager:unittest",
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
     "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsaibarshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationfraction_fuzzer:fuzztest",
@@ -44,8 +49,8 @@ group("test") {
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsblurfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscolorextract_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommondef_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rscommonhook_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommontools_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscpuoverdrawcanvaslistener_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsdirtyregionmanager_fuzzer:fuzztest",
@@ -56,10 +61,11 @@ group("test") {
     "render_service_base/fuzztest/rsfunctionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslineargradientblurshaderfilter_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rslistenedcanvas_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslog_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmarshallinghelper_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsmemorysnapshot_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsparticlenoise_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspath_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspropertydrawable_fuzzer:fuzztest",
@@ -79,7 +85,6 @@ group("test") {
     "render_service_base/fuzztest/rsscreencapability_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreenhdrcapability_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsscreenmodeinfo_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rsshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsshadow_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssingleframecomposer_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodel_fuzzer:fuzztest",
@@ -90,7 +95,6 @@ group("test") {
     "render_service_base/fuzztest/rssurfaceocclusionchangecallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohosraster_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rssystemproperties_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsthreadhandlergeneric_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsunirenderjudgement_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsvsyncclientohos_fuzzer:fuzztest",
@@ -99,11 +103,13 @@ group("test") {
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
+    "render_service_base/unittest/display_engine:unittest",
     "render_service_base/unittest/drawable:unittest",
+    "render_service_base/unittest/gfx:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
-    "render_service_base/unittest/luminance:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
+    "render_service_base/unittest/monitor:unittest",
     "render_service_base/unittest/offscreen_render:unittest",
     "render_service_base/unittest/overdraw:unittest",
     "render_service_base/unittest/params:unittest",
@@ -122,8 +128,11 @@ group("test") {
     "render_service_client/fuzztest/rsmodifiermanager_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
     "render_service_client/fuzztest/rspropertymodifier_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsrenderthreadclient_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsshowingpropertiesfreezer_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rscanvasdrawingnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rscanvasnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsdisplaynode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rseffectnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratelinker_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratepolicy_fuzzer:fuzztest",
@@ -134,12 +143,13 @@ group("test") {
     "render_service_client/fuzztest/ui/rssurfacenode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rstextureexport_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuidirector_fuzzer:fuzztest",
-    "render_service_client/fuzztest/ui/rsuisharecontext_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
-    "render_service_client/unittest/jank_detector:unittest",
+    "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
+    "render_service_client/unittest/render_thread:unittest",
+    "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
   ]
@@ -151,9 +161,6 @@ group("test") {
       "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
     ]
   }
-  if (tp_feature_enable) {
-    deps += [ "render_service/unittest/touch_screen:unittest" ]
-  }
 
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ "render_service/unittest/drawable:unittest" ]
@@ -161,8 +168,5 @@ group("test") {
 
   if (graphic_2d_feature_rs_enable_profiler) {
     deps += [ "render_service_profiler/unittest:unittest" ]
-  }
-  if (graphic_2d_feature_enable_recording_dcl) {
-    deps += [ "render_service_base/unittest/benchmarks:unittest" ]
   }
 }

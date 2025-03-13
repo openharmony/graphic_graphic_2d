@@ -133,7 +133,7 @@ napi_value JsRun::GetGlyphCount(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphCount(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Run is null");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphCount run is nullptr.");
     }
     int64_t count = static_cast<int64_t>(run_->GetGlyphCount());
@@ -149,7 +149,7 @@ napi_value JsRun::GetGlyphs(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphs(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr");
     }
 
@@ -159,7 +159,7 @@ napi_value JsRun::OnGetGlyphs(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to get the info");
+        TEXT_LOGE("Failed to get parameter, ret %{public}d", static_cast<int>(status));
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     } else if (argc == ARGC_ONE) {
         if (!GetStartEndParams(env, argv[0], start, end)) {
@@ -187,7 +187,7 @@ napi_value JsRun::GetPositions(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetPositions(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
 
@@ -225,7 +225,7 @@ napi_value JsRun::GetOffsets(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetOffsets(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Run is null");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetOffsets run is nullptr.");
     }
 
@@ -249,13 +249,13 @@ napi_value JsRun::GetFont(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetFont(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Run is null");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont run is nullptr.");
     }
 
     std::shared_ptr<Drawing::Font> fontPtr = std::make_shared<Drawing::Font>(run_->GetFont());
     if (!fontPtr) {
-        TEXT_LOGE("Font is null");
+        TEXT_LOGE("Null font");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetFont fontPtr is nullptr.");
     }
 
@@ -283,7 +283,7 @@ napi_value JsRun::Paint(napi_env env, napi_callback_info info)
 napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
 {
     if (run_ == nullptr) {
-        TEXT_LOGE("Run is null");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnPaint run is nullptr.");
     }
     size_t argc = ARGC_THREE;
@@ -293,12 +293,17 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("Invalid argv[0]");
+        return NapiGetUndefined(env);
+    }
     Drawing::JsCanvas* jsCanvas = nullptr;
     double x = 0.0;
     double y = 0.0;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas() ||
-        !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
+        !(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         TEXT_LOGE("Failed to get paint parameter");
         return NapiGetUndefined(env);
     }
@@ -321,7 +326,7 @@ napi_value JsRun::GetStringRange(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetStringRange(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
     uint64_t location = 0;
@@ -353,7 +358,7 @@ napi_value JsRun::GetStringIndices(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetStringIndices(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
 
@@ -391,7 +396,7 @@ napi_value JsRun::GetImageBounds(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetImageBounds(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
     Drawing::Rect imageBounds = run_->GetImageBounds();
@@ -407,7 +412,7 @@ napi_value JsRun::GetTypographicBounds(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetTypographicBounds(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Failed run is nullptr");
+        TEXT_LOGE("Null run");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
 

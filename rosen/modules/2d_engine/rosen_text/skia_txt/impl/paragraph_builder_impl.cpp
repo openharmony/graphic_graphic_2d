@@ -15,89 +15,26 @@
 
 #include "paragraph_builder_impl.h"
 
+#include <string>
+
+#include "common_utils/string_util.h"
+#include "text_font_utils.h"
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "paragraph_line_fetcher_impl.h"
 #include "txt/paragraph_style.h"
+#include "txt/text_bundle_config_parser.h"
 #include "utils/text_log.h"
-
-namespace skt = skia::textlayout;
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace {
-int ConvertToSkFontWeight(FontWeight fontWeight)
-{
-    constexpr int weightBase = 100;
-    return static_cast<int>(fontWeight) * weightBase + weightBase;
-}
-
-RSFontStyle::Slant ConvertToRSFontSlant(FontStyle fontStyle)
-{
-    RSFontStyle::Slant slant;
-    switch (fontStyle) {
-        case FontStyle::NORMAL: {
-            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
-            break;
-        }
-        case FontStyle::ITALIC: {
-            slant = RSFontStyle::Slant::ITALIC_SLANT;
-            break;
-        }
-        case FontStyle::OBLIQUE: {
-            slant = RSFontStyle::Slant::OBLIQUE_SLANT;
-            break;
-        }
-        default: {
-            slant = RSFontStyle::Slant::UPRIGHT_SLANT;
-        }
-    }
-    return slant;
-}
-
-RSFontStyle MakeFontStyle(FontWeight fontWeight, FontWidth fontWidth, FontStyle fontStyle)
-{
-    auto weight = ConvertToSkFontWeight(fontWeight);
-    auto width = static_cast<RSFontStyle::Width>(fontWidth);
-    auto slant = ConvertToRSFontSlant(fontStyle);
-    return RSFontStyle(weight, width, slant);
-}
-
-void MakeFontArguments(skt::TextStyle& skStyle, const FontVariations& fontVariations)
-{
-    constexpr size_t axisLen = 4;
-
-    std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
-    for (const auto& [axis, value] : fontVariations.GetAxisValues()) {
-        if (axis.length() == axisLen) {
-            coordinates.push_back({
-                SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
-                value,
-            });
-        }
-    }
-    SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
-
-    SkFontArguments arguments;
-    arguments.setVariationDesignPosition(position);
-    skStyle.setFontArguments(arguments);
-}
-
-skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
-{
-    skt::TextShadow shadow;
-    shadow.fOffset = txtShadow.offset;
-    shadow.fBlurSigma = txtShadow.blurSigma;
-    shadow.fColor = txtShadow.color;
-    return shadow;
-}
-
 const char* DefaultLocale()
 {
-    static const char* localeZh = "zh-Hans";
-    return localeZh;
+    static const char* LOCALE_ZH = "zh-Hans";
+    return LOCALE_ZH;
 }
 } // anonymous namespace
 
@@ -126,7 +63,13 @@ void ParagraphBuilderImpl::Pop()
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    builder_->addText(text);
+    if (TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API18_VERSION)) {
+        std::u16string wideText = text;
+        Utf16Utils::HandleIncompleteSurrogatePairs(wideText);
+        builder_->addText(wideText);
+    } else {
+        builder_->addText(text);
+    }
 }
 
 void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
@@ -178,6 +121,25 @@ skt::TextTabs ConvertToSkTextTab(const TextTab& tab)
     };
 }
 
+void ParagraphBuilderImpl::TextStyleToSKStrutStyle(skt::StrutStyle& strutStyle, const ParagraphStyle& txt)
+{
+    strutStyle.setFontStyle(TextFontUtils::MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
+    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
+    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
+    strutStyle.setHeightOverride(txt.strutHeightOverride);
+
+    std::vector<SkString> strutFonts;
+    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
+        [](const std::string& f) { return SkString(f.c_str()); });
+    strutStyle.setHalfLeading(txt.strutHalfLeading);
+    strutStyle.setFontFamilies(strutFonts);
+    strutStyle.setLeading(txt.strutLeading);
+    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
+    strutStyle.setStrutEnabled(txt.strutEnabled);
+    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
+    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+}
+
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
 {
     skt::ParagraphStyle skStyle;
@@ -189,7 +151,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle = this->TextStyleToSkStyle(txt.spTextStyle);
     } else {
         textStyle.setForegroundPaintID(AllocPaintID(paint));
-        textStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
+        textStyle.setFontStyle(TextFontUtils::MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
         textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
         textStyle.setHeight(SkDoubleToScalar(txt.height));
         textStyle.setHeightOverride(txt.heightOverride);
@@ -200,20 +162,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextStyle(textStyle);
     skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
-    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
-    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
-    strutStyle.setHeightOverride(txt.strutHeightOverride);
-
-    std::vector<SkString> strutFonts;
-    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
-        [](const std::string& f) { return SkString(f.c_str()); });
-    strutStyle.setFontFamilies(strutFonts);
-    strutStyle.setLeading(txt.strutLeading);
-    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
-    strutStyle.setStrutEnabled(txt.strutEnabled);
-    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
-    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+    TextStyleToSKStrutStyle(strutStyle, txt);
     skStyle.setStrutStyle(strutStyle);
 
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));
@@ -232,6 +181,8 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextSplitRatio(txt.textSplitRatio);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
+    skStyle.setParagraphSpacing(txt.paragraphSpacing);
+    skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
 
     return skStyle;
 }
@@ -252,7 +203,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setDecorationColor(txt.decorationColor);
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
-    skStyle.setFontStyle(MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
+    skStyle.setFontStyle(TextFontUtils::MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
     skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
 
     std::vector<SkString> fonts;
@@ -280,16 +231,20 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     }
 
     if (!txt.fontVariations.GetAxisValues().empty()) {
-        MakeFontArguments(skStyle, txt.fontVariations);
+        TextFontUtils::MakeFontArguments(skStyle, txt.fontVariations);
     }
 
     skStyle.resetShadows();
     for (const TextShadow& txtShadow : txt.textShadows) {
-        skStyle.addShadow(MakeTextShadow(txtShadow));
+        skStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));
     }
 
     if (txt.isPlaceholder) {
         skStyle.setPlaceholder();
+    }
+
+    if (txt.symbol.GetSymbolType() == SymbolType::CUSTOM) {
+        skStyle.setCustomSymbol(true);
     }
 
     return skStyle;
@@ -306,6 +261,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         PaintRecord paint;
         paint.SetColor(txt.color);
         paint.isSymbolGlyph = txt.isSymbolGlyph;
+        paint.symbol.familyName_ = txt.fontFamilies.empty() ? "" : txt.fontFamilies[0];
         paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
@@ -313,6 +269,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetRepeatCount(txt.symbol.GetRepeatCount());
         paint.symbol.SetAnimationStart(txt.symbol.GetAnimationStart());
         paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
+        paint.symbol.SetSymbolType(txt.symbol.GetSymbolType());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

@@ -17,6 +17,7 @@
 #define PICTURE_H
 
 #include "drawing/engine_adapter/impl_interface/picture_impl.h"
+#include "utils/serial_procs.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +33,9 @@ public:
     }
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
+    int ApproximateOpCount(bool nested = false);
+    std::shared_ptr<Data> Serialize(SerialProcs* proc);
+
 private:
     std::shared_ptr<PictureImpl> pictureImplPtr;
 };

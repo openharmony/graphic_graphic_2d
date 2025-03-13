@@ -101,4 +101,16 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.
     BootStrategyType type = controller.GetBootType();
     EXPECT_EQ(type, BootStrategyType::ASSOCIATIVE);
 }
+
+/**
+ * @tc.name: BootAnimationControllerTest_006
+ * @tc.desc: Verify the GetBootType
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_006, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
+    std::string path = controller->GetConfigFilePath();
+    EXPECT_EQ(path.empty(), false);
+}
 }

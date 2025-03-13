@@ -1345,7 +1345,7 @@ static napi_value GetMaxClientWaitTimeoutWebgl(napi_env env, napi_callback_info 
 
 bool WebGL2RenderingContext::Export(napi_env env, napi_value exports)
 {
-    LOGD("WebGL WebGL2RenderingContext::Export env %{public}p mContextRef %{public}p", env, contextRef_);
+    LOGD("WebGL WebGL2RenderingContext::Export env %{private}p mContextRef %{private}p", env, contextRef_);
     napi_value instanceValue = GetContextInstance(env, GetClassName(),
         [](napi_env env, napi_callback_info info) -> napi_value {
             napi_value thisVar = nullptr;
@@ -1366,7 +1366,7 @@ bool WebGL2RenderingContext::Export(napi_env env, napi_value exports)
         LOGE("Failed to create instance");
         return false;
     }
-    LOGD("WebGL WebGL2RenderingContext::Export instanceValue %{public}p", instanceValue);
+    LOGD("WebGL WebGL2RenderingContext::Export instanceValue %{private}p", instanceValue);
 
     std::vector<napi_property_descriptor> props = {
         NVal::DeclareNapiFunction("drawBuffers", WebGL2RenderingContextBase::DrawBuffers),

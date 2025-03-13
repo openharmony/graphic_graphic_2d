@@ -15,15 +15,21 @@
 
 #include "hdi_layer.h"
 #include "hdi_log.h"
+#include "rs_trace.h"
 #include <algorithm>
+#include <cstring>
+#include <securec.h>
 namespace OHOS {
 namespace Rosen {
 constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
 constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
+constexpr size_t MATRIX_SIZE = 9;
+const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
+const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
 
 template<typename T>
@@ -122,10 +128,17 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 
     sptr<IConsumerSurface> surface = layerInfo->GetSurface();
     if (surface == nullptr) {
-        HLOGE("Create layer failed because the consumer surface is nullptr.");
-        return GRAPHIC_DISPLAY_NULL_PTR;
+        if (layerInfo->GetCompositionType() ==
+            GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            bufferCacheCountMax_ = 0;
+        } else {
+            HLOGE("Create layer failed because the consumer surface is nullptr.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
+        }
+    } else {
+        // The number of buffers cycle in the surface is larger than the queue size.
+        surface->GetCycleBuffersNumber(bufferCacheCountMax_);
     }
-    bufferCacheCountMax_ = surface->GetQueueSize();
     uint32_t layerId = INT_MAX;
     GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,
@@ -269,16 +282,23 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
 
 int32_t HdiLayer::SetLayerBuffer()
 {
-    sptr<SurfaceBuffer> currBuffer = layerInfo_->GetBuffer();
-    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
-    if (currBuffer == nullptr) {
+    RS_TRACE_NAME_FMT("SetLayerBuffer(layerid=%u)", layerId_);
+    if (layerInfo_->GetBuffer() != nullptr) {
+        currBuffer_ = layerInfo_->GetBuffer();
+    }
+    if (currBuffer_ == nullptr) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
+    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
     if (doLayerInfoCompare_) {
         sptr<SurfaceBuffer> prevBuffer = prevLayerInfo_->GetBuffer();
         sptr<SyncFence> prevAcquireFence = prevLayerInfo_->GetAcquireFence();
-        if (currBuffer == prevBuffer && currAcquireFence == prevAcquireFence) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (currBuffer_ == prevBuffer && currAcquireFence == prevAcquireFence) {
+            if (!alreadyClearBuffer_) {
+                return GRAPHIC_DISPLAY_SUCCESS;
+            }
+            HLOGW("layerid=%{public}u: force set same buffer(bufferId=%{public}u)", layerId_, currBuffer_->GetSeqNum());
+            RS_TRACE_NAME_FMT("layerid=%u: force set same buffer(bufferId=%u)", layerId_, currBuffer_->GetSeqNum());
         }
     }
 
@@ -289,7 +309,7 @@ int32_t HdiLayer::SetLayerBuffer()
         ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
-        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
+        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer_->GetSeqNum(), index, deletingList);
     }
 
     GraphicLayerBuffer layerBuffer;
@@ -299,8 +319,10 @@ int32_t HdiLayer::SetLayerBuffer()
     if (bufferCached && index < bufferCacheCountMax_) {
         layerBuffer.handle = nullptr;
     } else {
-        layerBuffer.handle = currBuffer->GetBufferHandle();
+        layerBuffer.handle = currBuffer_->GetBufferHandle();
     }
+
+    alreadyClearBuffer_ = false;
     return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
 
@@ -527,12 +549,15 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetTransformMode");
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
-    ret = SetLayerDirtyRegion();
-    CheckRet(ret, "SetLayerDirtyRegion");
+    // The crop needs to be set in the first order
     ret = SetLayerCrop();
     CheckRet(ret, "SetLayerCrop");
+    // The data space contained in the layerbuffer needs to be set in the second order
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
+    // The dirty region needs to be set in the third order
+    ret = SetLayerDirtyRegion();
+    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerCompositionType();
     CheckRet(ret, "SetLayerCompositionType");
     ret = SetLayerBlendType();
@@ -637,7 +662,8 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
         std::unique_lock<std::mutex> lock(mutex_);
         const uint32_t offset = count_;
         for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-            uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+            // Reverse output timestamp array
+            uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
             auto windowsName = presentTimeRecords_[order].windowsName;
             auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
             int64_t lastFlushTimestamp = 0;
@@ -721,7 +747,7 @@ void HdiLayer::Dump(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
 }
@@ -731,7 +757,7 @@ void HdiLayer::DumpByName(std::string windowName, std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         auto windowsName = presentTimeRecords_[order].windowsName;
         auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
         if (iter != windowsName.end()) {
@@ -745,7 +771,7 @@ void HdiLayer::DumpMergedResult(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = mergedCount_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(mergedPresentTimeRecords_[order]) + "\n";
     }
 }
@@ -765,12 +791,18 @@ int32_t HdiLayer::SetPerFrameParameters()
     const auto& supportedKeys = device_->GetSupportedLayerPerFrameParameterKey();
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
     for (const auto& key : supportedKeys) {
-        if (key == GENERIC_METADATA_KEY_BRIGHTNESS_NIT) {
+        if (key == GENERIC_METADATA_KEY_SDR_NIT) {
+            ret = SetPerFrameParameterSdrNit();
+            CheckRet(ret, "SetPerFrameParameterSdrNit");
+        } else if (key == GENERIC_METADATA_KEY_BRIGHTNESS_NIT) {
             ret = SetPerFrameParameterDisplayNit();
             CheckRet(ret, "SetPerFrameParameterDisplayNit");
         } else if (key == GENERIC_METADATA_KEY_SDR_RATIO) {
             ret = SetPerFrameParameterBrightnessRatio();
             CheckRet(ret, "SetPerFrameParameterBrightnessRatio");
+        } else if (key == GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX) {
+            ret = SetPerFrameLayerLinearMatrix();
+            CheckRet(ret, "SetLayerLinearMatrix");
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
@@ -779,9 +811,23 @@ int32_t HdiLayer::SetPerFrameParameters()
     return ret;
 }
 
+int32_t HdiLayer::SetPerFrameParameterSdrNit()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetSdrNit() == prevLayerInfo_->GetSdrNit()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(sizeof(int32_t));
+    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetSdrNit();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SDR_NIT, valueBlob);
+}
+
 int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetDisplayNit() == prevLayerInfo_->GetDisplayNit()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -789,12 +835,13 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetBrightnessRatio() == prevLayerInfo_->GetBrightnessRatio()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -802,12 +849,30 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
+    if (memcpy_s(valueBlob.data(), valueBlob.size(), layerInfo_->GetLayerLinearMatrix().data(),
+        MATRIX_SIZE * sizeof(float)) != EOK) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -815,7 +880,8 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()
@@ -823,9 +889,18 @@ void HdiLayer::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
+    if (layerInfo_ == nullptr || device_ == nullptr) {
+        return;
+    }
+    if (layerInfo_->GetBuffer() != nullptr) {
+        currBuffer_ = layerInfo_->GetBuffer();
+    }
+    RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
+        bufferCache_.size());
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
     bufferCache_.clear();
+    alreadyClearBuffer_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

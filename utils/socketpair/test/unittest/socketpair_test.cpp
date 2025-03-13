@@ -123,4 +123,24 @@ HWTEST_F(LocalSocketPairTest, Close0Fd, Function | SmallTest | Level2)
     int32_t ret = socketPair.CreateChannel(8, 8);
     ASSERT_EQ(ret, 0);
 }
+
+/*
+ * Function: SendFdToBinder001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: test SendFdToBinder
+ */
+HWTEST_F(LocalSocketPairTest, SendFdToBinder001, Function | SmallTest | Level2)
+{
+    LocalSocketPair socketPair;
+    MessageParcel data;
+    int32_t fd = -1;
+    int32_t res = socketPair.SendFdToBinder(data, fd);
+    EXPECT_EQ(res, -1);
+
+    fd = 1;
+    res = socketPair.SendFdToBinder(data, fd);
+    EXPECT_EQ(res, 0);
+}
 }
