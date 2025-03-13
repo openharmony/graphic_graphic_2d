@@ -3177,8 +3177,15 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
     }
-    auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren()) ?
-        GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
+    RectI globalFilterRect;
+    if (node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren()) {
+        GetVisibleEffectDirty(node);
+        if (!globalFilterRect.IsEmpty()) {
+            globalFilterRect.JoinRect(node.GetFilterRect());
+        }
+    } else {
+        globalFilterRect = node.GetOldDirtyInSurface();
+    }
     if (node.NeedDrawBehindWindow()) {
         node.CalDrawBehindWindowRegion();
         globalFilterRect = node.GetFilterRect();
