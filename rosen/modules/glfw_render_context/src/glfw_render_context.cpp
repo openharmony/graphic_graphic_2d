@@ -202,13 +202,19 @@ void GlfwRenderContext::MakeCurrent()
 }
 
 #ifdef __APPLE__
+void GlfwRenderContext::MakeRenderingCurrent()
+{
+    if (renderingWindow_) {
+        glfwMakeContextCurrent(renderingWindow_);
+    }
+}
+
 bool GlfwRenderContext::CreateRenderingContext()
 {
     if (!isVisible_) {
         return false;
     }
     if (renderingWindow_ != nullptr) {
-        glfwMakeContextCurrent(renderingWindow_);
         return true;
     }
 
@@ -217,7 +223,6 @@ bool GlfwRenderContext::CreateRenderingContext()
     if (renderingWindow_ == nullptr) {
         return false;
     }
-    glfwMakeContextCurrent(renderingWindow_);
     return true;
 }
 

@@ -64,6 +64,7 @@ public:
         return isVisible_;
     }
 #ifdef __APPLE__
+    void MakeRenderingCurrent();
     bool CreateRenderingContext();
     void CreateTexture();
     void CopySnapshot(void* addr);
