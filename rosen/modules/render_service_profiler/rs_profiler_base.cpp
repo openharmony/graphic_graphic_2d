@@ -40,7 +40,7 @@
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
-#include "common/rs_common_def.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
@@ -605,24 +605,13 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     }
 }
 
-void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+static void MarshalDrawCmdModifiers(
+    const RSRenderContent::DrawCmdContainer& container, std::stringstream& data, uint32_t fileVersion)
 {
-    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
-    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
-
-    const uint32_t modifierCount = node.modifiers_.size();
-    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
-
-    for (const auto& [id, modifier] : node.modifiers_) {
-        if (modifier) {
-            MarshalRenderModifier(*modifier, data);
-        }
-    }
-
-    const uint32_t drawModifierCount = node.renderContent_->drawCmdModifiers_.size();
+    const uint32_t drawModifierCount = container.size();
     data.write(reinterpret_cast<const char*>(&drawModifierCount), sizeof(drawModifierCount));
 
-    for (const auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
+    for (const auto& [type, modifiers] : container) {
         const uint32_t modifierCount = modifiers.size();
         data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
         for (const auto& modifier : modifiers) {
@@ -639,6 +628,56 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
                 MarshalRenderModifier(*modifier, data);
             }
         }
+    }
+}
+
+static RSRenderContent::DrawCmdContainer GetDrawCmdModifiers(const RSCanvasDrawingRenderNode& node)
+{
+    const auto drawable = node.GetRenderDrawable();
+    auto image = drawable ? drawable->Snapshot() : nullptr;
+    if (!image) {
+        return node.GetDrawCmdModifiers();
+    }
+
+    const int32_t width = image->GetWidth();
+    const int32_t height = image->GetHeight();
+
+    const Drawing::Rect rect(0, 0, static_cast<float>(width), static_cast<float>(height));
+    auto drawOp = std::make_shared<Drawing::DrawImageRectOpItem>(*image, rect, rect,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, Drawing::Paint());
+
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>(width, height, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    cmdList->AddDrawOp(drawOp);
+
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0);
+    auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(property);
+    modifier->SetType(RSModifierType::CONTENT_STYLE);
+
+    RSRenderContent::DrawCmdContainer container = node.GetDrawCmdModifiers();
+    container[modifier->GetType()].emplace_back(modifier);
+    return container;
+}
+
+void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+{
+    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
+    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
+
+    const uint32_t modifierCount = node.modifiers_.size();
+    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
+
+    for (const auto& [id, modifier] : node.modifiers_) {
+        if (modifier) {
+            MarshalRenderModifier(*modifier, data);
+        }
+    }
+
+    if (node.GetType () == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto& canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
+        MarshalDrawCmdModifiers(GetDrawCmdModifiers(canvasDrawingNode), data, fileVersion);
+    } else {
+        MarshalDrawCmdModifiers(node.GetDrawCmdModifiers(), data, fileVersion);
     }
 }
 
@@ -834,6 +873,23 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::s
     return ptr;
 }
 
+static void SetupCanvasDrawingRenderNode(RSCanvasDrawingRenderNode& node)
+{
+    int32_t width = 0;
+    int32_t height = 0;
+    for (const auto& [type, modifiers] : node.GetDrawCmdModifiers()) {
+        for (const auto& modifier : modifiers) {
+            const auto commandList = modifier ? modifier->GetPropertyDrawCmdList() : nullptr;
+            if (commandList) {
+                width = std::max(width, commandList->GetWidth());
+                height = std::max(height, commandList->GetHeight());
+            }
+        }
+    }
+
+    node.ResetSurface(width, height);
+}
+
 std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
@@ -869,6 +925,10 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
     }
     if (data.eof()) {
         return "UnmarshalNodeModifiers failed, file is damaged";
+    }
+
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        SetupCanvasDrawingRenderNode(static_cast<RSCanvasDrawingRenderNode&>(node));
     }
 
     node.ApplyModifiers();
