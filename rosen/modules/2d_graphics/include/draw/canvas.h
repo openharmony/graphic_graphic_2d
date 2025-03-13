@@ -130,6 +130,19 @@ public:
     }
 };
 
+class DRAWING_API StateInheriteCanvas : public Canvas {
+public:
+    StateInheriteCanvas(int32_t width, int32_t height)
+    {
+        BuildStateInherite(width, height);
+    }
+    ~StateInheriteCanvas() override = default;
+    DrawingType GetDrawingType() const override
+    {
+        return DrawingType::INHERITE_STATE;
+    }
+};
+
 class AutoCanvasRestore {
 public:
     AutoCanvasRestore(Canvas& canvas, bool doSave) : canvas_(canvas)
