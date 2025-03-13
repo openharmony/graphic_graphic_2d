@@ -901,8 +901,24 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
 
-    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_,
+    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, GetInstanceRootNodeName(),
         drawingCacheUpdateTimeMap_[nodeId_]);
+}
+
+std::string RSRenderNodeDrawable::GetInstanceRootNodeName()
+{
+    std::string instanceRootNodeName;
+    auto renderNode = renderNode_.lock();
+    auto rootNode = renderNode->GetInstanceRootNode();
+    if (rootNode == nullptr) {
+        RS_LOGE("RSRenderNodeDrawable::GetInstanceRootNodeName get no InstanceRootNode");
+        return instanceRootNodeName;
+    }
+    RSSurfaceRenderNode* instanceRootNode = static_cast<RSSurfaceRenderNode*>(rootNode.get());
+    if (instanceRootNode != nullptr && instanceRootNode->GetType() == RSRenderNodeType::SURFACE_NODE) {
+        instanceRootNodeName = instanceRootNode->GetName();
+    }
+    return instanceRootNodeName;
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

@@ -273,7 +273,7 @@ std::chrono::time_point<high_resolution_clock> RSPerfMonitorReporter::StartRende
 }
 
 void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime,
-    NodeId& nodeId, int updateTimes)
+    NodeId& nodeId, std::string nodeName, int updateTimes)
 {
 #ifdef ROSEN_OHOS
     auto endTime = high_resolution_clock::now();
@@ -282,7 +282,7 @@ void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_r
     if (needTrace) {
         RS_TRACE_BEGIN("SubHealthEvent Rendergroup, updateCache interval:" + std::to_string(interval.count()));
     }
-    ProcessRendergroupSubhealth(nodeId, updateTimes, interval.count(), startTime);
+    ProcessRendergroupSubhealth(nodeId, nodeName, updateTimes, interval.count(), startTime);
     if (needTrace) {
         RS_TRACE_END();
     }
@@ -303,8 +303,8 @@ void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
 #endif
 }
 
-void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes, int interval,
-    std::chrono::time_point<high_resolution_clock>& startTime)
+void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, std::string nodeName, int updateTimes,
+    int interval, std::chrono::time_point<high_resolution_clock>& startTime)
 {
 #ifdef ROSEN_OHOS
     {
@@ -319,11 +319,12 @@ void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int upda
         auto reportTime = high_resolution_clock::now();
         std::string bundleName = GetCurrentBundleName();
         std::string timeTaken = GetUpdateCacheTimeTaken(nodeId);
-        RSBackgroundThread::Instance().PostTask([nodeId, bundleName, updateTimes, timeTaken]() {
+        RSBackgroundThread::Instance().PostTask([nodeId, nodeName, bundleName, updateTimes, timeTaken]() {
             RS_TRACE_NAME("RSPerfMonitorReporter::ProcessRendergroupSubhealth HiSysEventWrite in RSBackgroundThread");
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, RENDERGROUP_SUBHEALTH_EVENT_NAME,
                 OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                 "NODE_ID", nodeId,
+                "NODE_NAME", nodeName,
                 "BUNDLE_NAME", bundleName,
                 "CONTINUOUS_UPDATE_CACHE_TIMES", updateTimes,
                 "UPDATE_CACHE_TIME_TAKEN", timeTaken);

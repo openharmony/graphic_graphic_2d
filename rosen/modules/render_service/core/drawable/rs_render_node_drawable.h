@@ -232,6 +232,8 @@ private:
     }
     bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    // used for rendergroup  perfmonitor
+    std::string GetInstanceRootNodeName();
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

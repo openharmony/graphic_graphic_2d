@@ -78,11 +78,11 @@ public:
 
     RSB_EXPORT std::chrono::time_point<high_resolution_clock> StartRendergroupMonitor();
     RSB_EXPORT void EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime, NodeId& nodeId,
-        int updateTimes);
+        std::string nodeName, int updateTimes);
     // clear rendergroup data map
     RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
     // process rendergroup subhealth
-    void ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes, int interval,
+    void ProcessRendergroupSubhealth(NodeId& nodeId, std::string nodeName, int updateTimes, int interval,
         std::chrono::time_point<high_resolution_clock>& startTime);
 
 protected:
