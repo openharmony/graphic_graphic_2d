@@ -40,7 +40,6 @@ HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
         return HdrStatus::NO_HDR;
     }
     if (!surfaceNode.GetRSSurfaceHandler()) {
-        RS_LOGE("RSHdrUtil::CheckIsHdrSurface surfaceHandler is NULL");
         return HdrStatus::NO_HDR;
     }
     return CheckIsHdrSurfaceBuffer(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
@@ -84,7 +83,6 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
         return false;
     }
     if (!surfaceNode.GetRSSurfaceHandler()) {
-        RS_LOGE("RSHdrUtil::CheckIsSurfaceWithMetadata surfaceHandler is NULL");
         return false;
     }
     return CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
@@ -93,7 +91,6 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
 bool RSHdrUtil::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer)
 {
     if (surfaceBuffer == nullptr) {
-        RS_LOGE("RSHdrUtil::CheckIsSurfaceBufferWithMetadata surfaceBuffer is NULL");
         return false;
     }
     using namespace HDI::Display::Graphic::Common::V1_0;
