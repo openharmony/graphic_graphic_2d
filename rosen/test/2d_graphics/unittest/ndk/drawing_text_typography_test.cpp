@@ -3013,7 +3013,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTypographyTextEllipsisTest001,
 
 /*
  * @tc.name: OH_Drawing_TypographyHandlerPushTextStyle001
- * @tc.desc: test for the actual effective value of textstyle.
+ * @tc.desc: test for the actual effective value of textstyle in each of the three scenarios.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
@@ -3075,7 +3075,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyHandlerPushTextStyle001
 
 /*
  * @tc.name: OH_Drawing_TypographyHandlerPushTextStyle002
- * @tc.desc: test for the actual effective value of textstyle.
+ * @tc.desc: test the height of Tibetan and Uighur in push textstyle scenarios.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
