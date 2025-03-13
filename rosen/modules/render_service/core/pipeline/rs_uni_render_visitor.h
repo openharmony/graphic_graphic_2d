@@ -145,7 +145,6 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
-    const std::unordered_set<NodeId> GetCurrentBlackList() const;
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
@@ -276,11 +275,19 @@ private:
     {
         return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
     }
-    bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
+
+    inline bool IsValidInVirtualScreen(const RSSurfaceRenderNode& node) const
     {
-        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.whiteList.empty() ||
-            screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
+        if (node.GetSkipLayer() || node.GetSecurityLayer() ||
+            node.GetProtectedLayer() || node.GetSnapshotSkipLayer()) {
+            return false; // surface is special layer
+        }
+        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
+            return false; // white list is not empty, or surface is in black list
+        }
+        return true;
     }
+
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
@@ -309,6 +316,8 @@ private:
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
+    std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
+    std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
