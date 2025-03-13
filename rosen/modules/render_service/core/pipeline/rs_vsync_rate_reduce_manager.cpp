@@ -209,6 +209,8 @@ void RSVsyncRateReduceManager::CalcRates()
             SetVSyncRatesChanged(iter == lastVSyncRateMap_.end() || iter->second != SYSTEM_ANIMATED_SCENES_RATE);
             RS_OPTIONAL_TRACE_NAME_FMT("CalcRates name=%s id=%" PRIu64 ",rate=%d,isSysAni=%d", vRateInfo.name.c_str(),
                 nodeId, SYSTEM_ANIMATED_SCENES_RATE, isSystemAnimatedScenes_);
+            RS_LOGD("CalcRates name=%{public}s id=%{public}" PRIu64 ",rate=%{public}d,isSysAni=%{public}d",
+                vRateInfo.name.c_str(), nodeId, SYSTEM_ANIMATED_SCENES_RATE, isSystemAnimatedScenes_);
         }
         return;
     }
@@ -247,7 +249,7 @@ void RSVsyncRateReduceManager::NotifyVRates()
     linkersRateMap_.clear();
     for (const auto& [nodeId, rate]: vSyncRateMap_) {
         std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetSurfaceNodeLinkerIds(nodeId);
-        if (rate != 0) {
+        if (rate != 0 && RSSystemParameters::GetVRateControlEnabled()) {
             for (auto linkerId : linkerIds) {
                 linkersRateMap_.emplace(linkerId, rate);
                 RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates linkerid = %" PRIu64 " nodeId=%" PRIu64
@@ -260,7 +262,9 @@ void RSVsyncRateReduceManager::NotifyVRates()
         if (iter != lastVSyncRateMap_.end() && iter->second == rate) {
             continue;
         }
-        needPostTask_.exchange(true);
+        if (RSSystemParameters::GetVRateControlEnabled()) {
+            needPostTask_.exchange(true);
+        }
         appVSyncDistributor_->SetQosVSyncRate(nodeId, rate, isSystemAnimatedScenes_);
     }
 
