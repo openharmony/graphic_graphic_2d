@@ -2555,12 +2555,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_PointDestroy(nullptr);
     EXPECT_NE(shadow, nullptr);
 }
+
 /*
- * @tc.name: OH_Drawing_TypographyTest108
+ * @tc.name: OH_Drawing_TextStyleAddShadowTest
  * @tc.desc: test for multiple shadow parameters and abnormal shadow parameters.
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest108, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleAddShadowTest, TestSize.Level1)
 {
     // Test the full shadow parameters of the scene
     OH_Drawing_TextShadow* shadow2 = OH_Drawing_CreateTextShadow();
