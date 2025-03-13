@@ -810,7 +810,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     changingPhaseOffset_ = listenerPhaseOffset;
     needChangePhaseOffset_ = true;
 
-    if (generatorRefreshRate != currRefreshRate_ || generatorRefreshRate != changingGeneratorRefreshRate_) {
+    if (changingGeneratorRefreshRate_ != 0 || generatorRefreshRate != currRefreshRate_) {
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
     } else {
