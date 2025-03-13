@@ -61,7 +61,7 @@ std::shared_ptr<Drawing::Font> DrawingFontUtils::MatchThemeFont(const Drawing::F
     if (fontMgr == nullptr) {
         return nullptr;
     }
-    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies();
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
     std::shared_ptr<Drawing::Font> themeFont = std::make_shared<Drawing::Font>(*font);
     for (const auto& family : themeFamilies) {
         std::shared_ptr<Drawing::Typeface> themeTypeface =

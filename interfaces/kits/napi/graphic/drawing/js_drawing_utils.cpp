@@ -293,7 +293,7 @@ std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode
     if (fontMgr == nullptr) {
         return nullptr;
     }
-    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies();
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
     std::shared_ptr<Drawing::Font> themeFont = std::make_shared<Drawing::Font>(*font);
     for (const auto& family : themeFamilies) {
         std::shared_ptr<Drawing::Typeface> themeTypeface =
