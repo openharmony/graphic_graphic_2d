@@ -515,14 +515,14 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest016
- * @tc.desc: test for the actual effective value of textstyle.
+ * @tc.desc: test for the actual effective value of textstyle: fallback textstyle.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level1)
 {
     // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
     OHOS::Rosen::TypographyStyle typographyStyle0;
-    typographyStyle0.fontSize = 100;
+    typographyStyle0.fontSize = 100; // set the fallback text style in typographstyle
     typographyStyle0.heightOnly = true;
     typographyStyle0.heightScale = 1;
     OHOS::Rosen::TextStyle textStyle = typographyStyle0.GetTextStyle();
@@ -550,7 +550,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest017
- * @tc.desc: test for the actual effective value of textstyle.
+ * @tc.desc: test for the actual effective value of textstyle: default textstyle.
  * @tc.type: FUNC
  */
  HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level1)
@@ -566,7 +566,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
      textStyle1.fontSize = 30;
      textStyle1.heightOnly = true;
      textStyle1.heightScale = 2;
-     typographyStyle1.SetTextStyle(textStyle1);
+     typographyStyle1.SetTextStyle(textStyle1); // set the default text style in typographstyle
      std::u16string text1 = u"你好测试文本样式";
      std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
      OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
@@ -586,7 +586,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
 
  /*
  * @tc.name: OH_Drawing_TypographyTest018
- * @tc.desc: test for the actual effective value of textstyle.
+ * @tc.desc: test for the actual effective value of textstyle: pushtext style.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level1)
@@ -611,7 +611,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection2);
-    typographyCreate2->PushStyle(textStyle2);
+    typographyCreate2->PushStyle(textStyle2); // pushtext style
     std::u16string text2 = u"你好测试 textstyle hello ";
     typographyCreate2->AppendText(text2);
     std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();

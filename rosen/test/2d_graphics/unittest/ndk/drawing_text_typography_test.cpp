@@ -2535,7 +2535,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest107
- * @tc.desc: test for the textshadow01.
+ * @tc.desc: test for default textshadow.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level1)
@@ -2557,7 +2557,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
 }
 /*
  * @tc.name: OH_Drawing_TypographyTest108
- * @tc.desc: test for the textshadow02.
+ * @tc.desc: test for multiple shadow parameters and abnormal shadow parameters.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest108, TestSize.Level1)
