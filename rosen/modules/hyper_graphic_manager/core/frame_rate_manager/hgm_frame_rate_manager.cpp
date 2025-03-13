@@ -446,11 +446,7 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
                 linkerId, iter->second);
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "CollectVRateChange Before modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d, vrate = %d",
-        ExtractPid(linkerId), linkerId, appFrameRate, iter->second);
-    HGM_LOGD("CollectVRateChange Before modification linkerId = %{public}" PRIu64 ","
-        "appFrameRate = %{public}d, vrate = %{public}d", linkerId, appFrameRate, iter->second);
+
     appFrameRate = static_cast<int>(controllerRate_) / iter->second;
     // vrate is int::max means app need not refreshing
     if (appFrameRate == 0) {
@@ -459,9 +455,10 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
     finalRange.min_ = OLED_NULL_HZ;
     finalRange.max_ = OLED_144_HZ;
-    RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", %d", linkerId, appFrameRate);
-    HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ", appFrameRate = %{public}d",
-                linkerId, appFrameRate);
+    RS_TRACE_NAME_FMT("CollectVRateChange modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d,"
+        " vrate = %d, rsFrameRate = %u", ExtractPid(linkerId), linkerId, appFrameRate, iter->second, controllerRate_);
+    HGM_LOGD("CollectVRateChange modification linkerId = %{public}" PRIu64 ",appFrameRate = %{public}d,"
+        " vrate = %{public}d, rsFrameRate = %{public}u", linkerId, appFrameRate, iter->second, controllerRate_);
 }
 
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)

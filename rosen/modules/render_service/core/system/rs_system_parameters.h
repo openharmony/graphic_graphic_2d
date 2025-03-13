@@ -62,6 +62,7 @@ public:
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static RsParallelType GetRsParallelType();
     static RsSurfaceCaptureType GetRsSurfaceCaptureType();
+    static bool GetVRateControlEnabled();
     static bool GetVSyncControlEnabled();
     static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();
