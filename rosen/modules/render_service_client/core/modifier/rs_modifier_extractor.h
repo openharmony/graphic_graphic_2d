@@ -127,6 +127,8 @@ public:
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
     float GetBloom() const;
+    int GetColorBlendMode() const;
+    int GetColorBlendApplyType() const;
 
     std::string Dump() const;
 private:
