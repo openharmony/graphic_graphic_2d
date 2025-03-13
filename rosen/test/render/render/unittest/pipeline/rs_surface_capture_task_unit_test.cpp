@@ -252,7 +252,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run1, Function | SmallTest | Level2)
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -267,7 +268,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run02, Function | SmallTest | Level2)
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleY = 0.f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -282,7 +284,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run03, Function | SmallTest | Level2)
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = 0.f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -296,7 +299,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run04, Function | SmallTest | Level2)
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -311,7 +315,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run05, Function | SmallTest | Level2)
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = -1.0f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -326,7 +331,8 @@ HWTEST_F(RsSurfaceCaptureTaskTest, Run07, Function | SmallTest | Level2)
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleY = -1.0f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(false, task.Run(nullptr));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*

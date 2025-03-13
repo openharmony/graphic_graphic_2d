@@ -236,6 +236,15 @@ struct RSSurfaceCaptureBlurParam {
     float blurRadius = 1E-6;
 };
 
+struct RSSurfaceCaptureParam {
+    NodeId id = 0;
+    RSSurfaceCaptureConfig config = {};
+    bool isSystemCalling = false;
+    bool isSelfCapture = false;
+    bool isFreeze = false;
+    RSSurfaceCaptureBlurParam blurParam = {};
+};
+
 struct RSSurfaceCapturePermissions {
     bool screenCapturePermission = false;
     bool isSystemCalling = false;

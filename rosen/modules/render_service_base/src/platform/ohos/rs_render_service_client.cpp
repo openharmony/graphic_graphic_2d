@@ -310,6 +310,37 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return true;
 }
 
+bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSelfSurfaceCapture renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSelfSurfaceCapture callback == nullptr!");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = surfaceCaptureCbMap_.find({ id, captureConfig });
+        if (iter != surfaceCaptureCbMap_.end()) {
+            ROSEN_LOGD("RSRenderServiceClient::TakeSelfSurfaceCapture surfaceCaptureCbMap_.count(id) != 0");
+            iter->second.emplace_back(callback);
+            return true;
+        }
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    }
+
+    if (surfaceCaptureCbDirector_ == nullptr) {
+        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
+    }
+    renderService->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
+    return true;
+}
+
 bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)

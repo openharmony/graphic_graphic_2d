@@ -141,6 +141,13 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return false;
 }
 
+bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
+{
+    return false;
+}
+
+
 bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)

@@ -33,15 +33,17 @@ struct CaptureParam {
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
+    bool isSelfCapture_ = false;
     bool isNeedBlur_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
-        bool isSystemCalling = false, bool isNeedBlur = false)
+        bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling),
+        isSelfCapture_(isSelfCapture),
         isNeedBlur_(isNeedBlur) {}
 };
 struct HardCursorInfo {

@@ -193,8 +193,9 @@ HWTEST_F(RsSurfaceCaptureTaskParallelTest, Run01, TestSize.Level2)
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.pixelMap_ = nullptr;
+    RSSurfaceCaptureParam captureParam;
     ASSERT_EQ(nullptr, task.pixelMap_);
-    ASSERT_EQ(false, task.Run(nullptr, false));
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -212,7 +213,8 @@ HWTEST_F(RsSurfaceCaptureTaskParallelTest, Run02, TestSize.Level2)
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    ASSERT_EQ(false, task.Run(nullptr, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -229,7 +231,8 @@ HWTEST_F(RsSurfaceCaptureTaskParallelTest, Run03, TestSize.Level2)
     auto node = std::make_shared<RSRenderNode>(id);
     task.surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    ASSERT_EQ(false, task.Run(nullptr, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -245,7 +248,8 @@ HWTEST_F(RsSurfaceCaptureTaskParallelTest, Run04, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = nullptr;
-    ASSERT_EQ(false, task.Run(nullptr, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 }
 }

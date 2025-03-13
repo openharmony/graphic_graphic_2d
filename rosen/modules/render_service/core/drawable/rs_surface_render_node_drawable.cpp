@@ -841,14 +841,17 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
     bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption();
+    bool needSkipDrawWhite =
+        RSUniRenderThread::GetCaptureParam().isNeedBlur_ || RSUniRenderThread::GetCaptureParam().isSelfCapture_;
     // Draw White
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
-        (UNLIKELY(isSecLayersNotExempted && !RSUniRenderThread::GetCaptureParam().isNeedBlur_) ||
-            specialLayerManager.Find(SpecialLayerType::SKIP))) {
+        (UNLIKELY(isSecLayersNotExempted && !needSkipDrawWhite) || specialLayerManager.Find(SpecialLayerType::SKIP))) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
-            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
-            "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s]",
-            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
+                "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
+                "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s], "
+                "isSelfCapture:[%{public}s]",
+            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
+            RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
         RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
