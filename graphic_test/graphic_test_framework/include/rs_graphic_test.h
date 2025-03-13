@@ -35,6 +35,7 @@ public:
     void SetSurfaceColor(const RSColor& color);
     void RegisterNode(std::shared_ptr<RSNode> node);
     void StartUIAnimation();
+    void SetScreenSize(float width, float height);
 
     // overrides gtest functions
     static void SetUpTestCase();
@@ -49,6 +50,10 @@ public:
     void AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath);
 private:
     std::string GetImageSavePath(const std::string path);
+    bool IsSingleTest();
+    UIPoint GetScreenCapacity(const std::string testCase);
+    UIPoint GetPos(int id, int cl);
+    bool WaitOtherTest();
 
     bool shouldRunTest_ = true;
     Vector4f surfaceBounds_;
