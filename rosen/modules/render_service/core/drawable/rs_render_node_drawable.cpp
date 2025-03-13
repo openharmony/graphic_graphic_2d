@@ -909,12 +909,11 @@ std::string RSRenderNodeDrawable::GetInstanceRootNodeName()
 {
     std::string instanceRootNodeName;
     auto renderNode = renderNode_.lock();
-    auto rootNode = renderNode->GetInstanceRootNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("RSRenderNodeDrawable::GetInstanceRootNodeName get no InstanceRootNode");
+    if (renderNode == nullptr) {
+        RS_LOGE("RSRenderNodeDrawable::GetInstanceRootNodeName renderNode is nullptr");
         return instanceRootNodeName;
     }
-    RSSurfaceRenderNode* instanceRootNode = static_cast<RSSurfaceRenderNode*>(rootNode.get());
+    auto instanceRootNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(renderNode->GetInstanceRootNode());
     if (instanceRootNode != nullptr && instanceRootNode->GetType() == RSRenderNodeType::SURFACE_NODE) {
         instanceRootNodeName = instanceRootNode->GetName();
     }
