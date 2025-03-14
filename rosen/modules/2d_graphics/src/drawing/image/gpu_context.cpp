@@ -267,6 +267,16 @@ std::string GPUContextOptions::GetStoreCachePath() const
 {
     return filePath_;
 }
+
+void GPUContextOptions::SetIsUniRender(bool isUniRender)
+{
+    isUniRender_ = isUniRender;
+}
+
+bool GPUContextOptions::GetIsUniRender() const
+{
+    return isUniRender_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
