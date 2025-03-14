@@ -14,7 +14,8 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_client/animation"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service_client/animation"
 
 ##############################  RSRenderServiceClientAnimationTest  ##################################
 ohos_unittest("RSRenderServiceClientAnimationTest") {

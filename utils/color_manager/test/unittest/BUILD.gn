@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_2d/utils/color_manager"
+module_out_path = "graphic_2d/graphic_2d/utils/color_manager"
 
 group("unittest") {
   testonly = true
