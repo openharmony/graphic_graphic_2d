@@ -53,7 +53,7 @@ RSTransitionEffect::RSTransitionEffect(
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 {
     static uint32_t count = 0;
-    if (opacity == 1.0f) {
+    if (ROSEN_EQ(opacity, 1.0f)) {
         // 10% probability to accept
         ROSEN_LOGI_IF(((count++) % 10) == 0, "RSTransitionEffect::Opacity: Skip empty transition effect");
         return shared_from_this();
@@ -66,7 +66,7 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Opacity(float opacity)
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Scale(const Vector3f& scale)
 {
-    if (scale.x_ == 1.0f && scale.y_ == 1.0f && scale.z_ == 1.0f) {
+    if (ROSEN_EQ(scale.x_, 1.0f) && ROSEN_EQ(scale.y_, 1.0f) && ROSEN_EQ(scale.z_, 1.0f)) {
         ROSEN_LOGI("RSTransitionEffect::Scale: Skip empty transition effect");
         return shared_from_this();
     }
@@ -78,7 +78,7 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Scale(const Vector3f& sc
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Translate(const Vector3f& translate)
 {
-    if (translate.x_ == 0.0f && translate.y_ == 0.0f && translate.z_ == 0.0f) {
+    if (ROSEN_EQ(translate.x_, 0.0f) && ROSEN_EQ(translate.y_, 0.0f) && ROSEN_EQ(translate.z_, 0.0f)) {
         ROSEN_LOGI("RSTransitionEffect::Translate: Skip empty transition effect");
         return shared_from_this();
     }
@@ -90,7 +90,7 @@ std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Translate(const Vector3f
 
 std::shared_ptr<RSTransitionEffect> RSTransitionEffect::Rotate(const Vector4f& axisAngle)
 {
-    if (axisAngle.w_ == 0.0f) {
+    if (ROSEN_EQ(axisAngle.w_, 0.0f)) {
         ROSEN_LOGI("RSTransitionEffect::Rotate: Skip empty transition effect");
         return shared_from_this();
     }
