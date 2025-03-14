@@ -48,7 +48,7 @@ static void FillRSXform(Drawing::RSXform xform[], int maxGlyphCount, int mode)
             xform[i].tx_ = t;
             xform[i].ty_ = t;
         }
-    else if (mode == mode2) {
+    } else if (mode == mode2) {
         for (int i = 0; i < maxGlyphCount; ++i) {
             const int factor = 10;
             const int t = 100;
@@ -101,7 +101,7 @@ static void DrawTexts(TestPlaybackCanvas* playbackCanvas,
     pen.SetWidth(2.25f);
     int maxGlyphCount = font.CountText(textInfo.c_str(), count, Drawing::TextEncoding::UTF8);
     Drawing::RSXform xform[maxGlyphCount];
-    FillRSXform(xform, maxGlyphCount, symbol);  
+    FillRSXform(xform, maxGlyphCount, symbol);
     auto infoTextBlob = Drawing::TextBlob::MakeFromRSXform(
         p,
         length,
