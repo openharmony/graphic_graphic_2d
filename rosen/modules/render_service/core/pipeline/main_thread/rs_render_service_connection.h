@@ -59,7 +59,7 @@ private:
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+    ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize, bool& success) override;
@@ -326,7 +326,7 @@ private:
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
-    void SetCacheEnabledForRotation(bool isEnabled) override;
+    ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 

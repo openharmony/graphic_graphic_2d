@@ -99,10 +99,10 @@ ErrCode RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTran
     return ERR_OK;
 }
 
-void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+ErrCode RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     if (task == nullptr) {
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     MessageParcel data;
@@ -110,22 +110,23 @@ void RSRenderServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_pt
     MessageOption option;
     if (!data.WriteInterfaceToken(RSRenderServiceConnectionProxy::GetDescriptor())) {
         ROSEN_LOGE("ExecuteSynchronousTask WriteInterfaceToken failed");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (!task->Marshalling(data)) {
         ROSEN_LOGE("ExecuteSynchronousTask Marshalling failed");
-        return;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (task->CheckHeader(reply)) {
         task->ReadFromParcel(reply);
     }
+    return ERR_OK;
 }
 
 bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
@@ -3865,26 +3866,27 @@ ErrCode RSRenderServiceConnectionProxy::NotifyHgmConfigEvent(const std::string &
     return ERR_OK;
 }
 
-void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
+ErrCode RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetCacheEnabledForRotation: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteBool(isEnabled)) {
         ROSEN_LOGE("SetCacheEnabledForRotation: WriteBool isEnabled err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
 void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
