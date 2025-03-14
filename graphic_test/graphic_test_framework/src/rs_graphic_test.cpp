@@ -32,6 +32,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t SURFACE_COLOR = 0xffffffff;
+constexpr int64_t LOAD_TREE_WAIT_TIME = 3;
 
 bool ShouldRunCurrentTest()
 {
@@ -231,7 +232,7 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
     std::cout << "load subbtree to node file path is " << filePath << std::endl;
     RSInterfaces::GetInstance().TestLoadFileSubTreeToNode(node->GetId(), filePath);
     RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    WaitTimeout(LOAD_TREE_WAIT_TIME * RSParameterParse::Instance().testCaseWaitTime);
 }
 
 std::shared_ptr<RSGraphicRootNode> RSGraphicTest::GetRootNode() const

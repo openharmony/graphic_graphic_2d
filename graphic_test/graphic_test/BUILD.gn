@@ -23,7 +23,6 @@ rs_display_effect_sources = [
   "rs_display_effect/animation/anim_curve_animation_test.cpp",
   "rs_display_effect/animation/anim_custom_modifier_test.cpp",
   "rs_display_effect/content_display/content_effectnode_test.cpp",
-  "rs_display_effect/content_display/demo.cpp",
   "rs_display_effect/property_display/appearance_alpha_test.cpp",
   "rs_display_effect/property_display/appearance_border_radius_test.cpp",
   "rs_display_effect/property_display/appearance_border_test.cpp",
@@ -59,6 +58,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_skew_test.cpp",
   "rs_display_effect/property_display/geom_transform_test.cpp",
   "rs_display_effect/property_display/geom_translation_test.cpp",
+  "rs_display_effect/restore_tree_display/load_render_node_tree_file_test.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
