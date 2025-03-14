@@ -351,18 +351,18 @@ ErrCode RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransacti
     return ERR_OK;
 }
 
-void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+ErrCode RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     if (task == nullptr || mainThread_ == nullptr) {
         RS_LOGW("RSRenderServiceConnection::ExecuteSynchronousTask, task or main thread is null!");
-        return;
+        return ERR_INVALID_VALUE;
     }
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager && screenManager->IsScreenPoweringOn() && task->GetType() == RS_NODE_SYNCHRONOUS_READ_PROPERTY) {
         RS_LOGI("RSRenderServiceConnection::ExecuteSynchronousTask, when screen is powering on, the task is executed "
                 "in the IPC thread");
         task->Process(mainThread_->GetContext());
-        return;
+        return ERR_INVALID_VALUE;
     }
     // After a synchronous task times out, it will no longer be executed.
     auto isTimeout = std::make_shared<bool>(0);
@@ -375,6 +375,7 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
         task->Process(mainThread->GetContext());
     }).wait_for(span);
     isTimeout.reset();
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::GetUniRenderEnabled(bool& enable)
@@ -2587,15 +2588,16 @@ ErrCode RSRenderServiceConnection::SetHidePrivacyContent(NodeId id, bool needHid
     return ERR_OK;
 }
 
-void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
+ErrCode RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     if (!mainThread_) {
-        return;
+        return ERR_INVALID_VALUE;
     }
     auto task = [isEnabled]() {
         RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
     };
     mainThread_->PostTask(task);
+    return ERR_OK;
 }
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()

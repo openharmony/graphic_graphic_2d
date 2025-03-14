@@ -57,7 +57,7 @@ public:
     virtual ~RSIRenderServiceConnection() noexcept = default;
 
     virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
-    virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
+    virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
@@ -331,7 +331,7 @@ public:
 
     virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
-    virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
+    virtual ErrCode SetCacheEnabledForRotation(bool isEnabled) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

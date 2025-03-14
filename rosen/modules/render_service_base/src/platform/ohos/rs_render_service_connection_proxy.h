@@ -31,7 +31,7 @@ public:
     virtual ~RSRenderServiceConnectionProxy() noexcept = default;
 
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+    ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
@@ -306,7 +306,7 @@ public:
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
-    void SetCacheEnabledForRotation(bool isEnabled) override;
+    ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
