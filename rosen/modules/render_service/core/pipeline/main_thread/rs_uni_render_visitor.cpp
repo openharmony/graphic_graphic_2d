@@ -783,6 +783,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curAlpha_ = 1.0f;
     globalZOrder_ = 0.0f;
     hasSkipLayer_ = false;
+    curZorderForCalcHwcNodeEnableByFilter_ = 0;
+    node.zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
     node.UpdateRotation();
     if (!(RSMainThread::Instance()->IsRequestedNextVSync() || RSMainThread::Instance()->GetNextDVsyncAnimateFlag())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
@@ -1551,6 +1553,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
+            child->zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
             child->QuickPrepare(shared_from_this());
             curContainerDirty_ = containerDirty;
         });
@@ -1564,6 +1567,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             }
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
+            child->zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
             child->QuickPrepare(shared_from_this());
         });
     }
@@ -3185,7 +3189,8 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     }
     if (node.GetRenderProperties().NeedFilter()) {
         UpdateHwcNodeEnableByFilterRect(
-            curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node));
+            curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node),
+            node.zOrderForCalcHwcNodeEnableByFilter_);
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect);
@@ -3458,9 +3463,13 @@ bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, st
 }
 
 void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder)
+    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
 {
     if (!node) {
+        return;
+    }
+    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 &&
+        node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
         return;
     }
     auto dstRect = node->GetDstRect();
@@ -3485,7 +3494,7 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder)
+    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
 {
     if (filterRect.IsEmpty()) {
         return;
@@ -3496,7 +3505,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfa
             return;
         }
         for (auto hwcNode : selfDrawingNodes) {
-            CalcHwcNodeEnableByFilterRect(hwcNode, filterRect, filterNodeId, isReverseOrder);
+            CalcHwcNodeEnableByFilterRect(hwcNode, filterRect, filterNodeId, isReverseOrder, filterZorder);
         }
     } else {
         const auto& hwcNodes = node->GetChildHardwareEnabledNodes();
@@ -3505,7 +3514,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfa
         }
         for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterRect, filterNodeId, isReverseOrder);
+            CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterRect, filterNodeId, isReverseOrder, filterZorder);
         }
     }
 }

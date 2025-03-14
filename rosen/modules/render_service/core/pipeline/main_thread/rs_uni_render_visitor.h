@@ -219,10 +219,10 @@ private:
         RSSurfaceRenderNode& hwcNodePtr);
     void UpdateHwcNodeEnableByFilterRect(
         std::shared_ptr<RSSurfaceRenderNode>& node,
-        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     void CalcHwcNodeEnableByFilterRect(
         std::shared_ptr<RSSurfaceRenderNode>& node,
-        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     // This function is used for solving display problems caused by dirty blurfilter node half-obscured.
     void UpdateDisplayDirtyAndExtendVisibleRegion();
     // This function is used to update global dirty and visibleRegion
@@ -484,7 +484,8 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
-
+    // used to check if hwc should enable for selfdraw-surface
+    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
     // Used for PC window resize scene
     RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
 
