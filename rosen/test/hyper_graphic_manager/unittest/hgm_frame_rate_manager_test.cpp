@@ -21,6 +21,8 @@
 #include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_idle_detector.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "common/rs_common_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -159,6 +161,55 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
     frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
     frameRateMgr.ReportHiSysEvent({ .extInfo = "ON" });
+}
+
+/**
+ * @tc.name: HandleGameNodeTest
+ * @tc.desc: Verify the result of HandleGameNodeTest function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+ HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level1)
+ {
+    HgmFrameRateManager frameRateMgr;
+    frameRateMgr.curGameNodeName_ = "gameNode";
+    RSRenderNodeMap nodeMap;
+    RSSurfaceRenderNodeConfig config;
+
+    PART("HandleGameNodeTest") {
+        STEP("1. Test empty surfaceMap") {
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("2. Test with a normal surfaceNode on tree") {
+            config.id = 1;
+            config.name = "normalNode";
+            auto normalNode = std::make_shared<RSSurfaceRenderNode>(config);
+            normalNode->SetIsOnTheTree(true);
+            nodeMap.RegisterRenderNode(normalNode);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("3. Test with a game surfaceNode not on tree") {
+            config.id = 2;
+            config.name = "gameNode";
+            auto gameNode1 = std::make_shared<RSSurfaceRenderNode>(config);
+            gameNode1->SetIsOnTheTree(false);
+            nodeMap.RegisterRenderNode(gameNode1);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), false);
+        }
+        STEP("4. Test with a game surfaceNode on tree") {
+            config.id = 3;
+            config.name = "gameNode";
+            auto gameNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+            gameNode2->SetIsOnTheTree(true);
+            nodeMap.RegisterRenderNode(gameNode2);
+            frameRateMgr.HandleGameNode(nodeMap);
+            ASSERT_EQ(frameRateMgr.isGameNodeOnTree_.load(), true);
+        }
+    }
+    sleep(1);
 }
 
 /**
@@ -617,6 +668,37 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     EXPECT_EQ(resVoteInfo.min, OLED_MIN_HZ);
 }
 
+/**
+ * @tc.name: ProcessRefreshRateVoteTest2
+ * @tc.desc: Verify the result of ProcessRefreshRateVote when idle 30 enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager frameRateMgr;
+    VoteInfo resultVoteInfo;
+    VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_60_HZ, OLED_120_HZ, 0}, true);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_120_HZ, OLED_120_HZ, 0}, true);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_IDLE", OLED_30_HZ, OLED_30_HZ, 0}, true);
+    auto resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_120_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_120_HZ, OLED_120_HZ, 0}, false);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_60_HZ, OLED_60_HZ, 0}, true);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_60_HZ);
+    EXPECT_EQ(resVoteInfo.max, OLED_60_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_60_HZ, OLED_60_HZ, 0}, false);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.min, OLED_60_HZ);
+    EXPECT_EQ(resVoteInfo.max, OLED_60_HZ);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_60_HZ, OLED_120_HZ, 0}, false);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_30_HZ, OLED_120_HZ, 0}, true);
+    resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
+    EXPECT_EQ(resVoteInfo.max, OLED_30_HZ);
+    sleep(1); // wait for handler task finished
+}
 
 /**
  * @tc.name: SetAceAnimatorVoteTest

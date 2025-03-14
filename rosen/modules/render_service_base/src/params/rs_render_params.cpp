@@ -518,7 +518,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
     // [Attention] Only used in PC window resize scene now
-    target->needOffscreen_ = needOffscreen_;
+    target->windowKeyframeEnabled_ = windowKeyframeEnabled_;
     target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
     target->needSwapBuffer_ = needSwapBuffer_;
     target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
@@ -620,18 +620,21 @@ void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdap
     cloneSourceDrawable_ = drawable;
 }
 
-void RSRenderParams::SetNeedOffscreen(bool needOffscreen)
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::EnableWindowKeyFrame(bool enable)
 {
-    if (needOffscreen_ == needOffscreen) {
+    if (windowKeyframeEnabled_ == enable) {
         return;
     }
-    needOffscreen_ = needOffscreen;
+
+    windowKeyframeEnabled_ = enable;
     needSync_ = true;
 }
 
-bool RSRenderParams::GetNeedOffscreen() const
+// [Attention] Only used in PC window resize scene now
+bool RSRenderParams::IsWindowKeyFrameEnabled() const
 {
-    return needOffscreen_;
+    return windowKeyframeEnabled_;
 }
 
 // [Attention] Only used in PC window resize scene now

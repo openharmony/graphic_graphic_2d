@@ -1344,6 +1344,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo001, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1364,6 +1365,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
     UIExtensionCallbackData callbackData;
 
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 /*
@@ -1384,6 +1386,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
     NodeId hostId = 1;
     UIExtensionCallbackData callbackData;
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
+    ASSERT_EQ(callbackData.empty(), true);
 }
 
 HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Level2)
@@ -2134,6 +2137,138 @@ HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
         num++;
     }
     EXPECT_TRUE(num == total);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion001
+ * @tc.desc: test GetSampledDamageAndDrawnRegion without rounding operation
+ * @tc.type: FUNC
+ * @tc.require: #IBRXJN
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion001, TestSize.Level1)
+{
+    constexpr int srcDamageRegionWidth{100};
+    constexpr int srcDamageRegionHeight{200};
+    constexpr int sampledDamageRegionWidth{50};
+    constexpr int sampledDamageRegionHeight{100};
+    constexpr int sampledDrawnRegionWidth{100};
+    constexpr int sampledDrawnRegionHeight{200};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 0,
+        .samplingTranslateX = 0.f,
+        .samplingTranslateY = 0.f,
+        .samplingScale = 0.5f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, false,
+        sampledDamageRegion, sampledDrawnRegion);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDamageRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDamageRegionHeight);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion002
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with rounding operation for decimal numbers equal to 0.5
+ * @tc.type: FUNC
+ * @tc.require: #IBRXJN
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion002, TestSize.Level1)
+{
+    constexpr int srcDamageRegionWidth{101};
+    constexpr int srcDamageRegionHeight{203};
+    constexpr int sampledDamageRegionWidth{57};
+    constexpr int sampledDamageRegionHeight{108};
+    constexpr int sampledDrawnRegionWidth{114};
+    constexpr int sampledDrawnRegionHeight{216};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 3,
+        .samplingTranslateX = 0.f,
+        .samplingTranslateY = 0.f,
+        .samplingScale = 0.5f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, false,
+        sampledDamageRegion, sampledDrawnRegion);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDamageRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDamageRegionHeight);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion003
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with rounding operation for decimal numbers less than 0.5
+ * @tc.type: FUNC
+ * @tc.require: #IBRXJN
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion003, TestSize.Level1)
+{
+    constexpr int srcDamageRegionWidth{101};
+    constexpr int srcDamageRegionHeight{203};
+    constexpr int sampledDamageRegionWidth{13};
+    constexpr int sampledDamageRegionHeight{26};
+    constexpr int sampledDrawnRegionWidth{104};
+    constexpr int sampledDrawnRegionHeight{208};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 0,
+        .samplingTranslateX = 10.f,
+        .samplingTranslateY = 11.f,
+        .samplingScale = 0.125f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, false,
+        sampledDamageRegion, sampledDrawnRegion);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDamageRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDamageRegionHeight);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion004
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with alignment operations
+ * @tc.type: FUNC
+ * @tc.require: #IBRXJN
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion004, TestSize.Level1)
+{
+    constexpr int srcDamageRegionWidth{1001};
+    constexpr int srcDamageRegionHeight{2003};
+    constexpr int sampledDamageRegionWidth{132};
+    constexpr int sampledDamageRegionHeight{257};
+    constexpr int sampledDrawnRegionWidth{2048};
+    constexpr int sampledDrawnRegionHeight{3072};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 3,
+        .samplingTranslateX = 10.f,
+        .samplingTranslateY = 11.f,
+        .samplingScale = 0.125f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, true,
+        sampledDamageRegion, sampledDrawnRegion);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDamageRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDamageRegionHeight);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDrawnRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
 }
 
 /**

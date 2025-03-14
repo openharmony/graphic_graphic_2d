@@ -52,6 +52,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
+#include "sandbox_utils.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -886,6 +887,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
+        out += ", zOrder: " + std::to_string(zOrderForCalcHwcNodeEnableByFilter_);
     }
 #endif
     
@@ -4063,6 +4065,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
 }
 
+NodeId RSRenderNode::GenerateId()
+{
+    static pid_t pid_ = GetRealPid();
+    static std::atomic<uint32_t> currentId_ = 0; // surfaceNode is seted correctly during boot when currentId is 1
+
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
+        // [PLANNING]:process the overflow situations
+        ROSEN_LOGE("Node Id overflow");
+    }
+
+    // concat two 32-bit numbers to one 64-bit number
+    return ((NodeId)pid_ << 32) | currentId;
+}
+
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {
     return isRenderUpdateIgnored_;
@@ -4832,9 +4849,10 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
-SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
+SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode,
+    bool isInSameWindow)
     : inNode_(inNode), outNode_(outNode), inNodeId_(inNode->GetId()), outNodeId_(outNode->GetId()),
-      crossApplication_(inNode->GetInstanceRootNodeId() != outNode->GetInstanceRootNodeId())
+      crossApplication_(!isInSameWindow)
 {}
 
 RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId) const
@@ -5058,16 +5076,5 @@ void RSRenderNode::ClearDrawableVec2()
         drawableVecNeedClear_ = false;
     }
 }
-
-void RSRenderNode::SetNeedOffscreen(bool needOffscreen)
-{
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("RSRenderNode::SetNeedOffscreen stagingRenderParams is null");
-        return;
-    }
-    stagingRenderParams_->SetNeedOffscreen(needOffscreen);
-    AddToPendingSyncList();
-}
-
 } // namespace Rosen
 } // namespace OHOS

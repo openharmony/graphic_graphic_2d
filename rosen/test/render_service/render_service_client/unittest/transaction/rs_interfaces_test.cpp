@@ -442,7 +442,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -462,15 +462,15 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     std::string name2(1, 't');
     res = instance.SetWatermark(name2, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name3(2, 't');
     res = instance.SetWatermark(name3, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name4(128, 't');
     res = instance.SetWatermark(name4, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name5(129, 't');
     res = instance.SetWatermark(name5, pixelmap);
@@ -478,7 +478,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**

@@ -125,6 +125,27 @@ SymbolType HMSymbolTxt::GetSymbolType() const
 {
     return symbolType_;
 }
+
+
+void HMSymbolTxt::SetSymbolUid(const size_t symbolUid)
+{
+    symbolUid_ = symbolUid;
+}
+
+size_t HMSymbolTxt::GetSymbolUid() const
+{
+    return symbolUid_;
+}
+
+void HMSymbolTxt::SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap)
+{
+    relayoutChangeBitmap_ = symbolStyleBitmap;
+}
+
+const SymbolBitmapType& HMSymbolTxt::GetSymbolBitmap() const
+{
+    return relayoutChangeBitmap_;
+}
 } // SPText
 } // Rosen
 } // OHOS

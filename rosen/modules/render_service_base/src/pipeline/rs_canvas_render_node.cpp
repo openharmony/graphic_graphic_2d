@@ -29,6 +29,7 @@
 #include "render/rs_blur_filter.h"
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "visitor/rs_node_visitor.h"
 #include "property/rs_property_drawable.h"
 
@@ -294,6 +295,11 @@ bool RSCanvasRenderNode::GetHDRPresent() const
 // [Attention] Only used in PC window resize scene now
 void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
 {
+    if (!RSSystemProperties::GetWindowKeyFrameEnabled()) {
+        RS_LOGW("RSCanvasRenderNode::SetLinkedRootNodeId WindowKeyFrame feature disabled");
+        return;
+    }
+
     linkedRootNodeId_ = rootNodeId;
 }
 

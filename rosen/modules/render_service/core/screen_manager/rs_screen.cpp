@@ -139,9 +139,6 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
 
     hdiScreen_->Init();
-    if (!RSSystemProperties::IsPcType() && !RSSystemProperties::IsTabletType()) {
-        hdiScreen_->SetScreenVsyncEnabled(true);
-    }
     if (hdiScreen_->GetScreenSupportedModes(supportedModes_) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
@@ -527,22 +524,11 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         RS_LOGW("[UL_POWER] %{public}s failed to set power status", __func__);
-        std::lock_guard<std::mutex> lock(powerStatusMutex_);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
         return StatusCode::HDI_ERROR;
     }
-    std::unique_lock<std::mutex> lock(powerStatusMutex_);
     powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
-    lock.unlock();
 
-    if ((powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
-        powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) &&
-        !RSSystemProperties::IsPcType() && !RSSystemProperties::IsTabletType()) {
-        RS_LOGW("[UL_POWER] %{public}s Enable hardware vsync", __func__);
-        if (hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS) {
-            RS_LOGE("[UL_POWER] %{public}s SetScreenVsyncEnabled failed", __func__);
-        }
-    }
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus);
     return StatusCode::SUCCESS;
 }
@@ -596,19 +582,16 @@ uint32_t RSScreen::GetPowerStatus()
         return INVALID_POWER_STATUS;
     }
 
-    if (std::lock_guard<std::mutex> lock(powerStatusMutex_);
-        powerStatus_ != ScreenPowerStatus::INVALID_POWER_STATUS) {
+    if (powerStatus_ != ScreenPowerStatus::INVALID_POWER_STATUS) {
         return static_cast<uint32_t>(powerStatus_);
     }
 
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
-        std::lock_guard<std::mutex> lock(powerStatusMutex_);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
         RS_LOGE("%{public}s failed to get screen powerStatus", __func__);
         return INVALID_POWER_STATUS;
     }
-    std::lock_guard<std::mutex> lock(powerStatusMutex_);
     powerStatus_ = static_cast<ScreenPowerStatus>(status);
     RS_LOGW("%{public}s cached powerStatus is INVALID_POWER_STATUS and GetScreenPowerStatus %{public}d",
         __func__, static_cast<uint32_t>(status));

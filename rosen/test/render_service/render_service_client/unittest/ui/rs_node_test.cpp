@@ -6902,7 +6902,7 @@ HWTEST_F(RSNodeTest, RegisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    rsNode->RegisterTransitionPair(inNodeId, outNodeId);
+    rsNode->RegisterTransitionPair(inNodeId, outNodeId, true);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 

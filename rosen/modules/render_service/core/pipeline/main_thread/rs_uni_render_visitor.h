@@ -29,7 +29,6 @@
 #include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -196,6 +195,8 @@ private:
     void UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    // should be removed due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    void UpdateDisplayRcdRenderNode();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckScreenPowerChange() const;
@@ -218,10 +219,10 @@ private:
         RSSurfaceRenderNode& hwcNodePtr);
     void UpdateHwcNodeEnableByFilterRect(
         std::shared_ptr<RSSurfaceRenderNode>& node,
-        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     void CalcHwcNodeEnableByFilterRect(
         std::shared_ptr<RSSurfaceRenderNode>& node,
-        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false);
+        const RectI& filterRect, const NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     // This function is used for solving display problems caused by dirty blurfilter node half-obscured.
     void UpdateDisplayDirtyAndExtendVisibleRegion();
     // This function is used to update global dirty and visibleRegion
@@ -346,6 +347,7 @@ private:
     void SetHdrWhenMultiDisplayChange();
 
     void TryNotifyUIBufferAvailable();
+    bool IsHdrUseUnirender(bool hasUniRenderHdrSurface, std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr);
 
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
@@ -358,6 +360,7 @@ private:
     bool isDirty_ = false;
     bool dirtyFlag_ { false };
     bool isPartialRenderEnabled_ = false;
+    bool isAdvancedDirtyRegionEnabled_ = false;
     bool isRegionDebugEnabled_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool curDirty_ = false;
@@ -481,9 +484,13 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
-
+    // used to check if hwc should enable for selfdraw-surface
+    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
     // Used for PC window resize scene
     RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
+
+    // used in uifirst for checking whether leashwindow or its parent should paint or not
+    bool globalShouldPaint_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

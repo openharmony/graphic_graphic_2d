@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
-constexpr int MEMORY_SNAPSHOT_INTERVAL = 3 * 60 * 1000; // EachProcess can print at most once per 3 minute.
+constexpr int64_t MEMORY_SNAPSHOT_INTERVAL = 3 * 60 * 1000; // EachProcess can print at most once per 3 minute.
 // Threshold for hilog in rs mem.
 constexpr uint32_t MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT = 1300 * MEMUNIT_RATE * MEMUNIT_RATE;
 constexpr uint32_t HILOG_INFO_COUNT = 5; // The number of info printed each time.
@@ -137,7 +137,7 @@ size_t MemorySnapshot::GetTotalMemory()
 void MemorySnapshot::PrintMemorySnapshotToHilog()
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
-    int currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
     if (currentTime < memorySnapshotHilogTime_) {
         return;
     }

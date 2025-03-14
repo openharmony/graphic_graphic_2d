@@ -96,13 +96,14 @@ bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Imag
     return true;
 }
 
-bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap)
+bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, std::shared_ptr<Drawing::Bitmap>& bitmap)
 {
     if (image == nullptr) {
         RS_LOGE("[%{public}s] No image found \n", __func__);
         return false;
     }
-    if (!image->AsLegacyBitmap(bitmap)) {
+    bitmap = std::make_shared<Drawing::Bitmap>();
+    if (!image->AsLegacyBitmap(*bitmap)) {
         RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
         return false;
     }
@@ -314,8 +315,14 @@ void RoundCornerDisplay::UpdateHardwareResourcePrepared(bool prepared)
     }
 }
 
+void RoundCornerDisplay::RefreshFlagAndUpdateResource()
+{
+    UpdateParameter(updateFlag_);
+}
+
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
+    RS_TRACE_BEGIN("RCD::UpdateParameter");
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
@@ -336,6 +343,7 @@ void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag
     } else {
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Status is not changed \n", __func__);
     }
+    RS_TRACE_END();
 }
 
 // Choose the approriate resource type according to orientation and notch status
@@ -408,21 +416,21 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerUp);
-            hardInfo_.topLayer->curBitmap = &bitmapTopPortrait_;
+            hardInfo_.topLayer->curBitmap = bitmapTopPortrait_;
             break;
         case TOP_HIDDEN:
             if (portrait == std::nullopt) {
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerHide);
-            hardInfo_.topLayer->curBitmap = &bitmapTopHidden_;
+            hardInfo_.topLayer->curBitmap = bitmapTopHidden_;
             break;
         case TOP_LADS_ORIT:
             if (landscape == std::nullopt) {
                 break;
             }
             hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>(landscape->layerUp);
-            hardInfo_.topLayer->curBitmap = &bitmapTopLadsOrit_;
+            hardInfo_.topLayer->curBitmap = bitmapTopLadsOrit_;
             break;
         default:
             RS_LOGE("[%{public}s] No showResourceType found with type %{public}d \n", __func__, showResourceType_);
@@ -432,7 +440,7 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
         return;
     }
     hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
-    hardInfo_.bottomLayer->curBitmap = &bitmapBottomPortrait_;
+    hardInfo_.bottomLayer->curBitmap = bitmapBottomPortrait_;
 }
 
 void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)

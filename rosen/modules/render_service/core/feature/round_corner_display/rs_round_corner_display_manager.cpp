@@ -17,6 +17,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "rs_message_bus.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -38,6 +39,33 @@ bool RoundCornerDisplayManager::CheckExist(NodeId id)
         return false;
     }
     return true;
+}
+
+void RoundCornerDisplayManager::RegisterRcdMsg()
+{
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
+        if (!isRcdMessageRegisted_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId, bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
+            isRcdMessageRegisted_ = true;
+            RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
+            return;
+        }
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
+    }
 }
 
 void RoundCornerDisplayManager::AddLayer(const std::string& name, NodeId id,
@@ -189,6 +217,21 @@ void RoundCornerDisplayManager::UpdateHardwareResourcePrepared(NodeId id, bool p
     rcdMap_[id]->UpdateHardwareResourcePrepared(prepared);
 }
 
+void RoundCornerDisplayManager::RefreshFlagAndUpdateResource(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(rcdMapMut_);
+    if (!CheckExist(id)) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
+        return;
+    }
+    if (rcdMap_[id] == nullptr) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
+        RemoveRoundCornerDisplay(id);
+        return;
+    }
+    rcdMap_[id]->RefreshFlagAndUpdateResource();
+}
+
 void RoundCornerDisplayManager::DrawRoundCorner(const RoundCornerDisplayManager::RCDLayerInfoVec& layerInfos,
     RSPaintFilterCanvas* canvas)
 {
@@ -270,7 +313,7 @@ void RoundCornerDisplayManager::RunHardwareTask(NodeId id, const std::function<v
     rcdMap_[id]->RunHardwareTask(task);
 }
 
-rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id, bool preparing)
+rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id)
 {
     std::lock_guard<std::mutex> lock(rcdMapMut_);
     rs_rcd::RoundCornerHardware rcdHardwareInfo{};
@@ -282,7 +325,22 @@ rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id
         RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
         return rcdHardwareInfo;
     }
-    return preparing ? rcdMap_.at(id)->GetHardwareInfoPreparing() : rcdMap_.at(id)->GetHardwareInfo();
+    return rcdMap_.at(id)->GetHardwareInfo();
+}
+
+rs_rcd::RoundCornerHardware RoundCornerDisplayManager::PrepareHardwareInfo(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(rcdMapMut_);
+    rs_rcd::RoundCornerHardware rcdHardwareInfo{};
+    if (!CheckExist(id)) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
+        return rcdHardwareInfo;
+    }
+    if (rcdMap_.at(id) == nullptr) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
+        return rcdHardwareInfo;
+    }
+    return rcdMap_.at(id)->PrepareHardwareInfo();
 }
 
 bool RoundCornerDisplayManager::GetRcdEnable() const

@@ -1913,6 +1913,11 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
         RSModifierType::FOREGROUND_EFFECT_RADIUS, blurRadius);
 }
 
+void RSNode::SetForegroundEffectDisableSystemAdaptation(bool disableSystemAdaptation)
+{
+    return;
+}
+
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     if (backgroundFilter == nullptr) {
@@ -2743,10 +2748,10 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
     }
 }
 
-void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
+void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId, isInSameWindow);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
@@ -2763,13 +2768,15 @@ void RSNode::UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
     }
 }
 
-void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
+void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId,
+    const bool isInSameWindow)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
         return;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
+        isInSameWindow);
     auto transaction = rsUIContext->GetRSTransaction();
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);

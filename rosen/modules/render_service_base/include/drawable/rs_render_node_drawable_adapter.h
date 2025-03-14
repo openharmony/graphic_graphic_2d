@@ -253,6 +253,11 @@ public:
         isOnDraw_.store(false);
     }
 
+    virtual std::shared_ptr<Drawing::Image> Snapshot() const
+    {
+        return nullptr;
+    }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;

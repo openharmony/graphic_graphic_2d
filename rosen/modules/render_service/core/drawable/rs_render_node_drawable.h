@@ -115,7 +115,7 @@ public:
 
     // dfx
     static void InitDfxForCacheInfo();
-    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params);
     static void SetAutoCacheEnable(bool autoCacheEnable);
 
 protected:

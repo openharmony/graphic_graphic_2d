@@ -397,9 +397,18 @@ public:
     void SetOpaqueRegion(const Occlusion::Region& opaqueRegion);
     const Occlusion::Region& GetOpaqueRegion() const;
 
-    bool GetNeedOffscreen() const override
+    void SetNeedOffscreen(bool needOffscreen)
     {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? RSRenderParams::GetNeedOffscreen() : false;
+        if (needOffscreen_ == needOffscreen) {
+            return;
+        }
+        needOffscreen_ = needOffscreen;
+        needSync_ = true;
+    }
+
+    bool GetNeedOffscreen() const
+    {
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -717,6 +726,7 @@ private:
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
     bool needHidePrivacyContent_ = false;
+    bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
     int64_t stencilVal_ = -1;

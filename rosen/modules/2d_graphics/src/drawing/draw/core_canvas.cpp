@@ -242,6 +242,11 @@ void CoreCanvas::DrawPath(const Path& path)
     DRAW_API_WITH_PAINT(DrawPath, path);
 }
 
+void CoreCanvas::DrawPathWithStencil(const Path& path, uint32_t stencilVal)
+{
+    DRAW_API_WITH_PAINT(DrawPathWithStencil, path, stencilVal);
+}
+
 void CoreCanvas::DrawBackground(const Brush& brush)
 {
     impl_->DrawBackground(brush);
@@ -318,6 +323,12 @@ void CoreCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
     DRAW_API_WITH_PAINT(DrawImage, image, px, py, sampling);
 }
 
+void CoreCanvas::DrawImageWithStencil(const Image& image, const scalar px, const scalar py,
+    const SamplingOptions& sampling, uint32_t stencilVal)
+{
+    DRAW_API_WITH_PAINT(DrawImageWithStencil, image, px, py, sampling, stencilVal);
+}
+
 void CoreCanvas::DrawImageRect(
     const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
@@ -370,6 +381,11 @@ void CoreCanvas::DrawSingleCharacter(int32_t unicode, const Font& font, scalar x
 void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
 {
     DRAW_API_WITH_PAINT(DrawSymbol, symbol, locate);
+}
+
+void CoreCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
+{
+    impl_->ClearStencil(rect, stencilVal);
 }
 
 void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
@@ -581,9 +597,19 @@ void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
     impl_->BuildNoDraw(width, height);
 }
 
+void CoreCanvas::BuildStateInherite(int32_t width, int32_t height)
+{
+    impl_->BuildStateInherite(width, height);
+}
+
 void CoreCanvas::Reset(int32_t width, int32_t height)
 {
     impl_->Reset(width, height);
+}
+
+void CoreCanvas::InheriteState(Canvas* canvas)
+{
+    impl_->InheriteState(canvas);
 }
 
 bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)

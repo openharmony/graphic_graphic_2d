@@ -38,6 +38,7 @@ ohos_unittest("feature_cfg_test") {
     "hard_cursor_param_test.cpp",
     "hfbc_param_test.cpp",
     "hwc_param_test.cpp",
+    "mem_param_test.cpp",
     "multiscreen_param_test.cpp",
     "opinc_param_test.cpp",
     "prevalidate_param_test.cpp",

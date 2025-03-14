@@ -210,9 +210,9 @@ ohos_shared_library("librender_service") {
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
       "core/feature/opinc/rs_opinc_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
-      "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",
       "core/feature/round_corner_display/rs_rcd_surface_render_node.cpp",
+      "core/feature/round_corner_display/rs_rcd_surface_render_node_drawable.cpp",
       "core/feature/round_corner_display/rs_round_corner_config.cpp",
       "core/feature/round_corner_display/rs_round_corner_display.cpp",
       "core/feature/round_corner_display/rs_round_corner_display_manager.cpp",
@@ -412,7 +412,10 @@ ohos_shared_library("librender_service") {
   }
 
   if (rosen_is_ohos) {
-    external_deps += [ "image_framework:image_native" ]
+    external_deps += [
+      "image_framework:image_native",
+      "lz4:liblz4_shared",
+    ]
   }
 
   if (defined(global_parts_info) &&

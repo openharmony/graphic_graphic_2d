@@ -222,8 +222,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     if (surface == nullptr) {
         return nullptr;
     }
-
-    return renderService->CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    return renderService->CreatePixelMapFromSurface(surface, srcRect, pixelMap) == ERR_OK ? pixelMap : nullptr;
 }
 
 void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -307,6 +307,37 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
     renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
+    return true;
+}
+
+bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSelfSurfaceCapture renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSelfSurfaceCapture callback == nullptr!");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = surfaceCaptureCbMap_.find({ id, captureConfig });
+        if (iter != surfaceCaptureCbMap_.end()) {
+            ROSEN_LOGD("RSRenderServiceClient::TakeSelfSurfaceCapture surfaceCaptureCbMap_.count(id) != 0");
+            iter->second.emplace_back(callback);
+            return true;
+        }
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    }
+
+    if (surfaceCaptureCbDirector_ == nullptr) {
+        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
+    }
+    renderService->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
 }
 
@@ -432,8 +463,9 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->AddVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->AddVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -442,8 +474,9 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->RemoveVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode;
+    renderService->RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+    return repCode;
 }
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
@@ -1102,7 +1135,9 @@ int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& p
         ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return renderService->GetPixelFormat(id, pixelFormat);
+    int32_t resCode;
+    renderService->GetPixelFormat(id, pixelFormat, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
@@ -1112,7 +1147,9 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
         ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetPixelFormat(id, pixelFormat);
+    int32_t resCode;
+    renderService->SetPixelFormat(id, pixelFormat, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
@@ -1121,7 +1158,9 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->GetScreenSupportedHDRFormats(id, hdrFormats);
+    int32_t resCode;
+    renderService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
@@ -1130,7 +1169,9 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->GetScreenHDRFormat(id, hdrFormat);
+    int32_t resCode;
+    renderService->GetScreenHDRFormat(id, hdrFormat, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
@@ -1139,7 +1180,9 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetScreenHDRFormat(id, modeIdx);
+    int32_t resCode;
+    renderService->SetScreenHDRFormat(id, modeIdx, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
@@ -1149,7 +1192,9 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->GetScreenSupportedColorSpaces(id, colorSpaces);
+    int32_t resCode;
+    renderService->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
@@ -1158,7 +1203,9 @@ int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->GetScreenColorSpace(id, colorSpace);
+    int32_t resCode;
+    renderService->GetScreenColorSpace(id, colorSpace, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
@@ -1167,7 +1214,9 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetScreenColorSpace(id, colorSpace);
+    int32_t resCode;
+    renderService->SetScreenColorSpace(id, colorSpace, resCode);
+    return resCode;
 }
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
@@ -1806,7 +1855,9 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        return renderService->SetAncoForceDoDirect(direct);
+        bool res;
+        renderService->SetAncoForceDoDirect(direct, res);
+        return res;
     }
     ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;

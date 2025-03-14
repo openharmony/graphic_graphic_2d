@@ -58,6 +58,7 @@ enum class RSUINodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -80,6 +81,7 @@ enum class RSRenderNodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -234,6 +236,15 @@ struct RSSurfaceCaptureBlurParam {
     float blurRadius = 1E-6;
 };
 
+struct RSSurfaceCaptureParam {
+    NodeId id = 0;
+    RSSurfaceCaptureConfig config = {};
+    bool isSystemCalling = false;
+    bool isSelfCapture = false;
+    bool isFreeze = false;
+    RSSurfaceCaptureBlurParam blurParam = {};
+};
+
 struct RSSurfaceCapturePermissions {
     bool screenCapturePermission = false;
     bool isSystemCalling = false;
@@ -322,6 +333,13 @@ enum class UiFirstModeType : uint8_t {
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //If a command is not used and you want to delete it,
 //just COMMENT it - and never use this value anymore
+
+enum class UiFirstCcmType : uint8_t {
+    SINGLE = 1,
+    MULTI = 2,
+    HYBRID = 3,
+};
+
 enum class RSUIFirstSwitch {
     NONE = 0,               // follow RS rules
     MODAL_WINDOW_CLOSE = 1, // open app with modal window animation, close uifirst

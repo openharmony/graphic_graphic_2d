@@ -100,6 +100,18 @@ public:
         isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
+    UiFirstCcmType GetUiFirstType() const
+    {
+        return uifirstType_;
+    }
+
+    void SetUiFirstType(int type);
+
+    void SetPurgeEnable(bool purgeEnable)
+    {
+        purgeEnable_ = purgeEnable;
+    }
+
     void SetNodeNeedForceUpdateFlag(bool flag)
     {
         hasForceUpdateNode_ = flag;
@@ -232,7 +244,9 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
+    UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
@@ -270,6 +284,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     std::list<NodeId> sortedSubThreadNodeIds_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>  pindingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;

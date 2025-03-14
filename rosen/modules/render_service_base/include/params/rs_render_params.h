@@ -362,10 +362,9 @@ public:
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC(bool flag);
 
-    virtual void SetNeedOffscreen(bool needOffscreen);
-    virtual bool GetNeedOffscreen() const;
-
     // [Attention] Only used in PC window resize scene now
+    void EnableWindowKeyFrame(bool enable);
+    bool IsWindowKeyFrameEnabled() const;
     void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable();
     void SetNeedSwapBuffer(bool needSwapBuffer);
@@ -425,10 +424,10 @@ private:
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
     bool hasUnobscuredUEC_ = false;
-    bool needOffscreen_ = false;
 
     // [Attention] Only used in PC window resize scene now
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr linkedRootNodeDrawable_;
+    bool windowKeyframeEnabled_ = false;
     bool needSwapBuffer_ = false;
     Drawing::RectF cacheNodeFrameRect_;
 };

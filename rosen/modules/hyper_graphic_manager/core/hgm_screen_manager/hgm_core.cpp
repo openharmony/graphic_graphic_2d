@@ -150,11 +150,10 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
-void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
+void HgmCore::SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting)
 {
     if (curScreenSetting.ltpoConfig.find("adaptiveSync") != curScreenSetting.ltpoConfig.end()) {
-        std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
- 
+        std::string asConfig = curScreenSetting.ltpoConfig.at("adaptiveSync");
         if (asConfig == "1" || asConfig == "0") {
             adaptiveSync_ = std::stoi(asConfig);
         } else {
@@ -178,31 +177,32 @@ void HgmCore::SetLtpoConfig()
     }
     auto curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
-    auto ltpoConfig = curScreenSetting.ltpoConfig;
-    if (ltpoConfig.find("switch") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["switch"])) {
-        ltpoEnabled_ = std::stoi(ltpoConfig["switch"]);
+    const auto& ltpoConfig = curScreenSetting.ltpoConfig;
+    if (ltpoConfig.find("switch") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("switch"))) {
+        ltpoEnabled_ = std::stoi(ltpoConfig.at("switch"));
     } else {
         ltpoEnabled_ = 0;
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (ltpoConfig.find("maxTE") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["maxTE"])) {
-        maxTE_ = std::stoul(ltpoConfig["maxTE"]);
+    if (ltpoConfig.find("maxTE") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("maxTE"))) {
+        maxTE_ = std::stoul(ltpoConfig.at("maxTE"));
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
-    if (ltpoConfig.find("alignRate") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig["alignRate"])) {
-        alignRate_ = std::stoul(ltpoConfig["alignRate"]);
+    if (ltpoConfig.find("alignRate") != ltpoConfig.end() && XMLParser::IsNumber(ltpoConfig.at("alignRate"))) {
+        alignRate_ = std::stoul(ltpoConfig.at("alignRate"));
     } else {
         alignRate_ = 0;
         HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
     }
 
-    if (ltpoConfig.count("pipelineOffsetPulseNum") != 0 && XMLParser::IsNumber(ltpoConfig["pipelineOffsetPulseNum"])) {
-        pipelineOffsetPulseNum_ = std::stoi(ltpoConfig["pipelineOffsetPulseNum"]);
+    if (ltpoConfig.count("pipelineOffsetPulseNum") != 0 &&
+        XMLParser::IsNumber(ltpoConfig.at("pipelineOffsetPulseNum"))) {
+        pipelineOffsetPulseNum_ = std::stoi(ltpoConfig.at("pipelineOffsetPulseNum"));
         CreateVSyncGenerator()->SetVSyncPhaseByPulseNum(pipelineOffsetPulseNum_);
     } else {
         pipelineOffsetPulseNum_ = 0;
@@ -213,8 +213,8 @@ void HgmCore::SetLtpoConfig()
 
     SetScreenConstraintConfig();
     SetPerformanceConfig();
-    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
-        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, " \
+    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
+        "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
         "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
         ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
         lowRateToHighQuickSwitch_.load(), pluseNum_, isDelayMode_);
@@ -227,19 +227,19 @@ void HgmCore::SetScreenConstraintConfig()
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
         return;
     }
-    auto curScreenSetting =
+    const auto& curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
     if (curScreenSetting.ltpoConfig.find("vBlankIdleCorrectSwitch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"])) {
-        vBlankIdleCorrectSwitch_.store(std::stoi(curScreenSetting.ltpoConfig["vBlankIdleCorrectSwitch"]));
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig.at("vBlankIdleCorrectSwitch"))) {
+        vBlankIdleCorrectSwitch_.store(std::stoi(curScreenSetting.ltpoConfig.at("vBlankIdleCorrectSwitch")));
     } else {
         vBlankIdleCorrectSwitch_.store(false);
         HGM_LOGW("HgmCore failed to find vBlankIdleCorrectSwitch strategy for LTPO");
     }
 
     if (curScreenSetting.ltpoConfig.find("lowRateToHighQuickSwitch") != curScreenSetting.ltpoConfig.end() &&
-        XMLParser::IsNumber(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"])) {
-        lowRateToHighQuickSwitch_.store(std::stoi(curScreenSetting.ltpoConfig["lowRateToHighQuickSwitch"]));
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig.at("lowRateToHighQuickSwitch"))) {
+        lowRateToHighQuickSwitch_.store(std::stoi(curScreenSetting.ltpoConfig.at("lowRateToHighQuickSwitch")));
     } else {
         lowRateToHighQuickSwitch_.store(false);
         HGM_LOGW("HgmCore failed to find lowRateToHighQuickSwitch strategy for LTPO");
@@ -253,17 +253,17 @@ void HgmCore::SetPerformanceConfig()
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
         return;
     }
-    auto curScreenSetting =
+    const auto& curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
     if (curScreenSetting.performanceConfig.count("pluseNum") != 0 &&
-        XMLParser::IsNumber(curScreenSetting.performanceConfig["pluseNum"])) {
-        pluseNum_ = std::stoi(curScreenSetting.performanceConfig["pluseNum"]);
+        XMLParser::IsNumber(curScreenSetting.performanceConfig.at("pluseNum"))) {
+        pluseNum_ = std::stoi(curScreenSetting.performanceConfig.at("pluseNum"));
     } else {
         pluseNum_ = -1;
         HGM_LOGW("HgmCore failed to find pluseNum_ strategy for LTPO");
     }
     if (curScreenSetting.performanceConfig.count("piplineDelayModeEnable") != 0) {
-        isDelayMode_ = curScreenSetting.performanceConfig["piplineDelayModeEnable"] != "0";
+        isDelayMode_ = curScreenSetting.performanceConfig.at("piplineDelayModeEnable") != "0";
     } else {
         isDelayMode_ = true;
         HGM_LOGW("HgmCore failed to find piplineDelayModeEnable_ strategy for LTPO");

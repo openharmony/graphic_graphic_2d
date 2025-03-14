@@ -586,10 +586,14 @@ private:
 
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+    void UpdateVsyncEnabledScreenId(ScreenId screenId);
 
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
     std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
+    void UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status);
 
     mutable std::mutex mutex_;
     mutable std::mutex renderControlMutex_;
@@ -638,6 +642,11 @@ private:
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
 #endif
+    struct FoldScreenStatus {
+        bool isConnected;
+        bool isPowerOn;
+    };
+    std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 };
 } // namespace impl
 } // namespace Rosen

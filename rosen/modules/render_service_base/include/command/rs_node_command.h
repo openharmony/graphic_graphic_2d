@@ -152,7 +152,8 @@ public:
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
 
-    static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
+    static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
+        const bool isInSameWindow);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
 
     using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t)>;
@@ -312,7 +313,7 @@ ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
-        RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
+        RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId, bool))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))

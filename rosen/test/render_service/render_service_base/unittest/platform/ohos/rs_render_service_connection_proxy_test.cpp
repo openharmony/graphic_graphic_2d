@@ -157,11 +157,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreatePixelMapFromSurface, TestSize
 {
     sptr<Surface> surface;
     Rect srcRect;
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
     sptr<IBufferProducer> producer = consumer->GetProducer();
     surface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_EQ(proxy->CreatePixelMapFromSurface(surface, srcRect), nullptr);
+    proxy->CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+    ASSERT_EQ(pixelMap, nullptr);
 }
 
 /**
@@ -730,8 +733,11 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetPixelFormat, TestSize.Level1)
 {
     ScreenId id = 1;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
-    EXPECT_EQ(proxy->SetPixelFormat(id, pixelFormat), 2);
-    ASSERT_EQ(proxy->GetPixelFormat(id, pixelFormat), 2);
+    int32_t resCode;
+    proxy->SetPixelFormat(id, pixelFormat, resCode);
+    EXPECT_EQ(resCode, RS_CONNECTION_ERROR);
+    proxy->GetPixelFormat(id, pixelFormat, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
 }
 
 /**
@@ -744,9 +750,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenHDRFormat, TestSize.Level1
 {
     ScreenId id = 1;
     std::vector<ScreenHDRFormat> hdrFormats;
-    ASSERT_EQ(proxy->GetScreenSupportedHDRFormats(id, hdrFormats), 2);
+    int32_t resCode;
+    proxy->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
     ScreenHDRFormat hdrFormat = IMAGE_HDR_ISO_DUAL;
-    ASSERT_EQ(proxy->GetScreenHDRFormat(id, hdrFormat), 2);
+    proxy->GetScreenHDRFormat(id, hdrFormat, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
 }
 
 /**
@@ -759,9 +768,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenHDRFormat, TestSize.Level1
 {
     ScreenId id = 1;
     int32_t modeIdx = 1;
-    ASSERT_EQ(proxy->SetScreenHDRFormat(id, modeIdx), 2);
+    int32_t resCode;
+    proxy->SetScreenHDRFormat(id, modeIdx, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    ASSERT_EQ(proxy->GetScreenSupportedColorSpaces(id, colorSpaces), 2);
+    proxy->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
 }
 
 /**
@@ -774,9 +786,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenColorSpace, TestSize.Level
 {
     ScreenId id = 1;
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
-    ASSERT_EQ(proxy->SetScreenColorSpace(id, colorSpace), 2);
+    int32_t resCode;
+    proxy->SetScreenColorSpace(id, colorSpace, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    ASSERT_EQ(proxy->GetScreenColorSpace(id, colorSpace), 2);
+    proxy->GetScreenColorSpace(id, colorSpace, resCode);
+    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
 }
 
 /**

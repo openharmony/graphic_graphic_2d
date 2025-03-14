@@ -293,7 +293,7 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
     bool getLtpoEnabled = hgmCore.GetLtpoEnabled();
     if (getLtpoEnabled) {
         isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
-        if (hardwareThread.IsInAdaptiveMode(output)) {
+        if (hardwareThread.AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
             EXPECT_EQ(isDelayRequired == false, true);
         } else {
             EXPECT_EQ(isDelayRequired == true, true);

@@ -68,7 +68,7 @@ bool RSWindowKeyframeNodeInfo::PrepareRootNodeOffscreen(RSSurfaceRenderNode& sur
         }
 
         surfaceNode.SetHwcChildrenDisabledState();
-        rootNode->SetNeedOffscreen(true);
+        rootNode->EnableWindowKeyFrame(true);
 
         canvasNodeStagingRenderParams->SetLinkedRootNodeDrawable(rootNodeDrawable);
         canvasNodeStagingRenderParams->SetShouldPaint(true);

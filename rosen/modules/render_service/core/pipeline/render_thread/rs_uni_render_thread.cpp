@@ -34,7 +34,6 @@
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
@@ -90,6 +89,7 @@ constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr size_t ONE_MEGABYTE = 1000 * 1000;
+constexpr uint32_t TIME_OF_PERFORM_DEFERRED_CLEAR_GPU_CACHE = 30;
 
 #ifdef OHOS_PLATFORM
 const std::string RECLAIM_FILE_STRING = "1"; // for HM
@@ -876,7 +876,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             this->isDefaultCleanTaskFinished_ = true;
             {
                 RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
-                grContext->PurgeUnlockedResources(false);
+                grContext->PerformDeferredCleanup(std::chrono::seconds(TIME_OF_PERFORM_DEFERRED_CLEAR_GPU_CACHE));
             }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
@@ -966,7 +966,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
     }
     if (isTimeToReclaim_.load()) {
         RemoveTask(RECLAIM_MEMORY);
-        if (!isDoDirectComposition) {
+        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+            isTimeToReclaim_.store(false);
+            RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+        } else if (!isDoDirectComposition) {
             ReclaimMemory();
         }
     }

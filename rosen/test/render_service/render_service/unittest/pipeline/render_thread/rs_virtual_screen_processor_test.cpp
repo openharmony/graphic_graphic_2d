@@ -185,9 +185,9 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
 {
     NodeId id = 0;
     RCDSurfaceType type = RCDSurfaceType::BOTTOM;
-    RSRcdSurfaceRenderNode node(id, type);
     auto rsVirtualScreenProcessor = std::make_shared<RSVirtualScreenProcessor>();
     ASSERT_NE(rsVirtualScreenProcessor, nullptr);
-    rsVirtualScreenProcessor->ProcessRcdSurface(node);
+    auto node = RSRcdSurfaceRenderNode::Create(id, type);
+    rsVirtualScreenProcessor->ProcessRcdSurface(*node);
 }
 } // namespace OHOS::Rosen

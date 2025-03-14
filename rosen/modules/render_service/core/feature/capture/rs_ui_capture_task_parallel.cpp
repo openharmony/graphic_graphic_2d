@@ -220,7 +220,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSUICAPTURETASKPARALLEL_RUN);
-    RS_TRACE_NAME("RSUiCaptureTaskParallel::TakeSurfaceCapture");
+    RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::TakeSurfaceCapture. NodeId: [%" PRIu64 "], from pid: [%d]",
+        nodeId_, ExtractPid(nodeId_));
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
@@ -266,8 +267,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHepler(
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
-    RSUniRenderThread::SetCaptureParam(
-        CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
+    RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 

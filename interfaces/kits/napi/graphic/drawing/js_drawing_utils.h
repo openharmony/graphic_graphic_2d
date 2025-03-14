@@ -27,6 +27,7 @@
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "text/font.h"
+#include "text/font_mgr.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
 #include "utils/point.h"
@@ -478,6 +479,8 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);
 
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
+std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
+std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 

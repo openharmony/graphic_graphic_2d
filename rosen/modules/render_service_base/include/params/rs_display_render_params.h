@@ -38,7 +38,17 @@ public:
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
-    void SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects);
+
+    inline void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
+    }
+
+    inline void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
+    }
+
     const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetDisplayOffsetX() const
     {
@@ -133,6 +143,9 @@ public:
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasCaptureWindow() const;
 
+    void SetNeedOffscreen(bool needOffscreen);
+    bool GetNeedOffscreen() const;
+
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
 
@@ -177,6 +190,11 @@ public:
         return hasSecLayerInVisibleRectChanged_;
     }
 
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
+    {
+        return roundCornerSurfaceDrawables_;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -208,6 +226,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
+    bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
@@ -215,6 +234,8 @@ private:
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

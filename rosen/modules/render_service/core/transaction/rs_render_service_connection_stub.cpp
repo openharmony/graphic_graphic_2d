@@ -425,7 +425,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFdWorker, ashmemFlowControlUnit,
                     callingPid);
                 if (parsedParcel) {
-                    RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
+                    parcelNumber = RS_PROFILER_ON_REMOTE_REQUEST(this, code, *parsedParcel, reply, option);
                 }
             }
             if (parsedParcel == nullptr) {
@@ -639,8 +639,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -653,8 +654,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1139,6 +1141,40 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE): {
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("RSRenderServiceConnectionStub::TakeSelfSurfaceCapture failed, nodeId:[%{public}" PRIu64
+                        "], callingPid:[%{public}d], pid:[%{public}d]", id, callingPid, ExtractPid(id));
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RS_PROFILER_PATCH_NODE_ID(data, id);
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSelfSurfaceCapture remoteObject is nullptr");
+                break;
+            }
+            sptr<RSISurfaceCaptureCallback> cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+            if (cb == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSelfSurfaceCapture cb is nullptr");
+                break;
+            }
+            RSSurfaceCaptureConfig captureConfig;
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSelfSurfaceCapture read captureConfig failed");
+                break;
+            }
+            TakeSelfSurfaceCapture(id, cb, captureConfig);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
@@ -1683,7 +1719,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .w = w,
                 .h = h
             };
-            std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
+            std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     ret = ERR_INVALID_REPLY;
@@ -1729,12 +1766,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat;
-            int32_t result = GetPixelFormat(id, pixelFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetPixelFormat(id, pixelFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
@@ -1755,8 +1793,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(pixel);
-            int32_t result = SetPixelFormat(id, pixelFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetPixelFormat(id, pixelFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1769,12 +1808,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
@@ -1790,12 +1830,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ScreenHDRFormat hdrFormat;
-            int32_t result = GetScreenHDRFormat(id, hdrFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenHDRFormat(id, hdrFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(hdrFormat)) {
@@ -1810,8 +1851,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t result = SetScreenHDRFormat(id, modeIdx);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetScreenHDRFormat(id, modeIdx, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1824,12 +1866,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-            int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
@@ -1845,12 +1888,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace;
-            int32_t result = GetScreenColorSpace(id, colorSpace);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenColorSpace(id, colorSpace, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(colorSpace)) {
@@ -1871,8 +1915,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(color);
-            int32_t result = SetScreenColorSpace(id, colorSpace);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetScreenColorSpace(id, colorSpace, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2772,8 +2817,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = SetAncoForceDoDirect(direct);
-            reply.WriteBool(result);
+            bool res;
+            if (SetAncoForceDoDirect(direct, res) != ERR_OK || !reply.WriteBool(res)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {

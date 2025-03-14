@@ -70,6 +70,29 @@ void RSWindowKeyframeBufferTest::SetUp()
 void RSWindowKeyframeBufferTest::TearDown() {}
 
 /**
+ * @tc.name: NeedDrawWindowKeyFrame
+ * @tc.desc: Test NeedDrawWindowKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSWindowKeyframeBufferTest, NeedDrawWindowKeyFrame, TestSize.Level1)
+{
+    ASSERT_NE(rootNodeDrawable_, nullptr);
+
+    RSWindowKeyframeBuffer windowKeyframeBuffer(*rootNodeDrawable_);
+    auto ret = windowKeyframeBuffer.NeedDrawWindowKeyFrame(nullptr);
+    EXPECT_FALSE(ret);
+
+    auto params = std::make_unique<RSRenderParams>(DEFAULT_ID);
+    ret = windowKeyframeBuffer.NeedDrawWindowKeyFrame(params);
+    EXPECT_FALSE(ret);
+
+    params->EnableWindowKeyFrame(true);
+    ret = windowKeyframeBuffer.NeedDrawWindowKeyFrame(params);
+    EXPECT_TRUE(ret);
+}
+
+/**
  * @tc.name: OnDraw
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
@@ -83,11 +106,11 @@ HWTEST_F(RSWindowKeyframeBufferTest, OnDraw, TestSize.Level1)
     ASSERT_NE(rootNodeDrawable_->GetRenderParams(), nullptr);
 
     RSWindowKeyframeBuffer windowKeyframeBuffer(*rootNodeDrawable_);
-    auto ret = windowKeyframeBuffer.OnDraw(*drawingCanvas_);
+    auto ret = windowKeyframeBuffer.OnDraw(*drawingCanvas_, *rootNodeDrawable_->GetRenderParams());
     EXPECT_FALSE(ret);
 
-    rootNodeDrawable_->GetRenderParams()->SetNeedOffscreen(true);
-    ret = windowKeyframeBuffer.OnDraw(*drawingCanvas_);
+    rootNodeDrawable_->GetRenderParams()->EnableWindowKeyFrame(true);
+    ret = windowKeyframeBuffer.OnDraw(*drawingCanvas_, *rootNodeDrawable_->GetRenderParams());
     EXPECT_FALSE(ret);
 }
 

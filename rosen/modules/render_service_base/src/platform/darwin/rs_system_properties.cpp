@@ -123,6 +123,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetClipRectThreshold()
 {
     return 1.f;
@@ -616,6 +621,11 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 }
 
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
 {
     return true;
 }

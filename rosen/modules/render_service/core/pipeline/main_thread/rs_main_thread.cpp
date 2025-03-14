@@ -115,7 +115,7 @@
 #ifdef RS_ENABLE_GPU
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -259,21 +259,31 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 
 #ifdef RS_ENABLE_GPU
-void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
-    const ScreenInfo& screenInfo)
+// rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
+void DoScreenRcdTask(RSDisplayRenderNode& displayNode, std::shared_ptr<RSProcessor> &processor)
 {
-    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
+    if (processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has no processor");
+        return;
+    }
+    auto screenInfo =
+        static_cast<RSDisplayRenderParams *>(displayNode.GetStagingRenderParams().get())->GetScreenInfo();
+    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
-            [id, &processor, &rcdInfo](void) {
-                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
-                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
-            });
+    auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(displayNode.GetId());
+        auto rcdNodeTop = std::static_pointer_cast<RSRcdSurfaceRenderNode>(displayNode.GetRcdSurfaceNodeTop());
+    if (rcdNodeTop) {
+        rcdNodeTop->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
+    } else {
+        RS_LOGD("Top rcdnode is null");
+    }
+    auto rcdNodeBottom = std::static_pointer_cast<RSRcdSurfaceRenderNode>(displayNode.GetRcdSurfaceNodeBottom());
+    if (rcdNodeBottom) {
+        rcdNodeBottom->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
+    } else {
+        RS_LOGD("Bottom rcdnode is null");
     }
 }
 #endif
@@ -644,9 +654,6 @@ void RSMainThread::Init()
     /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
-#ifdef RS_ENABLE_GPU
-    RSRcdRenderManager::InitInstance();
-#endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_VK)
     RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
@@ -722,6 +729,12 @@ auto accessibilityFeatureParam =
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
     RSColorTemperature::Get().Init();
+    // used to force refresh screen when cct is updated
+    std::function<void()> refreshFunc = []() {
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->RequestNextVSync();
+    };
+    RSColorTemperature::Get().RegisterRefresh(std::move(refreshFunc));
 #ifdef RS_ENABLE_GPU
     MemoryManager::InitMemoryLimit();
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
@@ -830,7 +843,7 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
 
-        int ret = OH_HiSysEvent_Write("GRPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
+        int ret = OH_HiSysEvent_Write("GRAPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
             sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
         if (ret == 0) {
             RS_LOGE("Successed to rs_vulkan_error fault event.");
@@ -1119,7 +1132,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
-        (deviceType_ != DeviceType::PC || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+        (RSUifirstManager::Instance().GetUiFirstType() != UiFirstCcmType::MULTI
+            || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
 #ifdef RS_ENABLE_GPU
         if (!isUniRender_) {
             RSSubThreadManager::Instance()->ResetSubThreadGrContext(); // planning: move to prepare
@@ -1515,9 +1529,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
 
-    auto drmParam = std::static_pointer_cast<DRMParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]));
-    static bool isCCMDrmEnabled = drmParam ? drmParam->IsDrmEnable() : false;
+    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
     bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
 
     const auto& nodeMap = GetContext().GetNodeMap();
@@ -1709,22 +1722,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
         RS_OPTIONAL_TRACE_NAME("rs debug: uiCapture SetDoDirectComposition false");
         doDirectComposition_ = false;
     }
-
-    bool isAdaptive = false;
-    std::string gameNodeName = "";
-    bool isGameNodeOnTree = false;
-
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    auto frameRateMgr = hgmCore.GetFrameRateMgr();
-    if (LIKELY(frameRateMgr != nullptr)) {
-        isAdaptive = frameRateMgr->IsAdaptive();
-        gameNodeName = frameRateMgr->GetGameNodeName();
-    }
-
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this, &nodeMap, &isGameNodeOnTree, gameNodeName, isAdaptive]
-        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
@@ -1752,8 +1752,13 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 return;
             }
 
-            if (isAdaptive && gameNodeName == surfaceNode->GetName()) {
-                isGameNodeOnTree = true;
+            // If hardware don't support hdr render, should disable direct composition
+            if (RSLuminanceControl::Get().IsCloseHardwareHdr() &&
+                surfaceNode->GetVideoHdrStatus() != HdrStatus::NO_HDR &&
+                !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+                doDirectComposition_ = false;
+                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", HDR disable direct composition",
+                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
 
             if (surfaceNode->IsLeashWindow() && surfaceNode->GetForceUIFirstChanged()) {
@@ -1815,11 +1820,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
-    if (isAdaptive && LIKELY(frameRateMgr != nullptr) && isGameNodeOnTree != isLastGameNodeOnTree_) {
-        RS_TRACE_NAME_FMT("Adaptive Sync Mode, game node on tree: %d", isGameNodeOnTree);
-        frameRateMgr->SetGameNodeOnTree(isGameNodeOnTree);
-    }
-    isLastGameNodeOnTree_ = isGameNodeOnTree;
 #endif
 }
 
@@ -1867,11 +1867,11 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
     MultiDisplayChange(isMultiDisplay);
 
+    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
-    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     auto itr = std::find_if(children->begin(), children->end(),
         [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
             if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
@@ -2145,6 +2145,11 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
+    }
+
+    int32_t isAdaptive = frameRateMgr->AdaptiveStatus();
+    if (isAdaptive == SupportASStatus::SUPPORT_AS) {
+        frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
     }
 
     static std::once_flag initUIFwkTableFlag;
@@ -2557,8 +2562,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
-    auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        DoScreenRcdTask(*displayNode, processor);
+    }
 #endif
     if (waitForRT) {
 #ifdef RS_ENABLE_GPU
@@ -3161,21 +3167,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
             RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
             if ((requestNextVsyncNum_ - currentNum_) >= REQUEST_VSYNC_DUMP_NUMBER) {
                 RS_LOGW("RSMainThread::RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
-                RSEventDumper dumper;
-                handler_->Dump(dumper);
-                dumpInfo_ = dumper.GetOutput().c_str();
-                size_t dumpBegin = dumpInfo_.find("Current Running: start");
-                size_t compareStrSize = sizeof("\n");
-                if (dumpBegin != std::string::npos) {
-                    size_t dumpEnd = dumpInfo_.find("RSEventDumper No. 9", dumpBegin);
-                    if (dumpEnd != std::string::npos) {
-                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
-                            dumpInfo_.substr(dumpBegin, dumpEnd - dumpBegin - compareStrSize).c_str());
-                    } else {
-                        RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s",
-                            dumper.GetOutput().c_str());
-                    }
-                }
+                DumpEventHandlerInfo();
             }
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
@@ -3185,6 +3177,84 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
             rsVSyncDistributor_->PrintConnectionsStatus();
         }
     }
+}
+
+void RSMainThread::DumpEventHandlerInfo()
+{
+    RSEventDumper dumper;
+    handler_->Dump(dumper);
+    dumpInfo_ = dumper.GetOutput().c_str();
+    RS_LOGW("RSMainThread::RequestNextVSync HistoryEventQueue is %{public}s", SubHistoryEventQueue(dumpInfo_).c_str());
+    size_t immediateStart = dumpInfo_.find("Immediate priority event queue infomation:");
+    if (immediateStart != std::string::npos) {
+        size_t immediateEnd = dumpInfo_.find("RSEventDumper High priority event", immediateStart);
+        if (immediateEnd != std::string::npos) {
+            std::string priorityEventQueue = dumpInfo_.substr(immediateStart, immediateEnd - immediateStart).c_str();
+            RS_LOGW("RSMainThread::RequestNextVSync PriorityEventQueue is %{public}s",
+                SubPriorityEventQueue(priorityEventQueue).c_str());
+        }
+    }
+    currentNum_ = requestNextVsyncNum_.load();
+}
+
+std::string RSMainThread::SubHistoryEventQueue(std::string input)
+{
+    const int CONTEXT_LINES = 3;
+    const std::string TARGET_STRING = "completeTime time = ,";
+    std::vector<std::string> lines;
+    std::string line;
+    std::istringstream stream(input);
+    bool foundTargetStr = false;
+    while (std::getline(stream, line)) {
+        lines.push_back(line);
+    }
+    std::string result;
+    for (int i = 0; i < lines.size(); ++i) {
+        if (lines[i].find(TARGET_STRING) != std::string::npos) {
+            foundTargetStr = true;
+            int start = std::max(0, i - CONTEXT_LINES);
+            int end = std::min(static_cast<int>(lines.size() - 1), i + CONTEXT_LINES);
+            for (int j = start; j < end; ++j) {
+                result += lines[j] + "\n";
+            }
+            break;
+        }
+    }
+    if (!foundTargetStr) {
+        RS_LOGW("RSMainThread::SubHistoryEventQueue No task is being executed");
+        // If the TARGET_STRING is not found, dump the information of the first 10 lines.
+        int end = std::min(static_cast<int>(lines.size() - 1) - 1, 9);
+        for (int j = 0; j <= end; ++j) {
+            result += lines[j] + "\n";
+        }
+    }
+    return result;
+}
+
+std::string RSMainThread::SubPriorityEventQueue(std::string input)
+{
+    std::string result;
+    std::string line;
+    std::istringstream stream(input);
+
+    while (std::getline(stream, line)) {
+        if (line.find("RSEventDumper No.") != std::string::npos) {
+            size_t dot_pos = line.find('.');
+            if (dot_pos != std::string::npos) {
+                size_t space_pos = line.find(' ', dot_pos);
+                if (space_pos != std::string::npos) {
+                    std::string num_str = line.substr(dot_pos + 1, space_pos - dot_pos - 1);
+                    int num = std::stoi(num_str);
+                    if (num >= 1 && num <= 3) { // dump the first three lines of information.
+                        result += line + "\n";
+                    }
+                }
+            }
+        } else if (line.find("Total size of Immediate Events") != std::string::npos) {
+            result += line + "\n";
+        }
+    }
+    return result;
 }
 
 void RSMainThread::ProcessScreenHotPlugEvents()
@@ -3575,8 +3645,7 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    // When exited two apps in one second, post reclaim task.
-    MemoryManager::CheckIsClearApp();
+    RSReclaimMemoryManager::Instance().TriggerReclaimTask();
 
     EraseIf(applicationAgentMap_,
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
@@ -4705,6 +4774,7 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 void RSMainThread::UpdateUIFirstSwitch()
 {
 #ifdef RS_ENABLE_GPU
+    RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);

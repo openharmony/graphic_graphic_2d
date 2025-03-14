@@ -578,6 +578,9 @@ private:
 
     // Record change status of multi or single display
     void MultiDisplayChange(bool isMultiDisplay);
+    void DumpEventHandlerInfo();
+    std::string SubHistoryEventQueue(std::string input);
+    std::string SubPriorityEventQueue(std::string input);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -831,8 +834,6 @@ private:
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
-    // last frame game self-drawing node is on tree or not
-    bool isLastGameNodeOnTree_ = false;
     std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
     std::string dumpInfo_;

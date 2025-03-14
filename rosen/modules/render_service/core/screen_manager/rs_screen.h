@@ -303,7 +303,6 @@ private:
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
-    std::mutex powerStatusMutex_;
     ScreenPowerStatus powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
     GraphicPixelFormat pixelFormat_;
 

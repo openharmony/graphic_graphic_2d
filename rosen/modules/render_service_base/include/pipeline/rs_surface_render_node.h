@@ -1291,7 +1291,7 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
-    void SetNeedOffscreen(bool needOffscreen) override;
+    void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
@@ -1441,6 +1441,17 @@ public:
     std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
     {
         return dirtyManager_;
+    }
+
+    // [Attention] Used in uifirst for checking whether node and parent should paint or not
+    void SetSelfAndParentShouldPaint(bool selfAndParentShouldPaint)
+    {
+        selfAndParentShouldPaint_ = selfAndParentShouldPaint;
+    }
+
+    bool GetSelfAndParentShouldPaint() const
+    {
+        return selfAndParentShouldPaint_;
     }
 
 protected:
@@ -1754,6 +1765,9 @@ private:
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
+
+    // used in uifirst for checking whether node and parents should paint or not
+    bool selfAndParentShouldPaint_ = true;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

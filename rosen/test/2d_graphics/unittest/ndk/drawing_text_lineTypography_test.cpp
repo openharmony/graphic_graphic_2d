@@ -357,4 +357,30 @@ HWTEST_F(LineTypographyTest, OH_Drawing_LineTypographyTest011, TestSize.Level1)
     } while (true);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
+
+/*
+ * @tc.name: OH_Drawing_LineTypographyTest012
+ * @tc.desc: complex scenes test for the LineTypography runsize
+ * @tc.type: FUNC
+ */
+HWTEST_F(LineTypographyTest, OH_Drawing_LineTypographyTest012, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_LTR);
+    OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_LEFT);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "头好痒 test 我 test";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(handler);
+    OH_Drawing_TextLine* textLine = OH_Drawing_LineTypographyCreateLine(lineTypography, 0, 15);
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    EXPECT_EQ(runsSize, 6);
+    OH_Drawing_DestroyTextLine(textLine);
+    OH_Drawing_DestroyLineTypography(lineTypography);
+}
 } // namespace OHOS

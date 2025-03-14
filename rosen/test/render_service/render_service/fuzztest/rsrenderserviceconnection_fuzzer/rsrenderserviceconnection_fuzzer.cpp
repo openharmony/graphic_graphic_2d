@@ -650,7 +650,8 @@ bool DoSetAncoForceDoDirect()
     }
 
     bool direct = GetData<bool>();
-    rsConn_->SetAncoForceDoDirect(direct);
+    bool res;
+    rsConn_->SetAncoForceDoDirect(direct, res);
     return true;
 }
 
@@ -900,9 +901,10 @@ bool DoSetPixelFormat()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t pixelFormat = GetData<uint32_t>();
-    rsConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat));
+    int32_t resCode;
+    rsConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat), resCode);
     GraphicPixelFormat pixelFormat1;
-    rsConn_->GetPixelFormat(id, pixelFormat1);
+    rsConn_->GetPixelFormat(id, pixelFormat1, resCode);
     return true;
 }
 
@@ -913,11 +915,12 @@ bool DOGetScreenSupportedHDRFormats()
     }
     uint64_t id = GetData<uint64_t>();
     int32_t modeIdx = GetData<int32_t>();
-    rsConn_->SetScreenHDRFormat(id, modeIdx);
+    int32_t resCode;
+    rsConn_->SetScreenHDRFormat(id, modeIdx, resCode);
     ScreenHDRFormat hdrFormat;
-    rsConn_->GetScreenHDRFormat(id, hdrFormat);
+    rsConn_->GetScreenHDRFormat(id, hdrFormat, resCode);
     std::vector<ScreenHDRFormat> hdrFormats;
-    rsConn_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    rsConn_->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
     return true;
 }
 
@@ -928,9 +931,10 @@ bool DOGetScreenSupportedColorSpaces()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t colorSpace = GetData<uint32_t>();
-    rsConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace));
+    int32_t resCode;
+    rsConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace), resCode);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    rsConn_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    rsConn_->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
     return true;
 }
 
@@ -1294,8 +1298,8 @@ bool DoCreatePixelMapFromSurface()
         .w = GetData<int32_t>(),
         .h = GetData<int32_t>(),
     };
-
-    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
     return true;
 }
 
