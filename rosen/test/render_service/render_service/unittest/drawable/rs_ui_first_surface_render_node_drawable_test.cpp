@@ -267,7 +267,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, IsCurFrameStaticTest, TestSize.
     if (surfaceDrawable_ == nullptr) {
         return;
     }
-    auto result = surfaceDrawable_->IsCurFrameStatic(DeviceType::PC);
+    auto result = surfaceDrawable_->IsCurFrameStatic();
     ASSERT_EQ(result, false);
 }
 

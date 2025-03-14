@@ -2437,5 +2437,17 @@ HWTEST_F(RSRenderNodeTest2, SetUIFirstSwitchTest002, TestSize.Level1)
     node->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
     ASSERT_EQ(firstNode->GetUIFirstSwitch(), RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
 }
+
+/**
+ * @tc.name: GenerateIDTest
+ * @tc.desc: SetUIFirstSwitch with Node has firstLevelNoode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH5UD
+ */
+HWTEST_F(RSRenderNodeTest2, GenerateIDTest, TestSize.Level1)
+{
+    auto id = RSRenderNode::GenerateId();
+    ASSERT_EQ(RSRenderNode::GenerateId() - id, 1);
+}
 } // namespace Rosen
 } // namespace OHOS

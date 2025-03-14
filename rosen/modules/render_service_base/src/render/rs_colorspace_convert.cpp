@@ -142,6 +142,7 @@ void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
 {
     if (surfaceBuffer == nullptr) {
         RS_LOGE("surfaceBuffer is nullptr. Failed to get FOV metadata.");
+        ret = GSERROR_INVALID_ARGUMENTS;
         return;
     }
     ret = MetadataHelper::GetAdaptiveFOVMetadata(surfaceBuffer, adaptiveFOVMetadata);

@@ -2473,37 +2473,6 @@ HWTEST_F(RSUniRenderVisitorTest, SurfaceOcclusionCallbackToWMS001, TestSize.Leve
 }
 
 /**
- * @tc.name: GetCurrentBlackList001
- * @tc.desc: Test GetCurrentBlackList with default constructed visitor
- * @tc.type: FUNC
- * @tc.require: issuesIAMODH
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    EXPECT_TRUE(rsUniRenderVisitor->GetCurrentBlackList().empty());
-}
-
-/**
- * @tc.name: GetCurrentBlackList
- * @tc.desc: Test GetCurrentBlackList002, screenManager_ && curDisplayNode_ != nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAMODH
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList002, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId displayNodeId = 3;
-    RSDisplayNodeConfig config;
-    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
-    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
-    ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
-}
-
-/**
  * @tc.name: NeedPrepareChindrenInReverseOrder001
  * @tc.desc: Test NeedPrepareChindrenInReverseOrder with default constructed visitor
  * @tc.type: FUNC
@@ -5357,6 +5326,159 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: IsValidInVirtualScreen001
+ * @tc.desc: Test IsValidInVirtualScreen with normal layer
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), true);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen002
+ * @tc.desc: Test IsValidInVirtualScreen with security layer
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSecurityLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen003
+ * @tc.desc: Test IsValidInVirtualScreen with skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen003, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen004
+ * @tc.desc: Test IsValidInVirtualScreen with protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen004, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetProtectedLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen005
+ * @tc.desc: Test IsValidInVirtualScreen with snapshot skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSnapshotSkipLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen006
+ * @tc.desc: Test IsValidInVirtualScreen with whitelist cast
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen006, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->allWhiteList_.emplace(surfaceNode->GetId());
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen007
+ * @tc.desc: Test IsValidInVirtualScreen with surface is in blacklist
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen007, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->allBlackList_.emplace(surfaceNode->GetId());
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+}
+
+/*
+ * @tc.name: IsValidInVirtualScreen008
+ * @tc.desc: Test IsValidInVirtualScreen with surface is not in blacklist
+ * @tc.type: FUNC
+ * @tc.require: issueIBR5DD
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen008, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto otherSurfaceNodeId = surfaceNode->GetId();
+    ++otherSurfaceNodeId;
+    rsUniRenderVisitor->allBlackList_.emplace(otherSurfaceNodeId);
+    EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), true);
+}
+
+/*
  * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache001
  * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache while effectNode with fiter
  * @tc.type: FUNC
@@ -5438,5 +5560,22 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSelfDrawingNodeRectInfoTest, TestSize.Le
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->CollectSelfDrawingNodeRectInfo(node);
     ASSERT_EQ(SelfDrawingNodeMonitor::GetInstance().curRect_.size(), 0);
+}
+
+/*
+ * @tc.name: UpdateDisplayRcdRenderNodeTest
+ * @tc.desc: Test UpdateDisplayRcdRenderNodeTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->UpdateDisplayRcdRenderNode();
 }
 } // OHOS::Rosen

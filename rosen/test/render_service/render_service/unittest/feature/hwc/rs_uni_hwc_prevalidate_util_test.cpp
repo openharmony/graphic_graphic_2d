@@ -15,6 +15,7 @@
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "gtest/gtest.h"
 
 using namespace testing;

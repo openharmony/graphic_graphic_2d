@@ -49,6 +49,13 @@ private:
     mutable uint32_t hash_ { 0 };
 };
 
+enum class RegisterError {
+    SUCCESS,
+    ALREADY_EXIST,
+    INVALID_INPUT,
+    REGISTER_FAILED,
+};
+
 class FontCollection : public ::OHOS::Rosen::FontCollection {
 public:
     explicit FontCollection(std::shared_ptr<txt::FontCollection> fontCollection = nullptr);
@@ -71,7 +78,7 @@ public:
     void ClearCaches() override;
 
 private:
-    bool RegisterTypeface(const TypefaceWithAlias& ta);
+    RegisterError RegisterTypeface(const TypefaceWithAlias& ta);
 
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;

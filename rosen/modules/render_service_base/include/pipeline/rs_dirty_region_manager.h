@@ -244,6 +244,11 @@ public:
         maxNumOfDirtyRects_ = maxNumOfDirtyRects;
     }
 
+    void SetAdvancedDirtyRegionType(AdvancedDirtyRegionType advancedDirtyRegionType)
+    {
+        advancedDirtyRegionType_ = advancedDirtyRegionType;
+    }
+
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
@@ -265,6 +270,7 @@ private:
     unsigned int historySize_ = 0;
     const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
     int maxNumOfDirtyRects_ = 1;
+    AdvancedDirtyRegionType advancedDirtyRegionType_ = AdvancedDirtyRegionType::DISABLED;
     // may add new set function for bufferAge
     unsigned int bufferAge_ = 0;
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.

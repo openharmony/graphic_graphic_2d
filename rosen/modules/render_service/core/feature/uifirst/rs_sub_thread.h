@@ -38,7 +38,6 @@ public:
     void PostTask(const std::function<void()>& task, const std::string& name = std::string());
     void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
-    void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     void ReleaseSurface();
     void ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);

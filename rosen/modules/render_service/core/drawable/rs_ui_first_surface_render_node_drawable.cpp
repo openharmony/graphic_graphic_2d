@@ -55,6 +55,8 @@ static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
                      0.0f, 0.0f, 1.0f);
     return matrix;
 }();
+
+constexpr float SCALE_DIFF = 0.01f;
 }
 
 namespace OHOS::Rosen::DrawableV2 {
@@ -244,12 +246,12 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     }
     canvas.Save();
     const auto& gravityMatrix = GetGravityMatrix(cacheImage->GetWidth(), cacheImage->GetHeight());
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
-    } else {
-        float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
-        float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
+    float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
+    float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
+    if (ROSEN_EQ(scaleY, scaleX, SCALE_DIFF)) {
         canvas.Scale(scaleX, scaleY);
+    } else {
+        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
@@ -447,7 +449,7 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurface(bool isClearCompletedCacheSu
     }
 }
 
-bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
+bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic()
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {

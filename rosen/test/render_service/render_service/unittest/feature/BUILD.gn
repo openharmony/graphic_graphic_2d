@@ -28,6 +28,7 @@ group("unittest") {
     ":RSUniHwcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
     ":RSVBlankIdleCorrectorTest",
+    ":RSWindowKeyFrameTest",
   ]
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
@@ -448,6 +449,24 @@ ohos_unittest("RSAncoManagerTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+}
+
+## Build RSWindowKeyFrameTest
+ohos_unittest("RSWindowKeyFrameTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "window_keyframe/rs_window_keyframe_buffer_test.cpp",
+    "window_keyframe/rs_window_keyframe_node_info_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 

@@ -25,6 +25,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -396,18 +397,9 @@ public:
     void SetOpaqueRegion(const Occlusion::Region& opaqueRegion);
     const Occlusion::Region& GetOpaqueRegion() const;
 
-    void SetNeedOffscreen(bool needOffscreen)
+    bool GetNeedOffscreen() const override
     {
-        if (needOffscreen_ == needOffscreen) {
-            return;
-        }
-        needOffscreen_ = needOffscreen;
-        needSync_ = true;
-    }
-
-    bool GetNeedOffscreen() const
-    {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? RSRenderParams::GetNeedOffscreen() : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -725,7 +717,6 @@ private:
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
     bool needHidePrivacyContent_ = false;
-    bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
     int64_t stencilVal_ = -1;

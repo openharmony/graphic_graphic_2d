@@ -84,6 +84,8 @@ public:
     static bool GetCanvasDrawingNodeRegionEnabled();
     static int32_t GetWindowScreenScanType();
     static bool GetAnimationOcclusionEnabled();
+    static bool GetUIFirstPurgeEnabled();
+    static bool GetUIFirstOcclusionEnabled();
 };
 
 } // namespace Rosen

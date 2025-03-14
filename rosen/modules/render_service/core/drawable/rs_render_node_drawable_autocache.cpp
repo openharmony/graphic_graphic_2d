@@ -255,7 +255,7 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
         bool isOnlyTranslate = false;
         auto totalMatrix = canvas.GetTotalMatrix();
         auto rootAlpha = canvas.GetAlpha();
-        if (IsTranslate(totalMatrix) && (rootAlpha == 0.0f || rootAlpha == 1.0f)) {
+        if (IsTranslate(totalMatrix) && (ROSEN_EQ(rootAlpha, 0.0f) || ROSEN_EQ(rootAlpha, 1.0f))) {
             isOnlyTranslate = true;
         }
         if (autoCacheEnable_) {

@@ -561,7 +561,6 @@ HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
     instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 
-    instance.deviceType_ = DeviceType::PC;
     instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 

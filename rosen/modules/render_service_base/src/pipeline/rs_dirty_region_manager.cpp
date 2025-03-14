@@ -403,12 +403,11 @@ void RSDirtyRegionManager::ResetDirtyAsSurfaceSize()
 
 void RSDirtyRegionManager::UpdateMaxNumOfDirtyRectByState()
 {
-    AdvancedDirtyRegionType currentState = RSSystemProperties::GetAdvancedDirtyRegionEnabled();
     if (isDisplayDirtyManager_) {
-        SetMaxNumOfDirtyRects((currentState == AdvancedDirtyRegionType::DISABLED) ?
+        SetMaxNumOfDirtyRects((advancedDirtyRegionType_ == AdvancedDirtyRegionType::DISABLED) ?
             RSAdvancedDirtyConfig::DISABLED_RECT_NUM_EACH_NODE : RSAdvancedDirtyConfig::MAX_RECT_NUM_EACH_NODE);
     } else {
-        SetMaxNumOfDirtyRects((currentState == AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY) ?
+        SetMaxNumOfDirtyRects((advancedDirtyRegionType_ == AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY) ?
             RSAdvancedDirtyConfig::MAX_RECT_NUM_EACH_NODE : RSAdvancedDirtyConfig::DISABLED_RECT_NUM_EACH_NODE);
     }
 }

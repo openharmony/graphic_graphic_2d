@@ -45,12 +45,18 @@ int32_t AccessibilityParamParse::ParseAccessibilityInternal(FeatureParamMapType 
     xmlNode *currNode = &node;
 
     auto iter = featureMap.find(FEATURE_CONFIGS[Accessibility]);
-    if (iter != featureMap.end()) {
-        accessibilityParam_ = std::static_pointer_cast<AccessibilityParam>(iter->second);
-    } else {
+    if (iter == featureMap.end()) {
         RS_LOGD("AccessibilityParamParse stop parsing, no initializing param map");
+        return PARSE_NO_PARAM;
     }
 
+    accessibilityParam_ = std::static_pointer_cast<AccessibilityParam>(iter->second);
+
+    if (accessibilityParam_ == nullptr) {
+        RS_LOGD("accessibilityParam_ is nullptr");
+        return PARSE_ERROR;
+    }
+    
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);

@@ -56,9 +56,7 @@ public:
     RSB_EXPORT void SetNowHdrLuminance(ScreenId screenId, uint32_t level);
     RSB_EXPORT bool IsNeedUpdateLuminance(ScreenId screenId);
 
-    RSB_EXPORT float GetHdrTmoNits(ScreenId screenId, int32_t mode);
     RSB_EXPORT float GetSdrDisplayNits(ScreenId screenId);
-    RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
     RSB_EXPORT float CalScaler(const float& maxContentLightLevel,
@@ -67,6 +65,7 @@ public:
 
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
+    RSB_EXPORT bool IsCloseHardwareHdr();
 
 private:
     RSLuminanceControl() = default;
@@ -89,15 +88,14 @@ private:
     using GetNewHdrLuminanceFunc = uint32_t(*)(ScreenId);
     using SetNowHdrLuminanceFunc = void(*)(ScreenId, uint32_t);
     using IsNeedUpdateLuminanceFunc = bool(*)(ScreenId);
-    using GetHdrTmoNitsFunc = float(*)(ScreenId, int32_t);
     using GetSdrDisplayNitsFunc = float(*)(ScreenId);
-    using GetHdrDisplayNitsFunc = float(*)(ScreenId);
     using GetDisplayNitsFunc = float(*)(ScreenId);
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
     using CalScalerFunc = float(*)(const float&, int32_t, const float&);
     using IsHdrPictureOnFunc = bool(*)();
     using IsForceCloseHdrFunc = bool(*)();
     using ForceCloseHdrFunc = void(*)(uint32_t, bool);
+    using IsCloseHardwareHdrFunc = bool(*)();
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
     IsHdrOnFunc isHdrOn_{nullptr};
@@ -107,15 +105,14 @@ private:
     GetNewHdrLuminanceFunc getNewHdrLuminance_{nullptr};
     SetNowHdrLuminanceFunc setNowHdrLuminance_{nullptr};
     IsNeedUpdateLuminanceFunc isNeedUpdateLuminance_{nullptr};
-    GetHdrTmoNitsFunc getHdrTmoNits_{nullptr};
     GetSdrDisplayNitsFunc getSdrDisplayNits_{nullptr};
-    GetHdrDisplayNitsFunc getHdrDisplayNits_{nullptr};
     GetDisplayNitsFunc getDisplayNits_{nullptr};
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
     CalScalerFunc calScaler_{nullptr};
     IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
     IsForceCloseHdrFunc isForceCloseHdr_{nullptr};
     ForceCloseHdrFunc forceCloseHdr_{nullptr};
+    IsCloseHardwareHdrFunc isCloseHardwareHdr_{nullptr};
 #endif
 };
 

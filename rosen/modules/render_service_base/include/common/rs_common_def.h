@@ -58,6 +58,7 @@ enum class RSUINodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -80,6 +81,7 @@ enum class RSRenderNodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };

@@ -99,7 +99,7 @@ struct RoundCornerLayer {
     int bufferSize = 0;
     int cldWidth = 0;
     int cldHeight = 0;
-    Drawing::Bitmap* curBitmap = nullptr;
+    std::shared_ptr<Drawing::Bitmap> curBitmap = nullptr;
     bool ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std::string>& attrArray);
 };
 
@@ -177,7 +177,7 @@ struct RCDConfig {
     static void PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer);
     static void PrintParseRog(rs_rcd::ROGSetting* rog);
     LCDModel* GetLcdModel(const std::string& name) const;
-    bool Load(const std::string &configFile);
+    bool Load(const std::string& configFile);
     bool IsDataLoaded() const;
 private:
     void CloseXML();

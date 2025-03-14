@@ -1040,6 +1040,30 @@ HWTEST_F(PathTest, GetPositionAndTangent003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSegment001
+ * @tc.desc: Test for Gets the path between the start and end points.
+ * @tc.type: FUNC
+ * @tc.require: I715J0
+ */
+HWTEST_F(PathTest, GetSegment001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(100, 100);
+    path.LineTo(100, 200);
+    path.LineTo(200, 200);
+    Path newPath;
+    EXPECT_EQ(path.GetSegment(120, 180, &newPath, false, false), true);
+    EXPECT_EQ(path.GetSegment(120, 280, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(-50, 999, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(120, 180, &newPath, true, false), true);
+    EXPECT_EQ(path.GetSegment(120, 280, &newPath, true, true), true);
+    EXPECT_EQ(path.GetSegment(-50, 999, &newPath, true, true), true);
+    EXPECT_EQ(path.GetSegment(120, 120, &newPath, false, true), true);
+    EXPECT_EQ(path.GetSegment(130, 120, &newPath, false, true), false);
+    EXPECT_EQ(path.GetSegment(130, 120, nullptr, false, true), false);
+}
+
+/**
  * @tc.name: CopyConstruction001
  * @tc.desc: Bounds should be same by using copy construction
  * @tc.type: FUNC

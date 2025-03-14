@@ -27,6 +27,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "params/rs_rcd_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -140,6 +141,10 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             break;
+        case RSRenderNodeType::ROUND_CORNER_NODE:
+            sharedPtr->renderParams_ = std::make_unique<RSRcdRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->uifirstRenderParams_ = nullptr; // rcd node does not need uifirst params
+            break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
@@ -150,7 +155,9 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             break;
     }
     sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
-    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
+    if (sharedPtr->uifirstRenderParams_) {
+        sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
+    }
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(

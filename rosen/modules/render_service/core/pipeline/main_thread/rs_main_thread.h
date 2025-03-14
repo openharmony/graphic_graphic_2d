@@ -111,6 +111,7 @@ public:
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
     void RenderServiceAllNodeDump(DfxString& log);
+    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
@@ -265,8 +266,6 @@ public:
     }
 
     DeviceType GetDeviceType() const;
-    bool IsDeeplyRelGpuResEnable() const;
-    bool IsMultilayersSOCPerfEnable() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
     uint64_t GetFocusNodeId() const;
@@ -475,8 +474,6 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
-    void SetDeeplyRelGpuResSwitch();
-    void SetSOCPerfSwitch();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -626,10 +623,6 @@ private:
     // overDraw
     bool isOverDrawEnabledOfCurFrame_ = false;
     bool isOverDrawEnabledOfLastFrame_ = false;
-    // for deeply release GPU resource
-    bool isDeeplyRelGpuResEnable_ = false;
-    // for SOCPerf
-    bool isMultilayersSOCPerfEnable_ = false;
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     bool initVsyncServiceFlag_ = true;
 #endif
@@ -691,15 +684,9 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
-#if defined(ACCESSIBILITY_ENABLE)
-    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unordered_map<NodeId, uint64_t> dividedRenderbufferTimestamps_;
@@ -851,6 +838,12 @@ private:
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
     std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
+#if defined(ACCESSIBILITY_ENABLE)
+    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

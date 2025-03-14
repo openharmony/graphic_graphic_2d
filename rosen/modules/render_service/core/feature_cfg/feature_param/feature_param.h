@@ -27,10 +27,12 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "DirtyRegionConfig",
     "ColorGamutConfig",
     "DrmConfig",
+    "HardCursorConfig",
     "HwcConfig",
     "FilterConfig",
     "HfbcConfig",
     "MemConfig",
+    "MultiScreenConfig",
     "SpecialLayerConfig",
     "SpocConfig",
     "OPIncConfig",
@@ -44,15 +46,18 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "DeeplyReleaseGpuResourceConfig",
     "AccessibilityConfig",
     "VRateConfig",
+    "RotateOffScreenConfig",
 };
 
 enum FeatureModule {
     DIRTYREGION = 0,
     COLOR_GAMUT,
     DRM,
+    HARDCURSOR,
     HWC,
     HFBC,
     MEM,
+    MULTISCREEN,
     SPECIALLAYER,
     SPOC,
     OPInc,
@@ -67,6 +72,7 @@ enum FeatureModule {
     DEEPLY_REL_GPU_RES,
     Accessibility,
     VRate,
+    RotateOffScreen,
 };
 
 enum ParseErrCode {

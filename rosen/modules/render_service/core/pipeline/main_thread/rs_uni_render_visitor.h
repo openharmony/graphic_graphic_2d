@@ -26,9 +26,9 @@
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -159,7 +159,6 @@ public:
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
 private:
-    const std::unordered_set<NodeId> GetCurrentBlackList() const;
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
@@ -196,6 +195,8 @@ private:
     void UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode& node);
     void UpdateSurfaceRenderNodeRotate(RSSurfaceRenderNode& node);
     void UpdateSurfaceDirtyAndGlobalDirty();
+    // should be removed due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    void UpdateDisplayRcdRenderNode();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckScreenPowerChange() const;
@@ -306,13 +307,19 @@ private:
     {
         return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged();
     }
-    bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
+
+    inline bool IsValidInVirtualScreen(const RSSurfaceRenderNode& node) const
     {
         const auto& specialLayerMgr = node.GetSpecialLayerMgr();
-        return !specialLayerMgr.Find(SpecialLayerType::SKIP) &&
-            !specialLayerMgr.Find(SpecialLayerType::SECURITY) &&
-            (screenInfo_.whiteList.empty() || screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
+        if (specialLayerMgr.Find(IS_GENERAL_SPECIAL)) {
+            return false; // surface is special layer
+        }
+        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
+            return false; // white list is not empty, or surface is in black list
+        }
+        return true;
     }
+
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
@@ -340,6 +347,7 @@ private:
     void SetHdrWhenMultiDisplayChange();
 
     void TryNotifyUIBufferAvailable();
+    bool IsHdrUseUnirender(bool hasUniRenderHdrSurface, std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr);
 
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
@@ -352,6 +360,7 @@ private:
     bool isDirty_ = false;
     bool dirtyFlag_ { false };
     bool isPartialRenderEnabled_ = false;
+    bool isAdvancedDirtyRegionEnabled_ = false;
     bool isRegionDebugEnabled_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool curDirty_ = false;
@@ -376,6 +385,8 @@ private:
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
+    std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
+    std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region occlusionRegionWithoutSkipLayer_;
     // variable for occlusion
@@ -473,6 +484,9 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
+
+    // Used for PC window resize scene
+    RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
 };
 } // namespace Rosen
 } // namespace OHOS

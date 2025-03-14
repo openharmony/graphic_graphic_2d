@@ -112,6 +112,7 @@
           "ffrt",
           "libxml2",
           "skia",
+          "lz4",
           "graphic_2d_ext"
         ],
         "third_party": [
