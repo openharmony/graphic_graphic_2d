@@ -91,7 +91,7 @@ void RSDirtyRectsDfx::OnDraw(RSPaintFilterCanvas& canvas)
         DrawHwcRegionForDFX(canvas);
     }
 
-    DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(canvas);
+    DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(canvas, displayParams_);
 }
 
 void RSDirtyRectsDfx::OnDrawVirtual(RSPaintFilterCanvas& canvas)

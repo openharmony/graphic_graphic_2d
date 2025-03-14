@@ -500,9 +500,14 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 #endif
 }
 
-void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
+void RSRenderNodeDrawable::DrawDfxForCacheInfo(
+    RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+        if (displayParams && displayParams->GetNeedOffscreen()) {
+            canvas.ConcatMatrix(displayParams->GetMatrix());
+        }
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
