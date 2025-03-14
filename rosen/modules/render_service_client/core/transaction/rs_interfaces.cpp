@@ -715,6 +715,16 @@ int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
+int32_t RSInterfaces::RegisterFirstFrameCallback(const HWFirstFrameCallback& callback)
+{
+    return renderServiceClient_->RegisterFirstFrameCallback(callback);
+}
+
+int32_t RSInterfaces::UnRegisterFirstFrameCallback()
+{
+    return renderServiceClient_->RegisterFirstFrameCallback(nullptr);
+}
+
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {

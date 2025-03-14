@@ -1574,6 +1574,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     isScreenPoweringOn_ =
         (status == ScreenPowerStatus::POWER_STATUS_ON || status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
     auto ret = screen->SetPowerStatus(static_cast<uint32_t>(status));
+    RSHardwareThread::Instance().SetIsFirstFrame(isScreenPoweringOn_);
     isScreenPoweringOn_ = false;
     if (ret != static_cast<int32_t>(StatusCode::SUCCESS)) {
         RS_LOGE("[UL_POWER] %{public}s: Failed to set power status of id %{public}" PRIu64, __func__, id);

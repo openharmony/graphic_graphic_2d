@@ -24,6 +24,7 @@
 #include "hgm_core.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
+#include "ipc_callbacks/rs_ifirst_frame_callback.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
@@ -71,6 +72,12 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
     void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
+    void RegisterFirstFrameCallback(pid_t pid, const sptr<RSIFirstFrameCallback>& callback);
+    void SyncFirstFrameCallback(uint32_t screenId);
+    void SetIsFirstFrame(bool flag)
+    {
+        isFirstFrame = flag;
+    }
     void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
     void DumpVkImageInfo(std::string &dumpString);
 private:
@@ -115,6 +122,7 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HdiBackend *hdiBackend_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
+    std::unordered_map<pid_t, sptr<RSIFirstFrameCallback>> firstFrameCallbacks_;
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
@@ -129,6 +137,7 @@ private:
     int64_t delayTime_ = 0;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
+    bool isFirstFrame = false;
     bool isLastAdaptive_ = false;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
     std::mutex preAllocMutex_;
