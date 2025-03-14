@@ -257,6 +257,13 @@ int32_t RSSystemParameters::GetWindowScreenScanType()
     return screenScanType;
 }
 
+int32_t RSSystemParameters::GetPurgeableResourceLimit()
+{
+    static int32_t purgeableResourceLimit =
+        system::GetIntParameter<int32_t>("persist.sys.graphic.purgeableResourceLimit", 40000); // purge limit: 40000
+    return purgeableResourceLimit;
+}
+
 bool RSSystemParameters::GetAnimationOcclusionEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.ani.occlusion.enabled", "1");

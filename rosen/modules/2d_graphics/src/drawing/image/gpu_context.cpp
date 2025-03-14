@@ -61,6 +61,13 @@ void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes
     impl_->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
+void GPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
+{
+    if (impl_) {
+        impl_->SetPurgeableResourceLimit(purgeableMaxCount);
+    }
+}
+
 void GPUContext::Flush()
 {
     impl_->Flush();
