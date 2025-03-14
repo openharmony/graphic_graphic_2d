@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("rs_frame_report_ext_test") {
-  module_out_path = "graphic_2d/utils/rs_frame_report_ext"
+  module_out_path = "graphic_2d/graphic_2d/utils/rs_frame_report_ext"
 
   include_dirs = [ "$graphic_2d_root/utils/rs_frame_report_ext/include" ]
 
