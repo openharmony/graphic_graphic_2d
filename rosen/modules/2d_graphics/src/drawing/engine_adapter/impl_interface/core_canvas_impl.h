@@ -93,6 +93,13 @@ public:
     virtual void DrawOval(const Rect& oval, const Paint& paint) = 0;
     virtual void DrawCircle(const Point& centerPt, scalar radius, const Paint& paint) = 0;
     virtual void DrawPath(const Path& path, const Paint& paint) = 0;
+
+    virtual void DrawPathWithStencil(const Path& path, uint32_t stencilVal, const Paint& paint)
+    {
+        (void)stencilVal;
+        DrawPath(path, paint);
+    }
+
     virtual void DrawBackground(const Brush& brush) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
@@ -119,8 +126,16 @@ public:
     virtual void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect, const Paint& paint) = 0;
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py, const Paint& paint) = 0;
-    virtual void DrawImage(const Image& image, const scalar px, const scalar p, const SamplingOptions& sampling,
+    virtual void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling,
         const Paint& paint) = 0;
+
+    virtual void DrawImageWithStencil(const Image& image, const scalar px, const scalar py,
+        const SamplingOptions& sampling, uint32_t stencilVal, const Paint& paint)
+    {
+        (void)stencilVal;
+        DrawImage(image, px, py, sampling, paint);
+    }
+
     virtual void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint, const Paint& paint) = 0;
     virtual void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling,
@@ -135,6 +150,13 @@ public:
 
     // symbol
     virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, const Paint& paint) = 0;
+
+    // stencil culling
+    virtual void ClearStencil(const RectI& rect, uint32_t stencilVal)
+    {
+        (void)rect;
+        (void)stencilVal;
+    }
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;

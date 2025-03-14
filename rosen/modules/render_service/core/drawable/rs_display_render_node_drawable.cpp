@@ -842,6 +842,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
 
             curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
+            ClearCanvasStencil(*curCanvas_, *params, *uniParam);
             // cpu boost feature start
             ffrt_cpu_boost_start(CPUBOOST_START_POINT + 1);
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
@@ -983,13 +984,23 @@ void RSDisplayRenderNodeDrawable::ClearCanvasStencil(RSPaintFilterCanvas& canvas
     if (topSurfaceOpaqueRects.empty()) {
         return;
     }
+    auto screenInfo = params.GetScreenInfo();
+    RS_OPTIONAL_TRACE_NAME_FMT("ClearStencil, rect(0, 0, %d, %d), stencilVal: 0",
+        screenInfo.width, screenInfo.height);
+    canvas.ClearStencil({0, 0, screenInfo.width, screenInfo.height}, 0);
     std::reverse(topSurfaceOpaqueRects.begin(), topSurfaceOpaqueRects.end());
+    auto maxStencilVal = TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM;
+    canvas.SetMaxStencilVal(maxStencilVal);
     for (size_t i = 0; i < topSurfaceOpaqueRects.size(); i++) {
         Drawing::RectI rect {topSurfaceOpaqueRects[i].left_,
             topSurfaceOpaqueRects[i].top_,
             topSurfaceOpaqueRects[i].right_,
             topSurfaceOpaqueRects[i].bottom_};
-        // [planning] enable clearStencil
+        auto stencilVal = OCCLUSION_ENABLE_SCENE_NUM *
+            (TOP_OCCLUSION_SURFACES_NUM - topSurfaceOpaqueRects.size() + i + 1);
+        RS_OPTIONAL_TRACE_NAME_FMT("ClearStencil, rect(%" PRId32 ", %" PRId32 ", %" PRId32 ", %" PRId32 "), "
+            "stencilVal: %zu", rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), stencilVal);
+        canvas.ClearStencil(rect, static_cast<uint32_t>(stencilVal));
     }
 }
 

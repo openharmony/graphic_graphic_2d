@@ -264,7 +264,14 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
-    canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
+    auto stencilVal = canvas.GetStencilVal();
+    if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas.GetMaxStencilVal()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawImageWithStencil, stencilVal: %" PRId64 "", stencilVal);
+        canvas.DrawImageWithStencil(*cacheImage, translateX, translateY, samplingOptions,
+            static_cast<uint32_t>(stencilVal));
+    } else {
+        canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
+    }
     canvas.DetachBrush();
     canvas.Restore();
     return true;
