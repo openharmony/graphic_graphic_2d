@@ -51,7 +51,6 @@ namespace {
     constexpr uint32_t DEFAULT_PRIORITY = 0;
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
-    constexpr int32_t RS_IDLE_TIMEOUT_MS = 620; // ms
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     const static std::string LOW_BRIGHT = "LowBright";
