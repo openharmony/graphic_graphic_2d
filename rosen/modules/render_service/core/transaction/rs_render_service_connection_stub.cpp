@@ -1672,14 +1672,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+            std::vector<PixelMapInfo> pixelMapInfoVector;
             int32_t repCode;
-            if (GetPixelMapByProcessId(pixelMapVector, static_cast<pid_t>(pid), repCode) != ERR_OK ||
+            if (GetPixelMapByProcessId(pixelMapInfoVector, static_cast<pid_t>(pid), repCode) != ERR_OK ||
                 !reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapVector)) {
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapInfoVector)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }

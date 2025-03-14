@@ -50,7 +50,7 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) override;
 
-    ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
+    ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid,
         int32_t& repCode) override;
     
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,

@@ -210,9 +210,9 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
-int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
-    return renderServiceClient_->GetPixelMapByProcessId(pixelMapVector, pid);
+    return renderServiceClient_->GetPixelMapByProcessId(pixelMapInfoVector, pid);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,

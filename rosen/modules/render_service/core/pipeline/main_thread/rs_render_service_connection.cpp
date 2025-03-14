@@ -33,6 +33,7 @@
 #include "common/rs_background_thread.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/capture/rs_ui_capture.h"
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
@@ -547,44 +548,47 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
 }
 
 ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
-    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid, int32_t& repCode)
+    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
 {
     if (mainThread_ == nullptr) {
         repCode = INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
-    std::vector<sptr<SurfaceBuffer>> surfaceBufferVector;
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
     std::function<void()> getSurfaceBufferByPidTask = [weakThis = wptr<RSRenderServiceConnection>(this),
-                                                          &pixelMapVector, &surfaceBufferVector, pid]() -> void {
+                                                          &sfBufferInfoVector, pid]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
         }
-        auto selfDrawingNodeMap =
+        auto selfDrawingNodeVector =
             connection->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
-        for (auto iter = selfDrawingNodeMap.begin(); iter != selfDrawingNodeMap.end(); ++iter) {
-            auto surfaceNode = iter->second;
-            if (surfaceNode) {
+        for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
+            auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(*iter);
+            if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-                surfaceBufferVector.push_back(surfaceBuffer);
+                auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
+                    surfaceNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect());
+                sfBufferInfoVector.push_back(surfaceBufferInfo);
             }
         }
     };
     mainThread_->PostSyncTask(getSurfaceBufferByPidTask);
 
-    for (const auto &surfaceBuffer : surfaceBufferVector) {
+    for (uint32_t i = 0; i < sfBufferInfoVector.size(); i++) {
+        auto surfaceBuffer = std::get<0>(sfBufferInfoVector[i]);
         if (surfaceBuffer) {
-            OHOS::Media::Rect rect = {
-                .left = 0,
-                .top = 0,
-                .width = surfaceBuffer->GetWidth(),
-                .height = surfaceBuffer->GetHeight(),
-            };
+            OHOS::Media::Rect rect = {0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight()};
             std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
             RSBackgroundThread::Instance().PostSyncTask([&surfaceBuffer, rect, &pixelmap]() {
                 pixelmap = OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, rect);
             });
-            pixelMapVector.push_back(pixelmap);
+            PixelMapInfo info;
+            info.pixelMap = pixelmap;
+            RectI absRect = std::get<2>(sfBufferInfoVector[i]);
+            info.location = {absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight(), i};
+            info.nodeName = std::get<1>(sfBufferInfoVector[i]);
+            pixelMapInfoVector.push_back(info);
         } else {
             RS_LOGE("RSRenderServiceConnection::CreatePixelMapFromSurface surfaceBuffer is null");
         }

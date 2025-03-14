@@ -16,6 +16,7 @@
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
+#include "feature/capture/rs_ui_capture.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
@@ -544,8 +545,8 @@ HWTEST_F(RSInterfacesTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     pid_t pid = 0;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-    int32_t res = instance.GetPixelMapByProcessId(pixelMapVector, pid);
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t res = instance.GetPixelMapByProcessId(pixelMapInfoVector, pid);
     EXPECT_EQ(res, SUCCESS);
 }
 

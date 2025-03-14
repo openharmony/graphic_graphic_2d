@@ -322,25 +322,4 @@ HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
     isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
     EXPECT_FALSE(isUIExtensionSurfaceNode);
 }
-
-/**
- * @tc.name: InsertAndEraseSelfDrawingNodeOfProcessTest
- * @tc.desc: test results of InsertSelfDrawingNodeOfProcess And EraseSelfDrawingNodeOfProcess
- * @tc.type: FUNC
- * @tc.require: issueIBJFIK
- */
-HWTEST_F(RSRenderNodeMapTest, InsertAndEraseSelfDrawingNodeOfProcessTest, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
-    NodeId id = 1;
-    surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    rsRenderNodeMap.InsertSelfDrawingNodeOfProcess(surfaceNode);
-    pid_t pid = ExtractPid(id);
-    ASSERT_NE(rsRenderNodeMap.GetSelfDrawingNodeInProcess(pid).size(), 0);
-
-    rsRenderNodeMap.EraseSelfDrawingNodeOfProcess(id);
-    ASSERT_EQ(rsRenderNodeMap.GetSelfDrawingNodeInProcess(pid).size(), 0);
-}
 } // namespace OHOS::Rosen

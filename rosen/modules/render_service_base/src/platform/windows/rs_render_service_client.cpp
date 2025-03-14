@@ -122,8 +122,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverWindows>();
 }
 
-int32_t RSRenderServiceClient::GetPixelMapByProcessId(
-    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return 0;
 }

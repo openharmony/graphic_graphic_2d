@@ -41,6 +41,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "feature/capture/rs_ui_capture.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -2339,6 +2340,59 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     return ret;
 }
 
+// PixelMapInfo
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const PixelMapInfo& val)
+{
+    if (!Marshalling(parcel, val.pixelMap)) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling Marshalling pixelMap failed");
+        return false;
+    }
+
+    bool marshallingSucc = true;
+    marshallingSucc &= parcel.WriteInt32(val.location.x);
+    marshallingSucc &= parcel.WriteInt32(val.location.y);
+    marshallingSucc &= parcel.WriteInt32(val.location.width);
+    marshallingSucc &= parcel.WriteInt32(val.location.height);
+    marshallingSucc &= parcel.WriteInt32(val.location.z);
+
+    if (!marshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteLocation failed");
+        return false;
+    }
+    marshallingSucc &= parcel.WriteString(val.nodeName);
+    if (!marshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteString failed");
+        return false;
+    }
+    return marshallingSucc;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, PixelMapInfo& val)
+{
+    if (!Unmarshalling(parcel, val.pixelMap)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Unmarshalling pixelMap failed");
+        return false;
+    }
+
+    bool unMarshallingSucc = true;
+    unMarshallingSucc &= parcel.ReadInt32(val.location.x);
+    unMarshallingSucc &= parcel.ReadInt32(val.location.y);
+    unMarshallingSucc &= parcel.ReadInt32(val.location.width);
+    unMarshallingSucc &= parcel.ReadInt32(val.location.height);
+    unMarshallingSucc &= parcel.ReadInt32(val.location.z);
+
+    if (!unMarshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadLocation failed");
+        return false;
+    }
+    unMarshallingSucc &= parcel.ReadString(val.nodeName);
+    if (!unMarshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadString failed");
+        return false;
+    }
+    return unMarshallingSucc;
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::MaskCmdList>& val)
 {
     int32_t size = parcel.ReadInt32();
@@ -2516,6 +2570,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::RecordCmd>)                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, PixelMapInfo)                                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)

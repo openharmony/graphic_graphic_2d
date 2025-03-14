@@ -1170,6 +1170,13 @@ void RSRenderNode::CollectSurface(
     }
 }
 
+void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec)
+{
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectSelfDrawingChild(child, vec);
+    }
+}
+
 void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
