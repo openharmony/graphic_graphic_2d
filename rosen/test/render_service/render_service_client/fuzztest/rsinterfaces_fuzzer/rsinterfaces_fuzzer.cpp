@@ -212,6 +212,10 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
+    auto firstFrameCallback = [](uint32_t, int64_t) {};
+    rsInterfaces.RegisterFirstFrameCallback(firstFrameCallback);
+    rsInterfaces.UnRegisterFirstFrameCallback();
+
 
     VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
     rsInterfaces.SetVirtualScreenStatus(static_cast<ScreenId>(id), static_cast<VirtualScreenStatus>(screenStatus));

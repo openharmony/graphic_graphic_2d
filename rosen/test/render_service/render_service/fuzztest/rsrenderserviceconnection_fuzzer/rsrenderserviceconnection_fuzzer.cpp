@@ -401,6 +401,7 @@ bool DoRegisterPointerLuminanceChangeCallback()
     PointerLuminanceChangeCallback callback = [](int32_t brightness) {};
     sptr<CustomPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
     rsConn_->RegisterPointerLuminanceChangeCallback(cb);
+
     return true;
 }
 
@@ -1312,6 +1313,34 @@ bool DoSetOverlayDisplayMode()
 }
 #endif
 
+class CustomFirstFrameCallback : public RSFirstFrameCallbackStub
+{
+public:
+    explicit CustomFirstFrameCallback(const HWFirstFrameCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCallback() override {};
+
+    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    HWFirstFrameCallback cb_;
+};
+
+bool DoRegisterFirstFrameCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    HWFirstFrameCallback callback = [](uint32_t screenId, int64_t timestamp) {};
+    sptr<CustomFirstFrameCallback> cb = new CustomFirstFrameCallback(callback);
+    rsConn_->RegisterFirstFrameCallback(cb);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1422,6 +1451,7 @@ void DoFuzzerTest3()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();
 #endif
+    DoRegisterFirstFrameCallback();
 }
 } // namespace Rosen
 } // namespace OHOS

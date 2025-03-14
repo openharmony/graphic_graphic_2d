@@ -892,6 +892,21 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallbac
 }
 
 /**
+ * @tc.name: RegisterFirstFrameCallback Test
+ * @tc.desc: RegisterFirstFrameCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterFirstFrameCallback, TestSize.Level1)
+{
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIFirstFrameCallback> callback = iface_cast<RSIFirstFrameCallback>(remoteObject);
+    EXPECT_EQ(proxy->RegisterHgmFirstFrameCallback(callback), 2);
+}
+
+/**
  * @tc.name: SetSystemAnimatedScenes Test
  * @tc.desc: SetSystemAnimatedScenes Test
  * @tc.type:FUNC

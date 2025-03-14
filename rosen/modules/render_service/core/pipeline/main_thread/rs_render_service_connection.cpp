@@ -2284,7 +2284,7 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
 int32_t RSRenderServiceConnection::RegisterFirstFrameCallback(
     sptr<RSIFirstFrameCallback> callback)
 {
-    std::lock_guard(std::mutex) lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     RSHardwareThread::Instance().ScheduleTask([pid = remotePid_, &callback] () {
         RSHardwareThread::Instance().RegisterFirstFrameCallback(pid, callback);

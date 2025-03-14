@@ -643,12 +643,12 @@ HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Lev
 }
 
 /*
- * @tc.name: RegisterFirstFrameCallback
- * @tc.desc: Test RSHardwareThreadTest.RegisterFirstFrameCallback
+ * @tc.name: RegisterAndSyncFirstFrameCallback
+ * @tc.desc: Test RSHardwareThreadTest.RegisterAndSyncFirstFrameCallback
  * @tc.type: FUNC
  * @tc.require: issuesIBTF2E
  */
-HWTEST_F(RSHardwareThreadTest, RegisterFirstFrameCallback, TestSize.Level1)
+HWTEST_F(RSHardwareThreadTest, RegisterAndSyncFirstFrameCallback, TestSize.Level1)
 {
     auto &hardwareThread = RSHardwareThread::Instance();
     pid_t pid0 = 1000;
@@ -660,5 +660,7 @@ HWTEST_F(RSHardwareThreadTest, RegisterFirstFrameCallback, TestSize.Level1)
     EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid0], nullptr);
     hardwareThread.RegisterFirstFrameCallback(pid1, nullptr);
     EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid1], nullptr);
+    ScreenId screenId = 0;
+    hardwareThread.SyncFirstFrameCallback(screenId);
 }
 } // namespace OHOS::Rosen

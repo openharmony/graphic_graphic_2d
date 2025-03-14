@@ -494,6 +494,18 @@ HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Lev
 #endif
 
 /**
+ * @tc.name: RegisterFirstFrameCallback Test
+ * @tc.desc: RegisterFirstFrameCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBTF2E
+ */
+HWTEST_F(RSClientTest, RegisterFirstFrameCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->RegisterFirstFrameCallback([](uint32_t screenId, int64_t timestamp) -> void {}),
+        StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
