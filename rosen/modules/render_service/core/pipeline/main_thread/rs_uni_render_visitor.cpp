@@ -3690,7 +3690,7 @@ RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
         }
     }
     if (!childEffectRect.IsEmpty()) {
-        childEffectRect.JoinRect(node.GetFilterRect());
+        childEffectRect = childEffectRect.JoinRect(node.GetFilterRect());
     }
     return childEffectRect;
 }
