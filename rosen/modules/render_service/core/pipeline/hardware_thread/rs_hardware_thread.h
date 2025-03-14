@@ -90,7 +90,7 @@ private:
     void AddRefreshRateCount(const OutputPtr& output);
     void RecordTimestamp(const std::vector<LayerInfoPtr>& layers);
     int64_t GetCurTimeCount();
-    bool IsInAdaptiveMode(const OutputPtr &output);
+    int32_t AdaptiveModeStatus(const OutputPtr &output);
 
     RefreshRateParam GetRefreshRateParam();
     bool IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param,

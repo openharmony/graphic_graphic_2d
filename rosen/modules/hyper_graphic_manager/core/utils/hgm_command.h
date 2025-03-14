@@ -111,7 +111,7 @@ public:
         int32_t drawMax;
         int32_t down;
         // Does this game app require Adaptive Sync?
-        bool supportAS;
+        int32_t supportAS;
         // <bufferName, fps>
         std::unordered_map<std::string, int32_t> bufferFpsMap;
     };

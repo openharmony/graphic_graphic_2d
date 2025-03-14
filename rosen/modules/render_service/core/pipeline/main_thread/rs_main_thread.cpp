@@ -2146,8 +2146,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         return;
     }
 
-    bool isAdaptive = frameRateMgr->IsAdaptive();
-    if (isAdaptive) {
+    int32_t isAdaptive = frameRateMgr->AdaptiveStatus();
+    if (isAdaptive == SupportASStatus::SUPPORT_AS) {
         frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
     }
 
