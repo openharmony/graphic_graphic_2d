@@ -852,9 +852,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
                 "isSelfCapture:[%{public}s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
             RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
-            "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s]",
-            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
+        RS_TRACE_NAME_FMT(
+            "CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
+            "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s], isSelfCapture:[%{public}s]",
+            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
+            RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
 
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
