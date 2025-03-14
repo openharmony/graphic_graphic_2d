@@ -1331,7 +1331,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         rotatedRect.SetRight(rotatedRect.GetLeft() + width);
         rotatedRect.SetBottom(rotatedRect.GetTop() + height);
     }
-    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, rotatedRect, Drawing::SamplingOptions());
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, rotatedRect,
+        CreateSamplingOptions(canvas->GetTotalMatrix()));
 #endif
 }
 
@@ -1382,8 +1383,32 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, rotatedRect.GetLeft(), rotatedRect.GetTop(), Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, rotatedRect.GetLeft(), rotatedRect.GetTop(),
+        CreateSamplingOptions(canvas->GetTotalMatrix()));
 #endif // RS_ENABLE_GL
+}
+
+Drawing::SamplingOptions DrawSurfaceBufferOpItem::CreateSamplingOptions(const Drawing::Matrix& matrix)
+{
+    auto scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
+    auto scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
+    auto skewX = matrix.Get(Drawing::Matrix::SKEW_X);
+    auto skewY = matrix.Get(Drawing::Matrix::SKEW_Y);
+    if (ROSEN_EQ(skewX, 0.0f) && ROSEN_EQ(skewY, 0.0f)) {
+        if (!ROSEN_EQ(std::abs(scaleX), 1.0f) || !ROSEN_EQ(std::abs(scaleY), 1.0f)) {
+            // has scale
+            return Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+        }
+    } else if (ROSEN_EQ(scaleX, 0.0f) && ROSEN_EQ(scaleY, 0.0f)) {
+        if (!ROSEN_EQ(std::abs(skewX), 1.0f) || !ROSEN_EQ(std::abs(skewY), 1.0f)) {
+            // has scale
+            return Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+        }
+    } else {
+        // skew and/or non 90 degrees rotation
+        return Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    }
+    return Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
 }
 
 GraphicTransformType DrawSurfaceBufferOpItem::MapGraphicTransformType(GraphicTransformType origin)
