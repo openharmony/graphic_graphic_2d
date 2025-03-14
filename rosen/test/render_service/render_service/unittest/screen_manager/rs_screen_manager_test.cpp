@@ -319,7 +319,7 @@ HWTEST_F(RSScreenManagerTest, SetPhysicalScreenResolution_001, TestSize.Level1)
     ASSERT_NE(screenManager, nullptr);
 
     ScreenId id = mockScreenId_;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
     ASSERT_NE(rsScreen, nullptr);
 
     uint32_t width = 1920;
@@ -812,7 +812,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Lev
     ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
 
     GraphicIRect activeRect {
@@ -943,7 +943,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     RSScreenData screenData = screenManager->GetScreenData(screenId);
     ASSERT_EQ(screenData.GetCapability().GetType(), DISP_INVALID);  // type_ attribute is INVALID for virtual screen.
@@ -964,7 +964,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
@@ -1088,7 +1088,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_003, TestSize.Level1)
     ScreenId newId = 0;
     ASSERT_NE(screenManager->SetVirtualScreenSurface(newId, nullptr), SUCCESS);
     screenManager->Init();
-    auto rsScreen = std::make_unique<impl::RSScreen>(newId, false, HdiOutput::CreateHdiOutput(newId), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(newId, false, HdiOutput::CreateHdiOutput(newId), nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
@@ -1194,7 +1194,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
@@ -1214,7 +1214,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     screenManager->MockHdiScreenConnected(rsScreen);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
@@ -1258,7 +1258,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatus_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), ScreenPowerStatus::INVALID_POWER_STATUS);
@@ -1276,7 +1276,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
@@ -1317,7 +1317,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenCorrection_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     ASSERT_EQ(screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270), StatusCode::SUCCESS);
 }
@@ -1347,7 +1347,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenCorrection_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
     screenManager->MockHdiScreenConnected(rsScreen);
     screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_270);
     ASSERT_EQ(screenManager->GetScreenCorrection(screenId), ScreenRotation::ROTATION_270);
@@ -2122,7 +2122,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList004, TestSize.Level1)
     ScreenId mainId = id;
     screenManagerImpl.SetDefaultScreenId(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     std::vector<uint64_t> blackList = {};
 
     ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
@@ -2147,7 +2147,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList005, TestSize.Level1)
     screenManagerImpl.SetDefaultScreenId(mainId);
     screenManagerImpl.screens_.erase(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     std::vector<uint64_t> blackList = {};
 
     ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
@@ -2171,7 +2171,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList006, TestSize.Level1)
     ScreenId mainId = 0;
     screenManagerImpl.SetDefaultScreenId(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     screenManagerImpl.screens_[mainId] = nullptr;
     std::vector<uint64_t> blackList = {};
 
@@ -2214,7 +2214,7 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList002, TestSize.Level1)
 
     ScreenId mainId = id;
     screenManagerImpl.SetDefaultScreenId(mainId);
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
     ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
 }
@@ -2237,7 +2237,7 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList003, TestSize.Level1)
     screenManagerImpl.SetDefaultScreenId(mainId);
     std::vector<uint64_t> blackList = {};
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
     ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
 
@@ -2262,9 +2262,9 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
     ScreenId mainId = 0;
     screenManagerImpl.SetDefaultScreenId(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
-    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
     std::vector<uint64_t> blackList = {};
 
@@ -2307,7 +2307,7 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList002, TestSize.Level1)
 
     ScreenId mainId = id;
     screenManagerImpl.SetDefaultScreenId(mainId);
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
     ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
 }
@@ -2330,7 +2330,7 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList003, TestSize.Level1)
     screenManagerImpl.SetDefaultScreenId(mainId);
     std::vector<uint64_t> blackList = {};
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
     ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
 
@@ -2355,9 +2355,9 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList004, TestSize.Level1)
     ScreenId mainId = 0;
     screenManagerImpl.SetDefaultScreenId(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
-    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
     std::vector<uint64_t> blackList = {};
 
@@ -2382,8 +2382,8 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
     ScreenId mainId = 0;
     screenManagerImpl.SetDefaultScreenId(mainId);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
-    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     std::vector<uint64_t> blackList = {};
 
     ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
@@ -2414,7 +2414,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList001, TestSize
     ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
     screenManagerImpl.screens_.erase(id);
@@ -2435,7 +2435,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList002, TestSize
 
     ScreenId id = 1;
     std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
     auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 }
@@ -2477,7 +2477,7 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList002, TestSize
 
     ScreenId id = 1;
     std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
     auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
     auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
@@ -2533,7 +2533,7 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect002, TestSize.Level1)
     uint32_t width = 720;  // width value for test
     uint32_t height = 1280;  // height value for test
     Rect rect = {0, 0, width, height};
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
     int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 
@@ -2556,7 +2556,7 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId id = 1;
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
     screenManagerImpl.screens_[id]->SetEnableVisibleRect(true);
     Rect rect = {0, 0, 0, 0};
     int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
@@ -2600,7 +2600,7 @@ HWTEST_F(RSScreenManagerTest, GetMirrorScreenVisibleRect002, TestSize.Level1)
     uint32_t width = 720;  // width value for test
     uint32_t height = 1280;  // height value for test
     Rect rectSet = {0, 0, width, height};
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
     int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rectSet);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
 
@@ -2662,7 +2662,7 @@ HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow003, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId id = 1;
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     bool enable = false;
     ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SUCCESS);
 }
@@ -2716,7 +2716,7 @@ HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow003, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId id = 1;
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     bool enable = false;
     ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SUCCESS);
     ASSERT_EQ(screenManagerImpl.GetCastScreenEnableSkipWindow(id), enable);
@@ -2771,7 +2771,7 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList003, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId id = 1;
-    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
 
     const std::vector<uint64_t>& blackList = { 1, 2, 3, 4 };
     std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
@@ -2798,7 +2798,7 @@ HWTEST_F(RSScreenManagerTest, GetAllBlackList001, TestSize.Level1)
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     ScreenId id = 1;
-    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    auto screen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     screen->SetCastScreenEnableSkipWindow(false);
     screenManagerImpl.screens_[id] = std::move(screen);
 
@@ -2826,7 +2826,7 @@ HWTEST_F(RSScreenManagerTest, GetAllWhiteList001, TestSize.Level1)
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     ScreenId id = 1;
-    auto screen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    auto screen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     const std::unordered_set<NodeId>& whiteList = { 1, 2, 3, 4 };
     screen->whiteList_ = whiteList;
     screenManagerImpl.screens_[id] = std::move(screen);
@@ -2987,7 +2987,7 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
     impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 
-    screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
+    screenManagerImpl.screens_[SCREEN_ID] = std::make_shared<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
     impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 }
@@ -3169,7 +3169,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer, TestSize.Level1)
     screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
     screenManagerImpl->RSScreenManager::SetScreenHasProtectedLayer(100, true);
     EXPECT_EQ(false, rsScreen0->GetHasProtectedLayer());
-   
+
     screenManagerImpl->screens_[100] = rsScreen0;
     screenManagerImpl->RSScreenManager::SetScreenHasProtectedLayer(100, true);
     EXPECT_EQ(true, rsScreen0->GetHasProtectedLayer());
@@ -3190,7 +3190,7 @@ HWTEST_F(RSScreenManagerTest, GetDisplayPropertyForHardCursor001, TestSize.Level
         std::make_shared<impl::RSScreen>(100, true, HdiOutput::CreateHdiOutput(100), nullptr);
     EXPECT_NE(nullptr, rsScreen0);
     rsScreen0->isHardCursorSupport_ = true;
-    
+
     screenManagerImpl->screens_.clear();
     auto res = screenManagerImpl->RSScreenManager::GetDisplayPropertyForHardCursor(100);
     EXPECT_EQ(false, res);

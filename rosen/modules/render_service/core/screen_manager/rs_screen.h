@@ -50,8 +50,8 @@ public:
     virtual ~RSScreen() noexcept = default;
 
     virtual ScreenId Id() const = 0;
-    virtual ScreenId MirrorId() const = 0;
-    virtual void SetMirror(ScreenId mirrorId) = 0;
+    virtual ScreenId MirroredId() const = 0;
+    virtual void SetMirror(ScreenId mirroredId) = 0;
     virtual const std::string& Name() const = 0;
     virtual uint32_t Width() const = 0;
     virtual uint32_t Height() const = 0;
@@ -161,8 +161,8 @@ public:
     RSScreen &operator=(const RSScreen &) = delete;
 
     ScreenId Id() const override;
-    ScreenId MirrorId() const override;
-    void SetMirror(ScreenId mirrorId) override;
+    ScreenId MirroredId() const override;
+    void SetMirror(ScreenId mirroredId) override;
     const std::string& Name() const override;
     // render resolution
     uint32_t Width() const override;
@@ -275,7 +275,7 @@ private:
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;
     // If this screen is the mirror of other screen, this member would be a valid id.
-    ScreenId mirrorId_ = INVALID_SCREEN_ID;
+    ScreenId mirroredId_ = INVALID_SCREEN_ID;
 
     std::string name_;
 

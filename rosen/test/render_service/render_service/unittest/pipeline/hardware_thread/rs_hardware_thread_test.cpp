@@ -87,8 +87,7 @@ void RSHardwareThreadTest::TearDown()
 void RSHardwareThreadTest::SetUp()
 {
     screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    std::unique_ptr<impl::RSScreen> rsScreen =
-        std::make_unique<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
     screenId_ = rsScreen->Id();
     screenManager_->MockHdiScreenConnected(rsScreen);
     CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,

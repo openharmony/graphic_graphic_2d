@@ -1484,7 +1484,7 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
             RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
             continue;
         }
-        if (screen->MirrorId() == id) {
+        if (screen->MirroredId() == id) {
             screen->SetMirror(INVALID_SCREEN_ID);
         }
     }

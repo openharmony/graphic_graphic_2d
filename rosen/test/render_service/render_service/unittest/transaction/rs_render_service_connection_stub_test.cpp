@@ -51,7 +51,6 @@ public:
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
     static inline sptr<RSScreenManager> screenManager_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
-    static inline std::unique_ptr<impl::RSScreen> rsScreen_;
     int32_t offsetX = 0; //screenOffset on x axis equals to 0
     int32_t offsetY = 0; //screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
@@ -70,9 +69,9 @@ sptr<RSRenderServiceConnectionStub> RSRenderServiceConnectionStubTest::connectio
 void RSRenderServiceConnectionStubTest::SetUpTestCase()
 {
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    rsScreen_ = std::make_unique<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
     screenManager_ = CreateOrGetScreenManager();
-    screenManager_->MockHdiScreenConnected(rsScreen_);
+    screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
@@ -82,7 +81,6 @@ void RSRenderServiceConnectionStubTest::SetUpTestCase()
 void RSRenderServiceConnectionStubTest::TearDownTestCase()
 {
     hdiOutput_ = nullptr;
-    rsScreen_ = nullptr;
     composerAdapter_ = nullptr;
     screenManager_ = nullptr;
     hdiDeviceMock_ = nullptr;

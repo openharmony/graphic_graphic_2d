@@ -5353,7 +5353,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByRoundCornerDisplay002, 
     ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
 
     ScreenId screenId = 0;
-    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, HdiOutput::CreateHdiOutput(screenId), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, HdiOutput::CreateHdiOutput(screenId), nullptr);
     rsScreen->screenType_ = EXTERNAL_TYPE_SCREEN;
     rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
     RSDisplayNodeConfig config;

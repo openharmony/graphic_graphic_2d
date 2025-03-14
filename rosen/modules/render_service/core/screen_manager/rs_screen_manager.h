@@ -223,7 +223,7 @@ public:
     virtual void SetEqualVsyncPeriod(ScreenId id, bool isEqualVsyncPeriod) = 0;
 
     /* only used for mock tests */
-    virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
+    virtual void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) = 0;
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
@@ -467,12 +467,12 @@ public:
         std::vector<uint8_t>& edidData) const override;
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
+    void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) override
     {
         if (rsScreen == nullptr) {
             return;
         }
-        screens_[rsScreen->Id()] = std::move(rsScreen);
+        screens_[rsScreen->Id()] = rsScreen;
     }
 
     bool IsAllScreensPowerOff() const override;
