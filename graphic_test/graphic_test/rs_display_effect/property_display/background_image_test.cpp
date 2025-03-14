@@ -241,4 +241,25 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Al
     }
 }
 
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_InnerRect_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = 3;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Vector2f> positionList = {{-200, -200}, {20, 20}, {100, 100}, {300, 300}, {500, 500}};
+    for (int i = 0; i < positionList.size(); i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNodeBackGround->SetBgImageInnerRect({x + positionList[i][0], y + positionList[i][1], sizeX, sizeY});
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
 } // namespace OHOS::Rosen

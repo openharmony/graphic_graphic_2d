@@ -185,4 +185,17 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_10)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_ScaleZ_Test_1)
+{
+    vector<float> vecs = {-0.5, 0.0, 0.5, 1, 100.0};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetScaleZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
 } // namespace OHOS::Rosen

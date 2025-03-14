@@ -181,4 +181,24 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_8)
         }
     }
 }
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_9)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<std::vector<float>> skewValues = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.2},
+        {1.5, 0.5, 1}, {0.5, 1.5, 1}, {10, 20, 10}, {0.5, 0.5, 0.5}, {1.2, 1.2, 1.2}};
+    for (int i = 0; i < skewValues.size(); ++i) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNode->SetPivot(Vector2f(0.0, 0.0));
+        testNode->SetSkew(skewValues[i][0], skewValues[i][1], skewValues[i][2]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen
