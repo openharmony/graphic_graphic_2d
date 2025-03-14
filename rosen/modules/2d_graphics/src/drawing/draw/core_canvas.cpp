@@ -597,9 +597,19 @@ void CoreCanvas::BuildNoDraw(int32_t width, int32_t height)
     impl_->BuildNoDraw(width, height);
 }
 
+void CoreCanvas::BuildStateInherite(int32_t width, int32_t height)
+{
+    impl_->BuildStateInherite(width, height);
+}
+
 void CoreCanvas::Reset(int32_t width, int32_t height)
 {
     impl_->Reset(width, height);
+}
+
+void CoreCanvas::InheriteState(Canvas* canvas)
+{
+    impl_->InheriteState(canvas);
 }
 
 bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams)

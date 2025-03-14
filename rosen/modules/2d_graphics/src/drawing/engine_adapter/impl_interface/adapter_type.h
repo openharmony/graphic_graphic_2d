@@ -31,7 +31,8 @@ enum class DrawingType {
     RECORDING,
     OVER_DRAW,
     NO_DRAW,
-    PAINT_FILTER
+    PAINT_FILTER,
+    INHERITE_STATE
 };
 } // namespace Drawing
 } // namespace Rosen

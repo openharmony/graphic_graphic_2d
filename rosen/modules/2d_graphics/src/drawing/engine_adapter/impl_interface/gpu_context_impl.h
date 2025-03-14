@@ -47,6 +47,10 @@ public:
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+
+    virtual void GenerateSubmitInfo(int seq) {}
+    virtual void FlushCommands() {}
+
     virtual void Submit() = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
 

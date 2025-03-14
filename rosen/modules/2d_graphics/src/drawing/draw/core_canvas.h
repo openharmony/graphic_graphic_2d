@@ -145,6 +145,8 @@ public:
         return DrawingType::COMMON;
     }
 
+    void InheriteState(Canvas* canvas);
+
     /**
      * @brief Gets the total matrix of Canvas to device.
      * @return Returns the total matrix of Canvas to device.
@@ -754,6 +756,7 @@ public:
 protected:
     CoreCanvas(int32_t width, int32_t height);
     void BuildNoDraw(int32_t width, int32_t height);
+    void BuildStateInherite(int32_t width, int32_t height);
     void Reset(int32_t width, int32_t height);
     Paint paintBrush_;
     Paint paintPen_;
