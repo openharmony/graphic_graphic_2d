@@ -1267,9 +1267,15 @@ bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    RemoveVirtualScreenLocked(id);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        RemoveVirtualScreenLocked(id);
+    }
+    // when virtual screen doesn't exist no more, render control can be recovered.
+    {
+        std::lock_guard<std::mutex> lock(renderControlMutex_);
+        disableRenderControlScreens_.erase(id);
+    }
 }
 
 void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
@@ -1296,8 +1302,6 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
     RS_LOGD("RSScreenManager %{public}s: remove virtual screen(id %{public}" PRIu64 ").", __func__, id);
 
     ReuseVirtualScreenIdLocked(id);
-
-    disableRenderControlScreens_.erase(id);
 }
 
 void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -2209,14 +2213,14 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(renderControlMutex_);
     RS_LOGD("RSScreenManager Add Screen_%{public}" PRIu64 " for disable power-off render control.", id);
     disableRenderControlScreens_.insert(id);
 }
 
 int RSScreenManager::GetDisableRenderControlScreensCount() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(renderControlMutex_);
     return disableRenderControlScreens_.size();
 }
 
