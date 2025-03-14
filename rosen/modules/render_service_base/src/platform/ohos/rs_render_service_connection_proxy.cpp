@@ -3158,6 +3158,42 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::RegisterFirstFrameCallback(
+    sptr<RSIFirstFrameCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RegisterFirstFrameCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (callback) {
+        if (!data.WriteBool(true)) {
+            ROSEN_LOGE("RegisterFirstFrameCallback: WriteBool [true] err.");
+            return WRITE_PARCEL_ERR;
+        }
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("RegisterFirstFrameCallback: WriteRemoteObject callback->AsObject() err.");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("RegisterFirstFrameCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFirstFrameCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
 int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {

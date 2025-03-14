@@ -160,6 +160,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
+    "src/ipc_callbacks/rs_first_frame_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_first_frame_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
