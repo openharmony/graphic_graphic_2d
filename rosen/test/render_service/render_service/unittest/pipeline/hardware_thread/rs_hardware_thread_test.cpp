@@ -197,6 +197,7 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     layers.emplace_back(layer3);
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
+    hardwareThread.SetIsFirstFrame(true);
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
     auto &hgmCore = HgmCore::Instance();
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
@@ -639,5 +640,25 @@ HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Lev
     std::vector<LayerInfoPtr> layers;
     hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
     EXPECT_EQ(layers.size(), 0);
+}
+
+/*
+ * @tc.name: RegisterFirstFrameCallback
+ * @tc.desc: Test RSHardwareThreadTest.RegisterFirstFrameCallback
+ * @tc.type: FUNC
+ * @tc.require: issuesIBTF2E
+ */
+HWTEST_F(RSHardwareThreadTest, RegisterFirstFrameCallback, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    pid_t pid0 = 1000;
+    pid_t pid1 = 1001;
+    auto cb = [](uint32_t screenId, int64_t timestamp) {};
+    hardwareThread.RegisterFirstFrameCallback(pid0, cb);
+    EXPECT_NE(hardwareThread.firstFrameCallbacks_[pid0], nullptr);
+    hardwareThread.RegisterFirstFrameCallback(pid0, nullptr);
+    EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid0], nullptr);
+    hardwareThread.RegisterFirstFrameCallback(pid1, nullptr);
+    EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid1], nullptr);
 }
 } // namespace OHOS::Rosen
