@@ -22,6 +22,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "feature/capture/rs_ui_capture.h"
 #include "platform/ohos/rs_render_service_connection_proxy.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
@@ -1151,9 +1152,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetWindowContainer, TestSize.Level1
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 {
     pid_t pid = 0;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+    std::vector<PixelMapInfo> pixelMapInfoVector;
     int32_t repCode;
-    ASSERT_EQ(proxy->GetPixelMapByProcessId(pixelMapVector, pid, repCode), ERR_INVALID_VALUE);
+    ASSERT_EQ(proxy->GetPixelMapByProcessId(pixelMapInfoVector, pid, repCode), ERR_INVALID_VALUE);
     ASSERT_EQ(repCode, RS_CONNECTION_ERROR);
 }
 } // namespace Rosen

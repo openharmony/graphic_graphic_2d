@@ -350,7 +350,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 }
 
 ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
-    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid, int32_t& repCode)
+    std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -369,8 +369,8 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
     }
     repCode = reply.ReadInt32();
     if (repCode == SUCCESS) {
-        pixelMapVector.clear();
-        if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapVector)) {
+        pixelMapInfoVector.clear();
+        if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapInfoVector)) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId: Unmarshalling failed");
         }
     } else {
