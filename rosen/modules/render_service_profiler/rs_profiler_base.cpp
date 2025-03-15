@@ -23,14 +23,14 @@
 #include <utility>
 #include <vector>
 
-#include "sys_binder.h"
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_network.h"
-#include "rs_profiler_utils.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
+#include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
+#include "sys_binder.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -42,6 +42,7 @@
 #include "command/rs_surface_node_command.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -72,6 +73,9 @@ static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
+std::vector<std::shared_ptr<RSRenderNode>> RSProfiler::testTree_ = std::vector<std::shared_ptr<RSRenderNode>>();
+RSContext* RSProfiler::context_ = nullptr;
+RSMainThread* RSProfiler::mainThread_ = nullptr;
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;

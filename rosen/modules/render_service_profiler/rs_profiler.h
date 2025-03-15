@@ -16,6 +16,10 @@
 #ifndef RENDER_SERVICE_PROFILER_H
 #define RENDER_SERVICE_PROFILER_H
 
+#include <memory>
+
+#include "rs_profiler_test_tree.h"
+#include "common/rs_macros.h"
 #ifdef RS_PROFILER_ENABLED
 
 #include <map>
@@ -468,6 +472,8 @@ private:
     static void TestSaveFrame(const ArgList& args);
     static void TestLoadFrame(const ArgList& args);
     static void TestSwitch(const ArgList& args);
+    static void BuildTestTree(const ArgList& args);
+    static void ClearTestTree(const ArgList& args);
 
     static void OnFlagChangedCallback(const char *key, const char *value, void *context);
     static void OnWorkModeChanged();
@@ -494,6 +500,12 @@ private:
     // flag for enabling DRAWING_CANVAS_NODE redrawing
     RSB_EXPORT static std::atomic_bool dcnRedraw_;
     RSB_EXPORT static std::atomic_bool recordAbortRequested_;
+
+    RSB_EXPORT static RSContext* context_;
+    RSB_EXPORT static RSMainThread* mainThread_;
+
+    RSB_EXPORT static std::vector<std::shared_ptr<RSRenderNode>> testTree_;
+    friend class TestTreeBuilder;
 };
 
 } // namespace OHOS::Rosen
