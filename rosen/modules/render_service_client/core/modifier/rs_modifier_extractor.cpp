@@ -421,6 +421,11 @@ float RSModifierExtractor::GetBackgroundBlurRadiusY() const
     GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
 
+bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
+}
+
 float RSModifierExtractor::GetForegroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);
@@ -454,6 +459,11 @@ float RSModifierExtractor::GetForegroundBlurRadiusX() const
 float RSModifierExtractor::GetForegroundBlurRadiusY() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
+}
+
+bool RSModifierExtractor::GetFgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, FG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
 }
 
 float RSModifierExtractor::GetLightIntensity() const

@@ -256,6 +256,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_image_cache.cpp",
     "src/render/rs_kawase_blur.cpp",
     "src/render/rs_kawase_blur_shader_filter.cpp",
+    "src/render/rs_light_blur_shader_filter.cpp",
     "src/render/rs_light_up_effect_filter.cpp",
     "src/render/rs_linear_gradient_blur_shader_filter.cpp",
     "src/render/rs_magnifier_shader_filter.cpp",

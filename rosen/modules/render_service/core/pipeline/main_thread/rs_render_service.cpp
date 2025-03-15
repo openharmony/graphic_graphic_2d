@@ -997,6 +997,8 @@ void RSRenderService::FilterCCMInit()
     RSFilterCacheManager::isCCMEffectMergeEnable_ =
         std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(
+        std::static_pointer_cast<FilterParam>(filterParam)->IsBlurAdaptiveAdjust());
 }
 } // namespace Rosen
 } // namespace OHOS
