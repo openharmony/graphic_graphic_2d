@@ -450,6 +450,9 @@ private:
     // anco RSSurfaceNode process
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
+
+    // used in uifirst for checking whether leashwindow or its parent should paint or not
+    bool globalShouldPaint_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

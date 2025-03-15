@@ -642,6 +642,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
+    globalShouldPaint_ = true;
     curAlpha_ = 1.0f;
     globalZOrder_ = 0.0f;
     hasSkipLayer_ = false;
@@ -763,12 +764,16 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     auto prevAlpha = curAlpha_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     node.SetGlobalAlpha(curAlpha_);
+    auto preGlobalShouldPaint = globalShouldPaint_;
+    globalShouldPaint_ &= node.ShouldPaint();
+    node.SetSelfAndParentShouldPaint(globalShouldPaint_);
     CheckFilterCacheNeedForceClearOrSave(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
     auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     if (!geoPtr) {
+        globalShouldPaint_ = preGlobalShouldPaint;
         return;
     }
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
@@ -776,6 +781,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
         RSUifirstManager::Instance().DisableUifirstNode(node);
         node.OpincSetInAppStateEnd(unchangeMarkInApp_);
+        globalShouldPaint_ = preGlobalShouldPaint;
         return;
     }
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
@@ -787,6 +793,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager "
             "is set to nullptr by QuickPrepareChildren", node.GetName().c_str());
         node.OpincSetInAppStateEnd(unchangeMarkInApp_);
+        globalShouldPaint_ = preGlobalShouldPaint;
         return;
     }
     curSurfaceDirtyManager_->ClipDirtyRectWithinSurface();
@@ -800,6 +807,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     PostPrepare(node, !isSubTreeNeedPrepare);
     CheckMergeFilterDirtyByIntersectWithDirty(curSurfaceNoBelowDirtyFilter_, false);
     curAlpha_ = prevAlpha;
+    globalShouldPaint_ = preGlobalShouldPaint;
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
@@ -1002,6 +1010,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curDisplayDirtyManager_;
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
+    auto preGlobalShouldPaint = globalShouldPaint_;
+    globalShouldPaint_ &= node.ShouldPaint();
     auto curCornerRadius = curCornerRadius_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     CheckFilterCacheNeedForceClearOrSave(node);
@@ -1037,6 +1047,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
     node.OpincUpdateRootFlag(unchangeMarkEnable_);
+    globalShouldPaint_ = preGlobalShouldPaint;
     node.RenderTraceDebug();
 }
 

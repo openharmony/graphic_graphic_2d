@@ -127,6 +127,7 @@ public:
         } else {
             ClearCacheSurfaceInThread();
         }
+        drawWindowCache_.ClearCache();
     }
 
     bool IsCurFrameStatic(DeviceType deviceType);
