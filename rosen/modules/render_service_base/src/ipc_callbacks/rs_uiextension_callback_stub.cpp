@@ -24,6 +24,7 @@ int RSUIExtensionCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIUIExtensionCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSUIExtensionCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 

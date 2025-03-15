@@ -64,6 +64,7 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_)) {
+        RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);

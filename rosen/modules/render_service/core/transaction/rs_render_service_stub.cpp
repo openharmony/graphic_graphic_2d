@@ -48,12 +48,14 @@ int RSRenderServiceStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {
             auto interfaceToken = data.ReadInterfaceToken();
             if (interfaceToken != RSIRenderService::GetDescriptor()) {
+                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
                 ret = ERR_INVALID_STATE;
                 break;
             }
 
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
+                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read remoteObj failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
@@ -67,14 +69,17 @@ int RSRenderServiceStub::OnRemoteRequest(
             auto newConn = CreateConnection(token);
             if (newConn != nullptr) {
                 if (!reply.WriteBool(true)) {
+                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
                 if (!reply.WriteRemoteObject(newConn->AsObject())) {
+                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write remoteObj failed!");
                     ret = ERR_INVALID_REPLY;
                 }
             } else {
                 if (!reply.WriteBool(false)) {
+                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write failed and newConn == nullptr");
                     ret = ERR_INVALID_REPLY;
                 }
             }

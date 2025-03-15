@@ -26,6 +26,7 @@ int RSFrameRateLinkerExpectedFpsUpdateCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor()) {
+        RS_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackStub::OnRemoteRequest read token failed!");
         return ERR_INVALID_STATE;
     }
 
