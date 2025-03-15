@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ANI_FILTERR_H
-#define OHOS_ANI_FILTERR_H
+#ifndef OHOS_ANI_FILTER_H
+#define OHOS_ANI_FILTER_H
 
-#include "ani.h"
+#include <ani.h>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -26,12 +26,13 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class DrawError;
 class AniFilter {
 public:
     static ani_object Blur(ani_env* env, ani_object obj, ani_double param);
     static ani_object GetEffectPixelMap(ani_env* env, ani_object obj);
     static ani_object CreateEffect(ani_env* env, ani_object obj, ani_object para);
-    static ani_status Init(ani_env* env);  
+    static ani_status Init(ani_env* env);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
 
@@ -44,4 +45,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif //OHOS_ANI_FILTERR_H
+#endif //OHOS_ANI_FILTER_H

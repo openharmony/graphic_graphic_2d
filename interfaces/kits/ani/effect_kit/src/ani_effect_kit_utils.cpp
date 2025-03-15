@@ -64,7 +64,7 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
     return aniFilter;
 }
 
-AniFilter* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
+Media::PixelMapAni* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
 {
     ani_status ret;
     ani_long nativeObj {};

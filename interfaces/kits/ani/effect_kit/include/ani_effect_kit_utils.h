@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #ifndef OHOS_ANI_EFFECT_KIT_UTILS_H
 #define OHOS_ANI_EFFECT_KIT_UTILS_H
 
-#include "ani.h"
+#include <ani.h>
 
 #include "ani_filter.h"
 
@@ -28,7 +28,7 @@ public:
     static ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ani_long object);
     static ani_object CreateAniUndefined(ani_env* env);
     static AniFilter* GetFilterFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);
-    static AniFilter* GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);    
+    static Media::PixelMapAni* GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);    
 };
 
 } // namespace Rosen

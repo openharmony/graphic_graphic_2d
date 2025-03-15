@@ -1,15 +1,17 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+/*
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import("//build/ohos.gni")
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
@@ -34,6 +36,16 @@ config("graphic_ani_effect_kit_config") {
 
 ohos_shared_library("effectKit_ani") {
   branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = true
+  }
+
+  public_configs = []
+
   include_dirs = [
     "./include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
@@ -43,31 +55,30 @@ ohos_shared_library("effectKit_ani") {
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
   ]
 
-    configs = [ ":graphic_ani_effect_kit_config" ]
+  configs = [ ":graphic_ani_effect_kit_config" ]
 
-    sources = [
-      "./src/ani_effect_kit_module.cpp",
-      "./src/ani_effect_kit_utils.cpp",
-      "./src/ani_filter.cpp",
-    ]
+  sources = [
+    "./src/ani_effect_kit_module.cpp",
+    "./src/ani_effect_kit_utils.cpp",
+    "./src/ani_filter.cpp",
+  ]
 
-    deps = [
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
-      "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-    ]
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+    "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+  ]
 
-    external_deps = [
-      "c_utils:utils",
-      "hilog:libhilog",
-      "image_framework:image",
-      "image_framework:image_ani",
-      "runtime_core:ani",
-      "runtime_core:libarkruntime"
-    ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:image_ani",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime"
+  ]
 
-    relative_install_dir = "module"
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }
 ## Build effectKit_ani.so
 
