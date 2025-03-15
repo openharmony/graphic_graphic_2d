@@ -434,13 +434,14 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph001, TestSize.Level1)
     uint32_t count = OH_Drawing_FontCountText(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
     EXPECT_EQ(strlen(str), count);
     uint16_t glyphs[count];
-    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
-        glyphs, count);
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, glyphs, count);
+    std::vector result = { 160.50444, 116.570892, 84.6191406, 84.6191406, 80.983223, 195.274139, 80.983223, 83.3096237,
+        84.6191406, 126.002419 };
     for (int i = 0; i < count; i++) {
         OH_Drawing_Path* path = OH_Drawing_PathCreate();
         ASSERT_NE(path, nullptr);
         EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphs[i], path), OH_DRAWING_SUCCESS);
-        EXPECT_EQ(OH_Drawing_PathGetLength(path, false), 1);
+        EXPECT_LE(std::abs(OH_Drawing_PathGetLength(path, false) - result[i]), 0.01);
         EXPECT_TRUE(OH_Drawing_PathIsClosed(path, false));
         OH_Drawing_PathDestroy(path);
     }
@@ -547,19 +548,22 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds001, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_RectGetArraySize(outRectarr, &size), OH_DRAWING_SUCCESS);
     EXPECT_EQ(size, count);
     EXPECT_EQ(OH_Drawing_FontGetBounds(font, glyphs, count, outRectarr), OH_DRAWING_SUCCESS);
+    std::vector<std::array<int, 4>> arr = { { 23, 39, -39, 3 }, { 25, 28, -27, 2 }, { 6, 39, -39, 3 },
+        { 6, 39, -39, 3 }, { 26, 28, -27, 2 }, { 39, 26, -26, 0 }, { 26, 28, -27, 2 }, { 16, 27, -27, 3 },
+        { 6, 39, -39, 3 }, { 25, 40, -39, 2 } };
     for (int i = 0; i < count; i++) {
-        OH_Drawing_Rect *iter = nullptr;
+        OH_Drawing_Rect* iter = nullptr;
         EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
         ASSERT_NE(iter, nullptr);
-        EXPECT_EQ(OH_Drawing_RectGetWidth(iter), 1);
-        EXPECT_EQ(OH_Drawing_RectGetHeight(iter), 1);
-        EXPECT_EQ(OH_Drawing_RectGetTop(iter), 1);
-        EXPECT_EQ(OH_Drawing_RectGetLeft(iter), 1);
+        EXPECT_EQ((int)OH_Drawing_RectGetWidth(iter), arr[i][0]);
+        EXPECT_EQ((int)OH_Drawing_RectGetHeight(iter), arr[i][1]);
+        EXPECT_EQ((int)OH_Drawing_RectGetTop(iter), arr[i][2]);
+        EXPECT_EQ((int)OH_Drawing_RectGetLeft(iter), arr[i][3]);
         EXPECT_EQ(OH_Drawing_RectGetBottom(iter) - OH_Drawing_RectGetTop(iter), OH_Drawing_RectGetHeight(iter));
-        EXPECT_EQ(OH_Drawing_RectGetLeft(iter) - OH_Drawing_RectGetRight(iter), OH_Drawing_RectGetWidth(iter));
+        EXPECT_EQ(OH_Drawing_RectGetRight(iter) - OH_Drawing_RectGetLeft(iter), OH_Drawing_RectGetWidth(iter));
     }
     EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
-    
+
     OH_Drawing_FontDestroy(font);
 }
 

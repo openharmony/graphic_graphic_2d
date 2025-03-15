@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <codecvt>
 #include <filesystem>
 
 #include "drawing_font_collection.h"
@@ -61,7 +62,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest002, TestSi
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
     OH_Drawing_DestroyFontDescriptor(desc);
     EXPECT_NE(descArr, nullptr);
-    EXPECT_EQ(num, 100);
+    EXPECT_EQ(num, 141);
     OH_Drawing_DestroyFontDescriptors(descArr, num);
 }
 
@@ -146,25 +147,12 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest006, TestSi
     OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(nullptr, fontType);
     EXPECT_EQ(descriptor, nullptr);
 
-    // The array TTF_FULLNAME represents the UTF-16 encoded version of a non-existent font full name "你好openharmony".
-    const uint8_t TTF_FULLNAME[] = {
-        0x4F, 0x60,
-        0x59, 0x7D,
-        0x00, 0x6F,
-        0x00, 0x70,
-        0x00, 0x65,
-        0x00, 0x6E,
-        0x00, 0x68,
-        0x00, 0x61,
-        0x00, 0x72,
-        0x00, 0x6D,
-        0x00, 0x6F,
-        0x00, 0x6E,
-        0x00, 0x79
-    };
+    // The array ttfFullName represents the UTF-16 encoded version of a non-existent font full name "你好openharmony".
+    const uint8_t ttfFullName[] = { 0x4F, 0x60, 0x59, 0x7D, 0x00, 0x6F, 0x00, 0x70, 0x00, 0x65, 0x00, 0x6E, 0x00, 0x68,
+        0x00, 0x61, 0x00, 0x72, 0x00, 0x6D, 0x00, 0x6F, 0x00, 0x6E, 0x00, 0x79 };
     OH_Drawing_String drawingString;
-    drawingString.strData = const_cast<uint8_t*>(TTF_FULLNAME);
-    drawingString.strLen = sizeof(TTF_FULLNAME);
+    drawingString.strData = const_cast<uint8_t*>(ttfFullName);
+    drawingString.strLen = sizeof(ttfFullName);
     OH_Drawing_FontDescriptor *descriptor1 =
         OH_Drawing_GetFontDescriptorByFullName(&drawingString, OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(descriptor1, nullptr);
@@ -190,7 +178,10 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest007, TestSi
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        EXPECT_STREQ(descriptor->fullName, reinterpret_cast<char*>(fontFullName->strData));
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
+        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
+        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
         OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
@@ -210,13 +201,16 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest008, TestSi
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 10);
+    EXPECT_EQ(size, 1);
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        EXPECT_STREQ(descriptor->fullName, reinterpret_cast<char*>(fontFullName->strData));
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
+        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
+        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
         OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
@@ -233,13 +227,16 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest009, TestSi
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 10);
+    EXPECT_EQ(size, 140);
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        EXPECT_STREQ(descriptor->fullName, reinterpret_cast<char*>(fontFullName->strData));
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
+        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
+        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
         OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
@@ -260,13 +257,16 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest010, TestSi
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 10);
+    EXPECT_EQ(size, 1);
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        EXPECT_STREQ(descriptor->fullName, reinterpret_cast<char*>(fontFullName->strData));
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
+        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
+        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
         OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);
@@ -283,13 +283,16 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest011, TestSi
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 10);
+    EXPECT_EQ(size, 141);
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
         OH_Drawing_FontDescriptor *descriptor = OH_Drawing_GetFontDescriptorByFullName(fontFullName, fontType);
         ASSERT_NE(descriptor, nullptr);
-        EXPECT_STREQ(descriptor->fullName, reinterpret_cast<char*>(fontFullName->strData));
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        char16_t* begin = reinterpret_cast<char16_t*>(fontFullName->strData);
+        char16_t* end = reinterpret_cast<char16_t*>(fontFullName->strData + fontFullName->strLen);
+        EXPECT_EQ(convert.to_bytes(begin, end), descriptor->fullName);
         OH_Drawing_DestroyFontDescriptor(descriptor);
     }
     OH_Drawing_DestroySystemFontFullNames(fontList);

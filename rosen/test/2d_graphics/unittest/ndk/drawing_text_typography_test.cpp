@@ -1119,7 +1119,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
     OH_Drawing_SetTypographyTextLocale(typoStyle, text);
     OH_Drawing_SetTypographyTextSplitRatio(typoStyle, fontSize);
     OH_Drawing_TypographyGetTextStyle(typoStyle);
-    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle), 10);
+    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle), 0);
     EXPECT_TRUE(OH_Drawing_TypographyIsLineUnlimited(typoStyle));
     EXPECT_TRUE(OH_Drawing_TypographyIsEllipsized(typoStyle));
     OH_Drawing_SetTypographyTextStyle(typoStyle, txtStyle);
@@ -3337,7 +3337,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest002, TestSi
 
 /*
  * @tc.name: OH_Drawing_TypographyTest113
- * @tc.desc: test for the OH_Drawing_TextStyleAddFontVariation.
+ * @tc.desc: test for the input nullptr.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
