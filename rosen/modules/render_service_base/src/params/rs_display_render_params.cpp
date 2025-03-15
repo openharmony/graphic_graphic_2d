@@ -238,6 +238,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     RSRenderParams::OnSync(target);
 }
 

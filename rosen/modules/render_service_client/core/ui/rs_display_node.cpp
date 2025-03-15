@@ -273,6 +273,15 @@ void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_
     ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 
+void RSDisplayNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSDisplayNodeSetVirtualScreenMuteStatus>(GetId(), virtualScreenMuteStatus);
+    AddCommand(command, true);
+    ROSEN_LOGI("RSDisplayNode::SetVirtualScreenMuteStatus, displayNodeId:[%{public}" PRIu64 "] "
+        "virtualScreenMuteStatus: %{public}d", GetId(), virtualScreenMuteStatus);
+}
+
 RSDisplayNode::~RSDisplayNode() = default;
 
 } // namespace Rosen
