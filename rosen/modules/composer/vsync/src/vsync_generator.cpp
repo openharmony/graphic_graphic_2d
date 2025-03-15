@@ -84,6 +84,7 @@ uint32_t CalculateRefreshRate(int64_t period)
         {15000000, 18000000, 60}, // 15000000ns, 18000000ns
         {13000000, 15000000, 72}, // 13000000ns, 15000000ns
         {10000000, 12000000, 90}, // 10000000ns, 12000000ns
+        {12000000, 13000000, 80}, // 12000000ns, 13000000ns
         {7500000, 9000000, 120}, // 7500000ns, 9000000ns
         {6000000, 7500000, 144}}; // 6000000ns, 7500000ns
     for (const auto& rateSection : rateSections) {
@@ -809,7 +810,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     changingPhaseOffset_ = listenerPhaseOffset;
     needChangePhaseOffset_ = true;
 
-    if (generatorRefreshRate != currRefreshRate_ || generatorRefreshRate != changingGeneratorRefreshRate_) {
+    if (changingGeneratorRefreshRate_ != 0 || generatorRefreshRate != currRefreshRate_) {
         changingGeneratorRefreshRate_ = generatorRefreshRate;
         needChangeGeneratorRefreshRate_ = true;
     } else {

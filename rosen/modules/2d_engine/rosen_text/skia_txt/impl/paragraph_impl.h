@@ -19,6 +19,7 @@
 #include <mutex>
 #include <optional>
 #include <pthread.h>
+#include <vector>
 
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/DartTypes.h"
@@ -139,7 +140,11 @@ private:
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
 
+    void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles);
+
     void RecordDifferentPthreadCall(const char* caller) const;
+
+    void InitSymbolRuns();
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -149,6 +154,8 @@ private:
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
     mutable pthread_t threadId_;
+    std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
+    std::once_flag initSymbolRunsFlag_;
 };
 } // namespace SPText
 } // namespace Rosen

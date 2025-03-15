@@ -64,6 +64,10 @@ public:
         return token_;
     }
 
+    // [Attention] Only used in PC window resize scene now
+    void EnableWindowKeyFrame(bool enable);
+    bool IsWindowKeyFrameEnabled();
+
 private:
     explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);

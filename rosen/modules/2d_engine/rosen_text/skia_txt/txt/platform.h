@@ -24,11 +24,26 @@
 
 #include "text/font_mgr.h"
 
+#ifndef TEXTING_API
+#ifdef _WIN32
+#define TEXTING_EXPORT __attribute__((dllexport))
+#define TEXTING_IMPORT __attribute__((dllimport))
+#else
+#define TEXTING_EXPORT __attribute__((visibility("default")))
+#define TEXTING_IMPORT __attribute__((visibility("default")))
+#endif
+#ifdef MODULE_TEXTING
+#define TEXTING_API TEXTING_EXPORT
+#else
+#define TEXTING_API TEXTING_IMPORT
+#endif
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
 constexpr const char* OHOS_THEME_FONT = "OhosThemeFont";
-class DefaultFamilyNameMgr {
+class TEXTING_API DefaultFamilyNameMgr {
 public:
     static DefaultFamilyNameMgr& GetInstance();
     std::vector<std::string> GetDefaultFontFamilies() const;

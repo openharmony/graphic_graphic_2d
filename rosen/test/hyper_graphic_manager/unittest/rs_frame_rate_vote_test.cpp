@@ -200,6 +200,8 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
+    pid_t pid1 = 1;
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(pid1, eventInfo2);
 }
 } // namespace Rosen
 } // namespace OHOS

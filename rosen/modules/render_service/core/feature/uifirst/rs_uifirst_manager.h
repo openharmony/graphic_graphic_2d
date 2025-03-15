@@ -84,10 +84,32 @@ public:
 
     void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
     void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
-    
+
+    bool GetUiFirstSwitch() const
+    {
+        return isUiFirstOn_;
+    }
+
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
         isUiFirstOn_ = uiFirstSwitch;
+    }
+
+    void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
+    {
+        isCardUiFirstOn_ = cardUiFirstSwitch;
+    }
+
+    UiFirstCcmType GetUiFirstType() const
+    {
+        return uifirstType_;
+    }
+
+    void SetUiFirstType(int type);
+
+    void SetPurgeEnable(bool purgeEnable)
+    {
+        purgeEnable_ = purgeEnable;
     }
 
     void SetNodeNeedForceUpdateFlag(bool flag)
@@ -154,6 +176,7 @@ public:
         isFreeMultiWindowEnabled_ = enable;
     }
     UiFirstModeType GetUiFirstMode();
+    void ReadUIFirstCcmParam();
     // only use in mainThread & RT onsync
     inline void UifirstCurStateClear()
     {
@@ -221,6 +244,9 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool purgeEnable_ = false;
+    bool isCardUiFirstOn_ = false;
+    UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
@@ -258,6 +284,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     std::list<NodeId> sortedSubThreadNodeIds_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>  pindingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;

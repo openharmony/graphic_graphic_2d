@@ -25,6 +25,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
@@ -108,28 +109,27 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
     RSUniRenderThread::Instance().PostSyncTask(syncTask);
 }
 
-void RSSurfaceCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze,
-    const RSSurfaceCaptureBlurParam& blurParam)
+void RSSurfaceCaptureTaskParallel::Capture(
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACECAPTURETASKPARALLEL_CAPTURE);
     if (callback == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
+        RS_LOGE(
+            "RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", captureParam.id);
         return;
     }
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
-        std::make_shared<RSSurfaceCaptureTaskParallel>(id, captureConfig);
+        std::make_shared<RSSurfaceCaptureTaskParallel>(captureParam.id, captureParam.config);
     if (!captureHandle->CreateResources()) {
-        callback->OnSurfaceCapture(id, captureConfig, nullptr);
+        callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr);
         return;
     }
 
-    std::function<void()> captureTask = [captureHandle, id, captureConfig, callback, blurParam,
-        isSystemCalling, isFreeze]() -> void {
+    std::function<void()> captureTask = [captureHandle, callback, captureParam]() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCapture");
-        if (!captureHandle->Run(callback, blurParam, isSystemCalling, isFreeze)) {
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+        if (!captureHandle->Run(callback, captureParam)) {
+            callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr);
         }
     };
     RSUniRenderThread::Instance().PostSyncTask(captureTask);
@@ -204,8 +204,8 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     return true;
 }
 
-bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureBlurParam& blurParam, bool isSystemCalling, bool isFreeze)
+bool RSSurfaceCaptureTaskParallel::Run(
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACECAPTURETASKPARALLEL_RUN);
@@ -235,15 +235,15 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, true, isSystemCalling,
-            blurParam.isNeedBlur));
-        canvas.SetIsWindowFreezeCapture(isFreeze);
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, true, captureParam.isSystemCalling,
+            captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
+        canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
-        if (isFreeze) {
+        if (captureParam.isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
         }
-        if (blurParam.isNeedBlur) {
-            AddBlur(canvas, surface, blurParam.blurRadius);
+        if (captureParam.blurParam.isNeedBlur) {
+            AddBlur(canvas, surface, captureParam.blurParam.blurRadius);
         }
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
@@ -256,11 +256,15 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), !RSSystemProperties::IsPcType());
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
     }
-    if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
+    bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
+    bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
+        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
+    if (snapshotDmaEnabled && isEnableFeature) {
         auto copytask = CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, captureConfig_, callback, finalRotationAngle_);
         if (!copytask) {

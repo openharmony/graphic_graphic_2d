@@ -15,6 +15,7 @@
 
 #include "rs_screen_manager.h"
 
+#include "graphic_feature_param_manager.h"
 #include "display_engine/rs_color_temperature.h"
 #include "hgm_core.h"
 #include "pipeline/rs_display_render_node.h"
@@ -184,11 +185,13 @@ void RSScreenManager::HandleSensorData(float angle)
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     FoldState foldState = TransferAngleToScreenState(angle);
     if (foldState == FoldState::FOLDED) {
-        RS_LOGI("%{public}s: foldState == FoldState::FOLDED.", __func__);
-        activeScreenId_ = externalScreenId_;
-    } else {
-        RS_LOGI("%{public}s: foldState != FoldState::FOLDED.", __func__);
+        if (activeScreenId_ != externalScreenId_) {
+            activeScreenId_ = externalScreenId_;
+            RS_LOGI("%{public}s: foldState is FoldState::FOLDED.", __func__);
+        }
+    } else if (activeScreenId_ != innerScreenId_) {
         activeScreenId_ = innerScreenId_;
+        RS_LOGI("%{public}s: foldState is not FoldState::FOLDED.", __func__);
     }
     isPostureSensorDataHandled_ = true;
     HgmCore::Instance().SetActiveScreenId(activeScreenId_);
@@ -420,9 +423,9 @@ void RSScreenManager::OnHwcDeadEvent()
             } else {
 #ifdef RS_ENABLE_GPU
                 RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
+#endif
             }
         }
-#endif
     }
     isHwcDead_ = true;
     defaultScreenId_ = INVALID_SCREEN_ID;
@@ -544,17 +547,22 @@ void RSScreenManager::ProcessPendingConnections()
         std::lock_guard<std::mutex> lock(hotPlugAndConnectMutex_);
         pendingConnectedIds = std::move(pendingConnectedIds_);
     }
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("%{public}s multiScreenFeatureParam is null", __func__);
+        return;
+    }
     for (auto id : pendingConnectedIds) {
         if (!isHwcDead_) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && RSSystemProperties::IsPcType()) {
+        } else if (id != 0 && multiScreenFeatureParam->IsRsReportHwcDead()) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
         auto screen = GetScreen(id);
         if (screen == nullptr) {
             continue;
         }
-
         ScreenRotation rotation = ScreenRotation::INVALID_SCREEN_ROTATION;
         int32_t backLightLevel = INVALID_BACKLIGHT_VALUE;
         {
@@ -569,7 +577,6 @@ void RSScreenManager::ProcessPendingConnections()
         if (rotation != ScreenRotation::INVALID_SCREEN_ROTATION) {
             screen->SetScreenCorrection(rotation);
         }
-
         bool screenPowerOn = false;
         {
             std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
@@ -655,13 +662,8 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 
     std::unique_lock<std::mutex> lock(mutex_);
     screens_[id] = screen;
-    if (isFoldScreenFlag_ && screens_.size() == ORIGINAL_FOLD_SCREEN_AMOUNT) {
-        std::vector<uint64_t> foldScreenIds;
-        for (auto screen : screens_) {
-            foldScreenIds.push_back(screen.first);
-        }
-        CreateVSyncSampler()->SetIsFoldScreenFlag(isFoldScreenFlag_);
-        CreateVSyncSampler()->SetFoldScreenIds(foldScreenIds);
+    if (isFoldScreenFlag_ && foldScreenIds_.size() < ORIGINAL_FOLD_SCREEN_AMOUNT) {
+        foldScreenIds_[id] = {true, false};
     }
     lock.unlock();
 
@@ -675,17 +677,10 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
     }
     defaultScreenId_ = defaultScreenId;
 
-    ScreenId vsyncEnabledScreenId = id;
-    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
-        vsyncEnabledScreenId = defaultScreenId;
-        if (defaultScreenId == id) {
-            screen->SetScreenVsyncEnabled(true);
-        }
-    }
-    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RegSetScreenVsyncEnabledCallbackForMainThread(vsyncEnabledScreenId);
-    } else {
-        RegSetScreenVsyncEnabledCallbackForHardwareThread(vsyncEnabledScreenId);
+    uint64_t vsyncEnabledScreenId = JudgeVSyncEnabledScreenWhileHotPlug(id, true);
+    UpdateVsyncEnabledScreenId(vsyncEnabledScreenId);
+    if (vsyncEnabledScreenId == id) {
+        screen->SetScreenVsyncEnabled(true);
     }
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -722,20 +717,33 @@ void RSScreenManager::ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& outp
         HandleDefaultScreenDisConnected();
     }
 
-    ScreenId vsyncEnabledScreenId = INVALID_SCREEN_ID;
-    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
-        vsyncEnabledScreenId = defaultScreenId_;
-    } else {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (screens_.size() != 0) {
-            vsyncEnabledScreenId = screens_.rbegin()->first;
+    uint64_t vsyncEnabledScreenId = JudgeVSyncEnabledScreenWhileHotPlug(id, false);
+    UpdateVsyncEnabledScreenId(vsyncEnabledScreenId);
+}
+
+void RSScreenManager::UpdateVsyncEnabledScreenId(ScreenId screenId)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (isFoldScreenFlag_ && foldScreenIds_.size() == ORIGINAL_FOLD_SCREEN_AMOUNT) {
+        bool isAllFoldScreenDisconnected = true;
+        for (const auto &[foldScreenId, foldScreenStatus] : foldScreenIds_) {
+            if (foldScreenStatus.isConnected) {
+                isAllFoldScreenDisconnected = false;
+                break;
+            }
+        }
+        auto it = foldScreenIds_.find(screenId);
+        if (it == foldScreenIds_.end() && !isAllFoldScreenDisconnected) {
+            return;
         }
     }
+    lock.unlock();
+
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RegSetScreenVsyncEnabledCallbackForMainThread(vsyncEnabledScreenId);
+        RegSetScreenVsyncEnabledCallbackForMainThread(screenId);
     } else {
-        RegSetScreenVsyncEnabledCallbackForHardwareThread(vsyncEnabledScreenId);
+        RegSetScreenVsyncEnabledCallbackForHardwareThread(screenId);
     }
 }
 
@@ -812,6 +820,79 @@ void RSScreenManager::HandleDefaultScreenDisConnected()
         defaultScreenId = screens_.cbegin()->first;
     }
     defaultScreenId_ = defaultScreenId;
+}
+
+void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected)
+{
+    if (isFoldScreenFlag_) {
+        auto it = foldScreenIds_.find(screenId);
+        if (it != foldScreenIds_.end()) {
+            it->second.isConnected = connected;
+        }
+    }
+}
+
+uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    UpdateFoldScreenConnectStatusLocked(screenId, connected);
+
+    auto vsyncSampler = CreateVSyncSampler();
+    if (vsyncSampler == nullptr) {
+        RS_LOGE("%{public}s failed, vsyncSampler is null", __func__);
+        return screenId;
+    }
+    uint64_t vsyncEnabledScreenId = vsyncSampler->GetVsyncEnabledScreenId();
+    if (connected) { // screen connected
+        if (vsyncEnabledScreenId == UINT64_MAX) {
+            return screenId;
+        }
+    } else { // screen disconnected
+        if (vsyncEnabledScreenId != screenId) {
+            return vsyncEnabledScreenId;
+        }
+        vsyncEnabledScreenId = UINT64_MAX;
+        for (const auto &[id, screen] : screens_) {
+            if (screen == nullptr) {
+                RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
+                continue;
+            }
+            if (!screen->IsVirtual()) {
+                vsyncEnabledScreenId = id;
+                break;
+            }
+        }
+    }
+    return vsyncEnabledScreenId;
+}
+
+uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    uint64_t vsyncEnabledScreenId = CreateVSyncSampler()->GetVsyncEnabledScreenId();
+    auto it = foldScreenIds_.find(screenId);
+    if (it == foldScreenIds_.end()) {
+        return vsyncEnabledScreenId;
+    }
+
+    if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+        it->second.isPowerOn = true;
+        auto vsyncScreenIt = foldScreenIds_.find(vsyncEnabledScreenId);
+        if (vsyncScreenIt == foldScreenIds_.end() || vsyncScreenIt->second.isPowerOn == false) {
+            return screenId;
+        }
+    } else if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
+        it->second.isPowerOn = false;
+        if (screenId != vsyncEnabledScreenId) {
+            return vsyncEnabledScreenId;
+        }
+        for (auto &[foldScreenId, status] : foldScreenIds_) {
+            if (status.isConnected && status.isPowerOn) {
+                return foldScreenId;
+            }
+        }
+    }
+    return vsyncEnabledScreenId;
 }
 
 // if SetVirtualScreenSurface success, force a refresh of one frame, avoiding prolong black screen
@@ -1258,6 +1339,37 @@ const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(Scre
     return virtualScreen->second->GetBlackList();
 }
 
+std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allBlackList;
+    for (const auto& screen : screens_) {
+        if (screen.second == nullptr) {
+            continue;
+        }
+        if (screen.second->GetCastScreenEnableSkipWindow()) {
+            allBlackList.insert(castScreenBlackList_.begin(), castScreenBlackList_.end());
+        } else {
+            const auto& blackList = screen.second->GetBlackList();
+            allBlackList.insert(blackList.begin(), blackList.end());
+        }
+    }
+    return allBlackList;
+}
+
+std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::unordered_set<uint64_t> allWhiteList;
+    for (const auto& screen : screens_) {
+        if (screen.second != nullptr) {
+            const auto& whiteList = screen.second->GetWhiteList();
+            allWhiteList.insert(whiteList.begin(), whiteList.end());
+        }
+    }
+    return allWhiteList;
+}
+
 int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1468,6 +1580,11 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         return;
     }
 
+    if (isFoldScreenFlag_) {
+        uint64_t vsyncEnabledScreenId = JudgeVSyncEnabledScreenWhilePowerStatusChanged(id, status);
+        UpdateVsyncEnabledScreenId(vsyncEnabledScreenId);
+    }
+
     /*
      * If app adds the first frame when power on the screen, delete the code
      */
@@ -1578,7 +1695,6 @@ ScreenRotation RSScreenManager::GetScreenCorrection(ScreenId id) const
 
 RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     RSScreenData screenData;
     if (GetScreen(id) == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
@@ -1811,6 +1927,15 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
         }
         screen->DisplayDump(index, dumpString);
         index++;
+    }
+    if (isFoldScreenFlag_) {
+        dumpString += "===================\n";
+        dumpString += "foldScreenIds_ size is " + std::to_string(foldScreenIds_.size()) + "\n";
+        for (auto &[screenId, status] : foldScreenIds_) {
+            dumpString += "foldScreenId:" + std::to_string(screenId) +
+                ", isConnected:" + std::to_string(status.isConnected) +
+                ", isPowerOn:" + std::to_string(status.isPowerOn) + "\n";
+        }
     }
 }
 
@@ -2308,7 +2433,7 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
 {
     std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
     if (screenPowerStatus_.count(id) == 0) {
-        RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
+        RS_LOGD("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
         return false;
     }
     return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||

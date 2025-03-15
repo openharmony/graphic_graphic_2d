@@ -117,6 +117,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetClipRectThreshold()
 {
     return 1.f;
@@ -534,6 +539,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
@@ -607,6 +617,21 @@ bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
 bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

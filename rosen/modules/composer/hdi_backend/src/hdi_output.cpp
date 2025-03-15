@@ -164,6 +164,20 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
     ResetLayerStatusLocked();
 }
 
+void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    RS_TRACE_NAME_FMT("HdiOutput::CleanLayerBufferById, screenId=%u, surfaceId=%lu", screenId_, surfaceId);
+    auto iter = surfaceIdMap_.find(surfaceId);
+    if (iter == surfaceIdMap_.end()) {
+        return;
+    }
+    const LayerPtr& layer = iter->second;
+    if (layer) {
+        layer->ClearBufferCache();
+    }
+}
+
 void HdiOutput::DeletePrevLayersLocked()
 {
     auto surfaceIter = surfaceIdMap_.begin();

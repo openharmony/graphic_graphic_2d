@@ -1491,7 +1491,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest055
- * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.desc: test for unresolved glyphs count of text typography
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level1)
@@ -1502,10 +1502,18 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level
     ASSERT_NE(fontCollection, nullptr);
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
     ASSERT_NE(handler, nullptr);
+    const char* text = "OpenHarmony";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     ASSERT_NE(typography, nullptr);
     int32_t result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(typography);
     EXPECT_NE(result, 0);
+    const char* unresolvedGlyphText = "\uFFFF";
+    OH_Drawing_TypographyHandlerAddText(handler, unresolvedGlyphText);
+    typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(typography);
+    EXPECT_NE(result, 1);
     result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(nullptr);
     EXPECT_EQ(result, 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -2523,8 +2531,23 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+
+    OH_Drawing_PlaceholderSpan *placeholderSpan = new OH_Drawing_PlaceholderSpan();
+    placeholderSpan->width = 150.0;
+    placeholderSpan->height = 160.0;
+    OH_Drawing_TypographyHandlerAddPlaceholder(handler, placeholderSpan);
+    OH_Drawing_TypographyHandlerAddPlaceholder(handler, placeholderSpan);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     OH_Drawing_TextBox* textBox = OH_Drawing_TypographyGetRectsForPlaceholders(typography);
+    int size = OH_Drawing_GetSizeOfTextBox(textBox);
+    EXPECT_EQ(size, 2);
+    for (int i = 0; i < size; i++) {
+        EXPECT_EQ(OH_Drawing_GetLeftFromTextBox(textBox, i), 0.000000 + i * 150.000000);
+        EXPECT_EQ(OH_Drawing_GetRightFromTextBox(textBox, i), 150.000000 + i * 150.000000);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_GetTopFromTextBox(textBox, i)), 0);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_GetBottomFromTextBox(textBox, i)), 159);
+    }
     OH_Drawing_TypographyGetRectsForPlaceholders(nullptr);
     EXPECT_NE(textBox, nullptr);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -2535,12 +2558,14 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest107
- * @tc.desc: test for the textshadow.
+ * @tc.desc: test for default textshadow.
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level1)
 {
+    // Test default scenario
     OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
+    EXPECT_NE(shadow, nullptr);
     uint32_t color = 0;
     OH_Drawing_Point* offset = OH_Drawing_PointCreate(0, 0);
     double blurRadius = 0.0;
@@ -2552,6 +2577,63 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_DestroyTextShadow(nullptr);
     OH_Drawing_PointDestroy(nullptr);
     EXPECT_NE(shadow, nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TextStyleAddShadowTest
+ * @tc.desc: test for multiple shadow parameters and abnormal shadow parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleAddShadowTest, TestSize.Level1)
+{
+    // Test the full shadow parameters of the scene
+    OH_Drawing_TextShadow* shadow2 = OH_Drawing_CreateTextShadow();
+    uint32_t color2 = OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00);
+    OH_Drawing_Point* offset2 = OH_Drawing_PointCreate(10, 10);
+    double blurRadius2 = 10.0;
+    OH_Drawing_SetTextShadow(shadow2, color2, offset2, blurRadius2);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+    int getCount2 = OH_Drawing_TextStyleGetShadowCount(textStyle);
+    EXPECT_EQ(getCount2, 2);
+    OH_Drawing_TextStyleClearShadows(textStyle);
+    EXPECT_EQ(OH_Drawing_TextStyleGetShadowCount(textStyle), 0);
+    OH_Drawing_TextShadow* shadow21 = OH_Drawing_CreateTextShadow();
+    uint32_t color21 = OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0x00);
+    OH_Drawing_Point* offset21 = OH_Drawing_PointCreate(-10, -10);
+    double blurRadius21 = 20.0;
+    OH_Drawing_SetTextShadow(shadow21, color21, offset21, blurRadius21);
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow21);
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow2);
+    OH_Drawing_TextShadow* getShadow2 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2 - 1);
+    EXPECT_NE(getShadow2, nullptr);
+    OH_Drawing_TextShadow* getShadow21 = OH_Drawing_TextStyleGetShadowWithIndex(textStyle, 0);
+    EXPECT_NE(getShadow21, nullptr);
+    EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, -1), nullptr);
+    EXPECT_EQ(OH_Drawing_TextStyleGetShadowWithIndex(textStyle, getCount2), nullptr);
+    OH_Drawing_PointDestroy(offset2);
+    OH_Drawing_PointDestroy(offset21);
+    OH_Drawing_DestroyTextShadow(shadow2);
+    OH_Drawing_DestroyTextShadow(shadow21);
+    EXPECT_NE(shadow2, nullptr);
+    EXPECT_NE(shadow21, nullptr);
+
+    // Test the scene for abnormal shadow parameters
+    OH_Drawing_TextShadow* shadow3 = OH_Drawing_CreateTextShadow();
+    uint32_t color3 = -1;
+    OH_Drawing_Point* offset3 = OH_Drawing_PointCreate(10, 10);
+    double blurRadius3 = -10.0;
+    OH_Drawing_SetTextShadow(shadow3, color3, offset3, blurRadius3);
+    EXPECT_NE(shadow3, nullptr);
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow3);
+    OH_Drawing_TextStyleAddShadow(textStyle, shadow3);
+    OH_Drawing_PointDestroy(offset3);
+    OH_Drawing_DestroyTextShadow(shadow3);
+    OH_Drawing_TextShadow* shadow3AllGet = OH_Drawing_TextStyleGetShadows(textStyle);
+    EXPECT_NE(shadow3AllGet, nullptr);
+    OH_Drawing_DestroyTextShadows(shadow3AllGet);
+    EXPECT_NE(shadow3AllGet, nullptr);
 }
 
 /*
@@ -2951,6 +3033,113 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTypographyTextEllipsisTest001,
     ASSERT_EQ(OH_Drawing_TypographyIsEllipsized(nullptr), false);
     OH_Drawing_SetTypographyTextEllipsis(nullptr, ellipsisVal);
     OH_Drawing_DestroyTypographyStyle(style);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyHandlerPushTextStyle001
+ * @tc.desc: test for the actual effective value of textstyle in each of the three scenarios.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyHandlerPushTextStyle001, TestSize.Level1)
+{
+    // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextFontSize(typoStyle, 100);
+    OH_Drawing_SetTypographyTextFontHeight(typoStyle, 1);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_TypographyGetTextStyle(typoStyle);
+    ASSERT_NE(textStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateSharedFontCollection());
+    ASSERT_NE(handler, nullptr);
+    const char* text = "test OH_Drawing_SetTypographyTextLineStylexxx";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    double maxWidth = 10000.0;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography), 100);
+
+    // After setting the default text style in typographstyle, the fallback text style becomes ineffective.
+    OH_Drawing_TypographyStyle* typoStyle2 = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextFontSize(typoStyle2, 500);
+    OH_Drawing_SetTypographyTextFontHeight(typoStyle2, 1);
+    OH_Drawing_TextStyle* textStyle2 = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontSize(textStyle2, 30);
+    OH_Drawing_SetTextStyleFontHeight(textStyle2, 2);
+    OH_Drawing_SetTypographyTextStyle(typoStyle2, textStyle2);
+    OH_Drawing_TypographyCreate* handler2 =
+        OH_Drawing_CreateTypographyHandler(typoStyle2, OH_Drawing_CreateSharedFontCollection());
+    ASSERT_NE(handler2, nullptr);
+    const char* text2 = "test OH_Drawing_OH_Drawing_SetTypographyTextStyle, 该方法优先";
+    OH_Drawing_TypographyHandlerAddText(handler2, text2);
+    OH_Drawing_Typography* typography2 = OH_Drawing_CreateTypography(handler2);
+    OH_Drawing_TypographyLayout(typography2, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography2), 60);
+
+    // After pushing a new text style, the default text style becomes ineffective.
+    OH_Drawing_TypographyStyle* typoStyle3 = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextFontSize(typoStyle3, 500);
+    OH_Drawing_SetTypographyTextFontHeight(typoStyle3, 1);
+    OH_Drawing_TextStyle* textStyle3 = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontSize(textStyle3, 30);
+    OH_Drawing_SetTextStyleFontHeight(textStyle3, 2);
+    OH_Drawing_SetTypographyTextStyle(typoStyle3, textStyle3);
+    OH_Drawing_SetTextStyleFontSize(textStyle3, 80);
+    OH_Drawing_SetTextStyleFontHeight(textStyle3, 3);
+    OH_Drawing_TypographyCreate* handler3 =
+        OH_Drawing_CreateTypographyHandler(typoStyle3, OH_Drawing_CreateSharedFontCollection());
+    ASSERT_NE(handler3, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler3, textStyle3);
+    const char* text3 = "test OH_Drawing_TypographyHandlerPushTextStyle, 该方法优先";
+    OH_Drawing_TypographyHandlerAddText(handler3, text3);
+    OH_Drawing_Typography* typography3 = OH_Drawing_CreateTypography(handler3);
+    OH_Drawing_TypographyLayout(typography3, maxWidth);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography3), 240);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyHandlerPushTextStyle002
+ * @tc.desc: test the height of Tibetan and Uighur in push textstyle scenarios.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyHandlerPushTextStyle002, TestSize.Level1)
+{
+    // After pushing a new text style, the default text style becomes ineffective.
+    OH_Drawing_TypographyStyle* typoStyle3 = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextFontSize(typoStyle3, 500);
+    OH_Drawing_SetTypographyTextFontHeight(typoStyle3, 1);
+    OH_Drawing_TextStyle* textStyle3 = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontSize(textStyle3, 30);
+    OH_Drawing_SetTextStyleFontHeight(textStyle3, 2);
+    OH_Drawing_SetTypographyTextStyle(typoStyle3, textStyle3);
+    OH_Drawing_SetTextStyleFontSize(textStyle3, 80);
+    OH_Drawing_SetTextStyleFontHeight(textStyle3, 3);
+    
+    // Testing the line height of Uyghur text in 'heightonly' mode
+    const char* text4 = "بۇ ئۇسۇل ئالدىنقى ئورۇندا";
+    OH_Drawing_TypographyCreate* handler4 =
+        OH_Drawing_CreateTypographyHandler(typoStyle3, OH_Drawing_CreateSharedFontCollection());
+    ASSERT_NE(handler4, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler4, textStyle3);
+    OH_Drawing_TypographyHandlerAddText(handler4, text4);
+    OH_Drawing_Typography* typography4 = OH_Drawing_CreateTypography(handler4);
+    double maxWidth = 10000.0;
+    OH_Drawing_TypographyLayout(typography4, maxWidth);
+    EXPECT_NE(OH_Drawing_TypographyGetHeight(typography4), 240);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography4), 242);
+
+    // Testing the line height of Tibetan text in 'heightonly' mode.
+    const char* text5 = "ཐབས་ལམ་འདི་ལྡནཐབས་ལམ་འདི་ལྡན";
+    OH_Drawing_TypographyCreate* handler5 =
+        OH_Drawing_CreateTypographyHandler(typoStyle3, OH_Drawing_CreateSharedFontCollection());
+    ASSERT_NE(handler4, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler5, textStyle3);
+    OH_Drawing_TypographyHandlerAddText(handler5, text5);
+    OH_Drawing_Typography* typography5 = OH_Drawing_CreateTypography(handler5);
+    OH_Drawing_TypographyLayout(typography5, maxWidth);
+    EXPECT_NE(OH_Drawing_TypographyGetHeight(typography5), 240);
+    EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography5), 190);
 }
 
 /*

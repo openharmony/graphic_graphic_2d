@@ -914,6 +914,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
+    surfaceCaptureCb_->Reset();
 
     blurRadius = 10;
     ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
@@ -922,11 +923,127 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
-
+    surfaceCaptureCb_->Reset();
 
     // test blurRadius is large
     blurRadius = 100000;
     ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+}
+
+/*
+ * @tc.name: TakeSelfSurfaceCaptureTest001
+ * @tc.desc: Test TakeSelfSurfaceCapture with null node or null callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest001, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(nullptr, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, false);
+
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, nullptr, captureConfig);
+    ASSERT_EQ(ret, false);
+
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+}
+
+/*
+ * @tc.name: TakeSelfSurfaceCaptureTest002
+ * @tc.desc: Test TakeSelfSurfaceCapture with different scale
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+
+    captureConfig.scaleX = -1.f;
+    captureConfig.scaleY = -1.f;
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#endif
+    surfaceCaptureCb_->Reset();
+
+    captureConfig.scaleX = 2.f;
+    captureConfig.scaleY = 2.f;
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
+#endif
+    surfaceCaptureCb_->Reset();
+
+    captureConfig.scaleX = 0.5;
+    captureConfig.scaleY = 0.5;
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+}
+
+/*
+ * @tc.name: TakeSelfSurfaceCaptureTest003
+ * @tc.desc: Test TakeSelfSurfaceCapture with different useDma
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+
+    captureConfig.useDma = true;
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+    surfaceCaptureCb_->Reset();
+
+    captureConfig.useDma = false;
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+}
+
+/*
+ * @tc.name: TakeSelfSurfaceCaptureTest004
+ * @tc.desc: Test TakeSelfSurfaceCapture with different useCurWindow
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+
+    captureConfig.useCurWindow = true;
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+    surfaceCaptureCb_->Reset();
+
+    captureConfig.useCurWindow = false;
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)

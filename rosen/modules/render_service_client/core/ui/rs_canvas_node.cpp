@@ -65,6 +65,13 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode, s
     tid_ = gettid();
 }
 
+RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode,
+    std::shared_ptr<RSUIContext> rsUIContext)
+    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext)
+{
+    tid_ = gettid();
+}
+
 RSCanvasNode::~RSCanvasNode()
 {
     CheckThread();
@@ -221,5 +228,62 @@ void RSCanvasNode::CheckThread()
         ROSEN_LOGE("RSCanvasNode::CheckThread Must be called on same thread");
     }
 }
+
+// [Attention] Only used in PC window resize scene now
+void RSCanvasNode::SetLinkedRootNodeId(NodeId rootNodeId)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("RSCanvasNode::SetLinkedRootNodeId transactionProxy is nullptr");
+        return;
+    }
+
+    ROSEN_LOGI("RSCanvasNode::SetLinkedRootNodeId nodeId: %{public}" PRIu64 ", rootNode: %{public}" PRIu64 "",
+         GetId(), rootNodeId);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetLinkedRootNodeId>(GetId(), rootNodeId);
+    transactionProxy->AddCommand(command, true);
+    linkedRootNodeId_ = rootNodeId;
+}
+
+// [Attention] Only used in PC window resize scene now
+NodeId RSCanvasNode::GetLinkedRootNodeId()
+{
+    return linkedRootNodeId_;
+}
+
+bool RSCanvasNode::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint64(GetId()) &&
+        parcel.WriteBool(IsRenderServiceNode()) &&
+        parcel.WriteUint64(linkedRootNodeId_);
+}
+
+RSCanvasNode::SharedPtr RSCanvasNode::Unmarshalling(Parcel& parcel)
+{
+    uint64_t id = UINT64_MAX;
+    NodeId linkedRootNodeId = INVALID_NODEID;
+    bool isRenderServiceNode = false;
+    if (!(parcel.ReadUint64(id) && parcel.ReadBool(isRenderServiceNode) && parcel.ReadUint64(linkedRootNodeId))) {
+        ROSEN_LOGE("RSCanvasNode::Unmarshalling, read param failed");
+        return nullptr;
+    }
+
+    if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+        RS_LOGW("RSCanvasNode::Unmarshalling, the node id is already in the map");
+        // if the node id is already in the map, we should not create a new node
+        return prevNode->ReinterpretCastTo<RSCanvasNode>();
+    }
+
+    SharedPtr canvasNode(new RSCanvasNode(isRenderServiceNode, id));
+    RSNodeMap::MutableInstance().RegisterNode(canvasNode);
+
+    // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
+    canvasNode->skipDestroyCommandInDestructor_ = true;
+    canvasNode->linkedRootNodeId_ = linkedRootNodeId;
+
+    return canvasNode;
+}
+
 } // namespace Rosen
 } // namespace OHOS

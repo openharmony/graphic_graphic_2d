@@ -26,6 +26,7 @@
 #include "utils/rect.h"
 #include "utils/region.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
+#include "rs_root_render_node_drawable.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
@@ -65,12 +66,16 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
+
+    auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
+        params->GetLinkedRootNodeDrawable().lock());
     auto isOpincDraw = PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
-        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC()) {
+        QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC() &&
+        LIKELY(linkedDrawable == nullptr)) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
@@ -83,6 +88,13 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
             return;
         }
+    }
+
+    // [Attention] Only used in PC window resize scene now
+    if (UNLIKELY(linkedDrawable != nullptr)) {
+        linkedDrawable->DrawWindowKeyFrameOffscreenBuffer(*paintFilterCanvas, params->GetFrameRect(),
+            params->GetAlpha(), params->GetRSFreezeFlag());
+        return;
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {

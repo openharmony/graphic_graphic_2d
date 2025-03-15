@@ -35,7 +35,7 @@ void HWCParam::SetHwcExpandingScreenEnabled(bool isEnabled)
     isHwcExpandingScreenEnabled_ = isEnabled;
 }
 
-bool HWCParam::IsHwcExpandingScreenEnabled()
+bool HWCParam::IsHwcExpandingScreenEnabled() const
 {
     return isHwcExpandingScreenEnabled_;
 }
@@ -43,7 +43,9 @@ bool HWCParam::IsHwcExpandingScreenEnabled()
 void HWCParam::MoveDataToHgmCore()
 {
     HgmCore& hgmCore = HgmCore::Instance();
-    hgmCore.mPolicyConfigData_->sourceTuningConfig_ = std::move(sourceTuningMap_);
-    hgmCore.mPolicyConfigData_->solidLayerConfig_ = std::move(solidColorLayerMap_);
+    if (!hgmCore.mPolicyConfigData_) {
+        hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = std::move(sourceTuningMap_);
+        hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
+    }
 }
 } // namespace OHOS::Rosen

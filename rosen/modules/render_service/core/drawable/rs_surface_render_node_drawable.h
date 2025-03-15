@@ -37,11 +37,14 @@ class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
+class RSRcdSurfaceRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
+
+// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
@@ -124,9 +127,10 @@ public:
         } else {
             ClearCacheSurfaceInThread();
         }
+        drawWindowCache_.ClearCache();
     }
 
-    bool IsCurFrameStatic(DeviceType deviceType);
+    bool IsCurFrameStatic();
 
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
@@ -268,9 +272,6 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
-        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
     Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
     void CrossDisplaySurfaceDirtyRegionConversion(

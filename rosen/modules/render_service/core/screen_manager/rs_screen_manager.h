@@ -97,6 +97,10 @@ public:
 
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
+    virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
+
+    virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const = 0;
@@ -335,6 +339,10 @@ public:
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+
+    std::unordered_set<uint64_t> GetAllBlackList() const override;
+
+    std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -578,10 +586,14 @@ private:
 
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+    void UpdateVsyncEnabledScreenId(ScreenId screenId);
 
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
     std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
+    void UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status);
 
     mutable std::mutex mutex_;
     mutable std::mutex renderControlMutex_;
@@ -630,6 +642,11 @@ private:
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
 #endif
+    struct FoldScreenStatus {
+        bool isConnected;
+        bool isPowerOn;
+    };
+    std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 };
 } // namespace impl
 } // namespace Rosen

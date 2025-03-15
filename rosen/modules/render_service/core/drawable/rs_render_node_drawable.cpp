@@ -132,6 +132,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         ClearDrawingCacheDataMap();
+        ClearDrawingCacheContiUpdateTimeMap();
         return;
     }
 
@@ -144,17 +145,26 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
             // If this node is marked node group by arkui again, we should first clear update time here, otherwise
             // update time will accumulate.)
             ClearDrawingCacheDataMap();
+            ClearDrawingCacheContiUpdateTimeMap();
         }
     }
     // generate(first time)/update cache(cache changed) [TARGET -> DISABLED if >= MAX UPDATE TIME]
     int32_t updateTimes = 0;
     bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
     params.SetNeedUpdateCache(needUpdateCache);
+    int32_t continuousUpdateTimes = 0;
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
+        if (drawingCacheContinuousUpdateTimeMap_.count(nodeId_) > 0) {
+            continuousUpdateTimes = drawingCacheContinuousUpdateTimeMap_.at(nodeId_);
+        }
+    }
     if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
-        updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
-        RS_LOGD("RSRenderNodeDrawable::GenerateCacheCondition updateTimes:%{public}d needUpdateCache:%{public}d",
-            updateTimes, needUpdateCache);
-        RS_TRACE_NAME_FMT("DisableCache by update time > 3, id:%" PRIu64 "", params.GetId());
+        continuousUpdateTimes > DRAWING_CACHE_MAX_UPDATE_TIME) {
+        RS_LOGD("RSRenderNodeDrawable::GenerateCacheCondition totalUpdateTimes:%{public}d "
+                "continuousUpdateTimes:%{public}d needUpdateCache:%{public}d",
+                updateTimes, continuousUpdateTimes, needUpdateCache);
+        RS_TRACE_NAME_FMT("DisableCache by continuous update time > 3, id:%" PRIu64 "", params.GetId());
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
     }
@@ -346,6 +356,7 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         DrawCachedImage(*curCanvas, params.GetCacheSize());
         DrawAfterCacheWithProperty(canvas, params.GetBounds());
     }
+    ClearDrawingCacheContiUpdateTimeMap();
     UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
 }
 
@@ -440,6 +451,12 @@ void RSRenderNodeDrawable::ClearDrawingCacheDataMap()
     RSPerfMonitorReporter::GetInstance().ClearRendergroupDataMap(nodeId_);
 }
 
+void RSRenderNodeDrawable::ClearDrawingCacheContiUpdateTimeMap()
+{
+    std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
+    drawingCacheContinuousUpdateTimeMap_.erase(nodeId_);
+}
+
 void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
 {
     if (!isDrawingCacheDfxEnabled_) {
@@ -476,7 +493,6 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    autoCacheEnable_ = RSSystemProperties::IsDdgrOpincEnable();
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
     autoCacheRenderNodeInfos_.clear();
     opincRootTotalCount_ = 0;
@@ -484,9 +500,14 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 #endif
 }
 
-void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
+void RSRenderNodeDrawable::DrawDfxForCacheInfo(
+    RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
+        if (displayParams && displayParams->GetNeedOffscreen()) {
+            canvas.ConcatMatrix(displayParams->GetMatrix());
+        }
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
@@ -875,6 +896,10 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
         drawingCacheUpdateTimeMap_[nodeId_]++;
+    }
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
+        drawingCacheContinuousUpdateTimeMap_[nodeId_]++;
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);

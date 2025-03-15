@@ -49,8 +49,7 @@ public:
     virtual bool GetVsyncSamplerEnabled() = 0;
     virtual int32_t StartSample(bool forceReSample) = 0;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) = 0;
-    virtual void SetIsFoldScreenFlag(bool isFoldScreen) = 0;
-    virtual void SetFoldScreenIds(const std::vector<uint64_t>& foldScreenIds) = 0;
+    virtual uint64_t GetVsyncEnabledScreenId() = 0;
 protected:
     SetScreenVsyncEnabledCallback setScreenVsyncEnabledCallback_ = nullptr;
 };
@@ -84,8 +83,7 @@ public:
     virtual bool GetVsyncSamplerEnabled() override;
     virtual int32_t StartSample(bool forceReSample) override;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
-    virtual void SetIsFoldScreenFlag(bool isFoldScreen) override;
-    virtual void SetFoldScreenIds(const std::vector<uint64_t>& foldScreenIds) override;
+    virtual uint64_t GetVsyncEnabledScreenId() override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
@@ -125,8 +123,6 @@ private:
     int64_t pendingPeriod_ = 0;
     std::atomic<bool> enableVsyncSample_ = true;
     uint64_t vsyncEnabledScreenId_ = UINT64_MAX;
-    bool isFoldScreenFlag_ = false;
-    std::vector<uint64_t> foldScreenIds_;
 };
 } // impl
 } // namespace Rosen

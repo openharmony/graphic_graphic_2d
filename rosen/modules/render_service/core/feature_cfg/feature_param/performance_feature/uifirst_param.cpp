@@ -68,4 +68,14 @@ void UIFirstParam::SetUIFirstEnableWindowThreshold(int uiFirstEnableWindowThresh
 {
     uiFirstEnableWindowThreshold_ = uiFirstEnableWindowThreshold;
 }
+
+int UIFirstParam::GetUIFirstType() const
+{
+    return uiFirstType_;
+}
+
+void UIFirstParam::SetUIFirstType(int uiFirstType)
+{
+    uiFirstType_ = uiFirstType;
+}
 } // namespace OHOS::Rosen

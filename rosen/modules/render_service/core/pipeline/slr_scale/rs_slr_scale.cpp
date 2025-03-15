@@ -16,6 +16,7 @@
 #include "rs_slr_scale.h"
 
 #include <cfloat>
+#include "graphic_feature_param_manager.h"
 #include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
@@ -67,7 +68,7 @@ const float BIT_BOUND = 32767.0f;
 const int SLR_MAX_WIN_SIZE = 4;
 const int SLR_TAO_MAX_SIZE = 2;
 const float SLR_SCALE_THR_LOW = 0.65f;
-const float SLR_ALPHA_LOW = 0.1f;
+const float SLR_ALPHA_LOW = 0.2f;
 const float SLR_ALPHA_HIGH = 0.05f;
 
 static std::shared_ptr<uint32_t[]> GetSLRWeights(float coeff, int width, int dstWidth, int minBound)
@@ -143,8 +144,14 @@ void RSSLRScaleFunction::RefreshScreenData()
 
     widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
     heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSSLRScaleFunction::RefreshScreenData multiScreenFeatureParam is null");
+        return;
+    }
     isSLRCopy_ = scaleNum_ < SLR_SCALE_THR_HIGH && widthEffect_ && heightEffect_ &&
-        RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
+        multiScreenFeatureParam->IsSlrScaleEnabled();
 }
 
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)

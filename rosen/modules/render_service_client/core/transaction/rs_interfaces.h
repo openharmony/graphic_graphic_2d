@@ -96,7 +96,7 @@ public:
     // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
-    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid);
+    int32_t GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -114,6 +114,9 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
         bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+
+    bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        RSSurfaceCaptureConfig captureConfig = {});
 
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
@@ -364,11 +367,15 @@ public:
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

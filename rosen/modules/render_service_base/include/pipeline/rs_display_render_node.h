@@ -45,8 +45,7 @@ typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
-    struct ScreenRenderParams
-    {
+    struct ScreenRenderParams {
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
@@ -414,8 +413,16 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
-    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
-    GraphicPixelFormat GetPixelFormat() const;
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    GraphicPixelFormat GetPixelFormat() const
+    {
+        return pixelFormat_;
+    }
+
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetColorSpace() const;
 
@@ -551,6 +558,27 @@ public:
 
     void NotifyScreenNotSwitching();
 
+    // rcd node setter and getter, should be removed in OH 6.0 rcd refactoring
+    void SetRcdSurfaceNodeTop(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeTop_ = node;
+    }
+
+    void SetRcdSurfaceNodeBottom(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeBottom_ = node;
+    }
+
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeTop()
+    {
+        return rcdSurfaceNodeTop_;
+    }
+    
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeBottom()
+    {
+        return rcdSurfaceNodeBottom_;
+    }
+
     // Window Container
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
@@ -641,6 +669,11 @@ private:
     std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
+
+    // Use in round corner display
+    // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeBottom_ = nullptr;
 
     friend class DisplayNodeCommandHelper;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;

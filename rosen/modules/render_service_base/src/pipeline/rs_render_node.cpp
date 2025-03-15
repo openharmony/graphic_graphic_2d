@@ -52,6 +52,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
+#include "sandbox_utils.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -886,6 +887,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
+        out += ", zOrder: " + std::to_string(zOrderForCalcHwcNodeEnableByFilter_);
     }
 #endif
     
@@ -1036,6 +1038,12 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
+    } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
+        NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
+        if (linkedRootNodeId != INVALID_NODEID) {
+            out += ", linkedRootNodeId: " + std::to_string(linkedRootNodeId);
+        }
     }
 }
 
@@ -1159,6 +1167,13 @@ void RSRenderNode::CollectSurface(
 {
     for (auto& child : *node->GetSortedChildren()) {
         child->CollectSurface(child, vec, isUniRender, onlyFirstLevel);
+    }
+}
+
+void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec)
+{
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectSelfDrawingChild(child, vec);
     }
 }
 
@@ -3537,7 +3552,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
-        if (context && context->GetNodeMap().IsResidentProcessNode(GetId()) && !RSSystemProperties::IsPcType()) {
+        if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
             nodeGroupType_ |= type;
             SetDirty();
 #ifdef RS_ENABLE_GPU
@@ -4055,6 +4070,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
+}
+
+NodeId RSRenderNode::GenerateId()
+{
+    static pid_t pid_ = GetRealPid();
+    static std::atomic<uint32_t> currentId_ = 0; // surfaceNode is seted correctly during boot when currentId is 1
+
+    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
+    if (currentId == UINT32_MAX) {
+        // [PLANNING]:process the overflow situations
+        ROSEN_LOGE("Node Id overflow");
+    }
+
+    // concat two 32-bit numbers to one 64-bit number
+    return ((NodeId)pid_ << 32) | currentId;
 }
 
 bool RSRenderNode::IsRenderUpdateIgnored() const
@@ -4826,9 +4856,10 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
-SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
+SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode,
+    bool isInSameWindow)
     : inNode_(inNode), outNode_(outNode), inNodeId_(inNode->GetId()), outNodeId_(outNode->GetId()),
-      crossApplication_(inNode->GetInstanceRootNodeId() != outNode->GetInstanceRootNodeId())
+      crossApplication_(!isInSameWindow)
 {}
 
 RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId) const

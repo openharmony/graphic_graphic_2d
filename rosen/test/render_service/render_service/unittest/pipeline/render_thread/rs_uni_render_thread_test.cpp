@@ -37,9 +37,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
 };
 
-void RSUniRenderThreadTest::SetUpTestCase() {}
+void RSUniRenderThreadTest::SetUpTestCase()
+{
+    uniRenderThread.runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
+    if (!uniRenderThread.runner_) {
+        RS_LOGE("RSUniRenderThread Start runner null");
+        return;
+    }
+    uniRenderThread.handler_ = std::make_shared<AppExecFwk::EventHandler>(uniRenderThread.runner_);
+    uniRenderThread.runner_->Run();
+}
+
 void RSUniRenderThreadTest::TearDownTestCase() {}
 void RSUniRenderThreadTest::SetUp() {}
 void RSUniRenderThreadTest::TearDown() {}
@@ -97,11 +109,7 @@ HWTEST_F(RSUniRenderThreadTest, PostTask001, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     std::function<void()> task = []() {};
     instance.PostTask(task);
-    ASSERT_EQ(instance.handler_, nullptr);
-
-    instance.handler_ = nullptr;
-    instance.PostTask(task);
-    ASSERT_EQ(instance.handler_, nullptr);
+    ASSERT_NE(instance.handler_, nullptr);
 }
 
 /**
@@ -225,11 +233,7 @@ HWTEST_F(RSUniRenderThreadTest, PostTask002, TestSize.Level1)
     std::function<void()> task = []() {};
     std::string name = "test";
     instance.PostTask(task, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    EXPECT_FALSE(instance.handler_);
-
-    instance.handler_ = std::make_shared<AppExecFwk::EventHandler>(instance.runner_);
-    instance.PostTask(task, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    EXPECT_TRUE(instance.handler_);
+    ASSERT_NE(instance.handler_, nullptr);
 }
 
 /**
@@ -244,10 +248,6 @@ HWTEST_F(RSUniRenderThreadTest, RemoveTask001, TestSize.Level1)
     std::string name = "test";
     instance.RemoveTask(name);
     EXPECT_TRUE(instance.handler_);
-
-    instance.handler_ = nullptr;
-    instance.RemoveTask(name);
-    EXPECT_FALSE(instance.handler_);
 }
 
 /**
@@ -261,11 +261,19 @@ HWTEST_F(RSUniRenderThreadTest, PostSyncTask001, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     std::function<void()> task = []() {};
     instance.PostSyncTask(task);
-    EXPECT_FALSE(instance.handler_);
+    ASSERT_NE(instance.handler_, nullptr);
+}
 
-    instance.handler_ = std::make_shared<AppExecFwk::EventHandler>(instance.runner_);
-    instance.PostSyncTask(task);
-    EXPECT_TRUE(instance.handler_);
+/**
+ * @tc.name: IsIdleTestTest
+ * @tc.desc: Test IsIdleTest
+ * @tc.type: FUNC
+ * @tc.require: issueIAE59W
+ */
+HWTEST_F(RSUniRenderThreadTest, IsIdleTestTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    EXPECT_TRUE(instance.IsIdle());
 }
 
 /**
@@ -277,15 +285,15 @@ HWTEST_F(RSUniRenderThreadTest, PostSyncTask001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(instance.runner_);
     const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
     auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
     instance.rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
-
+    instance.vmaOptimizeFlag_ = true;
+    instance.vmaCacheCount_ = 1;
     instance.Render();
-    EXPECT_TRUE(instance.rootNodeDrawable_);
+    ASSERT_EQ(instance.vmaCacheCount_, 0);
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -543,6 +551,33 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
 }
 
 /**
+ * @tc.name: AddToReleaseQueueTest
+ * @tc.desc: Test AddToReleaseQueue
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, AddToReleaseQueueTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    auto surface = std::make_shared<Drawing::Surface>();
+    instance.AddToReleaseQueue(move(surface));
+    ASSERT_EQ(instance.tmpSurfaces_.size(), 1);
+}
+
+/**
+ * @tc.name: ReleaseSurfaceTest
+ * @tc.desc: Test ReleaseSurface
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, ReleaseSurfaceTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.ReleaseSurface();
+    ASSERT_EQ(instance.tmpSurfaces_.size(), 0);
+}
+
+/**
  * @tc.name: PostClearMemoryTask001
  * @tc.desc: Test PostClearMemoryTask
  * @tc.type: FUNC
@@ -561,13 +596,55 @@ HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
     instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 
-    instance.deviceType_ = DeviceType::PC;
     instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
     EXPECT_TRUE(instance.exitedPidSet_.size());
 
     instance.GetRenderEngine()->GetRenderContext()->drGPUContext_ = nullptr;
     instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
     ASSERT_EQ(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nullptr);
+}
+
+/**
+ * @tc.name: PostReclaimMemoryTaskTest
+ * @tc.desc: Test PostReclaimMemoryTask
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, PostReclaimMemoryTaskTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    ClearMemoryMoment moment = ClearMemoryMoment::RECLAIM_CLEAN;
+    bool isReclaim = true;
+    instance.PostReclaimMemoryTask(moment, isReclaim);
+    EXPECT_FALSE(instance.isTimeToReclaim_);
+}
+
+/**
+ * @tc.name: FlushGpuMemoryInWaitQueueBetweenFramesTest
+ * @tc.desc: Test FlushGpuMemoryInWaitQueueBetweenFrames
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, FlushGpuMemoryInWaitQueueBetweenFramesTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.FlushGpuMemoryInWaitQueueBetweenFrames();
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
+    ASSERT_NE(instance.uniRenderEngine_->GetRenderContext(), nullptr);
+}
+
+/**
+ * @tc.name: SuppressGpuCacheBelowCertainRatioBetweenFramesTest
+ * @tc.desc: Test SuppressGpuCacheBelowCertainRatioBetweenFrames
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, SuppressGpuCacheBelowCertainRatioBetweenFramesTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.SuppressGpuCacheBelowCertainRatioBetweenFrames();
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
+    ASSERT_NE(instance.uniRenderEngine_->GetRenderContext(), nullptr);
 }
 
 /**

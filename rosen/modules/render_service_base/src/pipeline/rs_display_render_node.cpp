@@ -239,6 +239,7 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
         surfaceCountForMultiLayersPerf_++;
     }
     curMainAndLeashSurfaceNodes_.clear();
+    topSurfaceOpaqueRects_.clear();
 }
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
@@ -276,6 +277,13 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
+    displayParams->roundCornerSurfaceDrawables_.clear();
+    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
+    }
+    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
+    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }
@@ -323,6 +331,7 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    displayParams->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
 #endif
 }
 
@@ -505,30 +514,6 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
         AddToPendingSyncList();
     }
 #endif
-}
-
-void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
-{
-#ifdef RS_ENABLE_GPU
-    if (pixelFormat_ == pixelFormat) {
-        return;
-    }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    if (!displayParams) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    displayParams->SetNewPixelFormat(pixelFormat);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
-    pixelFormat_ = pixelFormat;
-#endif
-}
-
-GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
-{
-    return pixelFormat_;
 }
 
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)

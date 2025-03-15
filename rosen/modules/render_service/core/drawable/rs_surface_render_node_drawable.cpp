@@ -141,7 +141,12 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         "offsetX=%d offsetY=%d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
 
     // 1. draw background
-    DrawBackground(canvas, bounds);
+    if (surfaceParams.IsLeashWindow()) {
+        DrawLeashWindowBackground(canvas, bounds,
+            uniParams.IsStencilPixelOcclusionCullingEnabled(), surfaceParams.GetStencilVal());
+    } else {
+        DrawBackground(canvas, bounds);
+    }
 
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
@@ -212,18 +217,6 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-void RSSurfaceRenderNodeDrawable::MergeSubSurfaceNodesDirtyRegionForMainWindow(
-    RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const
-{
-    for (const auto& drawable : GetDrawableVectorById(surfaceParams.GetAllSubSurfaceNodeIds())) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
-        if (surfaceNodeDrawable && surfaceNodeDrawable->GetSyncDirtyManager()) {
-            Occlusion::Region subSurfaceDirtyRegion(surfaceNodeDrawable->GetSyncDirtyManager()->GetDirtyRegion());
-            surfaceDirtyRegion.OrSelf(subSurfaceDirtyRegion);
-        }
-    }
-}
-
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
@@ -243,16 +236,12 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
-    // The region is dirty region of this SurfaceNode (including sub-surface node in its subtree).
-    Occlusion::Region surfaceNodeDirtyRegion(GetSyncDirtyManager()->GetDirtyRegion());
-    // Dirty region of sub-surface nodes should also be count in parent main surface node, to avoid early skipping.
-    if (surfaceParams.HasSubSurfaceNodes()) {
-        MergeSubSurfaceNodesDirtyRegionForMainWindow(surfaceParams, surfaceNodeDirtyRegion);
+    // The region is dirty region of this SurfaceNode.
+    Occlusion::Region dirtyRegion;
+    for (const auto& rect : GetSyncDirtyManager()->GetDirtyRegionForQuickReject()) {
+        Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
+        dirtyRegion.OrSelf(region);
     }
-    // The region is the result of global dirty region AND occlusion region.
-    Occlusion::Region globalDirtyRegion = GetGlobalDirtyRegion();
-    // This include dirty region and occlusion region when surfaceNode is mainWindow.
-    auto dirtyRegion = globalDirtyRegion.Or(surfaceNodeDirtyRegion);
     // visibility of cross-display surface (which is generally at the top) is ignored.
     auto visibleDirtyRegion = surfaceParams.IsFirstLevelCrossNode() ? dirtyRegion : dirtyRegion.And(visibleRegion);
     if (visibleDirtyRegion.IsEmpty()) {
@@ -487,7 +476,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
 
     if (!isUiFirstNode) {
-        MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
@@ -690,53 +678,6 @@ void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
     }
 }
 
-void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
-    RSRenderThreadParams& uniParam, Drawing::Region& region)
-{
-    if (!renderParams_) {
-        return;
-    }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(renderParams_.get());
-    auto isMainWindowType = surfaceParams->IsMainWindowType();
-    auto visibleRegion = surfaceParams->GetVisibleRegion();
-    if (isMainWindowType && visibleRegion.IsEmpty()) {
-        return;
-    }
-    if (isMainWindowType || surfaceParams->IsLeashWindow()) {
-        auto& accumulatedDirtyRegion = uniParam.GetAccumulatedDirtyRegion();
-        Occlusion::Region calcRegion;
-        if ((isMainWindowType && surfaceParams->IsParentScaling()) ||
-            surfaceParams->IsSubSurfaceNode() || uniParam.IsAllSurfaceVisibleDebugEnabled()) {
-            calcRegion = visibleRegion;
-        } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
-            auto transparentRegion = surfaceParams->GetTransparentRegion();
-            calcRegion = visibleRegion.And(transparentRegion);
-        }
-        if (!calcRegion.IsEmpty()) {
-            auto dirtyRegion = calcRegion.And(accumulatedDirtyRegion);
-            if (!dirtyRegion.IsEmpty()) {
-                for (auto& rect : dirtyRegion.GetRegionRects()) {
-                    Drawing::Region tempRegion;
-                    tempRegion.SetRect(Drawing::RectI(
-                        rect.left_, rect.top_, rect.right_, rect.bottom_));
-                    region.Op(tempRegion, Drawing::RegionOp::UNION);
-                }
-            }
-        }
-        // [planing] surfaceDirtyRegion can be optimized by visibleDirtyRegion in some case.
-        auto surfaceDirtyRect = GetSyncDirtyManager()->GetDirtyRegion();
-        CrossDisplaySurfaceDirtyRegionConversion(uniParam, *surfaceParams, surfaceDirtyRect);
-        auto surfaceDirtyRegion = Occlusion::Region { Occlusion::Rect{ surfaceDirtyRect } };
-        accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
-        // add children window dirty here for uifirst leasf window will not traverse cached children
-        if (surfaceParams->GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
-            auto childrenDirtyRegion = Occlusion::Region {
-                Occlusion::Rect{ surfaceParams->GetUifirstChildrenDirtyRectParam() } };
-            accumulatedDirtyRegion.OrSelf(childrenDirtyRegion);
-        }
-    }
-}
-
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
@@ -795,7 +736,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
+    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
 
     if (RSSystemProperties::GetCacheOptimizeRotateEnable() &&
         surfaceParams->GetName().find(WALLPAPER) != std::string::npos) {
@@ -804,6 +745,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+        SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture surface skipped in mirror name:[%s] id:%" PRIu64,
+            name_.c_str(), surfaceParams->GetId());
         return;
     }
 
@@ -838,12 +782,13 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     CaptureSurface(*rscanvas, *surfaceParams);
-    ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
+    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
-    if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && !uniParam->IsMirrorScreen()) {
         return false;
     }
     // Check black list.
@@ -901,17 +846,22 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
     bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption();
+    bool needSkipDrawWhite =
+        RSUniRenderThread::GetCaptureParam().isNeedBlur_ || RSUniRenderThread::GetCaptureParam().isSelfCapture_;
     // Draw White
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
-        (UNLIKELY(isSecLayersNotExempted && !RSUniRenderThread::GetCaptureParam().isNeedBlur_) ||
-            specialLayerManager.Find(SpecialLayerType::SKIP))) {
+        (UNLIKELY(isSecLayersNotExempted && !needSkipDrawWhite) || specialLayerManager.Find(SpecialLayerType::SKIP))) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
-            "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
-            "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s]",
-            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
-            "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s]",
-            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
+                "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
+                "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s], "
+                "isSelfCapture:[%{public}s]",
+            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
+            RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
+        RS_TRACE_NAME_FMT(
+            "CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
+            "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s], isSelfCapture:[%s]",
+            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
+            RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
 
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
@@ -1269,7 +1219,14 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
             "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
     }
 
-    DrawBackground(canvas, bounds);
+    auto stencilVal = surfaceParams.GetStencilVal();
+    if (surfaceParams.IsLeashWindow()) {
+        DrawLeashWindowBackground(canvas, bounds,
+            uniParams.IsStencilPixelOcclusionCullingEnabled(), stencilVal);
+    } else {
+        DrawBackground(canvas, bounds);
+    }
+    canvas.SetStencilVal(stencilVal);
     bool drawCacheSuccess = true;
     if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
         drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
@@ -1279,6 +1236,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         drawCacheSuccess = useDmaBuffer ?
             DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
     }
+    canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());

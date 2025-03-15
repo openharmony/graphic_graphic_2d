@@ -48,6 +48,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
 }
@@ -615,7 +617,9 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isHdrToSdr) {
-        parameter.tmoNits = parameter.sdrNits;
+        parameter.sdrNits = DEFAULT_DISPLAY_NIT;
+        parameter.tmoNits = DEFAULT_DISPLAY_NIT;
+        parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
@@ -823,8 +827,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    // HDR to SDR, tmoNits equal sdrNits, layerLinearMatrix reset to 3x3 Identity matrix
-    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata);
+    // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
+    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
+        !RSSystemProperties::GetHdrVideoEnabled();
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
@@ -890,61 +895,6 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
         // skew and/or non 90 degrees rotation
         return true;
     }
-    return false;
-}
-
-HdrStatus RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer)
-{
-    if (surfaceBuffer == nullptr) {
-        return HdrStatus::NO_HDR;
-    }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> metadataType{};
-    if (surfaceBuffer->GetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) ==
-        GSERROR_OK && metadataType.size() > 0 &&
-        metadataType[0] == HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR) {
-        return HdrStatus::AI_HDR_VIDEO;
-    }
-#endif
-    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
-        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-        return HdrStatus::NO_HDR;
-    }
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK) {
-        if (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG) {
-            return HdrStatus::HDR_VIDEO;
-        }
-    }
-    return HdrStatus::NO_HDR;
-}
-
-bool RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer)
-{
-    if (surfaceBuffer == nullptr) {
-        return false;
-    }
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata failed to get ColorSpaceInfo");
-        return false;
-    }
-    // only primaries P3_D65 and BT2020 has metadata
-    if (colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_P3_D65 &&
-        colorSpaceInfo.primaries != CM_ColorPrimaries::COLORPRIMARIES_BT2020) {
-        RS_LOGD("RSBaseRenderEngine::CheckIsSurfaceBufferWithMetadata colorSpaceInfo.primaries not satisfied");
-        return false;
-    }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> dynamicMetadata{};
-    if (MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadata) ==
-        GSERROR_OK && dynamicMetadata.size() > 0) {
-        return true;
-    }
-#endif
     return false;
 }
 

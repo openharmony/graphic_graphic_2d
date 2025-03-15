@@ -67,7 +67,7 @@ void XMLParser::Destroy()
     }
 }
 
-int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
+int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode& node)
 {
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("Param"))) {
         return HGM_XML_PARAM;
@@ -79,7 +79,7 @@ int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
     return HGM_XML_UNDEFINED;
 }
 
-bool XMLParser::ParseInternal(xmlNode &node)
+bool XMLParser::ParseInternal(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing an internal node");
     xmlNode *currNode = &node;
@@ -107,7 +107,7 @@ bool XMLParser::ParseInternal(xmlNode &node)
     return true;
 }
 
-int32_t XMLParser::ParseParam(xmlNode &node)
+int32_t XMLParser::ParseParam(xmlNode& node)
 {
     HGM_LOGI("XMLParser parsing a parameter");
     if (!mParsedData_) {
@@ -128,7 +128,7 @@ int32_t XMLParser::ParseParam(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
+int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
 {
     int32_t setResult = EXEC_SUCCESS;
 
@@ -166,7 +166,7 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
     return setResult;
 }
 
-int32_t XMLParser::ParseParams(xmlNode &node)
+int32_t XMLParser::ParseParams(xmlNode& node)
 {
     std::string paraName = ExtractPropertyValue("name", node);
     if (paraName.empty()) {
@@ -204,13 +204,13 @@ int32_t XMLParser::ParseParams(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode &node)
+int32_t XMLParser::ParseVideoFrameVoteConfig(xmlNode& node)
 {
     mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
     return ParseSimplex(node, mParsedData_->videoFrameRateList_);
 }
 
-int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
+int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing strategyConfig");
     xmlNode *currNode = &node;
@@ -237,7 +237,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
         auto down = ExtractPropertyValue("down", *currNode);
-        auto supportAS = ExtractPropertyValue("supportAS", *currNode) == "1"; // 1: true, other: false
+        auto supportAS = ExtractPropertyValue("supportAS", *currNode);
         if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
             return HGM_ERROR;
         }
@@ -256,7 +256,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
-        strategy.supportAS = supportAS;
+        strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
         ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -266,7 +266,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ParseAppBufferList(xmlNode &node)
+void XMLParser::ParseAppBufferList(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing ParseAppBufferList");
     xmlNode *currNode = &node;
@@ -286,7 +286,7 @@ void XMLParser::ParseAppBufferList(xmlNode &node)
     }
 }
 
-void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy)
+void XMLParser::ParseBufferStrategyList(xmlNode& node, PolicyConfigData::StrategyConfig& strategy)
 {
     if (mParsedData_->appBufferList_.empty()) {
         return;
@@ -304,7 +304,7 @@ void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::Strateg
     }
 }
 
-int32_t XMLParser::ParseScreenConfig(xmlNode &node)
+int32_t XMLParser::ParseScreenConfig(xmlNode& node)
 {
     HGM_LOGD("XMLParser parsing screenConfig");
     xmlNode *currNode = &node;
@@ -351,7 +351,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenSetting& screenSetting)
+int32_t XMLParser::ParseSubScreenConfig(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
 {
     xmlNode *thresholdNode = &node;
     if (thresholdNode->type != XML_ELEMENT_NODE) {
@@ -397,9 +397,9 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
     return setResult;
 }
 
-int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
-                                const std::string &valueName, const std::string &keyName,
-                                const bool &canBeEmpty)
+int32_t XMLParser::ParseSimplex(xmlNode& node, std::unordered_map<std::string, std::string>& config,
+                                const std::string& valueName, const std::string& keyName,
+                                const bool canBeEmpty)
 {
     HGM_LOGD("XMLParser parsing simplex");
     xmlNode *currNode = &node;
@@ -425,9 +425,8 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
         if (value.empty()) {
             if (canBeEmpty) {
                 continue;
-            } else {
-                return XML_PARSE_INTERNAL_FAIL;
             }
+            return XML_PARSE_INTERNAL_FAIL;
         }
 
         config[key] = value;
@@ -439,7 +438,7 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::string, int32_t> &powerConfig)
+int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::string, int32_t>& powerConfig)
 {
     std::unordered_map<std::string, std::string> configs;
     auto result = ParseSimplex(node, configs);
@@ -469,7 +468,7 @@ int32_t XMLParser::ParseSmallSizeDynamicSetting(xmlNode& node, PolicyConfigData:
     return ParseDynamicSetting(node, screenSetting.smallSizeAnimationDynamicSettings);
 }
 
-int32_t XMLParser::ParseDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)
+int32_t XMLParser::ParseDynamicSetting(xmlNode& node, PolicyConfigData::DynamicSettingMap& dynamicSettingMap)
 {
     HGM_LOGD("XMLParser parsing dynamicSetting");
     xmlNode *currNode = &node;
@@ -510,7 +509,7 @@ int32_t XMLParser::ParseDynamicSetting(xmlNode &node, PolicyConfigData::DynamicS
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList)
+int32_t XMLParser::ParseSceneList(xmlNode& node, PolicyConfigData::SceneConfigMap& sceneList)
 {
     HGM_LOGD("XMLParser parsing sceneList");
     xmlNode *currNode = &node;
@@ -543,7 +542,7 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::SupportedModeConfig &supportedModeConfig)
+int32_t XMLParser::ParseSupportedModeConfig(xmlNode& node, PolicyConfigData::SupportedModeConfig& supportedModeConfig)
 {
     HGM_LOGD("XMLParser parsing supportedModeConfig");
     xmlNode *currNode = &node;
@@ -571,7 +570,7 @@ int32_t XMLParser::ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::Sup
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting)
+int32_t XMLParser::ParseMultiAppStrategy(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
 {
     auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
     if (multiAppStrategy == "focus") {
@@ -588,7 +587,7 @@ int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::Screen
 }
 
 
-int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes)
+int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std::string>& appTypes)
 {
     HGM_LOGD("XMLParser parsing appTypes");
     xmlNode *currNode = &node;
@@ -616,8 +615,8 @@ int32_t XMLParser::ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig &screenConfigDefault,
-                                              PolicyConfigData::ScreenConfig &screenConfig)
+int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
+                                              PolicyConfigData::ScreenConfig& screenConfig)
 {
     HGM_LOGD("HgmXMLParser ReplenishMissThermalConfig");
     for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
@@ -630,7 +629,7 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
 }
 
 int32_t XMLParser::ParsePerformanceConfig(
-    xmlNode &node, std::unordered_map<std::string, std::string> &performanceConfig)
+    xmlNode& node, std::unordered_map<std::string, std::string>& performanceConfig)
 {
     HGM_LOGD("XMLParser parsing performanceConfig");
     xmlNode *currNode = &node;
@@ -648,14 +647,14 @@ int32_t XMLParser::ParsePerformanceConfig(
         }
         auto name = ExtractPropertyValue("name", *currNode);
         auto value = ExtractPropertyValue("value", *currNode);
-        performanceConfig[name] = value;
+        performanceConfig[std::move(name)] = std::move(value);
         HGM_LOGI("HgmXMLParser performanceConfig name=%{public}s strategy=%{public}s", name.c_str(), value.c_str());
     }
 
     return EXEC_SUCCESS;
 }
 
-std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)
+std::string XMLParser::ExtractPropertyValue(const std::string& propName, xmlNode& node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
     std::string propValue = "";
@@ -710,8 +709,8 @@ std::vector<uint32_t> XMLParser::StringToVector(const std::string &str, const st
     return vec;
 }
 
-int32_t XMLParser::ParsePageUrlStrategy(xmlNode &node,
-    std::unordered_map<std::string, PolicyConfigData::PageUrlConfig> &pageUrlConfigMap)
+int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
+    std::unordered_map<std::string, PolicyConfigData::PageUrlConfig>& pageUrlConfigMap)
 {
     pageUrlConfigMap.clear();
     HGM_LOGD("XMLParser parsing PageUrlConfig");

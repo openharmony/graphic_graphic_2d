@@ -760,7 +760,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
 {
-    mainThread_->deviceType_ = DeviceType::PC;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
@@ -808,7 +808,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
-    mainThread_->deviceType_ = DeviceType::PHONE;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     uifirstManager_.isUiFirstOn_ = false;
     uifirstManager_.rotationChanged_ = false;
 }
@@ -1522,7 +1522,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes001, TestSize.Level1)
     bool ancestorNodeHasAnimation = true;
     uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
     EXPECT_TRUE(node.GetUifirstSupportFlag());
-    EXPECT_FALSE(uifirstManager_.isUiFirstOn_);
 
     uifirstManager_.isUiFirstOn_ = true;
     uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
@@ -1594,7 +1593,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 {
     auto type = uifirstManager_.GetUiFirstMode();
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+    if (uifirstManager_.uifirstType_ == UiFirstCcmType::SINGLE) {
         EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
     }
 }
@@ -1608,7 +1607,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
 {
     auto type = uifirstManager_.GetUiFirstMode();
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+    if (uifirstManager_.uifirstType_ == UiFirstCcmType::MULTI) {
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
 }
@@ -1621,7 +1620,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
 {
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::HYBRID) {
         return;
     }
 
@@ -1638,7 +1637,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode004, TestSize.Level1)
 {
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::HYBRID) {
         return;
     }
 
@@ -1657,7 +1656,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::MULTI) {
         return;
     }
 

@@ -111,6 +111,7 @@ public:
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
         bool needUpdateJankStats = false);
     void RenderServiceAllNodeDump(DfxString& log);
+    void RenderServiceAllSurafceDump(DfxString& log);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
@@ -119,8 +120,6 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
-    static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -267,8 +266,6 @@ public:
     }
 
     DeviceType GetDeviceType() const;
-    bool IsDeeplyRelGpuResEnable() const;
-    bool IsMultilayersSOCPerfEnable() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
     uint64_t GetFocusNodeId() const;
@@ -449,10 +446,11 @@ public:
     }
 
     void ClearUnmappedCache();
-    void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -476,8 +474,6 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
-    void SetDeeplyRelGpuResSwitch();
-    void SetSOCPerfSwitch();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -582,6 +578,9 @@ private:
 
     // Record change status of multi or single display
     void MultiDisplayChange(bool isMultiDisplay);
+    void DumpEventHandlerInfo();
+    std::string SubHistoryEventQueue(std::string input);
+    std::string SubPriorityEventQueue(std::string input);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -627,10 +626,6 @@ private:
     // overDraw
     bool isOverDrawEnabledOfCurFrame_ = false;
     bool isOverDrawEnabledOfLastFrame_ = false;
-    // for deeply release GPU resource
-    bool isDeeplyRelGpuResEnable_ = false;
-    // for SOCPerf
-    bool isMultilayersSOCPerfEnable_ = false;
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
     bool initVsyncServiceFlag_ = true;
 #endif
@@ -692,15 +687,9 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
-#if defined(ACCESSIBILITY_ENABLE)
-    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
     std::unordered_map<NodeId, uint64_t> dividedRenderbufferTimestamps_;
@@ -845,13 +834,17 @@ private:
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
-    // last frame game self-drawing node is on tree or not
-    bool isLastGameNodeOnTree_ = false;
     std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
     std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
+#if defined(ACCESSIBILITY_ENABLE)
+    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

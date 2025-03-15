@@ -32,6 +32,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -55,7 +56,6 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
 }
 
@@ -69,7 +69,6 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDr
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
-    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, mirrorAdaptiveCoefficient_);
 }
 
@@ -401,6 +400,18 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessRcdSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
             node.GetId());
+        return;
+    }
+    layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable &rcdDrawable)
+{
+    auto layer = uniComposerAdapter_->CreateLayer(rcdDrawable);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread: failed to createLayer for node(id: "
+                "%{public}" PRIu64 ")",
+            rcdDrawable.GetId());
         return;
     }
     layers_.emplace_back(layer);

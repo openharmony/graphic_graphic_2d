@@ -13,16 +13,19 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/display_engine"
+module_output_path =
+    "graphic_2d/rosen_engine/render_service_base/display_engine"
 
 ##############################  RSRenderServiceBaseDisplayEngineTest  ##################################
 ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   module_out_path = module_output_path
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
-  }
-  sources = [ "rs_luminance_control_test.cpp" ]
+
+  sources = [
+    "rs_color_temperature_test.cpp",
+    "rs_luminance_control_test.cpp",
+  ]
 
   configs = [
     ":render_test",
@@ -30,8 +33,8 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   ]
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/test/include",
   ]
 
@@ -55,6 +58,15 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
     "skia:skia_canvaskit",
   ]
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  if (!rosen_cross_platform) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+
   subsystem_name = "graphic"
 }
 
@@ -66,5 +78,6 @@ config("render_test") {
 
 group("unittest") {
   testonly = true
+
   deps = [ ":RSRenderServiceBaseDisplayEngineTest" ]
 }

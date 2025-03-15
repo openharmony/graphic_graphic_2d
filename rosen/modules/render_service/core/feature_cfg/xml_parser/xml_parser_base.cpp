@@ -170,7 +170,7 @@ std::string XMLParserBase::ExtractPropertyValue(const std::string &propName, xml
 
 int32_t XMLParserBase::GetXmlNodeAsInt(xmlNode &node)
 {
-    if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("FeatureSwicth"))) {
+    if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("FeatureSwitch"))) {
         return PARSE_XML_FEATURE_SWITCH;
     }
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("FeatureSingleParam"))) {

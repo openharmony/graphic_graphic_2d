@@ -22,6 +22,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_display_render_node_drawable.h"
+#include "graphic_feature_param_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "rs_uni_render_util.h"
@@ -503,7 +504,13 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
 bool RSUniRenderVirtualProcessor::EnableSlrScale()
 {
     float slrScale = std::min(mirrorScaleX_, mirrorScaleY_);
-    if (RSSystemProperties::IsPcType() && RSSystemProperties::GetSLRScaleEnabled() &&
+    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
+    if (!multiScreenFeatureParam) {
+        RS_LOGE("RSUniRenderVirtualProcessor::EnableSlrScale multiScreenFeatureParam is null");
+        return false;
+    }
+    if (multiScreenFeatureParam->IsSlrScaleEnabled() && RSSystemProperties::GetSLRScaleEnabled() &&
         (slrScale < SLR_SCALE_THR_HIGH) && !EnableVisibleRect() && drawMirrorCopy_) {
         return true;
     }

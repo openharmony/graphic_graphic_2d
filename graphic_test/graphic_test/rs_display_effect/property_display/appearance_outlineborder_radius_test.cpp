@@ -431,4 +431,109 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
     }
 }
 
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_Outline_Radius_Test_1)
+{
+    vector<float> vecs = {-20, 0, 20, 150, 500};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetOutlineRadius(vecs[i]);
+        testNode->SetOutlineWidth(5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_Outline_Radius_Test_2)
+{
+    vector<Vector4f> vecs = {{0, 20, 50, 80}, {50, 100, 50, 80}};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetOutlineRadius(vecs[i]);
+        testNode->SetOutlineWidth(5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_Outline_BackgroundColor_Test_1)
+{
+    vector<float> vecs1 = {0, 0, 1, 1, 2, 2};
+    vector<float> vecs2 = {0, 0, 20, 20, 20, 20};
+    vector<float> vecs3 = {0, 0, 20, 20, 20, 20};
+    vector<float> vecs4 = {0, 40, 0, 40, 0, 40};
+    vector<float> vecs5 = {0, 40, 0, 40, 0, 40};
+    Vector4<Color> color(Color::FromArgbInt(0xFF00FF00), Color::FromArgbInt(0xFF00FF00),
+        Color::FromArgbInt(0xFF00FF00), Color::FromArgbInt(0xFF00FF00));
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBackgroundColor(0x8F0000FF);
+        testNode->SetOutlineColor(color);
+        testNode->SetOutlineWidth(20);
+        Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)vecs1[i]);
+        testNode->SetOutlineStyle(style);
+        testNode->SetOutlineDashWidth(vecs2[i]);
+        testNode->SetOutlineDashGap(vecs3[i]);
+        testNode->SetOutlineRadius(vecs4[i]);
+        testNode->SetCornerRadius(vecs5[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_CornerRadius_Test_1)
+{
+    vector<float> vecs = {-20, 0, 20, 150, 160};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetCornerRadius(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_CornerRadius_Test_2)
+{
+    vector<Vector4f> vecs = {{0, 20, 50, 80}, {50, 100, 50, 80}};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetCornerRadius(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_CornerRadius_OutlineRadius_Test_1)
+{
+    vector<float> vecs1 = {20, 150, 500};
+    vector<float> vecs2 = {20, 500, 150};
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetOutlineRadius(vecs1[i]);
+        testNode->SetCornerRadius(vecs2[i]);
+        testNode->SetOutlineWidth(5);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_CornerRadius_OutlineRadius_Test_2)
+{
+    vector<Vector4f> vecs1 = {{0, 20, 50, 80}, {50, 100, 50, 80}};
+    vector<Vector4f> vecs2 = {{0, 20, 50, 80}, {100, 50, 80, 50}};
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({380, i * 350 + 20, 400, 300});
+        testNode->SetOutlineRadius(vecs1[i]);
+        testNode->SetCornerRadius(vecs2[i]);
+        testNode->SetOutlineWidth(5);
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

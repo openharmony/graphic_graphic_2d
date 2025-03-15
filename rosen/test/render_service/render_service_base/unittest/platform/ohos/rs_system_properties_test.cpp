@@ -231,6 +231,18 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetStencilPixelOcclusionCullingEnabled
+ * @tc.desc: GetStencilPixelOcclusionCullingEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueIBROZ2
+ */
+HWTEST_F(RSSystemPropertiesTest, GetStencilPixelOcclusionCullingEnabled, TestSize.Level1)
+{
+    EXPECT_EQ(
+        RSSystemProperties::GetStencilPixelOcclusionCullingEnabled(), StencilPixelOcclusionCullingType::DEFAULT);
+}
+
+/**
  * @tc.name: GetReleaseResourceEnabled
  * @tc.desc: GetReleaseResourceEnabled Test
  * @tc.type:FUNC
@@ -549,6 +561,28 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationScale, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHdrImageEnabled
+ * @tc.desc: GetHdrImageEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrImageEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrImageEnabled());
+}
+
+/**
+ * @tc.name: GetHdrVideoEnabled
+ * @tc.desc: GetHdrVideoEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHdrVideoEnabledTest, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetHdrVideoEnabled());
+}
+
+/**
  * @tc.name: GetFilterCacheEnabled
  * @tc.desc: GetFilterCacheEnabled Test
  * @tc.type:FUNC
@@ -773,6 +807,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetWideColorSpaceEnabled
+ * @tc.desc: GetWideColorSpaceEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetWideColorSpaceEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetWideColorSpaceEnabled());
+}
+
+/**
  * @tc.name: GetUIFirstDebugEnabled
  * @tc.desc: GetUIFirstDebugEnabled Test
  * @tc.type:FUNC
@@ -912,17 +957,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
     OnSystemPropertyChanged func = [](const char*, const char*, void*) {};
     int context = 1;
     ASSERT_EQ(RSSystemProperties::WatchSystemProperty(std::string("noName").c_str(), func, &context), 0);
-}
-
-/**
- * @tc.name: GetSnapshotWithDMAEnabled
- * @tc.desc: GetSnapshotWithDMAEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetSnapshotWithDMAEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetSnapshotWithDMAEnabled());
 }
 
 /**

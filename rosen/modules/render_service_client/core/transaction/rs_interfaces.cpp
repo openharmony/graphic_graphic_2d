@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <functional>
+
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
@@ -151,9 +152,6 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    if (!RSSystemProperties::IsPcType()) {
-        return false;
-    }
     if (renderServiceClient_ == nullptr) {
         return false;
     }
@@ -212,9 +210,9 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
-int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
-    return renderServiceClient_->GetPixelMapByProcessId(pixelMapVector, pid);
+    return renderServiceClient_->GetPixelMapByProcessId(pixelMapInfoVector, pid);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
@@ -242,6 +240,16 @@ bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> nod
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = blurRadius;
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
+}
+
+bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->TakeSelfSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
@@ -963,6 +971,12 @@ void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
     renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 
+int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback)
+{
+    RS_TRACE_NAME("RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback");
+    return renderServiceClient_->RegisterSelfDrawingNodeRectChangeCallback(callback);
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
 {
@@ -980,6 +994,11 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
             packageName.c_str(), pageName.c_str(), isEnter);
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
+}
+
+void RSInterfaces::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+    renderServiceClient_->TestLoadFileSubTreeToNode(nodeId, filePath);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -41,7 +41,8 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
         std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         T value = defaultValue;                                                                                     \
         if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
+            RS_LOGE_LIMIT(                                                                                          \
+                __func__, __line__, "RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());   \
         }                                                                                                           \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
@@ -420,6 +421,11 @@ float RSModifierExtractor::GetBackgroundBlurRadiusY() const
     GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
 
+bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
+}
+
 float RSModifierExtractor::GetForegroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);
@@ -453,6 +459,11 @@ float RSModifierExtractor::GetForegroundBlurRadiusX() const
 float RSModifierExtractor::GetForegroundBlurRadiusY() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
+}
+
+bool RSModifierExtractor::GetFgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, FG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
 }
 
 float RSModifierExtractor::GetLightIntensity() const

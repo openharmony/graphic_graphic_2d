@@ -21,6 +21,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -122,22 +123,6 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostProcessTest
- * @tc.desc: Verify function PostProcess
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    renderProcessor->PostProcess();
-    EXPECT_FALSE(renderProcessor->isPhone_);
-}
-
-/**
  * @tc.name: CreateLayerTest
  * @tc.desc: Verify function CreateLayer
  * @tc.type:FUNC
@@ -165,7 +150,7 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     layerInfo.zOrder = 0;
     params.SetLayerInfo(layerInfo);
     renderProcessor->CreateLayer(node, params);
-    EXPECT_FALSE(renderProcessor->isPhone_);
+    EXPECT_TRUE(params.GetLayerCreated());
 }
 
 /**
@@ -201,9 +186,12 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
-    RSRcdSurfaceRenderNode node(nodeId, type);
-    renderProcessor->ProcessRcdSurface(node);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+    auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
+    renderProcessor->ProcessRcdSurface(*node);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
+    DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
+    renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
 }
 
 /**

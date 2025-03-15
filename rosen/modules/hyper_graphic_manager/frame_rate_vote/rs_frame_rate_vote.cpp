@@ -17,12 +17,16 @@
 #include "hgm_core.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
+#include "rs_video_frame_rate_vote.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
     const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
     const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
+    // USE DURATION TO DETERMINE BARRAGE AND UI
+    constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
+    constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 }
 
 RSFrameRateVote::RSFrameRateVote()
@@ -40,9 +44,51 @@ RSFrameRateVote::~RSFrameRateVote()
     ffrtQueue_ = nullptr;
 }
 
+void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    transactionFlags_ = transactionFlags;
+}
+
+bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
+{
+    std::string transactionFlags = "";
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        transactionFlags = transactionFlags_;
+    }
+    // transactionFlags_ format is [pid, eventId]
+    if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO &&
+        (transactionFlags == "" || transactionFlags.find(std::to_string(lastVotedPid_)) == std::string::npos)) {
+        return false;
+    }
+    auto lastUpdateTime = currentUpdateTime_;
+    currentUpdateTime_ = OHOS::Rosen::HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
+    auto duration = currentUpdateTime_ > lastUpdateTime ? currentUpdateTime_ - lastUpdateTime : 0;
+    if (duration < DANMU_MAX_INTERVAL_TIME) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
     sptr<SurfaceBuffer>& buffer)
 {
+    // OH SURFACE SOURCE VIDEO AN UI VOTE
+    if (CheckSurfaceAndUi(sourceType)) {
+        CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
+        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
+        auto it = surfaceVideoRate_.find(surfaceNodeId);
+        if (it != surfaceVideoRate_.end()) {
+            surfaceVideoRate_.clear();
+        }
+        if (surfaceVideoFrameRateVote_.find(surfaceNodeId) != surfaceVideoFrameRateVote_.end()) {
+            surfaceVideoFrameRateVote_[surfaceNodeId]->ReSetLastRate();
+        }
+        lastVotedRate_ = OLED_NULL_HZ;
+        return;
+    }
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
         return;
     }
@@ -112,9 +158,20 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
         return;
     }
     CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
-    VoteRate(maxPid, VIDEO_VOTE_FLAG, maxRate);
     lastVotedPid_ = maxPid;
     lastVotedRate_ = maxRate;
+    if (ffrtQueue_ && taskHandler_) {
+        ffrtQueue_->cancel(taskHandler_);
+        taskHandler_ = nullptr;
+    }
+    auto initTask = [this, maxPid, maxRate]() {
+        VoteRate(maxPid, VIDEO_VOTE_FLAG, maxRate);
+    };
+    ffrt::task_attr taskAttr;
+    taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
+    if (ffrtQueue_) {
+        taskHandler_ = ffrtQueue_->submit_h(initTask, taskAttr);
+    }
 }
 
 void RSFrameRateVote::VoteRate(pid_t pid, std::string eventName, uint32_t rate)

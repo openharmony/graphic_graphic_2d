@@ -350,6 +350,31 @@ bool PathFuzzTest006(const uint8_t* data, size_t size)
     path.AddPoly(points, count, close);
     return true;
 }
+
+/*
+ * 测试以下 Path 接口：
+ * 1. GetSegment(...)
+ */
+bool PathFuzzTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Path path;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    Path newPath;
+    path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), &newPath, GetObject<bool>(), GetObject<bool>());
+    path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), nullptr, GetObject<bool>(), GetObject<bool>());
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -366,5 +391,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::PathFuzzTest004(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest005(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest006(data, size);
+    OHOS::Rosen::Drawing::PathFuzzTest007(data, size);
     return 0;
 }

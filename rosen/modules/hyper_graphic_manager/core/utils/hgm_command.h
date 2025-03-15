@@ -111,7 +111,7 @@ public:
         int32_t drawMax;
         int32_t down;
         // Does this game app require Adaptive Sync?
-        bool supportAS;
+        int32_t supportAS;
         // <bufferName, fps>
         std::unordered_map<std::string, int32_t> bufferFpsMap;
     };
@@ -196,6 +196,8 @@ public:
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
+    std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;

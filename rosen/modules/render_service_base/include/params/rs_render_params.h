@@ -362,6 +362,16 @@ public:
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC(bool flag);
 
+    // [Attention] Only used in PC window resize scene now
+    void EnableWindowKeyFrame(bool enable);
+    bool IsWindowKeyFrameEnabled() const;
+    void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable();
+    void SetNeedSwapBuffer(bool needSwapBuffer);
+    bool GetNeedSwapBuffer() const;
+    void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
+    const Drawing::RectF& GetCacheNodeFrameRect() const;
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -414,6 +424,12 @@ private:
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
     bool hasUnobscuredUEC_ = false;
+
+    // [Attention] Only used in PC window resize scene now
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr linkedRootNodeDrawable_;
+    bool windowKeyframeEnabled_ = false;
+    bool needSwapBuffer_ = false;
+    Drawing::RectF cacheNodeFrameRect_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

@@ -32,11 +32,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class ScreenRotation : uint32_t;
-constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
-constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
-constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
-constexpr char TOPIC_RCD_RESOURCE_CHANGE[] = "TOPIC_RCD_RESOURCE_CHANGE";
-constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
 
 // On the devices that LCD/AMOLED contain notch, at settings-->display-->notch
 // we can set default or hide notch.
@@ -88,6 +83,9 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
+    // update rcd status and create resource
+    void RefreshFlagAndUpdateResource();
+
     // update hardInfo_.resourceChanged after hw resource applied
     void UpdateHardwareResourcePrepared(bool prepared);
 
@@ -119,7 +117,7 @@ public:
         return hardInfo_;
     }
 
-    rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
+    rs_rcd::RoundCornerHardware PrepareHardwareInfo()
     {
         std::unique_lock<std::shared_mutex> lock(resourceMut_);
         if (hardInfo_.resourceChanged) {
@@ -159,10 +157,11 @@ private:
     std::shared_ptr<Drawing::Image> imgBottomPortrait_ = nullptr;
 
     // notch resources for harden
-    Drawing::Bitmap bitmapTopPortrait_;
-    Drawing::Bitmap bitmapTopLadsOrit_;
-    Drawing::Bitmap bitmapTopHidden_;
-    Drawing::Bitmap bitmapBottomPortrait_;
+    std::shared_ptr<Drawing::Bitmap> bitmapTopPortrait_ = nullptr;
+    std::shared_ptr<Drawing::Bitmap> bitmapTopLadsOrit_ = nullptr;
+    std::shared_ptr<Drawing::Bitmap> bitmapTopHidden_ = nullptr;
+    std::shared_ptr<Drawing::Bitmap> bitmapBottomPortrait_ = nullptr;
+
     // current display resolution
     RectU displayRect_;
 
@@ -205,7 +204,7 @@ private:
     // load single image as Drawingimage
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
-    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
+    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, std::shared_ptr<Drawing::Bitmap>& bitmap);
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution

@@ -48,9 +48,7 @@ public:
     // Confirm whether the node is occlusive which should apply modifiers
     static void CheckModifiers(NodeId id, bool useCurWindow);
     // Do capture pipeline task
-    static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze = false,
-        const RSSurfaceCaptureBlurParam& blurParam = {});
+    static void Capture(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
@@ -60,8 +58,7 @@ public:
 
     bool CreateResources();
 
-    bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureBlurParam& blurParam, bool isSystemCalling,
-        bool isFreeze = false);
+    bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
 
     static void ClearCacheImageByFreeze(NodeId id);
 

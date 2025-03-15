@@ -17,6 +17,49 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/rosen_engine/render_service/screen_manager"
 
+##############################  VsyncEnabledScreenIdTest  ##################################
+ohos_unittest("VsyncEnabledScreenIdTest") {
+  module_out_path = module_output_path
+
+  sources = [ "vsync_enabled_screen_id_test.cpp" ]
+
+  include_dirs = [
+    "../../../../../modules/render_service/core",
+    "../../../../../modules/render_service_base/src",
+    "../../../../../modules/render_service_client/core",
+    "../../../../../include",
+    "../../../../../test/include",
+  ]
+
+  deps = [
+    "../../../../../modules/composer:libcomposer",
+    "../../../../../modules/render_service:librender_service",
+    "../../../../../modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
 ##############################  RSScreenManagerTest  ##################################
 ohos_unittest("RSScreenManagerTest") {
   module_out_path = module_output_path
@@ -174,6 +217,7 @@ group("unittest") {
   deps = [
     ":RSScreenManagerTest",
     ":RSScreenTest",
+    ":VsyncEnabledScreenIdTest",
   ]
   if (tp_feature_enable) {
     deps += [ ":TouchScreenTest" ]

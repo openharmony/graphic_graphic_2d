@@ -56,11 +56,6 @@ const std::vector<Occlusion::Rect>& RSDisplayRenderParams::GetTopSurfaceOpaqueRe
     return topSurfaceOpaqueRects_;
 }
 
-void RSDisplayRenderParams::SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
-{
-    std::swap(topSurfaceOpaqueRects_, topSurfaceOpaqueRects);
-}
-
 bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
 {
     return isMainAndLeashSurfaceDirty_;
@@ -238,6 +233,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     targetDisplayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     RSRenderParams::OnSync(target);
 }

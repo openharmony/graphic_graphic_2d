@@ -26,7 +26,7 @@ public:
     HWCParam() = default;
     ~HWCParam() = default;
 
-    bool IsHwcExpandingScreenEnabled();
+    bool IsHwcExpandingScreenEnabled() const;
 
 protected:
     void SetSourceTuningForApp(std::string appName, std::string val);
