@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "ipc_callbacks/rs_first_frame_callback_proxy.h"
+#include "mock_iremote_object.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,7 +45,7 @@ HWTEST_F(RSFirstFrameCallbackProxyTest, OnPowerOnFirstFrame001, TestSize.Level1)
     ASSERT_NE(remoteObject, nullptr);
     auto rsFirstFrameCallbackProxy = std::make_shared<RSFirstFrameCallbackProxy>(remoteObject);
     ASSERT_NE(rsFirstFrameCallbackProxy, nullptr);
-    ScreenId screenId = 0;
+    uint32_t screenId = 0;
     int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     rsFirstFrameCallbackProxy->OnPowerOnFirstFrame(screenId, timestamp);
@@ -64,7 +65,7 @@ HWTEST_F(RSFirstFrameCallbackProxyTest, OnPowerOnFirstFrame002, TestSize.Level1)
     remoteObject->sendRequestResult_ = 1;
     auto rsFirstFrameCallbackProxy = std::make_shared<RSFirstFrameCallbackProxy>(remoteObject);
     ASSERT_NE(rsFirstFrameCallbackProxy, nullptr);
-    ScreenId screenId = 0;
+    uint32_t screenId = 0;
     int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     rsFirstFrameCallbackProxy->OnPowerOnFirstFrame(screenId, timestamp);
@@ -81,7 +82,7 @@ HWTEST_F(RSFirstFrameCallbackProxyTest, OnPowerOnFirstFrame003, TestSize.Level1)
 {
     auto rsFirstFrameCallbackProxy = std::make_shared<RSFirstFrameCallbackProxy>(nullptr);
     ASSERT_NE(rsFirstFrameCallbackProxy, nullptr);
-    ScreenId screenId = 0;
+    uint32_t screenId = 0;
     int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     rsFirstFrameCallbackProxy->OnPowerOnFirstFrame(screenId, timestamp);

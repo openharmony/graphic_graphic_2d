@@ -15,10 +15,18 @@
 
 #include "rsfirstframecallbackproxy_fuzzer.h"
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
+#include <hilog/log.h>
+#include <iostream>
+#include <iservice_registry.h>
 #include <securec.h>
-#include <memory>
+#include <system_ability_definition.h>
+#include <unistd.h>
 
 #include "ipc_callbacks/rs_first_frame_callback_proxy.h"
 namespace OHOS {

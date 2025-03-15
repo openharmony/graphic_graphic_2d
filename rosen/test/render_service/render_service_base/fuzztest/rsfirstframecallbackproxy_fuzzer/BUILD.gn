@@ -21,10 +21,23 @@ ohos_fuzztest("RsFirstFrameCallbackProxyFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsfirstframecallbackproxy_fuzzer"
   include_dirs = [
-    "../../../../../modules/render_service_base/include",
     "../../../../../modules/render_service_base/src",
+    "../../../../../modules/2d_graphics/include",
+    "../../../../../modules/render_service_base/include",
+    "../../../../../modules/platform",
   ]
-  deps = [ "../../../../../modules/render_service_base:librender_service_base" ]
+  deps = [
+    "../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../modules/render_service:librender_service",
+    "../../../../../modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_base:render_service_base_src",
+    "../../../../../modules/render_service_client:librender_service_client",
+    "../../../../../modules/render_service_client:render_service_client_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   cflags = [
     "-g",
     "-O0",

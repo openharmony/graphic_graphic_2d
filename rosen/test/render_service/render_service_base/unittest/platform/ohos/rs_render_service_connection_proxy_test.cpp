@@ -903,7 +903,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterFirstFrameCallback, TestSiz
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIFirstFrameCallback> callback = iface_cast<RSIFirstFrameCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterHgmFirstFrameCallback(callback), 2);
+    EXPECT_EQ(proxy->RegisterFirstFrameCallback(callback), 2);
 }
 
 /**

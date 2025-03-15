@@ -78,7 +78,7 @@ HWTEST_F(RSFirstFrameCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_POWER_ON);
+    auto code = static_cast<uint32_t>(RSIFirstFrameCallbackInterfaceCode::ON_POWER_ON);
     data.WriteInterfaceToken(u"ohos.rosen.TestDescriptor");
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
@@ -96,7 +96,7 @@ HWTEST_F(RSFirstFrameCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     auto code = -1;
-    data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
+    data.WriteInterfaceToken(RSIFirstFrameCallback::GetDescriptor());
     
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, res);
@@ -112,8 +112,8 @@ HWTEST_F(RSFirstFrameCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_POWER_ON);
-    data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
+    auto code = static_cast<uint32_t>(RSIFirstFrameCallbackInterfaceCode::ON_POWER_ON);
+    data.WriteInterfaceToken(RSIFirstFrameCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ERR_NONE, res);

@@ -531,8 +531,8 @@ HWTEST_F(RSInterfacesTest, RegisterAndUnRegisterFirstFrameCallback001, TestSize.
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
 
     auto callback = [](uint32_t, int64_t) {};
-    EXPECT_TRUE(instance.RegisterFirstFrameCallback(callback));
-    EXPECT_TRUE(instance.UnRegisterFirstFrameCallback());
+    EXPECT_EQ(instance.RegisterFirstFrameCallback(callback), 0);
+    EXPECT_EQ(instance.UnRegisterFirstFrameCallback(), 0);
 }
 
 /**
