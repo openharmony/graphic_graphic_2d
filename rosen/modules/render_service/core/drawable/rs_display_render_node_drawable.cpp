@@ -1179,6 +1179,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         virtualProcesser->PostProcess();
         RS_LOGI("RSDisplayRenderNodeDrawable::DrawMirror, set canvas to black because of virtual screen mute.");
         curCanvas_->SetDisableFilterCache(false);
+        virtualDirtyRefresh_ = true;
         curCanvas_->RestoreToCount(0);
         return;
     }

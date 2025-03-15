@@ -173,7 +173,6 @@ bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size, RSContext& c
 
     NodeId id = GetData<NodeId>();
     bool muteStatus = GetData<bool>();
-    int32_t currentScbPid = -1;
     DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, muteStatus);
 
     return true;
