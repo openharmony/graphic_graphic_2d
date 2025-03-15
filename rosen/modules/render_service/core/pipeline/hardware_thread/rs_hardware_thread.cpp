@@ -254,10 +254,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
-        uint32_t screenId = output->GetScreenId();
 
         if (isFirstFrame) {
-            RSBackgroundThread::Instance().PostTask([this, screenId]() {
+            RSBackgroundThread::Instance().PostTask([this, screenId = output->GetScreenId()]() {
                 SyncFirstFrameCallback(screenId);
             });
             isFirstFrame = false;

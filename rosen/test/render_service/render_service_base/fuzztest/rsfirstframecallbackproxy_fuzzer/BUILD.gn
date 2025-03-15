@@ -22,10 +22,9 @@ ohos_fuzztest("RsFirstFrameCallbackProxyFuzzTest") {
   fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsfirstframecallbackproxy_fuzzer"
   include_dirs = [
     "../../../../../modules/render_service_base/include",
+    "../../../../../modules/render_service_base/src",
   ]
-  deps = [
-    "../../../../../modules/render_service_base:librender_service_base",
-  ]
+  deps = [ "../../../../../modules/render_service_base:librender_service_base" ]
   cflags = [
     "-g",
     "-O0",

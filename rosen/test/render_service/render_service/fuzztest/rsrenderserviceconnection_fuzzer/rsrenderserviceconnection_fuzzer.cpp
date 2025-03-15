@@ -1313,8 +1313,7 @@ bool DoSetOverlayDisplayMode()
 }
 #endif
 
-class CustomFirstFrameCallback : public RSFirstFrameCallbackStub
-{
+class CustomFirstFrameCallback : public RSFirstFrameCallbackStub {
 public:
     explicit CustomFirstFrameCallback(const HWFirstFrameCallback& callback) : cb_(callback) {}
     ~CustomFirstFrameCallback() override {};
