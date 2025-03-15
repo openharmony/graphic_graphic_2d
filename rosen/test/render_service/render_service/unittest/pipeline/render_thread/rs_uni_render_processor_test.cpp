@@ -141,6 +141,11 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     RSSurfaceRenderNode node(0);
     auto iConsumerSurface = IConsumerSurface::Create();
     node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    int64_t timestamp = 0;
+    Rect damage;
+    node.GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
     RSSurfaceRenderParams params(0);
     RSLayerInfo layerInfo;
     sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
