@@ -41,10 +41,8 @@ ohos_shared_library("effectKit_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
-    debug = true
+    debug = false
   }
-
-  public_configs = []
 
   include_dirs = [
     "./include",
@@ -54,6 +52,8 @@ ohos_shared_library("effectKit_ani") {
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
   ]
+
+  public_configs = []
 
   configs = [ ":graphic_ani_effect_kit_config" ]
 
@@ -79,6 +79,7 @@ ohos_shared_library("effectKit_ani") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+  output_extension = "so"
 }
 ## Build effectKit_ani.so
 
