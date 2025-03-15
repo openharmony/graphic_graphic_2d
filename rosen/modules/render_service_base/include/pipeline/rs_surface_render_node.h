@@ -151,6 +151,18 @@ public:
         return isHardwareEnableHint_;
     }
 
+    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    {
+        sourceDisplayRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetSourceDisplayRenderNodeId() const
+    {
+        return sourceDisplayRenderNodeId_;
+    }
+
+    void SetSourceDisplayRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
     void SetExistTransparentHardwareEnabledNode(bool exist)
     {
         existTransparentHardwareEnabledNode_ = exist;
@@ -1502,6 +1514,7 @@ private:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     bool isHardwareEnableHint_ = false;
+    NodeId sourceDisplayRenderNodeId_ = INVALID_NODEID;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     bool isNotifyRTBufferAvailablePre_ = false;
     bool isRefresh_ = false;

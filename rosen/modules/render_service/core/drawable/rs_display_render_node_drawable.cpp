@@ -712,7 +712,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 expandProcessor->SetRoiRegionToCodec(emptyRects);
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
-            DrawExpandScreen(*expandProcessor);
+            DrawExpandScreen(*params, *expandProcessor);
             if (curCanvas_) {
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }
@@ -1303,7 +1303,8 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
 }
 
-void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& processor)
+void RSDisplayRenderNodeDrawable::DrawExpandScreen(
+    RSDisplayRenderParams& params, RSUniRenderVirtualProcessor& processor)
 {
     RS_TRACE_FUNC();
     curCanvas_ = processor.GetCanvas();
@@ -1313,6 +1314,14 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    auto targetSurfaceRenderNodeDrawable =
+        std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(params.GetTargetSurfaceRenderNodeDrawable().lock());
+    if (targetSurfaceRenderNodeDrawable && curCanvas_->GetSurface()) {
+        RS_TRACE_NAME("DrawExpandScreen cacheImgForMultiScreenView");
+        cacheImgForMultiScreenView_ = curCanvas_->GetSurface()->GetImageSnapshot();
+    } else {
+        cacheImgForMultiScreenView_ = nullptr;
+    }
     RSRenderNodeDrawable::OnCapture(*curCanvas_);
     RSUniRenderThread::ResetCaptureParam();
     // for HDR

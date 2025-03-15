@@ -169,6 +169,9 @@ public:
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
 
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
+
     bool IsSpecialLayerChanged() const
     {
         auto iter = displaySpecailSurfaceChanged_.find(screenId_);
@@ -236,6 +239,7 @@ private:
     bool isZoomed_ = false;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

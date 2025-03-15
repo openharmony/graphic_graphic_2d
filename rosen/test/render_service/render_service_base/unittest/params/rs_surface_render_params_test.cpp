@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_display_render_node.h"
 #include "limit_number.h"
 
 using namespace testing;
@@ -452,5 +453,19 @@ HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
     std::vector<float> matrix = {1.0f, 2.0f, 3.0f};
     params.SetLayerLinearMatrix(matrix);
     EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
+}
+
+/**
+ * @tc.name: GetSourceDisplayRenderNodeDrawable
+ * @tc.desc: Test function GetSourceDisplayRenderNodeDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetSourceDisplayRenderNodeDrawable, TestSize.Level1)
+{
+    constexpr NodeId id = 124;
+    RSSurfaceRenderParams params(id);
+    params.sourceDisplayRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
+    EXPECT_TRUE(params.GetSourceDisplayRenderNodeDrawable().expired());
 }
 } // namespace OHOS::Rosen

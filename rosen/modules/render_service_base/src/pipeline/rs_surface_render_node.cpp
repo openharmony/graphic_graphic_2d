@@ -3007,6 +3007,20 @@ void RSSurfaceRenderNode::SetClonedNodeRenderDrawable(
     AddToPendingSyncList();
 }
 
+void RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable stagingSurfaceParams is null");
+        return;
+    }
+    // CacheImg does not support UIFirst, clost UIFirst
+    SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE);
+    stagingSurfaceParams->sourceDisplayRenderNodeDrawable_ = drawable;
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU

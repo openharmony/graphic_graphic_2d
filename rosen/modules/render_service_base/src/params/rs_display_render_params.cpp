@@ -184,6 +184,21 @@ bool RSDisplayRenderParams::GetZoomed() const
     return isZoomed_;
 }
 
+void RSDisplayRenderParams::SetTargetSurfaceRenderNodeDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    if (ROSEN_EQ(targetSurfaceRenderNodeDrawable_, drawable)) {
+        return;
+    }
+    targetSurfaceRenderNodeDrawable_ = drawable;
+    needSync_ = true;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetTargetSurfaceRenderNodeDrawable() const
+{
+    return targetSurfaceRenderNodeDrawable_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -233,6 +248,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->targetSurfaceRenderNodeDrawable_ = targetSurfaceRenderNodeDrawable_;
     targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     RSRenderParams::OnSync(target);
 }

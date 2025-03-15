@@ -637,5 +637,18 @@ std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() cons
 {
     return windowContainer_;
 }
+
+void RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable displayParams is null");
+        return;
+    }
+    displayParams->SetTargetSurfaceRenderNodeDrawable(drawable);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

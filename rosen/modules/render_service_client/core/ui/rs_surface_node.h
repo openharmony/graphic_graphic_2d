@@ -165,6 +165,7 @@ public:
     void SetHardwareEnableHint(bool enable);
     void SetApiCompatibleVersion(uint32_t version);
 
+    void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
     void DetachFromWindowContainer(ScreenId screenId);
 protected:
