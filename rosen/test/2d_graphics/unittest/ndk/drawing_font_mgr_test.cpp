@@ -116,6 +116,8 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest005, TestSize.Level1)
     EXPECT_NE(typeface, nullptr);
     OH_Drawing_TypefaceDestroy(typeface);
 
+    typeface = OH_Drawing_FontMgrMatchFamilyStyle(mgr, nullptr, normalStyle);
+    EXPECT_EQ(typeface, nullptr);
     OH_Drawing_FontMgrDestroy(mgr);
 }
 
@@ -224,6 +226,10 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
     OH_Drawing_Typeface *typeface = OH_Drawing_FontStyleSetCreateTypeface(fontStyleSet, 0);
     EXPECT_NE(typeface, nullptr);
+    typeface = OH_Drawing_FontStyleSetCreateTypeface(fontStyleSet, -1);
+    EXPECT_EQ(typeface, nullptr);
+    typeface = OH_Drawing_FontStyleSetCreateTypeface(fontStyleSet, 0xffff);
+    EXPECT_EQ(typeface, nullptr);
     typeface = OH_Drawing_FontStyleSetCreateTypeface(nullptr, 0);
     EXPECT_EQ(typeface, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
@@ -244,12 +250,25 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
     char* styleName = nullptr;
     normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, &styleName);
     ASSERT_NE(styleName, nullptr);
-    EXPECT_EQ(std::string(styleName), "normal");
+    EXPECT_STREQ(styleName, "normal");
     EXPECT_EQ(normalStyle.weight, 400);
     OH_Drawing_FontStyleSetFreeStyleName(&styleName);
 
     normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, nullptr);
     OH_Drawing_FontStyleSetFreeStyleName(nullptr);
+
+    char* temp = styleName;
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(nullptr, 0, &styleName);
+    EXPECT_EQ(styleName, temp);
+    EXPECT_EQ(normalStyle.slant, OH_Drawing_FontStyle::FONT_STYLE_NORMAL);
+    EXPECT_EQ(normalStyle.weight, OH_Drawing_FontWeight::FONT_WEIGHT_400);
+    EXPECT_EQ(normalStyle.width, OH_Drawing_FontWidth::FONT_WIDTH_NORMAL);
+
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, -1, &styleName);
+    EXPECT_EQ(styleName, temp);
+
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0xffff, &styleName);
+    EXPECT_EQ(styleName, nullptr);
 
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);

@@ -440,11 +440,9 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph001, TestSize.Level1)
         OH_Drawing_Path* path = OH_Drawing_PathCreate();
         ASSERT_NE(path, nullptr);
         EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphs[i], path), OH_DRAWING_SUCCESS);
-        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        EXPECT_EQ(OH_Drawing_PathGetLength(path, false), 1);
         EXPECT_TRUE(OH_Drawing_PathIsClosed(path, false));
-        if (path != nullptr) {
-            OH_Drawing_PathDestroy(path);
-        }
+        OH_Drawing_PathDestroy(path);
     }
     OH_Drawing_FontDestroy(font);
 }
@@ -553,8 +551,12 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds001, TestSize.Level1)
         OH_Drawing_Rect *iter = nullptr;
         EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
         ASSERT_NE(iter, nullptr);
-        EXPECT_TRUE(OH_Drawing_RectGetWidth(iter) > 0);
-        EXPECT_TRUE(OH_Drawing_RectGetHeight(iter) > 0);
+        EXPECT_EQ(OH_Drawing_RectGetWidth(iter), 1);
+        EXPECT_EQ(OH_Drawing_RectGetHeight(iter), 1);
+        EXPECT_EQ(OH_Drawing_RectGetTop(iter), 1);
+        EXPECT_EQ(OH_Drawing_RectGetLeft(iter), 1);
+        EXPECT_EQ(OH_Drawing_RectGetBottom(iter) - OH_Drawing_RectGetTop(iter), OH_Drawing_RectGetHeight(iter));
+        EXPECT_EQ(OH_Drawing_RectGetLeft(iter) - OH_Drawing_RectGetRight(iter), OH_Drawing_RectGetWidth(iter));
     }
     EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
     
@@ -588,8 +590,8 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds002, TestSize.Level1)
         OH_Drawing_Rect *iter = nullptr;
         EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
         ASSERT_NE(iter, nullptr);
-        EXPECT_TRUE(OH_Drawing_RectGetWidth(iter) == 0);
-        EXPECT_TRUE(OH_Drawing_RectGetHeight(iter) == 0);
+        EXPECT_EQ(OH_Drawing_RectGetWidth(iter), 0);
+        EXPECT_EQ(OH_Drawing_RectGetHeight(iter), 0);
     }
     EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
     OH_Drawing_FontDestroy(font);
