@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (C) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
 
 ## Build effectKit_ani.so
 config("graphic_ani_effect_kit_config") {
@@ -72,17 +72,18 @@ ohos_shared_library("effectKit_ani") {
     "image_framework:image",
     "image_framework:image_ani",
     "runtime_core:ani",
-    "runtime_core:libarkruntime"
+    "runtime_core:libarkruntime",
   ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
   output_extension = "so"
 }
+
 ## Build effectKit_ani.so
 
 generate_static_abc("effectKit") {
-  base_url = "./ets"                 # base_url需配置到导出接口文件的所在目录
+  base_url = "./ets"  # base_url需配置到导出接口文件的所在目录
   files = [
     "./ets/@ohos.effectKit.ets",
     "./ets/effectKit_entry.ets",
@@ -95,5 +96,5 @@ ohos_prebuilt_etc("effectKit_etc") {
   module_install_dir = "framework"
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-  deps = [":effectKit"]
+  deps = [ ":effectKit" ]
 }
