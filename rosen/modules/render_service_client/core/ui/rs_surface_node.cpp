@@ -949,6 +949,13 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
     RS_LOGD("RSSurfaceNode::SetApiCompatibleVersion: Node: %{public}" PRIu64 ", version: %{public}u", GetId(), version);
 }
 
+void RSSurfaceNode::SetSourceVirtualDisplayId(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSourceVirtualDisplayId>(GetId(), screenId);
+    AddCommand(command, true);
+}
+
 void RSSurfaceNode::AttachToWindowContainer(ScreenId screenId)
 {
     std::unique_ptr<RSCommand> command =

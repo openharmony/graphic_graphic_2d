@@ -1328,6 +1328,23 @@ HWTEST_F(RSUniRenderUtilTest, ProcessCacheImageRect002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: ProcessCacheImageForMultiScreenView
+ * @tc.desc: ProcessCacheImageForMultiScreenView test with image width and height
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessCacheImageForMultiScreenView, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    auto rect = RectF(1, 1, 10, 10);
+    rsUniRenderUtil.ProcessCacheImageForMultiScreenView(canvas, *image, rect);
+}
+
+/*
  * @tc.name: TraverseAndCollectUIExtensionInfo001
  * @tc.desc: TraverseAndCollectUIExtensionInfo test when node is nullptr
  * @tc.type: FUNC

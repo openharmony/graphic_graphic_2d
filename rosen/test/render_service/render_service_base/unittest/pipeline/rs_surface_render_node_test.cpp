@@ -2474,5 +2474,20 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
     testNode->DealWithDrawBehindWindowTransparentRegion();
     ASSERT_FALSE(regionBeforeProcess.Sub(testNode->opaqueRegion_).IsEmpty());
 }
+
+/**
+ * @tc.name: GetSourceDisplayRenderNodeId
+ * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
+ * @tc.type: FUNC
+ * @tc.require: issueIBJJRI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    NodeId sourceDisplayRenderNodeId = 1;
+    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
+}
 } // namespace Rosen
 } // namespace OHOS

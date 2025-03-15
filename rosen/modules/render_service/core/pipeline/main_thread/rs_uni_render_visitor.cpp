@@ -842,6 +842,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     globalFilter_.clear();
     curSurfaceNoBelowDirtyFilter_.clear();
     curDisplayNode_->ResetMirroredDisplayChangedFlag();
+    PrepareForMultiScreenViewDisplayNode(node);
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)
@@ -1119,6 +1120,41 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (node.IsUIBufferAvailable()) {
         uiBufferAvailableId_.emplace_back(node.GetId());
     }
+    PrepareForMultiScreenViewSurfaceNode(node);
+}
+
+void RSUniRenderVisitor::PrepareForMultiScreenViewSurfaceNode(RSSurfaceRenderNode& node)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto sourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(node.GetSourceDisplayRenderNodeId());
+    if (!sourceNode) {
+        return;
+    }
+    node.SetContentDirty();
+    sourceNode->SetTargetSurfaceRenderNodeId(node.GetId());
+    auto sourceNodeDrawable = sourceNode->GetRenderDrawable();
+    if (!sourceNodeDrawable) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("PrepareForMultiScreenViewSurfaceNode surfaceNodeId: %llu sourceVirtualDisplayId: %llu",
+        node.GetId(), node.GetSourceDisplayRenderNodeId());
+    node.SetSourceDisplayRenderNodeDrawable(sourceNodeDrawable);
+}
+
+void RSUniRenderVisitor::PrepareForMultiScreenViewDisplayNode(RSDisplayRenderNode& node)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto targetNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(node.GetTargetSurfaceRenderNodeId());
+    if (!targetNode) {
+        return;
+    }
+    auto targetRenderNodeDrawable = targetNode->GetRenderDrawable();
+    if (!targetRenderNodeDrawable) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("PrepareForMultiScreenViewDisplayNode displayNodeId: %llu targetSurfaceRenderNodeId: %llu",
+        node.GetId(), node.GetTargetSurfaceRenderNodeId());
+    node.SetTargetSurfaceRenderNodeDrawable(targetRenderNodeDrawable);
 }
 
 bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)

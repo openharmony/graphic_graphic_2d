@@ -71,6 +71,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
     SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
     SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
+    SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -120,6 +121,7 @@ public:
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
     static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
     static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
+    static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
 };
@@ -250,6 +252,9 @@ ADD_COMMAND(RSSurfaceNodeAttachToWindowContainer,
 ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
         SurfaceNodeCommandHelper::DetachFromWindowContainer, NodeId, ScreenId))
+ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
+        SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
