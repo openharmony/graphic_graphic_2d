@@ -18,7 +18,7 @@ import image from '@ohos.multimedia.image';
 
 
 function main() {
-  console.log("Test effectKit start");
+  console.log('Test effectKit start');
   const opts: image.InitializationOptions = {
     size: { width: 480, height: 360 },
     editable: true,
@@ -26,28 +26,28 @@ function main() {
   };
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
-    console.log("Create image.createPixelMapSync failed");
+    console.log('Create image.createPixelMapSync failed');
     return;
   }
-  console.log("Create image.createPixelMapSync success");
+  console.log('Create image.createPixelMapSync success');
   let headFilter: effectKit.Filter = effectKit.createEffect(pixelMap);
   if (headFilter == undefined) {
-      console.log("Test createEffect failed");
+      console.log('Test createEffect failed');
       return;
   }
-  console.log("Test createEffect success");
+  console.log('Test createEffect success');
   let blurFilter: effectKit.Filter = headFilter.blur(10);
   if (blurFilter == undefined) {
-    console.log("Test blur failed");
+    console.log('Test blur failed');
     return;
   }
-  console.log("Test blur success");
+  console.log('Test blur success');
   blurFilter.getEffectPixelMap().then((pixelMap: image.PixelMap) => {
     if (pixelMap != undefined) {
       console.log('Test getEffectPixelMap success, getPixelBytesNumber = ', pixelMap.getPixelBytesNumber());
     }
   }).catch((ex: Object | null | undefined) => {
-    console.error("Test getEffectPixelMap failed");
+    console.error('Test getEffectPixelMap failed');
   });
-  console.log("Test effectKit end");
+  console.log('Test effectKit end');
 }
