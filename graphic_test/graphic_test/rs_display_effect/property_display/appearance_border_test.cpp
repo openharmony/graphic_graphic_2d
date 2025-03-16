@@ -100,9 +100,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Color_Tes
 // width
 GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Width_Test_1)
 {
-    uint32_t widthList[] = { 0, 5, 250, 500 };
+    std::vector<float> widthList = { 0, 5, 250, 500, -5 };
 
-    const int nodeCount = 4;
+    const int nodeCount = widthList.size();
     const int columnCount = 2;
     const int nodeSize = 500;
     const int nodePos = 510;
@@ -121,7 +121,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Width_Tes
 
     // four different width
     auto testNodeFourWidth = RSCanvasNode::Create();
-    testNodeFourWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourWidth->SetBounds({ 0, nodePos * 3, nodeSize, nodeSize });
     testNodeFourWidth->SetBorderStyle(0, 0, 0, 0);
     testNodeFourWidth->SetBorderWidth(widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8);
     testNodeFourWidth->SetBorderColor(0xff000000, 0xff000000, 0xff000000, 0xff000000);
@@ -167,9 +167,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Style_Tes
 // Dash Width
 GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashWidth_Test_1)
 {
-    uint32_t widthList[] = { 0, 20, 120, 250 };
+    std::vector<float> widthList = { 0, 20, 120, 250, -20 };
 
-    const int nodeCount = 4;
+    const int nodeCount = widthList.size();
     const int columnCount = 2;
     const int nodeSize = 500;
     const int nodePos = 510;
@@ -191,7 +191,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashWidth
 
     // four different dash width
     auto testNodeFourDashWidth = RSCanvasNode::Create();
-    testNodeFourDashWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourDashWidth->SetBounds({ 0, nodePos * 3, nodeSize, nodeSize });
     testNodeFourDashWidth->SetBorderStyle(1, 1, 1, 1);
     testNodeFourDashWidth->SetBorderDashWidth(
         { widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
@@ -202,7 +202,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashWidth
 
     // not dash style, set dash width
     auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetBounds({ nodePos, nodePos * 2, nodeSize, nodeSize });
+    testNodeSolid->SetBounds({ nodePos, nodePos * 3, nodeSize, nodeSize });
     // solid style
     testNodeSolid->SetBorderStyle(0, 0, 0, 0);
     testNodeSolid->SetBorderDashWidth({ widthList[1], widthList[1], widthList[1], widthList[1] });
@@ -215,9 +215,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashWidth
 // Dash Gap
 GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashGap_Test_1)
 {
-    uint32_t gapList[] = { 0, 20, 120, 250 };
+    std::vector<float> gapList = { 0, 20, 120, 250, -20 };
 
-    const int nodeCount = 4;
+    const int nodeCount = widthList.size();
     const int columnCount = 2;
     const int nodeSize = 500;
     const int nodePos = 510;
@@ -239,7 +239,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashGap_T
 
     // four different dash width
     auto testNodeFourDashGap = RSCanvasNode::Create();
-    testNodeFourDashGap->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourDashGap->SetBounds({ 0, nodePos * 3, nodeSize, nodeSize });
     testNodeFourDashGap->SetBorderStyle(1, 1, 1, 1);
     testNodeFourDashGap->SetBorderDashGap({ gapList[1] * 0, gapList[1] * 2, gapList[1] * 4, gapList[1] * 8 });
     testNodeFourDashGap->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
@@ -249,7 +249,7 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_DashGap_T
 
     // not dash style, set dash width
     auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetBounds({ nodePos, nodePos * 2, nodeSize, nodeSize });
+    testNodeSolid->SetBounds({ nodePos, nodePos * 3, nodeSize, nodeSize });
     // solid style
     testNodeSolid->SetBorderStyle(0, 0, 0, 0);
     testNodeSolid->SetBorderDashGap({ gapList[1], gapList[1], gapList[1], gapList[1] });

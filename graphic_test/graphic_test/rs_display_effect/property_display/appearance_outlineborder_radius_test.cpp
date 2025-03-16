@@ -139,6 +139,47 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
     RegisterNode(testNodeFourWidth);
 }
 
+GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Radius_Width_Test_2)
+{
+    std::vector<float> widthList = { -5, 5, 500 };
+    Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
+    Color color(0, 0, 0);
+    Vector4<Color> outLineColor = { color, color, color, color };
+
+    const int nodeCount = 3;
+    const int columnCount = 2;
+    const int nodeSize = 400;
+    const int nodePos = 420;
+    const float radiusVal = 50.0f;
+    const int offsetVal = 20;
+    const int offsetVal2 = 400;
+
+    for (int i = 0; i < nodeCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
+        auto testNodeWidth = RSCanvasNode::Create();
+        testNodeWidth->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeWidth->SetTranslate(widthList[i] + offsetVal, widthList[i] + radiusVal, 0);
+        testNodeWidth->SetOutlineStyle(style);
+        testNodeWidth->SetOutlineWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
+        testNodeWidth->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
+        testNodeWidth->SetOutlineColor(outLineColor);
+        GetRootNode()->AddChild(testNodeWidth);
+        RegisterNode(testNodeWidth);
+    }
+
+    // four different width
+    auto testNodeFourWidth = RSCanvasNode::Create();
+    testNodeFourWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourWidth->SetTranslate(offsetVal, offsetVal2, 0);
+    testNodeFourWidth->SetOutlineStyle(style);
+    testNodeFourWidth->SetOutlineWidth({ widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
+    testNodeFourWidth->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
+    testNodeFourWidth->SetOutlineColor(outLineColor);
+    GetRootNode()->AddChild(testNodeFourWidth);
+    RegisterNode(testNodeFourWidth);
+}
+
 // Style
 // 0 -- Solid
 // 1 -- Dash
@@ -238,12 +279,12 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
 GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Radius_OutlineDashWidth_Test_1)
 {
-    uint32_t widthList[] = { 0, 20, 120, 250 };
+    uint32_t widthList[] = { 0, 20, 120, 250, -20 };
     Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
     Color color(0, 0, 0);
     Vector4<Color> outLineColor = { color, color, color, color };
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
         auto testNodeDashWidth = RSCanvasNode::Create();
@@ -261,7 +302,7 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // four different dash width
     auto testNodeFourDashWidth = RSCanvasNode::Create();
-    testNodeFourDashWidth->SetBounds({ 0, 520 * 2, 500, 500 });
+    testNodeFourDashWidth->SetBounds({ 0, 520 * 3, 500, 500 });
     testNodeFourDashWidth->SetTranslate(20, 20, 0);
     testNodeFourDashWidth->SetOutlineStyle(style);
     testNodeFourDashWidth->SetOutlineDashWidth(
@@ -274,7 +315,7 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // not dash style, set dash width
     auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetBounds({ 520, 520 * 2, 500, 500 });
+    testNodeSolid->SetBounds({ 520, 520 * 3, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
     // solid style
     testNodeSolid->SetOutlineStyle(style);
@@ -338,12 +379,12 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
 GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Radius_OutlineDashGap_Test_1)
 {
-    uint32_t gapList[] = { 0, 20, 120, 250 };
+    uint32_t gapList[] = { 0, 20, 120, 250, -20 };
     Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)1);
     Color color(0, 0, 0);
     Vector4<Color> outLineColor = { color, color, color, color };
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
         auto testNodeDashGap = RSCanvasNode::Create();
@@ -361,7 +402,7 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // four different dash width
     auto testNodeFourDashGap = RSCanvasNode::Create();
-    testNodeFourDashGap->SetBounds({ 0, 520 * 2, 500, 500 });
+    testNodeFourDashGap->SetBounds({ 0, 520 * 3, 500, 500 });
     testNodeFourDashGap->SetTranslate(20, 20, 0);
     testNodeFourDashGap->SetOutlineStyle(style);
     testNodeFourDashGap->SetOutlineDashGap({ gapList[1] * 0, gapList[1] * 2, gapList[1] * 4, gapList[1] * 8 });
@@ -373,7 +414,7 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // not dash style, set dash width
     auto testNodeSolid = RSCanvasNode::Create();
-    testNodeSolid->SetBounds({ 520, 520 * 2, 500, 500 });
+    testNodeSolid->SetBounds({ 520, 520 * 3, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
     // solid style
     testNodeSolid->SetOutlineStyle(style);

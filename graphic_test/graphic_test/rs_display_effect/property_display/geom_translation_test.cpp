@@ -35,8 +35,8 @@ public:
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationXY_Test_1)
 {
-    float transList[] = { 0, 250, 500 };
-    for (int i = 0; i < 3; i++) {
+    std::vector<float> transList = { 0, 250, 500, -250 };
+    for (int i = 0; i < transList.size(); i++) {
         int x = (i % 2) * 510;
         int y = (i / 2) * 510;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, 500, 500 });
