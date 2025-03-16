@@ -450,7 +450,7 @@ HWTEST_F(RSDisplayNodeTest, SetScbNodePid, TestSize.Level1)
  * @tc.name: SetVirtualScreenMuteStatus
  * @tc.desc: SetVirtualScreenMuteStatus test.
  * @tc.type: FUNC
- * @tc.require: issueI9UAON
+ * @tc.require: issueIBTNC3
  */
 HWTEST_F(RSDisplayNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
 {
