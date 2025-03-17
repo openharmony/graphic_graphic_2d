@@ -4665,7 +4665,7 @@ void RSProperties::SetColorBlendMode(int colorBlendMode)
     }
     SetDirty();
     contentDirty_ = true;
-    filterNeedUpdate_ = IsColorBlendModeValid() ? true : filterNeedUpdate_;
+    filterNeedUpdate_ = true;
 }
 
 int RSProperties::GetColorBlendMode() const
