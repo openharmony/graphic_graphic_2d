@@ -69,6 +69,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = {
         .id = node->GetId(),
         .name = node->name_,
+        .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = isWindow && surfaceNodeConfig.isSync,
@@ -645,10 +646,20 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSNode(isRenderServiceNode, config.isTextureExportNode) {}
+    : RSNode(isRenderServiceNode, config.isTextureExportNode)
+{
+    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
+    bundleName_ = result.first;
+    name_ = result.second;
+}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
-    : RSNode(isRenderServiceNode, id, config.isTextureExportNode) {}
+    : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
+{
+    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
+    bundleName_ = result.first;
+    name_ = result.second;
+}
 
 RSSurfaceNode::~RSSurfaceNode()
 {

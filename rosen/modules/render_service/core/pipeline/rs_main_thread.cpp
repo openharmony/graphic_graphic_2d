@@ -445,6 +445,7 @@ void RSMainThread::Init()
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();
+        InformHgmNodeInfo();
         if (!isUniRender_) {
             RSMainThread::GPUCompositonCacheGuard guard;
             ReleaseAllNodesBuffer();
@@ -1009,8 +1010,25 @@ void RSMainThread::CacheCommands()
 
 void RSMainThread::CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node)
 {
+    currentBundleName_ = node->GetBundleName();
     if (node->GetName() == WALLPAPER_VIEW) {
         noBundle_ = true;
+    }
+}
+
+void RSMainThread::InformHgmNodeInfo()
+{
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    int32_t informResult = EXEC_SUCCESS;
+    if (currentBundleName_ != "") {
+        informResult = hgmCore.RefreshBundleName(currentBundleName_);
+    } else if (noBundle_) {
+        currentBundleName_ = "";
+        informResult = hgmCore.RefreshBundleName(currentBundleName_);
+        noBundle_ = false;
+    }
+    if (informResult != EXEC_SUCCESS) {
+        RS_LOGE("RSMainThread::InformHgmNodeInfo failed to refresh bundle name in hgm");
     }
 }
 
