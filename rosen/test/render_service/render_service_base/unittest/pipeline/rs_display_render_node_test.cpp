@@ -833,7 +833,7 @@ HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
 
 /**
  * @tc.name: GetVirtualScreenMuteStatus
- * @tc.desc: test results of SetVirtualScreenMuteStatus
+ * @tc.desc: test results of GetVirtualScreenMuteStatus
  * @tc.type: FUNC
  * @tc.require: issuesIBTNC3
  */
