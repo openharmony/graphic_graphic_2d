@@ -175,7 +175,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!image_) {
         return;
     }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     Drawing::Paint paint;
     paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
     canvas.AttachPaint(paint);
