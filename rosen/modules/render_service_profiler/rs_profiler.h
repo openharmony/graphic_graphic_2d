@@ -145,6 +145,13 @@ class RSFile;
 
 enum class Mode : uint32_t { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4, SAVING = 5 };
 
+enum class TextureRecordType : int {
+    ONE_PIXEL = 0,
+    JPEG = 1,
+    LZ4 = 2,
+    NO_COMPRESSION = 3,
+};
+
 class RSProfiler final {
 public:
     static void Init(RSRenderService* renderService);
@@ -232,6 +239,9 @@ public:
     RSB_EXPORT static bool IsWriteMode();
     RSB_EXPORT static bool IsWriteEmulationMode();
     RSB_EXPORT static bool IsSavingMode();
+
+    RSB_EXPORT static TextureRecordType GetTextureRecordType();
+    RSB_EXPORT static void SetTextureRecordType(TextureRecordType type);
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
@@ -450,6 +460,7 @@ private:
 
     static void RecordStart(const ArgList& args);
     static void RecordStop(const ArgList& args);
+    static void RecordCompression(const ArgList& args);
     static void RecordUpdate();
     static void RecordSave();
     RSB_EXPORT static void RequestRecordAbort();
