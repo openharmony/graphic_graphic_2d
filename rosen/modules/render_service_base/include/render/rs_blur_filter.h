@@ -29,13 +29,12 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSBlurFilter : public RSDrawingFilterOriginal {
 public:
-    RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation = true);
+    RSBlurFilter(float blurRadiusX, float blurRadiusY);
     RSBlurFilter(const RSBlurFilter&) = delete;
     RSBlurFilter operator=(const RSBlurFilter&) = delete;
     ~RSBlurFilter() override;
     float GetBlurRadiusX();
     float GetBlurRadiusY();
-    bool GetDisableSystemAdaptation();
     bool IsValid() const override;
     std::shared_ptr<RSDrawingFilterOriginal> Compose(
         const std::shared_ptr<RSDrawingFilterOriginal>& other) const override;
@@ -63,7 +62,6 @@ private:
     float blurRadiusX_;
     float blurRadiusY_;
     std::optional<Vector2f> greyCoef_;
-    bool disableSystemAdaptation_ {true};
 };
 } // namespace Rosen
 } // namespace OHOS

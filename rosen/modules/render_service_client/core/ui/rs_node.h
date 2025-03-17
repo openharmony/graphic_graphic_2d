@@ -622,7 +622,6 @@ private:
     void SetBackgroundBlurColorMode(int colorMode);
     void SetBackgroundBlurRadiusX(float blurRadiusX);
     void SetBackgroundBlurRadiusY(float blurRadiusY);
-    void SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
     void SetForegroundBlurRadius(float radius);
     void SetForegroundBlurSaturation(float saturation);
@@ -631,7 +630,6 @@ private:
     void SetForegroundBlurColorMode(int colorMode);
     void SetForegroundBlurRadiusX(float blurRadiusX);
     void SetForegroundBlurRadiusY(float blurRadiusY);
-    void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);

@@ -153,37 +153,35 @@ enum class RSModifierType : int16_t {
     BACKGROUND_BLUR_COLOR_MODE = 120,
     BACKGROUND_BLUR_RADIUS_X = 121,
     BACKGROUND_BLUR_RADIUS_Y = 122,
-    BG_BLUR_DISABLE_SYSTEM_ADAPTATION = 123,
-    FOREGROUND_BLUR_RADIUS = 124,
-    FOREGROUND_BLUR_SATURATION = 125,
-    FOREGROUND_BLUR_BRIGHTNESS = 126,
-    FOREGROUND_BLUR_MASK_COLOR = 127,
-    FOREGROUND_BLUR_COLOR_MODE = 128,
-    FOREGROUND_BLUR_RADIUS_X = 129,
-    FOREGROUND_BLUR_RADIUS_Y = 130,
-    FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
-    ATTRACTION_FRACTION = 132,
-    ATTRACTION_DSTPOINT = 133,
-    CUSTOM = 134,
-    EXTENDED = 135,
-    TRANSITION = 136,
-    BACKGROUND_STYLE = 137,
-    CONTENT_STYLE = 138,
-    FOREGROUND_STYLE = 139,
-    OVERLAY_STYLE = 140,
-    NODE_MODIFIER = 141,
-    ENV_FOREGROUND_COLOR = 142,
-    ENV_FOREGROUND_COLOR_STRATEGY = 143,
-    GEOMETRYTRANS = 144,
-    CUSTOM_CLIP_TO_FRAME = 145,
-    HDR_BRIGHTNESS = 146,
-    BEHIND_WINDOW_FILTER_ENABLED = 147,
-    BEHIND_WINDOW_FILTER_RADIUS = 148,
-    BEHIND_WINDOW_FILTER_SATURATION = 149,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 150,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 151,
-    CHILDREN = 152, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 153,
+    FOREGROUND_BLUR_RADIUS = 123,
+    FOREGROUND_BLUR_SATURATION = 124,
+    FOREGROUND_BLUR_BRIGHTNESS = 125,
+    FOREGROUND_BLUR_MASK_COLOR = 126,
+    FOREGROUND_BLUR_COLOR_MODE = 127,
+    FOREGROUND_BLUR_RADIUS_X = 128,
+    FOREGROUND_BLUR_RADIUS_Y = 129,
+    ATTRACTION_FRACTION = 130,
+    ATTRACTION_DSTPOINT = 131,
+    CUSTOM = 132,
+    EXTENDED = 133,
+    TRANSITION = 134,
+    BACKGROUND_STYLE = 135,
+    CONTENT_STYLE = 136,
+    FOREGROUND_STYLE = 137,
+    OVERLAY_STYLE = 138,
+    NODE_MODIFIER = 139,
+    ENV_FOREGROUND_COLOR = 140,
+    ENV_FOREGROUND_COLOR_STRATEGY = 141,
+    GEOMETRYTRANS = 142,
+    CUSTOM_CLIP_TO_FRAME = 143,
+    HDR_BRIGHTNESS = 144,
+    BEHIND_WINDOW_FILTER_ENABLED = 145,
+    BEHIND_WINDOW_FILTER_RADIUS = 146,
+    BEHIND_WINDOW_FILTER_SATURATION = 147,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 148,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 149,
+    CHILDREN = 150, // PLACEHOLDER, no such modifier, but we need a dirty flag
+    MAX_RS_MODIFIER_TYPE = 151,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -344,7 +342,6 @@ public:
             case RSModifierType::BACKGROUND_BLUR_COLOR_MODE: return "BackgroundBlurColorMode";
             case RSModifierType::BACKGROUND_BLUR_RADIUS_X: return "BackgroundBlurRadiusX";
             case RSModifierType::BACKGROUND_BLUR_RADIUS_Y: return "BackgroundBlurRadiusY";
-            case RSModifierType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "BgBlurDisableSystemAdaptation";
             case RSModifierType::FOREGROUND_BLUR_RADIUS: return "ForegroundBlurRadius";
             case RSModifierType::FOREGROUND_BLUR_SATURATION: return "ForegroundBlurSaturation";
             case RSModifierType::FOREGROUND_BLUR_BRIGHTNESS: return "ForegroundBlurBrightness";
@@ -352,7 +349,6 @@ public:
             case RSModifierType::FOREGROUND_BLUR_COLOR_MODE: return "ForegroundBlurColorMode";
             case RSModifierType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
             case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
-            case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

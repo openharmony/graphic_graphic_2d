@@ -42,7 +42,6 @@ public:
         MASK_COLOR,
         WATER_RIPPLE,
         MAGNIFIER,
-        LIGHT_BLUR,
     };
 
     ShaderFilterType GetShaderFilterType() const

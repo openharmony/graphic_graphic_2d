@@ -56,12 +56,10 @@ struct MaterialParam {
     float saturation;
     float brightness;
     RSColor maskColor;
-    bool disableSystemAdaptation;
 };
 class RSB_EXPORT RSMaterialFilter : public RSDrawingFilterOriginal {
 public:
-    RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio,
-        bool disableSystemAdaptation = true);
+    RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio);
     RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode);
     RSMaterialFilter(const RSMaterialFilter&) = delete;
     RSMaterialFilter operator=(const RSMaterialFilter&) = delete;
@@ -86,7 +84,6 @@ public:
     float GetBrightness() const;
     RSColor GetMaskColor() const;
     BLUR_COLOR_MODE GetColorMode() const;
-    bool GetDisableSystemAdaptation() const;
     bool CanSkipFrame() const override;
 
     bool IsNearEqual(
@@ -111,7 +108,6 @@ private:
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter_;
-    bool disableSystemAdaptation_ {true};
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

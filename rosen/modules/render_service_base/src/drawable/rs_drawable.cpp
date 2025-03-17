@@ -155,7 +155,6 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BG_BLUR_DISABLE_SYSTEM_ADAPTATION,
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS,
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION,
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS,
@@ -163,7 +162,6 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE,
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X,
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FG_BLUR_DISABLE_SYSTEM_ADAPTATION,
     RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
     RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
     RSDrawableSlot::INVALID,                       // CUSTOM
