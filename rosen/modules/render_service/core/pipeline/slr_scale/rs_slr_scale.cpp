@@ -100,7 +100,7 @@ static std::shared_ptr<uint32_t[]> GetSLRWeights(float coeff, int width, int dst
     return result;
 }
 
-std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWidth)
+std::shared_ptr<Drawing::ShaderEffect> RSSLRScaleFunction::GetSLRShaderEffect(float coeff, int dstWidth)
 {
     float tao = 1.0f / coeff;
     int minBound = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
@@ -116,7 +116,7 @@ std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWi
         return nullptr;
     }
     Drawing::ImageInfo imageInfo(width, dstWidth,
-        Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+        Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE, defaultColorSpace_);
     bitmap.InstallPixels(imageInfo, weightW.get(), width * sizeof(uint32_t));
     
     Drawing::Image imagew;
@@ -138,6 +138,8 @@ void RSSLRScaleFunction::RefreshScreenData()
     scaleNum_ = std::min(mirrorWidth_ / srcWidth_, mirrorHeight_ / srcHeight_);
     dstWidth_ = scaleNum_ * srcWidth_;
     dstHeight_ = scaleNum_ * srcHeight_;
+    defaultColorSpace_ = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+        Drawing::CMSMatrixType::SRGB);
     alpha_ = scaleNum_ > SLR_SCALE_THR_LOW ? SLR_ALPHA_HIGH : SLR_ALPHA_LOW;
     float tao = 1.0f / scaleNum_;
     kernelSize_ = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
@@ -200,7 +202,7 @@ std::shared_ptr<Rosen::Drawing::Image> RSSLRScaleFunction::ProcessSLRImage(RSPai
     auto originImageInfo = cacheImageProcessed.GetImageInfo();
     auto ScreenInfo = Drawing::ImageInfo(std::ceil(dstWidth_),
         std::ceil(dstHeight_), originImageInfo.GetColorType(),
-        originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+        originImageInfo.GetAlphaType(), defaultColorSpace_);
     std::shared_ptr<Drawing::Image> tmpImage(builder->MakeImage(
         canvas.GetGPUContext().get(), nullptr, ScreenInfo, false));
     if (tmpImage == nullptr) {

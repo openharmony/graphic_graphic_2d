@@ -390,8 +390,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
     auto colorGamutFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[COLOR_GAMUT]);
     auto colorGamutParam = std::static_pointer_cast<ColorGamutParam>(colorGamutFeature);
     if (colorGamutParam != nullptr && colorGamutParam->IsSLRCloseP3() &&
-        (RSMainThread::Instance()->HasWiredMirrorDisplay() || RSMainThread::Instance()->HasVirtualMirrorDisplay() ||
-        (node.GetScreenId() != 0 && screenType != VIRTUAL_TYPE_SCREEN))) {
+        RSMainThread::Instance()->HasVirtualMirrorDisplay()) {
         RS_LOGD("RSUniRenderVisitor::HandleColorGamuts close multi-screen P3.");
         // wired screen and virtual mirror screen close P3
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
