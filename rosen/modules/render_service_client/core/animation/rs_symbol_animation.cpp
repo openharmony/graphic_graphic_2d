@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-using SymnolBaseFunc = std::function<void(Drawing::DrawingPiecewiseParameter& parameter)>;
+using SymnolBaseFunc = std::function<void(const Drawing::DrawingPiecewiseParameter& parameter)>;
 using SymbolBaseFuncMap = std::unordered_map<std::string, SymnolBaseFunc>;
 
 static const Vector2f CENTER_NODE_COORDINATE = { 0.5f, 0.5f }; // scale center node
@@ -231,7 +231,7 @@ bool RSSymbolAnimation::SetReplaceDisappear(
             continue;
         }
         if (parameters.size() <= static_cast<size_t>(config.symbolNode.animationIndex) ||
-            parameters.at(config.symbolNode.animationIndex).empty()) {
+            parameters[config.symbolNode.animationIndex].empty()) {
             ROSEN_LOGD("[%{public}s] invalid parameter", __func__);
             continue;
         }
@@ -268,6 +268,9 @@ bool RSSymbolAnimation::SetReplaceAppear(
         bool createNewNode = CreateSymbolNode(symbolAnimationConfig, offsets, n);
         auto nodeId = rsNode_->replaceNodesSwapArr_[APPEAR_STATUS][n].nodeId;
         auto canvasNode = std::static_pointer_cast<RSCanvasNode>(rsNode_->canvasNodesListMap_[symbolSpanId][nodeId]);
+        if (canvasNode == nullptr) {
+            return false;
+        }
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         GroupDrawing(canvasNode, symbolNode, offsets);
         bool isInValid = !res || !isStartAnimation || symbolNode.animationIndex < 0 ||
@@ -310,6 +313,10 @@ bool RSSymbolAnimation::CreateSymbolNode(
         return false;
     }
     auto childNode = RSCanvasNode::Create();
+    if (childNode == nullptr) {
+        ROSEN_LOGD("[%{public}s] Failed to create CanvasNode", __func__);
+        return false;
+    }
     nodeId = isReplaceAppear ? childNode->GetId() : nodeId;
     outerIter->second.insert({nodeId, childNode});
     SetSymbolGeometry(childNode, symbolBounds);
@@ -417,6 +424,9 @@ bool RSSymbolAnimation::SetPublicAnimation(
     for (uint32_t n = 0; n < nodeNum; n++) {
         bool createNewNode = CreateSymbolNode(symbolAnimationConfig, offsets, n);
         auto canvasNode = std::static_pointer_cast<RSCanvasNode>(rsNode_->canvasNodesListMap_[symbolSpanId][n]);
+        if (canvasNode == nullptr) {
+            return false;
+        }
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         GroupDrawing(canvasNode, symbolNode, offsets);
 
@@ -478,19 +488,19 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::shared_ptr<RSAnimatableProperty<float>> alphaProperty = nullptr;
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     SymbolBaseFuncMap funcMap = {
-        {SCALE_PROP_X, [&, this](Drawing::DrawingPiecewiseParameter& parameter)
+        {SCALE_PROP_X, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
             {
                 ScaleAnimationBase(rsNode, scaleProperty, parameter, groupAnimation);
             }
         },
-        {ALPHA_PROP, [&, this](Drawing::DrawingPiecewiseParameter& parameter)
+        {ALPHA_PROP, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
             {
                 AlphaAnimationBase(rsNode, alphaProperty, parameter, groupAnimation);
             }
         }
     };
 
-    for (auto parameter : parameters) {
+    for (const auto& parameter : parameters) {
         for (const auto& pair : parameter.properties) {
             if (funcMap.count(pair.first) > 0) {
                 funcMap[pair.first](parameter);
@@ -722,12 +732,12 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::KeyframeAlphaSymbolAnimation(con
 // base atomizated animation
 void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
-    Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations)
+    const Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
-    auto& properties = scaleParameter.properties;
+    const auto& properties = scaleParameter.properties;
     if (properties.count(SCALE_PROP_X) <= 0 || properties.count(SCALE_PROP_Y) <= 0 ||
-        properties[SCALE_PROP_X].size() < PROPERTIES ||
-        properties[SCALE_PROP_Y].size() < PROPERTIES) {
+        properties.at(SCALE_PROP_X).size() < PROPERTIES ||
+        properties.at(SCALE_PROP_Y).size() < PROPERTIES) {
         ROSEN_LOGD("Invalid parameter input of scale.");
         return;
     }
@@ -738,13 +748,13 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
     if (scaleProperty == nullptr) {
         SetNodePivot(rsNode);
-        const Vector2f scaleValueBegin = {properties[SCALE_PROP_X][0], properties[SCALE_PROP_Y][0]};
+        const Vector2f scaleValueBegin = {properties.at(SCALE_PROP_X).at(0), properties.at(SCALE_PROP_Y).at(0)};
         SymbolAnimation::CreateOrSetModifierValue(scaleProperty, scaleValueBegin);
         auto scaleModifier = std::make_shared<Rosen::RSScaleModifier>(scaleProperty);
         rsNode->AddModifier(scaleModifier);
     }
 
-    const Vector2f scaleValueEnd = {properties[SCALE_PROP_X][PROP_END], properties[SCALE_PROP_Y][PROP_END]};
+    const Vector2f scaleValueEnd = {properties.at(SCALE_PROP_X).at(PROP_END), properties.at(SCALE_PROP_Y).at(PROP_END)};
 
     // set animation curve and protocol
     RSAnimationTimingCurve scaleCurve;
@@ -767,26 +777,26 @@ void RSSymbolAnimation::ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
 void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     std::shared_ptr<RSAnimatableProperty<float>>& alphaProperty,
-    Drawing::DrawingPiecewiseParameter& alphaParameter, std::vector<std::shared_ptr<RSAnimation>>& animations)
+    const Drawing::DrawingPiecewiseParameter& alphaParameter, std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
     // validation input
     if (rsNode == nullptr) {
         ROSEN_LOGD("[%{public}s] : invalid input", __func__);
         return;
     }
-    auto& properties = alphaParameter.properties;
-    if (properties.count(ALPHA_PROP) <= 0 || properties[ALPHA_PROP].size() < PROPERTIES) {
+    const auto& properties = alphaParameter.properties;
+    if (properties.count(ALPHA_PROP) <= 0 || properties.at(ALPHA_PROP).size() < PROPERTIES) {
         ROSEN_LOGD("Invalid parameter input of alpha.");
         return;
     }
 
     if (alphaProperty == nullptr) {
-        float alphaValueBegin = static_cast<float>(properties[ALPHA_PROP][PROP_START]);
+        float alphaValueBegin = static_cast<float>(properties.at(ALPHA_PROP).at(PROP_START));
         SymbolAnimation::CreateOrSetModifierValue(alphaProperty, alphaValueBegin);
         auto alphaModifier = std::make_shared<Rosen::RSAlphaModifier>(alphaProperty);
         rsNode->AddModifier(alphaModifier);
     }
-    float alphaValueEnd = static_cast<float>(properties[ALPHA_PROP][PROP_END]);
+    float alphaValueEnd = static_cast<float>(properties.at(ALPHA_PROP).at(PROP_END));
 
     // set animation protocol and curve
     RSAnimationTimingProtocol alphaProtocol;

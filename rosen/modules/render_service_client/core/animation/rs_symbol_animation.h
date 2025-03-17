@@ -78,10 +78,13 @@ private:
     // atomizated animation construct
     void ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode,
         std::shared_ptr<RSAnimatableProperty<Vector2f>>& scaleProperty,
-        Drawing::DrawingPiecewiseParameter& scaleParameter, std::vector<std::shared_ptr<RSAnimation>>& animations);
+        const Drawing::DrawingPiecewiseParameter& scaleParameter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
+
     void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode,
         std::shared_ptr<RSAnimatableProperty<float>>& alphaProperty,
-        Drawing::DrawingPiecewiseParameter& alphaParamter, std::vector<std::shared_ptr<RSAnimation>>& animations);
+        const Drawing::DrawingPiecewiseParameter& alphaParamter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
 
     // drawing a path group : symbol drawing or path drawing
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
