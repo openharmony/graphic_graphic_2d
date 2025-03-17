@@ -82,7 +82,7 @@ int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
-static TextureRecordType g_textureRecordType = TextureRecordType::JPEG;
+static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
 
 constexpr size_t GetParcelMaxCapacity()
 {
