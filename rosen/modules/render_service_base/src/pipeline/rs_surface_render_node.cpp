@@ -2298,6 +2298,9 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
     auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
     if (boundsGeometry) {
         absRect = absRect.IntersectRect(boundsGeometry->GetAbsRect());
+        auto absChildrenRectF = boundsGeometry->MapRectWithoutRounding(GetChildrenRect().ConvertTo<float>(),
+            boundsGeometry->GetAbsMatrix());
+        absRect = absRect.IntersectRect(boundsGeometry->DeflateToRectI(absChildrenRectF));
         const auto& absMatrix = boundsGeometry->GetAbsMatrix();
         auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
             absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
