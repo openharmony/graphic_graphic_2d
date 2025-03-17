@@ -645,13 +645,30 @@ napi_value CreateArrayFontFeatureJsValue(napi_env env, const FontFeatures& fontF
     return jsArray;
 }
 
+napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(
+            env, objValue, "textDecoration", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(
+            env, objValue, "color", CreateJsNumber(env, (uint32_t)textStyle.decorationColor.CastToColorQuad()));
+        napi_set_named_property(
+            env, objValue, "decorationStyle", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decorationStyle)));
+        napi_set_named_property(
+            env, objValue, "decorationThicknessScale", CreateJsNumber(env, textStyle.decorationThicknessScale));
+    }
+
+    return objValue;
+}
+
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "decoration", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(env, objValue, "decoration", CreateDecrationJsValue(env, textStyle));
         napi_set_named_property(env, objValue, "color", CreateJsNumber(env,
             (uint32_t)textStyle.color.CastToColorQuad()));
         napi_set_named_property(env, objValue, "fontWeight", CreateJsNumber(

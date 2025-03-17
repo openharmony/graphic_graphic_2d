@@ -446,6 +446,8 @@ napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& 
 
 napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows);
 
+napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
+
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
 
 napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics);
