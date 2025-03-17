@@ -22,6 +22,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "feature/capture/rs_ui_capture.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -73,7 +74,7 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) = 0;
 
-    virtual ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
+    virtual ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid,
         int32_t& repCode) = 0;
 
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
@@ -242,21 +243,23 @@ public:
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 
-    virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) = 0;
+    virtual ErrCode GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode) = 0;
 
-    virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
+    virtual ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) = 0;
 
-    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) = 0;
+    virtual ErrCode GetScreenSupportedHDRFormats(
+        ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode) = 0;
 
-    virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) = 0;
+    virtual ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) = 0;
 
-    virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
+    virtual ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) = 0;
 
-    virtual int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) = 0;
+    virtual ErrCode GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) = 0;
 
-    virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) = 0;
+    virtual ErrCode GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode) = 0;
 
-    virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
+    virtual ErrCode SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode) = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
@@ -342,7 +345,7 @@ public:
 
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
-    virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
+    virtual ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
     virtual void DropFrameByPid(const std::vector<int32_t> pidList) = 0;
 

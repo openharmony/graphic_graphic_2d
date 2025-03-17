@@ -1170,6 +1170,13 @@ void RSRenderNode::CollectSurface(
     }
 }
 
+void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec)
+{
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectSelfDrawingChild(child, vec);
+    }
+}
+
 void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
@@ -4849,9 +4856,10 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
-SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
+SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode,
+    bool isInSameWindow)
     : inNode_(inNode), outNode_(outNode), inNodeId_(inNode->GetId()), outNodeId_(outNode->GetId()),
-      crossApplication_(inNode->GetInstanceRootNodeId() != outNode->GetInstanceRootNodeId())
+      crossApplication_(!isInSameWindow)
 {}
 
 RSRenderNode::SharedPtr SharedTransitionParam::GetPairedNode(const NodeId nodeId) const

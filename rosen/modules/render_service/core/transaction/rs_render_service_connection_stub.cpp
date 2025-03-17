@@ -1673,14 +1673,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
+            std::vector<PixelMapInfo> pixelMapInfoVector;
             int32_t repCode;
-            if (GetPixelMapByProcessId(pixelMapVector, static_cast<pid_t>(pid), repCode) != ERR_OK ||
+            if (GetPixelMapByProcessId(pixelMapInfoVector, static_cast<pid_t>(pid), repCode) != ERR_OK ||
                 !reply.WriteInt32(repCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapVector)) {
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapInfoVector)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
@@ -1767,12 +1767,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat;
-            int32_t result = GetPixelFormat(id, pixelFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetPixelFormat(id, pixelFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
@@ -1793,8 +1794,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(pixel);
-            int32_t result = SetPixelFormat(id, pixelFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetPixelFormat(id, pixelFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1807,12 +1809,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
@@ -1828,12 +1831,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ScreenHDRFormat hdrFormat;
-            int32_t result = GetScreenHDRFormat(id, hdrFormat);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenHDRFormat(id, hdrFormat, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(hdrFormat)) {
@@ -1848,8 +1852,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t result = SetScreenHDRFormat(id, modeIdx);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetScreenHDRFormat(id, modeIdx, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1862,12 +1867,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-            int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
@@ -1883,12 +1889,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace;
-            int32_t result = GetScreenColorSpace(id, colorSpace);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenColorSpace(id, colorSpace, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(colorSpace)) {
@@ -1909,8 +1916,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(color);
-            int32_t result = SetScreenColorSpace(id, colorSpace);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            SetScreenColorSpace(id, colorSpace, resCode);
+            if (!reply.WriteInt32(resCode)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;

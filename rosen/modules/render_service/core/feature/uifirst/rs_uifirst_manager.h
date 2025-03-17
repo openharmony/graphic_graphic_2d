@@ -100,6 +100,13 @@ public:
         isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
+    UiFirstCcmType GetUiFirstType() const
+    {
+        return uifirstType_;
+    }
+
+    void SetUiFirstType(int type);
+
     void SetPurgeEnable(bool purgeEnable)
     {
         purgeEnable_ = purgeEnable;
@@ -239,6 +246,7 @@ private:
     bool isUiFirstOn_ = false;
     bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
+    UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;

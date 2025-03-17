@@ -26,23 +26,26 @@
 namespace OHOS {
 namespace Rosen {
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSCommandType : uint16_t {
     // node commands
-    BASE_NODE,
-    RS_NODE,     // formerly RSPropertyNode
-    CANVAS_NODE, // formerly RSNode
-    SURFACE_NODE,
-    PROXY_NODE,
-    ROOT_NODE,
-    DISPLAY_NODE,
-    EFFECT_NODE,
-    CANVAS_DRAWING_NODE,
+    BASE_NODE = 0,
+    RS_NODE = 1,     // formerly RSPropertyNode
+    CANVAS_NODE = 2, // formerly RSNode
+    SURFACE_NODE = 3,
+    PROXY_NODE = 4,
+    ROOT_NODE = 5,
+    DISPLAY_NODE = 6,
+    EFFECT_NODE = 7,
+    CANVAS_DRAWING_NODE = 8,
     // animation commands
-    ANIMATION,
+    ANIMATION = 9,
     // read showing properties (deprecated, will be removed later)
-    RS_NODE_SYNCHRONOUS_READ_PROPERTY,
-    RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION,
-    FRAME_RATE_LINKER,
+    RS_NODE_SYNCHRONOUS_READ_PROPERTY = 10,
+    RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION = 11,
+    FRAME_RATE_LINKER = 12,
 };
 
 enum RSCommandPermissionType : uint16_t {

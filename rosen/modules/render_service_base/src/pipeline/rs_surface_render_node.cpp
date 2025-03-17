@@ -345,7 +345,18 @@ void RSSurfaceRenderNode::CollectSurface(const std::shared_ptr<RSBaseRenderNode>
     }
 }
 
-void RSSurfaceRenderNode::ClearChildrenCache()
+void RSSurfaceRenderNode::CollectSelfDrawingChild(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec)
+{
+    if (IsSelfDrawingType()) {
+        vec.push_back(node->GetId());
+    }
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectSelfDrawingChild(child, vec);
+    }
+}
+
+    void RSSurfaceRenderNode::ClearChildrenCache()
 {
     for (auto& child : *GetChildren()) {
         auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();

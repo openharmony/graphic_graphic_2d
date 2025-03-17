@@ -415,6 +415,7 @@ private:
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
     bool IsNeedDrawDirectly() const;
+    static Drawing::SamplingOptions CreateSamplingOptions(const Drawing::Matrix& matrix);
     static Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
 #ifdef RS_ENABLE_GL
     static GLenum GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType);

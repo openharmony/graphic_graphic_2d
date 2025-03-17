@@ -1491,7 +1491,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest054, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest055
- * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.desc: test for unresolved glyphs count of text typography
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level1)
@@ -1502,10 +1502,18 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest055, TestSize.Level
     ASSERT_NE(fontCollection, nullptr);
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
     ASSERT_NE(handler, nullptr);
+    const char* text = "OpenHarmony";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     ASSERT_NE(typography, nullptr);
     int32_t result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(typography);
     EXPECT_NE(result, 0);
+    const char* unresolvedGlyphText = "\uFFFF";
+    OH_Drawing_TypographyHandlerAddText(handler, unresolvedGlyphText);
+    typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(typography);
+    EXPECT_NE(result, 1);
     result = OH_Drawing_TypographyGetUnresolvedGlyphsCount(nullptr);
     EXPECT_EQ(result, 0);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -2523,8 +2531,23 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+
+    OH_Drawing_PlaceholderSpan *placeholderSpan = new OH_Drawing_PlaceholderSpan();
+    placeholderSpan->width = 150.0;
+    placeholderSpan->height = 160.0;
+    OH_Drawing_TypographyHandlerAddPlaceholder(handler, placeholderSpan);
+    OH_Drawing_TypographyHandlerAddPlaceholder(handler, placeholderSpan);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     OH_Drawing_TextBox* textBox = OH_Drawing_TypographyGetRectsForPlaceholders(typography);
+    int size = OH_Drawing_GetSizeOfTextBox(textBox);
+    EXPECT_EQ(size, 2);
+    for (int i = 0; i < size; i++) {
+        EXPECT_EQ(OH_Drawing_GetLeftFromTextBox(textBox, i), 0.000000 + i * 150.000000);
+        EXPECT_EQ(OH_Drawing_GetRightFromTextBox(textBox, i), 150.000000 + i * 150.000000);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_GetTopFromTextBox(textBox, i)), 0);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_GetBottomFromTextBox(textBox, i)), 159);
+    }
     OH_Drawing_TypographyGetRectsForPlaceholders(nullptr);
     EXPECT_NE(textBox, nullptr);
     OH_Drawing_DestroyTypographyStyle(typoStyle);

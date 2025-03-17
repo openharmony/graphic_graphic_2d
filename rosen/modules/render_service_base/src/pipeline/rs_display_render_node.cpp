@@ -239,6 +239,7 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
         surfaceCountForMultiLayersPerf_++;
     }
     curMainAndLeashSurfaceNodes_.clear();
+    topSurfaceOpaqueRects_.clear();
 }
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
@@ -329,6 +330,7 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    displayParams->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
 #endif
 }
 

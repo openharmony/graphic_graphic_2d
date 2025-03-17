@@ -465,7 +465,6 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
     NodeId targetId = GetData<NodeId>();
     nodeMap->IsUIExtensionSurfaceNode(targetId);
     nodeMap->RemoveUIExtensionSurfaceNode(nullptr);
-    nodeMap->EraseSelfDrawingNodeOfProcess(targetId);
 
     pid_t pid = GetData<pid_t>();
     nodeMap->MoveRenderNodeMap(nullptr, pid);

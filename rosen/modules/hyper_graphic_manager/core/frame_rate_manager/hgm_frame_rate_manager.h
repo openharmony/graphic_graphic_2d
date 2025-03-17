@@ -81,6 +81,12 @@ enum LightFactorStatus : int32_t {
     HIGH_LEVEL,
 };
 
+enum SupportASStatus : int32_t {
+    NOT_SUPPORT = 0,
+    SUPPORT_AS = 1,
+    GAME_SCENE_SKIP = 2,
+};
+
 struct VoteInfo {
     std::string voterName = "";
     uint32_t min = OLED_NULL_HZ;
@@ -167,7 +173,7 @@ public:
     // called by RSHardwareThread
     void HandleRsFrame();
     bool IsLtpo() const { return isLtpo_; };
-    bool IsAdaptive() const { return isAdaptive_.load(); };
+    int32_t AdaptiveStatus() const { return isAdaptive_.load(); };
     // called by RSMainThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -351,9 +357,9 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
-    std::atomic<bool> isAdaptive_ = false;
+    std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
     // Does current game require Adaptive Sync
-    bool isGameSupportAS_ = false;
+    int32_t isGameSupportAS_ = SupportASStatus::NOT_SUPPORT;
 
     std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

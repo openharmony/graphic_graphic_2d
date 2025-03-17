@@ -421,6 +421,11 @@ float RSModifierExtractor::GetBackgroundBlurRadiusY() const
     GET_PROPERTY_FROM_MODIFIERS(float, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
 
+bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
+}
+
 float RSModifierExtractor::GetForegroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);
@@ -456,6 +461,11 @@ float RSModifierExtractor::GetForegroundBlurRadiusY() const
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
 
+bool RSModifierExtractor::GetFgBlurDisableSystemAdaptation() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, FG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
+}
+
 float RSModifierExtractor::GetLightIntensity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_INTENSITY, 0.f, =);
@@ -484,6 +494,16 @@ float RSModifierExtractor::GetBloom() const
 Color RSModifierExtractor::GetLightColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
+}
+
+int RSModifierExtractor::GetColorBlendMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, COLOR_BLEND_MODE, static_cast<int>(RSColorBlendMode::NONE), =);
+}
+
+int RSModifierExtractor::GetColorBlendApplyType() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, COLOR_BLEND_APPLY_TYPE, static_cast<int>(RSColorBlendApplyType::FAST), =);
 }
 
 std::string RSModifierExtractor::Dump() const

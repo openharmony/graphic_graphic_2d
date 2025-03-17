@@ -24,6 +24,9 @@ namespace Rosen {
 
 RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
+    if (rootNode == nullptr) {
+        return;
+    }
     rsUiDirector_ = RSUIDirector::Create();
     rootNode_ = rootNode;
     surfaceId_ = surfaceId;

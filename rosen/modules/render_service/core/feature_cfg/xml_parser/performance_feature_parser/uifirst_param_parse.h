@@ -39,6 +39,7 @@ public:
 
 private:
     int32_t ParseUIFirstInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseUIFirstSingleParam(const std::string& name, const std::string& value);
 
     std::shared_ptr<UIFirstParam> uifirstParam_;
 };

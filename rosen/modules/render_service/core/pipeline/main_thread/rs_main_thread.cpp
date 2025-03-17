@@ -792,6 +792,8 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (systemCacheLimitsResourceSize > 0) {
         gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitsResourceSize);
     }
+    auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();
+    gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
 #endif
 }
 
@@ -1132,7 +1134,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
-        (deviceType_ != DeviceType::PC || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+        (RSUifirstManager::Instance().GetUiFirstType() != UiFirstCcmType::MULTI
+            || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
 #ifdef RS_ENABLE_GPU
         if (!isUniRender_) {
             RSSubThreadManager::Instance()->ResetSubThreadGrContext(); // planning: move to prepare
@@ -2146,8 +2149,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         return;
     }
 
-    bool isAdaptive = frameRateMgr->IsAdaptive();
-    if (isAdaptive) {
+    int32_t isAdaptive = frameRateMgr->AdaptiveStatus();
+    if (isAdaptive == SupportASStatus::SUPPORT_AS) {
         frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
     }
 

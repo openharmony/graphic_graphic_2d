@@ -982,7 +982,7 @@ config("rs_test_common_public_config") {
 }
 
 ohos_static_library("rs_test_common") {
-  visibility = [ ":*" ]
+  visibility = [ "$graphic_2d_root/rosen/test/*" ]
   testonly = true
   defines = []
   defines += gpu_defines

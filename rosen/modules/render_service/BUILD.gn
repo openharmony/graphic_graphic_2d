@@ -334,10 +334,12 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_command.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_framesaver.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_test_tree.cpp",
     ]
   }
 

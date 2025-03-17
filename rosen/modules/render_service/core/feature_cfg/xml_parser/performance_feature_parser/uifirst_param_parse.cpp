@@ -98,17 +98,30 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(FeatureParamMapType &featureMap,
                 break;
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
-        if (name == "UIFirstEnableWindowThreshold" && IsNumber(val)) {
-            int num;
-            std::istringstream iss(val);
-            if (iss >> num) {
-                uifirstParam_->SetUIFirstEnableWindowThreshold(num);
-                RS_LOGI("UIFirstParamParse parse UIFirstEnableWindowThreshold %{public}d",
-                    uifirstParam_->GetUIFirstEnableWindowThreshold());
-            }
-        }
+        return ParseUIFirstSingleParam(name, val);
     }
 
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t UIFirstParamParse::ParseUIFirstSingleParam(const std::string& name, const std::string& value)
+{
+    if (name == "UIFirstEnableWindowThreshold" && IsNumber(value)) {
+        int num;
+        std::istringstream iss(value);
+        if (iss >> num) {
+            uifirstParam_->SetUIFirstEnableWindowThreshold(num);
+            RS_LOGI("UIFirstParamParse parse UIFirstEnableWindowThreshold %{public}d",
+                uifirstParam_->GetUIFirstEnableWindowThreshold());
+        }
+    } else if (name == "UIFirstType" && IsNumber(value)) {
+        int num;
+        std::istringstream iss(value);
+        if (iss >> num) {
+            uifirstParam_->SetUIFirstType(num);
+            RS_LOGI("UIFirstParamParse parse UIFirstType %{public}d", uifirstParam_->GetUIFirstType());
+        }
+    }
     return PARSE_EXEC_SUCCESS;
 }
 } // namespace OHOS::Rosen

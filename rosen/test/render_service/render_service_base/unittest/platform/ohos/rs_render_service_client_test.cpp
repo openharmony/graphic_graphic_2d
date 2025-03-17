@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "ui/rs_surface_node.h"
@@ -972,8 +973,8 @@ HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     pid_t pid = 0;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapVector, pid);
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapInfoVector, pid);
     ASSERT_EQ(res, SUCCESS);
 }
 } // namespace Rosen

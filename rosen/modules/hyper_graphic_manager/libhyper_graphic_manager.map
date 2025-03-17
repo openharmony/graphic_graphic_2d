@@ -103,7 +103,6 @@
       *HgmFrameRateManager::ProcessRefreshRateVote*;
       *HgmFrameRateManager::ReportHiSysEvent*;
       *HgmFrameRateManager::SetAceAnimatorVote*;
-      *HgmFrameRateManager::SetShowRefreshRateEnabled*;
       *HgmFrameRateManager::UniProcessDataForLtpo*;
       *HgmFrameRateManager::UpdateGuaranteedPlanVote*;
       *HgmFrameRateManager::UpdateSurfaceTime*;

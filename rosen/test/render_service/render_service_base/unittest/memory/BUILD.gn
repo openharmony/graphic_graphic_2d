@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/memory"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/memory"
 
 ##############################  RSRenderServiceBaseMemoryTest  ##################################
 ohos_unittest("RSRenderServiceBaseMemoryTest") {

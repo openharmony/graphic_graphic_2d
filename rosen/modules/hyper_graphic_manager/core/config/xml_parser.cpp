@@ -237,7 +237,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
         auto down = ExtractPropertyValue("down", *currNode);
-        auto supportAS = ExtractPropertyValue("supportAS", *currNode) == "1"; // 1: true, other: false
+        auto supportAS = ExtractPropertyValue("supportAS", *currNode);
         if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
             return HGM_ERROR;
         }
@@ -256,7 +256,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
         strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
-        strategy.supportAS = supportAS;
+        strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
         ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",

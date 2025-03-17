@@ -83,6 +83,7 @@ template<typename T>
 class RectT;
 template<typename T>
 class RRectT;
+struct PixelMapInfo;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -267,6 +268,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleColorParaType)
+    DECLARE_FUNCTION_OVERLOAD(PixelMapInfo)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)

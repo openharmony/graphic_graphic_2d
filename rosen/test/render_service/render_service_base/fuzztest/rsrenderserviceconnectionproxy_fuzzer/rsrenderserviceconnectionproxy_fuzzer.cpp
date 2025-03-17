@@ -109,6 +109,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t y = GetData<int32_t>();
     int32_t w = GetData<int32_t>();
     int32_t h = GetData<int32_t>();
+    int32_t resCode;
     Rect activeRect {
         .x = x,
         .y = y,
@@ -221,14 +222,14 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetScreenColorGamut(id1, uid);
     rsRenderServiceConnectionProxy.SetScreenGamutMap(id1, screenGamutMap);
     rsRenderServiceConnectionProxy.GetScreenHDRCapability(id1, screenHdrCapability);
-    rsRenderServiceConnectionProxy.GetPixelFormat(id1, pixelFormat);
-    rsRenderServiceConnectionProxy.SetPixelFormat(id1, pixelFormat);
-    rsRenderServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats);
-    rsRenderServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat);
-    rsRenderServiceConnectionProxy.SetScreenHDRFormat(id1, pid1);
-    rsRenderServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces);
-    rsRenderServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace);
-    rsRenderServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace);
+    rsRenderServiceConnectionProxy.GetPixelFormat(id1, pixelFormat, resCode);
+    rsRenderServiceConnectionProxy.SetPixelFormat(id1, pixelFormat, resCode);
+    rsRenderServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats, resCode);
+    rsRenderServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat, resCode);
+    rsRenderServiceConnectionProxy.SetScreenHDRFormat(id1, pid1, resCode);
+    rsRenderServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces, resCode);
+    rsRenderServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace, resCode);
+    rsRenderServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace, resCode);
     rsRenderServiceConnectionProxy.GetScreenType(id1, screenType);
     rsRenderServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
     rsRenderServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);

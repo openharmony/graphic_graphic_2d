@@ -35,8 +35,8 @@ public:
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationXY_Test_1)
 {
-    float transList[] = { 0, 250, 500 };
-    for (int i = 0; i < 3; i++) {
+    std::vector<float> transList = { 0, 250, 500, -250 };
+    for (int i = 0; i < transList.size(); i++) {
         int x = (i % 2) * 510;
         int y = (i / 2) * 510;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, 500, 500 });
@@ -142,6 +142,32 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_SetPosition_linear_Tes
         }
         translates[0] += (nodeSpace[0] / row);
         translates[1] += ((nodeSpace[1] / row) + 20);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationZ_Test_1)
+{
+    vector<float> vecs = {-250, 0, 250, 500};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotationY(30);
+        testNode->SetTranslateZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationZ_Test_3)
+{
+    vector<float> vecs = {-250, 0, 250, 500};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetTranslateZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 }
 } // namespace OHOS::Rosen

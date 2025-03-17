@@ -50,7 +50,7 @@ public:
                                                          NodeId windowNodeId = 0,
                                                          bool fromXcomponent = false) override;
 
-    ErrCode GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid,
+    ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid,
         int32_t& repCode) override;
     
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
@@ -214,21 +214,23 @@ public:
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
-    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) override;
+    ErrCode GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode) override;
 
-    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+    ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) override;
 
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override;
+    ErrCode GetScreenSupportedHDRFormats(
+        ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode) override;
 
-    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) override;
+    ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) override;
 
-    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+    ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
 
-    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) override;
+    ErrCode GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
 
-    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) override;
+    ErrCode GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode) override;
 
-    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
+    ErrCode SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode) override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
@@ -334,7 +336,7 @@ public:
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
-    void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
+    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
     
     void DropFrameByPid(const std::vector<int32_t> pidList) override;
 

@@ -252,6 +252,15 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "-1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<StencilPixelOcclusionCullingType>(ConvertToInt(enable,
+        static_cast<int>(StencilPixelOcclusionCullingType::DEFAULT)));
+}
+
 AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.advanceddirtyregion.enabled", "1");

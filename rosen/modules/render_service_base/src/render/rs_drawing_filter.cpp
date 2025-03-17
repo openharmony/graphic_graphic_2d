@@ -27,9 +27,11 @@
 #include "render/rs_aibar_shader_filter.h"
 #include "render/rs_grey_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_light_blur_shader_filter.h"
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_shader_filter.h"
 #include "src/core/SkOpts.h"
 
 namespace OHOS {
@@ -48,6 +50,13 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::DISTORT, "RSDistortionFilter" },
 };
 }
+
+static bool CanApplyColorFilterInsteadOfBlur(float radius)
+{
+    static constexpr float epsilon = 0.999f;
+    return ROSEN_LE(radius, epsilon);
+}
+
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
     : RSFilter(), imageFilter_(imageFilter)
 {
@@ -317,6 +326,26 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
     return;
 }
 
+bool RSDrawingFilter::ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image>& image, const DrawImageRectAttributes& attr, const Drawing::Brush& brush)
+{
+    if (image == nullptr) {
+        return false;
+    }
+    std::shared_ptr<RSShaderFilter> lightBlurShaderFilter = GetShaderFilterWithType(RSShaderFilter::LIGHT_BLUR);
+    if (lightBlurShaderFilter == nullptr) {
+        return false;
+    }
+    auto tmpFilter = std::static_pointer_cast<RSLightBlurShaderFilter>(lightBlurShaderFilter);
+    if (CanApplyColorFilterInsteadOfBlur(tmpFilter->GetRadius())) {
+        ApplyColorFilter(canvas, image, attr.src, attr.dst, attr.brushAlpha);
+        return true;
+    }
+    LightBlurParameter para { attr.src, attr.dst, brush };
+    tmpFilter->ApplyLightBlur(canvas, image, para);
+    return true;
+}
+
 void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
     const DrawImageRectAttributes& attr)
@@ -333,13 +362,14 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         return;
     }
     auto brush = GetBrush(attr.brushAlpha);
+    if (ApplyImageEffectWithLightBlur(canvas, outImage, attr, brush)) {
+        return;
+    }
     std::shared_ptr<RSShaderFilter> kawaseShaderFilter = GetShaderFilterWithType(RSShaderFilter::KAWASE);
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
-
-        static constexpr float epsilon = 0.999f;
-        if (ROSEN_LE(radius, epsilon)) {
+        if (CanApplyColorFilterInsteadOfBlur(radius)) {
             ApplyColorFilter(canvas, outImage, attr.src, attr.dst, attr.brushAlpha);
             return;
         }

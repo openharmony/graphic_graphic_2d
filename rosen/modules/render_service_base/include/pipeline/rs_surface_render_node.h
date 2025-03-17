@@ -468,6 +468,7 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
+    void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;

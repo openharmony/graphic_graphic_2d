@@ -96,7 +96,7 @@ public:
     // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
-    int32_t GetPixelMapByProcessId(std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid);
+    int32_t GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});

@@ -117,6 +117,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
+{
+    return {};
+}
+
 float RSSystemProperties::GetClipRectThreshold()
 {
     return 1.f;

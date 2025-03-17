@@ -180,6 +180,16 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         isAdvancedDirtyRegionEnabled_ = dirtyRegionParam->IsAdvancedDirtyRegionEnable();
         isDirtyAlignEnabled_ = dirtyRegionParam->IsTileBasedAlignEnable();
     }
+    if (RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() == StencilPixelOcclusionCullingType::DEFAULT) {
+        if (auto spocParam = std::static_pointer_cast<StencilPixelOcclusionCullingParam>(
+            GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig"))) {
+                isStencilPixelOcclusionCullingEnabled_ = spocParam->IsStencilPixelOcclusionCullingEnable();
+        }
+    } else {
+        isStencilPixelOcclusionCullingEnabled_ =
+            RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() != StencilPixelOcclusionCullingType::DISABLED;
+    }
+    
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
 
@@ -207,6 +217,10 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     advancedDirtyType_ = isAdvancedDirtyRegionEnabled_ ?
         RSSystemProperties::GetAdvancedDirtyRegionEnabled() : AdvancedDirtyRegionType::DISABLED;
     isDirtyAlignEnabled_ &= RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
+    if (isStencilPixelOcclusionCullingEnabled_) {
+        // SPOC relies on dirty region alignment; when SPOC is enabled, dirty region alignment must also be enabled
+        isDirtyAlignEnabled_ = true;
+    }
 }
 
 RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
@@ -1207,6 +1221,7 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
             parent->SetStencilVal(stencilVal);
             RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo record name[%s] rect[%s]",
                 node.GetName().c_str(), (*maxOpaqueRect).GetRectInfo().c_str());
+            --occlusionSurfaceOrder_;
         }
     }
 }
@@ -1594,6 +1609,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     transparentCleanFilter_.clear();
     transparentDirtyFilter_.clear();
     globalSurfaceBounds_.clear();
+    occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -1670,6 +1686,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     }
     node.UpdateUIFirstFrameGravity();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
+        node.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -3759,7 +3776,7 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
     }
     auto absMatrix = geoPtr->GetAbsMatrix();
     bool isScale = false;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
         isScale = (!ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_X), 1.f, EPSILON_SCALE) ||
             !ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_Y), 1.f, EPSILON_SCALE));
     } else {

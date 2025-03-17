@@ -768,7 +768,7 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSBaseRenderNode>(id, context);
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     parentNode->GetRenderProperties().GetBoundsGeometry()->absMatrix_ = Drawing::Matrix();
     inNode->parent_ = parentNode;
     inNode->shouldPaint_ = true;
@@ -1449,7 +1449,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     nodeTest->uifirstRootNodeId_ = 1;
@@ -1573,7 +1573,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest02, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     nodeTest->uifirstRootNodeId_ = 1;

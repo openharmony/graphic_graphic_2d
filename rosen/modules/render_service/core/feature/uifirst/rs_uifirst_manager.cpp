@@ -52,14 +52,7 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-RSUifirstManager::RSUifirstManager() :
-#if defined(RS_ENABLE_VK)
-    useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR))
-#else
-    useDmaBuffer_(false)
-#endif
+RSUifirstManager::RSUifirstManager() : useDmaBuffer_(false)
 {}
 
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
@@ -1689,14 +1682,7 @@ void RSUifirstManager::AddCapturedNodes(NodeId id)
 
 void RSUifirstManager::SetUseDmaBuffer(bool val)
 {
-    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-#if defined(RS_ENABLE_VK)
-    useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR);
-#else
     useDmaBuffer_ = false;
-#endif
 }
 
 bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
@@ -1727,14 +1713,13 @@ void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRende
 
 UiFirstModeType RSUifirstManager::GetUiFirstMode()
 {
-    auto deviceType = RSMainThread::Instance()->GetDeviceType();
-    if (deviceType == DeviceType::PHONE) {
+    if (uifirstType_ == UiFirstCcmType::SINGLE) {
         return UiFirstModeType::SINGLE_WINDOW_MODE;
     }
-    if (deviceType == DeviceType::PC) {
+    if (uifirstType_ == UiFirstCcmType::MULTI) {
         return UiFirstModeType::MULTI_WINDOW_MODE;
     }
-    if (deviceType == DeviceType::TABLET) {
+    if (uifirstType_ == UiFirstCcmType::HYBRID) {
         return isFreeMultiWindowEnabled_ ? UiFirstModeType::MULTI_WINDOW_MODE : UiFirstModeType::SINGLE_WINDOW_MODE;
     }
     return UiFirstModeType::SINGLE_WINDOW_MODE;
@@ -1746,12 +1731,28 @@ void RSUifirstManager::ReadUIFirstCcmParam()
     std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
     isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
     isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
+    SetUiFirstType(uifirstParam->GetUIFirstType());
     auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
     if (param) {
         isUiFirstOn_ = param->IsUIFirstEnable();
         isCardUiFirstOn_ = param->IsCardUIFirstEnable();
-        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d",
-            isUiFirstOn_, isCardUiFirstOn_);
+        SetUiFirstType(param->GetUIFirstType());
+        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
+            " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
+    }
+}
+
+void RSUifirstManager::SetUiFirstType(int type)
+{
+    if (type < (int)UiFirstCcmType::SINGLE || type > (int)UiFirstCcmType::HYBRID) {
+        return;
+    }
+    if (type == (int)UiFirstCcmType::SINGLE) {
+        uifirstType_ = UiFirstCcmType::SINGLE;
+    } else if (type == (int)UiFirstCcmType::MULTI) {
+        uifirstType_ = UiFirstCcmType::MULTI;
+    } else if (type == (int)UiFirstCcmType::HYBRID) {
+        uifirstType_ = UiFirstCcmType::HYBRID;
     }
 }
 
@@ -1886,7 +1887,7 @@ void RSUifirstManager::CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHw
 
 void RSUifirstManager::MarkSubHighPriorityType(RSSurfaceRenderNode& node)
 {
-    if (!RSSystemProperties::IsPcType()) {
+    if (uifirstType_ != UiFirstCcmType::MULTI) {
         return;
     }
     SurfaceHwcNodeType preSubHighPriority = SurfaceHwcNodeType::DEFAULT_HWC_TYPE;

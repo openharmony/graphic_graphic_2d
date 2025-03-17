@@ -176,6 +176,7 @@ void ParagraphImpl::Layout(double width)
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
+    InitSymbolRuns();
     paragraph_->layout(width);
 }
 
