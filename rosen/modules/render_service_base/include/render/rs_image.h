@@ -37,7 +37,7 @@ struct AdaptiveImageInfo {
     int32_t height = 0;
     uint32_t dynamicRangeMode = 0;
     int32_t rotateDegree = 0;
-    Rect frameRect;
+    Rect frameRect = Rect();
     Drawing::Matrix fitMatrix = Drawing::Matrix();
 };
 }
