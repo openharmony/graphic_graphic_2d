@@ -4685,7 +4685,6 @@ void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
-    filterNeedUpdate_ = true;
 }
 
 int RSProperties::GetColorBlendApplyType() const
