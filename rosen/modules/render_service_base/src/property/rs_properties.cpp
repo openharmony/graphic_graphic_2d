@@ -4543,7 +4543,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || colorBlendApplyType_ == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER);
+                  mask_ || IsColorBlendModeValid();
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4665,11 +4665,18 @@ void RSProperties::SetColorBlendMode(int colorBlendMode)
     }
     SetDirty();
     contentDirty_ = true;
+    filterNeedUpdate_ = true;
 }
 
 int RSProperties::GetColorBlendMode() const
 {
     return colorBlendMode_;
+}
+
+bool RSProperties::IsColorBlendModeValid() const
+{
+    return colorBlendMode_ != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+           colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE);
 }
 
 void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
@@ -4678,8 +4685,8 @@ void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
-    filterNeedUpdate_ = true;
 }
+
 
 int RSProperties::GetColorBlendApplyType() const
 {
