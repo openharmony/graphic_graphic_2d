@@ -30,7 +30,6 @@
 #include "effect/runtime_blender_builder.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
-#include "render/rs_drawing_filter.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
@@ -597,8 +596,8 @@ private:
     void RecordCurDirtyStatus();
 
     // generate filter
-    std::shared_ptr<RSDrawingFilter> GenerateLightBlurFilter(float radius);
-    std::shared_ptr<RSDrawingFilter> GenerateMaterialLightBlurFilter(
+    std::shared_ptr<RSFilter> GenerateLightBlurFilter(float radius);
+    std::shared_ptr<RSFilter> GenerateMaterialLightBlurFilter(
         std::shared_ptr<Drawing::ColorFilter> colorFilter, uint32_t hash, float radius,
         int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
