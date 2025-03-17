@@ -356,7 +356,7 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     if (configData == nullptr) {
         return;
     }
-    for (const pkg : pkgs) {
+    for (const auto &pkg: pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
         auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
         auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
