@@ -649,7 +649,7 @@ public:
     ~CustomFirstFrameCallback() override {};
 
     void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override {}
-}
+};
 
 /*
  * @tc.name: RegisterAndSyncFirstFrameCallback
