@@ -255,6 +255,7 @@ public:
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
+    static bool GetUIFirstOptScheduleEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetWideColorSpaceEnabled();
     static bool GetSurfaceOffscreenEnadbled();

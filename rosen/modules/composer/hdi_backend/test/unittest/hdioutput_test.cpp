@@ -683,7 +683,8 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.
     for (size_t i = 0; i < 3; i++) {
         output->CleanLayerBufferBySurfaceId(i);
     }
-    output->CleanLayerBufferBySurfaceId(4); // 4 is invaild surfaceId, test it!
+    // clean the nonexistent surface ID.
+    output->CleanLayerBufferBySurfaceId(4);
 }
 } // namespace
 } // namespace Rosen

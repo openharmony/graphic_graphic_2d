@@ -485,8 +485,8 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
         RS_RSSURFACERENDERNODEDRAWABLE_SUBDRAW);
     const auto& uifirstParams = GetUifirstRenderParams();
     auto debugSize = uifirstParams ? uifirstParams->GetCacheSize() : Vector2f(0.f, 0.f);
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw[%s] w%.1f h%.1f",
-        name_.c_str(), debugSize.x_, debugSize.y_);
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw[%s] %" PRIu64 ", w%.1f h%.1f, isHigh:%d",
+        name_.c_str(), GetId(), debugSize.x_, debugSize.y_, IsHighPostPriority());
 
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
@@ -596,6 +596,27 @@ void RSSurfaceRenderNodeDrawable::ClearTotalProcessedSurfaceCount()
     totalProcessedSurfaceCount_ = 0;
 }
 
+void RSSurfaceRenderNodeDrawable::ProcessSurfaceSkipCount()
+{
+    isSurfaceSkipCount_++;
+}
+
+void RSSurfaceRenderNodeDrawable::ResetSurfaceSkipCount()
+{
+    isSurfaceSkipCount_ = 0;
+    isSurfaceSkipPriority_ = 0;
+}
+
+int32_t RSSurfaceRenderNodeDrawable::GetSurfaceSkipCount() const
+{
+    return isSurfaceSkipCount_;
+}
+
+int32_t RSSurfaceRenderNodeDrawable::GetSurfaceSkipPriority()
+{
+    return ++isSurfaceSkipPriority_;
+}
+
 uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
 {
     return uifirstPostOrder_;
@@ -604,6 +625,16 @@ uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
 void RSSurfaceRenderNodeDrawable::SetUifirstPostOrder(uint32_t order)
 {
     uifirstPostOrder_ = order;
+}
+
+bool RSSurfaceRenderNodeDrawable::IsHighPostPriority()
+{
+    return isHighPostPriority_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetHighPostPriority(bool postPriority)
+{
+    isHighPostPriority_ = postPriority;
 }
 
 void RSSurfaceRenderNodeDrawable::UpdateCacheSurfaceInfo()

@@ -39,7 +39,7 @@ constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
 constexpr const char *DEBUG_LAYER_NAME = "debug.graphic.debug_layer";
 constexpr const char *DEBUG_HAP_NAME = "debug.graphic.debug_hap";
 constexpr const char *DEBUG_SANDBOX_DIR = "/data/storage/el1/bundle/";
-constexpr const char *DEBUG_TOOL_DEVELOPER_DIR = "vendor/lib64/developer";
+constexpr const char *DEBUG_TOOL_DEVELOPER_DIR = "/vendor/lib64/developer/";
 }
 
 static std::string g_strLayers;

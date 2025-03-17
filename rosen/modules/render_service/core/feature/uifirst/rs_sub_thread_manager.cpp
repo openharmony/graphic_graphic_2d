@@ -282,11 +282,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
 
     auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
     minLoadThreadIndex_ = defaultThreadIndex_;
-    unsigned int loadDefaultIndex = 0;
-    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
-        loadDefaultIndex = 1;
-    }
-    for (unsigned int j = loadDefaultIndex; j < SUB_THREAD_NUM; j++) {
+    for (unsigned int j = 0; j < SUB_THREAD_NUM; j++) {
         if (j == defaultThreadIndex_) {
             continue;
         }
@@ -301,14 +297,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     } else {
         defaultThreadIndex_++;
         if (defaultThreadIndex_ >= SUB_THREAD_NUM) {
-            defaultThreadIndex_ = loadDefaultIndex;
-        }
-    }
-    if (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
-        if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
-            threadList_[0]->GetDoingCacheProcessNum() < SUB_VIDEO_THREAD_TASKS_NUM_MAX) {
-            nowIdx = 0;
+            defaultThreadIndex_ = 0;
         }
     }
 

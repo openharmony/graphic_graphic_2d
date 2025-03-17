@@ -211,6 +211,14 @@ public:
     {
         return isSubThreadSkip_;
     }
+
+    void ProcessSurfaceSkipCount();
+    void ResetSurfaceSkipCount();
+    int32_t GetSurfaceSkipCount() const;
+    int32_t GetSurfaceSkipPriority();
+    bool IsHighPostPriority();
+    void SetHighPostPriority(bool postPriority);
+
     void SetTaskFrameCount(uint64_t frameCount);
 
     uint64_t GetTaskFrameCount() const;
@@ -355,6 +363,9 @@ private:
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint64_t frameCount_ = 0;
     bool isSubThreadSkip_ = false;
+    int32_t isSurfaceSkipCount_ = 0;
+    int32_t isSurfaceSkipPriority_ = 0;
+    bool isHighPostPriority_ = false;
 
     RSPaintFilterCanvas* curCanvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface

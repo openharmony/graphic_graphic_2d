@@ -192,6 +192,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         RS_TRACE_NAME_FMT("subthread skip node id %llu", nodeId);
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
         nodeDrawable->SetSubThreadSkip(true);
+        nodeDrawable->ProcessSurfaceSkipCount();
         doingCacheProcessNum_--;
         RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
         return;
@@ -208,6 +209,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
 
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     nodeDrawable->SetCacheSurfaceNeedUpdated(true);
+    nodeDrawable->ResetSurfaceSkipCount();
 
     RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
 
@@ -301,7 +303,8 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    bool optFenceWait = RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI ? false : true;
+    bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        !nodeDrawable->IsHighPostPriority()) ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateCacheSurfaceInfo();
     nodeDrawable->UpdateBackendTexture();
