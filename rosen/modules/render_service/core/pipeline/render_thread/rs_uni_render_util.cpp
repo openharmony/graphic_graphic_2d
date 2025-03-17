@@ -2259,7 +2259,7 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
             const auto& parentProperty = parent->GetRenderProperties();
             const auto colorBlendApplyType = parentProperty.GetColorBlendApplyType();
             isNodeRenderBySaveLayer = isNodeRenderBySaveLayer ||
-                colorBlendApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER);
+                colorBlendApplyType != static_cast<int>(RSColorBlendApplyType::FAST);
         });
     if (isNodeRenderByDrawingCache || isNodeRenderBySaveLayer) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or save layer, "

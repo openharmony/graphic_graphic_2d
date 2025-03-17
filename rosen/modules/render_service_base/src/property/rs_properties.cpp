@@ -4673,7 +4673,7 @@ int RSProperties::GetColorBlendMode() const
     return colorBlendMode_;
 }
 
-bool IsColorBlendModeValid() const
+bool RSProperties::IsColorBlendModeValid() const
 {
     return colorBlendMode_ != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
            colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE);
