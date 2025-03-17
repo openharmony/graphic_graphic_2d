@@ -16,8 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
     !graphic_2d_ext_feature_enable_ddgr) {
-  module_output_path =
-      "graphic_2d/rosen/modules/2d_graphics/engine_adapter/skia_adapter"
+  module_output_path = "graphic_2d/graphic_2d/rosen/modules/2d_graphics/engine_adapter/skia_adapter"
 
   ohos_unittest("2d_graphics_skia_canvas_test") {
     module_out_path = module_output_path
