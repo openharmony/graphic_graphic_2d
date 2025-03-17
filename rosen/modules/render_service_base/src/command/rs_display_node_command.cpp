@@ -147,7 +147,7 @@ void DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(RSContext& context, No
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
         ROSEN_LOGI("SetVirtualScreenMuteStatus NodeId:[%{public}" PRIu64 "]"
-            "screenId: %{public}" PRIu64 " virtualScreenMuteStatus: %{public}d",
+            " screenId: %{public}" PRIu64 " virtualScreenMuteStatus: %{public}d",
             nodeId, node->GetScreenId(), virtualScreenMuteStatus);
         node->SetVirtualScreenMuteStatus(virtualScreenMuteStatus);
     }
