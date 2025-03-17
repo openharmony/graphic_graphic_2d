@@ -332,7 +332,7 @@ private:
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
-    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
@@ -378,7 +378,7 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+    ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
     void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override {};
 

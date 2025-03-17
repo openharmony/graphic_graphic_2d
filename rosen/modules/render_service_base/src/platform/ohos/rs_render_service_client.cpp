@@ -1865,10 +1865,11 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    bool success = false;
     if (renderService != nullptr) {
-        return renderService->SetVirtualScreenStatus(id, screenStatus);
+        renderService->SetVirtualScreenStatus(id, screenStatus, success);
     }
-    return false;
+    return success;
 }
 
 void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)

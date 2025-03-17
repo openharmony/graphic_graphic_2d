@@ -338,7 +338,7 @@ public:
     
     void DropFrameByPid(const std::vector<int32_t> pidList) override;
 
-    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
@@ -353,7 +353,7 @@ public:
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
 
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+    ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
     void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) override;
 private:

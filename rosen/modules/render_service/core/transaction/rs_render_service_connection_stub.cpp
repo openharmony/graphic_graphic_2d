@@ -3037,8 +3037,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus));
-            if (!reply.WriteBool(result)) {
+            bool success;
+            SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus), success);
+            if (!reply.WriteBool(success)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_STATUS Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }

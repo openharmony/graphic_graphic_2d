@@ -2796,14 +2796,17 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     return StatusCode::SUCCESS;
 }
 
-bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+ErrCode RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id,
+    VirtualScreenStatus screenStatus, bool& success)
 {
     if (!screenManager_) {
+        success = false;
         return StatusCode::SCREEN_NOT_FOUND;
     }
     RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
         id, screenStatus);
-    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
+    success = screenManager_->SetVirtualScreenStatus(id, screenStatus);
+    return StatusCode::SUCCESS;
 }
 
 ErrCode RSRenderServiceConnection::SetAncoForceDoDirect(bool direct, bool& res)
@@ -2940,7 +2943,7 @@ ErrCode RSRenderServiceConnection::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
-void RSRenderServiceConnection::NotifyPageName(const std::string &packageName,
+ErrCode RSRenderServiceConnection::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, packageName, pageName, isEnter]() {
@@ -2949,6 +2952,7 @@ void RSRenderServiceConnection::NotifyPageName(const std::string &packageName,
             frameRateMgr->NotifyPageName(pid, packageName, pageName, isEnter);
         }
     });
+    return StatusCode::SUCCESS;
 }
 } // namespace Rosen
 } // namespace OHOS

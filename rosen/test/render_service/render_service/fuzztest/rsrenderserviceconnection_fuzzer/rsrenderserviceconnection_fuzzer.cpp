@@ -1245,7 +1245,8 @@ bool DOSetVirtualScreenStatus()
     }
     uint64_t id = GetData<uint64_t>();
     uint64_t screenStatus = GetData<uint64_t>();
-    rsConn_->SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus));
+    bool success;
+    rsConn_->SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus), success);
     return true;
 }
 

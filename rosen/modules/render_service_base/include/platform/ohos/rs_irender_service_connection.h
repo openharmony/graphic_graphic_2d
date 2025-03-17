@@ -363,7 +363,7 @@ public:
 
     virtual ErrCode SetAncoForceDoDirect(bool direct, bool& res) = 0;
 
-    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
+    virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
@@ -389,7 +389,7 @@ public:
 
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
-    virtual void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+    virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
     virtual void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath) = 0;
 };
