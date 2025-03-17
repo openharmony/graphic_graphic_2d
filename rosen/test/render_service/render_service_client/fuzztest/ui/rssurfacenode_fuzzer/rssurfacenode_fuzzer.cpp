@@ -452,6 +452,7 @@ bool DoGetNameAndBundleName(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->GetName();
+    surfaceNode->GetBundleName();
     return true;
 }
 
