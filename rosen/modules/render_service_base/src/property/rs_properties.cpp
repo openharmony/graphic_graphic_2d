@@ -2934,7 +2934,7 @@ bool RSProperties::NeedLightBlur()
         (NeedBlurFuzed() || RSSystemProperties::GetKawaseEnabled());
 }
 
-std::shared_ptr<RSDrawingFilter> RSProperties::GenerateLightBlurFilter(float radius)
+std::shared_ptr<RSFilter> RSProperties::GenerateLightBlurFilter(float radius)
 {
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
     if (greyCoef_.has_value()) {
@@ -2953,7 +2953,7 @@ std::shared_ptr<RSDrawingFilter> RSProperties::GenerateLightBlurFilter(float rad
     return originalFilter;
 }
 
-std::shared_ptr<RSDrawingFilter> RSProperties::GenerateMaterialLightBlurFilter(
+std::shared_ptr<RSFilter> RSProperties::GenerateMaterialLightBlurFilter(
     std::shared_ptr<Drawing::ColorFilter> colorFilter, uint32_t hash, float radius,
     int colorMode, const RSColor& color)
 {
