@@ -34,6 +34,7 @@
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -1499,6 +1500,42 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback called");
     return renderService->RegisterHgmRefreshRateUpdateCallback(cb);
+}
+
+class CustomFirstFrameCallback : public RSFirstFrameCallbackStub
+{
+public:
+    explicit CustomFirstFrameCallback(const HWFirstFrameCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCallback() override {};
+
+    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override
+    {
+        ROSEN_LOGD("CustomFirstFrameCallback::OnPowerOnFirstFrame called");
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    HWFirstFrameCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterFirstFrameCallback(
+    const HWFirstFrameCallback& callback)
+{
+    sptr<CustomFirstFrameCallback> cb = nullptr;
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterFirstFrameCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    if (callback) {
+        cb = new CustomFirstFrameCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterFirstFrameCallback called");
+    return renderService->RegisterFirstFrameCallback(cb);
 }
 
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub

@@ -2328,6 +2328,17 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterFirstFrameCallback(
+    sptr<RSIFirstFrameCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    RSHardwareThread::Instance().ScheduleTask([pid = remotePid_, &callback] () {
+        RSHardwareThread::Instance().RegisterFirstFrameCallback(pid, callback);
+    }).wait();
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {

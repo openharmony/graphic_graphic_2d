@@ -1272,6 +1272,33 @@ HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function
 }
 
 /*
+ * @tc.name: RegisterFirstFrameCallback Test
+ * @tc.desc: RegisterFirstFrameCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBTF2E
+ */
+HWTEST_F(RSInterfacesTest, RegisterFirstFrameCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HWFirstFrameCallback cb = [](uint32_t screenId, int64_t timestamp){};
+    int32_t ret = rsInterfaces->RegisterFirstFrameCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterFirstFrameCallback Test
+ * @tc.desc: UnRegisterFirstFrameCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBTF2E
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterFirstFrameCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t ret = rsInterfaces->UnRegisterFirstFrameCallback();
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterHgmConfigChangeCallback Test
  * @tc.desc: RegisterHgmConfigChangeCallback Test
  * @tc.type: FUNC

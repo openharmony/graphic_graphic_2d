@@ -43,6 +43,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "ivsync_connection.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
+#include "ipc_callbacks/rs_ifirst_frame_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "vsync_iconnection_token.h"
@@ -288,6 +289,8 @@ public:
     virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
+
+    virtual int32_t RegisterFirstFrameCallback(sptr<RSIFirstFrameCallback> callback) = 0;
 
     virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
