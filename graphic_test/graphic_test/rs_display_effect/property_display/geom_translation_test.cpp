@@ -184,8 +184,6 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_2D_Concat_Test_1)
         testNode->SetPivot(Vector2f(0.5, 0.5));
         testNode->SetRotation(vecs1[i]);
         testNode->SetScale(vecs2[i][0], vecs2[i][1]);
-        testNode->SetSkew(vecs3[i][0], vecs3[i][1]);
-        testNode->SetPersp(vecs4[i][0], vecs4[i][1], vecs4[i][2], vecs4[i][3]);
         testNode->SetTranslate(vecs5[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -210,8 +208,6 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_3D_Concat_Test_1)
         testNode->SetRotation(vecs1[i]);
         testNode->SetScale(vecs2[i][0], vecs2[i][1]);
         testNode->SetScaleZ(vecs2[i][2]);
-        testNode->SetSkew(vecs3[i][0], vecs3[i][1], vecs3[i][2]);
-        testNode->SetPersp(vecs4[i][0], vecs4[i][1], vecs4[i][2], vecs4[i][3]);
         testNode->SetTranslate(vecs5[i][0], vecs5[i][1], vecs5[i][2]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -237,8 +233,6 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_3D_Concat_Test_2)
         testNode->SetRotation(vecs1[i][0], vecs1[i][1], vecs1[i][2]);
         testNode->SetScale(vecs2[i][0], vecs2[i][1]);
         testNode->SetScaleZ(vecs2[i][2]);
-        testNode->SetSkew(vecs3[i][0], vecs3[i][1], vecs3[i][2]);
-        testNode->SetPersp(vecs4[i][0], vecs4[i][1], vecs4[i][2], vecs4[i][3]);
         testNode->SetTranslate(vecs5[i][0], vecs5[i][1], vecs5[i][2]);
         testNode->SetCameraDistance(vecs6[i]);
         GetRootNode()->AddChild(testNode);
