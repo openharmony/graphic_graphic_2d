@@ -299,6 +299,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
@@ -307,14 +308,18 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.decorationThicknessMultiplier = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
     txt.fontWeight = TextFontUtils::GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
     txt.fontStyle = TextFontUtils::GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
+
     txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
+
     for (const SkString& fontFamily : skStyle.getFontFamilies()) {
         txt.fontFamilies.emplace_back(fontFamily.c_str());
     }
+
     txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
+
     txt.locale = skStyle.getLocale().c_str();
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
@@ -332,6 +337,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
             TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }
     }
+
     txt.textShadows.clear();
     for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
         TextShadow shadow;
@@ -340,6 +346,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         shadow.color = skShadow.fColor;
         txt.textShadows.emplace_back(shadow);
     }
+
     return txt;
 }
 
