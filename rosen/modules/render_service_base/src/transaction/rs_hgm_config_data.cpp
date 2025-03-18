@@ -62,6 +62,11 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
         return data;
     }
+    len = static_cast<size_t>(pageNameSize);
+    if (len > readableSize || len > data->configData_.max_size()) {
+        RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
+        return data;
+    }
     for (uint32_t i = 0; i < pageNameSize; i++) {
         std::string pageName;
         if (!parcel.ReadString(pageName)) {
