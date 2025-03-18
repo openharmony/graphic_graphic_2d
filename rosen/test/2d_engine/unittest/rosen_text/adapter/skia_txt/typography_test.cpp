@@ -646,7 +646,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
     Drawing::Point myPoint(10, -10);
     myShadow.offset = myPoint;
     TextShadow myShadowNull;
-    textStyle.shadows = { myShadow, myShadow, myShadowNull};
+    textStyle.shadows = { myShadow, myShadow, myShadowNull };
     textStyle.decorationColor = Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0);
     textStyle.decorationStyle = TextDecorationStyle::DASHED;
     textStyle.decorationThicknessScale = 10;
@@ -670,8 +670,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
         EXPECT_EQ(item.second.textStyle->fontSize, 50);
         EXPECT_EQ(item.second.textStyle->heightOnly, true);
         EXPECT_EQ(item.second.textStyle->heightScale, 3);
-        EXPECT_EQ(item.second.textStyle->color.CastToColorQuad(),
-            Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
+        EXPECT_EQ(item.second.textStyle->color.CastToColorQuad(), Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
         EXPECT_EQ(item.second.textStyle->shadows.size(), 3);
         EXPECT_EQ(item.second.textStyle->shadows.at(0).color.CastToColorQuad(),
             Drawing::Color::ColorQuadSetARGB(255, 0, 255, 255));
@@ -680,8 +679,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
         EXPECT_EQ(item.second.textStyle->shadows.at(0).offset.GetY(), -10);
         EXPECT_EQ(item.second.textStyle->shadows.at(1).blurRadius, 10);
         EXPECT_EQ(item.second.textStyle->shadows.at(2).HasShadow(), false);
-        EXPECT_EQ(item.second.textStyle->decorationColor.CastToColorQuad(),
-            Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
+        EXPECT_EQ(
+            item.second.textStyle->decorationColor.CastToColorQuad(), Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
         EXPECT_EQ(item.second.textStyle->decorationStyle, TextDecorationStyle::DASHED);
         EXPECT_EQ(item.second.textStyle->decorationThicknessScale, 10);
         EXPECT_EQ(item.second.textStyle->decoration, TextDecoration::OVERLINE);
@@ -778,7 +777,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
         EXPECT_EQ(item.second.textStyle->fontWeight, FontWeight::W100);
         EXPECT_EQ(item.second.textStyle->fontStyle, FontStyle::ITALIC);
         EXPECT_EQ(item.second.textStyle->baseline, TextBaseline::ALPHABETIC);
-        EXPECT_EQ(item.second.textStyle->fontFamilies.size(), 4); // 前两个分别是主题字体和系统字体
+        EXPECT_EQ(item.second.textStyle->fontFamilies.size(), 4);
+
+        // The first two are the theme font and the system font, respectively.
         EXPECT_EQ(item.second.textStyle->fontFamilies.at(2), "Text");
         EXPECT_EQ(item.second.textStyle->fontFamilies.at(3), "Text2");
         EXPECT_EQ(item.second.textStyle->letterSpacing, -10);
