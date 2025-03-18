@@ -433,7 +433,7 @@ std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
 
 std::string RSPerfMonitorReporter::GetInstanceRootNodeName(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx)
 {
-    std::string nodeName="invalid";
+    std::string nodeName = "invalid";
     if (ctx == nullptr) {
         RS_LOGE("RSPerfMonitorReporter::GetInstanceRootNodeName ctx is nullptr");
         return nodeName;
