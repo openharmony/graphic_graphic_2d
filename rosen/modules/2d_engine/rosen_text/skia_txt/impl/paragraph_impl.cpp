@@ -296,6 +296,21 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
+void ParagraphImpl::GetExtraTextStyleAttributes(const skia::textlayout::TextStyle& skStyle, TextStyle& textstyle)
+{
+    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
+        textstyle.fontFeatures.SetFeature(tag.c_str(), value);
+    }
+    textstyle.textShadows.clear();
+    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
+        TextShadow shadow;
+        shadow.offset = skShadow.fOffset;
+        shadow.blurSigma = skShadow.fBlurSigma;
+        shadow.color = skShadow.fColor;
+        textstyle.textShadows.emplace_back(shadow);
+    }
+}
+
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -319,8 +334,13 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
-
+    txt.heightOverride = skStyle.getHeightOverride();
+    txt.halfLeading = skStyle.getHalfLeading();
+    txt.baseLineShift = SkScalarToDouble(skStyle.getBaselineShift());
     txt.locale = skStyle.getLocale().c_str();
+    txt.backgroundRect = { skStyle.getBackgroundRect().color, skStyle.getBackgroundRect().leftTopRadius,
+        skStyle.getBackgroundRect().rightTopRadius, skStyle.getBackgroundRect().rightBottomRadius,
+        skStyle.getBackgroundRect().leftBottomRadius };
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
         if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
@@ -337,16 +357,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
             TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }
     }
-
-    txt.textShadows.clear();
-    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
-        TextShadow shadow;
-        shadow.offset = skShadow.fOffset;
-        shadow.blurSigma = skShadow.fBlurSigma;
-        shadow.color = skShadow.fColor;
-        txt.textShadows.emplace_back(shadow);
-    }
-
+    GetExtraTextStyleAttributes(skStyle, txt);
     return txt;
 }
 
