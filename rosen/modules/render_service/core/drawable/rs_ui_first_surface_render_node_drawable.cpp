@@ -267,6 +267,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     auto stencilVal = canvas.GetStencilVal();
     if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas.GetMaxStencilVal()) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawImageWithStencil, stencilVal: %" PRId64 "", stencilVal);
+        RS_LOGD("DrawImageWithStencil, stencilVal: %{public}" PRId64 "", stencilVal);
         canvas.DrawImageWithStencil(*cacheImage, translateX, translateY, samplingOptions,
             static_cast<uint32_t>(stencilVal));
     } else {
