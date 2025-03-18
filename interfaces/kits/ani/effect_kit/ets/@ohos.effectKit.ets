@@ -13,12 +13,8 @@
  * limitations under the License.
  */
 
+import { BusinessError } from '@ohos.base';
 import image from '@ohos.multimedia.image';
-
-export class BusinessError extends Error {
-  code: int;
-  data: string = '';
-}
 
 namespace effectKit {
   loadLibrary('effectKit_ani')
@@ -96,10 +92,8 @@ namespace effectKit {
              return pixelMap;
          }).then((ret: NullishType) => {
             resolve(ret as image.PixelMap);
-            return false;
          }).catch((err: NullishType) => {
             reject(err as BusinessError);
-            return false;
         });
      });
     }
