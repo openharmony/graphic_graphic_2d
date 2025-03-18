@@ -87,7 +87,7 @@ namespace effectKit {
 
     public getEffectPixelMap(): Promise<image.PixelMap> {
       return new Promise<image.PixelMap>((resolve: (value: image.PixelMap) => void,
-        reject: (error: BusinessError) => void ) => {
+        reject: (error: BusinessError) => void) => {
         taskpool.execute((): image.PixelMap => {
           let pixelMap = this.getEffectPixelMapNative();
           return pixelMap;
