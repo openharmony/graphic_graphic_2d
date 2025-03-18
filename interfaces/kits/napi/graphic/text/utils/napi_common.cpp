@@ -567,14 +567,121 @@ napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& line
     }
     return objValue;
 }
- 
+
+napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows)
+{
+    napi_value jsArray = nullptr;
+    napi_status arrayStatus = napi_create_array_with_length(env, textShadows.size(), &jsArray);
+    if (arrayStatus != napi_ok) {
+        TEXT_LOGE("Failed to create text Shadows array, ret %{public}d", arrayStatus);
+        return nullptr;
+    }
+    size_t index = 0;
+    for (const auto& shadow : textShadows) {
+        if (!shadow.HasShadow()) {
+            continue;
+        }
+        napi_value shadowObj = nullptr;
+        napi_status status = napi_create_object(env, &shadowObj);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create shadow object, ret %{public}d", status);
+            continue;
+        }
+        napi_set_named_property(
+            env, shadowObj, "color", CreateJsNumber(env, (uint32_t)shadow.color.CastToColorQuad()));
+        napi_set_named_property(
+            env, shadowObj, "point", CreatePointJsValue(env, (OHOS::Rosen::Drawing::PointF)shadow.offset));
+        napi_set_named_property(env, shadowObj, "blurRadius", CreateJsNumber(env, shadow.blurRadius));
+        status = napi_set_element(env, jsArray, index, shadowObj);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set shadow in textShadows, ret %{public}d", status);
+            continue;
+        }
+        index++;
+    }
+    
+    return jsArray;
+}
+
+napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& point)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX()));
+        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY()));
+    }
+    return objValue;
+}
+
+napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "color", CreateJsNumber(env, (uint32_t)rectStyle.color));
+        napi_set_named_property(env, objValue, "leftTopRadius", CreateJsNumber(env, rectStyle.leftTopRadius));
+        napi_set_named_property(env, objValue, "rightTopRadius", CreateJsNumber(env, rectStyle.rightTopRadius));
+        napi_set_named_property(env, objValue, "rightBottomRadius", CreateJsNumber(env, rectStyle.rightBottomRadius));
+        napi_set_named_property(env, objValue, "leftBottomRadius", CreateJsNumber(env, rectStyle.leftBottomRadius));
+    }
+    return objValue;
+}
+
+napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontFeatures)
+{
+    napi_value jsArray;
+    napi_status arrayStatus = napi_create_array(env, &jsArray);
+    if (arrayStatus != napi_ok) {
+        TEXT_LOGE("Failed to create fontFeature array, ret %{public}d", arrayStatus);
+        return nullptr;
+    }
+    const std::vector<std::pair<std::string, int>>& featureSet = fontFeatures.GetFontFeatures();
+    for (size_t i = 0; i < featureSet.size(); ++i) {
+        const auto& feature = featureSet[i];
+        napi_value jsObject;
+        napi_status status = napi_create_object(env, &jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create fontFeature, ret %{public}d", status);
+            continue;
+        }
+        napi_set_named_property(env, jsObject, "name", CreateStringJsValue(env, Str8ToStr16(feature.first)));
+        napi_set_named_property(env, jsObject, "value", CreateJsNumber(env, feature.second));
+        napi_set_element(env, jsArray, i, jsObject);
+        status = napi_set_element(env, jsArray, i, jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set fontFeature, ret %{public}d", status);
+            continue;
+        }
+    }
+
+    return jsArray;
+}
+
+napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(
+            env, objValue, "textDecoration", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(
+            env, objValue, "color", CreateJsNumber(env, (uint32_t)textStyle.decorationColor.CastToColorQuad()));
+        napi_set_named_property(
+            env, objValue, "decorationStyle", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decorationStyle)));
+        napi_set_named_property(
+            env, objValue, "decorationThicknessScale", CreateJsNumber(env, textStyle.decorationThicknessScale));
+    }
+
+    return objValue;
+}
+
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "decoration", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(env, objValue, "decoration", CreateDecrationJsValue(env, textStyle));
         napi_set_named_property(env, objValue, "color", CreateJsNumber(env,
             (uint32_t)textStyle.color.CastToColorQuad()));
         napi_set_named_property(env, objValue, "fontWeight", CreateJsNumber(
@@ -594,6 +701,11 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
             env, static_cast<uint32_t>(textStyle.ellipsisModal)));
         napi_set_named_property(env, objValue, "locale", CreateJsValue(env, textStyle.locale));
+        napi_set_named_property(env, objValue, "baselineShift", CreateJsNumber(env, textStyle.baseLineShift));
+        napi_set_named_property(env, objValue, "backgroundRect", CreateRectStyleJsValue(env, textStyle.backgroundRect));
+        napi_set_named_property(env, objValue, "textShadows", CreateShadowArrayJsValue(env, textStyle.shadows));
+        napi_set_named_property(
+            env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
     }
     return objValue;
 }
