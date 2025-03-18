@@ -666,7 +666,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec002, TestSize.Level
     std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     EXPECT_NE(nullptr, rsSurface1);
 
-    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, nullptr/*std::move(surfaceFrame)*/);
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, nullptr);
 
 
     RectI rect = RectI(1, 2, 3, 4);
