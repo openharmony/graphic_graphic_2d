@@ -3197,7 +3197,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
     }
-    auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren()) ?
+    auto globalFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
         GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
     if (node.NeedDrawBehindWindow()) {
         node.CalDrawBehindWindowRegion();
@@ -3488,8 +3488,8 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
         node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
         return;
     }
-    auto dstRect = node->GetDstRect();
-    bool isIntersect = !dstRect.IntersectRect(filterRect).IsEmpty();
+    auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+    bool isIntersect = !bound.IntersectRect(filterRect).IsEmpty();
     if (isIntersect) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by filter rect, filterId:%" PRIu64,
             node->GetName().c_str(), node->GetId(), filterNodeId);
@@ -3713,6 +3713,9 @@ RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
         if (auto& subnode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
             childEffectRect = childEffectRect.JoinRect(subnode->GetOldDirtyInSurface());
         }
+    }
+    if (!childEffectRect.IsEmpty()) {
+        childEffectRect = childEffectRect.JoinRect(node.GetFilterRect());
     }
     return childEffectRect;
 }
