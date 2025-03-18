@@ -371,6 +371,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     EXPECT_EQ(indents[1], OH_Drawing_TypographyGetIndentsWithIndex(typography, 1));
     EXPECT_EQ(indents[0], OH_Drawing_TypographyGetIndentsWithIndex(typography, 0));
     double maxWidth = 800.0;
+    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetAlphabeticBaseline(typography)), 0);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetIdeographicBaseline(typography)), 0);
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
     double position[2] = { 10.0, 15.0 };
@@ -1117,9 +1119,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
     OH_Drawing_SetTypographyTextLocale(typoStyle, text);
     OH_Drawing_SetTypographyTextSplitRatio(typoStyle, fontSize);
     OH_Drawing_TypographyGetTextStyle(typoStyle);
-    EXPECT_TRUE(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle) >= 0);
-    EXPECT_NE(OH_Drawing_TypographyIsLineUnlimited(typoStyle), 0);
-    EXPECT_NE(OH_Drawing_TypographyIsEllipsized(typoStyle), 0);
+    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle), 0);
+    EXPECT_TRUE(OH_Drawing_TypographyIsLineUnlimited(typoStyle));
+    EXPECT_TRUE(OH_Drawing_TypographyIsEllipsized(typoStyle));
     OH_Drawing_SetTypographyTextStyle(typoStyle, txtStyle);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
@@ -1746,7 +1748,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest067, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest068
- * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.desc: test typography ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level1)
@@ -1758,6 +1760,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level
     result = OH_Drawing_TypographyGetTextEllipsis(nullptr);
     EXPECT_EQ(result, nullptr);
     OH_Drawing_TypographyDestroyEllipsis(result);
+    EXPECT_FALSE(OH_Drawing_TypographyIsEllipsized(typoStyle));
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, "");
+    EXPECT_FALSE(OH_Drawing_TypographyIsEllipsized(typoStyle));
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, "...");
+    EXPECT_TRUE(OH_Drawing_TypographyIsEllipsized(typoStyle));
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
@@ -3326,5 +3333,22 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest002, TestSi
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest113
+ * @tc.desc: test for the input nullptr.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level1)
+{
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(nullptr, nullptr);
+    EXPECT_EQ(handler, nullptr);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    handler = OH_Drawing_CreateTypographyHandler(OH_Drawing_CreateTypographyStyle(), OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, nullptr);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+    OH_Drawing_TypographyHandlerAddText(handler, nullptr);
 }
 } // namespace OHOS
