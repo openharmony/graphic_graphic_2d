@@ -702,6 +702,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 {
     std::shared_ptr<Drawing::AutoCanvasRestore> acr = nullptr;
     if (params.preRotation) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying pre-rotation, resetting canvas matrix");
         acr = std::make_shared<Drawing::AutoCanvasRestore>(canvas, true);
         canvas.ResetMatrix();
     }
@@ -711,6 +712,10 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer invalid buffer!");
         return nullptr;
     }
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}d, seqNum=%{public}u",
+        params.buffer->GetWidth(), params.buffer->GetHeight(),
+        params.buffer->GetFormat(), params.buffer->GetSeqNum());
     videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     videoInfo.parameter_ = {};
@@ -726,14 +731,19 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex, params.screenId);
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
+            RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
+                params.buffer->GetSeqNum());
             vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum(), true);
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
+            bitmapFormat.colorType, bitmapFormat.alphaType);
 #ifndef ROSEN_EMULATOR
         auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #else
         auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Texture origin: %{public}d", static_cast<int>(surfaceOrigin));
         auto contextDrawingVk = canvas.GetGPUContext();
         if (contextDrawingVk == nullptr || image == nullptr || imageCache == nullptr) {
             RS_LOGE("contextDrawingVk or image or imageCache is nullptr.");
@@ -759,6 +769,9 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         }
     }
 #endif // RS_ENABLE_GL
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSBaseRenderEngine::CreateImageFromBuffer: Image creation successful, size: %{public}d x %{public}d",
+        image->GetWidth(), image->GetHeight());
     return image;
 }
 
@@ -767,6 +780,19 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSBASERENDERENGINE_DRAWIMAGE);
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: Starting to draw image with gamut:%{public}d, "
+        "src:[%{public}.2f,%{public}.2f,%{public}.2f,%{public}.2f],"
+        "dst:[%{public}.2f,%{public}.2f,%{public}.2f,%{public}.2f], "
+        "useCPU:%{public}d, isMirror:%{public}d, useBilinear:%{public}d",
+        params.targetColorGamut, params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetRight(),
+        params.srcRect.GetBottom(), params.dstRect.GetLeft(), params.dstRect.GetTop(), params.dstRect.GetRight(),
+        params.dstRect.GetBottom(), params.useCPU, params.isMirror, params.useBilinearInterpolation);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    RS_LOGD_IF(DEBUG_COMPOSER, "  - Video processing: brightness:%{public}.2f, hasMetadata:%{public}d",
+        params.brightnessRatio, params.hasMetadata);
+#endif
+
     RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;
     auto image = CreateImageFromBuffer(canvas, params, videoInfo);
@@ -776,26 +802,43 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Default sampling options (UniRender not enabled)");
     } else {
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+            RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Mirror mode (LINEAR, NEAREST)");
         } else {
-            samplingOptions = NeedBilinearInterpolation(params, canvas.GetTotalMatrix())
-                                  ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
-                                  : Drawing::SamplingOptions();
+            bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
+            samplingOptions = needBilinear
+                ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
+                : Drawing::SamplingOptions();
+            RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: %{public}s",
+                needBilinear ? "Bilinear interpolation (LINEAR, NONE)" : "Default sampling options");
         }
     }
 
+    {
+        // Record canvas transformation matrix information
+        auto matrix = canvas.GetTotalMatrix();
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Canvas transformation matrix:"
+            "[%{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f]",
+            matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SKEW_X),
+            matrix.Get(Drawing::Matrix::TRANS_X), matrix.Get(Drawing::Matrix::SKEW_Y),
+            matrix.Get(Drawing::Matrix::SCALE_Y), matrix.Get(Drawing::Matrix::TRANS_Y));
+    }
+
     if (params.targetColorGamut == GRAPHIC_COLOR_GAMUT_SRGB) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Using SRGB color gamut for drawing");
         canvas.AttachBrush(params.paint);
         canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: SRGB color gamut drawing completed");
     } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);
         Drawing::Filter filter = params.paint.GetFilter();
         Drawing::ColorMatrix luminanceMatrix;
         luminanceMatrix.SetScale(params.brightnessRatio, params.brightnessRatio, params.brightnessRatio, 1.0f);
@@ -812,8 +855,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    auto& inClrInfo = videoInfo.parameter_.inputColorSpace.colorSpaceInfo;
+    auto& outClrInfo = videoInfo.parameter_.outputColorSpace.colorSpaceInfo;
+    RS_LOGD_IF(DEBUG_COMPOSER, "  - Input color space: primaries=%{public}d, transfunc=%{public}d",
+        inClrInfo.primaries, inClrInfo.transfunc);
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
@@ -830,6 +875,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
         !RSSystemProperties::GetHdrVideoEnabled();
+    RS_LOGD_IF(DEBUG_COMPOSER, "  - HDR to SDR: %{public}d", params.isHdrToSdr);
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
@@ -842,6 +888,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGE("RSBaseRenderEngine::DrawImage image srcRect params invalid.");
     }
     matrix.SetScaleTranslate(sx, sy, tx, ty);
+
+    RS_LOGD_IF(DEBUG_COMPOSER, "  - Image shader transformation:"
+        "sx=%{public}.2f, sy=%{public}.2f, tx=%{public}.2f, ty=%{public}.2f", sx, sy, tx, ty);
+
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
@@ -862,6 +912,15 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
     BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions)
 {
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImageRect: rect image src:[%{public}.2f,%{public}.2f,"
+        "%{public}.2f,%{public}.2f], dst:[%{public}.2f,%{public}.2f,%{public}.2f,%{public}.2f]",
+        params.srcRect.GetLeft(), params.srcRect.GetTop(), params.srcRect.GetRight(), params.srcRect.GetBottom(),
+        params.dstRect.GetLeft(), params.dstRect.GetTop(), params.dstRect.GetRight(), params.dstRect.GetBottom());
+    // Record sampling options information
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "  - Sampling filter mode: %{public}d, Sampling mipmap mode: %{public}d",
+        static_cast<int>(samplingOptions.GetFilterMode()), static_cast<int>(samplingOptions.GetMipmapMode()));
+
     canvas.AttachBrush(params.paint);
     canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);

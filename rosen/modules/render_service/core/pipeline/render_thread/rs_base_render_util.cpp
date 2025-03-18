@@ -1258,6 +1258,9 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     auto frameHeight = bufferSize.GetHeight();
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderUtil::GetGravityMatrix: frameWidth = %{public}f, frameHeight = %{public}f, "
+        "boundsWidth = %{public}f, boundsHeight = %{public}f, gravity = %{public}d",
+        frameWidth, frameHeight, boundsWidth, boundsHeight, static_cast<int32_t>(gravity));
     if (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) {
         return gravityMatrix;
     }

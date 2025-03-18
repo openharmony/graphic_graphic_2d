@@ -945,6 +945,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
+    RS_LOGD("RSHardwareThread::Redraw computed target color gamut: %{public}d,"
+        "pixel format: %{public}d, frame width: %{public}d, frame height: %{public}d",
+        colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
         isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
