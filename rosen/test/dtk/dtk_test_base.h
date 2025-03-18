@@ -15,10 +15,10 @@
 #ifndef DDGR_TEST_DTK_DTK_TEST_BASE_H
 #define DDGR_TEST_DTK_DTK_TEST_BASE_H
 
-#include "recording/recording_canvas.h"
-#include "ui/rs_root_node.h"
-#include "ui/rs_surface_node.h"
-#include "ui/rs_ui_director.h"
+#include "modules/2d_graphics/include/recording/recording_canvas.h"
+#include "modules/render_service_client/core/ui/rs_root_node.h"
+#include "modules/render_service_client/core/ui/rs_surface_node.h"
+#include "modules/render_service_client/core/ui/rs_ui_director.h"
 
 namespace OHOS {
 namespace Rosen {

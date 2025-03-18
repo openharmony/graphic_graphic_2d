@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 #include "dtk_test_ext.h"
-#include "rosen/modules/2d_graphics/include/text/font.h"
-#include "rosen/modules/2d_graphics/include/recording/mem_allocator.h"
-#include "rosen/modules/2d_graphics/include/text/font_mgr.h"
-#include "rosen/modules/2d_graphics/include/text/font_style_set.h"
-#include "rosen/modules/2d_graphics/include/text/rs_xform.h"
-#include "rosen/modules/2d_graphics/include/utils/point.h"
-#include "rosen/modules/2d_graphics/include/utils/rect.h"
-#include "rosen/modules/2d_graphics/include/text/typeface.h"
+#include "modules/2d_graphics/include/text/font.h"
+#include "modules/2d_graphics/include/recording/mem_allocator.h"
+#include "modules/2d_graphics/include/text/font_mgr.h"
+#include "modules/2d_graphics/include/text/font_style_set.h"
+#include "modules/2d_graphics/include/text/rs_xform.h"
+#include "modules/2d_graphics/include/utils/point.h"
+#include "modules/2d_graphics/include/utils/rect.h"
+#include "modules/2d_graphics/include/text/typeface.h"
 
 /*
 测试类：FontStyleSet

@@ -14,11 +14,11 @@
  */
 #include "dtk_test_ext.h"
 #include <string>
-#include "rosen/modules/2d_graphics/include/text/font.h"
-#include "rosen/modules/2d_graphics/include/text/font_mgr.h"
-#include "rosen/modules/2d_graphics/include/text/font_style_set.h"
-#include "rosen/modules/2d_graphics/include/text/font_style.h"
-#include "rosen/modules/2d_graphics/include/text/typeface.h"
+#include "modules/2d_graphics/include/text/font.h"
+#include "modules/2d_graphics/include/text/font_mgr.h"
+#include "modules/2d_graphics/include/text/font_style_set.h"
+#include "modules/2d_graphics/include/text/font_style.h"
+#include "modules/2d_graphics/include/text/typeface.h"
 #include <sstream>
 
 /*

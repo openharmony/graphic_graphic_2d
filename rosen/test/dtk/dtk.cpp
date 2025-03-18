@@ -20,12 +20,12 @@
 #include <chrono>
 #include <message_parcel.h>
 #include <surface.h>
-#include "transaction/rs_transaction.h"
-#include "wm/window.h"
-#include "ui/rs_root_node.h"
-#include "ui/rs_surface_node.h"
-#include "ui/rs_ui_director.h"
-#include "utils/log.h"
+#include "modules/render_service_client/core/transaction/rs_transaction.h"
+#include "window/window_manager/interfaces/innerkits/wm/window.h"
+#include "modules/render_service_client/core/ui/rs_root_node.h"
+#include "modules/render_service_client/core/ui/rs_surface_node.h"
+#include "modules/render_service_client/core/ui/rs_ui_director.h"
+#include "modules/2d_graphics/include/utils/log.h"
 #include "dtk_test_register.h"
 #include "dtk_test_utils.h"
 

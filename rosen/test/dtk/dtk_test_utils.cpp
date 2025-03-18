@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 #include "dtk_test_utils.h"
-#include "rosen/modules/2d_graphics/include/text/font.h"
-#include "text/font_mgr.h"
-#include "text/font_style.h"
-#include "text/font_style_set.h"
+#include "modules/2d_graphics/include/text/font.h"
+#include "modules/2d_graphics/include/text/font_mgr.h"
+#include "modules/2d_graphics/include/text/font_style.h"
+#include "modules/2d_graphics/include/text/font_style_set.h"
 
 namespace OHOS {
 namespace Rosen {

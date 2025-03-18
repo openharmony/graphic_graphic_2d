@@ -15,7 +15,7 @@
 #ifndef DDGR_TEST_DTK_DTK_TEST_UTILS_H
 #define DDGR_TEST_DTK_DTK_TEST_UTILS_H
 
-#include "draw/surface.h"
+#include "modules/2d_graphics/include/draw/surface.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 
 namespace OHOS {

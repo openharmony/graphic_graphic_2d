@@ -17,8 +17,8 @@
 #include <sstream>
 #include <string>
 #include <surface.h>
-#include "transaction/rs_transaction.h"
-#include "wm/window.h"
+#include "modules/render_service_client/core/transaction/rs_transaction.h"
+#include "window/window_manager/interfaces/innerkits/wm/window.h"
 #include "dtk_test_base.h"
 
 namespace OHOS {
