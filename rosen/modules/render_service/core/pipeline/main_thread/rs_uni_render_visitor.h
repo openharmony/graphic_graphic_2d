@@ -260,6 +260,9 @@ private:
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
     void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
 
+    void PrepareForMultiScreenViewSurfaceNode(RSSurfaceRenderNode& node);
+    void PrepareForMultiScreenViewDisplayNode(RSDisplayRenderNode& node);
+
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 

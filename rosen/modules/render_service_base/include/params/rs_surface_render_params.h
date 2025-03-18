@@ -637,6 +637,10 @@ public:
         return IsUnobscuredUIExtension_;
     }
 
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetSourceDisplayRenderNodeDrawable() const
+    {
+        return sourceDisplayRenderNodeDrawable_;
+    }
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -647,6 +651,7 @@ private:
     RSRenderNode::WeakPtr ancestorDisplayNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
     float alpha_ = 0;
     bool isClonedNodeOnTheTree_ = false;
