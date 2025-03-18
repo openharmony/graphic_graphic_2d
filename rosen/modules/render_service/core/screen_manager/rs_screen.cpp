@@ -1272,7 +1272,7 @@ bool RSScreen::GetCastScreenEnableSkipWindow()
     return skipWindow_;
 }
 
-const std::unordered_set<uint64_t>& RSScreen::GetBlackList() const
+const std::unordered_set<uint64_t> RSScreen::GetBlackList() const
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
     return blackList_;
@@ -1312,7 +1312,7 @@ void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExe
     securityExemptionList_ = securityExemptionList;
 }
 
-const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
+const std::vector<uint64_t> RSScreen::GetSecurityExemptionList() const
 {
     std::lock_guard<std::mutex> lock(securityExemptionMutex_);
     return securityExemptionList_;

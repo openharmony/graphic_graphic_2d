@@ -1325,7 +1325,7 @@ std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
         if (screen->GetCastScreenEnableSkipWindow()) {
             allBlackList.insert(castScreenBlackList_.cbegin(), castScreenBlackList_.cend());
         } else {
-            const auto& blackList = screen->GetBlackList();
+            const auto blackList = screen->GetBlackList();
             allBlackList.insert(blackList.cbegin(), blackList.cend());
         }
     }
