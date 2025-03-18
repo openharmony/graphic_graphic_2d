@@ -210,5 +210,12 @@ bool RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
+
+int32_t RSSystemParameters::GetPurgeableResourceLimit()
+{
+    static int32_t purgeableResourceLimit =
+        system::GetIntParameter<int32_t>("persist.sys.graphic.purgeableResourceLimit", 40000); // purge limit: 40000
+    return purgeableResourceLimit;
+}
 } // namespace Rosen
 } // namespace OHOS
