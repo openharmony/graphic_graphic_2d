@@ -880,7 +880,7 @@ void RSUifirstManager::SortSubThreadNodesPriority()
     focusNodeThreadIndex_ = UINT32_MAX;
     SetNodePriorty(sortedSubThreadNodeIds_, pendingPostNodes_);
     SetNodePriorty(sortedSubThreadNodeIds_, pendingPostCardNodes_);
-    RS_LOGI("SetNodePriorty result [%{public}zu] pendingNode [%{public}zu] pendingCardNode [%{public}zu]",
+    RS_LOGD("SetNodePriorty result [%{public}zu] pendingNode [%{public}zu] pendingCardNode [%{public}zu]",
         sortedSubThreadNodeIds_.size(), pendingPostNodes_.size(), pendingPostCardNodes_.size());
     sortedSubThreadNodeIds_.sort([this](const auto& first, const auto& second) -> bool {
         auto drawable1 = GetSurfaceDrawableByID(first);
