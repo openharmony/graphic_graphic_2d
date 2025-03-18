@@ -53,9 +53,10 @@ public:
     */
     bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+
+    void ClearCache();
 private:
     bool HasCache() const;
-    void ClearCache();
 
     std::shared_ptr<Drawing::Image> image_ = nullptr;
 };

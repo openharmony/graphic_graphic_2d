@@ -1333,6 +1333,17 @@ public:
 
     bool IsUIBufferAvailable();
 
+    // [Attention] Used in uifirst for checking whether node and parent should paint or not
+    void SetSelfAndParentShouldPaint(bool selfAndParentShouldPaint)
+    {
+        selfAndParentShouldPaint_ = selfAndParentShouldPaint;
+    }
+
+    bool GetSelfAndParentShouldPaint() const
+    {
+        return selfAndParentShouldPaint_;
+    }
+
 protected:
     void OnSync() override;
 
@@ -1633,6 +1644,9 @@ private:
 
     bool oldNeedDrawBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
+
+    // used in uifirst for checking whether node and parents should paint or not
+    bool selfAndParentShouldPaint_ = true;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

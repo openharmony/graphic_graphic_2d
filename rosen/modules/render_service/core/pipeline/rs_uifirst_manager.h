@@ -233,6 +233,7 @@ private:
     std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>  pindingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
