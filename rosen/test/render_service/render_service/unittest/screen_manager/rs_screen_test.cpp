@@ -2033,4 +2033,166 @@ HWTEST_F(RSScreenTest, GetSecurityMask001, testing::ext::TestSize.Level1)
     auto SecurityMaskGet = rsScreen->GetSecurityMask();
     ASSERT_EQ(SecurityMaskGet, nullptr);
 }
+
+//yangning
+/*
+ * @tc.name: SetScreenLinearMatrix
+ * @tc.desc: SetScreenLinearMatrix Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetScreenLinearMatrix, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 100;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+
+    std::vector<float> matrix1 = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    std::vector<float> matrix2(5, 3.14f);
+
+    rsScreen->isVirtual_ = true;
+    auto res = rsScreen->RSScreen::SetScreenLinearMatrix(matrix1);
+    EXPECT_EQ(StatusCode::VIRTUAL_SCREEN, res);
+
+    rsScreen->isVirtual_ = false;
+    rsScreen->hdiScreen_ = nullptr;
+    res = rsScreen->RSScreen::SetScreenLinearMatrix(matrix1);
+    EXPECT_EQ(StatusCode::HDI_ERROR, res);
+
+    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(100);
+    res = rsScreen->RSScreen::SetScreenLinearMatrix(matrix1);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+    res = rsScreen->RSScreen::SetScreenLinearMatrix(matrix2);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+}
+
+/*
+ * @tc.name: GetDisplayIdentificationData
+ * @tc.desc: GetDisplayIdentificationData Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, GetDisplayIdentificationData, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 100;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+
+    uint8_t port = 1;
+    std::vector<uint8_t> edid(5, port);
+
+    rsScreen->hdiScreen_ = nullptr;
+    auto res = rsScreen->RSScreen::GetDisplayIdentificationData(port, edid);
+    EXPECT_EQ(HDI_ERROR, res);
+
+    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(100);
+
+    res = rsScreen->RSScreen::GetDisplayIdentificationData(port, edid);
+    EXPECT_EQ(HDI_ERROR, res);
+}
+
+/*
+ * @tc.name: SetResolution003
+ * @tc.desc: SetResolution003 Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetResolution003, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 100;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+
+    uint32_t width = 3;
+    uint32_t height = 4;
+
+    rsScreen->isVirtual_ = false;
+    rsScreen->phyWidth_ = 10;
+    auto res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    rsScreen->phyWidth_ = 1;
+    rsScreen->phyHeight_ = 10;
+    res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    rsScreen->phyWidth_ = 3;
+    rsScreen->phyHeight_ = 4;
+    res = rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+
+    rsScreen->phyWidth_ = 1;
+    rsScreen->phyHeight_ = 1;
+
+    width = 0;
+    rsScreen->RSScreen::SetResolution(width, height);
+
+    width = 3;
+    height = 0;
+    rsScreen->RSScreen::SetResolution(width, height);
+
+    height = 4;
+    rsScreen->RSScreen::SetResolution(width, height);
+    EXPECT_EQ(StatusCode::SUCCESS, res);
+}
+
+/*
+ * @tc.name: SetScreenActiveRect
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetScreenActiveRect, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 100;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+
+    GraphicIRect actRect = {1, 2, 3, 4};
+
+    rsScreen->isVirtual_ = true;
+    auto res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
+    EXPECT_EQ(StatusCode::HDI_ERROR, res);
+
+    rsScreen->isVirtual_ = false;
+    rsScreen->hdiScreen_ = nullptr;
+    res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
+    EXPECT_EQ(StatusCode::HDI_ERROR, res);
+
+    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(100);
+    actRect.w = 0;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    rsScreen->width_ = 10;
+    actRect.w = 13;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    actRect.w = 3;
+    actRect.h = 0;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    rsScreen->height_ = 10;
+    actRect.h = 14;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    actRect.h = 4;
+    actRect.x = -1;
+    res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    actRect.x = 11;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    actRect.x = 1;
+    actRect.y = -2;
+    rsScreen->RSScreen::SetScreenActiveRect(actRect);
+
+    actRect.y = 12;
+    res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
+    EXPECT_EQ(StatusCode::INVALID_ARGUMENTS, res);
+
+    actRect.y = 2;
+    res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
+    EXPECT_EQ(StatusCode::HDI_ERROR, res);
+}
 } // namespace OHOS::Rosen
