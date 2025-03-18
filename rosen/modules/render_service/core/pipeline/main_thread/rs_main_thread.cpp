@@ -3206,7 +3206,7 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
         lines.push_back(line);
     }
     std::string result;
-    for (int i = 0; i < lines.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(lines.size()); ++i) {
         if (lines[i].find(TARGET_STRING) != std::string::npos) {
             foundTargetStr = true;
             int start = std::max(0, i - CONTEXT_LINES);
