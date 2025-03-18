@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_display_node_command.h"
+#include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -300,5 +301,27 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid001, TestSize.Level1)
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
     DisplayNodeCommandHelper::SetScbNodePid(context, 5, oldScbPids, currentScbPid);
     ASSERT_EQ(id, static_cast<NodeId>(1));
+}
+
+/**
+ * @tc.name: SetVirtualScreenMuteStatus
+ * @tc.desc: SetVirtualScreenMuteStatus test.
+ * @tc.type: FUNC
+ * @tc.require: issueIBTNC3
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+
+    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, true);
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        ASSERT_TRUE(node->GetVirtualScreenMuteStatus());
+    }
+
+    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, false);
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        ASSERT_FALSE(node->GetVirtualScreenMuteStatus());
+    }
 }
 } // namespace OHOS::Rosen
