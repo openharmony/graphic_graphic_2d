@@ -652,33 +652,36 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
     textStyle.decorationThicknessScale = 10;
     textStyle.decoration = TextDecoration::OVERLINE;
 
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection2);
-    typographyCreate2->PushStyle(textStyle);
-    std::u16string text2 =
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text =
         u"你好, 测试, textstyle中的runMetrics: fontSize, heightOnly, heightScale, color, shadows, decoration.";
-    typographyCreate2->AppendText(text2);
-    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = 100.0;
-    typography2->Layout(maxWidth);
-    std::vector<LineMetrics> myLinesMetric2 = typography2->GetLineMetrics();
-    auto runMetrics2 = myLinesMetric2[0].runMetrics;
+    typography->Layout(maxWidth);
+    std::vector<LineMetrics> myLinesMetric = typography->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
 
-    for (const auto& item : runMetrics2) {
+    for (const auto& item : runMetrics) {
         EXPECT_EQ(item.second.textStyle->fontSize, 50);
         EXPECT_EQ(item.second.textStyle->heightOnly, true);
         EXPECT_EQ(item.second.textStyle->heightScale, 3);
-        EXPECT_EQ(item.second.textStyle->color, Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
-        EXPECT_EQ(item.second.textStyle->shadows.size(), 2);
-        EXPECT_EQ(item.second.textStyle->shadows.at(0).color, Drawing::Color::ColorQuadSetARGB(255, 0, 255, 255));
+        EXPECT_EQ(item.second.textStyle->color.CastToColorQuad(),
+            Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
+        EXPECT_EQ(item.second.textStyle->shadows.size(), 3);
+        EXPECT_EQ(item.second.textStyle->shadows.at(0).color.CastToColorQuad(),
+            Drawing::Color::ColorQuadSetARGB(255, 0, 255, 255));
         EXPECT_EQ(item.second.textStyle->shadows.at(0).HasShadow(), true);
         EXPECT_EQ(item.second.textStyle->shadows.at(0).offset.GetX(), 10);
         EXPECT_EQ(item.second.textStyle->shadows.at(0).offset.GetY(), -10);
         EXPECT_EQ(item.second.textStyle->shadows.at(1).blurRadius, 10);
-        EXPECT_EQ(item.second.textStyle->shadows.at(2).HasShadow(), false);//
-        EXPECT_EQ(item.second.textStyle->decorationColor, Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
+        EXPECT_EQ(item.second.textStyle->shadows.at(2).HasShadow(), false);
+        EXPECT_EQ(item.second.textStyle->decorationColor.CastToColorQuad(),
+            Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
         EXPECT_EQ(item.second.textStyle->decorationStyle, TextDecorationStyle::DASHED);
         EXPECT_EQ(item.second.textStyle->decorationThicknessScale, 10);
         EXPECT_EQ(item.second.textStyle->decoration, TextDecoration::OVERLINE);
@@ -709,10 +712,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level
     RectStyle myBackgroundRect = { Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0), 10.0, 11.0, 1.0, 2.0 };
     textStyle.backgroundRect = myBackgroundRect;
 
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection2);
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
     typographyCreate->PushStyle(textStyle);
     std::u16string text = u"你好, 测试, textstyle中的runMetrics: fontFeatures, forebackgroundBrushPen, backgroundRect.";
     typographyCreate->AppendText(text);
@@ -750,17 +753,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
     textStyle.fontWeight = FontWeight::W100;
     textStyle.fontStyle = FontStyle::ITALIC;
     textStyle.baseline = TextBaseline::ALPHABETIC;
-    textStyle.fontFamilies = { "Text" };
+    textStyle.fontFamilies = { "Text", "Text2" };
     textStyle.letterSpacing = -10;
     textStyle.wordSpacing = 5;
     textStyle.halfLeading = true;
     textStyle.locale = "zh-Hans";
     textStyle.baseLineShift = 10;
 
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
-        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection2);
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
     typographyCreate->PushStyle(textStyle);
     std::u16string text = u"你好, 测试, textstyle中的runMetrics: fontWeight, fontStyle, baseline, fontFamilies, "
                           u"letterSpacing, wordSpacing, halfLeading, locale, baseLineShift.";
@@ -775,7 +778,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
         EXPECT_EQ(item.second.textStyle->fontWeight, FontWeight::W100);
         EXPECT_EQ(item.second.textStyle->fontStyle, FontStyle::ITALIC);
         EXPECT_EQ(item.second.textStyle->baseline, TextBaseline::ALPHABETIC);
-        EXPECT_EQ(item.second.textStyle->fontFamilies.at(0), "Text");
+        EXPECT_EQ(item.second.textStyle->fontFamilies.size(), 4); // 前两个分别是主题字体和系统字体
+        EXPECT_EQ(item.second.textStyle->fontFamilies.at(2), "Text");
+        EXPECT_EQ(item.second.textStyle->fontFamilies.at(3), "Text2");
         EXPECT_EQ(item.second.textStyle->letterSpacing, -10);
         EXPECT_EQ(item.second.textStyle->wordSpacing, 5);
         EXPECT_EQ(item.second.textStyle->halfLeading, true);
