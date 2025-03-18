@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "../../dtk_constants.h"
+#include "rosen/test/dtk/dtk_constants.h"
 #include "../../dtk_test_base.h"
-#include "../../dtk_test_ext.h"
-#include "../../utils.h"
+#include "rosen/test/dtk/dtk_test_ext.h"
+#include "rosen/test/dtk/utils.h"
 
 namespace OHOS {
 namespace Rosen {

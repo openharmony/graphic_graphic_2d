@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "dtk_test_utils.h"
-#include "text/font.h"
+#include "rosen/modules/2d_graphics/include/text/font.h"
 #include "text/font_mgr.h"
 #include "text/font_style.h"
 #include "text/font_style_set.h"

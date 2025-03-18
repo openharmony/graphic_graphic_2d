@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../../dtk_test_ext.h"
-#include "text/font.h"
-#include "recording/mem_allocator.h"
-#include "text/font_mgr.h"
-#include "text/font_style_set.h"
-#include "text/rs_xform.h"
-#include "utils/point.h"
-#include "utils/rect.h"
-#include "text/typeface.h"
+#include "rosen/test/dtk/dtk_test_ext.h"
+#include "rosen/modules/2d_graphics/include/text/font.h"
+#include "rosen/modules/2d_graphics/include/recording/mem_allocator.h"
+#include "rosen/modules/2d_graphics/include/text/font_mgr.h"
+#include "rosen/modules/2d_graphics/include/text/font_style_set.h"
+#include "rosen/modules/2d_graphics/include/text/rs_xform.h"
+#include "rosen/modules/2d_graphics/include/utils/point.h"
+#include "rosen/modules/2d_graphics/include/utils/rect.h"
+#include "rosen/modules/2d_graphics/include/text/typeface.h"
 
 /*
 测试类：FontMgr
