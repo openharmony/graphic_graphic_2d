@@ -278,6 +278,21 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
+void ParagraphImpl::ProcessAdditionalAttributes(const skia::textlayout::TextStyle& skStyle, TextStyle& txt)
+{
+    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
+        txt.fontFeatures.SetFeature(tag.c_str(), value);
+    }
+    txt.textShadows.clear();
+    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
+        TextShadow shadow;
+        shadow.offset = skShadow.fOffset;
+        shadow.blurSigma = skShadow.fBlurSigma;
+        shadow.color = skShadow.fColor;
+        txt.textShadows.emplace_back(shadow);
+    }
+}
+
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -324,18 +339,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
             TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }
     }
-    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
-        txt.fontFeatures.SetFeature(tag.c_str(), value);
-    }
-    txt.textShadows.clear();
-    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
-        TextShadow shadow;
-        shadow.offset = skShadow.fOffset;
-        shadow.blurSigma = skShadow.fBlurSigma;
-        shadow.color = skShadow.fColor;
-        txt.textShadows.emplace_back(shadow);
-    }
-
+    ProcessAdditionalAttributes(skStyle, txt);
     return txt;
 }
 
