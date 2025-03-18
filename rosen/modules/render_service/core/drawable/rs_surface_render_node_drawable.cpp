@@ -69,7 +69,8 @@ namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
 
 RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSRenderNodeDrawable(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>())
+    : RSRenderNodeDrawable(std::move(node)), syncDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
+    syncUifirstDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
@@ -489,8 +490,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const RectI& currentFrameDirty = syncDirtyManager_->GetCurrentFrameDirtyRegion();
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d, %d, %d, %d)Alpha: %f, preSub:%d, "
-        "currentFrameDirty (%d, %d, %d, %d), mergeHistoryDirty (%d, %d, %d, %d)", name_.c_str(),
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] Id:%" PRIu64 ", absDrawRect(%d, %d, %d, %d)Alpha: %f,"
+        ", preSub:%d, currentFrameDirty (%d, %d, %d, %d), mergeHistoryDirty (%d, %d, %d, %d)", name_.c_str(), GetId(),
         absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, surfaceParams->GetGlobalAlpha(),
         surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
@@ -599,7 +600,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSRenderNodeDrawable::ClearTotalProcessedNodeCount();
         RSRenderNodeDrawable::ClearProcessedNodeCount();
         if (!surfaceParams->GetNeedOffscreen()) {
-            curCanvas_->PushDirtyRegion(curSurfaceDrawRegion);
+            PushDirtyRegionToStack(*curCanvas_, curSurfaceDrawRegion);
         }
     }
 

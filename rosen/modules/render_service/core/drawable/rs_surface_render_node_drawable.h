@@ -231,6 +231,21 @@ public:
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
+
+    // uifirst dirtyRegion
+    std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
+    void UpdateCacheSurfaceDirtyManager(bool hasCompleteCache, int bufferAge = 1); // 1 means buffer age
+    void UpdateUifirstDirtyManager() override;
+    void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
+    Drawing::Region GetUifirstDirtyRegion() const;
+    Drawing::RectI CalculateUifirstDirtyRegion(bool dirtyEnableFlag);
+    Drawing::RectI MergeUifirstAllSurfaceDirtyRegion(bool dirtyEnableFlag);
+    void SetUifrstDirtyEnableFlag(bool dirtyEnableFlag);
+    bool GetUifrstDirtyEnableFlag() const;
+    void PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion);
+    bool IsCacheValid() const;
+    void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
+
     GraphicColorGamut GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams);
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
@@ -331,6 +346,8 @@ private:
     bool uiExtensionNeedToDraw_ = false;
 
     // UIFIRST
+    bool isCacheValid_ = false;
+    bool isCacheCompletedValid_ = false;
     std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
@@ -382,10 +399,13 @@ private:
 
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
+    std::shared_ptr<RSDirtyRegionManager> syncUifirstDirtyManager_ = nullptr;
     Occlusion::Region visibleDirtyRegion_;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region globalDirtyRegion_;
+    Drawing::Region uifirstDirtyRegion_;
+    bool uifrstDirtyEnableFlag_ = false;
 
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;

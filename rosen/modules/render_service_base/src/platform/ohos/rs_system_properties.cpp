@@ -824,6 +824,22 @@ bool RSSystemProperties::GetUIFirstOptScheduleEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetUIFirstDirtyEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetUIFirstDirtyDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.dirty.dfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");
