@@ -985,15 +985,6 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     auto& context = mainThread_->GetContext();
     auto& nodeMap = context.GetMutableNodeMap();
     std::string surfaceName = nodeMap.GetSelfDrawSurfaceNameByPid(pid);
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &surfaceName](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == surfaceName && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
     if (surfaceName.empty()) {
         enable = "";
         return ERR_INVALID_VALUE;
@@ -1003,22 +994,22 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
+                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
+                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
             }).wait();
     }
     enable = dumpString;

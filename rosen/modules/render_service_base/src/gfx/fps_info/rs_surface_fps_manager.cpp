@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "common/rs_common_def.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 
 namespace OHOS::Rosen {
@@ -54,6 +55,28 @@ std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFps(NodeId id)
     return iter->second;
 }
 
+std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFps(const std::string& name)
+{
+    std::shared_lock<std::shared_mutex> lock(smtx);
+    for (auto [id, surfaceFps] : surfaceFpsMap_) {
+        if (surfaceFps->GetName() == name) {
+            return surfaceFps;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFpsByPid(pid_t pid)
+{
+    std::shared_lock<std::shared_mutex> lock(smtx);
+    for (auto [id, surfaceFps] : surfaceFpsMap_) {
+        if (ExtractPid(id) == pid) {
+            return surfaceFps;
+        }
+    }
+    return nullptr;
+}
+
 bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, uint64_t timestamp, uint32_t seqNum)
 {
     const auto& surfaceFps = GetSurfaceFps(id);
@@ -61,6 +84,26 @@ bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, uint64_t timestamp, uint3
         return false;
     }
     return surfaceFps->RecordPresentTime(timestamp, seqNum);
+}
+
+void RSSurfaceFpsManager::Dump(std::string& result, const std::string& name)
+{
+    const auto& surfaceFps = GetSurfaceFps(name);
+    if (surfaceFps == nullptr) {
+        return ;
+    }
+    result += " surface [" + name + "]:\n";
+    surfaceFps->Dump(result);
+}
+
+void RSSurfaceFpsManager::ClearDump(std::string& result, const std::string& name)
+{
+    const auto& surfaceFps = GetSurfaceFps(name);
+    if (surfaceFps == nullptr) {
+        return ;
+    }
+    result += " The fps info of surface [" + name + "] is cleared.\n";
+    surfaceFps->ClearDump();
 }
 
 void RSSurfaceFpsManager::Dump(std::string& result, NodeId id)
@@ -76,6 +119,26 @@ void RSSurfaceFpsManager::Dump(std::string& result, NodeId id)
 void RSSurfaceFpsManager::ClearDump(std::string& result, NodeId id)
 {
     const auto& surfaceFps = GetSurfaceFps(id);
+    if (surfaceFps == nullptr) {
+        return ;
+    }
+    result += " The fps info of surface [" + surfaceFps->GetName() + "] is cleared.\n";
+    surfaceFps->ClearDump();
+}
+
+void RSSurfaceFpsManager::DumpByPid(std::string& result, pid_t pid)
+{
+    const auto& surfaceFps = GetSurfaceFpsByPid(pid);
+    if (surfaceFps == nullptr) {
+        return ;
+    }
+    result += " surface [" + surfaceFps->GetName() + "]:\n";
+    surfaceFps->Dump(result);
+}
+
+void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
+{
+    const auto& surfaceFps = GetSurfaceFps(pid);
     if (surfaceFps == nullptr) {
         return ;
     }

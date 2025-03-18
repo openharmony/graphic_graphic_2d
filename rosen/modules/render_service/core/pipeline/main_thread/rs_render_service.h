@@ -65,10 +65,12 @@ private:
         const std::u16string& arg) const;
     void DumpFps(std::string& dumpString, std::string& fpsArg) const;
     void DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const;
+    void DumpSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const;
     void FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
         std::string& dumpString, const std::u16string& arg) const;
     void ClearFps(std::string& dumpString, std::string& fpsArg) const;
     void ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const;
+    void ClearSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const;
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     void RemoveConnection(sptr<IRemoteObject> token);
