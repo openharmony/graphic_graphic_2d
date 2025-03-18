@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <string>
 #include <thread>
+#include <vector>
 #include <unistd.h>
 #include <utility>
 #ifdef RES_SCHED_ENABLE
@@ -113,7 +114,7 @@ private:
     static TaskPoolExecutor& GetInstance();
 
     TaskPoolExecutor();
-    ~TaskPoolExecutor() {}
+    ~TaskPoolExecutor();
 
     void InitThreadPool();
 
@@ -136,6 +137,7 @@ private:
     uint32_t waitingThread_ = 0;
     bool running_ = true;
     TaskQueue<Task, QUEUE_SIZE> taskQueue_;
+    std::vector<std::thread> threads_;
 };
 } // namespace Rosen
 } // namespace OHOS
