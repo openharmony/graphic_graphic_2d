@@ -17,6 +17,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "pipeline/rs_context.h"
 #include "utils/perfmonitor_reporter.h"
 #include <chrono>
 #include <ctime>
@@ -77,12 +78,12 @@ public:
     static bool IsOpenPerf();
 
     RSB_EXPORT std::chrono::time_point<high_resolution_clock> StartRendergroupMonitor();
-    RSB_EXPORT void EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime, NodeId& nodeId,
-        std::string nodeName, int updateTimes);
+    RSB_EXPORT void EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime,
+        NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes);
     // clear rendergroup data map
     RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
     // process rendergroup subhealth
-    void ProcessRendergroupSubhealth(NodeId& nodeId, std::string nodeName, int updateTimes, int interval,
+    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes, int interval,
         std::chrono::time_point<high_resolution_clock>& startTime);
 
 protected:
@@ -92,6 +93,7 @@ protected:
     bool CheckAllDrawingCacheDurationTimeout(NodeId& nodeId);
     bool MeetReportFrequencyControl(NodeId& nodeId, std::chrono::time_point<high_resolution_clock>& startTime);
     std::string GetUpdateCacheTimeTaken(NodeId& nodeId);
+    std::string GetInstanceRootNodeName(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx);
 
 private:
     std::map<std::string, std::vector<uint16_t>> statsBlur_;
