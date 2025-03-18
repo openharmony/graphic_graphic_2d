@@ -332,44 +332,66 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
+    NodeId nodeId = 0;
+    std::string layerName("");
+    for (const std::u16string& arg : argSets) {
+        std::string argStr = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+            .to_bytes(arg);
+        if (!argStr.empty() && IsNumber(argStr) && argStr.length() < 21) {
+            nodeId = std::stoull(argStr);
+        } else {
+            layerName = argStr;
+        }
+    }
     std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
-    if (args.find(fpsArg) != args.end()) {
-        DumpFps(dumpString, fpsArg);
+    if (args.find(layerName) != args.end()) {
+        DumpFps(dumpString, layerName);
+        return ;
+    }
+    if (nodeId != 0) {
+        DumpSurfaceNodeFps(dumpString, nodeId);
     } else {
-        DumpSurfaceNodeFps(dumpString, fpsArg);
+        DumpSurfaceNodeFps(dumpString, layerName);
     }
 }
 
-void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
+            }).wait();
+    }
+}
+
+void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
@@ -398,48 +420,70 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
+    NodeId nodeId = 0;
+    std::string layerName("");
+    for (const std::u16string& arg : argSets) {
+        std::string argStr = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+            .to_bytes(arg);
+        if (!argStr.empty() && IsNumber(argStr)) {
+            nodeId = std::stoull(argStr);
+        } else {
+            layerName = argStr;
+        }
+    }
     std::unordered_set<std::string> args{"DisplayNode", "composer"};
-    if (args.find(fpsArg) != args.end()) {
-        ClearFps(dumpString, fpsArg);
+    if (args.find(layerName) != args.end()) {
+        ClearFps(dumpString, layerName);
+        return ;
+    }
+    if (nodeId != 0) {
+        ClearSurfaceNodeFps(dumpString, nodeId);
     } else {
-        ClearSurfaceNodeFps(dumpString, fpsArg);
+        ClearSurfaceNodeFps(dumpString, layerName);
     }
 }
 
-void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
     }
 }
 
-void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, layerName);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, layerName);
+            }).wait();
+    }
+}
+
+void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
@@ -611,7 +655,7 @@ void RSRenderService::DumpNode(std::unordered_set<std::u16string>& argSets, std:
         return;
     }
     uint64_t nodeId = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 20) {
+    if (!type.empty() && IsNumber(type) && type.length() < 21) {
         nodeId = std::stoull(type);
     }
     mainThread_->ScheduleTask(
