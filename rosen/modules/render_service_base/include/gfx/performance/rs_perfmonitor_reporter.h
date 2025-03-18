@@ -83,8 +83,8 @@ public:
     // clear rendergroup data map
     RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
     // process rendergroup subhealth
-    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes, int interval,
-        std::chrono::time_point<high_resolution_clock>& startTime);
+    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes,
+        int interval, std::chrono::time_point<high_resolution_clock>& startTime);
 
 protected:
     //for rendergroup subhealth
