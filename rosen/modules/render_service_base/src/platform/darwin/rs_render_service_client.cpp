@@ -554,8 +554,8 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return {};
 }
 
-int32_t RSRenderServiceClient::RegisterFirstFrameCallback(
-    const HWFirstFrameCallback& callback)
+int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
+    const FirstFrameCommitCallback& callback)
 {
     return {};
 }

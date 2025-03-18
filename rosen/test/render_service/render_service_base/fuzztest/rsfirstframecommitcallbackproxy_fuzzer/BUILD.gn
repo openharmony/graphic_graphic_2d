@@ -17,9 +17,9 @@ import("//build/test.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RsFirstFrameCallbackProxyFuzzTest") {
+ohos_fuzztest("RsFirstFrameCommitCallbackProxyFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsfirstframecallbackproxy_fuzzer"
+  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsfirstframecommitcallbackproxy_fuzzer"
   include_dirs = [
     "../../../../../modules/render_service_base/src",
     "../../../../../modules/2d_graphics/include",
@@ -46,7 +46,7 @@ ohos_fuzztest("RsFirstFrameCallbackProxyFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rsfirstframecallbackproxy_fuzzer.cpp" ]
+  sources = [ "rsfirstframecommitcallbackproxy_fuzzer.cpp" ]
 }
 
 ###############################################################################
@@ -55,7 +55,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RsFirstFrameCallbackProxyFuzzTest",
+    ":RsFirstFrameCommitCallbackProxyFuzzTest",
   ]
 }
 ###############################################################################

@@ -3639,7 +3639,7 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRegisterFirstFrameCallback(const uint8_t* data, size_t size)
+bool DoRegisterFirstFrameCommitCallback(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -3651,7 +3651,7 @@ bool DoRegisterFirstFrameCallback(const uint8_t* data, size_t size)
     g_pos = 0;
 
     FuzzedDataProvider fdp(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT);
     auto newPid = getpid();
 
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
@@ -3793,6 +3793,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoGetScreenCurrentRefreshRate(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
-    OHOS::Rosen::DoRegisterFirstFrameCallback(data, size);
+    OHOS::Rosen::DoRegisterFirstFrameCommitCallback(data, size);
     return 0;
 }

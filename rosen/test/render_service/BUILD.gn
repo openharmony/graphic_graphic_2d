@@ -57,7 +57,7 @@ group("test") {
     "render_service_base/fuzztest/rsdisplaynodecommand_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsdisplayrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rseventdetector_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rsfirstframecallbackproxy_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsfirstframecommitcallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsframereport_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsfunctionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",

@@ -162,8 +162,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
-    "src/ipc_callbacks/rs_first_frame_callback_proxy.cpp",
-    "src/ipc_callbacks/rs_first_frame_callback_stub.cpp",
+    "src/ipc_callbacks/rs_first_frame_commit_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
     "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
     "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
@@ -294,6 +294,7 @@ ohos_source_set("render_service_base_src") {
     "src/gfx/fps_info/rs_surface_fps.cpp",
     "src/gfx/fps_info/rs_surface_fps_manager.cpp",
     "src/gfx/performance/rs_perfmonitor_reporter.cpp",
+    "src/gfx/first_frame_notifier/rs_first_frame_notifier.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",

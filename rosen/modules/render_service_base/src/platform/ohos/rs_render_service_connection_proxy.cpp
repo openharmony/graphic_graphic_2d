@@ -3405,36 +3405,36 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::RegisterFirstFrameCallback(
-    sptr<RSIFirstFrameCallback> callback)
+int32_t RSRenderServiceConnectionProxy::RegisterFirstFrameCommitCallback(
+    sptr<RSIFirstFrameCommitCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RegisterFirstFrameCallback: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("RegisterFirstFrameCommitCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (callback) {
         if (!data.WriteBool(true)) {
-            ROSEN_LOGE("RegisterFirstFrameCallback: WriteBool [true] err.");
+            ROSEN_LOGE("RegisterFirstFrameCommitCallback: WriteBool [true] err.");
             return WRITE_PARCEL_ERR;
         }
         if (!data.WriteRemoteObject(callback->AsObject())) {
-            ROSEN_LOGE("RegisterFirstFrameCallback: WriteRemoteObject callback->AsObject() err.");
+            ROSEN_LOGE("RegisterFirstFrameCommitCallback: WriteRemoteObject callback->AsObject() err.");
             return WRITE_PARCEL_ERR;
         }
     } else {
         if (!data.WriteBool(false)) {
-            ROSEN_LOGE("RegisterFirstFrameCallback: WriteBool [false] err.");
+            ROSEN_LOGE("RegisterFirstFrameCommitCallback: WriteBool [false] err.");
             return WRITE_PARCEL_ERR;
         }
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_COMMIT_CALLBACK);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFirstFrameCallback: Send Request err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFirstFrameCommitCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
     int32_t result = reply.ReadInt32();

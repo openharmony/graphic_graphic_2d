@@ -13,36 +13,36 @@
  * limitations under the License.
  */
 
-#include "rs_first_frame_callback_stub.h"
+#include "rs_first_frame_commit_callback_stub.h"
 
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-int RSFirstFrameCallbackStub::OnRemoteRequest(
+int RSFirstFrameCommitCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     auto token = data.ReadInterfaceToken();
-    if (token != RSIFirstFrameCallback::GetDescriptor()) {
+    if (token != RSIFirstFrameCommitCallback::GetDescriptor()) {
         return ERR_INVALID_STATE;
     }
 
     int ret = ERR_NONE;
     switch (code) {
-        case static_cast<uint32_t>(RSIFirstFrameCallbackInterfaceCode::ON_POWER_ON): {
+        case static_cast<uint32_t>(RSIFirstFrameCommitCallbackInterfaceCode::ON_FIRST_FRAME_COMMIT): {
             uint32_t screenId{0};
             int64_t timestamp{0};
             if (!data.ReadUint32(screenId)) {
-                RS_LOGE("RSFirstFrameCallbackStub::OnRemoteRequest read screenId failed!");
+                RS_LOGE("RSFirstFrameCommitCallbackStub::OnRemoteRequest read screenId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             if (!data.ReadInt64(timestamp)) {
-                RS_LOGE("RSFirstFrameCallbackStub::OnRemoteRequest read timestamp failed!");
+                RS_LOGE("RSFirstFrameCommitCallbackStub::OnRemoteRequest read timestamp failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            OnPowerOnFirstFrame(screenId, timestamp);
+            OnFirstFrameCommit(screenId, timestamp);
             break;
         }
         default: {

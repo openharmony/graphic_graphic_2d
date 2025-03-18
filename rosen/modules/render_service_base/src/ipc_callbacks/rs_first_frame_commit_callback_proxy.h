@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_CALLBACK_PROXY_H
-#define ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_CALLBACK_PROXY_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_COMMIT_CALLBACK_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_COMMIT_CALLBACK_PROXY_H
 
 #include <iremote_proxy.h>
 
-#include "ipc_callbacks/rs_ifirst_frame_callback.h"
-#include "ipc_callbacks/rs_ifirst_frame_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
+#include "ipc_callbacks/rs_ifirst_frame_commit_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSFirstFrameCallbackProxy : public IRemoteProxy<RSIFirstFrameCallback> {
+class RSFirstFrameCommitCallbackProxy : public IRemoteProxy<RSIFirstFrameCommitCallback> {
 public:
-    explicit RSFirstFrameCallbackProxy(const sptr<IRemoteObject>& impl);
-    virtual ~RSFirstFrameCallbackProxy() noexcept = default;
+    explicit RSFirstFrameCommitCallbackProxy(const sptr<IRemoteObject>& impl);
+    virtual ~RSFirstFrameCommitCallbackProxy() noexcept = default;
 
-    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override;
+    void OnFirstFrameCommit(uint32_t screenId, int64_t timestamp) override;
 
 private:
-    static inline BrokerDelegator<RSFirstFrameCallbackProxy> delegator_;
+    static inline BrokerDelegator<RSFirstFrameCommitCallbackProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_CALLBACK_PROXY_H
+#endif

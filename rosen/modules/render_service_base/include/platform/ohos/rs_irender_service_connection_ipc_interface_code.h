@@ -184,7 +184,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_OVERLAY_DISPLAY_MODE = 0x010001,
 #endif
 
-    FIRST_FRAME_CALLBACK = 0x011000,
+    ON_FIRST_FRAME_COMMIT = 0x011000,
     
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,

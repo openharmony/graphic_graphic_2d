@@ -34,7 +34,7 @@
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -1502,40 +1502,40 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return renderService->RegisterHgmRefreshRateUpdateCallback(cb);
 }
 
-class CustomFirstFrameCallback : public RSFirstFrameCallbackStub
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub
 {
 public:
-    explicit CustomFirstFrameCallback(const HWFirstFrameCallback& callback) : cb_(callback) {}
-    ~CustomFirstFrameCallback() override {};
+    explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCommitCallback() override {};
 
-    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override
+    void OnFirstFrameCommit(uint32_t screenId, int64_t timestamp) override
     {
-        ROSEN_LOGD("CustomFirstFrameCallback::OnPowerOnFirstFrame called");
+        ROSEN_LOGD("CustomFirstFrameCommitCallback::OnFirstFrameCommit called");
         if (cb_ != nullptr) {
             cb_(screenId, timestamp);
         }
     }
 
 private:
-    HWFirstFrameCallback cb_;
+    FirstFrameCommitCallback cb_;
 };
 
-int32_t RSRenderServiceClient::RegisterFirstFrameCallback(
-    const HWFirstFrameCallback& callback)
+int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
+    const FirstFrameCommitCallback& callback)
 {
-    sptr<CustomFirstFrameCallback> cb = nullptr;
+    sptr<CustomFirstFrameCommitCallback> cb = nullptr;
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::RegisterFirstFrameCallback renderService == nullptr!");
+        ROSEN_LOGE("RSRenderServiceClient::RegisterFirstFrameCommitCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
 
     if (callback) {
-        cb = new CustomFirstFrameCallback(callback);
+        cb = new CustomFirstFrameCommitCallback(callback);
     }
 
-    ROSEN_LOGD("RSRenderServiceClient::RegisterFirstFrameCallback called");
-    return renderService->RegisterFirstFrameCallback(cb);
+    ROSEN_LOGD("RSRenderServiceClient::RegisterFirstFrameCommitCallback called");
+    return renderService->RegisterFirstFrameCommitCallback(cb);
 }
 
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub

@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_CALLBACK_STUB_H
-#define ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_CALLBACK_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_COMMIT_CALLBACK_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_FIRST_FRAME_COMMIT_CALLBACK_STUB_H
 
 #include <iremote_stub.h>
 
 #include "common/rs_macros.h"
-#include "ipc_callbacks/rs_ifirst_frame_callback.h"
-#include "ipc_callbacks/rs_ifirst_frame_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
+#include "ipc_callbacks/rs_ifirst_frame_commit_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSFirstFrameCallbackStub : public IRemoteStub<RSIFirstFrameCallback> {
+class RSB_EXPORT RSFirstFrameCommitCallbackStub : public IRemoteStub<RSIFirstFrameCommitCallback> {
 public:
-    RSFirstFrameCallbackStub() = default;
-    ~RSFirstFrameCallbackStub() = default;
+    RSFirstFrameCommitCallbackStub() = default;
+    ~RSFirstFrameCommitCallbackStub() = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 };

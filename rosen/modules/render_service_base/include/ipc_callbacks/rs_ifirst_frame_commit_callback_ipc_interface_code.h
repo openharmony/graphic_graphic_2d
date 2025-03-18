@@ -13,21 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_CALLBACK_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_CALLBACK_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_COMMIT_CALLBACK_INTERFACE_CODE_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_COMMIT_CALLBACK_INTERFACE_CODE_H
 
-#include <iremote_broker.h>
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSIFirstFrameCallback : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.FirstFrameCallback");
-    RSIFirstFrameCallback() = default;
-    virtual ~RSIFirstFrameCallback() noexcept = default;
-    virtual void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) = 0;
+enum class RSIFirstFrameCommitCallbackInterfaceCode : CodeUnderlyingType {
+    ON_FIRST_FRAME_COMMIT,
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 
-#endif
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_CALLBACK_INTERFACE_CODE_H

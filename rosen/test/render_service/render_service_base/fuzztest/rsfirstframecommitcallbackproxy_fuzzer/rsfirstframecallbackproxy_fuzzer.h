@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RSFIRSTFRAMECALLBACKPROXY_FUZZER_H
-#define RSFIRSTFRAMECALLBACKPROXY_FUZZER_H
+#ifndef RSFIRSTFRAMECOMMITCALLBACKPROXY_FUZZER_H
+#define RSFIRSTFRAMECOMMITCALLBACKPROXY_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "rsfirstframecallbackproxy_fuzzer"
+#define FUZZ_PROJECT_NAME "rsfirstframecommitcallbackproxy_fuzzer"
 
-#endif // RSFIRSTFRAMECALLBACKPROXY_FUZZER_H
+#endif

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_first_frame_callback_proxy.h"
+#include "rs_first_frame_commit_callback_proxy.h"
 
 #include <message_option.h>
 #include <message_parcel.h>
@@ -22,42 +22,42 @@
 
 namespace OHOS {
 namespace Rosen {
-RSFirstFrameCallbackProxy::RSFirstFrameCallbackProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSIFirstFrameCallback>(impl)
+RSFirstFrameCommitCallbackProxy::RSFirstFrameCommitCallbackProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<RSIFirstFrameCommitCallback>(impl)
 {
 }
 
-void RSFirstFrameCallbackProxy::OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp)
+void RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit(uint32_t screenId, int64_t timestamp)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if (!data.WriteInterfaceToken(RSIFirstFrameCallback::GetDescriptor())) {
-        ROSEN_LOGE("RSFirstFrameCallbackProxy::OnPowerOnFirstFrame WriteInterfaceToken failed");
+    if (!data.WriteInterfaceToken(RSIFirstFrameCommitCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit WriteInterfaceToken failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint32(screenId)) {
-        ROSEN_LOGE("RSFirstFrameCallbackProxy::OnPowerOnFirstFrame WriteUint32 failed");
+        ROSEN_LOGE("RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit WriteUint32 failed");
         return;
     }
     if (!data.WriteInt64(timestamp)) {
-        ROSEN_LOGE("RSFirstFrameCallbackProxy::OnPowerOnFirstFrame WriteInt64 failed");
+        ROSEN_LOGE("RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit WriteInt64 failed");
         return;
     }
     uint32_t code =
-        static_cast<uint32_t>(RSIFirstFrameCallbackInterfaceCode::ON_POWER_ON);
+        static_cast<uint32_t>(RSIFirstFrameCommitCallbackInterfaceCode::ON_POWER_ON);
     auto remote = Remote();
     if (remote == nullptr) {
-        ROSEN_LOGE("RSFirstFrameCallbackProxy::OnPowerOnFirstFrame remote is null!");
+        ROSEN_LOGE("RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit remote is null!");
         return;
     }
 
     int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSFirstFrameCallbackProxy::OnPowerOnFirstFrame error = %{public}d", err);
+        ROSEN_LOGE("RSFirstFrameCommitCallbackProxy::OnFirstFrameCommit error = %{public}d", err);
     }
 }
 } // namespace Rosen

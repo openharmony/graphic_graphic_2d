@@ -27,6 +27,7 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "common/rs_optional_trace.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "rs_trace.h"
 
 #undef LOG_TAG
@@ -1574,9 +1575,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     isScreenPoweringOn_ =
         (status == ScreenPowerStatus::POWER_STATUS_ON || status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
     auto ret = screen->SetPowerStatus(static_cast<uint32_t>(status));
-    if (isScreenPoweringOn_) {
-        RSHardwareThread::Instance().AddFirstFrameScreen(id);
-    }
+    RSFirstFrameNotifier::AddScreenIfPowerOn(id, isScreenPoweringOn_);
     isScreenPoweringOn_ = false;
     if (ret != static_cast<int32_t>(StatusCode::SUCCESS)) {
         RS_LOGE("[UL_POWER] %{public}s: Failed to set power status of id %{public}" PRIu64, __func__, id);

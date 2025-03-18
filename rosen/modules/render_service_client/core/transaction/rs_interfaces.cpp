@@ -715,14 +715,14 @@ int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
-int32_t RSInterfaces::RegisterFirstFrameCallback(const HWFirstFrameCallback& callback)
+int32_t RSInterfaces::RegisterFirstFrameCommitCallback(const FirstFrameCommitCallback& callback)
 {
-    return renderServiceClient_->RegisterFirstFrameCallback(callback);
+    return renderServiceClient_->RegisterFirstFrameCommitCallback(callback);
 }
 
-int32_t RSInterfaces::UnRegisterFirstFrameCallback()
+int32_t RSInterfaces::UnRegisterFirstFrameCommitCallback()
 {
-    return renderServiceClient_->RegisterFirstFrameCallback(nullptr);
+    return renderServiceClient_->RegisterFirstFrameCommitCallback(nullptr);
 }
 
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,

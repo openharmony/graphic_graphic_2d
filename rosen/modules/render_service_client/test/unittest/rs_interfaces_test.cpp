@@ -1272,29 +1272,29 @@ HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function
 }
 
 /*
- * @tc.name: RegisterFirstFrameCallback Test
- * @tc.desc: RegisterFirstFrameCallback Test
+ * @tc.name: RegisterFirstFrameCommitCallback Test
+ * @tc.desc: RegisterFirstFrameCommitCallback Test
  * @tc.type: FUNC
  * @tc.require: issueIBTF2E
  */
-HWTEST_F(RSInterfacesTest, RegisterFirstFrameCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, RegisterFirstFrameCommitCallback_Test, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    HWFirstFrameCallback cb = [](uint32_t screenId, int64_t timestamp){};
-    int32_t ret = rsInterfaces->RegisterFirstFrameCallback(cb);
+    FirstFrameCommitCallback cb = [](uint32_t screenId, int64_t timestamp){};
+    int32_t ret = rsInterfaces->RegisterFirstFrameCommitCallback(cb);
     ASSERT_EQ(ret, 0);
 }
 
 /*
- * @tc.name: UnRegisterFirstFrameCallback Test
- * @tc.desc: UnRegisterFirstFrameCallback Test
+ * @tc.name: UnRegisterFirstFrameCommitCallback Test
+ * @tc.desc: UnRegisterFirstFrameCommitCallback Test
  * @tc.type: FUNC
  * @tc.require: issueIBTF2E
  */
-HWTEST_F(RSInterfacesTest, UnRegisterFirstFrameCallback_Test, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, UnRegisterFirstFrameCommitCallback_Test, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    int32_t ret = rsInterfaces->UnRegisterFirstFrameCallback();
+    int32_t ret = rsInterfaces->UnRegisterFirstFrameCommitCallback();
     ASSERT_EQ(ret, 0);
 }
 

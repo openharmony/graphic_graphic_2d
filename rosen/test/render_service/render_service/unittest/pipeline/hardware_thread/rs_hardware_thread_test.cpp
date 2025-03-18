@@ -20,7 +20,7 @@
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "ipc_callbacks/rs_first_frame_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -197,7 +197,6 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     layers.emplace_back(layer3);
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
-    hardwareThread.SetIsFirstFrame(true);
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
     auto &hgmCore = HgmCore::Instance();
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
@@ -640,35 +639,5 @@ HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Lev
     std::vector<LayerInfoPtr> layers;
     hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
     EXPECT_EQ(layers.size(), 0);
-}
-
-class CustomFirstFrameCallback : public RSFirstFrameCallbackStub {
-public:
-    explicit CustomFirstFrameCallback() {}
-    ~CustomFirstFrameCallback() override {};
-
-    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override {}
-};
-
-/*
- * @tc.name: RegisterAndSyncFirstFrameCallback
- * @tc.desc: Test RSHardwareThreadTest.RegisterAndSyncFirstFrameCallback
- * @tc.type: FUNC
- * @tc.require: issuesIBTF2E
- */
-HWTEST_F(RSHardwareThreadTest, RegisterAndSyncFirstFrameCallback, TestSize.Level1)
-{
-    auto &hardwareThread = RSHardwareThread::Instance();
-    pid_t pid0 = 1000;
-    pid_t pid1 = 1001;
-    sptr<CustomFirstFrameCallback> cb = new CustomFirstFrameCallback();
-    hardwareThread.RegisterFirstFrameCallback(pid0, cb);
-    EXPECT_NE(hardwareThread.firstFrameCallbacks_[pid0], nullptr);
-    hardwareThread.RegisterFirstFrameCallback(pid0, nullptr);
-    EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid0], nullptr);
-    hardwareThread.RegisterFirstFrameCallback(pid1, nullptr);
-    EXPECT_EQ(hardwareThread.firstFrameCallbacks_[pid1], nullptr);
-    ScreenId screenId = 0;
-    hardwareThread.SyncFirstFrameCallback(screenId);
 }
 } // namespace OHOS::Rosen

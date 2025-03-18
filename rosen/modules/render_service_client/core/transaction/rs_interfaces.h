@@ -269,9 +269,9 @@ public:
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
-    int32_t RegisterFirstFrameCallback(const HWFirstFrameCallback& callback);
+    int32_t RegisterFirstFrameCommitCallback(const FirstFrameCommitCallback& callback);
 
-    int32_t UnRegisterFirstFrameCallback();
+    int32_t UnRegisterFirstFrameCommitCallback();
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);

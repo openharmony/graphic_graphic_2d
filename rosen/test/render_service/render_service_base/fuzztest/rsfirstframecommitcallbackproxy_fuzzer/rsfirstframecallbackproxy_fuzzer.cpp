@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rsfirstframecallbackproxy_fuzzer.h"
+#include "rsfirstframecommitcallbackproxy_fuzzer.h"
 
 #include <climits>
 #include <cstddef>
@@ -28,7 +28,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "ipc_callbacks/rs_first_frame_callback_proxy.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_proxy.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -68,9 +68,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    RSFirstFrameCallbackProxy rsFirstFrameCallbackProxy(remoteObject);
+    RSFirstFrameCommitCallbackProxy rsFirstFrameCommitCallbackProxy(remoteObject);
 
-    rsFirstFrameCallbackProxy.OnPowerOnFirstFrame(screenId, timestamp);
+    rsFirstFrameCommitCallbackProxy.OnFirstFrameCommit(screenId, timestamp);
     return true;
 }
 } // namespace Rosen

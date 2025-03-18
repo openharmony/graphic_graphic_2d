@@ -74,7 +74,7 @@ using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
 using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
-using HWFirstFrameCallback = std::function<void(uint32_t, int64_t)>;
+using FirstFrameCommitCallback = std::function<void(uint32_t, int64_t)>;
 struct DataBaseRs {
     int32_t appPid = -1;
     int32_t eventType = -1;
@@ -348,7 +348,7 @@ public:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
-    int32_t RegisterFirstFrameCallback(const HWFirstFrameCallback& callback);
+    int32_t RegisterFirstFrameCommitCallback(const FirstFrameCommitCallback& callback);
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);

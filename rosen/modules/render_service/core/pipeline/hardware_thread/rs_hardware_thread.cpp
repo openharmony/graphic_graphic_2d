@@ -29,7 +29,6 @@
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
-#include "common/rs_background_thread.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -42,6 +41,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "platform/common/rs_hisysevent.h"
 #include "graphic_feature_param_manager.h"
 
@@ -254,14 +254,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
-        ScreenId screenId = output->GetScreenId();
 
-        if (firstFrameScreens_.find(screenId) != firstFrameScreens_.end()) {
-            RSBackgroundThread::Instance().PostTask([this, screenId]() {
-                SyncFirstFrameCallback(screenId);
-            });
-            firstFrameScreens_.erase(screenId);
-        }
+        RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(output->GetScreenId());
 
         RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData hasGameScene is %{public}d %{public}s",
             hasGameScene, surfaceName.c_str());
@@ -348,32 +342,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     PostDelayTask(task, delayTime_);
-}
-
-void RSHardwareThread::RegisterFirstFrameCallback(pid_t pid, const sptr<RSIFirstFrameCallback>& callback)
-{
-    if (callback == nullptr) {
-        if (firstFrameCallbacks_.find(pid) != firstFrameCallbacks_.end()) {
-            firstFrameCallbacks_.erase(pid);
-            RS_LOGD("RSHardwareThread firstFrameCallback unregister succ, remove pid %{public}u.", pid);
-        }
-        return ;
-    }
-    firstFrameCallbacks_[pid] = callback;
-    RS_LOGD("RSHardwareThread firstFrameCallback: add a remote callback succeed.");
-}
-
-void RSHardwareThread::SyncFirstFrameCallback(uint32_t screenId)
-{
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    RS_TRACE_NAME_FMT("SyncFirstFrameCallback screenId:%" PRIu32 ", timestamp:%" PRId64 ".",
-        screenId, timestamp);
-    for (const auto& callback : firstFrameCallbacks_) {
-        if (callback.second != nullptr) {
-            callback.second->OnPowerOnFirstFrame(screenId, timestamp);
-        }
-    }
 }
 
 void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId)

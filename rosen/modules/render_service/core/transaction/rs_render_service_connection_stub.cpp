@@ -167,7 +167,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
@@ -2820,8 +2820,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FIRST_FRAME_CALLBACK) : {
-            sptr<RSIFirstFrameCallback> callback = nullptr;
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT) : {
+            sptr<RSIFirstFrameCommitCallback> callback = nullptr;
             sptr<IRemoteObject> remoteObject = nullptr;
             bool readRemoteObject{false};
             if (!data.ReadBool(readRemoteObject)) {
@@ -2832,9 +2832,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 remoteObject = data.ReadRemoteObject();
             }
             if (remoteObject != nullptr) {
-                callback = iface_cast<RSIFirstFrameCallback>(remoteObject);
+                callback = iface_cast<RSIFirstFrameCommitCallback>(remoteObject);
             }
-            int32_t status = RegisterFirstFrameCallback(callback);
+            int32_t status = RegisterFirstFrameCommitCallback(callback);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }

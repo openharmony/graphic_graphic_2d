@@ -39,7 +39,7 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "pipeline/main_thread/rs_render_service.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
@@ -1318,12 +1318,12 @@ bool DoSetOverlayDisplayMode()
 }
 #endif
 
-class CustomFirstFrameCallback : public RSFirstFrameCallbackStub {
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
 public:
-    explicit CustomFirstFrameCallback(const HWFirstFrameCallback& callback) : cb_(callback) {}
-    ~CustomFirstFrameCallback() override {};
+    explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCommitCallback() override {};
 
-    void OnPowerOnFirstFrame(uint32_t screenId, int64_t timestamp) override
+    void OnFirstFrameCommit(uint32_t screenId, int64_t timestamp) override
     {
         if (cb_ != nullptr) {
             cb_(screenId, timestamp);
@@ -1331,17 +1331,17 @@ public:
     }
 
 private:
-    HWFirstFrameCallback cb_;
+    FirstFrameCommitCallback cb_;
 };
 
-bool DoRegisterFirstFrameCallback()
+bool DoRegisterFirstFrameCommitCallback()
 {
     if (rsConn_ == nullptr) {
         return false;
     }
-    HWFirstFrameCallback callback = [](uint32_t screenId, int64_t timestamp) {};
-    sptr<CustomFirstFrameCallback> cb = new CustomFirstFrameCallback(callback);
-    rsConn_->RegisterFirstFrameCallback(cb);
+    FirstFrameCommitCallback callback = [](uint32_t screenId, int64_t timestamp) {};
+    sptr<CustomFirstFrameCommitCallback> cb = new CustomFirstFrameCommitCallback(callback);
+    rsConn_->RegisterFirstFrameCommitCallback(cb);
     return true;
 }
 
@@ -1455,7 +1455,7 @@ void DoFuzzerTest3()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();
 #endif
-    DoRegisterFirstFrameCallback();
+    DoRegisterFirstFrameCommitCallback();
 }
 } // namespace Rosen
 } // namespace OHOS

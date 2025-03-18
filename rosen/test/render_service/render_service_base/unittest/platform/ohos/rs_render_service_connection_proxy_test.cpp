@@ -905,18 +905,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallbac
 }
 
 /**
- * @tc.name: RegisterFirstFrameCallback Test
- * @tc.desc: RegisterFirstFrameCallback Test
+ * @tc.name: RegisterFirstFrameCommitCallback Test
+ * @tc.desc: RegisterFirstFrameCommitCallback Test
  * @tc.type:FUNC
- * @tc.require: issueI9KXXE
+ * @tc.require: issuesIBTF2E
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterFirstFrameCallback, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterFirstFrameCommitCallback, TestSize.Level1)
 {
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<RSIFirstFrameCallback> callback = iface_cast<RSIFirstFrameCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterFirstFrameCallback(callback), 2);
+    sptr<RSIFirstFrameCommitCallback> callback = iface_cast<RSIFirstFrameCommitCallback>(remoteObject);
+    EXPECT_EQ(proxy->RegisterFirstFrameCommitCallback(callback), 2);
 }
 
 /**
