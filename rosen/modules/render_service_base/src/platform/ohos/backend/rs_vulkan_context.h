@@ -263,8 +263,7 @@ private:
 
 class RsVulkanContext {
 public:
-    static RsVulkanContext& GetSingleton();
-    static RsVulkanContext& GetSingletonWithCacheDir(std::string& cacheDir);
+    static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
     explicit RsVulkanContext(std::string cacheDir = "");
     ~RsVulkanContext() {};
 

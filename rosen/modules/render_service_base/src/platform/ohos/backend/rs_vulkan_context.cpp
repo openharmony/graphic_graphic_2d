@@ -524,13 +524,7 @@ RsVulkanContext::RsVulkanContext(std::string cacheDir)
 #endif
 }
 
-RsVulkanContext& RsVulkanContext::GetSingleton()
-{
-    static RsVulkanContext singleton {};
-    return singleton;
-}
-
-RsVulkanContext& RsVulkanContext::GetSingletonWithCacheDir(std::string& cacheDir)
+RsVulkanContext& RsVulkanContext::GetSingleton(const std::string& cacheDir)
 {
     static RsVulkanContext singleton = RsVulkanContext(cacheDir);
     return singleton;
