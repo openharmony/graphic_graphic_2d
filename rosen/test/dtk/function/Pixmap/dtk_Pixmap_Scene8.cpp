@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "../../dtk_constants.h"
-#include "../../dtk_test_ext.h"
-#include "../../utils.h"
+#include "dtk_constants.h"
+#include "dtk_test_ext.h"
+#include "utils.h"
 
 #include "draw/brush.h"
 #include "draw/clip.h"

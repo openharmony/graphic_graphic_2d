@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../../dtk_test_ext.h"
+#include "dtk_test_ext.h"
 #include "text/font_types.h"
 #include "text/text_blob_builder.h"
 #include "text/font_mgr.h"
