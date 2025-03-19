@@ -838,7 +838,6 @@ private:
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
-    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
 #endif

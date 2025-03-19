@@ -58,6 +58,12 @@ public:
     {
         cacheImgForCapture_ = cacheImgForCapture;
     }
+
+    std::shared_ptr<Drawing::Image> GetCacheImgForMultiScreenView() const
+    {
+        return cacheImgForMultiScreenView_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
     {
         return surfaceHandler_;
@@ -152,7 +158,7 @@ private:
         DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
     void DrawMirrorCopy(RSDisplayRenderNodeDrawable& mirrorDrawable, RSDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
+    void DrawExpandScreen(RSDisplayRenderParams& params, RSUniRenderVirtualProcessor& processor);
     void DrawCurtainScreen() const;
     void InitTranslateForWallpaper();
     void CalculateTranslationForWallpaper();
@@ -198,6 +204,7 @@ private:
     bool curSecExemption_ = false;
     bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+    std::shared_ptr<Drawing::Image> cacheImgForMultiScreenView_ = nullptr;
     int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;
     bool isDisplayNodeSkip_ = false;

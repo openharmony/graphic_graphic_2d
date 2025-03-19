@@ -322,6 +322,7 @@ bool RSScreen::IsEnable() const
         return false;
     }
 
+    std::lock_guard<std::mutex> lock(producerSurfaceMutex_);
     if (!hdiOutput_ && !producerSurface_) {
         return false;
     }
@@ -605,22 +606,20 @@ std::shared_ptr<HdiOutput> RSScreen::GetOutput() const
 
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
+    std::lock_guard<std::mutex> lock(producerSurfaceMutex_);
     return producerSurface_;
 }
 
 void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 {
+    std::lock_guard<std::mutex> lock(producerSurfaceMutex_);
     producerSurface_ = producerSurface;
     isVirtualSurfaceUpdateFlag_ = true;
 }
 
 bool RSScreen::GetAndResetVirtualSurfaceUpdateFlag()
 {
-    if (isVirtualSurfaceUpdateFlag_) {
-        isVirtualSurfaceUpdateFlag_ = false;
-        return true;
-    }
-    return false;
+    return isVirtualSurfaceUpdateFlag_.exchange(false);
 }
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
@@ -1245,19 +1244,20 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
 
 void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
+    std::lock_guard<std::mutex> lock(blackListMutex_);
     blackList_ = blackList;
 }
 
 void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
 {
-    for (auto& list : blackList) {
-        blackList_.emplace(list);
-    }
+    std::lock_guard<std::mutex> lock(blackListMutex_);
+    blackList_.insert(blackList.cbegin(), blackList.cend());
 }
 
 void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
 {
-    for (auto& list : blackList) {
+    std::lock_guard<std::mutex> lock(blackListMutex_);
+    for (const auto& list : blackList) {
         blackList_.erase(list);
     }
 }
@@ -1272,8 +1272,9 @@ bool RSScreen::GetCastScreenEnableSkipWindow()
     return skipWindow_;
 }
 
-const std::unordered_set<uint64_t>& RSScreen::GetBlackList() const
+const std::unordered_set<uint64_t> RSScreen::GetBlackList() const
 {
+    std::lock_guard<std::mutex> lock(blackListMutex_);
     return blackList_;
 }
 
@@ -1307,11 +1308,13 @@ VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
 
 void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
 {
+    std::lock_guard<std::mutex> lock(securityExemptionMutex_);
     securityExemptionList_ = securityExemptionList;
 }
 
-const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
+const std::vector<uint64_t> RSScreen::GetSecurityExemptionList() const
 {
+    std::lock_guard<std::mutex> lock(securityExemptionMutex_);
     return securityExemptionList_;
 }
 
@@ -1321,12 +1324,14 @@ int32_t RSScreen::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
         RS_LOGW("%{public}s not virtual screen", __func__);
         return SCREEN_NOT_FOUND;
     }
-    securityMask_ = std::move(securityMask);
+    std::lock_guard<std::mutex> lock(securityMaskMutex_);
+    securityMask_ = securityMask;
     return SUCCESS;
 }
 
 std::shared_ptr<Media::PixelMap> RSScreen::GetSecurityMask() const
 {
+    std::lock_guard<std::mutex> lock(securityMaskMutex_);
     return securityMask_;
 }
 
@@ -1342,11 +1347,13 @@ bool RSScreen::GetEnableVisibleRect() const
 
 void RSScreen::SetMainScreenVisibleRect(const Rect& mainScreenRect)
 {
+    std::lock_guard<std::mutex> lock(visibleRectMutex_);
     mainScreenVisibleRect_ = mainScreenRect;
 }
 
 Rect RSScreen::GetMainScreenVisibleRect() const
 {
+    std::lock_guard<std::mutex> lock(visibleRectMutex_);
     return mainScreenVisibleRect_;
 }
 
@@ -1409,8 +1416,7 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
-    if (std::shared_lock<std::shared_mutex> lock(linearMatrixMutex_);
-        linearMatrix_ == matrix) {
+    if (linearMatrix_ == matrix) {
         return StatusCode::SUCCESS;
     }
     if (hdiScreen_->SetScreenLinearMatrix(matrix) < 0) {
@@ -1418,7 +1424,6 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    std::lock_guard<std::shared_mutex> lock(linearMatrixMutex_);
     linearMatrix_ = matrix;
     return StatusCode::SUCCESS;
 }

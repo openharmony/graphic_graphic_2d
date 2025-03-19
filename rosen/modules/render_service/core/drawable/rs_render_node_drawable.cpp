@@ -905,8 +905,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
-
-    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_,
+    auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
+    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx,
         drawingCacheUpdateTimeMap_[nodeId_]);
 }
 

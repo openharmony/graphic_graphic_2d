@@ -37,123 +37,59 @@ void AccessibilityParamTest::SetUp() {}
 void AccessibilityParamTest::TearDown() {}
 
 /**
- * @tc.name: SetHighContrastEnabled
- * @tc.desc: Verify the SetHighContrastEnabled function
+ * @tc.name: HighContrastEnabledTest
+ * @tc.desc: Verify the SetHighContrastEnabled IsHighContrastEnabled function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(AccessibilityParamTest, SetHighContrastEnabled, Function | SmallTest | Level1)
+HWTEST_F(AccessibilityParamTest, HighContrastEnabledTest, Function | SmallTest | Level1)
 {
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.SetHighContrastEnabled(true);
-    ASSERT_EQ(accessibilityParam_.isHighContrastEnabled_, true);
-    accessibilityParam_.SetHighContrastEnabled(false);
-    ASSERT_EQ(accessibilityParam_.isHighContrastEnabled_, false);
+    AccessibilityParam::SetHighContrastEnabled(true);
+    ASSERT_EQ(AccessibilityParam::IsHighContrastEnabled(), true);
+    AccessibilityParam::SetHighContrastEnabled(false);
+    ASSERT_EQ(AccessibilityParam::IsHighContrastEnabled(), false);
 }
 
 /**
- * @tc.name: SetCurtainScreenEnabled
- * @tc.desc: Verify the SetCurtainScreenEnabled function
+ * @tc.name: CurtainScreenEnabledTest
+ * @tc.desc: Verify the SetCurtainScreenEnabled IsCurtainScreenEnabled function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(AccessibilityParamTest, SetCurtainScreenEnabled, Function | SmallTest | Level1)
+HWTEST_F(AccessibilityParamTest, CurtainScreenEnabledTest, Function | SmallTest | Level1)
 {
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.SetCurtainScreenEnabled(true);
-    ASSERT_EQ(accessibilityParam_.isCurtainScreenEnabled_, true);
-    accessibilityParam_.SetCurtainScreenEnabled(false);
-    ASSERT_EQ(accessibilityParam_.isCurtainScreenEnabled_, false);
+    AccessibilityParam::SetCurtainScreenEnabled(true);
+    ASSERT_EQ(AccessibilityParam::IsCurtainScreenEnabled(), true);
+    AccessibilityParam::SetCurtainScreenEnabled(false);
+    ASSERT_EQ(AccessibilityParam::IsCurtainScreenEnabled(), false);
 }
 
 /**
- * @tc.name: SetColorReverseEnabled
- * @tc.desc: Verify the SetColorReverseEnabled function
+ * @tc.name: ColorReverseEnabledTest
+ * @tc.desc: Verify the SetColorReverseEnabled IsColorReverseEnabled function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(AccessibilityParamTest, SetColorReverseEnabled, Function | SmallTest | Level1)
+HWTEST_F(AccessibilityParamTest, ColorReverseEnabledTest, Function | SmallTest | Level1)
 {
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.SetColorReverseEnabled(true);
-    ASSERT_EQ(accessibilityParam_.isColorReverseEnabled_, true);
-    accessibilityParam_.SetColorReverseEnabled(false);
-    ASSERT_EQ(accessibilityParam_.isColorReverseEnabled_, false);
+    AccessibilityParam::SetColorReverseEnabled(true);
+    ASSERT_EQ(AccessibilityParam::IsColorReverseEnabled(), true);
+    AccessibilityParam::SetColorReverseEnabled(false);
+    ASSERT_EQ(AccessibilityParam::IsColorReverseEnabled(), false);
 }
 
 /**
- * @tc.name: SetColorCorrectionEnabled
- * @tc.desc: Verify the SetColorCorrectionEnabled function
+ * @tc.name: ColorCorrectionEnabledTest
+ * @tc.desc: Verify the SetColorCorrectionEnabled IsColorCorrectionEnabled function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(AccessibilityParamTest, SetColorCorrectionEnabled, Function | SmallTest | Level1)
+HWTEST_F(AccessibilityParamTest, ColorCorrectionEnabledTest, Function | SmallTest | Level1)
 {
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.SetColorCorrectionEnabled(true);
-    ASSERT_EQ(accessibilityParam_.isColorCorrectionEnabled_, true);
-    accessibilityParam_.SetColorCorrectionEnabled(false);
-    ASSERT_EQ(accessibilityParam_.isColorCorrectionEnabled_, false);
-}
-
-/**
- * @tc.name: IsHighContrastEnabled
- * @tc.desc: Verify the IsHighContrastEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(AccessibilityParamTest, IsHighContrastEnabled, Function | SmallTest | Level1)
-{
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.isColorCorrectionEnabled_ = true;
-    ASSERT_EQ(accessibilityParam_.IsHighContrastEnabled(), true);
-    accessibilityParam_.isColorCorrectionEnabled_ = false;
-    ASSERT_EQ(accessibilityParam_.IsHighContrastEnabled(), false);
-}
-
-/**
- * @tc.name: IsCurtainScreenEnabled
- * @tc.desc: Verify the IsCurtainScreenEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(AccessibilityParamTest, IsCurtainScreenEnabled, Function | SmallTest | Level1)
-{
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.isCurtainScreenEnabled_ = true;
-    ASSERT_EQ(accessibilityParam_.IsCurtainScreenEnabled(), true);
-    accessibilityParam_.isCurtainScreenEnabled_ = false;
-    ASSERT_EQ(accessibilityParam_.IsCurtainScreenEnabled(), false);
-}
-
-/**
- * @tc.name: IsColorReverseEnabled
- * @tc.desc: Verify the IsColorReverseEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(AccessibilityParamTest, IsColorReverseEnabled, Function | SmallTest | Level1)
-{
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.isColorReverseEnabled_ = true;
-    ASSERT_EQ(accessibilityParam_.IsColorReverseEnabled(), true);
-    accessibilityParam_.isColorReverseEnabled_ = false;
-    ASSERT_EQ(accessibilityParam_.IsColorReverseEnabled(), false);
-}
-
-/**
- * @tc.name: IsColorCorrectionEnabled
- * @tc.desc: Verify the IsColorCorrectionEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(AccessibilityParamTest, IsColorCorrectionEnabled, Function | SmallTest | Level1)
-{
-    AccessibilityParam accessibilityParam_;
-    accessibilityParam_.isColorCorrectionEnabled_ = true;
-    ASSERT_EQ(accessibilityParam_.IsColorCorrectionEnabled(), true);
-    accessibilityParam_.isColorCorrectionEnabled_ = false;
-    ASSERT_EQ(accessibilityParam_.IsColorCorrectionEnabled(), false);
+    AccessibilityParam::SetColorCorrectionEnabled(true);
+    ASSERT_EQ(AccessibilityParam::IsColorCorrectionEnabled(), true);
+    AccessibilityParam::SetColorCorrectionEnabled(false);
+    ASSERT_EQ(AccessibilityParam::IsColorCorrectionEnabled(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

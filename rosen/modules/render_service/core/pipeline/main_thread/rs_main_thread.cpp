@@ -321,8 +321,7 @@ public:
     {
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
-            if (accessibilityParamConfig_ != nullptr
-                && !accessibilityParamConfig_->IsColorCorrectionEnabled()) {
+            if (!AccessibilityParam::IsColorCorrectionEnabled()) {
                 RS_LOGE("RSAccessibility ColorCorrectionEnabled is not supported");
                 return;
             }
@@ -347,8 +346,7 @@ public:
             }
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
-            if (accessibilityParamConfig_ != nullptr
-                && !accessibilityParamConfig_->IsColorReverseEnabled()) {
+            if (!AccessibilityParam::IsColorReverseEnabled()) {
                 RS_LOGE("RSAccessibility ColorReverseEnabled is not supported");
                 return;
             }
@@ -358,8 +356,7 @@ public:
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
-            if (accessibilityParamConfig_ != nullptr
-                && !accessibilityParamConfig_->IsHighContrastEnabled()) {
+            if (!AccessibilityParam::IsHighContrastEnabled()) {
                 RS_LOGE("RSAccessibility HighContrastEnabled is not supported");
                 return;
             }
@@ -374,14 +371,6 @@ public:
             RSMainThread::Instance()->RequestNextVSync();
         });
     }
-
-    void SetAccessiblityParamConfig(std::shared_ptr<AccessibilityParam>& config)
-    {
-        accessibilityParamConfig_ = config;
-    }
-
-private:
-    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 };
 #endif
 static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
@@ -671,14 +660,10 @@ void RSMainThread::Init()
 #endif
     }
 #endif
-
-auto accessibilityFeatureParam =
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[Accessibility]);
-    accessibilityParamConfig_ = std::static_pointer_cast<AccessibilityParam>(accessibilityFeatureParam);
+    GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[ACCESSIBILITY]);
 
 #if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
-    accessibilityObserver_->SetAccessiblityParamConfig(accessibilityParamConfig_);
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
     config.SubscribeConfigObserver(CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER, accessibilityObserver_);
@@ -1374,8 +1359,11 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         for (auto& rsTransactionElem : *transactionDataEffective) {
             for (auto& rsTransaction : rsTransactionElem.second) {
-                if (rsTransaction &&
-                    (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0)) {
+                // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
+                // 0, or if there have been previous transactions of this process considered as synchronous, then all
+                // subsequent transactions of this process need to be synchronized.
+                if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
+                    syncTransactionData_.count(rsTransactionElem.first) > 0)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
                 } else if (rsTransaction) {
                     ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
@@ -3206,7 +3194,7 @@ std::string RSMainThread::SubHistoryEventQueue(std::string input)
         lines.push_back(line);
     }
     std::string result;
-    for (int i = 0; i < lines.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(lines.size()); ++i) {
         if (lines[i].find(TARGET_STRING) != std::string::npos) {
             foundTargetStr = true;
             int start = std::max(0, i - CONTEXT_LINES);
@@ -4905,8 +4893,7 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
 
 void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
-    if (accessibilityParamConfig_ != nullptr
-        && !accessibilityParamConfig_->IsCurtainScreenEnabled()) {
+    if (!AccessibilityParam::IsCurtainScreenEnabled()) {
         RS_LOGE("RSMainThread::SetCurtainScreenUsingStatus CurtainScreenEnabled is not supported");
         return;
     }

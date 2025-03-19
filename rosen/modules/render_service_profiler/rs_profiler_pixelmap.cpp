@@ -255,7 +255,7 @@ int32_t PixelMapStorage::EncodeJpeg(const ImageData& source, ImageData& dst, con
 {
     Media::InitializationOptions opts = { .size = { .width = properties.width, .height = properties.height },
         .srcPixelFormat = properties.format,
-        .pixelFormat = properties.format,
+        .pixelFormat = Media::PixelFormat::RGBA_8888,
         .srcRowStride = properties.stride,
         .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE };
     auto sourceRgb = Media::PixelMap::Create(reinterpret_cast<const uint32_t*>(source.data()), source.size(), opts);
@@ -323,7 +323,8 @@ void PixelMapStorage::PushImage(
     }
 
     EncodedType encodedType = EncodedType::NONE;
-    if (RSProfiler::IsWriteEmulationMode() && !RSProfiler::IsBetaRecordEnabled()) {
+    if (RSProfiler::IsWriteEmulationMode() && (RSProfiler::GetTextureRecordType() == TextureRecordType::JPEG ||
+        RSProfiler::GetTextureRecordType() == TextureRecordType::LZ4)) {
         // COMPRESS WITH LZ4 OR JPEG
         encodedType = TryEncodeTexture(properties, data, image);
     }
@@ -340,7 +341,7 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
     EncodedType encodedType = EncodedType::NONE;
 
     image.data.resize(sizeof(TextureHeader));
-    if (properties &&
+    if (properties && RSProfiler::GetTextureRecordType() == TextureRecordType::JPEG &&
         (properties->format == Media::PixelFormat::RGBA_8888 || properties->format == Media::PixelFormat::BGRA_8888) &&
         static_cast<int32_t>(data.size()) == properties->stride * properties->height) {
         int32_t rgbEncodedSize = EncodeJpeg(data, image.data, *properties);
@@ -607,7 +608,7 @@ ImageData PixelMapStorage::GenerateImageData(const ImageInfo& info, const PixelM
 
 ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes)
 {
-    if (!RSProfiler::IsBetaRecordEnabled()) {
+    if (RSProfiler::GetTextureRecordType() != TextureRecordType::ONE_PIXEL) {
         return GenerateRawCopy(data, size);
     }
 

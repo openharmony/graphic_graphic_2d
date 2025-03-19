@@ -1296,7 +1296,9 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-    std::function<void()> selfCaptureTask = [id, callback, captureConfig]() -> void {
+    bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SELF_SURFACE_CAPTURE");
+    std::function<void()> selfCaptureTask = [id, callback, captureConfig, isSystemCalling]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::TakeSelfSurfaceCapture failed, node is nullptr");
@@ -1305,9 +1307,6 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
             }
             return;
         }
-        bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-            RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-            "::TAKE_SELF_SURFACE_CAPTURE");
         RSSurfaceCaptureParam captureParam;
         captureParam.id = id;
         captureParam.config = captureConfig;

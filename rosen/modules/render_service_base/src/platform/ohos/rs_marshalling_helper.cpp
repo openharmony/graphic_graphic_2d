@@ -1385,7 +1385,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<std::sha
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_ptr<ParticleRenderParams>>& val)
 {
     uint32_t size{0};
-    if (!parcel.ReadUint32()) {
+    if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRenderParams Read size failed");
         return false;
     }
@@ -1432,7 +1432,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPa
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>& val)
 {
     int32_t size{0};
-    if (!parcel.ReadInt32()) {
+    if (!parcel.ReadInt32(size)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSPath Read size failed");
         return false;
     }

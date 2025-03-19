@@ -44,6 +44,7 @@ const double RIGHT_POS = 150.0;
 const double ARC_FONT_SIZE = 30;
 const double MAX_WIDTH = 800.0;
 const double SWEEP_DEGREE = 180.0;
+constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 } // namespace
 
 class OH_Drawing_TypographyTest : public testing::Test {
@@ -59,6 +60,46 @@ static TextStyle* ConvertToOriginalText(OH_Drawing_TextStyle* style)
     return reinterpret_cast<TextStyle*>(style);
 }
 
+static void CheckTypographyRectsForRange(OH_Drawing_Typography* typography)
+{
+    struct TextBoxTestCase {
+        size_t start;
+        size_t end;
+        OH_Drawing_RectHeightStyle heightStyle;
+        OH_Drawing_RectWidthStyle widthStyle;
+        float expectedLeft;
+        float expectedTop;
+        float expectedRight;
+        float expectedBottom;
+    };
+    std::vector<TextBoxTestCase> RANGE_TEST_RESULT = {
+        { 0, 2, RECT_HEIGHT_STYLE_MAX, RECT_WIDTH_STYLE_TIGHT, 0.0f, 0.0f, 239.999786f, 360.000000f },
+        { 5, 7, RECT_HEIGHT_STYLE_STRUCT, RECT_WIDTH_STYLE_TIGHT, 599.999451f, 60.0f, 839.999207f, 300.0f },
+        { 34, 36, RECT_HEIGHT_STYLE_INCLUDELINESPACETOP, RECT_WIDTH_STYLE_TIGHT, 806.039307f, 720.000000f,
+            1046.039062f, 1080.000000f },
+        { 37, 39, RECT_HEIGHT_STYLE_INCLUDELINESPACEMIDDLE, RECT_WIDTH_STYLE_TIGHT, 0.000000f, 1149.337036f,
+            239.999817f, 1509.337036f },
+        { 41, 43, RECT_HEIGHT_STYLE_INCLUDELINESPACEBOTTOM, RECT_WIDTH_STYLE_TIGHT, 479.999573f, 1218.674072f,
+            719.999329f, 1578.674072f },
+        { 45, 47, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT,
+            959.999084f, 1218.674072f, 1199.998779f, 1359.314209f },
+        { 49, 51, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_MAX, 240.000000f, 1578.674072f, 480.000000f, 1719.314209f }
+    };
+    for (size_t i = 0; i < RANGE_TEST_RESULT.size(); ++i) {
+        auto rect = OH_Drawing_TypographyGetRectsForRange(typography, RANGE_TEST_RESULT[i].start,
+            RANGE_TEST_RESULT[i].end, RANGE_TEST_RESULT[i].heightStyle, RANGE_TEST_RESULT[i].widthStyle);
+        const auto& testCase = RANGE_TEST_RESULT[i];
+        const float left = OH_Drawing_GetLeftFromTextBox(rect, 0);
+        const float right = OH_Drawing_GetRightFromTextBox(rect, 0);
+        const float top = OH_Drawing_GetTopFromTextBox(rect, 0);
+        const float bottom = OH_Drawing_GetBottomFromTextBox(rect, 0);
+        EXPECT_NEAR(left, testCase.expectedLeft, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(right, testCase.expectedRight, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(top, testCase.expectedTop, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(bottom, testCase.expectedBottom, FLOAT_DATA_EPSILON);
+        OH_Drawing_TypographyDestroyTextBox(rect);
+    }
+}
 /*
  * @tc.name: OH_Drawing_TypographyTest001
  * @tc.desc: test for creating TypographyStyle
@@ -371,6 +412,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     EXPECT_EQ(indents[1], OH_Drawing_TypographyGetIndentsWithIndex(typography, 1));
     EXPECT_EQ(indents[0], OH_Drawing_TypographyGetIndentsWithIndex(typography, 0));
     double maxWidth = 800.0;
+    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetAlphabeticBaseline(typography)), 0);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetIdeographicBaseline(typography)), 0);
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
     double position[2] = { 10.0, 15.0 };
@@ -1117,9 +1160,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
     OH_Drawing_SetTypographyTextLocale(typoStyle, text);
     OH_Drawing_SetTypographyTextSplitRatio(typoStyle, fontSize);
     OH_Drawing_TypographyGetTextStyle(typoStyle);
-    EXPECT_TRUE(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle) >= 0);
-    EXPECT_NE(OH_Drawing_TypographyIsLineUnlimited(typoStyle), 0);
-    EXPECT_NE(OH_Drawing_TypographyIsEllipsized(typoStyle), 0);
+    EXPECT_EQ(OH_Drawing_TypographyGetEffectiveAlignment(typoStyle), 0);
+    EXPECT_TRUE(OH_Drawing_TypographyIsLineUnlimited(typoStyle));
+    EXPECT_TRUE(OH_Drawing_TypographyIsEllipsized(typoStyle));
     OH_Drawing_SetTypographyTextStyle(typoStyle, txtStyle);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
@@ -1746,7 +1789,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest067, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest068
- * @tc.desc: test for halfleading, uselinestyle linestyleonly of text typography
+ * @tc.desc: test typography ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level1)
@@ -1758,6 +1801,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest068, TestSize.Level
     result = OH_Drawing_TypographyGetTextEllipsis(nullptr);
     EXPECT_EQ(result, nullptr);
     OH_Drawing_TypographyDestroyEllipsis(result);
+    EXPECT_FALSE(OH_Drawing_TypographyIsEllipsized(typoStyle));
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, "");
+    EXPECT_FALSE(OH_Drawing_TypographyIsEllipsized(typoStyle));
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, "...");
+    EXPECT_TRUE(OH_Drawing_TypographyIsEllipsized(typoStyle));
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
@@ -2171,13 +2219,59 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest089, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest090, TestSize.Level1)
 {
-    OH_Drawing_Typography* typography = nullptr;
-    OH_Drawing_LineMetrics* vectorMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
-    OH_Drawing_TypographyGetLineMetrics(nullptr);
-    EXPECT_EQ(vectorMetrics, nullptr);
-    OH_Drawing_LineMetricsGetSize(nullptr);
-    EXPECT_EQ(OH_Drawing_LineMetricsGetSize(vectorMetrics), 0);
-    OH_Drawing_DestroyLineMetrics(vectorMetrics);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    const char fontFamiliesTest[] = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79,
+        0x4f, 0x53, 0x5f, 0x53, 0x61, 0x6e, 0x73 };
+    const char *fontFamilies[] = {fontFamiliesTest};
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char *text = "这是一个排版信息获取接口的测试文本";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+ 
+    OH_Drawing_LineMetrics* lineMetrics = OH_Drawing_TypographyGetLineMetrics(typography);
+    EXPECT_NE(lineMetrics, nullptr);
+    int lineMetricsSize = OH_Drawing_LineMetricsGetSize(lineMetrics);
+    EXPECT_EQ(lineMetricsSize, 2);
+    OH_Drawing_Font_Metrics metrics = lineMetrics[0].firstCharMetrics;
+ 
+    OH_Drawing_LineMetrics lineMetric;
+    OH_Drawing_TypographyGetLineMetricsAt(typography, 0, &lineMetric);
+    OH_Drawing_Font_Metrics metric = lineMetric.firstCharMetrics;
+ 
+    EXPECT_EQ(lineMetric.ascender, lineMetrics[0].ascender);
+    EXPECT_EQ(lineMetric.descender, lineMetrics[0].descender);
+    EXPECT_EQ(lineMetric.width, lineMetrics[0].width);
+    EXPECT_EQ(lineMetric.height, lineMetrics[0].height);
+    EXPECT_EQ(lineMetric.x, lineMetrics[0].x);
+    EXPECT_EQ(lineMetric.y, lineMetrics[0].y);
+    EXPECT_EQ(lineMetric.startIndex, lineMetrics[0].startIndex);
+    EXPECT_EQ(lineMetric.endIndex, lineMetrics[0].endIndex);
+ 
+    EXPECT_EQ(metric.flags, metrics.flags);
+    EXPECT_EQ(metric.top, metrics.top);
+    EXPECT_EQ(metric.ascent, metrics.ascent);
+    EXPECT_EQ(metric.descent, metrics.descent);
+    EXPECT_EQ(metric.avgCharWidth, metrics.avgCharWidth);
+    EXPECT_EQ(metric.maxCharWidth, metrics.maxCharWidth);
+    EXPECT_EQ(metric.xMin, metrics.xMin);
+    EXPECT_EQ(metric.xMax, metrics.xMax);
+    EXPECT_EQ(metric.xHeight, metrics.xHeight);
+    EXPECT_EQ(metric.underlineThickness, metrics.underlineThickness);
+    EXPECT_EQ(metric.underlinePosition, metrics.underlinePosition);
+    EXPECT_EQ(metric.strikeoutThickness, metrics.strikeoutThickness);
+    EXPECT_EQ(metric.strikeoutPosition, metrics.strikeoutPosition);
+ 
+    OH_Drawing_DestroyLineMetrics(lineMetrics);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
 /*
@@ -2187,21 +2281,45 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest090, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest091, TestSize.Level1)
 {
-    OH_Drawing_Typography* typography = nullptr;
-    OH_Drawing_LineMetrics* metrics = nullptr;
-    EXPECT_FALSE(OH_Drawing_TypographyGetLineMetricsAt(typography, 0, metrics));
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    const char fontFamiliesTest[] = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79,
+        0x4f, 0x53, 0x5f, 0x53, 0x61, 0x6e, 0x73 };
+    const char *fontFamilies[] = {fontFamiliesTest};
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
-    typography = OH_Drawing_CreateTypography(handler);
-    metrics = new OH_Drawing_LineMetrics();
-    EXPECT_FALSE(OH_Drawing_TypographyGetLineMetricsAt(nullptr, 0, nullptr));
-    EXPECT_FALSE(OH_Drawing_TypographyGetLineMetricsAt(typography, 0, nullptr));
-    EXPECT_FALSE(OH_Drawing_TypographyGetLineMetricsAt(typography, -1, metrics));
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char *text = "这是一个排版信息获取接口的测试文本";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+ 
+    OH_Drawing_LineMetrics lineMetric;
+    OH_Drawing_TypographyGetLineMetricsAt(typography, 0, &lineMetric);
+    EXPECT_NEAR(lineMetric.ascender, 46.399998, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(lineMetric.descender, 12.200000, FLOAT_DATA_EPSILON);
+    EXPECT_EQ(lineMetric.capHeight, 35.0);
+    EXPECT_EQ(lineMetric.xHeight, 25.0);
+    EXPECT_NEAR(lineMetric.width, 799.999146, FLOAT_DATA_EPSILON);
+    EXPECT_EQ(lineMetric.height, 59.0);
+    EXPECT_EQ(lineMetric.x, 0.0);
+    EXPECT_EQ(lineMetric.y, 0.0);
+    EXPECT_EQ(lineMetric.startIndex, 0);
+    EXPECT_EQ(lineMetric.endIndex, 16);
+ 
+    OH_Drawing_Font_Metrics metric = lineMetric.firstCharMetrics;
+    EXPECT_NEAR(metric.top, -52.799999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metric.underlineThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metric.underlinePosition, 10.350000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metric.strikeoutThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metric.strikeoutPosition, -15.000001, FLOAT_DATA_EPSILON);
+ 
+    OH_Drawing_DestroyTextStyle(txtStyle);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
-    delete metrics;
-    metrics = nullptr;
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
 /*
@@ -3249,22 +3367,22 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest001, TestSi
  
     EXPECT_EQ(lineInfoNoSpace.startIndex, 0);
     EXPECT_EQ(lineInfoNoSpace.endIndex, 23);
-    EXPECT_EQ(static_cast<int>(lineInfoNoSpace.width), 786);
+    EXPECT_NEAR(lineInfoNoSpace.width, 786.149231, FLOAT_DATA_EPSILON);
     EXPECT_EQ(lineInfoHasSpace.startIndex, 0);
     EXPECT_EQ(lineInfoHasSpace.endIndex, 23);
-    EXPECT_EQ(static_cast<int>(lineInfoHasSpace.width), 826);
+    EXPECT_NEAR(lineInfoNoSpace.width, 826.649230, FLOAT_DATA_EPSILON);
  
     OH_Drawing_Font_Metrics textStyleMetrics;
     OH_Drawing_TextStyleGetFontMetrics(typography, txtStyle, &textStyleMetrics);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.top), -52);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.avgCharWidth), 25);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.maxCharWidth), 124);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.xHeight), 25);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.capHeight), 35);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.underlineThickness), 2);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.underlinePosition), 10);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.strikeoutThickness), 2);
-    EXPECT_EQ(static_cast<int>(textStyleMetrics.strikeoutPosition), -15);
+    EXPECT_NEAR(textStyleMetrics.top, -52.799999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.avgCharWidth, 25.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.maxCharWidth, 124.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.xHeight, 25.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.capHeight, 35.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.underlineThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.underlinePosition, 10.350000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.strikeoutThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textStyleMetrics.strikeoutPosition, -15.000001, FLOAT_DATA_EPSILON);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
@@ -3300,31 +3418,79 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest002, TestSi
  
     EXPECT_EQ(lineInfoNoSpace.startIndex, 23);
     EXPECT_EQ(lineInfoNoSpace.endIndex, 37);
-    EXPECT_EQ(static_cast<int>(lineInfoNoSpace.width), 289);
+    EXPECT_NEAR(lineInfoNoSpace.width, 289.999756, FLOAT_DATA_EPSILON);
     EXPECT_EQ(lineInfoHasSpace.startIndex, 23);
     EXPECT_EQ(lineInfoHasSpace.endIndex, 37);
-    EXPECT_EQ(static_cast<int>(lineInfoHasSpace.width), 316);
+    EXPECT_NEAR(lineInfoHasSpace.width, 316.999756, FLOAT_DATA_EPSILON);
  
     size_t fontMetricsSize = 0;
     OH_Drawing_Font_Metrics* metrics = OH_Drawing_TypographyGetLineFontMetrics(typography, 2,
          &fontMetricsSize);
     EXPECT_NE(metrics, nullptr);
     EXPECT_EQ(fontMetricsSize, 12);
-    EXPECT_EQ(static_cast<int>(metrics[1].top), -52);
-    EXPECT_EQ(static_cast<int>(metrics[1].avgCharWidth), 25);
-    EXPECT_EQ(static_cast<int>(metrics[1].maxCharWidth), 124);
-    EXPECT_EQ(static_cast<int>(metrics[1].xMin), -27);
-    EXPECT_EQ(static_cast<int>(metrics[1].xMax), 96);
-    EXPECT_EQ(static_cast<int>(metrics[1].xHeight), 25);
-    EXPECT_EQ(static_cast<int>(metrics[1].capHeight), 35);
-    EXPECT_EQ(static_cast<int>(metrics[1].underlineThickness), 2);
-    EXPECT_EQ(static_cast<int>(metrics[1].underlinePosition), 10);
-    EXPECT_EQ(static_cast<int>(metrics[1].strikeoutThickness), 2);
-    EXPECT_EQ(static_cast<int>(metrics[1].strikeoutPosition), -15);
+    EXPECT_NEAR(metrics[1].top, -52.799999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].avgCharWidth, 25.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].maxCharWidth, 124.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].xMin, -27.400000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].xMax, 96.900002, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].xHeight, 25.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].capHeight, 35.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].underlineThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].underlinePosition, 10.350000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].strikeoutThickness, 2.500000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(metrics[1].strikeoutPosition, -15.000001, FLOAT_DATA_EPSILON);
     OH_Drawing_TypographyDestroyLineFontMetrics(metrics);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest113
+ * @tc.desc: test for the input nullptr.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level1)
+{
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(nullptr, nullptr);
+    EXPECT_EQ(handler, nullptr);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    handler = OH_Drawing_CreateTypographyHandler(OH_Drawing_CreateTypographyStyle(), OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, nullptr);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+    OH_Drawing_TypographyHandlerAddText(handler, nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyRectsForRangeTest001
+ * @tc.desc: test for typography rectsForRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRectsForRangeTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_StrutStyle strutStyle = {
+        .weight = FONT_WEIGHT_400, .style = FONT_STYLE_NORMAL, .size = 120.0,
+        .heightScale = 2, .heightOverride = true, .halfLeading = true, .leading = 1.0
+    };
+    OH_Drawing_SetTypographyStyleTextStrutStyle(typoStyle, &strutStyle);
+    OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, true);
+    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 120);
+    OH_Drawing_TypographyCreate *handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char *text = "这是一个排版信息获取接口的测试文本: Hello World";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    text = "这是一个排版信息获取接口的排版信息排版信息排版信息排版信息.";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, 1200.0);
+    CheckTypographyRectsForRange(typography);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
 }
 } // namespace OHOS
