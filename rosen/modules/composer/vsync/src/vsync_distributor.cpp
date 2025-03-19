@@ -1291,8 +1291,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
         DVSync::Instance().RecordVSync(this, now, period, refreshRate, true);
         vsyncCount = DVSync::Instance().GetVsyncCount(event_.vsyncCount);
         if (refreshRate > 0) {
-            event_.vsyncPulseCount += static_cast<int64_t>(vsyncMaxRefreshRate / refreshRate);
-            generatorRefreshRate_ = refreshRate;
+            generatorRefreshRate = refreshRate;
         }
         vsyncMode_ = vsyncMode;
         ChangeConnsRateLocked(vsyncMaxRefreshRate);
@@ -1322,8 +1321,6 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
 
         countTraceValue_ = (countTraceValue_ + 1) % 2; // 2 : change num
         CountTrace(HITRACE_TAG_GRAPHIC_AGP, "vsync-" + name_, countTraceValue_);
-
-        generatorRefreshRate = generatorRefreshRate_;
     }
     ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, true);
 #endif
