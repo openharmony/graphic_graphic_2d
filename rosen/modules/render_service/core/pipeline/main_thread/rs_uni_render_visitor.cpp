@@ -4021,6 +4021,14 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
         bool surfaceNodeSet = false;
+        bool needMapAbsRect = true;
+        if (curDisplayNode_->GetWindowContainer()) {
+            Vector2f scale = curDisplayNode_->GetWindowContainer()->GetRenderProperties().GetScale();
+            RS_LOGI("yxp1110 [%{public}f,%{public}f]", scale.x_, scale.y_);
+            if (!ROSEN_EQ(std::abs(scale.x_, 1.0f, EPSILON_SCALE)) || !ROSEN_EQ(std::abs(scale.y_, 1.0f, EPSILON_SCALE))) {
+                needMapAbsRect = false;
+            }
+        }
         for (auto surface : surfaces) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
             if (surfaceNode == nullptr) {
@@ -4033,7 +4041,11 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
                 if (!geoPtr) {
                     break;
                 }
-                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+                RS_LOGI("yxp1111");
+                if (needMapAbsRect) {
+                    RS_LOGI("yxp1112");
+                    tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+                }
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
                 surfaceNodeSet = true;
                 break;
@@ -4044,7 +4056,11 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
             if (!geoPtr) {
                 return;
             }
-            tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            RS_LOGI("yxp1113");
+            if (needMapAbsRect) {
+                RS_LOGI("yxp1114");
+                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            }
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
         }
     }
