@@ -20,7 +20,6 @@
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;

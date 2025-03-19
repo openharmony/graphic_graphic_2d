@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RSFIRSTFRAMENOTIFIER_FUZZER_H
+#define RSFIRSTFRAMENOTIFIER_FUZZER_H
+
 #include <cstdint>
 #include <unistd.h>
 #include <climits>
@@ -22,3 +25,4 @@
 
 #define FUZZ_PROJECT_NAME "rsfirstframenotifier_fuzzer"
 
+#endif

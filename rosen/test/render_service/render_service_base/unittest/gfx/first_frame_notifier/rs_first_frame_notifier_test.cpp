@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
+#include "transaction/rs_render_service_client.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,6 +35,22 @@ void RSFirstFrameNotifierTest::TearDownTestCase() {}
 void RSFirstFrameNotifierTest::SetUp() {}
 void RSFirstFrameNotifierTest::TearDown() {}
 
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+public:
+    explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCommitCallback() override {};
+
+    void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    FirstFrameCommitCallback cb_;
+};
+
 /**
  * @tc.name: RSFirstFrameNotifier001
  * @tc.desc: test results of RSFirstFrameNotifier
@@ -45,10 +63,11 @@ HWTEST_F(RSFirstFrameNotifierTest, RSFirstFrameNotifier001, TestSize.Level1)
     pid_t pid0 = 0;
     pid_t pid1 = 1;
     auto firstFrameCommitCallback = [](uint64_t, int64_t) {};
+    sptr<CustomFirstFrameCommitCallback> cb = new CustomFirstFrameCommitCallback(firstFrameCommitCallback);
     RSFirstFrameNotifier& firstFrameNotifier = RSFirstFrameNotifier::GetInstance();
     firstFrameNotifier.AddFirstFrameCommitScreen(screenId);
     EXPECT_EQ(firstFrameNotifier.firstFrameCommitScreens_.size(), 1);
-    firstFrameNotifier.RegisterFirstFrameCommitCallback(pid0, firstFrameCommitCallback);
+    firstFrameNotifier.RegisterFirstFrameCommitCallback(pid0, cb);
     EXPECT_EQ(firstFrameNotifier.firstFrameCommitCallbacks_.size(), 1);
     firstFrameNotifier.RegisterFirstFrameCommitCallback(pid1, nullptr);
     EXPECT_EQ(firstFrameNotifier.firstFrameCommitCallbacks_.size(), 1);

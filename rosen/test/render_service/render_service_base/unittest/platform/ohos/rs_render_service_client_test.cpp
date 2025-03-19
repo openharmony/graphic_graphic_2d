@@ -505,7 +505,6 @@ HWTEST_F(RSClientTest, RegisterFirstFrameCommitCallback001, TestSize.Level1)
     EXPECT_EQ(rsClient->RegisterFirstFrameCommitCallback([](uint64_t screenId, int64_t timestamp) -> void {}),
         StatusCode::SUCCESS);
     EXPECT_EQ(rsClient->RegisterFirstFrameCommitCallback(nullptr), StatusCode::SUCCESS);
-
 }
 
 /**

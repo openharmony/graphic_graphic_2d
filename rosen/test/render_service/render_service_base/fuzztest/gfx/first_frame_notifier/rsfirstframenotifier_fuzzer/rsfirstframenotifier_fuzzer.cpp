@@ -15,6 +15,8 @@
 
 #include "rsfirstframenotifier_fuzzer.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
+#include "transaction/rs_render_service_client.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -72,6 +74,22 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+public:
+    explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCommitCallback() override {};
+
+    void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    FirstFrameCommitCallback cb_;
+};
+
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -87,10 +105,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     ScreenId screenId = GetData<uint64_t>();
     pid_t pid = GetData<int>();
     auto firstFrameCommitCallback = [](uint64_t, int64_t) {};
-
+    sptr<CustomFirstFrameCommitCallback> cb = new CustomFirstFrameCommitCallback(firstFrameCommitCallback);
     RSFirstFrameNotifier& firstFrameNotifier = RSFirstFrameNotifier::GetInstance();
     firstFrameNotifier.AddFirstFrameCommitScreen(screenId);
-    firstFrameNotifier.RegisterFirstFrameCommitCallback(pid, firstFrameCommitCallback);
+    firstFrameNotifier.RegisterFirstFrameCommitCallback(pid, cb);
     firstFrameNotifier.ExecIfFirstFrameCommit(screenId);
     firstFrameNotifier.OnFirstFrameCommitCallback(screenId);
     firstFrameNotifier.RegisterFirstFrameCommitCallback(pid, nullptr);
