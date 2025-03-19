@@ -2220,13 +2220,15 @@ void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 
 void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor)
 {
+    std::vector<std::tuple<NodeId, std::function<void()>>> remainUiCaptureTasks;
     const auto& nodeMap = context_->GetNodeMap();
     for (auto [id, captureTask]: pendingUiCaptureTasks_) {
         auto node = nodeMap.GetRenderNode(id);
         bool flag = context_->GetUiCaptureCmdsExecutedFlag(id);
         if (!flag) {
             RS_LOGD("RSMainThread::PrepareUiCaptureTasks cmds not be processed, id: %{public}llu", id);
-            return;
+            remainUiCaptureTasks.emplace_back(id, captureTask);
+            continue;
         }
         context_->EraseUiCaptureCmdsExecutedFlag(id);
         if (!node) {
@@ -2237,6 +2239,9 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
         uiCaptureTasks_.emplace(id, captureTask);
     }
     pendingUiCaptureTasks_.clear();
+    pendingUiCaptureTasks_.insert(pendingUiCaptureTasks_.end(),
+        remainUiCaptureTasks.begin(), remainUiCaptureTasks.end());
+    remainUiCaptureTasks.clear();
 }
 
 void RSMainThread::ProcessUiCaptureTasks()
