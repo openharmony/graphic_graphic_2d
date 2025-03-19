@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "utils.h"
-#include "modules/2d_graphics/include/draw/surface.h"
+#include "foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/draw/surface.h"
 #include <memory>
 
 namespace OHOS {
