@@ -351,7 +351,7 @@ bool RoundCornerDisplayManager::GetRcdEnable() const
     if (!rcdSupport) {
         auto lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
         if (lcdModel != nullptr) {
-            rcdSupport = lcdModel->surfaceConfig.topSurface.support || lcdModel->surfaceConfig.bottomSurface.support;
+            rcdSupport = lcdModel->surfaceConfig.topSurface.support && lcdModel->surfaceConfig.bottomSurface.support;
         }
     }
     return RSSystemProperties::GetRSScreenRoundCornerEnable() && rcdSupport;
