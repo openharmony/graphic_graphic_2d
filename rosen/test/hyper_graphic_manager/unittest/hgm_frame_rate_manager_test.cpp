@@ -757,6 +757,7 @@ HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level2
     mgr.schedulePreferredFps_ = 0;
     mgr.schedulePreferredFpsChange_ = true;
     mgr.FrameRateReport();
+    EXPECT_EQ(mgr.schedulePreferredFpsChange_, false);
 }
 
 /**

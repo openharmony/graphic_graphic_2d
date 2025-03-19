@@ -290,6 +290,7 @@ private:
         std::lock_guard<std::mutex> lock(pendingMutex_);
         curGameNodeName_ = nodeName;
     }
+    void FrameRateReportTask(uint32_t leftRetryTimes);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
