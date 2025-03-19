@@ -151,6 +151,18 @@ public:
         return isHardwareEnableHint_;
     }
 
+    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    {
+        sourceDisplayRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetSourceDisplayRenderNodeId() const
+    {
+        return sourceDisplayRenderNodeId_;
+    }
+
+    void SetSourceDisplayRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
     void SetExistTransparentHardwareEnabledNode(bool exist)
     {
         existTransparentHardwareEnabledNode_ = exist;
@@ -336,8 +348,7 @@ public:
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
-        return isHardwareForcedDisabled_ ||
-            GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
+        return isHardwareForcedDisabled_;
     }
 
     bool IsLeashOrMainWindow() const
@@ -1502,6 +1513,7 @@ private:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     bool isHardwareEnableHint_ = false;
+    NodeId sourceDisplayRenderNodeId_ = INVALID_NODEID;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     bool isNotifyRTBufferAvailablePre_ = false;
     bool isRefresh_ = false;

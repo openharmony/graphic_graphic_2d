@@ -26,6 +26,9 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "params/rs_display_render_params.h"
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,6 +54,12 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    class RSSurfaceOhosRasterTest : public RSSurfaceOhosRaster {
+    public:
+        explicit RSSurfaceOhosRasterTest(const sptr<Surface>& producer);
+        ~RSSurfaceOhosRasterTest() = default;
+        sptr<SurfaceBuffer> GetCurrentBuffer() override;
+    };
 };
 
 void RSUniRenderVirtualProcessorTest::SetUpTestCase() {}
@@ -77,6 +86,13 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown() {}
+RSUniRenderVirtualProcessorTest::RSSurfaceOhosRasterTest::RSSurfaceOhosRasterTest(const sptr<Surface>& producer)
+    : RSSurfaceOhosRaster(producer) {}
+
+sptr<SurfaceBuffer> RSUniRenderVirtualProcessorTest::RSSurfaceOhosRasterTest::GetCurrentBuffer()
+{
+    return new SurfaceBufferImpl();
+}
 
 /**
  * @tc.name: CreateAndDestroy
@@ -588,5 +604,86 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetSpecialLayerType, TestSize.Level2)
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(nullptr, virtualProcessor);
     virtualProcessor->SetDrawVirtualMirrorCopy(true);
+}
+
+/**
+ * @tc.name: SetColorSpaceForMetadata
+ * @tc.desc: SetColorSpaceForMetadata test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetColorSpaceForMetadata, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    EXPECT_NE(nullptr, virtualProcessor);
+    GraphicColorGamut colorGamut1 = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+
+    virtualProcessor->renderFrame_ = nullptr;
+    auto res = virtualProcessor->SetColorSpaceForMetadata(colorGamut1);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    res = virtualProcessor->SetColorSpaceForMetadata(colorGamut1);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    EXPECT_NE(nullptr, rsSurface1);
+
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, nullptr);
+    res = virtualProcessor->SetColorSpaceForMetadata(colorGamut1);
+    EXPECT_EQ(GSERROR_NO_BUFFER, res);
+
+    std::shared_ptr<RSSurfaceOhos> rsSurface2 = std::make_shared<RSSurfaceOhosRasterTest>(pSurface);
+    EXPECT_NE(nullptr, rsSurface2);
+    GraphicColorGamut colorGamut2 = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3;
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface2, nullptr);
+    res = virtualProcessor->SetColorSpaceForMetadata(colorGamut2);
+    EXPECT_EQ(GSERROR_OK, res);
+
+    res = virtualProcessor->SetColorSpaceForMetadata(colorGamut1);
+    EXPECT_EQ(GSERROR_NOT_INIT, res);
+}
+/**
+ * @tc.name: SetRoiRegionToCodec002
+ * @tc.desc: SetRoiRegionToCodec002 test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetRoiRegionToCodec002, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    EXPECT_NE(nullptr, virtualProcessor);
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    EXPECT_NE(nullptr, rsSurface1);
+
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, nullptr);
+
+
+    RectI rect = RectI(1, 2, 3, 4);
+    std::vector<RectI> vRect = { rect };
+    auto res = virtualProcessor->SetRoiRegionToCodec(vRect);
+
+    EXPECT_EQ(GSERROR_NO_BUFFER, res);
+
+    std::shared_ptr<RSSurfaceOhos> rsSurface2 = std::make_shared<RSSurfaceOhosRasterTest>(pSurface);
+    EXPECT_NE(nullptr, rsSurface2);
+
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface2, nullptr);
+    res = virtualProcessor->SetRoiRegionToCodec(vRect);
+    EXPECT_EQ(GSERROR_NOT_INIT, res);
+
+    vRect.emplace_back(rect);
+    res = virtualProcessor->SetRoiRegionToCodec(vRect);
+    EXPECT_EQ(GSERROR_NOT_INIT, res);
 }
 } // namespace OHOS::Rosen

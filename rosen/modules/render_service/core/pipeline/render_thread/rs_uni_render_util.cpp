@@ -2078,6 +2078,28 @@ void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing
     canvas.DetachBrush();
 }
 
+void RSUniRenderUtil::ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas,
+    Drawing::Image& cacheImageProcessed, const RectF& rect)
+{
+    if (cacheImageProcessed.GetWidth() == 0 || cacheImageProcessed.GetHeight() == 0) {
+        RS_TRACE_NAME("ProcessCacheImageForMultiScreenView cacheImageProcessed is invalid");
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    canvas.Save();
+    // Use Fill Mode
+    const float scaleX = rect.GetWidth() / cacheImageProcessed.GetWidth();
+    const float scaleY = rect.GetHeight() / cacheImageProcessed.GetHeight();
+    canvas.Scale(scaleX, scaleY);
+    canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.Restore();
+    canvas.DetachBrush();
+}
+
 void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
 {
     if (!pixelMap || pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {

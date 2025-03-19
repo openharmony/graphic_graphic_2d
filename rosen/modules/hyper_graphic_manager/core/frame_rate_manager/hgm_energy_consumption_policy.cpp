@@ -352,20 +352,24 @@ void HgmEnergyConsumptionPolicy::GetVideoCallFrameRate(
 
 void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string>& pkgs)
 {
-    if (pkgs.size() != 1) {
+    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    if (configData == nullptr) {
         std::lock_guard<std::mutex> lock(videoCallLock_);
         videoCallLayerName_ = "";
         return;
     }
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData == nullptr) {
-        return;
+    for (const auto &pkg: pkgs) {
+        std::string pkgName = pkg.substr(0, pkg.find(":"));
+        auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
+        auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
+        if (videoCallLayerName != videoCallLayerConfig.end()) {
+            std::lock_guard<std::mutex> lock(videoCallLock_);
+            videoCallLayerName_ = videoCallLayerName->second;
+            return;
+        }
     }
-    std::string pkgName = pkgs[0].substr(0, pkgs[0].find(":"));
-    auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
-    auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
     std::lock_guard<std::mutex> lock(videoCallLock_);
-    videoCallLayerName_ = videoCallLayerName == videoCallLayerConfig.end() ? "" : videoCallLayerName->second;
+    videoCallLayerName_ = "";
 }
 
 int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string& componentName)

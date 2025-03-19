@@ -46,7 +46,6 @@ template("effect_ndk_source_set") {
       "$effect_root//skia_effectChain:skeffectchain",
       "$effect_root/color_picker:color_picker",
     ]
-    public_external_deps = [ "jsoncpp:jsoncpp" ]
 
     configs = [ ":export_config" ]
     sources = [

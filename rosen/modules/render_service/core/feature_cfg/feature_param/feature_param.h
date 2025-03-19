@@ -70,7 +70,7 @@ enum FeatureModule {
     SURFACE_CAPTURE,
     UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
-    Accessibility,
+    ACCESSIBILITY,
     VRate,
     RotateOffScreen,
 };

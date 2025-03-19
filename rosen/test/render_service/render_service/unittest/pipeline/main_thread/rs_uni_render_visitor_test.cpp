@@ -24,6 +24,8 @@
 
 #include "consumer_surface.h"
 #include "draw/color.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -1360,6 +1362,137 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode001, TestSize.Level1)
     surfaceRenderNode.SetClonedNodeId(surfaceRenderNodeCloned->GetId());
     auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
     ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: PrepareForMultiScreenViewSurfaceNode001
+ * @tc.desc: Test PrepareForMultiScreenViewSurfaceNode when sourceNode and sourceNodeDrawable is null
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewSurfaceNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceRenderNode->SetSourceDisplayRenderNodeId(2);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewSurfaceNode(*surfaceRenderNode);
+}
+
+/**
+ * @tc.name: PrepareForMultiScreenViewSurfaceNode002
+ * @tc.desc: Test PrepareForMultiScreenViewSurfaceNode when sourceNodeDrawable is null
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewSurfaceNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceRenderNode->SetSourceDisplayRenderNodeId(2);
+    RSDisplayNodeConfig config;
+    auto sourceDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(2, config);
+    sourceDisplayRenderNode->renderDrawable_ = nullptr;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewSurfaceNode(*surfaceRenderNode);
+}
+
+/**
+ * @tc.name: PrepareForMultiScreenViewSurfaceNode003
+ * @tc.desc: Test PrepareForMultiScreenViewSurfaceNode success
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewSurfaceNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceRenderNode->SetSourceDisplayRenderNodeId(2);
+    RSDisplayNodeConfig config;
+    auto sourceDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(2, config);
+    auto sourceDisplayRenderNodeDrawable =
+        std::make_shared<DrawableV2::RSDisplayRenderNodeDrawable>(sourceDisplayRenderNode);
+    sourceDisplayRenderNode->renderDrawable_ = sourceDisplayRenderNodeDrawable;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewSurfaceNode(*surfaceRenderNode);
+}
+
+/**
+ * @tc.name: PrepareForMultiScreenViewDisplayNode001
+ * @tc.desc: Test Pre when targetNode and targetNodeDrawable is null
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewDisplayNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(1, config);
+    displayRenderNode->SetTargetSurfaceRenderNodeId(2);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(displayRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewDisplayNode(*displayRenderNode);
+}
+ 
+/**
+ * @tc.name: PrepareForMultiScreenViewDisplayNode002
+ * @tc.desc: Test PrepareForMultiScreenViewSurfaceNode when targetNodeDrawable is null
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewDisplayNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(1, config);
+    displayRenderNode->SetTargetSurfaceRenderNodeId(2);
+    auto targetSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(2);
+    targetSurfaceRenderNode->renderDrawable_ = nullptr;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(displayRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewDisplayNode(*displayRenderNode);
+}
+ 
+/**
+ * @tc.name: PrepareForMultiScreenViewDisplayNode003
+ * @tc.desc: Test PrepareForMultiScreenViewSurfaceNode success
+ * @tc.type: FUNC
+ * @tc.require: issueIBKU7U
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForMultiScreenViewDisplayNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(1, config);
+    displayRenderNode->SetTargetSurfaceRenderNodeId(2);
+    auto targetSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(2);
+    auto targetSurfaceRenderNodeDrawable =
+        std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(targetSurfaceRenderNode);
+    targetSurfaceRenderNode->renderDrawable_ = targetSurfaceRenderNodeDrawable;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(displayRenderNode);
+    rsUniRenderVisitor->PrepareForMultiScreenViewDisplayNode(*displayRenderNode);
 }
 
 /**

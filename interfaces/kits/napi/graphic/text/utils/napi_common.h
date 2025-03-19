@@ -431,12 +431,22 @@ inline napi_value CreateArrayStringJsValue(napi_env env, const std::vector<std::
     return jsArray;
 }
 
-inline napi_value CreateStringJsValue(napi_env env, std::u16string& u16String)
+inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16String)
 {
     napi_value jsStr = nullptr;
     napi_create_string_utf16(env, reinterpret_cast<const char16_t*>(u16String.c_str()), u16String.length(), &jsStr);
     return jsStr;
 }
+
+napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontFeatures);
+
+napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle);
+
+napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& point);
+
+napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows);
+
+napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
 
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
 

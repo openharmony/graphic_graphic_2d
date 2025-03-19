@@ -82,6 +82,8 @@ int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
+static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
+
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
@@ -1481,4 +1483,18 @@ std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream
     }
     return errorReason;
 }
+
+TextureRecordType RSProfiler::GetTextureRecordType()
+{
+    if (IsBetaRecordEnabled()) {
+        return TextureRecordType::ONE_PIXEL;
+    }
+    return g_textureRecordType;
+}
+
+void RSProfiler::SetTextureRecordType(TextureRecordType type)
+{
+    g_textureRecordType = type;
+}
+
 } // namespace OHOS::Rosen
