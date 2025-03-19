@@ -82,6 +82,92 @@ xmlNodePtr CreateRCDLayer(const std::string& nodeName, const rs_rcd::RoundCorner
     return CreateNodeWithProperties(nodeName, properties);
 }
 
+xmlNodePtr CreateRogPortrait(const std::string& nodeName, const rs_rcd::RogPortrait& rogPort)
+{
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), rogPort.layerUp);
+    auto layerDownPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERDOWN), rogPort.layerDown);
+    auto layerHidePtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERHIDE), rogPort.layerHide);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    xmlAddChild(xmlptr, layerDownPtr);
+    xmlAddChild(xmlptr, layerHidePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogPortrait(const std::string& nodeName, xmlNodePtr& layerUpPtr,
+    xmlNodePtr& layerDownPtr, xmlNodePtr& layerHidePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    xmlAddChild(xmlptr, layerDownPtr);
+    xmlAddChild(xmlptr, layerHidePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogLandscape(const std::string& nodeName, const rs_rcd::RogLandscape& rogland)
+{
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), rogland.layerUp);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogLandscape(const std::string& nodeName, xmlNodePtr& layerUpPtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSurfaceConfig(const std::string& nodeName, xmlNodePtr& topSurfacePtr, xmlNodePtr& bootomSurfacePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, topSurfacePtr);
+    xmlAddChild(xmlptr, bootomSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSurfaceConfig(const std::string& nodeName, const rs_rcd::SurfaceConfig& surfaceCfg)
+{
+    auto topSupport = surfaceCfg.topSurface.support ? "true" : "false";
+    auto bottomSuport = surfaceCfg.bottomSurface.support ? "true" : "false";
+    std::vector<XMLProperty> topProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(topSupport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(surfaceCfg.topSurface.mode)}
+    };
+    std::vector<XMLProperty> bottomProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(bottomSuport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(surfaceCfg.bottomSurface.mode)}
+    };
+    auto topSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_TOPSURFACE), topProperty);
+    auto bootomSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_BOTTOMSURFACE), bottomProperty);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, topSurfacePtr);
+    xmlAddChild(xmlptr, bootomSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSideRegionConfig(const std::string& nodeName, xmlNodePtr& sideSurfacePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, sideSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSideRegionConfig(const std::string& nodeName, const rs_rcd::SideRegionConfig& sideCfg)
+{
+    auto sideSupport = sideCfg.sideRegion.support ? "true" : "false";
+    std::vector<XMLProperty> sideProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(sideSupport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(sideCfg.sideRegion.mode)}
+    };
+
+    auto sideSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_SIDEREGION), sideProperty);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, sideSurfacePtr);
+    return xmlptr;
+}
+
 /*
  * @tc.name: RCDLoadConfigFileTest
  * @tc.desc: Test RSRoundCornerDisplayTest.RCDLoadConfigFileTest
@@ -573,6 +659,18 @@ HWTEST_F(RSRoundCornerDisplayTest, SideRegionConfig, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.sideRegion.support = true;
+    xmlptr = CreateSideRegionConfig("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr sideSurfacePtr = nullptr;
+    xmlptr = CreateSideRegionConfig("TestName", sideSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -587,6 +685,28 @@ HWTEST_F(RSRoundCornerDisplayTest, SurfaceConfig, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.topSurface.support = true;
+    xmlptr = CreateSurfaceConfig("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr topSurfacePtr = nullptr;
+    xmlNodePtr bootomSurfacePtr = nullptr;
+    xmlptr = CreateSurfaceConfig("TestName", topSurfacePtr, bootomSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+    std::vector<XMLProperty> topProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string("true")},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(1)}
+    };
+    topSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_TOPSURFACE), topProperty);
+    xmlptr = CreateSurfaceConfig("TestName", topSurfacePtr, bootomSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -615,6 +735,18 @@ HWTEST_F(RSRoundCornerDisplayTest, RogLandscape, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.layerUp.offsetX = 100;
+    xmlptr = CreateRogLandscape("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr layerHidePtr = nullptr;
+    xmlptr = CreateRogLandscape("TestName", layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -629,6 +761,32 @@ HWTEST_F(RSRoundCornerDisplayTest, RogPortrait, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+    cfg.layerUp.offsetX = 100;
+    xmlptr = CreateRogPortrait("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), cfg.layerUp);
+    auto layerDownPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERDOWN), cfg.layerDown);
+    xmlNodePtr layerHidePtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+
+    layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), cfg.layerUp);
+    layerDownPtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+
+    layerUpPtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -643,15 +801,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     cfg.ReadXmlNode(xmlptr, {"a", "b"});
 
-    std::vector<std::string> properties = {
-        rs_rcd::ATTR_FILENAME,
-        rs_rcd::ATTR_OFFSET_X,
-        rs_rcd::ATTR_OFFSET_Y,
-        rs_rcd::ATTR_BINFILENAME,
-        rs_rcd::ATTR_BUFFERSIZE,
-        rs_rcd::ATTR_CLDWIDTH,
-        rs_rcd::ATTR_CLDHEIGHT
-    };
+    std::vector<std::string> properties = {rs_rcd::ATTR_FILENAME, rs_rcd::ATTR_OFFSET_X,
+        rs_rcd::ATTR_OFFSET_Y, rs_rcd::ATTR_BINFILENAME, rs_rcd::ATTR_BUFFERSIZE,
+        rs_rcd::ATTR_CLDWIDTH, rs_rcd::ATTR_CLDHEIGHT};
 
     rs_rcd::RoundCornerLayer cfgData = {
         "test", // fileName
@@ -661,9 +813,30 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
         10000, // bufferSize
         2, // cldWidth
         2, // cldHeight
-        nullptr
-    };
+        nullptr};
     auto nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
+    cfg.ReadXmlNode(nodePtr, properties);
+
+    EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
+    EXPECT_EQ(cfg.binFileName.compare(cfgData.binFileName), int{0});
+    EXPECT_EQ(cfg.bufferSize, cfgData.bufferSize);
+    EXPECT_EQ(cfg.offsetX, cfgData.offsetX);
+    EXPECT_EQ(cfg.offsetY, cfgData.offsetY);
+    EXPECT_EQ(cfg.cldWidth, cfgData.cldWidth);
+    EXPECT_EQ(cfg.cldHeight, cfgData.cldHeight);
+    xmlFreeNode(nodePtr);
+    nodePtr = nullptr;
+
+    cfgData = {
+        "bb", // fileName
+        10, // offsetX
+        100, // offsetY
+        "aaa.bin", // binFileName
+        10000, // bufferSize
+        20, // cldWidth
+        200, // cldHeight
+        nullptr};
+    nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
     cfg.ReadXmlNode(nodePtr, properties);
 
     EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
@@ -700,13 +873,34 @@ HWTEST_F(RSRoundCornerDisplayTest, XMLReader, TestSize.Level1)
     EXPECT_TRUE(rs_rcd::XMLReader::ReadAttrInt(numPtr, attrName) == int{2});
     EXPECT_TRUE(rs_rcd::XMLReader::ReadAttrFloat(numPtr, attrName) > 1.0f);
     xmlFreeNode(numPtr);
-    std::vector<std::string> okCase = { "0.0", "0", "123", "1230.0", "8192.0 ", "819200"};
+    std::vector<std::string> okCase = {
+        "0.0",
+        "0",
+        "123",
+        "1230.0",
+        "8192.0 ",
+        "100.0",
+        "101010",
+        "321",
+        "121212",
+        "321321 ",
+        "987654",
+        "56789"};
     for (auto& tmpCase : okCase) {
         bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
         EXPECT_EQ(isOk, true);
     }
 
-    std::vector<std::string> ngCase = {"a0.0", "0a", "a123", "1230.0c", "a8192.0 "};
+    std::vector<std::string> ngCase = {
+        "a0.0",
+        "0a",
+        "a123",
+        "1230.0c",
+        "op0.0",
+        "0afdsd",
+        "yhgfjhgfj",
+        "12g30.0c",
+        "4t7192.0 "};
     for (auto& tmpCase : ngCase) {
         bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
         EXPECT_EQ(isOk, false);
