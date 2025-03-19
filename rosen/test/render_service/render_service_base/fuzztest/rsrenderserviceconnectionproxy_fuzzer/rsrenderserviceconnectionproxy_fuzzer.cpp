@@ -243,7 +243,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RegisterHgmConfigChangeCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
-    rsRenderServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitklCallback);
+    rsRenderServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
     rsRenderServiceConnectionProxy.SetAppWindowNum(width);
     rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false);
     rsRenderServiceConnectionProxy.ShowWatermark(watermarkImg, true);
