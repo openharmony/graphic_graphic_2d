@@ -23,8 +23,8 @@
 #include <fcntl.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -243,10 +243,9 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
     g_pos = 0;
     auto newPid = getpid();
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManagerPtr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
     MessageParcel dataParcel;
@@ -677,22 +676,20 @@ bool DoGetScreenSupportedRefreshRates(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    FuzzedDataProvider fdp(data, size);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
     auto newPid = getpid();
-
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-
-    std::vector<uint8_t> subData =
-        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteBuffer(subData.data(), subData.size());
+    dataParcel.WriteUint64(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -2975,6 +2972,37 @@ bool DoNotifyDynamicModeEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoSetFocusAppInfo()
 {
     int32_t pid = GetData<int32_t>();
@@ -3066,7 +3094,8 @@ bool DoSetSystemAnimatedScenes()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
-    if (!dataP.WriteUint32(systemAnimatedScenes)) {
+    bool isRegularAnimation = GetData<bool>();
+    if (!dataP.WriteUint32(systemAnimatedScenes) || !dataP.WriteBool(isRegularAnimation)) {
         return false;
     }
     if (rsConnStub_ == nullptr) {
@@ -3713,6 +3742,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenColorSpace(data, size);
     OHOS::Rosen::DoSetScreenColorSpace(data, size);
     OHOS::Rosen::DoSetFocusAppInfo();
+    OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
     OHOS::Rosen::DoGetScreenSupportedColorGamuts();
     OHOS::Rosen::DoSetGlobalDarkColorMode();
     OHOS::Rosen::DoSetSystemAnimatedScenes();

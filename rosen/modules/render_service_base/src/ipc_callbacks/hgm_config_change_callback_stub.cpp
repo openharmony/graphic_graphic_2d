@@ -24,6 +24,7 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIHgmConfigChangeCallback::GetDescriptor()) {
+        RS_LOGE("RSHgmConfigChangeCallbackStub::OnRemoteRequest read token failed!");
         return ERR_INVALID_STATE;
     }
 
@@ -36,12 +37,22 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::
                                    ON_HGM_REFRESH_RATE_MODE_CHANGED): {
-            int32_t refreshRateMode = data.ReadInt32();
+            int32_t refreshRateMode{0};
+            if (!data.ReadInt32(refreshRateMode)) {
+                RS_LOGE("RSHgmConfigChangeCallbackStub::ON_HGM_REFRESH_RATE_MODE_CHANGED read refreshRateMode failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnHgmRefreshRateModeChanged(refreshRateMode);
             break;
         }
         case static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_CHANGED): {
-            int32_t refreshRate = data.ReadInt32();
+            int32_t refreshRate{0};
+            if (!data.ReadInt32(refreshRate)) {
+                RS_LOGE("RSHgmConfigChangeCallbackStub::ON_HGM_REFRESH_RATE_CHANGED read refreshRate failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnHgmRefreshRateUpdate(refreshRate);
             break;
         }

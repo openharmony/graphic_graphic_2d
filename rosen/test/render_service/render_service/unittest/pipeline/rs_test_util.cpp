@@ -17,12 +17,16 @@
 
 namespace OHOS::Rosen {
 NodeId RSTestUtil::id = 0;
-std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode()
+std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfaceRenderNodeConfig surfaceConfig)
 {
     id++;
     RSSurfaceRenderNodeConfig config;
-    config.id = id;
-    config.name += std::to_string(id);
+    if (surfaceConfig.id != 0) {
+        config = surfaceConfig;
+    } else {
+        config.id = id;
+        config.name += std::to_string(id);
+    }
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     csurf = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);

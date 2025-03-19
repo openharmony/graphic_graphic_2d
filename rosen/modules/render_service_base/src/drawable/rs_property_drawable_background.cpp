@@ -42,6 +42,7 @@
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
 #include "common/rs_rect.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -104,6 +105,8 @@ void RSShadowDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSHADOWDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         // skip shadow if cache is enabled
@@ -237,16 +240,8 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
             properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
-    // use drawrrect to avoid texture update in phone screen rotation scene
-    if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
-        bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
-        brush.SetAntiAlias(antiAlias);
-        canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
-    } else {
-        canvas.AttachBrush(brush);
-        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
-    }
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
     return true;
 }
@@ -277,16 +272,8 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
         return true;
     }
     brush.SetShaderEffect(shaderEffect);
-    // use drawrrect to avoid texture update in phone screen rotation scene
-    if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
-        bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
-        brush.SetAntiAlias(antiAlias);
-        canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
-    } else {
-        canvas.AttachBrush(brush);
-        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
-    }
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     canvas.DetachBrush();
     return true;
 }
@@ -353,6 +340,8 @@ void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBACKGROUNDIMAGEDRAWABLE_MAKEFROMTEXTUREFORVK);
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
@@ -470,6 +459,8 @@ void RSBackgroundImageDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() const
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSBACKGROUNDIMAGEDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::const_pointer_cast<RSBackgroundImageDrawable>(
         std::static_pointer_cast<const RSBackgroundImageDrawable>(shared_from_this()));
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
@@ -632,8 +623,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_,
-            boundsRect);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, boundsRect);
     };
 }
 
@@ -682,7 +672,7 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSUseEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (!RSSystemProperties::GetEffectMergeEnabled()) {
+        if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
             return;
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);

@@ -52,19 +52,23 @@ void GraphicFeatureParamManager::FeatureParamParseEntry()
         featureParser_ = std::make_unique<XMLParserBase>();
     }
 
-    if (featureParser_->LoadGraphicConfiguration(GRAPHIC_CONFIG_FILE_PRODUCT) != PARSE_EXEC_SUCCESS) {
-        RS_LOGD("GraphicFeatureParamManager failed to load prod xml configuration file");
+    if (featureParser_->LoadGraphicConfiguration(graphicConfigPath_) != PARSE_EXEC_SUCCESS) {
+        RS_LOGD("GraphicFeatureParamManager failed to load xml configuration file");
         return;
     }
 
-    if (featureParser_->Parse() != PARSE_EXEC_SUCCESS) {
+    if (featureParser_->ParseSysDoc() != PARSE_EXEC_SUCCESS) {
+        RS_LOGD("GraphicFeatureParamManager failed to parse sys xml configuration");
+    }
+
+    if (featureParser_->ParseProdDoc() != PARSE_EXEC_SUCCESS) {
         RS_LOGD("GraphicFeatureParamManager failed to parse prod xml configuration");
     }
 }
 
 std::shared_ptr<FeatureParam> GraphicFeatureParamManager::GetFeatureParam(std::string featureName)
 {
-    RS_LOGI("GraphicFeatureParamManager %{public}s : %{public}s", __func__, featureName.c_str());
+    RS_LOGD("GraphicFeatureParamManager %{public}s : %{public}s", __func__, featureName.c_str());
 
     auto iter = featureParamMap_.find(featureName);
     if (iter == featureParamMap_.end()) {

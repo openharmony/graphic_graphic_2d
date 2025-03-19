@@ -64,6 +64,11 @@ public:
         needDraw_ = flag;
     }
 
+    std::shared_ptr<Drawing::Image> Snapshot() const override
+    {
+        return image_;
+    }
+
 private:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;

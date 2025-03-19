@@ -47,19 +47,28 @@ public:
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+
+    virtual void GenerateSubmitInfo(int seq) {}
+    virtual void FlushCommands() {}
+
     virtual void Submit() = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
 
     virtual void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const = 0;
     virtual void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) = 0;
+    virtual void SetPurgeableResourceLimit(int purgeableMaxCount) = 0;
 
     virtual void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const = 0;
 
     virtual void FreeGpuResources() = 0;
 
+    virtual void ReclaimResources() = 0;
+
     virtual void DumpGpuStats(std::string& out) = 0;
 
     virtual void DumpAllResource(std::stringstream& dump) = 0;
+
+    virtual void DumpAllCoreTrace(std::stringstream& dump) = 0;
 
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
@@ -68,6 +77,8 @@ public:
     virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
 
     virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
+
+    virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
 
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;

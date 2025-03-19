@@ -23,14 +23,14 @@
 #include <utility>
 #include <vector>
 
-#include "sys_binder.h"
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_network.h"
-#include "rs_profiler_utils.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
+#include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
+#include "sys_binder.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -40,8 +40,9 @@
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
-#include "common/rs_common_def.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -72,11 +73,16 @@ static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
+std::vector<std::shared_ptr<RSRenderNode>> RSProfiler::testTree_ = std::vector<std::shared_ptr<RSRenderNode>>();
+RSContext* RSProfiler::context_ = nullptr;
+RSMainThread* RSProfiler::mainThread_ = nullptr;
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
+
+static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -303,12 +309,12 @@ void RSProfiler::TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime, bool 
     if (g_pauseAfterTime > 0) {
         // second time pause
         if (curTime > g_pauseAfterTime) {
-            g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+            g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         }
     }
     g_pauseAfterTime = newPauseAfterTime;
     if (immediate) {
-        g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+        g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         g_pauseAfterTime = curTime;
     }
 }
@@ -605,24 +611,13 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     }
 }
 
-void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+static void MarshalDrawCmdModifiers(
+    const RSRenderContent::DrawCmdContainer& container, std::stringstream& data, uint32_t fileVersion)
 {
-    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
-    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
-
-    const uint32_t modifierCount = node.modifiers_.size();
-    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
-
-    for (const auto& [id, modifier] : node.modifiers_) {
-        if (modifier) {
-            MarshalRenderModifier(*modifier, data);
-        }
-    }
-
-    const uint32_t drawModifierCount = node.renderContent_->drawCmdModifiers_.size();
+    const uint32_t drawModifierCount = container.size();
     data.write(reinterpret_cast<const char*>(&drawModifierCount), sizeof(drawModifierCount));
 
-    for (const auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
+    for (const auto& [type, modifiers] : container) {
         const uint32_t modifierCount = modifiers.size();
         data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
         for (const auto& modifier : modifiers) {
@@ -639,6 +634,56 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
                 MarshalRenderModifier(*modifier, data);
             }
         }
+    }
+}
+
+static RSRenderContent::DrawCmdContainer GetDrawCmdModifiers(const RSCanvasDrawingRenderNode& node)
+{
+    const auto drawable = node.GetRenderDrawable();
+    auto image = drawable ? drawable->Snapshot() : nullptr;
+    if (!image) {
+        return node.GetDrawCmdModifiers();
+    }
+
+    const int32_t width = image->GetWidth();
+    const int32_t height = image->GetHeight();
+
+    const Drawing::Rect rect(0, 0, static_cast<float>(width), static_cast<float>(height));
+    auto drawOp = std::make_shared<Drawing::DrawImageRectOpItem>(*image, rect, rect,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, Drawing::Paint());
+
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>(width, height, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    cmdList->AddDrawOp(drawOp);
+
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0);
+    auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(property);
+    modifier->SetType(RSModifierType::CONTENT_STYLE);
+
+    RSRenderContent::DrawCmdContainer container = node.GetDrawCmdModifiers();
+    container[modifier->GetType()].emplace_back(modifier);
+    return container;
+}
+
+void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+{
+    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
+    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
+
+    const uint32_t modifierCount = node.modifiers_.size();
+    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
+
+    for (const auto& [id, modifier] : node.modifiers_) {
+        if (modifier) {
+            MarshalRenderModifier(*modifier, data);
+        }
+    }
+
+    if (node.GetType () == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto& canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
+        MarshalDrawCmdModifiers(GetDrawCmdModifiers(canvasDrawingNode), data, fileVersion);
+    } else {
+        MarshalDrawCmdModifiers(node.GetDrawCmdModifiers(), data, fileVersion);
     }
 }
 
@@ -834,6 +879,23 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::s
     return ptr;
 }
 
+static void SetupCanvasDrawingRenderNode(RSCanvasDrawingRenderNode& node)
+{
+    int32_t width = 0;
+    int32_t height = 0;
+    for (const auto& [type, modifiers] : node.GetDrawCmdModifiers()) {
+        for (const auto& modifier : modifiers) {
+            const auto commandList = modifier ? modifier->GetPropertyDrawCmdList() : nullptr;
+            if (commandList) {
+                width = std::max(width, commandList->GetWidth());
+                height = std::max(height, commandList->GetHeight());
+            }
+        }
+    }
+
+    node.ResetSurface(width, height);
+}
+
 std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
@@ -869,6 +931,10 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
     }
     if (data.eof()) {
         return "UnmarshalNodeModifiers failed, file is damaged";
+    }
+
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        SetupCanvasDrawingRenderNode(static_cast<RSCanvasDrawingRenderNode&>(node));
     }
 
     node.ApplyModifiers();
@@ -1181,7 +1247,10 @@ void RSProfiler::WriteParcelData(Parcel& parcel)
         return;
     }
 
-    parcel.WriteUint64(NewAshmemDataCacheId());
+    if (!parcel.WriteUint64(NewAshmemDataCacheId())) {
+        HRPE("Unable to write NewAshmemDataCacheId failed");
+        return;
+    }
 }
 
 const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
@@ -1212,6 +1281,7 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("RSProfiler::SkipParcelData read isClientEnabled failed");
         return false;
     }
     if (!isClientEnabled) {
@@ -1368,5 +1438,63 @@ double RSProfiler::BaseGetPlaybackSpeed()
     return g_replaySpeed;
 }
 
+void RSProfiler::MarshalSubTreeLo(RSContext& context, std::stringstream& data,
+    const RSRenderNode& node, uint32_t fileVersion)
+{
+    NodeId nodeId = node.GetId();
+    data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+
+    MarshalNode(node, data, fileVersion);
+
+    const uint32_t count = node.children_.size();
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    for (const auto& child : node.children_) {
+        if (auto childNode = child.lock().get()) {
+            MarshalSubTreeLo(context, data, *childNode, fileVersion);
+        }
+    }
+}
+
+std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream& data,
+    RSRenderNode& attachNode, uint32_t fileVersion)
+{
+    NodeId nodeId;
+    data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
+
+    std::string errorReason = UnmarshalNode(context, data, fileVersion);
+    if (errorReason.size()) {
+        return errorReason;
+    }
+
+    auto node = context.GetMutableNodeMap().GetRenderNode(Utils::PatchNodeId(nodeId));
+    if (!node) {
+        return "Failed to create node";
+    }
+
+    attachNode.AddChild(node);
+
+    uint32_t childCount;
+    data.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
+    for (uint32_t i = 0; i < childCount; i++) {
+        UnmarshalSubTreeLo(context, data, *node, fileVersion);
+        if (errorReason.size()) {
+            return errorReason;
+        }
+    }
+    return errorReason;
+}
+
+TextureRecordType RSProfiler::GetTextureRecordType()
+{
+    if (IsBetaRecordEnabled()) {
+        return TextureRecordType::ONE_PIXEL;
+    }
+    return g_textureRecordType;
+}
+
+void RSProfiler::SetTextureRecordType(TextureRecordType type)
+{
+    g_textureRecordType = type;
+}
 
 } // namespace OHOS::Rosen

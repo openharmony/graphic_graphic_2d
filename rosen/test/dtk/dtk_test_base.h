@@ -45,6 +45,12 @@ public:
     void ClearTestPen();
     void ClearTestBrushAndPen();
 
+    void ClipPath(bool doAntiAlias);
+    void ClipRect(bool doAntiAlias);
+    void ClipRoundRectG2(bool doAntiAlias);
+    void ClipRoundRectG2capsule(bool doAntiAlias);
+    void ClipRoundRectnotG2(bool doAntiAlias);
+
     std::shared_ptr<Drawing::Image> GetEffectTestImage(const std::string& pathName);
     std::shared_ptr<Drawing::Surface> GetNewColorSpaceSurface();
     std::shared_ptr<Drawing::RuntimeEffect> GetTestRuntimeEffectForShader(const char* glsl);

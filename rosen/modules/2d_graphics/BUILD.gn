@@ -324,11 +324,12 @@ template("graphics2d_source_set") {
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
+        "icu:shared_icuuc",
         "skia:skia_canvaskit",
       ]
 
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+      deps = []
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
@@ -359,7 +360,7 @@ template("graphics2d_source_set") {
       defines += [ "MODULE_DRAWING" ]
       if (is_arkui_x) {
         defines += [ "CROSS_PLATFORM" ]
-        deps += [ "//foundation/graphic/graphic_2d/rosen/build/icu:rosen_libicu_$platform" ]
+        deps += [ "//third_party/icu/icu4c:static_icuuc" ]
       }
 
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
@@ -432,9 +433,7 @@ if (!is_arkui_x) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps = [ ":2d_graphics_source_$platform" ]
-    }
+    deps = [ ":2d_graphics_source_$platform" ]
 
     external_deps = [
       "bounds_checking_function:libsec_static",
@@ -474,10 +473,7 @@ if (enable_text_gine) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    deps = [ "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing" ]
-    if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps += [ ":2d_graphics_source_$platform" ]
-    }
+    deps = [ ":2d_graphics_source_$platform" ]
     external_deps = [ "hilog:libhilog" ]
     public_external_deps = [ "bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]

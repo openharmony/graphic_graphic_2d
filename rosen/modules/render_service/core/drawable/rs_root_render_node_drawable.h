@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_DRAWABLE_RS_ROOT_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_canvas_render_node_drawable.h"
+#include "feature/window_keyframe/rs_window_keyframe_buffer.h"
 
 namespace OHOS::Rosen {
 class RSRootRenderNode;
@@ -30,10 +31,18 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
+    // [Attention] Only used in PC window resize scene now
+    bool DrawWindowKeyFrameOffscreenBuffer(RSPaintFilterCanvas& canvas,
+        const Drawing::Rect& bounds, float alpha, bool isFreezed);
+
 private:
     explicit RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
+
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::ROOT_NODE, OnGenerate>;
     static Registrar instance_;
+
+    // [Attention] Only used in PC window resize scene now
+    RSWindowKeyframeBuffer windowKeyframeBuffer_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

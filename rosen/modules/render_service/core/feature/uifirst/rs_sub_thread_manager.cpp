@@ -19,9 +19,11 @@
 
 #include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
-#include "pipeline/rs_main_thread.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
+#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
@@ -259,6 +261,8 @@ std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() co
 void RSSubThreadManager::ScheduleRenderNodeDrawable(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        RS_RSSUBTHREADMANAGER_SCHEDULERENDERNODEDRAWABLE);
     if (UNLIKELY(!nodeDrawable)) {
         RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable nodeDrawable nullptr");
         return;
@@ -278,11 +282,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
 
     auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
     minLoadThreadIndex_ = defaultThreadIndex_;
-    unsigned int loadDefaultIndex = 0;
-    if (RSSystemProperties::IsPcType()) {
-        loadDefaultIndex = 1;
-    }
-    for (unsigned int j = loadDefaultIndex; j < SUB_THREAD_NUM; j++) {
+    for (unsigned int j = 0; j < SUB_THREAD_NUM; j++) {
         if (j == defaultThreadIndex_) {
             continue;
         }
@@ -297,14 +297,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     } else {
         defaultThreadIndex_++;
         if (defaultThreadIndex_ >= SUB_THREAD_NUM) {
-            defaultThreadIndex_ = loadDefaultIndex;
-        }
-    }
-    if (RSSystemProperties::IsPcType()) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
-        if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
-            threadList_[0]->GetDoingCacheProcessNum() < SUB_VIDEO_THREAD_TASKS_NUM_MAX) {
-            nowIdx = 0;
+            defaultThreadIndex_ = 0;
         }
     }
 

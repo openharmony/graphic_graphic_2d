@@ -16,7 +16,8 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/skia_test"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen/modules/2d_engine/rosen_text/skia_test"
 
 ohos_unittest("2d_engine_rosen_text_skia_test") {
   module_out_path = module_output_path
@@ -38,8 +39,6 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
 
   deps = [
     "$rosen_root/modules/2d_graphics:2d_graphics",
-    "$rosen_root/modules/texgine:libtexgine",
-    "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
     "//third_party/googletest:gtest_main",
   ]
 

@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 #include "dtk_test_ext.h"
-#include "modules/2d_graphics/include/text/font.h"
-#include "modules/2d_graphics/include/text/font_mgr.h"
-#include "modules/2d_graphics/include/text/font_style_set.h"
-#include "modules/2d_graphics/include/text/rs_xform.h"
-#include "modules/2d_graphics/include/text/typeface.h"
-#include "modules/2d_graphics/include/utils/point.h"
-#include "modules/2d_graphics/include/utils/rect.h"
-#include "modules/2d_graphics/include/recording/mem_allocator.h"
+#include "text/font.h"
+#include "text/font_mgr.h"
+#include "text/font_style_set.h"
+#include "text/rs_xform.h"
+#include "text/typeface.h"
+#include "utils/point.h"
+#include "utils/rect.h"
+#include "recording/mem_allocator.h"
 
 namespace OHOS {
 namespace Rosen {

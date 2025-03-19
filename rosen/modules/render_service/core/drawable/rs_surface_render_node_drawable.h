@@ -37,11 +37,14 @@ class RSSurfaceRenderNode;
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
+class RSRcdSurfaceRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
+
+// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() override;
@@ -124,9 +127,10 @@ public:
         } else {
             ClearCacheSurfaceInThread();
         }
+        drawWindowCache_.ClearCache();
     }
 
-    bool IsCurFrameStatic(DeviceType deviceType);
+    bool IsCurFrameStatic();
 
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
@@ -207,6 +211,14 @@ public:
     {
         return isSubThreadSkip_;
     }
+
+    void ProcessSurfaceSkipCount();
+    void ResetSurfaceSkipCount();
+    int32_t GetSurfaceSkipCount() const;
+    int32_t GetSurfaceSkipPriority();
+    bool IsHighPostPriority();
+    void SetHighPostPriority(bool postPriority);
+
     void SetTaskFrameCount(uint64_t frameCount);
 
     uint64_t GetTaskFrameCount() const;
@@ -219,9 +231,34 @@ public:
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
+
+    // uifirst dirtyRegion
+    std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
+    void UpdateCacheSurfaceDirtyManager(bool hasCompleteCache, int bufferAge = 1); // 1 means buffer age
+    void UpdateUifirstDirtyManager() override;
+    void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
+    Drawing::Region GetUifirstDirtyRegion() const;
+    Drawing::RectI CalculateUifirstDirtyRegion(bool dirtyEnableFlag);
+    Drawing::RectI MergeUifirstAllSurfaceDirtyRegion(bool dirtyEnableFlag);
+    void SetUifrstDirtyEnableFlag(bool dirtyEnableFlag);
+    bool GetUifrstDirtyEnableFlag() const;
+    void PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion);
+    bool IsCacheValid() const;
+    void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
+
     GraphicColorGamut GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams);
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
+
+    void SetUIExtensionNeedToDraw(bool needToDraw) override
+    {
+        uiExtensionNeedToDraw_ = needToDraw;
+    }
+
+    bool UIExtensionNeedToDraw() const override
+    {
+        return uiExtensionNeedToDraw_;
+    }
 
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
@@ -249,6 +286,7 @@ public:
         return cacheSurface_ ? true : false;
     }
     int GetTotalProcessedSurfaceCount() const;
+    void UpdateCacheSurfaceInfo();
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
@@ -257,9 +295,6 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
-        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
     Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
     void CrossDisplaySurfaceDirtyRegionConversion(
@@ -274,6 +309,7 @@ private:
         RSRenderThreadParams& uniParams) const;
     void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
     void ClearTotalProcessedSurfaceCount();
+    void PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas);
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -297,6 +333,8 @@ private:
 
     bool RecordTimestamp(NodeId id, uint32_t seqNum);
 
+    bool DrawCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
@@ -307,14 +345,23 @@ private:
 #endif
     std::shared_ptr<RSSurface> surface_ = nullptr;
     bool surfaceCreated_ = false;
+    bool uiExtensionNeedToDraw_ = false;
 
     // UIFIRST
+    bool isCacheValid_ = false;
+    bool isCacheCompletedValid_ = false;
     std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
+    struct CacheSurfaceInfo {
+        int processedSurfaceCount = -1;
+        float alpha = -1.f;
+    };
+    CacheSurfaceInfo cacheSurfaceInfo_;
+    CacheSurfaceInfo cacheCompletedSurfaceInfo_;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #ifdef RS_ENABLE_GPU
@@ -335,6 +382,9 @@ private:
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint64_t frameCount_ = 0;
     bool isSubThreadSkip_ = false;
+    int32_t isSurfaceSkipCount_ = 0;
+    int32_t isSurfaceSkipPriority_ = 0;
+    bool isHighPostPriority_ = false;
 
     RSPaintFilterCanvas* curCanvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
@@ -351,10 +401,13 @@ private:
 
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
+    std::shared_ptr<RSDirtyRegionManager> syncUifirstDirtyManager_ = nullptr;
     Occlusion::Region visibleDirtyRegion_;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region globalDirtyRegion_;
+    Drawing::Region uifirstDirtyRegion_;
+    bool uifrstDirtyEnableFlag_ = false;
 
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
@@ -367,6 +420,7 @@ private:
     uint32_t uifirstPostOrder_ = 0;
 
     static inline bool isInRotationFixed_ = false;
+    bool lastGlobalPositionEnabled_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

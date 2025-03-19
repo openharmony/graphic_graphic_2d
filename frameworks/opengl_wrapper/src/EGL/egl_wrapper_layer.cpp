@@ -39,6 +39,7 @@ constexpr const char *DEBUG_LAYER_GET_PROC_ADDR_FUNC = "DebugLayerGetProcAddr";
 constexpr const char *DEBUG_LAYER_NAME = "debug.graphic.debug_layer";
 constexpr const char *DEBUG_HAP_NAME = "debug.graphic.debug_hap";
 constexpr const char *DEBUG_SANDBOX_DIR = "/data/storage/el1/bundle/";
+constexpr const char *DEBUG_TOOL_DEVELOPER_DIR = "/vendor/lib64/developer/";
 }
 
 static std::string g_strLayers;
@@ -143,7 +144,7 @@ static std::vector<std::string> GetDebugLayers(void)
 static std::vector<std::string> GetDebugLayerPaths()
 {
     WLOGD("GetDebugLayerPaths");
-    std::vector<std::string> layerPaths = {std::string(DEBUG_LAYERS_LIB_DIR)};
+    std::vector<std::string> layerPaths = {std::string(DEBUG_LAYERS_LIB_DIR), std::string(DEBUG_TOOL_DEVELOPER_DIR)};
     std::string pathStr(DEBUG_SANDBOX_DIR);
 
     std::string appLibPath = g_bundleInfo.applicationInfo.nativeLibraryPath;
@@ -293,6 +294,13 @@ bool EglWrapperLayer::LoadLayers()
         WLOGD("Get BundleInfo failed.");
     }
 
+    WLOGD("appProvisionType is %{public}s !", g_bundleInfo.applicationInfo.appProvisionType.c_str());
+    if (std::find(layers.begin(), layers.end(), "squid") != layers.end() &&
+        g_bundleInfo.applicationInfo.appProvisionType == "release") {
+        WLOGD("appProvisionType is release");
+        return false;
+    }
+    
     for (int32_t i = layers.size() - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
         std::vector<std::string> allLayerPaths = GetDebugLayerPaths();

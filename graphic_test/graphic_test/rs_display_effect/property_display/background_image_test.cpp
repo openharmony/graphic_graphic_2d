@@ -81,12 +81,12 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Te
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_InnerRect_Test)
 {
     int columnCount = 2;
-    int rowCount = 2;
+    int rowCount = 3;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<Vector2f> sizeList = { { sizeX - 10, sizeY - 10 }, { sizeX - 100, sizeY - 100 }, { 445, 445 },
-        { 500, 500 } };
+    std::vector<Vector2f> sizeList = {  { -200, -200 }, { sizeX - 10, sizeY - 10 }, { sizeX - 100, sizeY - 100 },
+        { 445, 445 }, { 500, 500 } };
 
     for (int i = 0; i < sizeList.size(); i++) {
         int x = (i % columnCount) * sizeX;
@@ -104,16 +104,17 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_In
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Size_Test)
 {
+    std::vector<float> factorList = { -0.5, 0, 0.233, 0.5, 2 };
+
     int columnCount = 2;
-    int rowCount = 4;
+    int rowCount = factorList.size();
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<float> factorList = { 0, 0.233, 0.5, 2 };
 
-    for (int i = 0; i < factorList.size(); i++) {
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0;
+        int y = i * sizeY;
         auto testNodeBackGround =
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
@@ -124,9 +125,9 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Si
         RegisterNode(testNodeBackGround);
     }
 
-    for (int i = 0; i < factorList.size(); i++) {
-        int x = (i % columnCount) * sizeX;
-        int y = ((i + 4) / columnCount) * sizeY;
+    for (int i = 0; i < rowCount; i++) {
+        int x = sizeX;
+        int y = i * sizeY;
         auto testNodeBackGround =
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
@@ -140,16 +141,16 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Si
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Position_Test)
 {
+    std::vector<float> factorList = { -0.5, 0, 0.233, 0.5, 2 };
+
     int columnCount = 2;
-    int rowCount = 4;
+    int rowCount = factorList.size();
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<float> factorList = { 0, 0.233, 0.5, 2 };
-
-    for (int i = 0; i < factorList.size(); i++) {
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0;
+        int y = i * sizeY;
         auto testNodeBackGround =
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
@@ -160,9 +161,9 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Po
         RegisterNode(testNodeBackGround);
     }
 
-    for (int i = 0; i < factorList.size(); i++) {
-        int x = (i % columnCount) * sizeX;
-        int y = ((i + 4) / columnCount) * sizeY;
+    for (int i = 0; i < rowCount; i++) {
+        int x = sizeX;
+        int y = i * sizeY;
         auto testNodeBackGround =
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
@@ -241,4 +242,25 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Al
     }
 }
 
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_InnerRect_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = 3;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Vector2f> positionList = {{-200, -200}, {20, 20}, {100, 100}, {300, 300}, {500, 500}};
+    for (int i = 0; i < positionList.size(); i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNodeBackGround->SetBgImageInnerRect({x + positionList[i][0], y + positionList[i][1], sizeX, sizeY});
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
 } // namespace OHOS::Rosen

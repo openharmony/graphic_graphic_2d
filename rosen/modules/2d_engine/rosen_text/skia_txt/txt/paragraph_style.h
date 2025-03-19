@@ -16,15 +16,16 @@
 #ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_STYLE_H
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_STYLE_H
 
+#include <bitset>
 #include <climits>
 #include <string>
 
 #include "text_style.h"
+#include "rosen_text/typography_style.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-
 enum class WordBreakType {
     NORMAL,     // to be done.
     BREAK_ALL,  // break occur after any characters.
@@ -51,7 +52,14 @@ struct TextTab {
 class ParagraphStyle {
 public:
     TextStyle ConvertToTextStyle() const;
+
     TextAlign GetEquivalentAlign() const;
+
+    void SetRelayoutBitMap(const std::bitset<static_cast<size_t>(
+        RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>& relayoutChangeBitmap)
+    {
+        this->relayoutChangeBitmap = relayoutChangeBitmap;
+    }
 
     FontWeight fontWeight = FontWeight::W400;
     FontWidth fontWidth = FontWidth::NORMAL;
@@ -87,6 +95,11 @@ public:
     bool hintingIsOn = false;
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     TextTab tab;
+    float paragraphSpacing { 0.0f };
+    bool isEndAddParagraphSpacing { false };
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
+        relayoutChangeBitmap;
+    size_t textStyleUid { 0 };
 };
 } // namespace SPText
 } // namespace Rosen

@@ -14,9 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -113,5 +114,30 @@ HWTEST_F(RSRootRenderNodeTest, QuickPrepare, TestSize.Level1)
     rsRootRenderNode.QuickPrepare(visitorTwo);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: EnableWindowKeyFrame
+ * @tc.desc: test EnableWindowKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSRootRenderNodeTest, EnableWindowKeyFrame, TestSize.Level1)
+{
+    NodeId id = static_cast<NodeId>(1);
+    std::weak_ptr<RSContext> context;
+    RSRootRenderNode rsRootRenderNode(id, context);
+    
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(stagingRenderParams, nullptr);
+
+    rsRootRenderNode.stagingRenderParams_ = std::move(stagingRenderParams);
+    auto enable = rsRootRenderNode.stagingRenderParams_->IsWindowKeyFrameEnabled();
+    rsRootRenderNode.EnableWindowKeyFrame(enable);
+    EXPECT_EQ(rsRootRenderNode.IsWindowKeyFrameEnabled(), enable);
+
+    rsRootRenderNode.EnableWindowKeyFrame(!enable);
+    EXPECT_EQ(rsRootRenderNode.IsWindowKeyFrameEnabled(), !enable);
+}
+
 } // namespace Rosen
 } // namespace OHOS

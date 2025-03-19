@@ -24,6 +24,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -494,6 +495,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
 
+    auto rSRcdSurfaceRenderNode = std::make_shared<const RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
+    EXPECT_TRUE(adapter->renderParams_ == nullptr);
+    RSRenderNodeDrawableAdapter::InitRenderParams(rSRcdSurfaceRenderNode, adapter);
+    EXPECT_TRUE(adapter->renderParams_ != nullptr);
+    adapter->renderParams_.reset(nullptr);
+
     auto defaultRenderNode = std::make_shared<const RSRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(defaultRenderNode, adapter);
@@ -562,6 +569,25 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
     adapter->drawCmdIndex_.useEffectIndex_ = 0;
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
+}
+
+/**
+ * @tc.name: DrawLeashWindowBackground001
+ * @tc.desc: Test DrawLeashWindowBackground
+ * @tc.type: FUNC
+ * @tc.require: issueIB035Y
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawLeashWindowBackground001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Rect rect(0, 0, 100, 100);
+    adapter->DrawLeashWindowBackground(canvas, rect, false, -1);
 }
 
 /**

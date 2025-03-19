@@ -55,9 +55,9 @@ private:
     MemorySnapshot& operator=(const MemorySnapshot&) = delete;
     MemorySnapshot& operator=(const MemorySnapshot&&) = delete;
     
-    void findMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
+    void FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
         size_t& maxCpu, size_t& maxGpu, size_t& maxSum);
-    float calculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
+    float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
@@ -67,7 +67,7 @@ private:
     uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
     size_t totalMemory_ = 0; // record the total memory of all processes
     MemoryOverflowCalllback callback_ = nullptr;
-    uint64_t memorySnapshotHilogTime_ = 0;
+    int64_t memorySnapshotHilogTime_ = 0;
 };
 } // namespace OHOS
 } // namespace Rosen

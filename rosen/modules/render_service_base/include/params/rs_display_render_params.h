@@ -38,6 +38,18 @@ public:
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
+
+    inline void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
+    }
+
+    inline void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
+    }
+
+    const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetDisplayOffsetX() const
     {
         return offsetX_;
@@ -62,6 +74,17 @@ public:
     {
         return mirrorSourceId_;
     }
+
+    bool IsDirtyAlignEnabled() const
+    {
+        return isDirtyAlignEnabled_;
+    }
+
+    void SetDirtyAlignEnabled(bool isDirtyAlignEnabled)
+    {
+        isDirtyAlignEnabled_ = isDirtyAlignEnabled;
+    }
+
     RSDisplayRenderNode::CompositeType GetCompositeType() const
     {
         return compositeType_;
@@ -119,6 +142,7 @@ public:
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasCaptureWindow() const;
+
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
@@ -145,6 +169,9 @@ public:
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
 
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
+
     bool IsSpecialLayerChanged() const
     {
         auto iter = displaySpecailSurfaceChanged_.find(screenId_);
@@ -166,6 +193,16 @@ public:
         return hasSecLayerInVisibleRectChanged_;
     }
 
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
+    {
+        return roundCornerSurfaceDrawables_;
+    }
+
+    bool GetVirtualScreenMuteStatus() const
+    {
+        return virtualScreenMuteStatus_;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -176,6 +213,7 @@ private:
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     int32_t offsetX_ = -1;
     int32_t offsetY_ = -1;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
@@ -185,6 +223,7 @@ private:
     bool isSecurityExemption_ = false;
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
+    bool isDirtyAlignEnabled_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;
@@ -200,9 +239,13 @@ private:
     bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    bool virtualScreenMuteStatus_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

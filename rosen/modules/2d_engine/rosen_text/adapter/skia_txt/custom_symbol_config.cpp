@@ -51,8 +51,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
     std::unique_lock<std::shared_mutex> lock(mutex_);
     std::unordered_map<uint16_t, RSSymbolLayersGroups> symbolConfigGroup;
     LoadSymbolErrorCode result = LoadSymbolErrorCode::JSON_ERROR;
-    SymbolConfigParser symbolConfigTool;
-    if (symbolConfigTool.ParseSymbolLayersGrouping(root, symbolConfigGroup)) {
+    if (SymbolConfigParser::ParseSymbolLayersGrouping(root, symbolConfigGroup)) {
         symbolConfig_.emplace(familyName, symbolConfigGroup);
         result = LoadSymbolErrorCode::SUCCESS;
     }

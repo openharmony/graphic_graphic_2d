@@ -149,21 +149,21 @@ void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
         if (napi_get_element(env, allFeatureValue, further, &singleElementValue) != napi_ok) {
-            TEXT_LOGE("This parameter of the font features is unvaild");
+            TEXT_LOGE("Failed to get font feature");
             break;
         }
         napi_value featureElement;
         std::string name;
         if (napi_get_named_property(env, singleElementValue, "name", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, name)) {
-            TEXT_LOGE("This time that the name of parameter in font features is unvaild");
+            TEXT_LOGE("Failed to get name");
             break;
         }
 
         int value = 0;
         if (napi_get_named_property(env, singleElementValue, "value", &featureElement) != napi_ok ||
             !ConvertFromJsValue(env, featureElement, value)) {
-            TEXT_LOGE("This time that the value of parameter in font features is unvaild");
+            TEXT_LOGE("Failed to get value");
             break;
         }
         textStyle.fontFeatures.SetFeature(name, value);
@@ -176,30 +176,31 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
     napi_value allVariationValue = nullptr;
     napi_get_named_property(env, argValue, "fontVariations", &allVariationValue);
     uint32_t arrayLength = 0;
-    if (napi_get_array_length(env, allVariationValue, &arrayLength) != napi_ok ||
-        !arrayLength) {
-        TEXT_LOGD("Failed to get font variation");
+    auto status = napi_get_array_length(env, allVariationValue, &arrayLength);
+    if ((status != napi_ok) || (arrayLength == 0)) {
+        TEXT_LOGD("Failed to get variations, ret %{public}d", static_cast<int>(status));
         return;
     }
 
     for (uint32_t further = 0; further < arrayLength; further++) {
         napi_value singleElementValue;
-        if (napi_get_element(env, allVariationValue, further, &singleElementValue) != napi_ok) {
-            TEXT_LOGE("This parameter of the font variations is unvaild");
+        status = napi_get_element(env, allVariationValue, further, &singleElementValue);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get variation, ret %{public}d", static_cast<int>(status));
             break;
         }
         napi_value variationElement;
         std::string axis;
-        if (napi_get_named_property(env, singleElementValue, "axis", &variationElement) != napi_ok ||
-            !ConvertFromJsValue(env, variationElement, axis)) {
-            TEXT_LOGE("This time that the axis of parameter in font variations is unvaild");
+        status = napi_get_named_property(env, singleElementValue, "axis", &variationElement);
+        if ((status != napi_ok) || !ConvertFromJsValue(env, variationElement, axis)) {
+            TEXT_LOGE("Failed to get axis, ret %{public}d", static_cast<int>(status));
             break;
         }
 
         int value = 0;
-        if (napi_get_named_property(env, singleElementValue, "value", &variationElement) != napi_ok ||
-            !ConvertFromJsValue(env, variationElement, value)) {
-            TEXT_LOGE("This time that the value of parameter in font variations is unvaild");
+        status = napi_get_named_property(env, singleElementValue, "value", &variationElement);
+        if ((status != napi_ok) || !ConvertFromJsValue(env, variationElement, value)) {
+            TEXT_LOGE("Failed to get value, ret %{public}d", static_cast<int>(status));
             break;
         }
         textStyle.fontVariations.SetAxisValue(axis, value);
@@ -227,23 +228,30 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
         Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
         Drawing::Point offset(0, 0);
         double runTimeRadius = 0;
-        if (napi_get_element(env, allShadowValue, further, &element) != napi_ok) {
-            TEXT_LOGE("The parameter of as private text-shadow is unvaild");
+        auto status = napi_get_element(env, allShadowValue, further, &element);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get shadow, ret %{public}d", static_cast<int>(status));
             return;
         }
         SetColorFromJS(env, element, "color", colorSrc);
 
         napi_value pointValue = nullptr;
-        if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            TEXT_LOGE("The parameter of as private point is unvaild");
+        status = napi_get_named_property(env, element, "point", &pointValue);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get point, ret %{public}d", static_cast<int>(status));
             return;
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
-        if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
-            napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
-            TEXT_LOGE("The parameter of as private blur radius is unvaild");
+        status = napi_get_named_property(env, element, "blurRadius", &radius);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get blur radius, ret %{public}d", static_cast<int>(status));
+            return;
+        }
+        status = napi_get_value_double(env, radius, &runTimeRadius);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to get radius, ret %{public}d", static_cast<int>(status));
             return;
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
@@ -259,8 +267,9 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
     }
 
     uint32_t arrayLength = 0;
-    if (napi_get_array_length(env, allShadowValue, &arrayLength) != napi_ok) {
-        TEXT_LOGE("The parameter of text shadow is not array");
+    auto status = napi_get_array_length(env, allShadowValue, &arrayLength);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get shadow array length, ret %{public}d", static_cast<int>(status));
         return;
     }
     ScanShadowValue(env, allShadowValue, arrayLength, textStyle);
@@ -558,14 +567,121 @@ napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& line
     }
     return objValue;
 }
- 
+
+napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows)
+{
+    napi_value jsArray = nullptr;
+    napi_status arrayStatus = napi_create_array_with_length(env, textShadows.size(), &jsArray);
+    if (arrayStatus != napi_ok) {
+        TEXT_LOGE("Failed to create text Shadows array, ret %{public}d", arrayStatus);
+        return nullptr;
+    }
+    size_t index = 0;
+    for (const auto& shadow : textShadows) {
+        if (!shadow.HasShadow()) {
+            continue;
+        }
+        napi_value shadowObj = nullptr;
+        napi_status status = napi_create_object(env, &shadowObj);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create shadow object, ret %{public}d", status);
+            continue;
+        }
+        napi_set_named_property(
+            env, shadowObj, "color", CreateJsNumber(env, (uint32_t)shadow.color.CastToColorQuad()));
+        napi_set_named_property(
+            env, shadowObj, "point", CreatePointJsValue(env, (OHOS::Rosen::Drawing::PointF)shadow.offset));
+        napi_set_named_property(env, shadowObj, "blurRadius", CreateJsNumber(env, shadow.blurRadius));
+        status = napi_set_element(env, jsArray, index, shadowObj);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set shadow in textShadows, ret %{public}d", status);
+            continue;
+        }
+        index++;
+    }
+    
+    return jsArray;
+}
+
+napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& point)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "x", CreateJsNumber(env, point.GetX()));
+        napi_set_named_property(env, objValue, "y", CreateJsNumber(env, point.GetY()));
+    }
+    return objValue;
+}
+
+napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "color", CreateJsNumber(env, (uint32_t)rectStyle.color));
+        napi_set_named_property(env, objValue, "leftTopRadius", CreateJsNumber(env, rectStyle.leftTopRadius));
+        napi_set_named_property(env, objValue, "rightTopRadius", CreateJsNumber(env, rectStyle.rightTopRadius));
+        napi_set_named_property(env, objValue, "rightBottomRadius", CreateJsNumber(env, rectStyle.rightBottomRadius));
+        napi_set_named_property(env, objValue, "leftBottomRadius", CreateJsNumber(env, rectStyle.leftBottomRadius));
+    }
+    return objValue;
+}
+
+napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontFeatures)
+{
+    napi_value jsArray;
+    napi_status arrayStatus = napi_create_array(env, &jsArray);
+    if (arrayStatus != napi_ok) {
+        TEXT_LOGE("Failed to create fontFeature array, ret %{public}d", arrayStatus);
+        return nullptr;
+    }
+    const std::vector<std::pair<std::string, int>>& featureSet = fontFeatures.GetFontFeatures();
+    for (size_t i = 0; i < featureSet.size(); ++i) {
+        const auto& feature = featureSet[i];
+        napi_value jsObject;
+        napi_status status = napi_create_object(env, &jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create fontFeature, ret %{public}d", status);
+            continue;
+        }
+        napi_set_named_property(env, jsObject, "name", CreateStringJsValue(env, Str8ToStr16(feature.first)));
+        napi_set_named_property(env, jsObject, "value", CreateJsNumber(env, feature.second));
+        napi_set_element(env, jsArray, i, jsObject);
+        status = napi_set_element(env, jsArray, i, jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set fontFeature, ret %{public}d", status);
+            continue;
+        }
+    }
+
+    return jsArray;
+}
+
+napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(
+            env, objValue, "textDecoration", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(
+            env, objValue, "color", CreateJsNumber(env, (uint32_t)textStyle.decorationColor.CastToColorQuad()));
+        napi_set_named_property(
+            env, objValue, "decorationStyle", CreateJsNumber(env, static_cast<uint32_t>(textStyle.decorationStyle)));
+        napi_set_named_property(
+            env, objValue, "decorationThicknessScale", CreateJsNumber(env, textStyle.decorationThicknessScale));
+    }
+
+    return objValue;
+}
+
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
-        napi_set_named_property(env, objValue, "decoration", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.decoration)));
+        napi_set_named_property(env, objValue, "decoration", CreateDecrationJsValue(env, textStyle));
         napi_set_named_property(env, objValue, "color", CreateJsNumber(env,
             (uint32_t)textStyle.color.CastToColorQuad()));
         napi_set_named_property(env, objValue, "fontWeight", CreateJsNumber(
@@ -585,6 +701,11 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "ellipsisMode", CreateJsNumber(
             env, static_cast<uint32_t>(textStyle.ellipsisModal)));
         napi_set_named_property(env, objValue, "locale", CreateJsValue(env, textStyle.locale));
+        napi_set_named_property(env, objValue, "baselineShift", CreateJsNumber(env, textStyle.baseLineShift));
+        napi_set_named_property(env, objValue, "backgroundRect", CreateRectStyleJsValue(env, textStyle.backgroundRect));
+        napi_set_named_property(env, objValue, "textShadows", CreateShadowArrayJsValue(env, textStyle.shadows));
+        napi_set_named_property(
+            env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
     }
     return objValue;
 }
@@ -810,22 +931,27 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
 {
     napi_valuetype valueType = napi_undefined;
     if (arg == nullptr || napi_typeof(env, arg, &valueType) != napi_ok || valueType != napi_object) {
-        TEXT_LOGE("Failed arg is invalid");
+        TEXT_LOGE("Invalid arg");
         return false;
     }
+
     napi_value tempValue = nullptr;
-    if (napi_get_named_property(env, arg, "start", &tempValue) != napi_ok) {
-        TEXT_LOGE("Failed start is invalid");
+    auto status = napi_get_named_property(env, arg, "start", &tempValue);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get start, ret %{public}d", static_cast<int>(status));
         return false;
     }
     bool isStartOk = ConvertFromJsValue(env, tempValue, start);
-    if (napi_get_named_property(env, arg, "end", &tempValue) != napi_ok) {
-        TEXT_LOGE("Failed end is invalid");
+
+    status = napi_get_named_property(env, arg, "end", &tempValue);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get end, ret %{public}d", static_cast<int>(status));
         return false;
     }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
-        TEXT_LOGE("Failed start or end is invalid");
+        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}lld, end %{public}lld",
+            isStartOk, isEndOk, start, end);
         return false;
     }
 

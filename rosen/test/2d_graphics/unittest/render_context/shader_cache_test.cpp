@@ -286,24 +286,6 @@ HWTEST_F(ShaderCacheTest, load_test_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: cleanAllShaders_test_001
- * @tc.desc: Imporve Coverage
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(ShaderCacheTest, cleanAllShaders_test_001, TestSize.Level1)
-{
-    auto &cache = ShaderCache::Instance();
-    EXPECT_EQ(nullptr, cache.cacheData_);
-    cache.CleanAllShaders();
-    const char* identity = nullptr;
-    cache.InitShaderCache(identity, 0, false);
-    EXPECT_NE(nullptr, cache.cacheData_);
-    cache.CleanAllShaders();
-}
-
-/**
  * @tc.name: querryShaderNum_test_001
  * @tc.desc: Imporve Coverage
  * @tc.type: FUNC

@@ -291,6 +291,38 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3
 }
 
 /*
+ * Function: AddPresentFenceTime003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: set vsyncEnabledScreenId 0
+ *                  2. operation: test AddPresentFenceTime with screenId 0
+ *                  3. result: AddPresentFenceTime function return true
+ */
+HWTEST_F(VSyncSamplerTest, AddPresentFenceTime003, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(0, 0), true); // screenId 0
+    VSyncSamplerTest::vsyncSampler->Reset();
+}
+
+/*
+ * Function: AddPresentFenceTime004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: set vsyncEnabledScreenId 0
+ *                  2. operation: test AddPresentFenceTime with screenId 1
+ *                  3. result: AddPresentFenceTime function return false
+ */
+HWTEST_F(VSyncSamplerTest, AddPresentFenceTime004, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(0);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(1, 0), false); // screenId 1
+    VSyncSamplerTest::vsyncSampler->Reset();
+}
+
+/*
 * Function: DumpTest
 * Type: Function
 * Rank: Important(2)

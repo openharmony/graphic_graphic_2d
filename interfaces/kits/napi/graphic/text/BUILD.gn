@@ -66,6 +66,7 @@ ohos_shared_library("text_napi") {
 }
 
 ohos_shared_library("text_napi_impl") {
+  branch_protector_ret = "pac_ret"
   sources = [
     "enum_napi/text_enum_napi.cpp",
     "fontcollection_napi/js_fontcollection.cpp",
@@ -110,14 +111,8 @@ ohos_shared_library("text_napi_impl") {
   if (current_os == "ohos" || current_os == "ohos_ng") {
     external_deps += [ "init:libbegetutil" ]
     defines = [ "OHOS_TEXT_ENABLE" ]
-    cflags = [ "-fstack-protector-strong" ]
-    cflags_cc = [
-      "-fstack-protector-strong",
-      "-std=c++17",
-    ]
-  } else {
-    cflags_cc = [ "-std=c++17" ]
   }
+  cflags_cc = [ "-std=c++17" ]
 
   if (current_os == "mingw") {
     defines += [ "WINDOWS_PLATFORM" ]

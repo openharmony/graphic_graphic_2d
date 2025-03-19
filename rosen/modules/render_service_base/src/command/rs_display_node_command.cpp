@@ -115,7 +115,7 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
             auto& nodeMap = context.GetNodeMap();
             auto mirrorSourceNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
             if (mirrorSourceNode == nullptr) {
-                ROSEN_LOGD("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
+                ROSEN_LOGW("DisplayNodeCommandHelper::SetDisplayMode fail, displayNodeId:[%{public}" PRIu64 "]"
                     "mirrorNodeId:[%{public}" PRIu64 "]", id, mirrorNodeId);
                 return;
             }
@@ -139,6 +139,17 @@ void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
         ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
         node->SetScbNodePid(oldScbPids, currentScbPid);
+    }
+}
+
+void DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(RSContext& context, NodeId nodeId,
+    bool virtualScreenMuteStatus)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
+        ROSEN_LOGI("SetVirtualScreenMuteStatus NodeId:[%{public}" PRIu64 "]"
+            " screenId: %{public}" PRIu64 " virtualScreenMuteStatus: %{public}d",
+            nodeId, node->GetScreenId(), virtualScreenMuteStatus);
+        node->SetVirtualScreenMuteStatus(virtualScreenMuteStatus);
     }
 }
 } // namespace Rosen

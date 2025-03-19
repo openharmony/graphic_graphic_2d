@@ -24,6 +24,9 @@
 #include "skia_trace_memory_dump.h"
 #include "utils/system_properties.h"
 #include "skia_task_executor.h"
+#ifdef ROSEN_OHOS
+#include "parameters.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -125,6 +128,10 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef ROSEN_OHOS
+    grOptions.fRuntimeProgramCacheSize =
+        std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
+#endif
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
@@ -184,6 +191,20 @@ void SkiaGPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceB
     grContext_->setResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
+void SkiaGPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
+{
+#ifdef SKIA_OHOS
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SetPurgeableResourceLimit, grContext_ is nullptr");
+        return;
+    }
+    grContext_->setPurgeableResourceLimit(purgeableMaxCount);
+#else
+    static_cast<void>(purgeableMaxCount);
+    LOGD("SkiaGPUContext::SetPurgeableResourceLimit, unsupported");
+#endif
+}
+
 void SkiaGPUContext::GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const
 {
     if (!grContext_) {
@@ -200,6 +221,11 @@ void SkiaGPUContext::FreeGpuResources()
         return;
     }
     grContext_->freeGpuResources();
+}
+
+void SkiaGPUContext::ReclaimResources()
+{
+    //Skia Not Implement ReclaimResources.
 }
 
 void SkiaGPUContext::DumpGpuStats(std::string& out)
@@ -221,6 +247,15 @@ void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
         return;
     }
     grContext_->dumpAllResource(dump);
+}
+
+void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllCoreTrace, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllCoreTrace(dump);
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
@@ -258,6 +293,15 @@ void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, cons
         return;
     }
     grContext_->purgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
+void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
+        return;
+    }
+    grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
 }
 
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()

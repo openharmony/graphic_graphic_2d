@@ -52,6 +52,101 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessCommandsStart001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ProcessCommandsStart001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.LoadLibrary();
+    EXPECT_TRUE(fr.frameSchedSoLoaded_);
+    EXPECT_EQ(fr.processCommandsStartFun_, nullptr);
+    fr.ProcessCommandsStart();
+    EXPECT_NE(fr.processCommandsStartFun_, nullptr);
+    fr.ProcessCommandsStart();
+}
+ 
+/**
+ * @tc.name: AnimateStart001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.animateStartFunc_, nullptr);
+    fr.AnimateStart();
+    EXPECT_NE(fr.animateStartFunc_, nullptr);
+    fr.AnimateStart();
+}
+ 
+/**
+ * @tc.name: RenderStart001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.renderStartFunc_, nullptr);
+    uint64_t timestamp = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    fr.RenderStart(timestamp);
+    EXPECT_NE(fr.renderStartFunc_, nullptr);
+    fr.RenderStart(timestamp);
+}
+ 
+/**
+ * @tc.name: RSRenderStart001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.parallelRenderStartFunc_, nullptr);
+    fr.RSRenderStart();
+    EXPECT_NE(fr.parallelRenderStartFunc_, nullptr);
+    fr.RSRenderStart();
+}
+ 
+/**
+ * @tc.name: RenderEnd001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.renderEndFunc_, nullptr);
+    fr.RenderEnd();
+    EXPECT_NE(fr.renderEndFunc_, nullptr);
+    fr.RenderEnd();
+}
+ 
+/**
+ * @tc.name: RSRenderEnd001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    EXPECT_EQ(fr.parallelRenderEndFunc_, nullptr);
+    fr.RSRenderEnd();
+    EXPECT_NE(fr.parallelRenderEndFunc_, nullptr);
+    fr.RSRenderEnd();
+}
+
+/**
  * @tc.name: SendCommandsStart001
  * @tc.desc: test
  * @tc.type:FUNC

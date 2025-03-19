@@ -144,12 +144,11 @@ template("drawing_ndk_source_set") {
       external_deps += [
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
+        "icu:shared_icuuc",
         "image_framework:image_native",
         "image_framework:pixelmap",
         "image_framework:pixelmap_ndk",
       ]
-
-      deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]
     } else {
@@ -166,7 +165,7 @@ template("drawing_ndk_source_set") {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     if (enable_text_gine) {
-      deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+      deps = [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
         include_dirs +=

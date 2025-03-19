@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
+#include "params/rs_render_params.h"
 #include "pipeline/rs_root_render_node.h"
-
+#include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
@@ -45,6 +46,11 @@ RSRootRenderNode::~RSRootRenderNode()
 void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
 {
     surfaceNodeId_ = surfaceNodeId;
+}
+
+void RSRootRenderNode::AttachToken(uint64_t token)
+{
+    token_ = token;
 }
 
 float RSRootRenderNode::GetSuggestedBufferWidth() const
@@ -104,5 +110,24 @@ void RSRootRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     RSRenderNode::RenderTraceDebug();
     visitor->ProcessRootRenderNode(*this);
 }
+
+// [Attention] Only used in PC window resize scene now
+void RSRootRenderNode::EnableWindowKeyFrame(bool enable)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSRootRenderNode::EnableWindowKeyFrame stagingRenderParams is null");
+        return;
+    }
+
+    stagingRenderParams_->EnableWindowKeyFrame(enable);
+    AddToPendingSyncList();
+}
+
+// [Attention] Only used in PC window resize scene now
+bool RSRootRenderNode::IsWindowKeyFrameEnabled()
+{
+    return stagingRenderParams_ != nullptr ? stagingRenderParams_->IsWindowKeyFrameEnabled() : false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

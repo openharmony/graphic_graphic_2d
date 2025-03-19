@@ -231,6 +231,11 @@ public:
         maxTE_ = maxTE;
     }
 
+    int32_t GetPluseNum() const
+    {
+        return pluseNum_;
+    }
+
     // called by RSMainThread/RSUniRenderThread
     bool GetDirectCompositionFlag() const
     {
@@ -244,11 +249,7 @@ public:
     }
 
     // called by RSMainThread
-    void SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
-    {
-        mPolicyConfigData_->hfbcConfig_ = hfbcConfig;
-    }
-
+    void SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig);
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
@@ -276,6 +277,7 @@ public:
     // for LTPO
     void SetLtpoConfig();
     void SetScreenConstraintConfig();
+    void SetPerformanceConfig();
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
@@ -325,7 +327,7 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
-    void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
+    void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool IsEnabled() const
     {
@@ -356,11 +358,12 @@ private:
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
     std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
-    bool isDelayMode_ = false;
+    bool isDelayMode_ = true;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;
+    int32_t pluseNum_ = -1;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };
@@ -371,6 +374,8 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
+
+    friend class HWCParam;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

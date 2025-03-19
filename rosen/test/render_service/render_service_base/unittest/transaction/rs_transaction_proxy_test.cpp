@@ -194,7 +194,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction005, TestSize.Level1)
     ASSERT_NE(renderThreadClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
 }
@@ -216,7 +216,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction006, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
 }
@@ -286,7 +286,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT003, TestSize.Lev
     ASSERT_NE(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
     RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timestamp);
 }
@@ -404,7 +404,7 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction003, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
 }
@@ -426,7 +426,7 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction004, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
 }
@@ -449,7 +449,7 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction005, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
 }
@@ -533,7 +533,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand001, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     command.reset();
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
 }
@@ -553,7 +553,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand002, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     command.reset();
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
 }
@@ -574,7 +574,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand003, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     command.reset();
     RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
 }
@@ -594,7 +594,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand004, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
 }
 
@@ -613,7 +613,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand005, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
 }
 
@@ -633,7 +633,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand006, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
 }
 
@@ -653,7 +653,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommand007, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
 }
 
@@ -670,7 +670,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommandFromRT001, TestSize.Level1)
     ASSERT_EQ(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
     command.reset();
     RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
@@ -688,7 +688,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommandFromRT002, TestSize.Level1)
     ASSERT_NE(renderServiceClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
     command.reset();
     RSTransactionProxy::GetInstance()->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
@@ -815,7 +815,7 @@ HWTEST_F(RSTransactionProxyTest, ExecuteSynchronousTask006, TestSize.Level1)
 HWTEST_F(RSTransactionProxyTest, AddCommonCommandTest, TestSize.Level1)
 {
     RSTransactionProxy::GetInstance()->Begin();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     command.reset();
     bool isRenderServiceCommand = false;
     auto renderThreadClient = CreateRenderThreadClient();
@@ -843,7 +843,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT004, TestSize.Lev
     instance->StartSyncTransaction();
     instance->Begin();
     instance->SetSyncTransactionNum(0);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     instance->AddCommonCommand(command);
     instance->AddRemoteCommand(command, 1, FollowType::NONE);
     while (!instance->implicitCommonTransactionDataStack_.empty() ||

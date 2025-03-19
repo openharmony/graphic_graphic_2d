@@ -185,7 +185,6 @@ public:
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
     static bool IsHighContrastEnabled();
-    static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()
@@ -226,6 +225,7 @@ public:
         return captureSkContext_;
     }
 #endif
+    void DumpVkImageInfo(std::string &dumpString);
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 

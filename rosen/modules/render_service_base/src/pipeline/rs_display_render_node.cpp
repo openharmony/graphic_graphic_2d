@@ -34,7 +34,9 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     : RSRenderNode(id, context), isMirroredDisplay_(config.isMirrored), offsetX_(0), offsetY_(0),
       screenId_(config.screenId), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
-    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", screenid:%{public}" PRIu64, id, screenId_);
+    RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64
+        ", isMirrored:%{public}d, mirrorNodeId:%{public}" PRIu64 ", isSync:%{public}d]",
+        id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
@@ -91,6 +93,18 @@ void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, N
     RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, cacheNodeId, uifirstRootNodeId, GetId());
 }
 
+void RSDisplayRenderNode::SetScreenId(uint64_t screenId)
+{
+    RS_TRACE_NAME_FMT("RSScreenManager %s:displayNode[%" PRIu64 "] change screen [%" PRIu64 "] "
+        "to [%" PRIu64 "].", __func__, GetId(), screenId_, screenId);
+    RS_LOGI("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
+        "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
+    if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
+        releaseScreenDmaBufferTask_(screenId_);
+    }
+    screenId_ = screenId;
+}
+
 RSDisplayRenderNode::CompositeType RSDisplayRenderNode::GetCompositeType() const
 {
     return compositeType_;
@@ -141,8 +155,13 @@ bool RSDisplayRenderNode::GetSecurityDisplay() const
 
 void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
 {
+    if (isMirroredDisplay_ != isMirror) {
+        hasMirroredDisplayChanged_ = true;
+    }
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
+    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%s]",
+        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
         GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 
@@ -220,11 +239,17 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
         surfaceCountForMultiLayersPerf_++;
     }
     curMainAndLeashSurfaceNodes_.clear();
+    topSurfaceOpaqueRects_.clear();
 }
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
 {
     curMainAndLeashSurfaceNodes_.push_back(surface);
+}
+
+void RSDisplayRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
+{
+    topSurfaceOpaqueRects_.push_back(rect);
 }
 
 void RSDisplayRenderNode::UpdateRenderParams()
@@ -246,11 +271,19 @@ void RSDisplayRenderNode::UpdateRenderParams()
     } else {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
+        displayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
+    displayParams->roundCornerSurfaceDrawables_.clear();
+    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
+    }
+    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
+    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }
@@ -298,6 +331,7 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    displayParams->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
 #endif
 }
 
@@ -482,30 +516,6 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
 #endif
 }
 
-void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
-{
-#ifdef RS_ENABLE_GPU
-    if (pixelFormat_ == pixelFormat) {
-        return;
-    }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    if (!displayParams) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    displayParams->SetNewPixelFormat(pixelFormat);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
-    pixelFormat_ = pixelFormat;
-#endif
-}
-
-GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
-{
-    return pixelFormat_;
-}
-
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
 {
 #ifdef RS_ENABLE_GPU
@@ -627,6 +637,19 @@ void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> c
 std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
 {
     return windowContainer_;
+}
+
+void RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable displayParams is null");
+        return;
+    }
+    displayParams->SetTargetSurfaceRenderNodeDrawable(drawable);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

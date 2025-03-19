@@ -438,6 +438,21 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawPathTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawPathWithStencil
+ * @tc.desc: DrawPathWithStencil Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIBROZ2
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawPathWithStencilTest, TestSize.Level1)
+{
+    Drawing::Path path;
+    constexpr uint32_t stencilVal{10};
+    ASSERT_TRUE(paintFilterCanvas_ != nullptr);
+    paintFilterCanvas_->DrawPathWithStencil(path, stencilVal);
+    EXPECT_TRUE(paintFilterCanvas_->canvas_ != nullptr);
+}
+
+/**
  * @tc.name: DrawBackgroundTest
  * @tc.desc: DrawBackground Test
  * @tc.type:FUNC
@@ -668,6 +683,22 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawImageTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageWithStencilTest
+ * @tc.desc: DrawImageWithStencil Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIBROZ2
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawImageWithStencilTest, TestSize.Level1)
+{
+    Drawing::Image image;
+    Drawing::SamplingOptions sampling;
+    constexpr uint32_t stencilVal{10};
+    ASSERT_TRUE(paintFilterCanvas_ != nullptr);
+    paintFilterCanvas_->DrawImageWithStencil(image, SET_XORY1, SET_XORY1, sampling, stencilVal);
+    EXPECT_TRUE(paintFilterCanvas_->canvas_ != nullptr);
+}
+
+/**
  * @tc.name: DrawImageRectTest001
  * @tc.desc: DrawImageRect Test
  * @tc.type:FUNC
@@ -738,6 +769,21 @@ HWTEST_F(RSPaintFilterCanvasTest, ClipRectTest, TestSize.Level1)
     Drawing::Rect rect;
     paintFilterCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, true);
     EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
+ * @tc.name: ClearStencilTest
+ * @tc.desc: ClearStencil Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIBROZ2
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ClearStencilTest, TestSize.Level1)
+{
+    Drawing::RectI rect;
+    constexpr uint32_t stencilVal{10};
+    ASSERT_TRUE(paintFilterCanvas_ != nullptr);
+    paintFilterCanvas_->ClearStencil(rect, stencilVal);
+    EXPECT_TRUE(paintFilterCanvas_->canvas_ != nullptr);
 }
 
 /**

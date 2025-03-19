@@ -18,6 +18,7 @@ import("${graphic_2d_root}/rosen/modules/render_service_base/config.gni")
 config("rs_graphic_test_config") {
   include_dirs = [
     "include",
+    "resource",
     "$graphic_2d_root/rosen/modules",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -75,6 +76,7 @@ ohos_source_set("rs_graphic_test_src") {
   public_external_deps = [
     "graphic_surface:surface",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "image_framework:image_native",
     "libpng:libpng",
     "window_manager:libdm",
@@ -108,4 +110,27 @@ ohos_static_library("rs_graphic_test_main") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+action_foreach("objcopy_resource") {
+  # add resource file here
+  sources = [
+    "$rosen_root/modules/effect/test/resource/images/test.png",
+    # "resource/pngtest.png",
+  ]
+
+  resource_dir =
+      get_label_info(":binary_resource($current_toolchain)", "target_out_dir")
+
+  outputs = [ "$resource_dir/{{source_name_part}}.data" ]
+
+  script = "build_resource_to_bytecode.py"
+  out_target = rebase_path("$resource_dir/") + "{{source_name_part}}.data"
+
+  args = [
+    "--input",
+    "{{source}}",
+    "--output",
+    out_target,
+  ]
 }

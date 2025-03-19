@@ -268,4 +268,32 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize
     params.hasSecLayerInVisibleRectChanged_ = true;
     EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
 }
+
+/**
+ * @tc.name: GetTargetSurfaceRenderNodeDrawable
+ * @tc.desc: test result of Set/GetTargetSurfaceRenderNodeDrawable with invalid params
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderParamsTest, GetTargetSurfaceRenderNodeDrawable, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.SetTargetSurfaceRenderNodeDrawable(std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>());
+    EXPECT_TRUE(params.GetTargetSurfaceRenderNodeDrawable().expired());
+}
+
+/**
+ * @tc.name: GetVirtualScreenMuteStatus
+ * @tc.desc: test result of GetVirtualScreenMuteStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBTNC3
+ */
+HWTEST_F(RSDisplayRenderParamsTest, GetVirtualScreenMuteStatus, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.virtualScreenMuteStatus_ = true;
+    ASSERT_TRUE(params.GetVirtualScreenMuteStatus());
+}
 } // namespace OHOS::Rosen

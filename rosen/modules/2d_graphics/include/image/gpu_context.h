@@ -129,6 +129,8 @@ public:
      */
     void Flush();
 
+    void FlushCommands();
+    void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
      */
@@ -163,6 +165,12 @@ public:
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes);
 
     /**
+     * @brief                   Specify the GPU purgeable resource cache limit.
+     * @param purgeableMaxCount The maximum number of purgeable queue resources that need to be cleaned.
+     */
+    void SetPurgeableResourceLimit(int purgeableMaxCount);
+
+    /**
      * @brief                   Gets the current GPU resource cache usage.
      * @param resourceCount     If non-null, returns the number of resources that are held in the cache.
      * @param resourceBytes     If non-null, returns the total number of bytes of video memory held in the cache.
@@ -171,10 +179,17 @@ public:
 
     void DumpAllResource(std::stringstream& dump) const;
 
+    void DumpAllCoreTrace(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
+
+    /**
+     * @brief                   Deeply clean resources in Relcaim.
+     */
+    void ReclaimResources();
 
     /**
      * @brief                   Dump GPU stats.
@@ -209,6 +224,13 @@ public:
      * @param exitedPidSet            GPU resource exitedPidSet used to purge unlocked resources.
      */
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet);
+
+    /**
+     * @brief                         Register LeashWindow callback function
+     *                                provided callback function when gpu reset with device lost error.
+     * @param LeashWindowCallback     callback function for skia recall
+     */
+    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback);
 
     /**
      * @brief                       Purge unlocked resources in every frame

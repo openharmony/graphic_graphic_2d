@@ -59,6 +59,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("op", JsPath::Op),
     DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
     DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
+    DECLARE_NAPI_FUNCTION("getSegment", JsPath::GetSegment),
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
@@ -335,6 +336,12 @@ napi_value JsPath::GetPositionAndTangent(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnGetPositionAndTangent(env, info) : nullptr;
+}
+
+napi_value JsPath::GetSegment(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetSegment(env, info) : nullptr;
 }
 
 napi_value JsPath::GetMatrix(napi_env env, napi_callback_info info)
@@ -787,6 +794,45 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
             "JsPath::OnGetPositionAndTangent Cannot fill 'position' and 'tangent' Point type.");
     }
     return CreateJsValue(env, result);
+}
+
+napi_value JsPath::OnGetSegment(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetSegment path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_FIVE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FIVE);
+
+    bool forceClosed = false;
+    GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
+    double start = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, start);
+    double stop = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, stop);
+    bool startWithMoveTo = false;
+    GET_BOOLEAN_PARAM(ARGC_THREE, startWithMoveTo);
+    JsPath* jsPath = nullptr;
+    GET_UNWRAP_PARAM(ARGC_FOUR, jsPath);
+
+    Path* dst = jsPath->GetPath();
+    if (dst == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetSegment dst is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnGetSegment parameter3 type.");
+    }
+
+    double length = m_path->GetLength(forceClosed);
+    if (start < 0) {
+        start = 0;
+    }
+    if (stop > length) {
+        stop = length;
+    }
+    if (start >= stop) {
+        return CreateJsValue(env, false);
+    }
+    return CreateJsValue(env, m_path->GetSegment(start, stop, dst, startWithMoveTo, forceClosed));
 }
 
 napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)

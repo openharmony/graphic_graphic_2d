@@ -78,8 +78,9 @@ static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> KAWASE_MATER
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const bool HPS_BLUR_ENABLED = RSSystemProperties::GetHpsBlurEnabled();
 
-RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
-    : RSDrawingFilterOriginal(nullptr), colorMode_(mode)
+RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio,
+    bool disableSystemAdaptation)
+    : RSDrawingFilterOriginal(nullptr), colorMode_(mode), disableSystemAdaptation_(disableSystemAdaptation)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
@@ -88,12 +89,14 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
     hash_ = SkOpts::hash(&style, sizeof(style), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&ratio, sizeof(ratio), hash_);
+    hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
     : RSDrawingFilterOriginal(nullptr), colorMode_(mode),
       radius_(materialParam.radius), saturation_(materialParam.saturation),
-      brightness_(materialParam.brightness), maskColor_(materialParam.maskColor)
+      brightness_(materialParam.brightness), maskColor_(materialParam.maskColor),
+      disableSystemAdaptation_(materialParam.disableSystemAdaptation)
 {
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
         materialParam.radius, materialParam.saturation, materialParam.brightness);
@@ -111,6 +114,7 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     hash_ = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash_);
     hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;
@@ -149,7 +153,7 @@ std::shared_ptr<RSDrawingFilterOriginal> RSMaterialFilter::Compose(
     if (other == nullptr) {
         return nullptr;
     }
-    MaterialParam materialParam = {radius_, saturation_, brightness_, maskColor_};
+    MaterialParam materialParam = {radius_, saturation_, brightness_, maskColor_, disableSystemAdaptation_};
     std::shared_ptr<RSMaterialFilter> result = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
@@ -248,6 +252,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>&
     materialParam.saturation = saturation_ + materialR->saturation_;
     materialParam.brightness = brightness_ + materialR->brightness_;
     materialParam.maskColor = maskColor_ + materialR->maskColor_;
+    materialParam.disableSystemAdaptation = disableSystemAdaptation_;
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
 }
 
@@ -262,6 +267,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Sub(const std::shared_ptr<RSFilter>&
     materialParam.saturation = saturation_ - materialR->saturation_;
     materialParam.brightness = brightness_ - materialR->brightness_;
     materialParam.maskColor = maskColor_ - materialR->maskColor_;
+    materialParam.disableSystemAdaptation = disableSystemAdaptation_;
     return std::make_shared<RSMaterialFilter>(materialParam, materialR->colorMode_);
 }
 
@@ -272,6 +278,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Multiply(float rhs)
     materialParam.saturation = saturation_ * rhs;
     materialParam.brightness = brightness_ * rhs;
     materialParam.maskColor = maskColor_ * rhs;
+    materialParam.disableSystemAdaptation = disableSystemAdaptation_;
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
 }
 
@@ -282,6 +289,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::Negate()
     materialParam.saturation = -saturation_;
     materialParam.brightness = -brightness_;
     materialParam.maskColor = RSColor(0x00000000) - maskColor_;
+    materialParam.disableSystemAdaptation = disableSystemAdaptation_;
     return std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
 }
 
@@ -347,6 +355,11 @@ BLUR_COLOR_MODE RSMaterialFilter::GetColorMode() const
     return colorMode_;
 }
 
+bool RSMaterialFilter::GetDisableSystemAdaptation() const
+{
+    return disableSystemAdaptation_;
+}
+
 bool RSMaterialFilter::CanSkipFrame() const
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
@@ -361,9 +374,10 @@ bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float
         return true;
     }
     return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
-           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
-           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
-           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0);
+        ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
+        ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
+        maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0) &&
+        disableSystemAdaptation_ == otherMaterialFilter->disableSystemAdaptation_;
 }
 
 bool RSMaterialFilter::IsNearZero(float threshold) const
@@ -379,9 +393,10 @@ bool RSMaterialFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
         return true;
     }
     return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
-           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_) &&
-           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_) &&
-           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0);
+        ROSEN_EQ(saturation_, otherMaterialFilter->saturation_) &&
+        ROSEN_EQ(brightness_, otherMaterialFilter->brightness_) &&
+        maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0) &&
+        disableSystemAdaptation_ == otherMaterialFilter->disableSystemAdaptation_;
 }
 
 bool RSMaterialFilter::IsEqualZero() const

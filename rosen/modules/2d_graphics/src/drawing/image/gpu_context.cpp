@@ -61,6 +61,13 @@ void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes
     impl_->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
+void GPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
+{
+    if (impl_) {
+        impl_->SetPurgeableResourceLimit(purgeableMaxCount);
+    }
+}
+
 void GPUContext::Flush()
 {
     impl_->Flush();
@@ -106,9 +113,19 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
+void GPUContext::ReclaimResources()
+{
+    impl_->ReclaimResources();
+}
+
 void GPUContext::DumpAllResource(std::stringstream& dump) const
 {
     impl_->DumpAllResource(dump);
+}
+
+void GPUContext::DumpAllCoreTrace(std::stringstream& dump) const
+{
+    impl_->DumpAllCoreTrace(dump);
 }
 
 void GPUContext::DumpGpuStats(std::string& out) const
@@ -134,6 +151,11 @@ void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GP
 void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
 {
     impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+}
+
+void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+{
+    impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
 
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
@@ -179,6 +201,16 @@ void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t s
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();
+}
+
+void GPUContext::GenerateSubmitInfo(int seq)
+{
+    impl_->GenerateSubmitInfo(seq);
+}
+
+void GPUContext::FlushCommands()
+{
+    impl_->FlushCommands();
 }
 
 #ifdef RS_ENABLE_VK

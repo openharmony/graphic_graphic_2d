@@ -46,43 +46,55 @@ struct TestDefInfo {
     RSGraphicTestType testType;
     RSGraphicTestMode testMode;
     std::string filePath;
+    bool isMultiple;
+    uint8_t testId;
 };
 
 class TestDefManager {
 private:
     TestDefManager() {};
     std::map<std::string, TestDefInfo> testInfos_;
+    std::map<std::string, int> testCaseInfos_;
 
 public:
     static TestDefManager& Instance();
     bool Regist(const char* testCaseName, const char* testName, RSGraphicTestType type, RSGraphicTestMode mode,
-        const char* filePath);
+        const char* filePath, const bool isMultiple);
     const TestDefInfo* GetTestInfo(const char* testCaseName, const char* testName) const;
     std::vector<const TestDefInfo*> GetTestInfosByType(RSGraphicTestType type) const;
     std::vector<const TestDefInfo*> GetAllTestInfos() const;
+    int GetTestCaseCnt(std::string testCaseName) const;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#define GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, test_mode) \
+#define GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, test_mode, multiple_test) \
     bool GTEST_TEST_UNIQUE_ID_(test_case_name, test_name, __LINE__) = \
-        OHOS::Rosen::TestDefManager::Instance().Regist(#test_case_name, #test_name, test_type, test_mode, __FILE__); \
+        OHOS::Rosen::TestDefManager::Instance().Regist( \
+        #test_case_name, #test_name, test_type, test_mode, __FILE__, multiple_test); \
     TEST_F(test_case_name, test_name)
 
 #define GRAPHIC_TEST_2(test_type, test_name) \
-    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::AUTOMATIC)
+    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::AUTOMATIC, false)
 
 #define GRAPHIC_TEST_3(test_case_name, test_type, test_name) \
-    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::AUTOMATIC)
+    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::AUTOMATIC, false)
+
+#define GRAPHIC_TESTS_2(test_type, test_name) \
+    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::AUTOMATIC, true)
+
+#define GRAPHIC_TESTS_3(test_case_name, test_type, test_name) \
+    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::AUTOMATIC, true)
 
 #define GRAPHIC_N_TEST_2(test_type, test_name) \
-    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::MANUAL)
+    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::MANUAL, false)
 
 #define GRAPHIC_N_TEST_3(test_case_name, test_type, test_name) \
-    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::MANUAL)
+    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::MANUAL, false)
 
 #define GET_MACRO(_1, _2, _3, NAME, ...) NAME
 #define GRAPHIC_TEST(...) GET_MACRO(__VA_ARGS__, GRAPHIC_TEST_3, GRAPHIC_TEST_2)(__VA_ARGS__)
 #define GRAPHIC_N_TEST(...) GET_MACRO(__VA_ARGS__, GRAPHIC_N_TEST_3, GRAPHIC_N_TEST_2)(__VA_ARGS__)
+#define GRAPHIC_TESTS(...) GET_MACRO(__VA_ARGS__, GRAPHIC_TESTS_3, GRAPHIC_TESTS_2)(__VA_ARGS__)
 
 #endif // RS_GRAPHIC_TEST_EXT_H

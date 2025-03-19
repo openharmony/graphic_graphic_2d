@@ -58,6 +58,7 @@ public:
     }
 private:
     void RefreshScreenData();
+    std::shared_ptr<Drawing::ShaderEffect> GetSLRShaderEffect(float coeff, int dstWidth);
     std::shared_ptr<Rosen::Drawing::Image> ProcessSLRImage(RSPaintFilterCanvas& canvas,
         Drawing::Image& cacheImageProcessed);
     std::shared_ptr<Drawing::RuntimeShaderBuilder> SLRImageShaderBuilder(
@@ -77,7 +78,7 @@ private:
     uint32_t saveCount_ = 0;
     int kernelSize_ = 2;
     Drawing::Matrix scaleMatrix_;
-
+    std::shared_ptr<Drawing::ColorSpace> defaultColorSpace_;
     std::shared_ptr<Drawing::ShaderEffect> widthEffect_;
     std::shared_ptr<Drawing::ShaderEffect> heightEffect_;
 

@@ -32,7 +32,6 @@ public:
     void Run();
     void FlushMessage();
     std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms);
-    void WaitForVSync(size_t count = 1);
     void ResetImagePath();
 
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
@@ -40,12 +39,22 @@ public:
     void SetSurfaceBounds(const Vector4f& bounds);
     void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
+    void SetScreenSize(float width, float height);
+    bool IsSingleTest();
+    void SetSingleTest(bool IsSingleTest);
+
+    void StartRunUIAnimation();
+    bool HasUIRunningAnimation();
+    void FlushAnimation(int64_t time);
+    void RequestNextVSync();
+    void OnVSync(int64_t time);
 
     static RSGraphicTestDirector& Instance();
 
 private:
     ScreenId screenId_ = 0;
     RectF screenBounds_;
+    bool isSingleTest_ = false;
     std::shared_ptr<RSGraphicRootNode> rootNode_;
     std::shared_ptr<RSUIDirector> rsUiDirector_;
 
@@ -54,6 +63,7 @@ private:
     std::shared_ptr<VSyncWaiter> vsyncWaiter_;
 
     friend class RSGraphicTest;
+    friend class TestDefManager;
 };
 
 } // namespace Rosen

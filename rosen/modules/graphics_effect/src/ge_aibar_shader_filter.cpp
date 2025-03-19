@@ -20,6 +20,7 @@
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkImageFilters.h"
 #include "src/core/SkOpts.h"
+#include "utils/matrix.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -324,16 +324,29 @@ void RSObjAbsGeometry::SetAbsRect()
     absRect_ = MapAbsRect(RectF(0.f, 0.f, width_, height_));
 }
 
-/**
- * Map the rectangle with specific matrix
- * [planning] replaced by Drawing::MapRect
- * @param rect the rectangle to map
- * @param matrix the specific to map
- * @return the mapped absolute rectangle
- */
-RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix)
+RectI RSObjAbsGeometry::DeflateToRectI(const RectF& rect)
 {
-    RectI absRect;
+    RectI dstRect;
+    dstRect.left_ = static_cast<int>(std::ceil(rect.GetLeft()));
+    dstRect.top_ = static_cast<int>(std::ceil(rect.GetTop()));
+    dstRect.width_ = static_cast<int>(std::floor(rect.GetRight() - dstRect.left_));
+    dstRect.height_ = static_cast<int>(std::floor(rect.GetBottom() - dstRect.top_));
+    return dstRect;
+}
+
+RectI RSObjAbsGeometry::InflateToRectI(const RectF& rect)
+{
+    RectI dstRect;
+    dstRect.left_ = static_cast<int>(std::floor(rect.GetLeft()));
+    dstRect.top_ = static_cast<int>(std::floor(rect.GetTop()));
+    dstRect.width_ = static_cast<int>(std::ceil(rect.GetRight() - dstRect.left_));
+    dstRect.height_ = static_cast<int>(std::ceil(rect.GetBottom() - dstRect.top_));
+    return dstRect;
+}
+
+RectF RSObjAbsGeometry::MapRectWithoutRounding(const RectF& rect, const Drawing::Matrix& matrix)
+{
+    RectF absRect;
     // Check if the matrix has skew or negative scaling
     if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_0), 0.f, EPSILON) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_1), 0.f, EPSILON) ||
@@ -341,10 +354,10 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
         Drawing::RectF src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
         Drawing::RectF dst;
         matrix.MapRect(dst, src);
-        absRect.left_ = static_cast<int>(std::floor(dst.GetLeft()));
-        absRect.top_ = static_cast<int>(std::floor(dst.GetTop()));
-        absRect.width_ = static_cast<int>(std::ceil(dst.GetRight() - absRect.left_));
-        absRect.height_ = static_cast<int>(std::ceil(dst.GetBottom() - absRect.top_));
+        absRect.left_ = dst.GetLeft();
+        absRect.top_ = dst.GetTop();
+        absRect.width_ = dst.GetRight() - absRect.left_;
+        absRect.height_ = dst.GetBottom() - absRect.top_;
     } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
         // Map the rectangle's points to the absolute matrix
@@ -361,24 +374,36 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
             p[RIGHT_BOTTOM_POINT].GetY(), p[LEFT_BOTTOM_POINT].GetY());
 
         // Set the absolute rectangle's properties
-        absRect.left_ = static_cast<int>(std::floor(xRange[0]));
-        absRect.top_ = static_cast<int>(std::floor(yRange[0]));
-        absRect.width_ = static_cast<int>(std::ceil(xRange[1] - absRect.left_));
-        absRect.height_ = static_cast<int>(std::ceil(yRange[1] - absRect.top_));
+        absRect.left_ = xRange[0];
+        absRect.top_ = yRange[0];
+        absRect.width_ = xRange[1] - absRect.left_;
+        absRect.height_ = yRange[1] - absRect.top_;
     } else {
         // Calculate the absolute rectangle based on the matrix's translation and scaling
         Drawing::scalar transX = matrix.Get(Drawing::Matrix::TRANS_X);
         Drawing::scalar transY = matrix.Get(Drawing::Matrix::TRANS_Y);
         Drawing::scalar scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
         Drawing::scalar scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
-        absRect.left_ = static_cast<int>(std::floor(rect.left_ * scaleX + transX));
-        absRect.top_ = static_cast<int>(std::floor(rect.top_ * scaleY + transY));
+        absRect.left_ = rect.left_ * scaleX + transX;
+        absRect.top_ = rect.top_ * scaleY + transY;
         float right = (rect.left_ + rect.width_) * scaleX + transX;
         float bottom = (rect.top_ + rect.height_) * scaleY + transY;
-        absRect.width_ = static_cast<int>(std::ceil(right - absRect.left_));
-        absRect.height_ = static_cast<int>(std::ceil(bottom - absRect.top_));
+        absRect.width_ = right - absRect.left_;
+        absRect.height_ = bottom - absRect.top_;
     }
     return absRect;
+}
+
+/**
+ * Map the rectangle with specific matrix
+ * [planning] replaced by Drawing::MapRect
+ * @param rect the rectangle to map
+ * @param matrix the specific to map
+ * @return the mapped absolute rectangle
+ */
+RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix)
+{
+    return InflateToRectI(MapRectWithoutRounding(rect, matrix));
 }
 
 /**

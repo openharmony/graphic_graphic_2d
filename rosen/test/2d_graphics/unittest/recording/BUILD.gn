@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,18 +13,22 @@
 
 import("//build/test.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_graphics/recording"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/2d_graphics/recording"
 
 ohos_unittest("2d_graphics_recording_test") {
   module_out_path = module_output_path
 
   sources = [
     "cmd_list_helper_test.cpp",
+    "draw_cmd_list_test.cpp",
     "draw_cmd_test.cpp",
+    "mask_cmd_list_test.cpp",
+    "mem_allocator_test.cpp",
     "recording_canvas_test.cpp",
   ]
 
   defines = [
+    "ACE_ENABLE_GPU",
     "RS_ENABLE_GPU",
     "ROSEN_OHOS",
     "SUPPORT_OHOS_PIXMAP",
@@ -36,6 +40,11 @@ ohos_unittest("2d_graphics_recording_test") {
     "graphic_2d:2d_graphics",
     "hilog:libhilog",
     "image_framework:image_native",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   part_name = "graphic_2d"

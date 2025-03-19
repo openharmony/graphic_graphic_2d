@@ -681,6 +681,13 @@ HWTEST_F(RSPropertiesTest, SetBounds001, TestSize.Level1)
 
     auto resBounds = properties.GetBounds();
     ASSERT_EQ(false, resBounds.IsZero());
+
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    RSShadow shadow;
+    shadow.SetMask(true);
+    properties.shadow_ = shadow;
+    properties.SetBounds(bounds);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**
@@ -1155,6 +1162,13 @@ HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
     properties.GetOutlineRadius();
 
     EXPECT_NE(nullptr, properties.GetOutline());
+
+    Vector4f corner = { 1.0, 1.0, 1.0, 1.0 };
+    RSShadow shadow;
+    shadow.SetMask(true);
+    properties.shadow_ = shadow;
+    properties.SetCornerRadius(corner);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**
@@ -1824,6 +1838,12 @@ HWTEST_F(RSPropertiesTest, SetShadowPath001, TestSize.Level1)
     properties.SetShadowPath(shadowPath);
     EXPECT_EQ(properties.contentDirty_, true);
     EXPECT_EQ(properties.GetShadowPath(), shadowPath);
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    RSShadow shadow;
+    shadow.SetMask(true);
+    properties.shadow_ = shadow;
+    properties.SetShadowPath(shadowPath);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**

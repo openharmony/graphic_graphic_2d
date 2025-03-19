@@ -25,6 +25,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -137,6 +138,26 @@ public:
     bool GetAnimateState() const
     {
         return animateState_;
+    }
+    void SetStencilVal(int64_t stencilVal)
+    {
+        stencilVal_ = stencilVal;
+    }
+    int64_t GetStencilVal() const
+    {
+        return stencilVal_;
+    }
+    void SetIsOutOfScreen(bool isOutOfScreen)
+    {
+        if (isOutOfScreen_ == isOutOfScreen) {
+            return;
+        }
+        isOutOfScreen_ = isOutOfScreen;
+        needSync_ = true;
+    }
+    bool GetIsOutOfScreen()
+    {
+        return isOutOfScreen_;
     }
     bool GetIsRotating() const
     {
@@ -521,6 +542,20 @@ public:
         return layerLinearMatrix_;
     }
 
+    void SetSdrHasMetadata(bool hasMetadata)
+    {
+        if (hasMetadata_ == hasMetadata) {
+            return;
+        }
+        hasMetadata_ = hasMetadata;
+        needSync_ = true;
+    }
+
+    bool GetSdrHasMetadata() const
+    {
+        return hasMetadata_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
@@ -592,6 +627,20 @@ public:
         return isBufferFlushed_;
     }
 
+    void SetIsUnobscuredUEC(bool flag)
+    {
+        IsUnobscuredUIExtension_ = flag;
+    }
+
+    bool IsUnobscuredUIExtension() const
+    {
+        return IsUnobscuredUIExtension_;
+    }
+
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetSourceDisplayRenderNodeDrawable() const
+    {
+        return sourceDisplayRenderNodeDrawable_;
+    }
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -602,6 +651,7 @@ private:
     RSRenderNode::WeakPtr ancestorDisplayNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
     float alpha_ = 0;
     bool isClonedNodeOnTheTree_ = false;
@@ -627,6 +677,8 @@ private:
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
+
+    bool IsUnobscuredUIExtension_ = false;
 
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
@@ -659,6 +711,7 @@ private:
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;
+    bool isOutOfScreen_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
@@ -676,6 +729,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
@@ -688,8 +742,9 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
-    // color temp
-    std::vector<float> layerLinearMatrix_; // matrix_1
+    // color temperature
+    std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
+    bool hasMetadata_ = false; // SDR with metadata
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;

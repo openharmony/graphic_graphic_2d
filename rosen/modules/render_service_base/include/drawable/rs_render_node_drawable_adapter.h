@@ -19,6 +19,8 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/rs_common_def.h"
@@ -153,6 +155,7 @@ public:
     {
         return nullptr;
     }
+    virtual void UpdateUifirstDirtyManager() {}
 
     using ClearSurfaceTask = std::function<void()>;
     void RegisterClearSurfaceFunc(ClearSurfaceTask task);
@@ -203,6 +206,11 @@ public:
         return withoutFilterMatrixMap_;
     }
 
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetUnobscuredUECMatrixMap() const
+    {
+        return unobscuredUECMatrixMap_;
+    }
+
     void SetLastDrawnFilterNodeId(NodeId nodeId)
     {
         lastDrawnFilterNodeId_ = nodeId;
@@ -218,6 +226,13 @@ public:
         if (purgeFunc_) {
             purgeFunc_();
         }
+    }
+
+    virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
+
+    virtual bool UIExtensionNeedToDraw() const
+    {
+        return false;
     }
 
     void SetDrawSkipType(DrawSkipType type) {
@@ -239,6 +254,11 @@ public:
         isOnDraw_.store(false);
     }
 
+    virtual std::shared_ptr<Drawing::Image> Snapshot() const
+    {
+        return nullptr;
+    }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -250,6 +270,8 @@ protected:
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        bool isStencilPixelOcclusionCullingEnabled = false, int64_t stencilVal = -1) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -267,6 +289,7 @@ protected:
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
+    void CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
@@ -291,6 +314,8 @@ protected:
     DrawCmdIndex uifirstDrawCmdIndex_;
     DrawCmdIndex drawCmdIndex_;
     std::unique_ptr<RSRenderParams> renderParams_;
+    static std::unordered_map<NodeId, Drawing::Matrix> unobscuredUECMatrixMap_;
+    std::shared_ptr<std::unordered_set<NodeId>> UECChildrenIds_ = std::make_shared<std::unordered_set<NodeId>>();
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;

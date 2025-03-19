@@ -51,7 +51,7 @@ void WebGLRenderingContextBasicBase::Create(void* context)
 
 void WebGLRenderingContextBasicBase::Init()
 {
-    LOGD("WebGLRenderingContextBasicBase::Init. %{public}p", this);
+    LOGD("WebGLRenderingContextBasicBase::Init. %{private}p", this);
     EglManager::GetInstance().Init();
     if (eglSurface_ == nullptr) {
         eglSurface_ = EglManager::GetInstance().CreateSurface(eglWindow_);
@@ -60,7 +60,7 @@ void WebGLRenderingContextBasicBase::Init()
 
 void WebGLRenderingContextBasicBase::SetBitMapPtr(char* bitMapPtr, int bitMapWidth, int bitMapHeight)
 {
-    LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr. %{public}p", this);
+    LOGD("WebGLRenderingContextBasicBase::SetBitMapPtr. %{private}p", this);
     LOGD("WebGLRenderingContextBasicBase SetBitMapPtr [%{public}d %{public}d]", bitMapWidth, bitMapHeight);
     bitMapPtr_ = bitMapPtr;
     bitMapWidth_ = bitMapWidth;

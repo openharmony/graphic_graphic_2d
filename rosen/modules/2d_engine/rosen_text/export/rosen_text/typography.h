@@ -16,6 +16,7 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_H
 
+#include <bitset>
 #include <cstddef>
 #include <vector>
 
@@ -27,6 +28,7 @@
 
 #include "text_style.h"
 #include "text_line_base.h"
+#include "typography_style.h"
 #include "typography_types.h"
 #include "symbol_animation_config.h"
 
@@ -135,8 +137,8 @@ public:
     virtual void SetIndents(const std::vector<float>& indents) = 0;
     virtual float DetectIndents(size_t index) = 0;
     virtual void Layout(double width) = 0;
-    virtual void Paint(SkCanvas *canvas, double x, double y) = 0; // SKIA
-    virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0; // DRAWING
+    virtual void Paint(SkCanvas* canvas, double x, double y) = 0; // SKIA
+    virtual void Paint(Drawing::Canvas* canvas, double x, double y) = 0; // DRAWING
     virtual void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) = 0; // DRAWING
 
     virtual std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
@@ -164,6 +166,8 @@ public:
     virtual void UpdateColor(size_t from, size_t to, const Drawing::Color& color) = 0;
     virtual void* GetParagraph() = 0;
     virtual Drawing::RectI GeneratePaintRegion(double x, double y) const = 0;
+    virtual void Relayout(double width, const TypographyStyle& typograhyStyle,
+        const std::vector<TextStyle>& textStyles) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -45,7 +45,9 @@ napi_value RSWindowAnimationUtils::CreateJsWindowAnimationTarget(napi_env env,
 
     napi_finalize finalizeCallback = [](napi_env env, void* data, void* hint) {
         auto target = sptr<RSWindowAnimationTarget>(static_cast<RSWindowAnimationTarget*>(hint));
-        target.GetRefPtr()->DecStrongRef(target.GetRefPtr());
+        if (target) {
+            target.GetRefPtr()->DecStrongRef(target.GetRefPtr());
+        }
     };
     target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
     napi_wrap(env, objValue, &(target->surfaceNode_), finalizeCallback, target.GetRefPtr(), nullptr);
@@ -101,7 +103,9 @@ napi_value RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
     napi_finalize finalizeCallback = [](napi_env env, void* data, void* hint) {
         auto finishedCallback =
             sptr<RSIWindowAnimationFinishedCallback>(static_cast<RSIWindowAnimationFinishedCallback*>(data));
-        finishedCallback.GetRefPtr()->DecStrongRef(finishedCallback.GetRefPtr());
+        if (finishedCallback) {
+            finishedCallback.GetRefPtr()->DecStrongRef(finishedCallback.GetRefPtr());
+        }
     };
     finishedCallback.GetRefPtr()->IncStrongRef(finishedCallback.GetRefPtr());
     napi_wrap(env, object, finishedCallback.GetRefPtr(), finalizeCallback, nullptr, nullptr);

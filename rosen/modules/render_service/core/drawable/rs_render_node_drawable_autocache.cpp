@@ -39,19 +39,14 @@ bool RSRenderNodeDrawable::ShouldPaint() const
 #endif
 }
 
-bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()
+void RSRenderNodeDrawable::SetAutoCacheEnable(bool autoCacheEnable)
 {
-    return RSSystemProperties::GetDdgrOpincType() == OHOS::Rosen::DdgrOpincType::OPINC_AUTOCACHE;
-}
-
-bool RSRenderNodeDrawable::IsOpincRealDrawCacheEnable()
-{
-    return RSSystemProperties::IsOpincRealDrawCacheEnable();
+    autoCacheEnable_ = autoCacheEnable;
 }
 
 bool RSRenderNodeDrawable::IsAutoCacheDebugEnable()
 {
-    return RSSystemProperties::GetAutoCacheDebugEnabled() && RSSystemProperties::IsDdgrOpincEnable();
+    return RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
 }
 
 void RSRenderNodeDrawable::OpincCalculateBefore(Drawing::Canvas& canvas,
@@ -60,7 +55,7 @@ void RSRenderNodeDrawable::OpincCalculateBefore(Drawing::Canvas& canvas,
 #ifdef RS_ENABLE_GPU
     isOpincDropNodeExtTemp_ = isOpincDropNodeExt;
     isOpincCaculateStart_ = false;
-    if (IsOpincRealDrawCacheEnable() && IsOpListDrawAreaEnable()) {
+    if (autoCacheEnable_ && IsOpListDrawAreaEnable()) {
         isOpincCaculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
         isOpincDropNodeExt = false;
     }
@@ -183,7 +178,7 @@ void RSRenderNodeDrawable::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
     const RSRenderParams& params, bool& isOpincDropNodeExt)
 {
 #ifdef RS_ENABLE_GPU
-    if (IsOpincRealDrawCacheEnable() && !params.OpincGetRootFlag()) {
+    if (autoCacheEnable_ && !params.OpincGetRootFlag()) {
         return;
     }
     auto size = params.GetCacheSize();
@@ -260,10 +255,10 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
         bool isOnlyTranslate = false;
         auto totalMatrix = canvas.GetTotalMatrix();
         auto rootAlpha = canvas.GetAlpha();
-        if (IsTranslate(totalMatrix) && (rootAlpha == 0.0f || rootAlpha == 1.0f)) {
+        if (IsTranslate(totalMatrix) && (ROSEN_EQ(rootAlpha, 0.0f) || ROSEN_EQ(rootAlpha, 1.0f))) {
             isOnlyTranslate = true;
         }
-        if (IsOpincRealDrawCacheEnable()) {
+        if (autoCacheEnable_) {
             if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE && isOnlyTranslate) {
                 recordState_ = NodeRecordState::RECORD_CACHING;
             } else if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_DISABLE) {

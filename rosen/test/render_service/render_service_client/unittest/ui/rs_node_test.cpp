@@ -18,6 +18,8 @@
 #include "animation/rs_animation.h"
 #include "animation/rs_transition.h"
 #include "modifier/rs_property_modifier.h"
+#include "render/rs_filter.h"
+#include "render/rs_material_filter.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_display_node.h"
@@ -4214,6 +4216,7 @@ HWTEST_F(RSNodeTest, CreateNormalFilter001, TestSize.Level1)
     rsNode->SetFilter(filter);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
 }
 
 /**
@@ -4224,10 +4227,11 @@ HWTEST_F(RSNodeTest, CreateNormalFilter001, TestSize.Level1)
 HWTEST_F(RSNodeTest, CreateNormalFilter002, TestSize.Level2)
 {
     auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2], false);
     rsNode->SetFilter(filter);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
 }
 
 /**
@@ -4270,6 +4274,72 @@ HWTEST_F(RSNodeTest, CreateNormalFilter005, TestSize.Level1)
     rsNode->SetFilter(filter);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[4]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[0]);
+}
+
+/**
+ * @tc.name: CreateMaterialFilter001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CreateMaterialFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(
+        MATERIAL_BLUR_STYLE::STYLE_BACKGROUND_LARGE_DARK, floatData[0],
+        BLUR_COLOR_MODE::DEFAULT, floatData[1]);
+    rsNode->SetFilter(filter);
+    rsNode->SetBackgroundFilter(filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBgBlurDisableSystemAdaptation());
+}
+
+/**
+ * @tc.name: CreateMaterialFilter002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CreateMaterialFilter002, TestSize.Level2)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(
+        floatData[0], floatData[1], floatData[2], 0xFFFFFFFF, BLUR_COLOR_MODE::DEFAULT);
+    rsNode->SetFilter(filter);
+    rsNode->SetBackgroundFilter(filter);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBgBlurDisableSystemAdaptation());
+}
+
+/**
+ * @tc.name: CreateMaterialFilter003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CreateMaterialFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(
+        MATERIAL_BLUR_STYLE::STYLE_BACKGROUND_LARGE_DARK, floatData[0],
+        BLUR_COLOR_MODE::DEFAULT, floatData[1], false);
+    rsNode->SetFilter(filter);
+    rsNode->SetBackgroundFilter(filter);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetBgBlurDisableSystemAdaptation());
+}
+
+/**
+ * @tc.name: CreateMaterialFilter004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CreateMaterialFilter004, TestSize.Level2)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateMaterialFilter(
+        floatData[0], floatData[1], floatData[2], 0xFFFFFFFF, BLUR_COLOR_MODE::DEFAULT, false);
+    rsNode->SetFilter(filter);
+    rsNode->SetBackgroundFilter(filter);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetFgBlurDisableSystemAdaptation());
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetBgBlurDisableSystemAdaptation());
 }
 
 /**
@@ -5168,15 +5238,20 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     PropertyCallback callback = nullptr;
     std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr;
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_EQ(callback, nullptr);
 
     callback = []() {};
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_EQ(implicitAnimator, nullptr);
 
+    rsUIContext = std::make_shared<RSUIContext>();
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
+    EXPECT_NE(rsUIContext, nullptr);
+
     implicitAnimator = std::make_shared<RSImplicitAnimator>();
-    rsNode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(implicitAnimator, nullptr);
 }
 
@@ -6338,14 +6413,14 @@ HWTEST_F(RSNodeTest, NotifyTransition, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     bool isTransitionIn = true;
-    std::shared_ptr<const RSTransitionEffect> effect;
-    rsNode->implicitAnimator_ = nullptr;
+    std::shared_ptr<const RSTransitionEffect> effect = std::make_shared<const RSTransitionEffect>();
+    rsNode->rsUIContext_.reset();
     rsNode->NotifyTransition(effect, isTransitionIn);
     EXPECT_NE(isTransitionIn, false);
 
-    rsNode->implicitAnimator_ = std::make_shared<RSImplicitAnimator>();
+    rsNode->rsUIContext_ = std::make_shared<RSUIContext>();
     rsNode->NotifyTransition(effect, isTransitionIn);
-    EXPECT_NE(rsNode->implicitAnimator_, nullptr);
+    EXPECT_NE(isTransitionIn, false);
 }
 
 /**
@@ -6726,22 +6801,6 @@ HWTEST_F(RSNodeTest, UpdateModifierMotionPathOption, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateImplicitAnimator
- * @tc.desc: test results of UpdateImplicitAnimator
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, UpdateImplicitAnimator, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->UpdateImplicitAnimator();
-
-    rsNode->implicitAnimatorTid_ = gettid();
-    rsNode->UpdateImplicitAnimator();
-    EXPECT_TRUE(rsNode->implicitAnimatorTid_ == gettid());
-}
-
-/**
  * @tc.name: GetModifierIds
  * @tc.desc: test results of GetModifierIds
  * @tc.type: FUNC
@@ -6913,7 +6972,7 @@ HWTEST_F(RSNodeTest, RegisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    rsNode->RegisterTransitionPair(inNodeId, outNodeId);
+    rsNode->RegisterTransitionPair(inNodeId, outNodeId, true);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 

@@ -24,6 +24,7 @@ int RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSISurfaceOcclusionChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 
@@ -31,7 +32,13 @@ int RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(
             RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED): {
-            float visibleAreaRatio = data.ReadFloat();
+            float visibleAreaRatio{0.f};
+            if (!data.ReadFloat(visibleAreaRatio)) {
+                RS_LOGE("RSSurfaceOcclusionChangeCallbackStub::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED read"
+                        "visibleAreaRatio failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
             break;
         }

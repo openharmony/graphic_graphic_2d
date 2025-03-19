@@ -66,7 +66,8 @@ bool EglManager::InitializeEGLDisplay()
         return false;
     }
 
-    EGLint eglMajVers, eglMinVers;
+    EGLint eglMajVers;
+    EGLint eglMinVers;
     if (!eglInitialize(EGLDisplay_, &eglMajVers, &eglMinVers)) {
         EGLDisplay_ = EGL_NO_DISPLAY;
         LOGE("EglManager Init unable to initialize display.");

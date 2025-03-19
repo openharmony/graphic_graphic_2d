@@ -18,6 +18,7 @@
 #include "log.h"
 #include <media_errors.h>
 #include <parameters.h>
+#include <util.h>
 
 using namespace OHOS;
 BootSoundPlayer::BootSoundPlayer(const PlayerParams& params)
@@ -47,12 +48,13 @@ void BootSoundPlayer::Play()
         return;
     }
 
-    int waitMediaCreateTime = 0;
-    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
-        && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
-        LOGI("mediaPlayer is nullptr, try create again");
+    int64_t startTime = GetSystemCurrentTime();
+    int64_t endTime = startTime;
+    while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+        && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
+        endTime = GetSystemCurrentTime();
         usleep(SLEEP_TIME_US);
-        waitMediaCreateTime += SLEEP_TIME_US;
+        LOGI("mediaPlayer is nullptr, try create again");
     }
 
     if (mediaPlayer_ == nullptr) {

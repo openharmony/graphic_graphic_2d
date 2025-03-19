@@ -16,11 +16,11 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "display_engine/rs_luminance_control.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -772,6 +772,22 @@ HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetPixelFormat GetPixelFormat
+ * @tc.desc: test results of SetPixelFormat GetPixelFormat
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, PixelFormatTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_EQ(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888, node->GetPixelFormat());
+    node->SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102, node->GetPixelFormat());
+}
+
+/**
  * @tc.name: HdrStatusTest
  * @tc.desc: test results of CollectHdrStatus, GetDisplayHdrStatus, ResetDisplayHdrStatus
  * @tc.type: FUNC
@@ -813,5 +829,47 @@ HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
     std::ignore = displayNode->GetWindowContainer();
     ASSERT_NE(displayNode, nullptr);
+}
+
+/**
+ * @tc.name: GetTargetSurfaceRenderNodeId
+ * @tc.desc: test results of Set/GetTargetSurfaceRenderNodeId
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId targetSurfaceRenderNodeId = 2;
+    displayNode->SetTargetSurfaceRenderNodeId(targetSurfaceRenderNodeId);
+    ASSERT_EQ(displayNode->GetTargetSurfaceRenderNodeId(), targetSurfaceRenderNodeId);
+}
+
+/**
+ * @tc.name: GetVirtualScreenMuteStatus
+ * @tc.desc: test results of GetVirtualScreenMuteStatus
+ * @tc.type: FUNC
+ * @tc.require: issuesIBTNC3
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetVirtualScreenMuteStatus, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_FALSE(displayNode->GetVirtualScreenMuteStatus());
+}
+
+/**
+ * @tc.name: SetVirtualScreenMuteStatus
+ * @tc.desc: test results of SetVirtualScreenMuteStatus
+ * @tc.type: FUNC
+ * @tc.require: issuesIBTNC3
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetVirtualScreenMuteStatus(true);
+    ASSERT_TRUE(displayNode->GetVirtualScreenMuteStatus());
 }
 } // namespace OHOS::Rosen

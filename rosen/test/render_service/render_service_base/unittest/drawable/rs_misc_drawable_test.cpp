@@ -66,7 +66,7 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(2);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(2);
     outNode->isOnTheTree_ = true;
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE;
 
     ASSERT_TRUE(sharedTransitionParam->IsLower(childOne->GetId()));
@@ -115,14 +115,14 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id);
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(1);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     node->sharedTransitionParam_ = sharedTransitionParam;
     DrawableV2::RSChildrenDrawable childrenDrawable;
     ASSERT_FALSE(childrenDrawable.OnSharedTransition(node));
     inNode->isOnTheTree_ = true;
     outNode->isOnTheTree_ = true;
     ASSERT_FALSE(childrenDrawable.OnSharedTransition(node));
-    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     node->sharedTransitionParam_ = sharedTransitionParam;
     ASSERT_TRUE(childrenDrawable.OnSharedTransition(node));
     inNode->isOnTheTree_ = false;
@@ -130,7 +130,7 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
     auto nodeTwo = std::make_shared<RSRenderNode>(0);
     auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeTwo);
     outNode->renderDrawable_ = nodeDrawable;
-    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     node->sharedTransitionParam_ = sharedTransitionParam;
     ASSERT_TRUE(childrenDrawable.OnSharedTransition(node));
 }

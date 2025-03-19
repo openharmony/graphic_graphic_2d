@@ -31,6 +31,8 @@ namespace Rosen {
 namespace SPText {
 class HMSymbolRun {
 public:
+    HMSymbolRun() {}
+
     ~HMSymbolRun() {}
 
     HMSymbolRun(uint64_t symbolId,
@@ -38,17 +40,8 @@ public:
         const std::shared_ptr<RSTextBlob>& textBlob,
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc);
 
-    static RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
-
     static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
         const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo);
-
-    static bool GetAnimationGroups(uint16_t glyphId, const RSEffectStrategy effectStrategy,
-        RSAnimationSetting& animationOut);
-
-    bool SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphId, const std::pair<float, float>& offset);
-
-    void ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
 
     void DrawSymbol(RSCanvas* canvas, const RSPoint& offset);
 
@@ -70,9 +63,35 @@ public:
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
 
+    uint64_t GetSymbolUid() const
+    {
+        return symbolTxt_.GetSymbolUid();
+    }
+
+    void SetSymbolUid(uint64_t symbolUid)
+    {
+        symbolTxt_.SetSymbolUid(symbolUid);
+    }
+
+    void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
+    {
+        symbolTxt_ = hmsymbolTxt;
+    }
+
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);
 
+    bool GetAnimationGroups(const RSEffectStrategy effectStrategy, RSAnimationSetting& animationOut);
+
+    RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
+
+    void UpdateSymbolLayersGroups(uint16_t glyphId);
+
+    bool SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
+
+    void ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
+
+    RSSymbolLayersGroups symbolLayersGroups_;
     HMSymbolTxt symbolTxt_;
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;

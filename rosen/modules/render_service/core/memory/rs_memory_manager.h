@@ -84,5 +84,29 @@ private:
     static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
 };
+
+class RSB_EXPORT RSReclaimMemoryManager {
+public:
+    static RSReclaimMemoryManager& Instance();
+
+    RSReclaimMemoryManager() = default;
+    ~RSReclaimMemoryManager() = default;
+
+    void TriggerReclaimTask();
+    void InterruptReclaimTask(const std::string& sceneId);
+
+    void SetReclaimInterrupt(bool isInterrupt)
+    {
+        isReclaimInterrupt_.store(isInterrupt);
+    }
+    bool IsReclaimInterrupt()
+    {
+        return isReclaimInterrupt_.load();
+    }
+private:
+    DISALLOW_COPY_AND_MOVE(RSReclaimMemoryManager);
+    // reclaim interrupt
+    std::atomic<bool> isReclaimInterrupt_ = false;
+};
 } // namespace OHOS::Rosen
 #endif

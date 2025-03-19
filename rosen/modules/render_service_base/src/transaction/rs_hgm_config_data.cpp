@@ -31,6 +31,7 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
     uint32_t size;
+    uint32_t pageNameSize;
     if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
         !parcel.ReadUint32(size)) {
         RS_LOGE("RSHgmConfigData Unmarshalling read failed");
@@ -56,6 +57,24 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
         data->AddAnimDynamicItem(item);
     }
+
+    if (!parcel.ReadUint32(pageNameSize)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+        return data;
+    }
+    len = static_cast<size_t>(pageNameSize);
+    if (len > readableSize || len > data->configData_.max_size()) {
+        RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
+        return data;
+    }
+    for (uint32_t i = 0; i < pageNameSize; i++) {
+        std::string pageName;
+        if (!parcel.ReadString(pageName)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+            return data;
+        }
+        data->AddPageName(pageName);
+    }
     return data;
 }
 
@@ -77,6 +96,11 @@ bool RSHgmConfigData::Marshalling(Parcel& parcel) const
             RS_LOGE("RSHgmConfigData::Marshalling parse config item failed");
             return flag;
         }
+    }
+
+    parcel.WriteUint32(pageNameList_.size());
+    for (auto& item : pageNameList_) {
+        parcel.WriteString(item);
     }
 
     return flag;

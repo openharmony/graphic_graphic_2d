@@ -21,7 +21,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 
@@ -780,37 +780,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsUIFirstSelfDrawCheck, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsVisibleDirtyEmpty
- * @tc.desc: test results of IsVisibleDirtyEmpty
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, IsVisibleDirtyEmpty, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    DeviceType deviceType = DeviceType::PHONE;
-    bool res = node->IsVisibleDirtyEmpty(deviceType);
-    ASSERT_TRUE(res);
-    RectI rect { 0, 0, 20, 20 };
-    node->dirtyManager_->currentFrameDirtyRegion_ = rect;
-    EXPECT_FALSE(node->IsVisibleDirtyEmpty(deviceType));
-    deviceType = DeviceType::PC;
-    node->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE);
-    EXPECT_TRUE(node->IsVisibleDirtyEmpty(deviceType));
-    node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    EXPECT_FALSE(node->IsVisibleDirtyEmpty(deviceType));
-    std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
-    std::vector<std::shared_ptr<RSRenderNode>> children;
-    children.push_back(rssNode);
-    node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    EXPECT_TRUE(node->IsVisibleDirtyEmpty(deviceType));
-    rssNode->SetSurfaceNodeType(RSSurfaceNodeType::SCB_SCREEN_NODE);
-    EXPECT_FALSE(node->IsVisibleDirtyEmpty(deviceType));
-    node->SetSurfaceNodeType(RSSurfaceNodeType::SCB_SCREEN_NODE);
-    EXPECT_FALSE(node->IsVisibleDirtyEmpty(deviceType));
-}
-
-/**
  * @tc.name: UpdateCacheSurfaceDirtyManager
  * @tc.desc: test results of UpdateCacheSurfaceDirtyManager
  * @tc.type: FUNC
@@ -888,8 +857,10 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
  */
 HWTEST_F(RSSurfaceRenderNodeTwoTest, QuerySubAssignable, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id + 1);
     bool isRotation = true;
+    node->SetProtectedLayer(false);
+    node->firstLevelNodeId_ = id + 1;
     bool res = node->QuerySubAssignable(isRotation);
     ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);

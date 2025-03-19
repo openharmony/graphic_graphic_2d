@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_HGM_CONFIG_DATA_H
 
 #include <vector>
+#include <unordered_set>
 #include <parcel.h>
 
 #include "common/rs_macros.h"
@@ -80,11 +81,22 @@ public:
         yDpi_ = yDpi;
     }
 
+    const std::unordered_set<std::string>& GetPageNameList() const
+    {
+        return pageNameList_;
+    }
+
+    void AddPageName(std::string &pageName)
+    {
+        pageNameList_.insert(pageName);
+    }
+
 private:
     std::vector<AnimDynamicItem> configData_;
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
+    std::unordered_set<std::string> pageNameList_;
 };
 } // namespace Rosen
 } // namespace OHOS

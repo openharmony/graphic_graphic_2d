@@ -59,6 +59,9 @@ HWTEST_F(NativeDrawingColorSpaceTest, NativeDrawingColorSpaceTest_ColorSpace002,
     OH_Drawing_ColorSpace* colorSpace = OH_Drawing_ColorSpaceCreateSrgbLinear();
     EXPECT_NE(colorSpace, nullptr);
     OH_Drawing_ColorSpaceDestroy(colorSpace);
+    colorSpace = nullptr;
+    OH_Drawing_ColorSpaceDestroy(colorSpace);
+    EXPECT_EQ(colorSpace, nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

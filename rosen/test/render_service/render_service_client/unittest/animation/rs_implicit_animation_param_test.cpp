@@ -73,8 +73,9 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     auto animationParam = std::make_shared<RSImplicitCancelAnimationParam>(protocol);
+    auto rsUIContext = std::make_shared<RSUIContext>();
 
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     std::shared_ptr<RSCanvasNode> node = RSCanvasNode::Create();
@@ -82,7 +83,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties001, TestSize.Level1)
     auto modifier = std::make_shared<RSBoundsModifier>(property);
     modifier->AttachToNode(node);
     animationParam->AddPropertyToPendingSyncList(property);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSAnimationTest SyncProperties001 end";
@@ -102,6 +103,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     auto animationParam = std::make_shared<RSImplicitCancelAnimationParam>(protocol);
+    auto rsUIContext = std::make_shared<RSUIContext>();
 
     std::shared_ptr<RSCanvasNode> node1 = RSCanvasNode::Create(true, false);
     auto property1 = std::make_shared<RSAnimatableProperty<float>>(100.f);
@@ -113,12 +115,17 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     auto animation1 = std::make_shared<RSCurveAnimation>(property1, startProperty1, endProperty1);
     animation1->SetDuration(1000);
     animation1->SetTimingCurve(curve);
-    animation1->SetFinishCallback([&]() { node1->SetBoundsWidth(200); });
+    animation1->SetFinishCallback([weakNode1 = std::weak_ptr<RSCanvasNode>(node1)]() {
+        auto node1_lock = weakNode1.lock();
+        if (node1_lock) {
+            node1_lock->SetBoundsWidth(200);
+        }
+    });
     node1->AddAnimation(animation1);
     animation1->Start(node1);
 
     animationParam->AddPropertyToPendingSyncList(property1);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     std::shared_ptr<RSCanvasNode> node2 = RSCanvasNode::Create(false, true);
@@ -137,7 +144,7 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncProperties002, TestSize.Level1)
     animation2->Start(node2);
 
     animationParam->AddPropertyToPendingSyncList(property2);
-    animationParam->SyncProperties();
+    animationParam->SyncProperties(rsUIContext);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest SyncProperties002 end";

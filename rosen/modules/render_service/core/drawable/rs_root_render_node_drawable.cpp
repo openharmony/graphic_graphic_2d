@@ -22,7 +22,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 RSRootRenderNodeDrawable::Registrar RSRootRenderNodeDrawable::instance_;
 RSRootRenderNodeDrawable::RSRootRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
-    : RSCanvasRenderNodeDrawable(std::move(node))
+    : RSCanvasRenderNodeDrawable(std::move(node)), windowKeyframeBuffer_(*this)
 {}
 
 RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -33,6 +33,14 @@ RSRenderNodeDrawable::Ptr RSRootRenderNodeDrawable::OnGenerate(std::shared_ptr<c
 void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RS_LOGD("RSRootRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
+
+    // [Attention] Only used in PC window resize scene now
+    const auto& params = GetRenderParams();
+    if (UNLIKELY(windowKeyframeBuffer_.NeedDrawWindowKeyFrame(params))) {
+        windowKeyframeBuffer_.OnDraw(canvas, *params);
+        return;
+    }
+
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 
@@ -42,4 +50,12 @@ void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSCanvasRenderNodeDrawable::OnCapture(canvas);
 }
+
+// [Attention] Only used in PC window resize scene now
+bool RSRootRenderNodeDrawable::DrawWindowKeyFrameOffscreenBuffer(
+    RSPaintFilterCanvas& canvas, const Drawing::Rect& bounds, float alpha, bool isFreezed)
+{
+    return windowKeyframeBuffer_.DrawOffscreenBuffer(canvas, bounds, alpha, isFreezed);
+}
+
 } // namespace OHOS::Rosen::DrawableV2

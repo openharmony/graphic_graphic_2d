@@ -117,4 +117,88 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_5)
         RegisterNode(testNode);
     }
 }
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_6)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float skewX = 0.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetSkewX(skewX);
+            testNode->SetPerspW(2.0);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            skewX += 0.1;
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_7)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float skewY = 0.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetSkewY(skewY);
+            testNode->SetPerspW(2.0);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            skewY += 0.1;
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_8)
+{
+    int row = 5;
+    int col = 3;
+    int nodeSize[2] = {screenWidth / col, screenHeight / row};
+    int nodeSpace[2] = {10, 10}; // col space , row space
+    float skewZ = 0.0;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
+                {j * nodeSize[0], i * nodeSize[1], nodeSize[0] - nodeSpace[0], nodeSize[1] - nodeSpace[1]});
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetRotation(45.0, 0, 0.0);
+            testNode->SetSkew({0.f, 0.f, skewZ});
+            testNode->SetPerspW(2.0);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+            skewZ += 0.1;
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_9)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<std::vector<float>> skewValues = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.2},
+        {1.5, 0.5, 1}, {0.5, 1.5, 1}, {10, 20, 10}, {0.5, 0.5, 0.5}, {1.2, 1.2, 1.2}};
+    for (int i = 0; i < skewValues.size(); ++i) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNode->SetPivot(Vector2f(0.0, 0.0));
+        testNode->SetSkew(skewValues[i][0], skewValues[i][1], skewValues[i][2]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

@@ -15,14 +15,17 @@
 
 #include "hwc_param_parse.h"
 
+#undef LOG_TAG
+#define LOG_TAG "HWCParamParse"
+
 namespace OHOS::Rosen {
 
-int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node)
 {
-    RS_LOGI("HWCParamParse start");
+    RS_LOGI("start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("HWCParamParse stop parsing, no children nodes");
+        RS_LOGD("stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -33,14 +36,14 @@ int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
         }
 
         if (ParseHwcInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("HWCParamParse stop parsing, parse internal fail");
+            RS_LOGD("stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode& node)
 {
     xmlNode *currNode = &node;
 
@@ -48,7 +51,8 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
     if (iter != featureMap.end()) {
         hwcParam_ = std::static_pointer_cast<HWCParam>(iter->second);
     } else {
-        RS_LOGD("HWCParamParse stop parsing, no initializing param map");
+        RS_LOGD("stop parsing, no initializing param map");
+        return PARSE_NO_PARAM;
     }
 
     // Start Parse Feature Params
@@ -57,27 +61,24 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "HwcEnabled") {
-            hwcParam_->SetHwcEnable(isEnabled);
-            RS_LOGI("HWCParamParse parse HwcEnabled %{public}d", hwcParam_->IsHwcEnable());
-        } else if (name == "HwcMirrorEnabled") {
-            hwcParam_->SetHwcMirrorEnable(isEnabled);
-            RS_LOGI("HWCParamParse parse HwcMirrorEnabled %{public}d", hwcParam_->IsHwcMirrorEnable());
+        if (name == "HwcExpandingScreenEnabled") {
+            hwcParam_->SetHwcExpandingScreenEnabled(isEnabled);
+            RS_LOGI("parse HwcExpandingScreenEnabled %{public}d", hwcParam_->IsHwcExpandingScreenEnabled());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("HWCParamParse parse MultiParam fail");
+            RS_LOGD("parse MultiParam fail");
         }
     }
 
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &name)
+int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& name)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("HWCParamParse stop parsing, no children nodes");
+        RS_LOGD("stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
     currNode = currNode->xmlChildrenNode;
@@ -95,10 +96,11 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
         } else {
-            RS_LOGD("HWCParamParse ParseFeatureMultiParam cannot find name");
+            RS_LOGD("ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;
         }
     }
+    hwcParam_->MoveDataToHgmCore();
     return PARSE_EXEC_SUCCESS;
 }
 } // namespace OHOS::Rosen

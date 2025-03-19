@@ -25,7 +25,24 @@ RSSurfaceCaptureCallbackProxy::RSSurfaceCaptureCallbackProxy(const sptr<IRemoteO
 {
 }
 
-void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
+    const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
+        !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
+        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
+        !data.WriteFloat(captureConfig.mainScreenRect.bottom_)) {
+        ROSEN_LOGE("RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig Write CaptureConfig failed");
+        return false;
+    }
+    return true;
+}
+
+void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+    Media::PixelMap* pixelmap)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -36,6 +53,10 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, Media::PixelMap*
     }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteUint64 failed");
+        return;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteSurfaceCaptureConfig failed");
         return;
     }
     if (!data.WriteParcelable(pixelmap)) {

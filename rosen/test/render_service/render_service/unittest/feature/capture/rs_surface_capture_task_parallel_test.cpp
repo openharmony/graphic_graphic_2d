@@ -18,7 +18,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 
@@ -199,8 +199,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run001, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.pixelMap_ = nullptr;
     ASSERT_EQ(nullptr, task.pixelMap_);
-    RSSurfaceCaptureBlurParam blurParam;
-    ASSERT_EQ(false, task.Run(nullptr, blurParam, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -217,8 +217,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run002, TestSize.Level2)
     auto node = std::make_shared<RSRenderNode>(id);
     task.surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    RSSurfaceCaptureBlurParam blurParam;
-    ASSERT_EQ(false, task.Run(nullptr, blurParam, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -236,8 +236,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    RSSurfaceCaptureBlurParam blurParam;
-    ASSERT_EQ(false, task.Run(nullptr, blurParam, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*
@@ -253,8 +253,8 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = nullptr;
-    RSSurfaceCaptureBlurParam blurParam;
-    ASSERT_EQ(false, task.Run(nullptr, blurParam, false));
+    RSSurfaceCaptureParam captureParam;
+    ASSERT_EQ(false, task.Run(nullptr, captureParam));
 }
 
 /*

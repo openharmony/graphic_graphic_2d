@@ -17,7 +17,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;
@@ -440,7 +440,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetSharedTransitionParam, TestSize.Level1)
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam;
     node->SetSharedTransitionParam(sharedTransitionParam);
 
-    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     node->SetSharedTransitionParam(sharedTransitionParam);
 
     node->SetSharedTransitionParam(sharedTransitionParam);
@@ -948,34 +948,6 @@ HWTEST_F(RSBaseRenderNodeTest, ResetParent, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->ResetParent();
     ASSERT_EQ(node->parent_.lock(), nullptr);
-}
-
-/**
- * @tc.name: AddSubSurfaceNode
- * @tc.desc: test results of AddSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, AddSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->AddSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: RemoveSubSurfaceNode
- * @tc.desc: test results of RemoveSubSurfaceNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, RemoveSubSurfaceNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto parent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->RemoveSubSurfaceNode(parent);
-    ASSERT_TRUE(true);
 }
 
 /**

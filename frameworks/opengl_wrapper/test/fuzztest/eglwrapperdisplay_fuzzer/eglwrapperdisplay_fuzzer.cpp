@@ -80,7 +80,10 @@ namespace OHOS {
         EGLint attribList3 = GetData<EGLint>();
         EGLConfig config2 = GetData<EGLConfig>();
         NativeWindowType window1 = GetData<NativeWindowType>();
-        EGLint attribList4 = GetData<EGLint>();
+        EGLint attribList4[] = {
+            GetData<EGLint>(), GetData<EGLint>(),
+            EGL_NONE
+        };
         EGLContext context1 = GetData<EGLContext>();
         EGLSurface surf2 = GetData<EGLSurface>();
         EglWrapperDisplay* disp3 =  EglWrapperDisplay::GetWrapperDisplay(display1);
@@ -150,7 +153,7 @@ namespace OHOS {
         eglWrapperDisplay->ValidateEglContext(ctx2);
         eglWrapperDisplay->ValidateEglSurface(surf1);
         eglWrapperDisplay->CreateEglContext(config1, shareList1, &attribList3);
-        eglWrapperDisplay->CreateEglSurface(config2, window1, &attribList4);
+        eglWrapperDisplay->CreateEglSurface(config2, window1, attribList4);
         eglWrapperDisplay->DestroyEglContext(context1);
         eglWrapperDisplay->DestroyEglSurface(surf2);
         eglWrapperDisplay->AddObject(obj1);
@@ -165,7 +168,7 @@ namespace OHOS {
         eglWrapperDisplay->ReleaseTexImage(surf7, buffer2);
         eglWrapperDisplay->SurfaceAttrib(surf8, attribList9, value3);
         eglWrapperDisplay->CreatePbufferFromClientBuffer(buftype1, buffer3, config5, &attribList10);
-        EGLImage image1 = eglWrapperDisplay->CreateImage(ctx4, target2, buffer4, &attribList11);
+        EGLImage image1 = static_cast<EGLImage>(eglWrapperDisplay->CreateImage(ctx4, target2, buffer4, &attribList11));
         eglWrapperDisplay->DestroyImage(img1);
         eglWrapperDisplay->CreatePlatformWindowSurface(config6, nativeWindow, &attribList12);
         eglWrapperDisplay->CreatePlatformPixmapSurface(config7, nativePixmap, &attribList13);

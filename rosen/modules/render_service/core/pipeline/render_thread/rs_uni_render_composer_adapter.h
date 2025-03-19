@@ -19,7 +19,7 @@
 #include "hdi_backend.h"
 #include "rs_composer_adapter.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_map.h"
@@ -33,6 +33,7 @@ class RSRcdSurfaceRenderNode;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
+class RSRcdSurfaceRenderNodeDrawable;
 }
 class RSUniRenderComposerAdapter {
 public:
@@ -44,7 +45,8 @@ public:
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient);
 
     LayerInfoPtr CreateLayer(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    LayerInfoPtr CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
+    LayerInfoPtr CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable &surfaceDrawable) const;
+    LayerInfoPtr CreateLayer(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
@@ -58,6 +60,7 @@ private:
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) const;
 
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,

@@ -28,20 +28,20 @@ RSGraphicRootNode::RSGraphicRootNode()
 void RSGraphicRootNode::SetTestSurface(
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> node)
 {
-    testSurfaceNode_ = node;
-    screenSurfaceNode_->AddChild(testSurfaceNode_, -1);
+    testSurfaceNodes_.push_back(node);
+    screenSurfaceNode_->AddChild(testSurfaceNodes_.back(), -1);
 }
 
 void RSGraphicRootNode::ResetTestSurface()
 {
-    screenSurfaceNode_->RemoveChild(testSurfaceNode_);
-    testSurfaceNode_ = nullptr;
+    screenSurfaceNode_->ClearChildren();
+    testSurfaceNodes_.clear();
 }
 
 void RSGraphicRootNode::AddChild(std::shared_ptr<RSNode> child, int index)
 {
-    if (testSurfaceNode_) {
-        testSurfaceNode_->AddChild(child, index);
+    if (testSurfaceNodes_.back()) {
+        testSurfaceNodes_.back()->AddChild(child, index);
     }
 }
 
@@ -57,6 +57,11 @@ void RSGraphicRootNode::ClearChildren()
     if (testSurfaceNode_) {
         testSurfaceNode_->ClearChildren();
     }
+}
+
+void RSGraphicRootNode::RegisterNode(std::shared_ptr<RSNode> node)
+{
+    nodes_.push_back(node);
 }
 
 } // namespace Rosen

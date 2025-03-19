@@ -211,6 +211,59 @@ bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w,
     }
 }
 
+bool RSPropertiesPainter::GetScalingModeMatrix(ScalingMode scalingMode, RectF bounds,
+    float bufferWidth, float bufferHeight, Drawing::Matrix& scalingModeMatrix)
+{
+    if (ROSEN_EQ(bufferWidth, bounds.width_) && ROSEN_EQ(bufferHeight, bounds.height_)) {
+        return false;
+    }
+    scalingModeMatrix = Drawing::Matrix();
+    switch (scalingMode) {
+        case ScalingMode::SCALING_MODE_SCALE_CROP: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            float scale = std::max(bounds.width_ / bufferWidth, bounds.height_ / bufferHeight);
+            if (ROSEN_NE(scale, 0.f)) {
+                scalingModeMatrix.PreScale(scale, scale);
+                scalingModeMatrix.PreTranslate((bounds.width_ / scale - bufferWidth) / PARAM_DOUBLE,
+                    (bounds.height_ / scale - bufferHeight) / PARAM_DOUBLE);
+                return true;
+            }
+            return false;
+        }
+        case ScalingMode::SCALING_MODE_SCALE_FIT: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            float scale = std::min(bounds.width_ / bufferWidth, bounds.height_ / bufferHeight);
+            if (ROSEN_NE(scale, 0.f)) {
+                scalingModeMatrix.PreScale(scale, scale);
+                scalingModeMatrix.PreTranslate((bounds.width_ / scale - bufferWidth) / PARAM_DOUBLE,
+                    (bounds.height_ / scale - bufferHeight) / PARAM_DOUBLE);
+                return true;
+            }
+            return false;
+        }
+        case ScalingMode::SCALING_MODE_NO_SCALE_CROP: {
+            if (ROSEN_EQ(bufferWidth, 0.f) || ROSEN_EQ(bufferHeight, 0.f)) {
+                return false;
+            }
+            scalingModeMatrix.PreTranslate((bounds.width_ - bufferWidth) / PARAM_DOUBLE,
+                (bounds.height_ - bufferHeight) / PARAM_DOUBLE);
+            return true;
+        }
+        case ScalingMode::SCALING_MODE_FREEZE: [[fallthrough]];
+        case ScalingMode::SCALING_MODE_SCALE_TO_WINDOW: {
+            return true;
+        }
+        default: {
+            ROSEN_LOGE("GetScalingModeMatrix: Unknown ScalingMode=[%{public}d]", static_cast<int>(scalingMode));
+            return false;
+        }
+    }
+}
+
 void RSPropertiesPainter::Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias)
 {
     canvas.ClipRect(Rect2DrawingRect(rect), Drawing::ClipOp::INTERSECT, isAntiAlias);
@@ -648,7 +701,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
         // (see RSPropertyDrawableUtils::DrawFilter())
-        cacheManager->DrawFilter(canvas, filter, false);
+        cacheManager->DrawFilter(canvas, filter, true, false);
         return;
     }
 #endif
@@ -836,7 +889,7 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
 {
     const auto& effectData = canvas.GetEffectData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr
-        || !RSSystemProperties::GetEffectMergeEnabled()) {
+        || !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
         // no effectData available, draw background filter in fallback method
         ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffect: effectData null, try fallback method.");
         ApplyBackgroundEffectFallback(properties, canvas);
@@ -887,21 +940,28 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
     } else {
         foregroundFilter = properties.GetForegroundFilter();
     }
-    if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::FOREGROUND_EFFECT) {
+    if (!foregroundFilter) {
         return;
     }
-    float dirtyExtension =
-                std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
-    auto boundsRect = properties.GetBoundsRect();
-    auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
-    auto& geoPtr = properties.GetBoundsGeometry();
-    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
-    auto drawingRect = Rect2DrawingRect(scaledBounds);
-    matrix.MapRect(drawingRect, drawingRect);
-    dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
-    dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
-    dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
-    dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+
+    if (foregroundFilter->GetFilterType() == RSFilter::FOREGROUND_EFFECT) {
+        float dirtyExtension =
+            std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
+        auto boundsRect = properties.GetBoundsRect();
+        auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
+        auto& geoPtr = properties.GetBoundsGeometry();
+        Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+        auto drawingRect = Rect2DrawingRect(scaledBounds);
+        matrix.MapRect(drawingRect, drawingRect);
+        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
+        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
+        dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
+        dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+    } else if (foregroundFilter->GetFilterType() == RSFilter::COLORFUL_SHADOW) {
+        if (properties.IsShadowValid()) {
+            GetShadowDirtyRect(dirtyForegroundEffect, properties, nullptr, false, true);
+        }
+    }
 }
 
 // calculate the distortion effect's dirty area

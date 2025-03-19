@@ -408,6 +408,9 @@ namespace OHOS {
         auto finishCallbackType = GetData<FinishCallbackType>();
 
         auto finishCallback = std::make_shared<AnimationFinishCallback>(nullptr, finishCallbackType);
+        finishCallback->IsValid();
+        finishCallback->SetAnimationBeenPaused();
+        finishCallback->HasAnimationBeenPaused();
         finishCallback->Execute();
         auto repeatCallback = std::make_shared<AnimationRepeatCallback>(nullptr);
         repeatCallback->Execute();

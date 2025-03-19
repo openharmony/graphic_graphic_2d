@@ -42,3 +42,7 @@ rosen/modules/animation/window_animation/ @comicchang
 rosen/modules/render_service_base/include/animation/ @comicchang
 rosen/modules/render_service_base/src/animation/ @comicchang
 rosen/modules/render_service_client/core/animation/ @comicchang
+
+[uifirst]
+rosen/modules/render_service/core/feature/uifirst/ @conan13234
+rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @conan13234

@@ -34,6 +34,7 @@
 #include "draw/canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
+#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/performanceCaculate.h"
 #include "SkOverdrawCanvas.h"
@@ -121,6 +122,10 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
     }
     auto iRect = skCanvas_->getDeviceClipBounds();
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
+}
+
+void SkiaCanvas::InheriteState(Canvas* canvas)
+{
 }
 
 RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
@@ -396,6 +401,8 @@ void SkiaCanvas::DrawCircle(const Point& centerPt, scalar radius, const Paint& p
 
 void SkiaCanvas::DrawPath(const Path& path, const Paint& paint)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIACANVAS_DRAWPATH);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -408,6 +415,28 @@ void SkiaCanvas::DrawPath(const Path& path, const Paint& paint)
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
     skCanvas_->drawPath(skPathImpl->GetPath(), skPaint_);
+}
+
+void SkiaCanvas::DrawPathWithStencil(const Path& path, uint32_t stencilVal, const Paint& paint)
+{
+#ifdef SK_ENABLE_STENCIL_CULLING_OHOS
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        LOGE("skPathImpl is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    skPaint_ = defaultPaint_;
+    SkiaPaint::PaintToSkPaint(paint, skPaint_);
+    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
+    skCanvas_->drawPathWithStencil(skPathImpl->GetPath(), skPaint_, stencilVal);
+#else
+    (void)stencilVal;
+    DrawPath(path, paint);
+#endif
 }
 
 void SkiaCanvas::DrawBackground(const Brush& brush)
@@ -443,6 +472,8 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
 void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIACANVAS_DRAWSHADOWSTYLE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -557,6 +588,8 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode, const Pa
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIACANVAS_DRAWIMAGENINE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -792,9 +825,40 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
     skCanvas_->drawImage(img, px, py, *samplingOptions, &skPaint_);
 }
 
+void SkiaCanvas::DrawImageWithStencil(const Image& image, const scalar px, const scalar py,
+    const SamplingOptions& sampling, uint32_t stencilVal, const Paint& paint)
+{
+#ifdef SK_ENABLE_STENCIL_CULLING_OHOS
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    sk_sp<SkImage> img;
+    auto skImageImpl = image.GetImpl<SkiaImage>();
+    if (skImageImpl != nullptr) {
+        img = skImageImpl->GetImage();
+    }
+    if (img == nullptr) {
+        LOGD("img is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    const SkSamplingOptions* samplingOptions = reinterpret_cast<const SkSamplingOptions*>(&sampling);
+    skPaint_ = defaultPaint_;
+    SkiaPaint::PaintToSkPaint(paint, skPaint_);
+    skCanvas_->drawImageWithStencil(img, px, py, *samplingOptions, &skPaint_, stencilVal);
+#else
+    (void)stencilVal;
+    DrawImage(image, px, py, sampling, paint);
+#endif
+}
+
 void SkiaCanvas::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
 {
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
+        GRAPHIC2D_SKIACANVAS_DRAWIMAGERECT);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -915,6 +979,21 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawSymbol(skSymbol, *skLocate, skPaint_);
+}
+
+void SkiaCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
+{
+#ifdef SK_ENABLE_STENCIL_CULLING_OHOS
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    const SkIRect* skIRect = reinterpret_cast<const SkIRect*>(&rect);
+    skCanvas_->clearStencil(*skIRect, stencilVal);
+#else
+    (void)rect;
+    (void)stencilVal;
+#endif
 }
 
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
@@ -1238,6 +1317,10 @@ void SkiaCanvas::BuildNoDraw(int32_t width, int32_t height)
 {
     skiaCanvas_ = std::make_shared<SkNoDrawCanvas>(width, height);
     skCanvas_ = skiaCanvas_.get();
+}
+
+void SkiaCanvas::BuildStateInherite(int32_t width, int32_t height)
+{
 }
 
 void SkiaCanvas::Reset(int32_t width, int32_t height)

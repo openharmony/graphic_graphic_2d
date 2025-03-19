@@ -69,51 +69,58 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_PathEffect001,
  * @tc.name: NativeDrawingPathEffectTest_CreatePathDashEffect002
  * @tc.desc: test for CreatePathDashEffect.
  * @tc.type: FUNC
- * @tc.require: IBDAT2
+ * @tc.require: IBHEL5
  */
 HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreatePathDashEffect002, TestSize.Level1)
 {
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     EXPECT_NE(pen, nullptr);
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    EXPECT_EQ(path == nullptr, false);
+    EXPECT_NE(path, nullptr);
     // 10 is the distance between the dashed segments.
     OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreatePathDashEffect(path, 10.0, 10.0,
-        OH_Drawing_PathEffectType::PATH_EFFECT_TRANSLATE);
+        OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_TRANSLATE);
+    EXPECT_NE(pathEffect, nullptr);
     OH_Drawing_PenSetPathEffect(nullptr, pathEffect);
     OH_Drawing_PenSetPathEffect(pen, pathEffect);
 
-    pathEffect = OH_Drawing_CreatePathDashEffect(nullptr, 10.0, 10.0, OH_Drawing_PathEffectType::PATH_EFFECT_TRANSLATE);
-    EXPECT_EQ(pathEffect, nullptr);
+    OH_Drawing_PathEffect* pathEffect2 = OH_Drawing_CreatePathDashEffect(nullptr,
+        10.0, 10.0, OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_TRANSLATE);
+    EXPECT_EQ(pathEffect2, nullptr);
 
-    pathEffect = OH_Drawing_CreatePathDashEffect(path, -10.0, 10.0, OH_Drawing_PathEffectType::PATH_EFFECT_ROTATE);
-    EXPECT_EQ(pathEffect, nullptr);
+    pathEffect2 = OH_Drawing_CreatePathDashEffect(path,
+        -10.0, 10.0, OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_ROTATE);
+    EXPECT_EQ(pathEffect2, nullptr);
 
-    pathEffect = OH_Drawing_CreatePathDashEffect(path, 10.0, -10.0, OH_Drawing_PathEffectType::PATH_EFFECT_MORPH);
-    EXPECT_NE(pathEffect, nullptr);
+    pathEffect2 = OH_Drawing_CreatePathDashEffect(path,
+        10.0, -10.0, OH_Drawing_PathDashStyle::DRAWING_PATH_DASH_STYLE_MORPH);
+    EXPECT_NE(pathEffect2, nullptr);
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_PathDestroy(path);
     OH_Drawing_PathEffectDestroy(pathEffect);
+    OH_Drawing_PathEffectDestroy(pathEffect2);
 }
 
 /*
  * @tc.name: NativeDrawingPathEffectTest_CreateSumPathEffect003
  * @tc.desc: test for CreatePathDashEffect.
  * @tc.type: FUNC
- * @tc.require: IBDAT2
+ * @tc.require: IBHEL5
  */
 HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateSumPathEffect003, TestSize.Level1)
 {
     float intervals[] = {1, 1, 1};
     // 3 is the number of elements of the intervals array
     OH_Drawing_PathEffect* pathEffectOne = OH_Drawing_CreateDashPathEffect(intervals, 3, 0.0);
+    EXPECT_NE(pathEffectOne, nullptr);
     OH_Drawing_PathEffect* pathEffectTwo = OH_Drawing_CreateDashPathEffect(intervals, 3, 0.0);
-    OH_Drawing_PathEffect* pathEffectSum = OH_Drawing_CreateSumPathEffect(pathEffectOne, pathEffectTwo);
-    EXPECT_NE(pathEffectSum, nullptr);
-    pathEffectSum = OH_Drawing_CreateSumPathEffect(nullptr, pathEffectTwo);
+    EXPECT_NE(pathEffectTwo, nullptr);
+    OH_Drawing_PathEffect* pathEffectSum = OH_Drawing_CreateSumPathEffect(nullptr, pathEffectTwo);
     EXPECT_EQ(pathEffectSum, nullptr);
     pathEffectSum = OH_Drawing_CreateSumPathEffect(pathEffectOne, nullptr);
     EXPECT_EQ(pathEffectSum, nullptr);
+    pathEffectSum = OH_Drawing_CreateSumPathEffect(pathEffectOne, pathEffectTwo);
+    EXPECT_NE(pathEffectSum, nullptr);
     OH_Drawing_PathEffectDestroy(pathEffectOne);
     OH_Drawing_PathEffectDestroy(pathEffectTwo);
     OH_Drawing_PathEffectDestroy(pathEffectSum);
@@ -123,7 +130,7 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateSumPathE
  * @tc.name: NativeDrawingPathEffectTest_PathEffect004
  * @tc.desc: test for PathEffect.
  * @tc.type: FUNC
- * @tc.require: IBDAT2
+ * @tc.require: IBHEL5
  */
 HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateDiscretePathEffect004, TestSize.Level1)
 {
@@ -132,19 +139,22 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateDiscrete
     float segLength = 1.0;
     float dev = 1.0;
     OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateDiscretePathEffect(segLength, dev);
-    EXPECT_TRUE(pathEffect != nullptr);
+    EXPECT_NE(pathEffect, nullptr);
     OH_Drawing_PenSetPathEffect(pen, pathEffect);
-    pathEffect = OH_Drawing_CreateDiscretePathEffect(0.0, dev);
-    EXPECT_TRUE(pathEffect != nullptr);
-    pathEffect = OH_Drawing_CreateDiscretePathEffect(segLength, 0.0);
-    EXPECT_TRUE(pathEffect != nullptr);
-    pathEffect = OH_Drawing_CreateDiscretePathEffect(segLength, dev);
-    EXPECT_TRUE(pathEffect != nullptr);
-    pathEffect = OH_Drawing_CreateDiscretePathEffect(-2.0, dev); // -2.0 means segLength
-    EXPECT_TRUE(pathEffect != nullptr);
-    pathEffect = OH_Drawing_CreateDiscretePathEffect(-2.0, -2.0); // -2.0 means segLength
-    EXPECT_TRUE(pathEffect != nullptr);
+    OH_Drawing_PathEffect* pathEffect1 = OH_Drawing_CreateDiscretePathEffect(0.0, dev);
+    EXPECT_NE(pathEffect1, nullptr);
+    OH_Drawing_PathEffect* pathEffect2 = OH_Drawing_CreateDiscretePathEffect(segLength, 0.0);
+    EXPECT_NE(pathEffect2, nullptr);
+    OH_Drawing_PathEffect* pathEffect3 = OH_Drawing_CreateDiscretePathEffect(-2.0, dev); // -2.0 means segLength
+    EXPECT_NE(pathEffect3, nullptr);
+    OH_Drawing_PathEffect* pathEffect4 = OH_Drawing_CreateDiscretePathEffect(-2.0, -2.0); // -2.0 means segLength
+    EXPECT_NE(pathEffect4, nullptr);
+
     OH_Drawing_PathEffectDestroy(pathEffect);
+    OH_Drawing_PathEffectDestroy(pathEffect1);
+    OH_Drawing_PathEffectDestroy(pathEffect2);
+    OH_Drawing_PathEffectDestroy(pathEffect3);
+    OH_Drawing_PathEffectDestroy(pathEffect4);
     OH_Drawing_PenDestroy(pen);
 }
 
@@ -152,20 +162,20 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateDiscrete
  * @tc.name: NativeDrawingPathEffectTest_PathEffect005
  * @tc.desc: test for PathEffect.
  * @tc.type: FUNC
- * @tc.require: IBDAT2
+ * @tc.require: IBHEL5
  */
 HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateCornerPathEffect005, TestSize.Level1)
 {
+    OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateCornerPathEffect(0);
+    EXPECT_EQ(pathEffect, nullptr);
+    pathEffect = OH_Drawing_CreateCornerPathEffect(-2.0); // -2.0 means radius
+    EXPECT_EQ(pathEffect, nullptr);
+    uint32_t radius = 1;
+    pathEffect = OH_Drawing_CreateCornerPathEffect(radius);
+    EXPECT_NE(pathEffect, nullptr);
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     EXPECT_NE(pen, nullptr);
-    uint32_t radius = 1;
-    OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateCornerPathEffect(radius);
-    EXPECT_TRUE(pathEffect != nullptr);
     OH_Drawing_PenSetPathEffect(pen, pathEffect);
-    pathEffect = OH_Drawing_CreateCornerPathEffect(0);
-    EXPECT_TRUE(pathEffect == nullptr);
-    pathEffect = OH_Drawing_CreateCornerPathEffect(-2.0); // -2.0 means radius
-    EXPECT_TRUE(pathEffect == nullptr);
     OH_Drawing_PathEffectDestroy(pathEffect);
     OH_Drawing_PenDestroy(pen);
 }
@@ -174,7 +184,7 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateCornerPa
  * @tc.name: NativeDrawingPathEffectTest_PathEffect006
  * @tc.desc: test for PathEffect.
  * @tc.type: FUNC
- * @tc.require: IBDAT2
+ * @tc.require: IBHEL5
  */
 HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateComposePathEffect006, TestSize.Level1)
 {
@@ -182,15 +192,18 @@ HWTEST_F(NativeDrawingPathEffectTest, NativeDrawingPathEffectTest_CreateComposeP
     EXPECT_NE(pen, nullptr);
     uint32_t radius = 1;
     OH_Drawing_PathEffect* pathEffect1 = OH_Drawing_CreateCornerPathEffect(radius);
+    EXPECT_NE(pathEffect1, nullptr);
     radius = 2; // 2 means radius
     OH_Drawing_PathEffect* pathEffect2 = OH_Drawing_CreateCornerPathEffect(radius);
-    OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateComposePathEffect(pathEffect1, pathEffect2);
-    EXPECT_TRUE(pathEffect != nullptr);
-    OH_Drawing_PenSetPathEffect(pen, pathEffect);
-    pathEffect = OH_Drawing_CreateComposePathEffect(nullptr, pathEffect2);
-    EXPECT_TRUE(pathEffect == nullptr);
+    EXPECT_NE(pathEffect2, nullptr);
+    OH_Drawing_PathEffect* pathEffect = OH_Drawing_CreateComposePathEffect(nullptr, pathEffect2);
+    EXPECT_EQ(pathEffect, nullptr);
     pathEffect = OH_Drawing_CreateComposePathEffect(pathEffect1, nullptr);
-    EXPECT_TRUE(pathEffect == nullptr);
+    EXPECT_EQ(pathEffect, nullptr);
+    pathEffect = OH_Drawing_CreateComposePathEffect(pathEffect1, pathEffect2);
+    EXPECT_NE(pathEffect, nullptr);
+    OH_Drawing_PenSetPathEffect(pen, pathEffect);
+
     OH_Drawing_PathEffectDestroy(pathEffect1);
     OH_Drawing_PathEffectDestroy(pathEffect2);
     OH_Drawing_PathEffectDestroy(pathEffect);

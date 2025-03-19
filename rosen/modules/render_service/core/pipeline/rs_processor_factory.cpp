@@ -15,10 +15,10 @@
 
 #include "rs_processor_factory.h"
 
+#include "render_thread/rs_physical_screen_processor.h"
 #include "render_thread/rs_uni_render_processor.h"
 #include "render_thread/rs_uni_render_virtual_processor.h"
-#include "rs_physical_screen_processor.h"
-#include "rs_virtual_screen_processor.h"
+#include "render_thread/rs_virtual_screen_processor.h"
 
 namespace OHOS {
 namespace Rosen {

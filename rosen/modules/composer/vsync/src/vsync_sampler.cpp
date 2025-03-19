@@ -80,7 +80,15 @@ void VSyncSampler::ResetErrorLocked()
 void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    RS_TRACE_NAME_FMT("SetVsyncEnabledScreenId:%lu", vsyncEnabledScreenId);
+    VLOGI("SetVsyncEnabledScreenId:" VPUBU64, vsyncEnabledScreenId);
     vsyncEnabledScreenId_ = vsyncEnabledScreenId;
+}
+
+uint64_t VSyncSampler::GetVsyncEnabledScreenId()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return vsyncEnabledScreenId_;
 }
 
 void VSyncSampler::SetVsyncSamplerEnabled(bool enabled)
@@ -425,6 +433,7 @@ void VSyncSampler::Dump(std::string &result)
     }
     result += "]";
     result += "\npresentFenceTimeOffset:" + std::to_string(presentFenceTimeOffset_);
+    result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_);
 }
 
 VSyncSampler::~VSyncSampler()

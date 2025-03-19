@@ -68,6 +68,12 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
         }
     }
 
+    if (configData != nullptr) {
+        for (auto item : configData->pageNameList_) {
+            data->AddPageName(item);
+        }
+    }
+
     auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
@@ -153,6 +159,12 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
                 data->AddAnimDynamicItem({
                     animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
             }
+        }
+    }
+
+    if (configData != nullptr) {
+        for (auto item : configData->pageNameList_) {
+            data->AddPageName(item);
         }
     }
 

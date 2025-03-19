@@ -264,5 +264,56 @@ std::shared_ptr<Drawing::RuntimeEffect> TestBase::GetTestRuntimeEffectForBlender
     }
     return runtimeEffect;
 }
+
+void TestBase::ClipPath(bool doAntiAlias)
+{
+    Drawing::Path path;
+    path.AddRect({ 200, 300, 700, 800 }); // rect region (200, 300, 700, 800)
+    path.SetFillStyle(Drawing::PathFillType::INVERSE_WINDING);
+    playbackCanvas_->Save();
+    playbackCanvas_->ClipPath(path, Drawing::ClipOp::DIFFERENCE, doAntiAlias);
+    playbackCanvas_->Clear(Drawing::Color::COLOR_GREEN);
+    playbackCanvas_->Restore();
+}
+
+void TestBase::ClipRect(bool doAntiAlias)
+{
+    auto rect = Drawing::Rect(100, 100, 200, 200); // rect region (100, 100, 200, 200)
+    playbackCanvas_->Save();
+    playbackCanvas_->ClipRect(rect, Drawing::ClipOp::DIFFERENCE, doAntiAlias);
+    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
+    playbackCanvas_->Restore();
+}
+
+void TestBase::ClipRoundRectG2(bool doAntiAlias)
+{
+    auto rect = Drawing::Rect(100, 100, 250, 250);       // rect region (100, 100, 250, 250)
+    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
+    playbackCanvas_->Save();
+    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, doAntiAlias);
+    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
+    playbackCanvas_->Restore();
+}
+
+void TestBase::ClipRoundRectG2capsule(bool doAntiAlias)
+{
+    auto rect = Drawing::Rect(100, 100, 250, 200);       // rect region (100, 100, 250, 200)
+    auto rrect = Drawing::RoundRect(rect, 50.0f, 50.0f); // 50.0f is angle
+    playbackCanvas_->Save();
+    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, doAntiAlias);
+    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
+    playbackCanvas_->Restore();
+}
+
+void TestBase::ClipRoundRectnotG2(bool doAntiAlias)
+{
+    auto rect = Drawing::Rect(100, 100, 200, 200);       // rect region (100, 100, 200, 200)
+    auto rrect = Drawing::RoundRect(rect, 30.0f, 30.0f); // 30.0f is angle
+    playbackCanvas_->Save();
+    playbackCanvas_->ClipRoundRect(rrect, Drawing::ClipOp::DIFFERENCE, doAntiAlias);
+    playbackCanvas_->Clear(Drawing::Color::COLOR_RED);
+    playbackCanvas_->Restore();
+}
+
 } // namespace Rosen
 } // namespace OHOS

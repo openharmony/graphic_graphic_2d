@@ -83,6 +83,7 @@ template<typename T>
 class RectT;
 template<typename T>
 class RRectT;
+struct PixelMapInfo;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -109,11 +110,17 @@ public:
 
     static bool Marshalling(Parcel& parcel, const std::string& val)
     {
-        return parcel.WriteString(val);
+        if (!parcel.WriteString(val)) {
+            return false;
+        }
+        return true;
     }
     static bool Unmarshalling(Parcel& parcel, std::string& val)
     {
-        return parcel.ReadString(val);
+        if (!parcel.ReadString(val)) {
+            return false;
+        }
+        return true;
     }
 
     template<typename T>
@@ -261,6 +268,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleColorParaType)
+    DECLARE_FUNCTION_OVERLOAD(PixelMapInfo)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
@@ -372,10 +380,14 @@ public:
     static bool Marshalling(Parcel& parcel, const std::optional<T>& val)
     {
         if (!val.has_value()) {
-            parcel.WriteBool(false);
+            if (!parcel.WriteBool(false)) {
+                return false;
+            }
             return true;
         }
-        parcel.WriteBool(true);
+        if (!parcel.WriteBool(true)) {
+            return false;
+        }
         return Marshalling(parcel, val.value());
     }
     template<typename T>

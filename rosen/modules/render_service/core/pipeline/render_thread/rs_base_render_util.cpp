@@ -24,6 +24,7 @@
 
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "draw/clip.h"
@@ -49,7 +50,7 @@ namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 constexpr uint32_t API14 = 14;
-constexpr uint32_t API16 = 16;
+constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 inline int64_t GenerateCurrentTimeStamp()
@@ -955,7 +956,7 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
 }
 
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable)
+    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -963,6 +964,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
+        return false;
+    }
+    if (adaptiveDVSyncEnable && !needConsume) {
+        RS_LOGI("adaptiveDVSyncEnable and not needConsume");
         return false;
     }
 
@@ -1342,10 +1347,17 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
         int degree = static_cast<int>(round(nodeParams->GetAbsRotation()));
         extraRotation = (degree - rotationDegree) % ROUND_ANGLE;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+                                   "fixRotationByUser:true surfaceNode:[%lu] rotationDegree:[%d] "
+                                   "degree:[%d] extraRotation:[%d]", nodeParams->GetId(),
+                                   rotationDegree, degree, extraRotation);
     }
 
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+                               "surfaceNode:[%lu] transform:[%d] rotationTransform:[%d]",
+                               nodeParams != nullptr ? nodeParams->GetId() : 0, transform, rotationTransform);
 
     RectF bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f};
     if (params.buffer != nullptr) {
@@ -1356,7 +1368,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
-    if (nodeParams != nullptr && nodeParams->GetApiCompatibleVersion() >= API16) {
+    if (nodeParams != nullptr && (nodeParams->GetApiCompatibleVersion() >= API18 ||
+        nodeParams->GetName() == "RosenWeb")) {
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(

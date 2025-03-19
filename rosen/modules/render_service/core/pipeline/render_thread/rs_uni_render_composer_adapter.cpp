@@ -23,8 +23,9 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_divided_render_util.h"
-#include "pipeline/rs_uni_render_listener.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
+#include "params/rs_rcd_render_params.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "rs_uni_render_util.h"
@@ -34,6 +35,7 @@
 #include "third_party/libdrm/include/drm/drm.h"
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -181,7 +183,11 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
 
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
-    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        return ComposeInfo {};
+    }
+    const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
     if (buffer == nullptr) {
         RS_LOGW("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode buffer is nullptr");
     }
@@ -198,12 +204,12 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     std::vector<GraphicIRect> dirtyRects;
     dirtyRects.emplace_back(GraphicIRect {0, 0, 0, 0});
     info.dirtyRects = dirtyRects;
-    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
+    info.zOrder = static_cast<int32_t>(surfaceHandler->GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
     info.alpha.gAlpha = 255; // 255 means not transparent
-    SetPreBufferInfo(node, info);
+    SetPreBufferInfo(*surfaceHandler, info);
     info.buffer = buffer;
-    info.fence = node.GetAcquireFence();
+    info.fence = surfaceHandler->GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = false;
     info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
@@ -223,6 +229,59 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
         info.dstRect.y, info.dstRect.w, info.dstRect.y, info.matrix.scaleX, info.matrix.scaleY, info.matrix.skewX,
         info.matrix.skewY, info.matrix.transX, info.matrix.transY, info.matrix.pers0, info.matrix.pers1,
         info.matrix.pers2);
+    return info;
+}
+
+ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) const
+{
+    auto surfaceHandler = rcdDrawable.GetSurfaceHandler();
+    if (!surfaceHandler) {
+        return ComposeInfo {};
+    }
+    const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
+    if (buffer == nullptr) {
+        RS_LOGW("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNodeDrawable buffer is nullptr");
+    }
+    auto params = static_cast<RSRcdRenderParams*>(rcdDrawable.GetRenderParams().get());
+    const RectI& dstRect = params->GetDstRect();
+    const auto& srcRect = params->GetSrcRect();
+    ComposeInfo info {};
+    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
+    info.dstRect = GraphicIRect {static_cast<int32_t>(dstRect.left_ * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(dstRect.top_ * screenInfo_.GetRogHeightRatio()),
+        static_cast<int32_t>(dstRect.width_ * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(dstRect.height_ * screenInfo_.GetRogHeightRatio())};
+    info.boundRect = info.dstRect;
+    info.visibleRect = info.dstRect;
+    std::vector<GraphicIRect> dirtyRects;
+    dirtyRects.emplace_back(GraphicIRect {0, 0, 0, 0});
+    info.dirtyRects = dirtyRects;
+    info.zOrder = static_cast<int32_t>(surfaceHandler->GetGlobalZOrder());
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = 255; // 255 means not transparent
+    SetPreBufferInfo(*surfaceHandler, info);
+    info.buffer = buffer;
+    info.fence = surfaceHandler->GetAcquireFence();
+    info.blendType = GRAPHIC_BLEND_SRCOVER;
+    info.needClient = false;
+    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    info.gravity = static_cast<int32_t>(Gravity::RESIZE);
+
+    info.displayNit = DEFAULT_BRIGHTNESS;
+    info.brightnessRatio = NO_RATIO;
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
+        " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
+        " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
+        rcdDrawable.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        info.alpha.enGlobalAlpha, info.alpha.gAlpha,
+        info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.y,
+        info.matrix.scaleX, info.matrix.scaleY, info.matrix.skewX, info.matrix.skewY, info.matrix.transX,
+        info.matrix.transY, info.matrix.pers0, info.matrix.pers1, info.matrix.pers2);
     return info;
 }
 
@@ -1432,8 +1491,12 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-
-    if (node.GetBuffer() == nullptr) {
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer surfaceHandler is nullptr!");
+        return nullptr;
+    }
+    if (surfaceHandler->GetBuffer() == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
         return nullptr;
     }
@@ -1450,12 +1513,47 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    SetComposeInfoToLayer(layer, info, node.GetConsumer());
+    SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     auto drawable = node.GetRenderDrawable();
     if (drawable) {
         LayerRotate(layer, *drawable);
     }
     layer->SetNodeId(node.GetId());
+    return layer;
+}
+
+LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable)
+{
+    if (output_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
+        return nullptr;
+    }
+    auto surfaceHandler = rcdDrawable.GetSurfaceHandler();
+    if (!surfaceHandler) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer surfaceHandler is nullptr!");
+        return nullptr;
+    }
+    if (surfaceHandler->GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
+        return nullptr;
+    }
+
+    ComposeInfo info = BuildComposeInfo(rcdDrawable);
+    if (info.buffer) {
+        RS_LOGD("RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNodeDrawable id:%{public}" PRIu64 " DstRect"
+            " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
+            " blendType = %{public}d",
+            rcdDrawable.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+            info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+            info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+            info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    }
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetUniRenderFlag(true);
+    SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
+    LayerRotate(layer, rcdDrawable);
+    layer->SetNodeId(rcdDrawable.GetId());
     return layer;
 }
 

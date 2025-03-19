@@ -47,6 +47,12 @@ struct ConnectionInfo {
 };
 typedef void (*GCNotifyTask)(bool);
 
+struct DVSyncFeatureParam {
+    std::vector<bool> switchParams;
+    std::vector<uint32_t> bufferCountParams;
+    std::unordered_map<std::string, std::string> adaptiveConfigs;
+};
+
 class VSyncConnection : public VSyncConnectionStub {
 public:
     // id for LTPO, windowNodeId for vsync rate control
@@ -109,7 +115,7 @@ private:
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
 public:
 
-    VSyncDistributor(sptr<VSyncController> controller, std::string name);
+    VSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam = {});
     ~VSyncDistributor();
     // nocopyable
     VSyncDistributor(const VSyncDistributor &) = delete;
@@ -149,7 +155,8 @@ public:
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    bool AdaptiveDVSyncEnable(std::string nodeName);
+    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
@@ -205,7 +212,7 @@ private:
     bool vsyncEnabled_;
     std::string name_;
     bool vsyncThreadRunning_ = false;
-    std::vector<std::pair<uint64_t, uint32_t>> changingConnsRefreshRates_; // std::pair<id, refresh rate>
+    std::unordered_map<uint64_t, uint32_t> changingConnsRefreshRates_; // std::pair<id, refresh rate>
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
     uint32_t generatorRefreshRate_ = 0;
@@ -231,7 +238,7 @@ private:
     void DisableDVSyncController();
     void OnDVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-    void InitDVSync();
+    void InitDVSync(DVSyncFeatureParam dvsyncParam = {});
     void DVSyncAddConnection(const sptr<VSyncConnection> &connection);
     void DVSyncDisableVSync();
     void RecordEnableVsync();

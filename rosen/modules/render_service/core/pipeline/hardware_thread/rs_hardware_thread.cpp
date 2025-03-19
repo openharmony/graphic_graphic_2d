@@ -31,7 +31,7 @@
 #include "common/rs_singleton.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -41,6 +41,8 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "platform/common/rs_hisysevent.h"
+#include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -77,6 +79,7 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
+constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
 }
 
 static int64_t SystemTime()
@@ -104,6 +107,12 @@ void RSHardwareThread::Start()
     if (handler_) {
         ScheduleTask(
             [this]() {
+#if defined (RS_ENABLE_VK)
+                // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
+                if (RSSystemProperties::IsUseVulkan()) {
+                    RsVulkanContext::GetSingleton().SetIsProtected(false);
+                }
+#endif
                 auto screenManager = CreateOrGetScreenManager();
                 if (screenManager == nullptr || !screenManager->Init()) {
                     RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
@@ -113,11 +122,6 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#if defined (RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
-                if (RSSystemProperties::IsUseVulkan()) {
-                    RsVulkanContext::GetSingleton().SetIsProtected(true);
-                }
-#endif
                 uniRenderEngine_->Init(true);
                 hardwareTid_ = gettid();
             }).wait();
@@ -128,6 +132,16 @@ void RSHardwareThread::Start()
     if (hdiBackend_ != nullptr) {
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
+    auto changeDssRefreshRateCb = [this] (ScreenId screenId, uint32_t refreshRate, bool followPipline) {
+        PostTask([this, screenId, refreshRate, followPipline] () {
+            ChangeDssRefreshRate(screenId, refreshRate, followPipline);
+        });
+    };
+    HgmTaskHandleThread::Instance().PostTask([changeDssRefreshRateCb] () {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
+            frameRateMgr->SetChangeDssRefreshRateCb(changeDssRefreshRateCb);
+        }
+    });
 }
 
 int RSHardwareThread::GetHardwareTid() const
@@ -142,11 +156,28 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSHardwareThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSHardwareThread::PostDelayTask(const std::function<void()>& task, int64_t delayTime)
 {
     if (handler_) {
         handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSHardwareThread::DumpVkImageInfo(std::string &dumpString)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostSyncTask([&dumpString, uniRenderEngine]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->DumpVkImageInfo(dumpString);
+        }
+    });
 }
 
 uint32_t RSHardwareThread::GetunExecuteTaskNum()
@@ -200,6 +231,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
+    refreshRateParam_ = param;
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId curScreenId = hgmCore.GetActiveScreenId();
     uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(curScreenId);
@@ -273,9 +305,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 " %{public}s",
                 frameTime, missedFrames, frameRate, surfaceName.c_str());
             intervalTimePoints_ = endTime;
-            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
-                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
-                missedFrames, "FRAME_TIME", frameTime);
+            RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers HiSysEventWrite in RSHardwareThread");
+            RSHiSysEvent::EventWrite(RSEventName::RS_HARDWARE_THREAD_LOAD_WARNING, RSEventType::RS_STATISTIC,
+                "FRAME_RATE", frameRate, "MISSED_FRAMES", missedFrames, "FRAME_TIME", frameTime);
         }
     };
     RSBaseRenderUtil::IncAcquiredBufferCount();
@@ -337,19 +369,24 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
             solidColorLayer->SetLayerColor({0, 0, 0, 255});
         }
         layers.emplace_back(solidColorLayer);
-        RS_LOGD("make fold display black mask x y w h %{public}d %{public}d %{public}d %{public}d",
-            maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_);
     }
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
     for (auto& layerInfo : layers) {
+        auto layerSurface = layerInfo->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                continue;
+            }
+        }
         GraphicIRect dstRect = layerInfo->GetLayerSize();
         GraphicIRect tmpRect = dstRect;
-        // Limit the target area to the activated area
         int reviseRight = reviseRect.left_ + reviseRect.width_;
         int reviseBottom = reviseRect.top_ + reviseRect.height_;
         tmpRect.x = std::clamp(dstRect.x, reviseRect.left_, reviseRight);
-        tmpRect.x = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
-        tmpRect.x = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
-        tmpRect.x = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
+        tmpRect.y = std::clamp(dstRect.y, reviseRect.top_, reviseBottom);
+        tmpRect.w = std::min(tmpRect.x + dstRect.w, reviseRight) - tmpRect.x;
+        tmpRect.h = std::min(tmpRect.y + dstRect.h, reviseBottom) - tmpRect.y;
         layerInfo->SetLayerSize(tmpRect);
     }
 }
@@ -401,10 +438,14 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
     }
 
     if (hgmCore.GetLtpoEnabled()) {
-        if (IsInAdaptiveMode(output)) {
+        if (AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
             RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Adaptive Mode");
             RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
             isLastAdaptive_ = true;
+            return false;
+        }
+        if (hasGameScene && AdaptiveModeStatus(output) == SupportASStatus::GAME_SCENE_SKIP) {
+            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip dalayTime Calculation");
             return false;
         }
         isLastAdaptive_ = false;
@@ -566,11 +607,11 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const sptr<Surface
     return pixelFormat;
 }
 
-bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
+int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
 {
     if (hdiBackend_ == nullptr) {
-        RS_LOGE("RSHardwareThread::IsInAdaptiveMode hdiBackend_ is nullptr");
-        return false;
+        RS_LOGE("RSHardwareThread::AdaptiveModeStatus hdiBackend_ is nullptr");
+        return SupportASStatus::NOT_SUPPORT;
     }
 
     bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
@@ -579,14 +620,17 @@ bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
     // if in game adaptive vsync mode and do direct composition,send layer immediately
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
-        bool isAdaptive = frameRateMgr->IsAdaptive();
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
-        if (isAdaptive) {
+        int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
+        if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
             if (isSamplerEnabled) {
                 // when phone enter game adaptive sync mode must disable vsync sampler
                 hdiBackend_->SetVsyncSamplerEnabled(output, false);
             }
-            return true;
+            return SupportASStatus::SUPPORT_AS;
+        }
+        if (adaptiveStatus == SupportASStatus::GAME_SCENE_SKIP) {
+            return SupportASStatus::GAME_SCENE_SKIP;
         }
     }
     if (isLastAdaptive_ && !isSamplerEnabled) {
@@ -595,7 +639,7 @@ bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
         hdiBackend_->StartSample(output);
     }
 
-    return false;
+    return SupportASStatus::NOT_SUPPORT;
 }
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
@@ -654,6 +698,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
         return;
     }
     ScreenId id = output->GetScreenId();
+    outputMap_[id] = output;
     auto screen = hgmCore.GetScreen(id);
     if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
@@ -721,6 +766,33 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         if (hdiBackend_) {
             hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
             hdiBackend_->StartSample(output);
+        }
+    }
+}
+
+void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshRate, bool followPipline)
+{
+    if (followPipline) {
+        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
+            if (vsyncId != refreshRateParam_.vsyncId) {
+                return;
+            }
+            // switch hardware vsync
+            ChangeDssRefreshRate(screenId, refreshRate, false);
+        };
+        int64_t period = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(screenId));
+        PostDelayTask(task, period / NS_MS_UNIT_CONVERSION + delayTime_ + DELAY_TIME_OFFSET);
+    } else {
+        auto outputIter = outputMap_.find(screenId);
+        if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+            return;
+        }
+        ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
+        PerformSetActiveMode(
+            outputIter->second, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
+        if (outputIter->second->IsDeviceValid()) {
+            hdiBackend_->Repaint(outputIter->second);
         }
     }
 }
@@ -802,6 +874,11 @@ void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
         if (layer == nullptr) {
             continue;
         }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            continue;
+        }
         auto layerSurface = layer->GetSurface();
         if (layerSurface != nullptr) {
             auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
@@ -834,10 +911,18 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
+    bool isDefaultScreen = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
+    }
+    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+    bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
+
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (RSSystemProperties::GetDrmEnabled()) {
+        if (isDrmEnabled && isDefaultScreen) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

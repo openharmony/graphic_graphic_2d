@@ -76,10 +76,7 @@ public:
     uint64_t GetSize() const;
 
     // call from main thread
-    void AddOffTreeNode(NodeId nodeId);
-    void RemoveOffTreeNode(NodeId nodeId);
-    std::unordered_map<NodeId, bool>&& GetAndClearPurgeableNodeIds();
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetSelfDrawingNodeInProcess(pid_t pid);
+    std::vector<NodeId> GetSelfDrawingNodeInProcess(pid_t pid);
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -87,8 +84,6 @@ private:
     RSRenderNodeMap(const RSRenderNodeMap&&) = delete;
     RSRenderNodeMap& operator=(const RSRenderNodeMap&) = delete;
     RSRenderNodeMap& operator=(const RSRenderNodeMap&&) = delete;
-    void InsertSelfDrawingNodeOfProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
-    void EraseSelfDrawingNodeOfProcess(NodeId id);
 
 private:
     std::weak_ptr<RSContext> context_;
@@ -110,6 +105,7 @@ private:
 
     void AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void CollectSelfDrawingNodeOfSubTree(std::vector<NodeId>& vec, const std::shared_ptr<RSBaseRenderNode> rootNode);
     std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
 

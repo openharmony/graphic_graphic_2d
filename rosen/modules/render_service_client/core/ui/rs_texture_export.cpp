@@ -24,6 +24,9 @@ namespace Rosen {
 
 RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
+    if (rootNode == nullptr) {
+        return;
+    }
     rsUiDirector_ = RSUIDirector::Create();
     rootNode_ = rootNode;
     surfaceId_ = surfaceId;
@@ -33,7 +36,7 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
         .isTextureExportNode = true,
         .surfaceId = surfaceId_
     };
-    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false);
+    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rsUiDirector_->GetRSUIContext());
     rootNode_->SyncTextureExport(true);
 }
 
@@ -44,12 +47,13 @@ RSTextureExport::~RSTextureExport()
 
 bool RSTextureExport::DoTextureExport()
 {
+    auto rsUIContext = rsUiDirector_->GetRSUIContext();
     if (!rootNode_->IsTextureExportNode()) {
         rootNode_->SyncTextureExport(true);
     }
     rsUiDirector_->StartTextureExport();
     if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {
-        virtualRootNode_ = RSRootNode::Create(false, true);
+        virtualRootNode_ = RSRootNode::Create(false, true, rsUIContext);
         auto bounds = rootNode_->GetStagingProperties().GetBounds();
         virtualRootNode_->SetBounds({-bounds.x_, -bounds.y_, bounds.z_, bounds.w_});
         auto frame = rootNode_->GetStagingProperties().GetFrame();

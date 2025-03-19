@@ -67,6 +67,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDrawOpTraceEnabled()
 {
     return false;
@@ -92,12 +97,27 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
     return {};
 }
 
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
+{
+    return {};
+}
+
+DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
+{
+    return {};
+}
+
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
     return {};
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     return {};
 }
@@ -459,10 +479,6 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetSubSurfaceEnabled()
-{
-    return false;
-}
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -521,6 +537,11 @@ bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
 {
     return false;
+}
+
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetRenderParallelEnabled()
@@ -584,6 +605,31 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 }
 
 bool RSSystemProperties::GetHveFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }

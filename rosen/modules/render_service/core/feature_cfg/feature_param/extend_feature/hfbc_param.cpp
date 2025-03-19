@@ -17,12 +17,12 @@
 
 namespace OHOS::Rosen {
 
-const std::unordered_map<std::string, std::string>& HfbcParam::GetHfbcConfigMap() const
+const std::unordered_map<std::string, std::string>& HFBCParam::GetHfbcConfigMap() const
 {
     return hfbcConfig_;
 }
 
-void HfbcParam::SetHfbcConfigForApp(std::string appName, std::string val)
+void HFBCParam::SetHfbcConfigForApp(const std::string& appName, const std::string& val)
 {
     hfbcConfig_.emplace(appName, val);
 }

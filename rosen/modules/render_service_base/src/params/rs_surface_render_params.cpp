@@ -497,6 +497,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->sourceDisplayRenderNodeDrawable_ = sourceDisplayRenderNodeDrawable_;
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
@@ -519,6 +520,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->stencilVal_ = stencilVal_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -531,6 +533,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
@@ -557,16 +560,19 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
+    targetSurfaceParams->layerLinearMatrix_ = layerLinearMatrix_;
+    targetSurfaceParams->hasMetadata_ = hasMetadata_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
-    targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
+    targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;

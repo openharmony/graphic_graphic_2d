@@ -130,6 +130,9 @@ public:
     {
         isUniRenderMode_ = isUni;
     }
+#if defined(RS_ENABLE_VK)
+    bool CheckShaderCacheOverSoftLimit() const;
+#endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     virtual std::string GetShaderCacheSize() const;
 

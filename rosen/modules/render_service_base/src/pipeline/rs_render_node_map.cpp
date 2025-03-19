@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_node_map.h"
 #include "common/rs_common_def.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -39,6 +40,7 @@ RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
     renderNodeMap_[0][0] = std::make_shared<RSBaseRenderNode>(0);
+    renderNodeMap_[0][0]->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 }
 
 void RSRenderNodeMap::Initialize(const std::weak_ptr<RSContext>& context)
@@ -161,7 +163,6 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);
-        InsertSelfDrawingNodeOfProcess(surfaceNode);
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
         }
@@ -188,15 +189,6 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     return true;
 }
 
-void RSRenderNodeMap::InsertSelfDrawingNodeOfProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
-{
-    NodeId id = surfaceNode->GetId();
-    pid_t pid = ExtractPid(id);
-    if (surfaceNode->IsSelfDrawingType()) {
-        selfDrawingNodeInProcess_[pid].insert({ id, surfaceNode });
-    }
-}
-
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     pid_t pid = ExtractPid(id);
@@ -212,30 +204,12 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
-        EraseSelfDrawingNodeOfProcess(id);
         surfaceNodeMap_.erase(id);
         RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(id);
     }
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
-    purgeableNodeMap_.erase(id);
-}
-
-void RSRenderNodeMap::EraseSelfDrawingNodeOfProcess(NodeId id)
-{
-    pid_t pid = ExtractPid(id);
-    auto iter = selfDrawingNodeInProcess_.find(pid);
-    if (iter != selfDrawingNodeInProcess_.end()) {
-        auto& subMap = iter->second;
-        auto subIter = subMap.find(id);
-        if (subIter != subMap.end()) {
-            subMap.erase(id);
-            if (subMap.empty()) {
-                selfDrawingNodeInProcess_.erase(iter);
-            }
-        }
-    }
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -415,34 +389,29 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     return nullptr;
 }
 
-void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)
+std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 {
-    purgeableNodeMap_.insert(std::pair(nodeId, true));
-}
-
-void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
-{
-    purgeableNodeMap_.insert(std::pair(nodeId, false));
-}
-
-std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
-{
-    return std::move(purgeableNodeMap_);
-}
-
-std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
-{
-    auto iter = selfDrawingNodeInProcess_.find(pid);
-    if (iter != selfDrawingNodeInProcess_.end()) {
-        return iter->second;
+    std::vector<NodeId> selfDrawingNodeVector;
+    auto iter = renderNodeMap_.find(pid);
+    std::shared_ptr<RSBaseRenderNode> instanceRootNode;
+    if (iter != renderNodeMap_.end()) {
+        for (auto subIter = iter->second.begin(); subIter != iter->second.end(); ++subIter) {
+            if (subIter->second && subIter->second->IsOnTheTree()) {
+                instanceRootNode = subIter->second->GetInstanceRootNode();
+                break;
+            }
+        }
+        if (instanceRootNode) {
+            instanceRootNode->CollectSelfDrawingChild(instanceRootNode, selfDrawingNodeVector);
+        }
     }
-    return std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>();
+    return selfDrawingNodeVector;
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
 {
     for (auto &t : surfaceNodeMap_) {
-        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType()) {
+        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType() && !t.second->IsRosenWeb()) {
             return t.second->GetName();
         }
     }

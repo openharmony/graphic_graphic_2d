@@ -98,6 +98,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<VSyncIConnectionToken> token;
     std::string name("name");
     uint64_t id1 = GetData<uint64_t>();
+    int64_t id2 = GetData<int64_t>();
     uint64_t windowNodeId = GetData<uint64_t>();
     int32_t pid1 = GetData<int32_t>();
     int32_t uid = GetData<int32_t>();
@@ -108,6 +109,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t y = GetData<int32_t>();
     int32_t w = GetData<int32_t>();
     int32_t h = GetData<int32_t>();
+    int32_t resCode;
     Rect activeRect {
         .x = x,
         .y = y,
@@ -159,16 +161,26 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel reply;
     RSFrameRateLinkerExpectedFpsUpdateCallbackProxy rsFrameRateLinkerExpectedFpsUpdateCallbackProxy(remoteObject);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    MemoryGraphic memoryGraphic;
+    std::vector<MemoryGraphic> memoryGraphics;
+    bool getTotalAppMemSizeSuccess;
+    bool getUniRenderEnable;
+    bool createNodeSuccess;
+    std::string getRefreshInfoEnable;
+    bool getBitmapSuccess;
+    bool getPixelmapSuccess;
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
-    rsRenderServiceConnectionProxy.GetMemoryGraphic(pid);
-    rsRenderServiceConnectionProxy.GetMemoryGraphics();
-    rsRenderServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize);
-    rsRenderServiceConnectionProxy.GetUniRenderEnabled();
-    rsRenderServiceConnectionProxy.CreateNode(config);
-    rsRenderServiceConnectionProxy.CreateNodeAndSurface(config);
+    rsRenderServiceConnectionProxy.GetMemoryGraphic(pid, memoryGraphic);
+    rsRenderServiceConnectionProxy.GetMemoryGraphics(memoryGraphics);
+    rsRenderServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize, getTotalAppMemSizeSuccess);
+    rsRenderServiceConnectionProxy.GetUniRenderEnabled(getUniRenderEnable);
+    rsRenderServiceConnectionProxy.CreateNode(config, createNodeSuccess);
+    sptr<Surface> sface = nullptr;
+    rsRenderServiceConnectionProxy.CreateNodeAndSurface(config, sface);
     rsRenderServiceConnectionProxy.CreateVSyncConnection(name, token, id1, windowNodeId);
-    rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect, pixelMap);
     rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);
     rsRenderServiceConnectionProxy.GetDefaultScreenId();
     rsRenderServiceConnectionProxy.GetActiveScreenId();
@@ -188,7 +200,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetShowRefreshRateEnabled();
     rsRenderServiceConnectionProxy.SetShowRefreshRateEnabled(true, 0);
     rsRenderServiceConnectionProxy.GetRealtimeRefreshRate(id1);
-    rsRenderServiceConnectionProxy.GetRefreshInfo(id1);
+    rsRenderServiceConnectionProxy.GetRefreshInfo(id1, getRefreshInfoEnable);
     rsRenderServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetScreenPowerStatus(id1, status);
@@ -209,17 +221,17 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetScreenColorGamut(id1, uid);
     rsRenderServiceConnectionProxy.SetScreenGamutMap(id1, screenGamutMap);
     rsRenderServiceConnectionProxy.GetScreenHDRCapability(id1, screenHdrCapability);
-    rsRenderServiceConnectionProxy.GetPixelFormat(id1, pixelFormat);
-    rsRenderServiceConnectionProxy.SetPixelFormat(id1, pixelFormat);
-    rsRenderServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats);
-    rsRenderServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat);
-    rsRenderServiceConnectionProxy.SetScreenHDRFormat(id1, pid1);
-    rsRenderServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces);
-    rsRenderServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace);
-    rsRenderServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace);
+    rsRenderServiceConnectionProxy.GetPixelFormat(id1, pixelFormat, resCode);
+    rsRenderServiceConnectionProxy.SetPixelFormat(id1, pixelFormat, resCode);
+    rsRenderServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats, resCode);
+    rsRenderServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat, resCode);
+    rsRenderServiceConnectionProxy.SetScreenHDRFormat(id1, pid1, resCode);
+    rsRenderServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces, resCode);
+    rsRenderServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace, resCode);
+    rsRenderServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace, resCode);
     rsRenderServiceConnectionProxy.GetScreenType(id1, screenType);
-    rsRenderServiceConnectionProxy.GetBitmap(id1, bitmap);
-    rsRenderServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList);
+    rsRenderServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
+    rsRenderServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsRenderServiceConnectionProxy.RegisterTypeface(id1, typeface);
     rsRenderServiceConnectionProxy.UnRegisterTypeface(id1);
     rsRenderServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width);
@@ -230,7 +242,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.SetAppWindowNum(width);
-    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes);
+    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false);
     rsRenderServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsRenderServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);
     rsRenderServiceConnectionProxy.ReportJankStats();
@@ -239,6 +251,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
     rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
+    rsRenderServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
@@ -251,7 +264,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
     rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
-    rsRenderServiceConnectionProxy.GetHdrOnDuration();
+    rsRenderServiceConnectionProxy.GetHdrOnDuration(id2);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(true);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(false);
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);

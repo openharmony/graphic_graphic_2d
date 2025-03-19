@@ -391,4 +391,11 @@ std::string GetHingeStatus()
 
     return ReadFile(HING_STATUS_INFO_PATH);
 }
+
+int64_t GetSystemCurrentTime()
+{
+    auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch()).count();
+    return currentTime;
+}
 } // namespace OHOS

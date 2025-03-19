@@ -122,8 +122,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverWindows>();
 }
 
-int32_t RSRenderServiceClient::GetPixelMapByProcessId(
-    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return 0;
 }
@@ -137,6 +136,12 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     return false;
 }
@@ -559,7 +564,7 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
 
-bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};
 }
@@ -633,6 +638,10 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchC
 }
 
 void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
+{
+}
+
+void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
 }
 
@@ -736,11 +745,26 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t SetOverlayDisplayMode(int32_t mode)
 {
     return {};
 }
 #endif
+
+void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
+    const std::string &pageName, bool isEnter)
+{
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

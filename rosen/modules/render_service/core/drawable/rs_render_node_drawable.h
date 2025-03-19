@@ -64,8 +64,6 @@ public:
     bool ShouldPaint() const;
 
     // opinc switch
-    bool IsOpincRenderCacheEnable();
-    bool IsOpincRealDrawCacheEnable();
     bool IsAutoCacheDebugEnable();
 
     void OpincCalculateBefore(Drawing::Canvas& canvas,
@@ -117,7 +115,8 @@ public:
 
     // dfx
     static void InitDfxForCacheInfo();
-    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+    static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params);
+    static void SetAutoCacheEnable(bool autoCacheEnable);
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -191,6 +190,8 @@ private:
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
+    static inline std::mutex drawingCacheContiUpdateTimeMapMutex_;
+    static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
     static thread_local bool isOffScreenWithClipHole_;
@@ -214,6 +215,7 @@ private:
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
     void ClearDrawingCacheDataMap();
+    void ClearDrawingCacheContiUpdateTimeMap();
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;

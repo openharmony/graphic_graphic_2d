@@ -30,13 +30,13 @@
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
+#include "display_engine/rs_luminance_control.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
-#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,8 +45,7 @@ typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
-    struct ScreenRenderParams
-    {
+    struct ScreenRenderParams {
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
@@ -69,15 +68,7 @@ public:
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
-    void SetScreenId(uint64_t screenId)
-    {
-        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
-            releaseScreenDmaBufferTask_(screenId_);
-        }
-        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
-            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
-        screenId_ = screenId;
-    }
+    void SetScreenId(uint64_t screenId);
 
     uint64_t GetScreenId() const
     {
@@ -165,6 +156,16 @@ public:
         return screenRotation_;
     }
 
+    void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
+    {
+        virtualScreenMuteStatus_ = virtualScreenMuteStatus;
+    }
+
+    bool GetVirtualScreenMuteStatus() const
+    {
+        return virtualScreenMuteStatus_;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -178,6 +179,16 @@ public:
     }
 
     bool IsMirrorDisplay() const;
+
+    inline bool HasMirroredDisplayChanged() const noexcept
+    {
+        return hasMirroredDisplayChanged_;
+    }
+
+    inline void ResetMirroredDisplayChangedFlag() noexcept
+    {
+        hasMirroredDisplayChanged_ = false;
+    }
 
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
@@ -332,6 +343,7 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
@@ -401,8 +413,16 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
-    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
-    GraphicPixelFormat GetPixelFormat() const;
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    GraphicPixelFormat GetPixelFormat() const
+    {
+        return pixelFormat_;
+    }
+
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetColorSpace() const;
 
@@ -538,9 +558,42 @@ public:
 
     void NotifyScreenNotSwitching();
 
+    // rcd node setter and getter, should be removed in OH 6.0 rcd refactoring
+    void SetRcdSurfaceNodeTop(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeTop_ = node;
+    }
+
+    void SetRcdSurfaceNodeBottom(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeBottom_ = node;
+    }
+
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeTop()
+    {
+        return rcdSurfaceNodeTop_;
+    }
+    
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeBottom()
+    {
+        return rcdSurfaceNodeBottom_;
+    }
+
     // Window Container
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
+
+    void SetTargetSurfaceRenderNodeId(NodeId nodeId)
+    {
+        targetSurfaceRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetTargetSurfaceRenderNodeId() const
+    {
+        return targetSurfaceRenderNodeId_;
+    }
+
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
 
 protected:
     void OnSync() override;
@@ -554,6 +607,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
+    bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
@@ -570,6 +624,7 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    bool virtualScreenMuteStatus_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
@@ -600,6 +655,7 @@ private:
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::vector<std::string> windowsName_;
@@ -626,6 +682,12 @@ private:
 
     std::vector<int32_t> oldScbPids_ {};
 
+    // Use in round corner display
+    // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeBottom_ = nullptr;
+
+    NodeId targetSurfaceRenderNodeId_ = INVALID_NODEID;
     friend class DisplayNodeCommandHelper;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
 

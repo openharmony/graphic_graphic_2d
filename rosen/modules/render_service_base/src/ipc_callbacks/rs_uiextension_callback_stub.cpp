@@ -24,6 +24,7 @@ int RSUIExtensionCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIUIExtensionCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSUIExtensionCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 
@@ -31,7 +32,12 @@ int RSUIExtensionCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSIUIExtensionCallbackInterfaceCode::ON_UIEXTENSION): {
             std::shared_ptr<RSUIExtensionData> uiextensionData(data.ReadParcelable<RSUIExtensionData>());
-            uint64_t userId = data.ReadUint64();
+            uint64_t userId{0};
+            if (!data.ReadUint64(userId)) {
+                RS_LOGE("RSUIExtensionCallbackStub::ON_UIEXTENSION read userId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnUIExtension(uiextensionData, userId);
             break;
         }

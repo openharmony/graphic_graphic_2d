@@ -39,13 +39,13 @@ public:
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_1)
 {
     uint32_t colorList[] = { 0xffff0000, 0x80ff0000 };
-    float alphaList[] = { 0, 0.2, 1 };
+    std::vector<float> alphaList = { -0.5, 0, 0.2, 1, 1.5 };
 
     const int columnCount = 2;
-    const int rowCount = 3;
-    const int nodeWidth = 400;
-    const int nodeHeight = 400;
     const int nodeGap = 10;
+    const int rowCount = alphaList.size();
+    const int nodeWidth = screenWidth / rowCount - nodeGap;
+    const int nodeHeight = 400;
     // set alpha, set foreground color(alpha or not)
     for (int i = 0; i < columnCount; i++) {
         for (int j = 0; j < rowCount; j++) {
@@ -89,12 +89,13 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_1)
 // content img, text alpha
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_2)
 {
-    float alphaList[] = { 0, 0.2, 1 };
+    std::vector<float> alphaList = { -0.5, 0, 0.2, 1, 1.5 };
 
-    const int columnCount = 3;
-    const int nodeWidth = 400;
-    const int nodeHeight = 400;
+    const int columnCount = alphaList.size();
     const int nodeGap = 10;
+    const int nodeWidth = screenWidth / columnCount - nodeGap;
+    const int nodeHeight = 400;
+
     const std::string imgPath = "/data/local/tmp/appearance_test.jpg";
     // set content image alpha
     for (int i = 0; i < columnCount; i++) {
