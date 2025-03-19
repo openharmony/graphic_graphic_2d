@@ -1754,6 +1754,13 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (geoPtr == nullptr) {
         return false;
     }
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
+        if (firstLevelNode) {
+            node.SetDRMGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
+            node.SetDRMCrossNode(firstLevelNode->IsFirstLevelCrossNode());
+        }
+    }
     UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
     node.UpdatePositionZ();
     if (node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_) {
@@ -1895,22 +1902,31 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
 void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (!node.IsHardwareEnabledTopSurface()) {
+    if (node.GetDRMGlobalPositionEnabled()) {
+        dstRect.left_ -= curDisplayNode_->GetDisplayOffsetX();
+        dstRect.top_ -= curDisplayNode_->GetDisplayOffsetY();
+    }
+    if (!node.IsHardwareEnabledTopSurface() && !node.GetDRMGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height));
         // global positon has been transformd to screen position in absRect
     }
     // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
     if (node.IsHardwareEnabledType() || node.IsHardwareEnabledTopSurface()) {
-        dstRect = dstRect.IntersectRect(clipRect);
-        if (curSurfaceNode_ && (node.GetId() != curSurfaceNode_->GetId())) {
-            dstRect = dstRect.IntersectRect(curSurfaceNode_->GetDstRect());
+        if (!node.IsDRMCrossNode()) {
+            dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-    dstRect.left_ = static_cast<int>(std::round(dstRect.left_ * screenInfo_.GetRogWidthRatio()));
-    dstRect.top_ = static_cast<int>(std::round(dstRect.top_ * screenInfo_.GetRogHeightRatio()));
+    auto offsetX = node.GetDRMGlobalPositionEnabled() ? curDisplayNode_->GetDisplayOffsetX() : 0;
+    auto offsetY = node.GetDRMGlobalPositionEnabled() ? curDisplayNode_->GetDisplayOffsetY() : 0;
+    dstRect.left_ = static_cast<int>(std::round(dstRect.left_ * screenInfo_.GetRogWidthRatio()) + offsetX);
+    dstRect.top_ = static_cast<int>(std::round(dstRect.top_ * screenInfo_.GetRogHeightRatio()) + offsetY);
     dstRect.width_ = static_cast<int>(std::round(dstRect.width_ * screenInfo_.GetRogWidthRatio()));
     dstRect.height_ = static_cast<int>(std::round(dstRect.height_ * screenInfo_.GetRogHeightRatio()));
+
+    if (curSurfaceNode_ && (node.GetId() != curSurfaceNode_->GetId()) && !node.GetDRMGlobalPositionEnabled()) {
+        dstRect = dstRect.IntersectRect(curSurfaceNode_->GetDstRect());
+    }
     // Set the destination rectangle of the node
     node.SetDstRect(dstRect);
     node.SetDstRectWithoutRenderFit(dstRect);
@@ -3350,6 +3366,14 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         rect.top_ = static_cast<int>(std::floor(absRect.GetTop()));
         rect.width_ = static_cast<int>(std::ceil(absRect.GetRight() - rect.left_));
         rect.height_ = static_cast<int>(std::ceil(absRect.GetBottom() - rect.top_));
+        if (hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+            auto firstLevelNode =
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNodePtr->GetFirstLevelNode());
+            if (firstLevelNode) {
+                hwcNodePtr->SetDRMGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
+                hwcNodePtr->SetDRMCrossNode(firstLevelNode->IsFirstLevelCrossNode());
+            }
+        }
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
         UpdateSrcRect(*hwcNodePtr, matrix, rect);
         UpdateHwcNodeByTransform(*hwcNodePtr, matrix);

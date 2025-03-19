@@ -1530,6 +1530,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
+    drmNodes_.clear();
     const auto& nodeMap = GetContext().GetNodeMap();
     bool isHdrSwitchChanged = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     nodeMap.TraverseSurfaceNodes(
@@ -1633,6 +1634,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             const auto& instanceNode = surfaceNode->GetInstanceRootNode();
             if (instanceNode && instanceNode->IsOnTheTree()) {
                 hasProtectedLayer_ = true;
+                auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    surfaceNode->GetFirstLevelNode());
+                if (firstLevelNode && firstLevelNode->IsOnTheTree()) {
+                    drmNodes_[firstLevelNode->GetId()].push_back(surfaceNode);
+                }
                 auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
                 std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
                 if (displayLock != nullptr) {
@@ -1724,6 +1730,24 @@ void RSMainThread::CollectInfoForHardwareComposer()
         [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
+            }
+            if (surfaceNode->IsCloneCrossNode()) {
+                auto sourceNode = surfaceNode->GetSourceCrossNode().lock();
+                auto sourceSurface = sourceNode == nullptr ? nullptr:
+                    sourceNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+                auto leashWindowNode = sourceSurface == nullptr ? nullptr :
+                    RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(sourceSurface->GetFirstLevelNode());
+                if (leashWindowNode && leashWindowNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED) &&
+                    surfaceNode->GetDisplayNodeId() != INVALID_NODEID) {
+                        if (drmNodes_.find(leashWindowNode->GetId()) != drmNodes_.end()) {
+                            for (auto& node : drmNodes_[leashWindowNode->GetId()]) {
+                                if (node->IsOnTheTree()) {
+                                    hardwareEnabledDrwawables_.emplace_back(
+                                        std::make_pair(surfaceNode->GetDisplayNodeId(), node->GetRenderDrawable()));
+                                }
+                            }
+                        }
+                    }
             }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetBuffer() != nullptr) {
@@ -2548,6 +2572,21 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
+            }
+            auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
+            std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+            if (displayLock != nullptr) {
+                ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+            }
+            if (ancestor != nullptr && params->GetDRMGlobalPositionEnabled()) {
+                params->SetOffsetX(ancestor->GetDisplayOffsetX());
+                params->SetOffsetY(ancestor->GetDisplayOffsetY());
+                params->SetRogWidthRatio(params->IsDRMCrossNode() ?
+                    screenManager->QueryScreenInfo(ancestor->GetScreenId()).GetRogWidthRatio() : 1.0f);
+            } else {
+                params->SetOffsetX(0);
+                params->SetOffsetY(0);
+                params->SetRogWidthRatio(1.0f);
             }
             processor->CreateLayer(*surfaceNode, *params);
             // buffer is synced to directComposition

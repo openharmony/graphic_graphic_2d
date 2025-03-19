@@ -833,6 +833,46 @@ bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
     return isGlobalPositionEnabled_;
 }
 
+void RSSurfaceRenderNode::SetDRMGlobalPositionEnabled(bool isEnabled)
+{
+    if (isGlobalPositionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMGlobalPositionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isDRMGlobalPositionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderNode::GetDRMGlobalPositionEnabled() const
+{
+    return isDRMGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderNode::SetDRMCrossNode(bool isDRMCrossNode)
+{
+    if (isDRMCrossNode_ == isDRMCrossNode) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMCrossNode(isDRMCrossNode);
+    AddToPendingSyncList();
+
+    isDRMCrossNode_ = isDRMCrossNode;
+}
+
+bool RSSurfaceRenderNode::IsDRMCrossNode() const
+{
+    return isDRMCrossNode_;
+}
+
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
 #ifdef RS_ENABLE_GPU

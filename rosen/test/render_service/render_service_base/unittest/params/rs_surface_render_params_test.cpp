@@ -453,4 +453,43 @@ HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
     params.SetLayerLinearMatrix(matrix);
     EXPECT_EQ(params.GetLayerLinearMatrix(), matrix);
 }
+
+/**
+ * @tc.name: SetOffsetX
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetX, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(124);
+    params.SetOffsetX(1);
+    EXPECT_EQ(params.GetOffsetX(), 1);
+}
+
+/**
+ * @tc.name: SetOffsetY
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetY, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(125);
+    params.SetOffsetY(1);
+    EXPECT_EQ(params.GetOffsetY(), 1);
+}
+
+/**
+ * @tc.name: SetOffsetY
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatio, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(126);
+    params.SetRogWidthRatio(1.0);
+    EXPECT_EQ(params.GetRogWidthRatio(), 1.0);
+}
 } // namespace OHOS::Rosen
