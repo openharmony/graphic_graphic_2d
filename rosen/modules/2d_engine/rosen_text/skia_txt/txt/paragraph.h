@@ -202,7 +202,7 @@ public:
     virtual OHOS::Rosen::Drawing::RectI GeneratePaintRegion(double x, double y) = 0;
     virtual void Relayout(double width, const ParagraphStyle& paragrahStyle,
         const std::vector<TextStyle>& textStyes) = 0;
-    virtual bool IsLalyoutDone() = 0;
+    virtual bool IsLayoutDone() = 0;
     virtual void SetLayoutState(size_t state) = 0;
 };
 } // namespace SPText

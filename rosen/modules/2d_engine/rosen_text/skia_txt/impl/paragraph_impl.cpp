@@ -446,7 +446,7 @@ Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
     return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 
-bool ParagraphImpl::IsLalyoutDone()
+bool ParagraphImpl::IsLayoutDone()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getState() >= skt::kFormatted ? true : false;

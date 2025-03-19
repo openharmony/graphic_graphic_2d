@@ -127,10 +127,13 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
 {
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
 
-    if (!paragraph_->IsLalyoutDone()) {
+    if (!paragraph_->IsLayoutDone()) {
         TEXT_LOGI_LIMIT3_MIN("Need to layout first");
         return;
     }
+
+    lineMetrics_.reset();
+    lineMetricsStyles_.clear();
 
     bool isTextStyleChange = false;
     for (const TextStyle& style : textStyles) {
@@ -146,8 +149,6 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
             return;
         }
         paragraph_->SetLayoutState(skt::InternalState::kShaped);
-        lineMetrics_.reset();
-        lineMetricsStyles_.clear();
 
         paragraph_->Layout(width);
     } else {

@@ -131,11 +131,17 @@ public:
     void Relayout(double width, const ParagraphStyle& paragraphStyle,
         const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) override;
 
-    bool IsLalyoutDone() override;
+    bool IsLayoutDone() override;
 
     void SetLayoutState(size_t state) override;
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
+        skt::InternalState& state);
+
+    void TextStyleUpdater(Paragraph& skiaParagraph, skt::Block& skiaBlock, const TextStyle& spTextStyle,
+        skt::InternalState& state);
+
+    void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
         skt::InternalState& state);
 
     void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& txt);
