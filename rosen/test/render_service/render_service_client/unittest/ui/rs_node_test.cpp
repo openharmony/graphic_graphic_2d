@@ -4973,12 +4973,16 @@ HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     ASSERT_NE(rsNode, nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::NONE));
     RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::NONE));
     blendModeType = RSColorBlendMode::DST_IN;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::DST_IN));
     blendModeType = RSColorBlendMode::SRC_IN;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::SRC_IN));
 }
 
 /**
@@ -6244,15 +6248,22 @@ HWTEST_F(RSNodeTest, SetUseShadowBatching, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendApplyType, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_FALSE(rsNode == nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::FAST));
     RSColorBlendApplyType colorBlendApplyType = RSColorBlendApplyType::FAST;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::FAST));
     colorBlendApplyType = RSColorBlendApplyType::SAVE_LAYER;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(),
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
     colorBlendApplyType = RSColorBlendApplyType::SAVE_LAYER_ALPHA;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(),
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
     colorBlendApplyType = RSColorBlendApplyType::MAX;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
-    ASSERT_FALSE(rsNode == nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::MAX));
 }
 
 /**
