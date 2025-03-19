@@ -158,7 +158,8 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
         isActive_ = true;
-        auto node = rsUIContext_ ? rsUIContext_->GetNodeMap().GetNode<RSRootNode>(root_)
+        auto rsUIContext = rsUIContext_;
+        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
                                  : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
         if (node) {
             node->SetEnableRender(true);
@@ -179,7 +180,8 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
-        auto node = rsUIContext_ ? rsUIContext_->GetNodeMap().GetNode<RSRootNode>(root_)
+        auto rsUIContext = rsUIContext_;
+        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
                                  : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
         if (node) {
             node->SetEnableRender(false);
@@ -220,7 +222,8 @@ void RSUIDirector::Destroy(bool isTextureExport)
 {
     if (root_ != 0) {
         if (!isUniRenderEnabled_ || isTextureExport) {
-            auto node = rsUIContext_ ? rsUIContext_->GetNodeMap().GetNode<RSRootNode>(root_)
+            auto rsUIContext = rsUIContext_;
+            auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
                                  : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
             if (node) {
                 node->RemoveFromTree();
@@ -281,7 +284,8 @@ void RSUIDirector::SetRoot(NodeId root)
 
 void RSUIDirector::AttachSurface()
 {
-    auto node = rsUIContext_ ? rsUIContext_->GetNodeMap().GetNode<RSRootNode>(root_)
+    auto rsUIContext = rsUIContext_;
+    auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
                                  : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
     auto surfaceNode = surfaceNode_.lock();
     if (node != nullptr && surfaceNode != nullptr) {
@@ -319,7 +323,8 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
 {
-    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+    auto rsUIContext = rsUIContext_;
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                         : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         modifierManager->SetDisplaySyncEnable(true);
@@ -335,7 +340,8 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
 
 bool RSUIDirector::HasFirstFrameAnimation()
 {
-    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+    auto rsUIContext = rsUIContext_;
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                         : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         return modifierManager->GetAndResetFirstFrameAnimationState();
@@ -345,7 +351,8 @@ bool RSUIDirector::HasFirstFrameAnimation()
 
 void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
 {
-    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+    auto rsUIContext = rsUIContext_;
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                         : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         modifierManager->FlushStartAnimation(timeStamp);
@@ -354,7 +361,8 @@ void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
 
 void RSUIDirector::FlushModifier()
 {
-    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+    auto rsUIContext = rsUIContext_;
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                         : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
         return;
@@ -367,7 +375,8 @@ void RSUIDirector::FlushModifier()
 
 bool RSUIDirector::HasUIRunningAnimation()
 {
-    auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
+    auto rsUIContext = rsUIContext_;
+    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                         : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         return modifierManager->HasUIRunningAnimation();
