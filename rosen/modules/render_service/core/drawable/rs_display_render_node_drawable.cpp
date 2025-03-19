@@ -1315,6 +1315,10 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    RSRenderNodeDrawable::OnCapture(*curCanvas_);
+    RSUniRenderThread::ResetCaptureParam();
+    // for HDR
+    curCanvas_->SetOnMultipleScreen(true);
     auto targetSurfaceRenderNodeDrawable =
         std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(params.GetTargetSurfaceRenderNodeDrawable().lock());
     if (targetSurfaceRenderNodeDrawable && curCanvas_->GetSurface()) {
@@ -1323,10 +1327,6 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(
     } else {
         cacheImgForMultiScreenView_ = nullptr;
     }
-    RSRenderNodeDrawable::OnCapture(*curCanvas_);
-    RSUniRenderThread::ResetCaptureParam();
-    // for HDR
-    curCanvas_->SetOnMultipleScreen(true);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
 }
