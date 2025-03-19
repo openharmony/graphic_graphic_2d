@@ -1899,20 +1899,21 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
         }
     }
 }
-void HgmFrameRateManager::FrameRateReportTask (uint32_t leftRetryTimes)
+
+void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
 {
     HgmTaskHandleThread::Instance().PostTask([this, leftRetryTimes] () {
-        HGM_LOGI("FrameRateReportTask left retry: %{public}d", leftRetryTimes);
-        if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
-            HGM_LOGI("FrameRateReportTask run.");
-            schedulePreferredFpsChange_ = true;
-            FrameRateReport();
-            return;
-        }
-        if (leftRetryTimes > 1) {
-            FrameRateReportTask(leftRetryTimes - 1);
-        }
-    }, FRAME_RATE_REPORT_DELAY_TIME );
+            HGM_LOGI("FrameRateReportTask left retry: %{public}d", leftRetryTimes);
+            if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
+                HGM_LOGI("FrameRateReportTask run.");
+                schedulePreferredFpsChange_ = true;
+                FrameRateReport();
+                return;
+            }
+            if (leftRetryTimes > 1) {
+                FrameRateReportTask(leftRetryTimes - 1);
+            }
+        }, FRAME_RATE_REPORT_DELAY_TIME);
 }
 } // namespace Rosen
 } // namespace OHOS
