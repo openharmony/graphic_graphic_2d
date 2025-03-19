@@ -3326,6 +3326,7 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
     auto context = GetContext().lock();
     if (!context) {
         RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, invalid context");
+        return;
     }
     RectI region;
     auto geoPtr = GetMutableRenderProperties().GetBoundsGeometry();
