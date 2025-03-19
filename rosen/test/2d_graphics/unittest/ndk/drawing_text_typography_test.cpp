@@ -3494,16 +3494,16 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRectsForRangeTest001, T
     OH_Drawing_DestroyTypography(typography);
 }
 
+/*
 * @tc.name: OH_Drawing_TypographyDidExceedMaxLinesTest001
 * @tc.desc: test for typography mutiple lines.
 * @tc.type: FUNC
 */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyDidExceedMaxLinesTest001, TestSize.Level1)
 {
-    std::vector<pair<int, double>> lineResult = {{75, 796.899231}, {59, 780.399231},
-                                                {59, 750.999268}, {59, 773.041809},
-                                                {59, 774.646362}, {68, 595.349548},
-                                                {59, 349.772766}};
+    std::vector<pair<int, double>> lineResult = {
+        {75, 796.899231}, {59, 780.399231}, {59, 750.999268},
+        {59, 773.041809}, {59, 774.646362}, {68, 595.349548}, {59, 349.772766}};
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
@@ -3526,22 +3526,22 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyDidExceedMaxLinesTest00
         EXPECT_STREQ(fontFamilies[i], fontFamiliesResult[i]);
     }
     int lineCount = OH_Drawing_TypographyGetLineCount(typography);
-    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetLongestLine(typography)), 796);
-    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetHeight(typography)), 438);
+    EXPECT_NEAR(OH_Drawing_TypographyGetLongestLine(typography), 796.899231, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(OH_Drawing_TypographyGetHeight(typography), 438.000000, FLOAT_DATA_EPSILON);
     EXPECT_EQ(lineCount, 7);
     EXPECT_EQ(OH_Drawing_TypographyDidExceedMaxLines(typography), false);
     double maxLineWidth = 0.0, expectedLineHeight = 0.0;
     for (int i = 0; i < lineCount; i++) {
         double lineHeight = OH_Drawing_TypographyGetLineHeight(typography, i);
         double lineWidth = OH_Drawing_TypographyGetLineWidth(typography, i);
-        EXPECT_EQ(static_cast<int>(lineHeight), static_cast<int>(lineResult[i].first));
-        EXPECT_EQ(static_cast<int>(lineWidth), static_cast<int>(lineResult[i].second));
+        EXPECT_NEAR(lineHeight, lineResult[i].first, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(lineWidth, lineResult[i].second, FLOAT_DATA_EPSILON);
         maxLineWidth = std::max(maxLineWidth, lineWidth);
         expectedLineHeight += lineHeight;
     }
     EXPECT_EQ(OH_Drawing_TypographyDidExceedMaxLines(typography), false);
-    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetLongestLine(typography)), static_cast<int>(maxLineWidth));
-    EXPECT_EQ(static_cast<int>(OH_Drawing_TypographyGetHeight(typography)), static_cast<int>(expectedLineHeight));
+    EXPECT_NEAR(OH_Drawing_TypographyGetLongestLine(typography), maxLineWidth, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(OH_Drawing_TypographyGetHeight(typography), expectedLineHeight, FLOAT_DATA_EPSILON);
     OH_Drawing_TypographyTextlineStyleDestroyFontFamilies(fontFamiliesResult, fontFamilyCount);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
@@ -3600,7 +3600,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetWordBoundaryTest001,
     EXPECT_EQ(maxLines, 2);
     EXPECT_EQ(isExceedMaxLines, true);
     EXPECT_EQ(longestLine, longestLineIndent);
-    EXPECT_EQ(static_cast<int>(longestLine), 796);
+    EXPECT_NEAR(longestLine, 796.899231, FLOAT_DATA_EPSILON);
  
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypography(typography);
@@ -3642,15 +3642,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetIndentsWithIndexTest
         double indent = OH_Drawing_TypographyGetIndentsWithIndex(typography, i);
         maxLineWidthIndent = std::max(maxLineWidthIndent, lineWidth + indent);
     }
-    EXPECT_EQ(static_cast<int>(longestLine), static_cast<int>(maxLineWidth));
-    EXPECT_EQ(static_cast<int>(longestLineIndent), static_cast<int>(maxLineWidthIndent));
-    EXPECT_EQ(static_cast<int>(longestLine), 739);
-    EXPECT_EQ(static_cast<int>(longestLineIndent), 799);
+    EXPECT_NEAR(longestLine, maxLineWidth, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(longestLineIndent, maxLineWidthIndent, 0.0001);
+    EXPECT_NEAR(longestLine, 739.896423, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(longestLineIndent, 799.999756, FLOAT_DATA_EPSILON);
  
     double minIntrinsicWidth = OH_Drawing_TypographyGetMinIntrinsicWidth(typography);
     double maxIntrinsicWidth = OH_Drawing_TypographyGetMaxIntrinsicWidth(typography);
-    EXPECT_EQ(static_cast<int>(minIntrinsicWidth), 349);
-    EXPECT_EQ(static_cast<int>(maxIntrinsicWidth), 3338);
+    EXPECT_NEAR(minIntrinsicWidth, 349.772766, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(maxIntrinsicWidth, 3338.310059, FLOAT_DATA_EPSILON);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
@@ -3695,7 +3695,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest001
     OH_Drawing_Range *range2 = OH_Drawing_TypographyGetLineTextRange(typography, 1, true);
     EXPECT_EQ(55, OH_Drawing_GetStartFromRange(range2));
     EXPECT_EQ(98, OH_Drawing_GetEndFromRange(range2));
-    EXPECT_EQ(longestLine, maxLineWidth);
+    EXPECT_NEAR(longestLine, maxLineWidth, FLOAT_DATA_EPSILON);
     OH_Drawing_PositionAndAffinity* posAAClusrterDown =
         OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, 80, 0);
     int affinityClusterDown = OH_Drawing_GetAffinityFromPositionAndAffinity(posAAClusrterDown);
