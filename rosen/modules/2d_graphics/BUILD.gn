@@ -265,17 +265,16 @@ template("graphics2d_source_set") {
         (current_os == "linux" || current_os == "mingw") &&
         ddgr_ext_configs.ddgr_feature_cross_compile) {
       public_deps += [
-        "$graphic_2d_ext_root/ddgr:libddgr",
         "$graphic_2d_ext_root/ddgr/tools/playbackengine:libplaybackengine",
+        "$rosen_root/modules/2d_engine/ddgr:libddgr",
       ]
     }
     cflags = []
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
-      defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
       include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
-      public_external_deps += [ "graphic_2d_ext:libddgr" ]
+      public_deps += [ "$rosen_root/modules/2d_engine/ddgr:libddgr" ]
       cflags += [
         "-fprofile-use=" +
             rebase_path("${ddgr_feature_pgo_path}libddgr.profdata",
