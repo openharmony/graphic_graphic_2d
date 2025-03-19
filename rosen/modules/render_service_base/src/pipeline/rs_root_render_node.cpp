@@ -29,7 +29,7 @@ RSRootRenderNode::RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& co
     : RSCanvasRenderNode(id, context, isTextureExportNode), dirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(id)};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
