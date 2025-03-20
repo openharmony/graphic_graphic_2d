@@ -4022,9 +4022,10 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
         bool surfaceNodeSet = false;
         bool needMapAbsRect = true;
-        if (curDisplayNode_->GetWindowContainer()) {
-            Vector2f scale = curDisplayNode_->GetWindowContainer()->GetRenderProperties().GetScale();
-            if (!ROSEN_EQ(scale.x_, 1.0f, EPSILON_SCALE) || !ROSEN_EQ(scale.y_, 1.0f, EPSILON_SCALE)) {
+        auto windowContainer = curDisplayNode_->GetWindowContainer()
+        if (windowContainer) {
+            if (!ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleX(), 1.0f, EPSILON_SCALE) ||
+                !ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleY(), 1.0f, EPSILON_SCALE)) {
                 needMapAbsRect = false;
             }
         }
