@@ -132,17 +132,9 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
         return;
     }
 
-    lineMetrics_.reset();
-    lineMetricsStyles_.clear();
-
-    bool isTextStyleChange = false;
-    for (const TextStyle& style : textStyles) {
-        if (style.relayoutChangeBitmap.any()) {
-            isTextStyleChange = true;
-            break;
-        }
-    }
-
+    bool isTextStyleChange = std::any_of(textStyles.begin(), textStyles.end(), [](const TextStyle& style) {
+        return style.relayoutChangeBitmap.any();
+    });
     if (!typograhyStyle.relayoutChangeBitmap.any() && !isTextStyleChange) {
         if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {
             TEXT_LOGI_LIMIT3_MIN("No relayout required");
@@ -160,6 +152,8 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
 
         paragraph_->Relayout(width, paragraphStyle, spTextStyles);
     }
+    lineMetrics_.reset();
+    lineMetricsStyles_.clear();
 }
 
 void Typography::Layout(double width)

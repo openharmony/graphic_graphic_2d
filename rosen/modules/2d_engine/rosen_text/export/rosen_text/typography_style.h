@@ -140,7 +140,7 @@ struct TypographyStyle {
             this->wordBreakType == rhs.wordBreakType &&
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
-            this->textStyleUid == rhs.textStyleUid &&
+            this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
             this->tab == rhs.tab;
     }
     TextStyle GetTextStyle() const;
@@ -159,7 +159,7 @@ struct TypographyStyle {
     TextTab tab;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
-    size_t textStyleUid { 0 };
+    size_t defaultTextStyleUid { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

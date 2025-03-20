@@ -47,7 +47,7 @@ namespace {
             paragraph.getParagraphStyle().exportTextStyle().setFontSize(style.fontSize);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setFontSize(style.fontSize);
             }
             state = std::min(skt::InternalState::kIndexed, state);
@@ -70,7 +70,7 @@ namespace {
             paragraph.getParagraphStyle().exportTextStyle().setFontStyle(fontStyle);
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
 
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setFontStyle(fontStyle);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
@@ -83,7 +83,7 @@ namespace {
             paragraph.getParagraphStyle().exportTextStyle().setFontStyle(fontStyle);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setFontStyle(fontStyle);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
@@ -95,7 +95,7 @@ namespace {
             paragraph.getParagraphStyle().exportTextStyle().setFontFamilies(skiaFontFamiles);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setFontFamilies(skiaFontFamiles);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
@@ -105,7 +105,7 @@ namespace {
             paragraph.getParagraphStyle().exportTextStyle().setHeight(style.height);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setHeight(style.height);
             }
 
@@ -118,7 +118,7 @@ namespace {
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             paragraph.getParagraphStyle().exportTextStyle().setHeightOverride(style.heightOverride);
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setHeightOverride(style.heightOverride);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
@@ -129,7 +129,7 @@ namespace {
             skiaTextStyle.setHalfLeading(style.spTextStyle.halfLeading);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
-            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.textStyleUid)) {
+            if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setHalfLeading(style.spTextStyle.halfLeading);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
