@@ -499,16 +499,18 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
     return ERR_OK;
 }
 
-sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
-                                                                        const sptr<VSyncIConnectionToken>& token,
-                                                                        uint64_t id,
-                                                                        NodeId windowNodeId,
-                                                                        bool fromXcomponent)
+ErrCode RSRenderServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
+                                                         const std::string& name,
+                                                         const sptr<VSyncIConnectionToken>& token,
+                                                         VSyncConnParam vsyncConnParam)
 {
     if (mainThread_ == nullptr || appVSyncDistributor_ == nullptr) {
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
-    if (fromXcomponent) {
+    uint64_t id = vsyncConnParam.id;
+    NodeId windowNodeId = vsyncConnParam.windowNodeId;
+    if (vsyncConnParam.fromXcomponent) {
         mainThread_->ScheduleTask([&windowNodeId]() {
             auto& node = RSMainThread::Instance()->GetContext().GetNodeMap()
                         .GetRenderNode<RSRenderNode>(windowNodeId);
@@ -542,9 +544,11 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
-    return conn;
+    vsyncConn = conn;
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
@@ -2210,13 +2214,15 @@ int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint3
     }
 }
 
-int32_t RSRenderServiceConnection::SetVirtualScreenRefreshRate(
-    ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+ErrCode RSRenderServiceConnection::SetVirtualScreenRefreshRate(
+    ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal)
 {
     if (!screenManager_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        retVal = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    retVal = screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    return ERR_OK;
 }
 
 uint32_t RSRenderServiceConnection::SetScreenActiveRect(

@@ -190,8 +190,9 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<IVSyncConnection> conn = renderService->
-        CreateVSyncConnection(name, token, id, windowNodeId, fromXcomponent);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, windowNodeId, fromXcomponent};
+    renderService->CreateVSyncConnection(conn, name, token, vsyncConnParam);
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
         return nullptr;
@@ -1307,7 +1308,9 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    int32_t retVal = 0;
+    renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
+    return retVal;
 }
 
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)

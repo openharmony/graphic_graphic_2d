@@ -463,7 +463,9 @@ bool DoCreateVSyncConnection()
     }
     uint64_t id = GetData<uint64_t>();
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    rsConn_->CreateVSyncConnection("test", token, id);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, 0, false};
+    rsConn_->CreateVSyncConnection(conn, "test", token, vsyncConnParam);
     return true;
 }
 
@@ -946,7 +948,8 @@ bool DOSetVirtualScreenRefreshRate()
     uint64_t id = GetData<uint64_t>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
-    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    int32_t retVal = GetData<int32_t>();
+    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
     return true;
 }
 
