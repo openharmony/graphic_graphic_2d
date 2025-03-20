@@ -107,7 +107,7 @@ HWTEST_F(RSFirstFrameCommitCallbackStubTest, OnRemoteRequest003, TestSize.Level1
 
 /**
  * @tc.name: OnRemoteRequest004
- * @tc.desc: Verify function OnRemoteRequest code:ON_POWER_ON
+ * @tc.desc: Verify function OnRemoteRequest code:ON_FIRST_FRAME_COMMIT
  * @tc.type: FUNC
  * @tc.require: issuesIBTF2E
  */
@@ -120,7 +120,7 @@ HWTEST_F(RSFirstFrameCommitCallbackStubTest, OnRemoteRequest004, TestSize.Level1
     data.WriteInterfaceToken(RSIFirstFrameCommitCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ERR_NONE, res);
+    EXPECT_EQ(ERR_INVALID_DATA, res);
 }
 } // namespace Rosen
 } // namespace OHOS
