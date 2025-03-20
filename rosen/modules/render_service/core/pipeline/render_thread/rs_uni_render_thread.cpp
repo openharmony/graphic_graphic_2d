@@ -53,7 +53,6 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
-#include "gfx/dump/rs_dump_manager.h"
 
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
@@ -245,8 +244,6 @@ void RSUniRenderThread::Start()
         auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
         rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     }
-
-    RSUniRenderGfxDumpInit();
 }
 
 std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
@@ -1123,18 +1120,6 @@ void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)
         }
         rootNodeDrawable_->DumpDrawableTree(0, dumpString, RSMainThread::Instance()->GetContext());
     });
-}
-
-void RSUniRenderThread::RSUniRenderGfxDumpInit()
-{
-     // uni render tree
-    RSDumpFunc rsUniRenderTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
-                                            std::string &dumpString) -> void {
-        RenderServiceTreeDump(dumpString);
-    };
-
-    std::vector<RSDumpHander> handers = { { RSDumpID::DRAWABLE_INFO, rsUniRenderTreeFunc, RS_UNI_THREAD_TAG } };
-    RSDumpManager::GetInstance().Register(handers);
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

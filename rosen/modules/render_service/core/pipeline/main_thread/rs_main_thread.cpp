@@ -3801,6 +3801,9 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
         }
         rootNode->DumpTree(0, dumpString);
 
+        dumpString += "\n-- RenderServiceUniThread\n";
+        RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
+
         if (needUpdateJankStats) {
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
