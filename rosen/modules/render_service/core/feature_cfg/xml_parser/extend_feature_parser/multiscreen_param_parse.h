@@ -25,11 +25,10 @@ public:
     MultiScreenParamParse() = default;
     ~MultiScreenParamParse() = default;
  
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
+    int32_t ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node) override;
  
 private:
-    int32_t ParseMultiScreenInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<MultiScreenParam> multiScreenParam_;
+    int32_t ParseMultiScreenInternal(xmlNode& node);
 };
 } // namespace OHOS::Rosen
 #endif // MULTISCREEN_PARAM_PARSE_H
