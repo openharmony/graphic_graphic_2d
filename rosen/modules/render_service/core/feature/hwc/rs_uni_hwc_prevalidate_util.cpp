@@ -292,7 +292,7 @@ bool RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(
         pointerWindow = node;
         return false;
     }
-    if (node->IsHardwareForcedDisabled()) {
+    if (node->IsHardwareForcedDisabled() || node->GetAncoForceDoDirect()) {
         return false;
     }
     return true;
