@@ -89,3 +89,9 @@ bool BootAssociativeDisplayStrategy::IsExtraVideoExist(const std::vector<BootAni
     }
     return false;
 }
+
+bool BootAssociativeDisplayStrategy::IsSupportCoordination()
+{
+    // only psd return false
+    return IS_COORDINATION_SUPPORT || !(!FOLD_SCREEN_TYPE.empty() && FOLD_SCREEN_TYPE[0] == '2');
+}
