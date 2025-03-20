@@ -26,6 +26,7 @@ ohos_unittest("bootanimation_test") {
   module_out_path = module_output_path
 
   sources = [
+    ""
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_controller.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_operation.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_strategy.cpp",

@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "boot_animation_controller.h"
+#include
 
 using namespace testing;
 using namespace testing::ext;

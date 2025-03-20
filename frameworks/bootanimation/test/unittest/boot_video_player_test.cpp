@@ -187,4 +187,5 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_005, TestSize.Level1)
     player->Play();
     ASSERT_NE(nullptr, player->mediaPlayer_);
 }
+/**/
 }

@@ -237,4 +237,5 @@ HWTEST_F(UtilTest, UtilTest_008, TestSize.Level1)
         EXPECT_EQ(0, content.length());
     }
 }
+/**/
 }
