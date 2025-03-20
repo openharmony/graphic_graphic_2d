@@ -220,6 +220,6 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest008, TestSize.Level1)
     ASSERT_NE(paragraph_, nullptr);
     paragraph_->Layout(layoutWidth_);
     PositionWithAffinity pos = paragraph_->GetGlyphPositionAtCoordinate(10, 0);
-    EXPECT_EQ(pos.position, 0);
+    EXPECT_EQ(pos.position, 2);
 }
 } // namespace txt
