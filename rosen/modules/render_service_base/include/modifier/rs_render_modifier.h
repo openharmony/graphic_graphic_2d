@@ -94,6 +94,11 @@ public:
     {
         return nullptr;
     }
+
+    virtual void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const
+    {
+    }
+    
     virtual uint64_t GetDrawCmdListId() const
     {
         return 0;
@@ -175,6 +180,12 @@ public:
     {
         return property_->Get();
     }
+
+    void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const override
+    {
+        return property_->Set(ptr);
+    }
+    
     uint64_t GetDrawCmdListId() const override
     {
         Drawing::DrawCmdListPtr drawCmd = property_->Get();
