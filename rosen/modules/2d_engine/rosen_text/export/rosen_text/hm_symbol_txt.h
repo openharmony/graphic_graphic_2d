@@ -28,13 +28,10 @@
 namespace OHOS {
 namespace Rosen {
 enum class RelayoutSymbolStyleAttribute {
-    // influence dynamic effect
     EFFECT_STRATEGY = 0,
     ANIMATION_MODE = 1,
     ANIMATION_START = 2,
     COMMONSUB_TYPE = 3,
-
-    // influence static effect
     COLOR_LIST = 4,
     RENDER_MODE = 5,
 
