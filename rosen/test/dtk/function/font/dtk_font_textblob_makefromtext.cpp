@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-#include "../../rs_demo_test_ext.h"
-
+#include "dtk_test_ext.h"
 #include "text/font.h"
 #include "text/font_mgr.h"
 #include "text/font_style_set.h"
-#include "text/text_style.h"
 #include "text/typeface.h"
 
 /*
@@ -30,7 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void DrawTexts(const std::string& fontName, const std::string& textInfo, size_t textSize,
+static void DrawTexts(const std::string& fontName, const std::string& textInfo, size_t textSize,
     Drawing::TextEncoding textEncoding, TestPlaybackCanvas* playbackCanvas)
 {
     int line = 200;
@@ -38,7 +36,7 @@ void DrawTexts(const std::string& fontName, const std::string& textInfo, size_t 
     int interval2 = 200;
 
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
-    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(fontName.c_str()));
+    std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(font_mgr->MatchFamily(fontName.c_str()));
     auto typeface = Drawing::Typeface::MakeDefault();
     typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
 
@@ -59,180 +57,180 @@ void DrawTexts(const std::string& fontName, const std::string& textInfo, size_t 
 }
 
 // 对应用例makefromtext_3001
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 1)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 1)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size(), Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3002
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 2)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 2)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", textInfo, 10, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3003
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 3)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 3)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() - 1, Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3004
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 4)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 4)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() + 1, Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3005
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 5)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 5)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", textInfo, 0, Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3006
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 6)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 6)
 {
     std::string textInfo = "鸿蒙鸿蒙鸿蒙鸿蒙鸿蒙";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size(), Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3007
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 7)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 7)
 {
     std::string textInfo = "鸿蒙鸿蒙鸿蒙鸿蒙鸿蒙";
     DrawTexts("HarmonyOS Sans SC", textInfo, 10, Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3008
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 8)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 8)
 {
     std::string textInfo = "鸿蒙鸿蒙鸿蒙鸿蒙鸿蒙";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() - 1, Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3009
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 9)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 9)
 {
     std::string textInfo = "鸿蒙鸿蒙鸿蒙鸿蒙鸿蒙";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() + 1, Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3010
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 10)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 10)
 {
     std::string textInfo = "鸿蒙鸿蒙鸿蒙鸿蒙鸿蒙";
     DrawTexts("HarmonyOS Sans SC", textInfo, 0, Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3011
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 11)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 11)
 {
     std::string textInfo = "!@#$%^&*()";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size(), Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3012
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 12)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 12)
 {
     std::string textInfo = "!@#$%^&*()";
     DrawTexts("HarmonyOS Sans SC", textInfo, 10, Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3013
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 13)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 13)
 {
     std::string textInfo = "!@#$%^&*()";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() - 1, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3014
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 14)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 14)
 {
     std::string textInfo = "!@#$%^&*()";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() + 1, Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3015
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 15)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 15)
 {
     std::string textInfo = "!@#$%^&*()";
     DrawTexts("HarmonyOS Sans SC", textInfo, 0, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3016
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 16)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 16)
 {
     std::string textInfo = "1234567890";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size(), Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3017
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 17)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 17)
 {
     std::string textInfo = "1234567890";
     DrawTexts("HarmonyOS Sans SC", textInfo, 10, Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3018
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 18)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 18)
 {
     std::string textInfo = "1234567890";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() - 1, Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3019
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 19)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 19)
 {
     std::string textInfo = "1234567890";
     DrawTexts("HarmonyOS Sans SC", textInfo, textInfo.size() + 1, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3020
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 20)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 20)
 {
     std::string textInfo = "1234567890";
     DrawTexts("HarmonyOS Sans SC", textInfo, 0, Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3021
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 21)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 21)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", nullptr, textInfo.size(), Drawing::TextEncoding::UTF32, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3022
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 22)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 22)
 {
     DrawTexts("HarmonyOS Sans SC", nullptr, 10, Drawing::TextEncoding::GLYPH_ID, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3023
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 23)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 23)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", nullptr, textInfo.size() - 1, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3024
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 24)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 24)
 {
     std::string textInfo = "harmony_os";
     DrawTexts("HarmonyOS Sans SC", nullptr, textInfo.size() + 1, Drawing::TextEncoding::UTF16, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3025
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 25)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 25)
 {
     DrawTexts("HarmonyOS Sans SC", nullptr, 0, Drawing::TextEncoding::UTF8, playbackCanvas_);
 }
 
 // 对应用例makefromtext_3026
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 26)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 26)
 {
     std::string name = "HMOS Color Emoji";
     std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
@@ -240,7 +238,7 @@ DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 26)
 }
 
 // 对应用例makefromtext_3027
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 27)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 27)
 {
     std::string name = "HMOS Color Emoji";
     std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
@@ -248,7 +246,7 @@ DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 27)
 }
 
 // 对应用例makefromtext_3028
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 28)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 28)
 {
     std::string name = "HMOS Color Emoji";
     std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
@@ -256,7 +254,7 @@ DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 28)
 }
 
 // 对应用例makefromtext_3029
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 29)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 29)
 {
     std::string name = "HMOS Color Emoji";
     std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
@@ -264,7 +262,7 @@ DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 29)
 }
 
 // 对应用例makefromtext_3030
-DEF_RSDEMO(textblob_makefromtext, TestLevel::L1, 30)
+DEF_DTK(textblob_makefromtext, TestLevel::L1, 30)
 {
     std::string name = "HMOS Color Emoji";
     std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";

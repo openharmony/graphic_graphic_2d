@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../../rs_demo_test_ext.h"
+#include "dtk_test_ext.h"
 #include "text/font.h"
 #include "recording/mem_allocator.h"
 #include "text/font_mgr.h"
@@ -31,7 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void DrawTexts(std::shared_ptr<Drawing::FontMgr> font_mgr, int index,
+static void DrawTexts(std::shared_ptr<Drawing::FontMgr> font_mgr, int index,
     std::string name, TestPlaybackCanvas* playbackCanvas)
 {
     std::shared_ptr<Drawing::FontStyleSet> fontStyleSet(
@@ -63,97 +63,97 @@ void DrawTexts(std::shared_ptr<Drawing::FontMgr> font_mgr, int index,
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3001
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 1)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 1)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 1, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3002
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 2)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 2)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), -1, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3003
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 3)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 3)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 0, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3004
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 4)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 4)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), -1, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3005
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 5)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 5)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 50, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3006
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 6)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 6)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 1, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3007
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 7)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 7)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), -1, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3008
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 8)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 8)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 0, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3009
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 9)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 9)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 1, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3010
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 10)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 10)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 0, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3011
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 11)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 11)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 50, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3012
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 12)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 12)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 0, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3013
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 13)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 13)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 50, "HarmonyOS Sans", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3014
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 14)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 14)
 {
     DrawTexts(Drawing::FontMgr::CreateDefaultFontMgr(), 50, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3015
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 15)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 15)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), -1, "", playbackCanvas_);
 }
 
 // 对应用例 FontStyleSet_CreateTypeface_3016
-DEF_RSDEMO(fontstyleset_createtypeface, TestLevel::L1, 16)
+DEF_DTK(fontstyleset_createtypeface, TestLevel::L1, 16)
 {
     DrawTexts(Drawing::FontMgr::CreateDynamicFontMgr(), 1, "HarmonyOS Sans", playbackCanvas_);
 }
