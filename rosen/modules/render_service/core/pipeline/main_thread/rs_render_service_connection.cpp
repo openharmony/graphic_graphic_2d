@@ -1141,8 +1141,12 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
+        RSHardwareThread::Instance().ScheduleTask([=]() {
+            if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+                HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
+            }
+            screenManager_->SetScreenPowerStatus(id, status);
+        }).wait();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
