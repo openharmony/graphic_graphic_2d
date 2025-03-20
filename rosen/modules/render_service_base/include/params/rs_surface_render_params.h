@@ -408,7 +408,8 @@ public:
 
     bool GetNeedOffscreen() const
     {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+        return (RSSystemProperties::GetSurfaceOffscreenEnadbled() &&
+                !RSSystemProperties::IsPcType()) ? needOffscreen_ : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
