@@ -23,9 +23,9 @@ ohos_unittest("RSRenderServiceBaseGfxTest") {
 
   sources = [
     "dump/rs_dump_manager_test.cpp",
+    "first_frame_notifier/rs_first_frame_notifier_test.cpp",
     "fps_info/rs_surface_fps_manager_test.cpp",
     "fps_info/rs_surface_fps_test.cpp",
-    "first_frame_notifier/rs_first_frame_notifier_test.cpp",
   ]
 
   configs = [
@@ -37,7 +37,7 @@ ohos_unittest("RSRenderServiceBaseGfxTest") {
 
   cflags = [ "-Dprivate=public" ]
 
-  include_dirs = [ 
+  include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]

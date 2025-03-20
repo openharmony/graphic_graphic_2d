@@ -291,10 +291,10 @@ ohos_source_set("render_service_base_src") {
 
     #gfx
     "src/gfx/dump/rs_dump_manager.cpp",
+    "src/gfx/first_frame_notifier/rs_first_frame_notifier.cpp",
     "src/gfx/fps_info/rs_surface_fps.cpp",
     "src/gfx/fps_info/rs_surface_fps_manager.cpp",
     "src/gfx/performance/rs_perfmonitor_reporter.cpp",
-    "src/gfx/first_frame_notifier/rs_first_frame_notifier.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",

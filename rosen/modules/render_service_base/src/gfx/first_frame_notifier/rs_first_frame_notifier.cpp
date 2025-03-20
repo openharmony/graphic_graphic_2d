@@ -45,8 +45,6 @@ void RSFirstFrameNotifier::OnFirstFrameCommitCallback(ScreenId screenId)
         std::chrono::steady_clock::now().time_since_epoch()).count();
     RS_TRACE_NAME_FMT("OnFirstFrameCommitCallback screenId:%" PRIu64 ", timestamp:%" PRId64 ".",
         screenId, timestamp);
-    RS_LOGI("OnFirstFrameCommitCallback screenId:%{public}" PRIu64 ", timestamp:%{public}" PRId64 ".",
-        screenId, timestamp);
     for (const auto& callback : firstFrameCommitCallbacks_) {
         if (callback.second != nullptr) {
             callback.second->OnFirstFrameCommit(screenId, timestamp);
