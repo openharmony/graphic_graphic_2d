@@ -39,9 +39,11 @@ public:
     static bool AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     static skia::textlayout::ParagraphImpl* GetParagraphSkiaImpl(const std::shared_ptr<Paragraph>& paragraph);
     static ParagraphImpl* GetParagraphImpl(const std::shared_ptr<Paragraph>& paragraph);
+    void PrepareMiddleEllipsis(size_t& maxLines, const std::u16string& str, const std::u16string& text);
 
 protected:
     std::shared_ptr<Paragraph> paragraph_;
+    std::shared_ptr<Paragraph> paragraphMiddleEllipsis_;
     int layoutWidth_ = 50;
     std::u16string text_ = u"text";
 };
@@ -396,5 +398,144 @@ HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level1)
     EXPECT_EQ(glyphs2.at(1), 85);
     EXPECT_EQ(glyphs2.at(2), 1546);
     EXPECT_EQ(glyphs2.at(3), 1546);
+}
+
+void ParagraphTest::PrepareMiddleEllipsis(size_t& maxLines, const std::u16string& str, const std::u16string& text)
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = maxLines;
+    paragraphStyle.ellipsis = str;
+    paragraphStyle.ellipsisModal = OHOS::Rosen::SPText::EllipsisModal::MIDDLE;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = 30;
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(text);
+    paragraphMiddleEllipsis_ = paragraphBuilder->Build();
+    ASSERT_NE(paragraphMiddleEllipsis_, nullptr);
+} 
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis001
+ * @tc.desc: test for Middle Ellipsis 001, English word
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"Hello World");
+    paragraphMiddleEllipsis_->Layout(100);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 2);
+    EXPECT_EQ(range.end, 8);
+} 
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis002
+ * @tc.desc: test for Middle Ellipsis 002,Burmese combin
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"ျမင့္ေသာ ႏွလုံးခုန္ႏႈန္း သတ္မွတ္ခ်က္");
+    paragraphMiddleEllipsis_->Layout(200);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 5);
+    EXPECT_EQ(range.end, 27);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis003
+ * @tc.desc: test for Middle Ellipsis 003,emoji
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis003, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"😊😂 MM abc 中文 123");
+    paragraphMiddleEllipsis_->Layout(200);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 5);
+    EXPECT_EQ(range.end, 13);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis004
+ * @tc.desc: test for Middle Ellipsis 004,chinese & number & English
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis004, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"你好       123    Hello ");
+    paragraphMiddleEllipsis_->Layout(200);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 5);
+    EXPECT_EQ(range.end, 15);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis005
+ * @tc.desc: test for Middle Ellipsis 005,Tibetan
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis005, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"བོད་སྐད་ནི་སྒྲ་གཉིས་ཀྱི་བྱུས་དང་སྤྱི་ཚད་ཁུར་སྒྲ་སེམས་བཞིན་ཡོད།");
+    paragraphMiddleEllipsis_->Layout(200);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 11);
+    EXPECT_EQ(range.end, 53);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis006
+ * @tc.desc: test for Middle Ellipsis 006,Empty ellipsis,Empty String
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis006, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"", u"");
+    paragraphMiddleEllipsis_->Layout(200);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
+    EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis007
+ * @tc.desc: test for Middle Ellipsis 007,maxLines != 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis007, TestSize.Level1)
+{
+    size_t maxLines = 2;
+    PrepareMiddleEllipsis(maxLines, u"...", u"Hello World");
+    paragraphMiddleEllipsis_->Layout(100);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
+    EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis008
+ * @tc.desc: test for Middle Ellipsis 008, uygurqa
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis008, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"ياخشىمۇ سىز؟ ھەركىمگە قۇتلۇق كۈنىمىز بولسۇن!");
+    paragraphMiddleEllipsis_->Layout(100);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 3);
+    EXPECT_EQ(range.end, 41);
 }
 } // namespace txt
