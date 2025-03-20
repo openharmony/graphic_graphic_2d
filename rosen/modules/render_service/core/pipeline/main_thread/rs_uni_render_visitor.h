@@ -424,7 +424,6 @@ private:
     Gravity frameGravity_ = Gravity::DEFAULT;
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
-    std::vector<RectI> globalSurfaceBounds_;
     // record container nodes which need filter
     FilterRectISet containerFilter_;
     // record nodes in surface which has filter may influence globalDirty

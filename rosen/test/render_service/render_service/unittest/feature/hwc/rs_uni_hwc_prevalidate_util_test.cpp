@@ -318,39 +318,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
 }
 
 /**
- * @tc.name: CreateUIFirstLayerInfo001
- * @tc.desc: CreateUIFirstLayerInfo, input normal hwcNode
- * @tc.type: FUNC
- * @tc.require: issueIBA6PF
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateUIFirstLayerInfo001, TestSize.Level1)
-{
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    RequestLayerInfo info;
-    bool ret = uniHwcPrevalidateUtil.CreateUIFirstLayerInfo(
-        surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
-    ASSERT_EQ(ret, true);
-}
-
-/**
- * @tc.name: CreateUIFirstLayerInfo002
- * @tc.desc: CreateUIFirstLayerInfo, input nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBA6PF
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateUIFirstLayerInfo002, TestSize.Level1)
-{
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    RequestLayerInfo info;
-    bool ret = uniHwcPrevalidateUtil.CreateUIFirstLayerInfo(
-        nullptr, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
-    ASSERT_EQ(info.fps, DEFAULT_FPS);
-    ASSERT_EQ(ret, false);
-}
-
-/**
  * @tc.name: CheckIfDoArsrPre001
  * @tc.desc: CheckIfDoArsrPre, input normal surfacenode
  * @tc.type: FUNC
@@ -453,21 +420,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, EmplaceSurfaceNodeLayer001, TestSize.Level
     uint32_t zOrder = DEFAULT_Z_ORDER;
     uniHwcPrevalidateUtil.EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, DEFAULT_FPS, zOrder, screenInfo);
     ASSERT_EQ(prevalidLayers.size(), 1);
-}
-
-/**
- * @tc.name: CollectUIFirstLayerInfo001
- * @tc.desc: CollectUIFirstLayerInfo
- * @tc.type: FUNC
- * @tc.require: issueIBA6PF
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectUIFirstLayerInfo001, TestSize.Level1)
-{
-    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    std::vector<RequestLayerInfo> uiFirstLayers;
-    ScreenInfo screenInfo;
-    uniHwcPrevalidateUtil.CollectUIFirstLayerInfo(uiFirstLayers, DEFAULT_FPS, DEFAULT_Z_ORDER, screenInfo);
-    ASSERT_EQ(uiFirstLayers.size(), 0);
 }
 
 /**
