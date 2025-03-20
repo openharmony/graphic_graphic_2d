@@ -186,6 +186,7 @@
       *RSFrameRateVote::SurfaceVideoVote*;
       *RSFrameRateVote::VideoFrameRateVote*;
       *RSFrameRateVote::SetTransactionFlags*;
+      *RSFrameRateVote::CheckSurfaceAndUi*;
       *RSFrameRateVote::VoteRate*;
       *RSFrameRateVote::~RSFrameRateVote*;
 
