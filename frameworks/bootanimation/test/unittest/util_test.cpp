@@ -237,5 +237,37 @@ HWTEST_F(UtilTest, UtilTest_008, TestSize.Level1)
         EXPECT_EQ(0, content.length());
     }
 }
-/**/
+
+/**
+ * @tc.name: UtilTest_009
+ * @tc.desc: Verify the ParseImageConfig
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_009, TestSize.Level1)
+{
+    const char* fileBuffer;
+    int totalsize = 0;
+    FrameRateConfig frameConfig;
+    bool result = OHOS::ParseImageConfig(fileBuffer, totalsize, frameConfig);
+    EXPECT_FALSE(result);
+}
+ 
+/**
+ * @tc.name: UtilTest_010
+ * @tc.desc: Verify the CheckImageData
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_010, TestSize.Level1)
+{
+    std::string filename = "abc";
+    std::shared_ptr<ImageStruct> imageStruct = std::make_shared<ImageStruct>();
+    int32_t bufferLen = 0;
+    ImageStructVec imgVec;
+    bool result = OHOS::CheckImageData(filename, imageStruct, bufferLen, imgVec);
+    EXPECT_FALSE(result);
+    unsigned long fileSize = 1000;
+    imageStruct->memPtr.SetBufferSize(fileSize);
+    result = OHOS::CheckImageData(filename, imageStruct, bufferLen, imgVec);
+    EXPECT_TRUE(result);
+}
 }
