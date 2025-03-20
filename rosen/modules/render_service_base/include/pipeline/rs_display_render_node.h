@@ -349,7 +349,6 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
-    bool IsRotationFinished() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
     }

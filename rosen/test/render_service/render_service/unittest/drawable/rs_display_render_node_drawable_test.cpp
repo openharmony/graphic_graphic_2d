@@ -236,28 +236,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender002, TestSize.Le
 }
 
 /**
- * @tc.name: InitTranslateForWallpaper
- * @tc.desc: Test InitTranslateForWallpaper
- * @tc.type: FUNC
- * @tc.require: #IB5JZQ
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    system::SetParameter("const.cache.optimize.rotate.enable", "true");
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    params->frameRect_ = {0.f, 0.f, 100.f, 100.f};
-    params->screenInfo_.width = 100;
-    params->screenInfo_.height = 100;
-    displayDrawable_->InitTranslateForWallpaper();
-    auto& rtThread = RSUniRenderThread::Instance();
-    EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
-    EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
-    system::SetParameter("const.cache.optimize.rotate.enable", "false");
-}
-
-/**
  * @tc.name: ClearTransparentBeforeSaveLayer
  * @tc.desc: Test ClearTransparentBeforeSaveLayer, with two surface with/without param initialization
  * @tc.type: FUNC

@@ -209,18 +209,6 @@ public:
         return visibleRect_;
     }
 
-    void SetWallpaperTranslate(int32_t translateX, int32_t translateY)
-    {
-        std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
-        wallpaperTranslate_ = {translateX, translateY};
-    }
-
-    std::pair<int32_t, int32_t> GetWallpaperTranslate() const
-    {
-        std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
-        return wallpaperTranslate_;
-    }
-
     void SetEnableVisiableRect(bool enableVisiableRect)
     {
         enableVisiableRect_.store(enableVisiableRect);
@@ -293,8 +281,6 @@ private:
 
     std::mutex vmaCacheCountMutex_;
 
-    std::pair<int32_t, int32_t> wallpaperTranslate_ = {0, 0};
-    mutable std::mutex wallpaperTranslateMutex_;
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;

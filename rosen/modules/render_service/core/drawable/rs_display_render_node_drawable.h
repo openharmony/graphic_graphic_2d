@@ -160,8 +160,6 @@ private:
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSDisplayRenderParams& params, RSUniRenderVirtualProcessor& processor);
     void DrawCurtainScreen() const;
-    void InitTranslateForWallpaper();
-    void CalculateTranslationForWallpaper();
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);

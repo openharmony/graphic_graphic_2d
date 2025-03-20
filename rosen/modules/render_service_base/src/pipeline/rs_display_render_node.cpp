@@ -405,18 +405,6 @@ bool RSDisplayRenderNode::IsRotationChanged() const
     return !(ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd);
 }
 
-bool RSDisplayRenderNode::IsRotationFinished() const
-{
-    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeoPtr == nullptr) {
-        return false;
-    }
-    // boundsGeoPtr->IsNeedClientCompose() return false if rotation degree is times of 90
-    // which means rotation is end.
-    bool isRotationEnd = !boundsGeoPtr->IsNeedClientCompose();
-    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd;
-}
-
 void RSDisplayRenderNode::UpdateRotation()
 {
 #ifdef RS_ENABLE_GPU
@@ -431,7 +419,6 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
-    displayParams->SetRotationFinished(IsRotationFinished());
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
