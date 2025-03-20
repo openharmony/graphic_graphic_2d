@@ -31,7 +31,7 @@ void RSFirstFrameNotifier::RegisterFirstFrameCommitCallback(
     if (callback == nullptr) {
         if (firstFrameCommitCallbacks_.find(pid) != firstFrameCommitCallbacks_.end()) {
             firstFrameCommitCallbacks_.erase(pid);
-            RS_LOGD("FirstFrameCommitCallback unregister succ, remove pid %{public}" PRIu32 ".", pid);
+            RS_LOGD("FirstFrameCommitCallback unregister succ.");
         }
         return ;
     }
