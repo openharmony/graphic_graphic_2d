@@ -44,11 +44,10 @@ void ColorGamutParamTest::TearDown() {}
  */
 HWTEST_F(ColorGamutParamTest, SetCoveredSurfaceCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.SetCoveredSurfaceCloseP3(true);
-    EXPECT_EQ(colorGamutParam.isCoveredSurfaceCloseP3_, true);
-    colorGamutParam.SetCoveredSurfaceCloseP3(false);
-    EXPECT_EQ(colorGamutParam.isCoveredSurfaceCloseP3_, false);
+    ColorGamutParam::SetCoveredSurfaceCloseP3(true);
+    EXPECT_EQ(ColorGamutParam::isCoveredSurfaceCloseP3_, true);
+    ColorGamutParam::SetCoveredSurfaceCloseP3(false);
+    EXPECT_EQ(ColorGamutParam::isCoveredSurfaceCloseP3_, false);
 }
 
 /**
@@ -59,11 +58,10 @@ HWTEST_F(ColorGamutParamTest, SetCoveredSurfaceCloseP3, Function | SmallTest | L
  */
 HWTEST_F(ColorGamutParamTest, SetSLRCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.SetSLRCloseP3(true);
-    EXPECT_EQ(colorGamutParam.isSLRCloseP3_, true);
-    colorGamutParam.SetSLRCloseP3(false);
-    EXPECT_EQ(colorGamutParam.isSLRCloseP3_, false);
+    ColorGamutParam::SetSLRCloseP3(true);
+    EXPECT_EQ(ColorGamutParam::isSLRCloseP3_, true);
+    ColorGamutParam::SetSLRCloseP3(false);
+    EXPECT_EQ(ColorGamutParam::isSLRCloseP3_, false);
 }
 
 /**
@@ -74,11 +72,10 @@ HWTEST_F(ColorGamutParamTest, SetSLRCloseP3, Function | SmallTest | Level1)
  */
 HWTEST_F(ColorGamutParamTest, IsCoveredSurfaceCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.isCoveredSurfaceCloseP3_ = true;
-    EXPECT_TRUE(colorGamutParam.IsCoveredSurfaceCloseP3());
-    colorGamutParam.isCoveredSurfaceCloseP3_ = false;
-    EXPECT_FALSE(colorGamutParam.IsCoveredSurfaceCloseP3());
+    ColorGamutParam::isCoveredSurfaceCloseP3_ = true;
+    EXPECT_TRUE(ColorGamutParam::IsCoveredSurfaceCloseP3());
+    ColorGamutParam::isCoveredSurfaceCloseP3_ = false;
+    EXPECT_FALSE(ColorGamutParam::IsCoveredSurfaceCloseP3());
 }
 
 /**
@@ -89,11 +86,10 @@ HWTEST_F(ColorGamutParamTest, IsCoveredSurfaceCloseP3, Function | SmallTest | Le
  */
 HWTEST_F(ColorGamutParamTest, IsSLRCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.isSLRCloseP3_ = true;
-    EXPECT_TRUE(colorGamutParam.IsSLRCloseP3());
-    colorGamutParam.isSLRCloseP3_ = false;
-    EXPECT_FALSE(colorGamutParam.IsSLRCloseP3());
+    ColorGamutParam::isSLRCloseP3_ = true;
+    EXPECT_TRUE(ColorGamutParam::IsSLRCloseP3());
+    ColorGamutParam::isSLRCloseP3_ = false;
+    EXPECT_FALSE(ColorGamutParam::IsSLRCloseP3());
 }
 } // namespace Rosen
 } // namespace OHOS

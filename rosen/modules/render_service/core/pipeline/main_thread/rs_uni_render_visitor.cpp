@@ -315,9 +315,7 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
     auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
-    auto colorGamutFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[COLOR_GAMUT]);
-    auto colorGamutParam = std::static_pointer_cast<ColorGamutParam>(colorGamutFeature);
-    if (colorGamutParam != nullptr && colorGamutParam->IsCoveredSurfaceCloseP3() && appSurfaceNode
+    if (ColorGamutParam::IsCoveredSurfaceCloseP3() && appSurfaceNode
         && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to set new color "
                 "gamut %{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
@@ -387,10 +385,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
     }
-    auto colorGamutFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[COLOR_GAMUT]);
-    auto colorGamutParam = std::static_pointer_cast<ColorGamutParam>(colorGamutFeature);
-    if (colorGamutParam != nullptr && colorGamutParam->IsSLRCloseP3() &&
-        RSMainThread::Instance()->HasVirtualMirrorDisplay()) {
+    if (ColorGamutParam::IsSLRCloseP3() && RSMainThread::Instance()->HasVirtualMirrorDisplay()) {
         RS_LOGD("RSUniRenderVisitor::HandleColorGamuts close multi-screen P3.");
         // wired screen and virtual mirror screen close P3
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1794,10 +1789,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         UpdateSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
     }
     // 4. Update color gamut for appNode
-    auto colorGamutFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[COLOR_GAMUT]);
-    auto colorGamutParam = std::static_pointer_cast<ColorGamutParam>(colorGamutFeature);
-    if ((colorGamutParam != nullptr && !colorGamutParam->IsCoveredSurfaceCloseP3()) ||
-        !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
+    if (ColorGamutParam::IsCoveredSurfaceCloseP3() || !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
         CheckColorSpace(node);
     }
     return true;

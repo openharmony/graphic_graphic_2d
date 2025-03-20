@@ -32,7 +32,7 @@ int32_t ColorGamutParamParse::ParseFeatureParam(FeatureParamMapType &featureMap,
             continue;
         }
 
-        if (ParseColorGamutInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseColorGamutInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("ColorGamutParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,31 +41,25 @@ int32_t ColorGamutParamParse::ParseFeatureParam(FeatureParamMapType &featureMap,
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t ColorGamutParamParse::ParseColorGamutInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[COLOR_GAMUT]);
-    if (iter != featureMap.end()) {
-        colorGamutParam_ = std::static_pointer_cast<ColorGamutParam>(iter->second);
-    } else {
-        RS_LOGD("ColorGamutParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
     // Start Parse Feature Params
+    xmlNode *currNode = &node;
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
-    if (colorGamutParam_ != nullptr && xmlParamType == PARSE_XML_FEATURE_SWITCH) {
+    if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "CoveredSurfaceCloseP3") {
-            colorGamutParam_->SetCoveredSurfaceCloseP3(isEnabled);
+            ColorGamutParam::SetCoveredSurfaceCloseP3(isEnabled);
             RS_LOGI("ColorGamutParamParse parse CoveredSurfaceCloseP3 %{public}d",
-                colorGamutParam_->IsCoveredSurfaceCloseP3());
+                ColorGamutParam::IsCoveredSurfaceCloseP3());
         } else if (name == "SLRCloseP3") {
-            colorGamutParam_->SetSLRCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse SLRCloseP3 %{public}d", colorGamutParam_->IsSLRCloseP3());
+            ColorGamutParam::SetSLRCloseP3(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse SLRCloseP3 %{public}d", ColorGamutParam::IsSLRCloseP3());
+        } else {
+            RS_LOGE("ColorGamutParamParse parse %{public}s is not support", name.c_str());
+            return PARSE_ERROR;
         }
     }
 
