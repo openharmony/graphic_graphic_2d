@@ -56,8 +56,7 @@ enum class RSDumpID : uint8_t {
 #endif
     GPU_INFO,
     EXIST_PID_MEM_INFO,
-    DRAWABLE_INFO,
-    RS_RENDER_NODE_INFO
+    RS_RENDER_NODE_INFO,
 };
 
 // Define a function type alias for the dump point handling function
@@ -84,7 +83,7 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"fps", { { RSDumpID::FPS_INFO }, "[windowname] fps, dump the fps info of window" } },
     { u"nodeNotOnTree", { { RSDumpID::RS_NOT_ON_TREE_INFO }, "dump nodeNotOnTree info" } },
     { u"allSurfacesMem", { { RSDumpID::SURFACE_MEM_INFO }, "dump surface mem info" } },
-    { u"RSTree", { { RSDumpID::RENDER_NODE_INFO, RSDumpID::DRAWABLE_INFO }, "dump RS Tree info" } },
+    { u"RSTree", { { RSDumpID::RENDER_NODE_INFO }, "dump RS Tree info" } },
     { u"MultiRSTrees", { { RSDumpID::MULTI_RSTREES_INFO }, "dump multi RS Trees info" } },
     { u"EventParamList", { { RSDumpID::EVENT_PARAM_LIST }, "dump EventParamList info" } },
     { u"trimMem", { { RSDumpID::TRIM_MEM_INFO }, "dump trim Mem info" } },
@@ -106,7 +105,6 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
           RSDumpID::RENDER_NODE_INFO,
           RSDumpID::RS_NOT_ON_TREE_INFO,
           // -- RenderServiceUniThread
-          RSDumpID::DRAWABLE_INFO,
           RSDumpID::EVENT_PARAM_LIST,
           RSDumpID::FPS_COUNT,
           // -- RenderServiceClient
