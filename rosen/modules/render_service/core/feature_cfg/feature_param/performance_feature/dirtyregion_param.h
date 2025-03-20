@@ -25,30 +25,30 @@ public:
 
     ~DirtyRegionParam() = default;
 
-    satic bool IsDirtyRegionEnable();
+    static bool IsDirtyRegionEnable();
 
-    satic bool IsExpandScreenDirtyRegionEnable();
+    static bool IsExpandScreenDirtyRegionEnable();
 
-    satic bool IsMirrorScreenDirtyRegionEnable();
+    static bool IsMirrorScreenDirtyRegionEnable();
 
-    satic bool IsAdvancedDirtyRegionEnable();
+    static bool IsAdvancedDirtyRegionEnable();
 
-    satic bool IsTileBasedAlignEnable();
+    static bool IsTileBasedAlignEnable();
 
-    satic int GetTileBasedAlignBits();
+    static int GetTileBasedAlignBits();
 
 protected:
-    satic void SetDirtyRegionEnable(bool isEnable);
+    static void SetDirtyRegionEnable(bool isEnable);
 
-    satic void SetExpandScreenDirtyRegionEnable(bool isEnable);
+    static void SetExpandScreenDirtyRegionEnable(bool isEnable);
 
-    satic void SetMirrorScreenDirtyRegionEnable(bool isEnable);
+    static void SetMirrorScreenDirtyRegionEnable(bool isEnable);
 
-    satic void SetAdvancedDirtyRegionEnable(bool isEnable);
+    static void SetAdvancedDirtyRegionEnable(bool isEnable);
 
-    satic void SetTileBasedAlignEnable(bool isEnable);
+    static void SetTileBasedAlignEnable(bool isEnable);
 
-    satic void SetTileBasedAlignBits(int tileBasedAlignBits);
+    static void SetTileBasedAlignBits(int tileBasedAlignBits);
 
 private:
     inline static bool isDirtyRegionEnable_ = true;

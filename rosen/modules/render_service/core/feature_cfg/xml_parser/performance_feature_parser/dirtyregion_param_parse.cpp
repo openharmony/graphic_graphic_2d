@@ -34,7 +34,7 @@ int32_t DirtyRegionParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
             continue;
         }
 
-        if (ParseDirtyRegionInternal(featureMap, *curNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseDirtyRegionInternal(*curNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("DirtyRegionParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -43,7 +43,7 @@ int32_t DirtyRegionParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(xmlNode &node)
 {
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);
