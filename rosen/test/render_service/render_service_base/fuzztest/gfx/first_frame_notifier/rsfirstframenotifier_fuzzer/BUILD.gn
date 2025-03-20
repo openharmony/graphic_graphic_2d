@@ -23,10 +23,8 @@ ohos_fuzztest("RSFirstFrameNotifierFuzzTest") {
   module_out_path = module_output_path
 
   sources = [ "rsfirstframenotifier_fuzzer.cpp" ]
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-  ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]

@@ -15,7 +15,7 @@
 
 #include "rsfirstframenotifier_fuzzer.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
+#include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
 #include "transaction/rs_render_service_client.h"
 
 #include <cstddef>
@@ -27,7 +27,6 @@ namespace OHOS {
 namespace Rosen {                                            
 
 namespace {
-constexpr size_t STR_LEN = 10;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -74,7 +73,7 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
-class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+class CustomFirstFrameCommitCallback : public RSIFirstFrameCommitCallback {
 public:
     explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
     ~CustomFirstFrameCommitCallback() override {};
@@ -84,6 +83,11 @@ public:
         if (cb_ != nullptr) {
             cb_(screenId, timestamp);
         }
+    }
+
+    sptr<IRemoteObject> AsObject() override
+    {
+        return nullptr;
     }
 
 private:
