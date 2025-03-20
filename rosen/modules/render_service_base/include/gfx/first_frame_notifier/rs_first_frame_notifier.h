@@ -17,7 +17,7 @@
 #define RENDER_SERVICE_BASE_GFX_FIRST_FRAME_NOTIFIER_RS_FIRST_FRAME_NOTIFIER_H
 
 #include <string>
-#include <mutex>
+#include <shared_mutex>
 #include <array>
 
 #include "common/rs_common_def.h"
@@ -42,6 +42,7 @@ private:
 
     std::unordered_set<ScreenId> firstFrameCommitScreens_;
     std::unordered_map<pid_t, sptr<RSIFirstFrameCommitCallback>> firstFrameCommitCallbacks_;
+    std::shared_mutex smtx;
 };
 }
 #endif

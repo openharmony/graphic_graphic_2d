@@ -28,6 +28,7 @@ RSFirstFrameNotifier& RSFirstFrameNotifier::GetInstance()
 void RSFirstFrameNotifier::RegisterFirstFrameCommitCallback(
     pid_t pid, const sptr<RSIFirstFrameCommitCallback>& callback)
 {
+    std::unique_lock<std::shared_mutex> lock(smtx);
     if (callback == nullptr) {
         if (firstFrameCommitCallbacks_.find(pid) != firstFrameCommitCallbacks_.end()) {
             firstFrameCommitCallbacks_.erase(pid);
@@ -41,6 +42,7 @@ void RSFirstFrameNotifier::RegisterFirstFrameCommitCallback(
 
 void RSFirstFrameNotifier::OnFirstFrameCommitCallback(ScreenId screenId)
 {
+    std::shared_lock<std::shared_mutex> lock(smtx);
     int64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     RS_TRACE_NAME_FMT("OnFirstFrameCommitCallback screenId:%" PRIu64 ", timestamp:%" PRId64 ".",

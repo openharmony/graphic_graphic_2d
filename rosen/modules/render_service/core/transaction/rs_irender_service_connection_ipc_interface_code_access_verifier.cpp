@@ -49,6 +49,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
                 CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_FIRST_FRAME_COMMIT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_FIRST_FRAME_COMMIT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::DISABLE_RENDER_CONTROL_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DISABLE_RENDER_CONTROL_SCREEN");
             break;
