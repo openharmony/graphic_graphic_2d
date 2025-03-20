@@ -29,7 +29,6 @@ public:
 
 private:
     int32_t ParseDirtyRegionInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<DirtyRegionParam> dirtyRegionParam_;
 };
 } // namespace OHOS::Rosen
 #endif // DIRTYREGION_PARAM_PARSE_H

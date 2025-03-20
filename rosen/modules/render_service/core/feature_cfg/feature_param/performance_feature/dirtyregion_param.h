@@ -25,38 +25,38 @@ public:
 
     ~DirtyRegionParam() = default;
 
-    bool IsDirtyRegionEnable() const;
+    satic bool IsDirtyRegionEnable();
 
-    bool IsExpandScreenDirtyRegionEnable() const;
+    satic bool IsExpandScreenDirtyRegionEnable();
 
-    bool IsMirrorScreenDirtyRegionEnable() const;
+    satic bool IsMirrorScreenDirtyRegionEnable();
 
-    bool IsAdvancedDirtyRegionEnable() const;
+    satic bool IsAdvancedDirtyRegionEnable();
 
-    bool IsTileBasedAlignEnable() const;
+    satic bool IsTileBasedAlignEnable();
 
-    int GetTileBasedAlignBits() const;
+    satic int GetTileBasedAlignBits();
 
 protected:
-    void SetDirtyRegionEnable(bool isEnable);
+    satic void SetDirtyRegionEnable(bool isEnable);
 
-    void SetExpandScreenDirtyRegionEnable(bool isEnable);
+    satic void SetExpandScreenDirtyRegionEnable(bool isEnable);
 
-    void SetMirrorScreenDirtyRegionEnable(bool isEnable);
+    satic void SetMirrorScreenDirtyRegionEnable(bool isEnable);
 
-    void SetAdvancedDirtyRegionEnable(bool isEnable);
+    satic void SetAdvancedDirtyRegionEnable(bool isEnable);
 
-    void SetTileBasedAlignEnable(bool isEnable);
+    satic void SetTileBasedAlignEnable(bool isEnable);
 
-    void SetTileBasedAlignBits(int tileBasedAlignBits);
+    satic void SetTileBasedAlignBits(int tileBasedAlignBits);
 
 private:
-    bool isDirtyRegionEnable_ = true;
-    bool isExpandScreenDirtyRegionEnable_ = true;
-    bool isMirrorScreenDirtyRegionEnable_ = true;
-    bool isAdvancedDirtyRegionEnable_ = false;
-    bool isTileBasedAlignEnable_ = false;
-    int tileBasedAlignBits_ = 128;
+    inline static bool isDirtyRegionEnable_ = true;
+    inline static bool isExpandScreenDirtyRegionEnable_ = true;
+    inline static bool isMirrorScreenDirtyRegionEnable_ = true;
+    inline static bool isAdvancedDirtyRegionEnable_ = false;
+    inline static bool isTileBasedAlignEnable_ = false;
+    inline static int tileBasedAlignBits_ = 128;
     friend class DirtyRegionParamParse;
 };
 } // namespace OHOS::Rosen

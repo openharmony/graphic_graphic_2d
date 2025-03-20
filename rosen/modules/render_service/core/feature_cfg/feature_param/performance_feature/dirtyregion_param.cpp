@@ -16,7 +16,7 @@
 #include "dirtyregion_param.h"
 
 namespace OHOS::Rosen {
-bool DirtyRegionParam::IsDirtyRegionEnable() const
+bool DirtyRegionParam::IsDirtyRegionEnable()
 {
     return isDirtyRegionEnable_;
 }
@@ -26,7 +26,7 @@ void DirtyRegionParam::SetDirtyRegionEnable(bool isEnable)
     isDirtyRegionEnable_ = isEnable;
 }
 
-bool DirtyRegionParam::IsExpandScreenDirtyRegionEnable() const
+bool DirtyRegionParam::IsExpandScreenDirtyRegionEnable()
 {
     return isExpandScreenDirtyRegionEnable_;
 }
@@ -36,7 +36,7 @@ void DirtyRegionParam::SetExpandScreenDirtyRegionEnable(bool isEnable)
     isExpandScreenDirtyRegionEnable_ = isEnable;
 }
 
-bool DirtyRegionParam::IsMirrorScreenDirtyRegionEnable() const
+bool DirtyRegionParam::IsMirrorScreenDirtyRegionEnable()
 {
     return isMirrorScreenDirtyRegionEnable_;
 }
@@ -46,7 +46,7 @@ void DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(bool isEnable)
     isMirrorScreenDirtyRegionEnable_ = isEnable;
 }
 
-bool DirtyRegionParam::IsAdvancedDirtyRegionEnable() const
+bool DirtyRegionParam::IsAdvancedDirtyRegionEnable()
 {
     return isAdvancedDirtyRegionEnable_;
 }
@@ -56,7 +56,7 @@ void DirtyRegionParam::SetAdvancedDirtyRegionEnable(bool isEnable)
     isAdvancedDirtyRegionEnable_ = isEnable;
 }
 
-bool DirtyRegionParam::IsTileBasedAlignEnable() const
+bool DirtyRegionParam::IsTileBasedAlignEnable()
 {
     return isTileBasedAlignEnable_;
 }
@@ -66,7 +66,7 @@ void DirtyRegionParam::SetTileBasedAlignEnable(bool isEnable)
     isTileBasedAlignEnable_ = isEnable;
 }
 
-int DirtyRegionParam::GetTileBasedAlignBits() const
+int DirtyRegionParam::GetTileBasedAlignBits()
 {
     return tileBasedAlignBits_;
 }
