@@ -28,8 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseColorGamutInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<ColorGamutParam> colorGamutParam_;
+    int32_t ParseColorGamutInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // COLOR_GAMUT_PARAM_PARSE_H

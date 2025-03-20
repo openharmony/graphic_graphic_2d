@@ -17,12 +17,12 @@
 
 namespace OHOS::Rosen {
 
-bool ColorGamutParam::IsCoveredSurfaceCloseP3() const
+bool ColorGamutParam::IsCoveredSurfaceCloseP3()
 {
     return isCoveredSurfaceCloseP3_;
 }
 
-bool ColorGamutParam::IsSLRCloseP3() const
+bool ColorGamutParam::IsSLRCloseP3()
 {
     return isSLRCloseP3_;
 }
