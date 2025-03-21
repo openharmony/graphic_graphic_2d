@@ -14,13 +14,12 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/text/config.gni")
 
 config("skia_libtxt_config") {
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/skia_txt",
+    "$text_root/interface/export",
+    "$text_root/interface/export/rosen_text",
   ]
 
   cflags_cc = [
@@ -30,7 +29,6 @@ config("skia_libtxt_config") {
   ]
 }
 
-txt_root = "$rosen_root/modules/2d_engine/rosen_text/skia_txt/"
 skunicode_root = "//third_party/skia/modules/skunicode"
 skshaper_root = "//third_party/skia/modules/skshaper"
 
@@ -50,36 +48,36 @@ template("skia_libtxt") {
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
-      "$graphic_2d_root/rosen/modules/texgine/src",
+      "$text_root/service/skia_txt",
+      "$text_root/skia",
+      "$text_root/skia/txt",
+      "$text_root/service/texgine/src",
     ]
 
     sources = [
-      "$txt_root/common_utils/string_util.cpp",
-      "$txt_root/impl/drawing_painter_impl.cpp",
-      "$txt_root/impl/paragraph_builder_impl.cpp",
-      "$txt_root/impl/paragraph_impl.cpp",
-      "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
-      "$txt_root/impl/paragraph_relayout_impl.cpp",
-      "$txt_root/impl/run_impl.cpp",
-      "$txt_root/impl/text_font_utils.cpp",
-      "$txt_root/impl/text_line_impl.cpp",
-      "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
-      "$txt_root/symbol_engine/hm_symbol_run.cpp",
-      "$txt_root/symbol_engine/hm_symbol_txt.cpp",
-      "$txt_root/symbol_resource/symbol_config_parser.cpp",
-      "$txt_root/txt/asset_font_manager.cpp",
-      "$txt_root/txt/font_asset_provider.cpp",
-      "$txt_root/txt/font_collection.cpp",
-      "$txt_root/txt/paragraph_builder.cpp",
-      "$txt_root/txt/paragraph_style.cpp",
-      "$txt_root/txt/placeholder_run.cpp",
-      "$txt_root/txt/platform.cpp",
-      "$txt_root/txt/text_bundle_config_parser.cpp",
-      "$txt_root/txt/text_style.cpp",
-      "$txt_root/txt/typeface_font_asset_provider.cpp",
+      "common_utils/string_util.cpp",
+      "impl/drawing_painter_impl.cpp",
+      "impl/paragraph_builder_impl.cpp",
+      "impl/paragraph_impl.cpp",
+      "impl/paragraph_line_fetcher_impl.cpp",
+      "impl/paragraph_relayout_impl.cpp",
+      "impl/run_impl.cpp",
+      "impl/text_font_utils.cpp",
+      "impl/text_line_impl.cpp",
+      "symbol_engine/hm_symbol_node_build.cpp",
+      "symbol_engine/hm_symbol_run.cpp",
+      "symbol_engine/hm_symbol_txt.cpp",
+      "symbol_resource/symbol_config_parser.cpp",
+      "txt/asset_font_manager.cpp",
+      "txt/font_asset_provider.cpp",
+      "txt/font_collection.cpp",
+      "txt/paragraph_builder.cpp",
+      "txt/paragraph_style.cpp",
+      "txt/placeholder_run.cpp",
+      "txt/platform.cpp",
+      "txt/text_bundle_config_parser.cpp",
+      "txt/text_style.cpp",
+      "txt/typeface_font_asset_provider.cpp",
     ]
 
     external_deps = [ "jsoncpp:jsoncpp" ]
@@ -168,7 +166,7 @@ ohos_source_set("skia_paragraph") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
@@ -292,7 +290,7 @@ ohos_source_set("skia_shaper") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = [
-    "$rosen_root/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",

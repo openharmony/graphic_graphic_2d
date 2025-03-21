@@ -31,14 +31,12 @@ config("libtexgine_config") {
 if (defined(is_arkui_x) && is_arkui_x) {
   config("libtexgine_public_config") {
     include_dirs = [
-      "export",
-      "texgine_drawing",
       "//third_party/icu/icu4c/source/common",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+      "$text_root/interface/export/rosen_text",
     ]
   }
 } else {
@@ -48,7 +46,7 @@ if (defined(is_arkui_x) && is_arkui_x) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+      "$text_root/interface/export/rosen_text",
     ]
   }
 }
