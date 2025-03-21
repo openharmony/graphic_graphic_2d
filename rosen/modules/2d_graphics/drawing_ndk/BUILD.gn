@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/text/config.gni")
 
 drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
@@ -135,7 +135,7 @@ template("drawing_ndk_source_set") {
     } else {
       include_dirs += [
         "$ace_napi_frameworks/frameworks",
-        "$rosen_2d_engine_root",
+        "$text_root",
       ]
     }
 
@@ -169,7 +169,7 @@ template("drawing_ndk_source_set") {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
         include_dirs +=
-            [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
+            [ "$text_root/adapter/skia" ]
       }
     }
     if (rosen_is_ohos) {

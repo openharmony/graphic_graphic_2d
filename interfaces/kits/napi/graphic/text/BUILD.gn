@@ -35,7 +35,7 @@ config("local_text") {
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
-    "$graphic_2d_root/rosen/modules/texgine/src",
+    "$text_root/service/texgine/src",
   ]
 }
 
@@ -96,7 +96,7 @@ ohos_shared_library("text_napi_impl") {
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
+    "$text_root/service/texgine:libtexgine_source",
   ]
 
   external_deps = [

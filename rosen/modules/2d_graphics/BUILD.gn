@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
+import("$graphic_2d_root/text/config.gni")
 
 drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_core_include_dir = "$rosen_root/modules/2d_graphics/include"
@@ -312,7 +312,7 @@ template("graphics2d_source_set") {
         "$rosen_text_root/ui/typography.cpp",
         "$rosen_text_root/ui/typography_create.cpp",
       ]
-      include_dirs += [ "$rosen_2d_engine_root" ]
+      include_dirs += [ "$text_root" ]
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
@@ -369,7 +369,7 @@ template("graphics2d_source_set") {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
         include_dirs +=
-            [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
+            [ "$text_root/adapter/skia" ]
       }
     }
     if (rosen_is_ohos) {
