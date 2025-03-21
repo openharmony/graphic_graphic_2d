@@ -2927,10 +2927,27 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest112, TestSize.Level
 
 /*
  * @tc.name: OH_Drawing_TypographyTest113
+ * @tc.desc: test for the input nullptr.
+ * @tc.type: FUNC
+ * @tc.require: IALK43
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level1)
+{
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(nullptr, nullptr);
+    EXPECT_EQ(handler, nullptr);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    handler = OH_Drawing_CreateTypographyHandler(OH_Drawing_CreateTypographyStyle(), OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, nullptr);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+    OH_Drawing_TypographyHandlerAddText(handler, nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest114
  * @tc.desc: test for setting strut style and getting strut style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest114, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -2997,11 +3014,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level
 }
 
  /*
- * @tc.name: OH_Drawing_TypographyTest114
+ * @tc.name: OH_Drawing_TypographyTest115
  * @tc.desc: test for strutstyle not equal
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest114, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest115, TestSize.Level1)
 {
     OH_Drawing_StrutStyle* from = new OH_Drawing_StrutStyle();
     // 4 For families size
@@ -3557,23 +3574,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest002, TestSi
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextStyle(txtStyle);
-}
-
-/*
- * @tc.name: OH_Drawing_TypographyTest113
- * @tc.desc: test for the input nullptr.
- * @tc.type: FUNC
- * @tc.require: IALK43
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest113, TestSize.Level1)
-{
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(nullptr, nullptr);
-    EXPECT_EQ(handler, nullptr);
-    OH_Drawing_DestroyTypographyHandler(handler);
-    handler = OH_Drawing_CreateTypographyHandler(OH_Drawing_CreateTypographyStyle(), OH_Drawing_CreateFontCollection());
-    OH_Drawing_TypographyHandlerPushTextStyle(handler, nullptr);
-    OH_Drawing_TypographyHandlerPopTextStyle(handler);
-    OH_Drawing_TypographyHandlerAddText(handler, nullptr);
 }
 
 /*
