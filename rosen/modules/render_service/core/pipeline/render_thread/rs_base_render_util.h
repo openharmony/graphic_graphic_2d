@@ -49,9 +49,9 @@ struct ComposeInfo {
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
-    int32_t sdrNit { 0 };
-    int32_t displayNit { 0 };
-    float brightnessRatio { 0.0 };
+    float sdrNit { 0.0f };
+    float displayNit { 0.0f };
+    float brightnessRatio { 0.0f };
     std::vector<float> layerLinearMatrix;
 };
 #ifdef RS_ENABLE_GPU

@@ -634,8 +634,8 @@ private:
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
-    int32_t sdrNit_ = 500; // default sdr nit
-    int32_t displayNit_ = 500; // default luminance for sdr
+    float sdrNit_ = 500.0f; // default sdr nit
+    float displayNit_ = 500.0f; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     std::vector<float> layerLinearMatrix_
         = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace

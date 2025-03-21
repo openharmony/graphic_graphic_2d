@@ -219,7 +219,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     info.brightnessRatio = NO_RATIO;
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}f brightnessRatio:%{public}f"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
@@ -271,7 +271,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSRcdSurfac
     info.brightnessRatio = NO_RATIO;
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}f brightnessRatio:%{public}f"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
@@ -869,7 +869,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.displayNit = renderParam->GetDisplayNit();
     info.brightnessRatio = renderParam->GetBrightnessRatio();
     info.layerLinearMatrix = renderParam->GetLayerLinearMatrix();
-    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}f, displayNit: %{public}f, brightnessRatio: %{public}f",
         info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
         " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
@@ -939,7 +939,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
     info.displayNit = curRenderParam->GetDisplayNit();
     info.brightnessRatio = curRenderParam->GetBrightnessRatio();
     info.layerLinearMatrix = curRenderParam->GetLayerLinearMatrix();
-    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}f, displayNit: %{public}f, brightnessRatio: %{public}f",
         info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
         " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
