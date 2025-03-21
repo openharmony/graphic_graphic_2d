@@ -3500,7 +3500,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyLineInfoTest001, TestSi
     EXPECT_NEAR(lineInfoNoSpace.width, 786.149231, FLOAT_DATA_EPSILON);
     EXPECT_EQ(lineInfoHasSpace.startIndex, 0);
     EXPECT_EQ(lineInfoHasSpace.endIndex, 23);
-    EXPECT_NEAR(lineInfoNoSpace.width, 826.649230, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(lineInfoHasSpace.width, 826.649230, FLOAT_DATA_EPSILON);
  
     OH_Drawing_Font_Metrics textStyleMetrics;
     OH_Drawing_TextStyleGetFontMetrics(typography, txtStyle, &textStyleMetrics);
