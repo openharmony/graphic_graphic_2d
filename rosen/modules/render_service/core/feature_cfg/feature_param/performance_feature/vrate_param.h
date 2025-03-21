@@ -24,14 +24,12 @@ public:
     VRateParam() = default;
     ~VRateParam() = default;
 
-    bool GetVRateEnable() const;
+    static bool GetVRateEnable();
 
-protected:
     void SetVRateEnable(bool isVRateEnable);
-private:
-    bool isVRateEnable_ = false;
 
-    friend class VRateParamParse;
+private:
+    inline static bool isVRateEnable_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // VRATE_PARAM_H

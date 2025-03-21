@@ -78,8 +78,7 @@ public:
     {
         return needPostTask_.exchange(newState);
     }
-    
-    bool GetVRateIsSupport();
+
     bool GetVRateDeviceSupport() const
     {
         return isDeviceSupprotVRate_;

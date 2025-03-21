@@ -19,7 +19,6 @@
 
 namespace OHOS::Rosen {
 
-bool RotateOffScreenParam::isRotateOffScreenDisplayNodeEnable_ = false;
 bool RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable()
 {
     return isRotateOffScreenDisplayNodeEnable_;

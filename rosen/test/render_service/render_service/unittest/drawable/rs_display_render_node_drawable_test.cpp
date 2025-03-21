@@ -195,7 +195,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
     auto rotateOffScreenFeatureParam =
-         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
+         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
     auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
     if (rotateOffScreenParam == nullptr) {
         rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();

@@ -71,8 +71,8 @@ enum FeatureModule {
     UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
     ACCESSIBILITY,
-    VRate,
-    RotateOffScreen,
+    VRATE,
+    ROTATEOFFSCREEN,
 };
 
 enum ParseErrCode {

@@ -119,9 +119,9 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },
         [] { return std::make_unique<AccessibilityParam>(); }},
-    {FEATURE_CONFIGS[VRate], [] { return std::make_unique<VRateParamParse>(); },
+    {FEATURE_CONFIGS[VRATE], [] { return std::make_unique<VRateParamParse>(); },
         [] { return std::make_unique<VRateParam>(); }},
-    {FEATURE_CONFIGS[RotateOffScreen], [] { return std::make_unique<RotateOffScreenParamParse>(); },
+    {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
 };
 

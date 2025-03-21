@@ -43,7 +43,7 @@ int32_t VRateParamParse::ParseVRateInternal(FeatureParamMapType &featureMap, xml
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[VRate]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[VRATE]);
     if (iter == featureMap.end()) {
         RS_LOGE("VRateParamParse stop parsing, no initializing param map");
         return PARSE_INTERNAL_FAIL;

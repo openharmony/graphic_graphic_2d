@@ -18,8 +18,7 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
-
-bool VRateParam::GetVRateEnable() const
+bool VRateParam::GetVRateEnable()
 {
     return isVRateEnable_;
 }
