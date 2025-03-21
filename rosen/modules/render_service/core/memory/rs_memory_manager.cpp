@@ -72,6 +72,7 @@ static inline const char* GetThreadName()
 namespace OHOS::Rosen {
 namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
+const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
@@ -359,6 +360,7 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log)
     log.AppendFormat("\n----------\nRenderService caches:\n");
     MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
     RSMainThread::Instance()->RenderServiceAllNodeDump(log);
+    RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
 }
 
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
@@ -791,23 +793,6 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
-void MemoryManager::CheckIsClearApp()
-{
-    // Clear two Applications in one second, post task to reclaim.
-    auto& unirenderThread = RSUniRenderThread::Instance();
-    if (!unirenderThread.IsTimeToReclaim()) {
-        static std::chrono::steady_clock::time_point lastClearAppTime = std::chrono::steady_clock::now();
-        auto currentTime = std::chrono::steady_clock::now();
-        bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
-            currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
-        if (isTimeToReclaim) {
-            unirenderThread.ReclaimMemory();
-            unirenderThread.SetTimeToReclaim(true);
-        }
-        lastClearAppTime = currentTime;
-    }
-}
-
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
     const std::string& reportName)
 {
@@ -880,4 +865,37 @@ void MemoryManager::DumpExitPidMem(std::string& log, int pid)
     dfxlog.AppendFormat("pid: %d totalSize: %zu \n", pid, (allNodeAndPixelmapSize + allModifySize + allGpuSize));
     log.append(dfxlog.GetString());
 }
+
+RSReclaimMemoryManager& RSReclaimMemoryManager::Instance()
+{
+    static RSReclaimMemoryManager instance;
+    return instance;
+}
+
+void RSReclaimMemoryManager::TriggerReclaimTask()
+{
+    // Clear two Applications in one second, post task to reclaim.
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (!unirenderThread.IsTimeToReclaim()) {
+        static std::chrono::steady_clock::time_point lastClearAppTime = std::chrono::steady_clock::now();
+        auto currentTime = std::chrono::steady_clock::now();
+        bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
+            currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
+        if (isTimeToReclaim) {
+            unirenderThread.ReclaimMemory();
+            unirenderThread.SetTimeToReclaim(true);
+            isReclaimInterrupt_.store(false);
+        }
+        lastClearAppTime = currentTime;
+    }
+}
+
+void RSReclaimMemoryManager::InterruptReclaimTask(const std::string& sceneId)
+{
+    // When operate in launcher, interrupt reclaim task.
+    if (!isReclaimInterrupt_.load() && sceneId != EVENT_ENTER_RECENTS) {
+        isReclaimInterrupt_.store(true);
+    }
+}
+
 } // namespace OHOS::Rosen

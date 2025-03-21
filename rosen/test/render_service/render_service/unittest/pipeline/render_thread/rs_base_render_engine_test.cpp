@@ -158,67 +158,6 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Leve
     }
 }
 
-/**
- * @tc.name: CheckIsHdrSurfaceBuffer001
- * @tc.desc: Test CheckIsHdrSurfaceBuffer
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
-    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
-    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
-    HdrStatus ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::NO_HDR);
-    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
-    ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::NO_HDR);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    uint32_t hdrType = HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR;
-    std::vector<uint8_t> metadataType;
-    metadataType.resize(sizeof(hdrType));
-    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
-    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
-#endif
-}
-
-/**
- * @tc.name: CheckIsSurfaceBufferWithMetadata001
- * @tc.desc: Test CheckIsSurfaceBufferWithMetadata
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, CheckIsSurfaceBufferWithMetadata001, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
-    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
-    bool ret = renderEngine->CheckIsSurfaceBufferWithMetadata(buffer);
-    ASSERT_EQ(ret, false);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> metadata = {1.0f, 1.0f, 1.0f};
-    buffer->SetMatadata(Media::VideoProcessingEngine::ATTRKEY_HDR_DYNAMIC_METADATA, metadata);
-    ret = renderEngine->CheckIsSurfaceBufferWithMetadata(buffer);
-    ASSERT_EQ(ret, true);
-#endif
-}
-
 #ifdef RS_ENABLE_EGLIMAGE
 /**
  * @tc.name: CreateEglImageFromBuffer001

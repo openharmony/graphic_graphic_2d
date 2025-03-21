@@ -35,8 +35,8 @@ public:
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationXY_Test_1)
 {
-    float transList[] = { 0, 250, 500 };
-    for (int i = 0; i < 3; i++) {
+    std::vector<float> transList = { 0, 250, 500, -250 };
+    for (int i = 0; i < transList.size(); i++) {
         int x = (i % 2) * 510;
         int y = (i / 2) * 510;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, 500, 500 });
@@ -142,6 +142,101 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_SetPosition_linear_Tes
         }
         translates[0] += (nodeSpace[0] / row);
         translates[1] += ((nodeSpace[1] / row) + 20);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationZ_Test_1)
+{
+    vector<float> vecs = {-250, 0, 250, 500};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotationY(30);
+        testNode->SetTranslateZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationZ_Test_3)
+{
+    vector<float> vecs = {-250, 0, 250, 500};
+    for (int i = 0; i < vecs.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetTranslateZ(vecs[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_2D_Concat_Test_1)
+{
+    vector<float> vecs1 = {-30, 30, 45, 120, -30, 60};
+    vector<vector<float>> vecs2 = {{-0.5, -0.1}, {-0.1, 0.5}, {0.2, 0.3}, {1.5, 0.5}, {0.5, 1.5}, {1.2, 1.2}};
+    vector<vector<float>> vecs3 = {{-0.5, -0.1}, {-0.1, 0.5}, {0.2, 0.3}, {1.5, 0.5}, {0.5, 1.5}, {1.2, 1.2}};
+    vector<vector<float>> vecs4 = {{0, 0.1, 0.1, 1}, {0.1, 0.1, 0, 1}, {0.1, 0, 0.1, 1},
+        {-0.1, -0.1, -0.1, -0.1}, {1, 2, 3, 4}, {-1, -2, -3, -4}};
+    vector<Vector2f> vecs5 = {{-100, -100}, {100, 100}, {-100, 100}, {100, -100}, {0, 100}, {100, 0}};
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(vecs1[i]);
+        testNode->SetScale(vecs2[i][0], vecs2[i][1]);
+        testNode->SetTranslate(vecs5[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_3D_Concat_Test_1)
+{
+    vector<Quaternion> vecs1 = {{0.383, 0, 0, 0.962}, {0, 0.383, 0, 0.962}, {0, 0, 0.383, 0.962},
+        {0.462, 0.191, 0.462, 0.733}, {0.462, 0.191, 0.462, 0.733}, {0.462, 0.191, 0.462, 0.733}};
+    vector<vector<float>> vecs2 = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.3}, {1.5, 0.5, 1},
+        {0.5, 1.5, 1}, {1.2, 1.2, 1.2}};
+    vector<vector<float>> vecs3 = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.3}, {1.5, 0.5, 1},
+        {0.5, 1.5, 1}, {1.2, 1.2, 1.2}};
+    vector<vector<float>> vecs4 = {{0, 0.1, 0.1, 1}, {0.1, 0.1, 0, 1}, {0.1, 0, 0.1, 1},
+        {-0.1, -0.1, -0.1, -0.1}, {1, 2, 3, 4}, {-1, -2, -3, -4}};
+    vector<vector<float>> vecs5 = {{-100, -100, -100}, {100, 100, 100}, {-100, 100, 0}, {100, -100, 0},
+        {0, 100, -100}, {100, 0, 100}};
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(vecs1[i]);
+        testNode->SetScale(vecs2[i][0], vecs2[i][1]);
+        testNode->SetScaleZ(vecs2[i][2]);
+        testNode->SetTranslate(vecs5[i][0], vecs5[i][1], vecs5[i][2]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_3D_Concat_Test_2)
+{
+    vector<vector<float>> vecs1 = {{30, 30, 30}, {45, 30, 45}, {60, -30, -30}, {-30, 60, -30},
+        {120, 30, -30}, {-30, 120, 30}};
+    vector<vector<float>> vecs2 = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.3}, {1.5, 0.5, 1},
+        {0.5, 1.5, 1}, {1.2, 1.2, 1.2}};
+    vector<vector<float>> vecs3 = {{-0.5, -0.1, -0.5}, {0.1, 0.5, 0.5}, {0.2, 0.3, 0.3}, {1.5, 0.5, 1},
+        {0.5, 1.5, 1}, {1.2, 1.2, 1.2}};
+    vector<vector<float>> vecs4 = {{0, 0.1, 0.1, 1}, {0.1, 0.1, 0, 1}, {0.1, 0, 0.1, 1},
+        {-0.1, -0.1, -0.1, -0.1}, {1, 2, 3, 4}, {-1, -2, -3, -4}};
+    vector<vector<float>> vecs5 = {{-100, -100, -100}, {100, 100, 100}, {-100, 100, 0}, {100, -100, 0},
+        {0, 100, -100}, {100, 0, 100}};
+    vector<float> vecs6 = {-50, 50, 0, 100, 50, -50};
+    for (int i = 0; i < vecs1.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", {380, i * 350 + 20, 300, 300});
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(vecs1[i][0], vecs1[i][1], vecs1[i][2]);
+        testNode->SetScale(vecs2[i][0], vecs2[i][1]);
+        testNode->SetScaleZ(vecs2[i][2]);
+        testNode->SetTranslate(vecs5[i][0], vecs5[i][1], vecs5[i][2]);
+        testNode->SetCameraDistance(vecs6[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 }
 } // namespace OHOS::Rosen

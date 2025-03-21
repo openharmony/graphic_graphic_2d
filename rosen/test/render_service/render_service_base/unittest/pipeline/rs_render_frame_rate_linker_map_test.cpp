@@ -134,5 +134,8 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinkerExpectedFpsUpdat
     EXPECT_TRUE(
         frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(listenerPid, ExtractPid(linkerId), cb));
     frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(listenerPid);
+    frameRateLinkerMap.frameRateLinkerMap_.clear();
+    EXPECT_FALSE(
+        frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(listenerPid, ExtractPid(linkerId), cb));
 }
 } // namespace OHOS::Rosen

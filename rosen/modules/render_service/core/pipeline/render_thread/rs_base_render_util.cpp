@@ -956,7 +956,7 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
 }
 
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable)
+    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -964,6 +964,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
+        return false;
+    }
+    if (adaptiveDVSyncEnable && !needConsume) {
+        RS_LOGI("adaptiveDVSyncEnable and not needConsume");
         return false;
     }
 
@@ -1364,7 +1368,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
-    if (nodeParams != nullptr && nodeParams->GetApiCompatibleVersion() >= API18) {
+    if (nodeParams != nullptr && (nodeParams->GetApiCompatibleVersion() >= API18 ||
+        nodeParams->GetName() == "RosenWeb")) {
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(

@@ -38,7 +38,17 @@ public:
     void SetAllMainAndLeashSurfaces(std::vector<RSBaseRenderNode::SharedPtr>& allMainAndLeashSurfaces);
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
-    void SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects);
+
+    inline void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
+    }
+
+    inline void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
+    }
+
     const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetDisplayOffsetX() const
     {
@@ -132,14 +142,12 @@ public:
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasCaptureWindow() const;
+
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
 
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
-
-    bool IsRotationFinished() const;
-    void SetRotationFinished(bool finished);
 
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
@@ -157,6 +165,9 @@ public:
 
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
+
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
 
     bool IsSpecialLayerChanged() const
     {
@@ -177,6 +188,16 @@ public:
     bool HasSecLayerInVisibleRectChanged() const
     {
         return hasSecLayerInVisibleRectChanged_;
+    }
+
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
+    {
+        return roundCornerSurfaceDrawables_;
+    }
+
+    bool GetVirtualScreenMuteStatus() const
+    {
+        return virtualScreenMuteStatus_;
     }
 
     // dfx
@@ -212,12 +233,15 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
-    bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    bool virtualScreenMuteStatus_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

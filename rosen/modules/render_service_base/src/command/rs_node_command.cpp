@@ -146,7 +146,8 @@ void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nod
     context.InsertUiCaptureCmdsExecutedFlag(nodeId, true);
 }
 
-void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
+void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
+    const bool isInSameWindow)
 {
     auto& nodeMap = context.GetNodeMap();
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
@@ -154,13 +155,7 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     if (inNode == nullptr || outNode == nullptr) {
         return;
     }
-    if (inNode->GetInstanceRootNodeId() == 0 || outNode->GetInstanceRootNodeId() == 0) {
-        ROSEN_LOGE("SharedTransition:Register SharedTransition failed due to invalid instanceRootNodeId,"
-            " inNode:[%{public}" PRIu64 "], outNode:[%{public}" PRIu64 "]",
-            inNode->GetInstanceRootNodeId(), outNode->GetInstanceRootNodeId());
-        return;
-    }
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, isInSameWindow);
     inNode->SetSharedTransitionParam(sharedTransitionParam);
     outNode->SetSharedTransitionParam(sharedTransitionParam);
 }

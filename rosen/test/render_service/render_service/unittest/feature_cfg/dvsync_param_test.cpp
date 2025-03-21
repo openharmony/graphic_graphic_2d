@@ -259,5 +259,36 @@ HWTEST_F(DVSyncParamTest, GetWebBufferCount, Function | SmallTest | Level1)
     dvsyncParam.webBufferCount_ = 1;
     ASSERT_EQ(dvsyncParam.GetWebBufferCount(), 1);
 }
+
+/**
+* @tc.name: SetAdaptiveConfig
+* @tc.desc: Verify the SetAdaptiveConfig function
+* @tc.type: FUNC
+* @tc.require: #IBIE4T
+*/
+HWTEST_F(DVSyncParamTest, SetAdaptiveConfig, Function | SmallTest | Level1)
+{
+    DVSyncParam dvsyncParam;
+    std::string name = "test";
+    std::string val = "1";
+    dvsyncParam.SetAdaptiveConfig(name, val);
+    ASSERT_EQ(dvsyncParam.adaptiveConfig_[name], val);
+}
+
+/**
+* @tc.name: GetAdaptiveConfig
+* @tc.desc: Verify the GetAdaptiveConfig function
+* @tc.type: FUNC
+* @tc.require: #IBIE4T
+*/
+HWTEST_F(DVSyncParamTest, GetAdaptiveConfig, Function | SmallTest | Level1)
+{
+    DVSyncParam dvsyncParam;
+    std::string name = "test";
+    std::string val = "1";
+    dvsyncParam.SetAdaptiveConfig(name, val);
+    std::unordered_map<std::string, std::string> adaptiveConfig = dvsyncParam.GetAdaptiveConfig();
+    ASSERT_EQ(adaptiveConfig[name], val);
+}
 } // namespace Rosen
 } // namespace OHOS

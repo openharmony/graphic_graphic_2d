@@ -101,6 +101,7 @@ public:
     {
         return isProtectedBufferAllocated_.load();
     }
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
 private:
     HdiDevice *device_ = nullptr;

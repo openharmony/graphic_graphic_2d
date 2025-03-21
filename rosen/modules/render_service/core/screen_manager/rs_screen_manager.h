@@ -97,6 +97,10 @@ public:
 
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
+    virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
+
+    virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const = 0;
@@ -219,7 +223,7 @@ public:
     virtual void SetEqualVsyncPeriod(ScreenId id, bool isEqualVsyncPeriod) = 0;
 
     /* only used for mock tests */
-    virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
+    virtual void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) = 0;
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
@@ -335,6 +339,10 @@ public:
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+
+    std::unordered_set<uint64_t> GetAllBlackList() const override;
+
+    std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -459,12 +467,12 @@ public:
         std::vector<uint8_t>& edidData) const override;
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
+    void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) override
     {
         if (rsScreen == nullptr) {
             return;
         }
-        screens_[rsScreen->Id()] = std::move(rsScreen);
+        screens_[rsScreen->Id()] = rsScreen;
     }
 
     bool IsAllScreensPowerOff() const override;
@@ -545,29 +553,7 @@ private:
     void HandleDefaultScreenDisConnected();
     void ForceRefreshOneFrame() const;
 
-    void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;
-    RSScreenCapability GetScreenCapabilityLocked(ScreenId id) const;
-    ScreenRotation GetScreenCorrectionLocked(ScreenId id) const;
-
-    void RemoveVirtualScreenLocked(ScreenId id);
-    ScreenId GenerateVirtualScreenIdLocked();
-    void ReuseVirtualScreenIdLocked(ScreenId id);
-
-    int32_t GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
-    int32_t GetScreenSupportedMetaDataKeysLocked(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const;
-    int32_t GetScreenColorGamutLocked(ScreenId id, ScreenColorGamut& mode) const;
-    int32_t GetScreenGamutMapLocked(ScreenId id, ScreenGamutMap& mode) const;
-    int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
-    int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
-    int32_t GetPixelFormatLocked(ScreenId id, GraphicPixelFormat& pixelFormat) const;
-    int32_t SetPixelFormatLocked(ScreenId id, GraphicPixelFormat pixelFormat);
-    int32_t GetScreenSupportedHDRFormatsLocked(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const;
-    int32_t GetScreenHDRFormatLocked(ScreenId id, ScreenHDRFormat& hdrFormat) const;
-    int32_t SetScreenHDRFormatLocked(ScreenId id, int32_t modeIdx);
-    int32_t GetScreenSupportedColorSpacesLocked(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
-    int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
-    ScreenInfo QueryScreenInfoLocked(ScreenId id) const;
-    bool GetCastScreenEnableSkipWindow(ScreenId id) const;
+    ScreenId GenerateVirtualScreenId();
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
@@ -578,16 +564,22 @@ private:
 
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+    void UpdateVsyncEnabledScreenId(ScreenId screenId);
 
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
     std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
+    void UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected);
+    uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status);
 
-    mutable std::mutex mutex_;
-    mutable std::mutex renderControlMutex_;
+    mutable std::mutex screenMapmutex_;
+    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
+    using ScreenNode = decltype(screens_)::value_type;
+    bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
+
     HdiBackend *composer_ = nullptr;
     std::atomic<ScreenId> defaultScreenId_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t virtualScreenCount_ = 0;
     uint32_t currentVirtualScreenNum_ = 0;
@@ -608,6 +600,7 @@ private:
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
+    mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
 
     static std::once_flag createFlag_;
@@ -615,7 +608,10 @@ private:
 
     uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
+
+    mutable std::mutex renderControlMutex_;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
+
     bool isScreenPoweringOn_ = false;
     std::atomic<bool> isScreenSwitching_ = false;
 
@@ -630,6 +626,11 @@ private:
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
 #endif
+    struct FoldScreenStatus {
+        bool isConnected;
+        bool isPowerOn;
+    };
+    std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 };
 } // namespace impl
 } // namespace Rosen

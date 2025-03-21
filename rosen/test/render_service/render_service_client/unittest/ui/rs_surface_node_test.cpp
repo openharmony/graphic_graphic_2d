@@ -334,10 +334,6 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
-        return;
-    }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
@@ -1702,6 +1698,22 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetHardwareEnableHint(true);
     surfaceNode->SetHardwareEnableHint(false);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
+
+/**
+ * @tc.name: SetSourceVirtualDisplayId
+ * @tc.desc: Test function SetSourceVirtualDisplayId
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualDisplayId, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->SetSourceVirtualDisplayId(id);
     bool res = true;
     ASSERT_EQ(true, res);
 }

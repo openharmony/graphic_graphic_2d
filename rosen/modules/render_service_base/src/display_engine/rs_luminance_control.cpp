@@ -55,13 +55,14 @@ void RSLuminanceControl::CloseLibrary()
     getNewHdrLuminance_ = nullptr;
     setNowHdrLuminance_ = nullptr;
     isNeedUpdateLuminance_ = nullptr;
-    getHdrTmoNits_ = nullptr;
     getSdrDisplayNits_ = nullptr;
-    getHdrDisplayNits_ = nullptr;
     getDisplayNits_ = nullptr;
     getNonlinearRatio_ = nullptr;
     calScaler_ = nullptr;
     isHdrPictureOn_ = nullptr;
+    isCloseHardwareHdr_ = nullptr;
+    isForceCloseHdr_ = nullptr;
+    forceCloseHdr_ = nullptr;
 }
 
 void RSLuminanceControl::Init()
@@ -139,6 +140,12 @@ bool RSLuminanceControl::LoadStatusControl()
         RS_LOGE("LumCtr link ForceCloseHdr error!");
         return false;
     }
+    isCloseHardwareHdr_ = reinterpret_cast<IsCloseHardwareHdrFunc>(dlsym(extLibHandle_,
+        "IsCloseHardwareHdr"));
+    if (isCloseHardwareHdr_ == nullptr) {
+        RS_LOGE("LumCtr link IsCloseHardwareHdr error!");
+        return false;
+    }
     return true;
 }
 
@@ -175,19 +182,9 @@ bool RSLuminanceControl::LoadTmoControl()
     if (UNLIKELY(extLibHandle_ == nullptr)) {
         return false;
     }
-    getHdrTmoNits_ = reinterpret_cast<GetHdrTmoNitsFunc>(dlsym(extLibHandle_, "GetHdrTmoNits"));
-    if (getHdrTmoNits_ == nullptr) {
-        RS_LOGE("LumCtr link GetHdrTmoNits error!");
-        return false;
-    }
     getSdrDisplayNits_ = reinterpret_cast<GetSdrDisplayNitsFunc>(dlsym(extLibHandle_, "GetSdrDisplayNits"));
     if (getSdrDisplayNits_ == nullptr) {
         RS_LOGE("LumCtr link GetSdrDisplayNits error!");
-        return false;
-    }
-    getHdrDisplayNits_ = reinterpret_cast<GetHdrDisplayNitsFunc>(dlsym(extLibHandle_, "GetHdrDisplayNits"));
-    if (getHdrDisplayNits_ == nullptr) {
-        RS_LOGE("LumCtr link GetHdrDisplayNits error!");
         return false;
     }
     getDisplayNits_ = reinterpret_cast<GetDisplayNitsFunc>(dlsym(extLibHandle_, "GetDisplayNits"));
@@ -254,19 +251,9 @@ bool RSLuminanceControl::IsNeedUpdateLuminance(ScreenId screenId)
     return (initStatus_ && isNeedUpdateLuminance_ != nullptr) ? isNeedUpdateLuminance_(screenId) : false;
 }
 
-float RSLuminanceControl::GetHdrTmoNits(ScreenId screenId, int32_t mode)
-{
-    return (initStatus_ && getHdrTmoNits_ != nullptr) ? getHdrTmoNits_(screenId, mode) : HDR_DEFAULT_TMO_NIT;
-}
-
 float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
 {
     return (initStatus_ && getSdrDisplayNits_ != nullptr) ? getSdrDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
-}
-
-float RSLuminanceControl::GetHdrDisplayNits(ScreenId screenId)
-{
-    return (initStatus_ && getHdrDisplayNits_ != nullptr) ? getHdrDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
 float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
@@ -300,6 +287,12 @@ void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceClose
     if (initStatus_ && forceCloseHdr_ != nullptr) {
         forceCloseHdr_(closeHdrSceneId, forceCloseHdr);
     }
+}
+
+bool RSLuminanceControl::IsCloseHardwareHdr()
+{
+    return (initStatus_ && isCloseHardwareHdr_ != nullptr) ?
+        isCloseHardwareHdr_() : false;
 }
 } // namespace Rosen
 } // namespace OHOS

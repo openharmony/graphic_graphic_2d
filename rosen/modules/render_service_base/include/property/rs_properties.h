@@ -350,6 +350,9 @@ public:
     float GetBackgroundBlurRadiusY() const;
     bool IsBackgroundBlurRadiusYValid() const;
 
+    void SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
+    bool GetBgBlurDisableSystemAdaptation() const;
+
     void SetForegroundBlurRadius(float ForegroundBlurRadius);
     float GetForegroundBlurRadius() const;
     bool IsForegroundBlurRadiusValid() const;
@@ -377,8 +380,13 @@ public:
     float GetForegroundBlurRadiusY() const;
     bool IsForegroundBlurRadiusYValid() const;
 
+    void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
+    bool GetFgBlurDisableSystemAdaptation() const;
+
     bool IsBackgroundMaterialFilterValid() const;
     bool IsForegroundMaterialFilterVaild() const;
+    bool IsBackgroundLightBlurFilterValid() const;
+    bool IsForegroundLightBlurFilterValid() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -554,6 +562,7 @@ public:
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
+    bool IsColorBlendModeValid() const;
     void SetColorBlendApplyType(int colorBlendApplyType);
     int GetColorBlendApplyType() const;
 
@@ -572,6 +581,7 @@ public:
     void OnApplyModifiers();
 
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
+    static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
 private:
     inline float DecreasePrecision(float value)
@@ -587,6 +597,10 @@ private:
     void RecordCurDirtyStatus();
 
     // generate filter
+    std::shared_ptr<RSFilter> GenerateLightBlurFilter(float radius);
+    std::shared_ptr<RSFilter> GenerateMaterialLightBlurFilter(
+        std::shared_ptr<Drawing::ColorFilter> colorFilter, uint32_t hash, float radius,
+        int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
     void GenerateForegroundFilter();
     void GenerateBackgroundBlurFilter();
@@ -603,6 +617,7 @@ private:
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
+    bool NeedLightBlur();
 
     const RectF& GetBgImageRect() const;
     void GenerateRRect();
@@ -640,6 +655,8 @@ private:
     bool distortionEffectDirty_ = false;
     bool haveEffectRegion_ = false;
     bool isAttractionValid_ = false;
+    bool bgBlurDisableSystemAdaptation = true;
+    bool fgBlurDisableSystemAdaptation = true;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -742,6 +759,7 @@ private:
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static bool filterCacheEnabled_;
 #endif
+    static bool blurAdaptiveAdjustEnabled_;
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
 

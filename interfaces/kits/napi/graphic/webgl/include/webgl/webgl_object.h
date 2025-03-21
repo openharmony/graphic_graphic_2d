@@ -28,7 +28,7 @@ namespace Rosen {
 class WebGLObject {
 public:
     WebGLObject() {};
-    ~WebGLObject() {}
+    virtual ~WebGLObject() {}
 
     enum {
         WEBGL_OBJECT_PROGRAM = 0,

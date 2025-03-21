@@ -47,10 +47,10 @@ public:
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
+    void ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) override;
 
 private:
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
@@ -59,7 +59,6 @@ private:
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
-    bool isPhone_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

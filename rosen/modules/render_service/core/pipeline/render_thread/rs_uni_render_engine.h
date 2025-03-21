@@ -24,7 +24,7 @@ namespace Rosen {
 class RSUniRenderEngine : public RSBaseRenderEngine {
 public:
     RSUniRenderEngine() = default;
-    ~RSUniRenderEngine() noexcept = default;
+    ~RSUniRenderEngine() noexcept override = default;
     RSUniRenderEngine(const RSUniRenderEngine&) = delete;
     void operator=(const RSUniRenderEngine&) = delete;
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
@@ -39,7 +39,6 @@ public:
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
-    void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override;
 private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);

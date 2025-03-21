@@ -16,8 +16,9 @@
 #include "filter_param_parse.h"
 #define XML_KEY_NAME "name"
 #define XML_KEY_VALUE "value"
-#define XML_PARAM_FILTER_CACHE_ENABLED "filterCacheEnabled"
-#define XML_PARAM_EFFECT_MERGE_ENABLED "effectMergeEnabled"
+#define XML_PARAM_FILTER_CACHE_ENABLED "FilterCacheEnabled"
+#define XML_PARAM_EFFECT_MERGE_ENABLED "EffectMergeEnabled"
+#define XML_PARAM_BLUR_ADAPTIVE_ADJUST "BlurAdaptiveAdjust"
 
 namespace OHOS::Rosen {
 
@@ -64,10 +65,13 @@ int32_t FilterParamParse::ParseFilterCacheInternal(FeatureParamMapType &featureM
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == XML_PARAM_FILTER_CACHE_ENABLED) {
             filterParam_->SetFilterCacheEnable(isEnabled);
-            RS_LOGI("FilterParamParse parse filterCacheEnabled %{public}d", filterParam_->IsFilterCacheEnable());
+            RS_LOGI("FilterParamParse parse FilterCacheEnabled %{public}d", filterParam_->IsFilterCacheEnable());
         } else if (name == XML_PARAM_EFFECT_MERGE_ENABLED) {
             filterParam_->SetEffectMergeEnable(isEnabled);
-            RS_LOGI("FilterParamParse parse effectMergeEnabled %{public}d", filterParam_->IsEffectMergeEnable());
+            RS_LOGI("FilterParamParse parse EffectMergeEnabled %{public}d", filterParam_->IsEffectMergeEnable());
+        } else if (name == XML_PARAM_BLUR_ADAPTIVE_ADJUST) {
+            filterParam_->SetBlurAdaptiveAdjust(isEnabled);
+            RS_LOGI("FilterParamParse parse BlurAdaptiveAdjust %{public}d", filterParam_->IsBlurAdaptiveAdjust());
         } else {
             RS_LOGD("FilterParamParse unknown feature name");
         }

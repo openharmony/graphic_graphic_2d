@@ -2226,6 +2226,20 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterSelfDrawingNodeRectChangeCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    SelfDrawingNodeRectChangeCallback callback =
+        [](std::shared_ptr<RSSelfDrawingNodeRectData> SelfDrawingNodeRectData) {};
+    ASSERT_EQ(rsInterfaces->RegisterSelfDrawingNodeRectChangeCallback(callback), SUCCESS);
+}
+
+/*
  * @tc.name: NotifyScreenSwitched
  * @tc.desc: Test NotifyScreenSwitched.
  * @tc.type: FUNC

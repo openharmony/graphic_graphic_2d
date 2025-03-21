@@ -23,18 +23,22 @@
 namespace OHOS {
 namespace Rosen {
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSDisplayNodeCommandType : uint16_t {
-    DISPLAY_NODE_CREATE,
-    DISPLAY_NODE_SET_SCREEN_ID,
-    DISPLAY_NODE_SET_DISPLAY_OFFSET,
-    DISPLAY_NODE_SET_SECURITY_DISPLAY,
-    DISPLAY_NODE_SET_DISPLAY_MODE,
-    DISPLAY_NODE_SET_SCREEN_ROTATION,
-    DISPLAY_NODE_SET_BOOT_ANIMATION,
-    DISPLAY_NODE_SET_ROG_SIZE,
-    DISPLAY_NODE_ADD_TO_TREE,
-    DISPLAY_NODE_REMOVE_FROM_TREE,
-    DISPLAY_NODE_SET_NODE_PID,
+    DISPLAY_NODE_CREATE = 0,
+    DISPLAY_NODE_SET_SCREEN_ID = 1,
+    DISPLAY_NODE_SET_DISPLAY_OFFSET = 2,
+    DISPLAY_NODE_SET_SECURITY_DISPLAY = 3,
+    DISPLAY_NODE_SET_DISPLAY_MODE = 4,
+    DISPLAY_NODE_SET_SCREEN_ROTATION = 5,
+    DISPLAY_NODE_SET_BOOT_ANIMATION = 6,
+    DISPLAY_NODE_SET_ROG_SIZE = 7,
+    DISPLAY_NODE_ADD_TO_TREE = 8,
+    DISPLAY_NODE_REMOVE_FROM_TREE = 9,
+    DISPLAY_NODE_SET_NODE_PID = 10,
+    DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS = 11,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
@@ -51,6 +55,7 @@ public:
     static void AddDisplayNodeToTree(RSContext&, NodeId);
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
+    static void SetVirtualScreenMuteStatus(RSContext&, NodeId, bool);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -86,6 +91,9 @@ ADD_COMMAND(RSDisplayNodeRemoveFromTree,
 ADD_COMMAND(RSDisplayNodeSetNodePid,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_NODE_PID,
         DisplayNodeCommandHelper::SetScbNodePid, NodeId, std::vector<int32_t>, int32_t))
+ADD_COMMAND(RSDisplayNodeSetVirtualScreenMuteStatus,
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS,
+        DisplayNodeCommandHelper::SetVirtualScreenMuteStatus, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

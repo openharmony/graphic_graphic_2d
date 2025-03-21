@@ -19,22 +19,22 @@
 
 namespace OHOS::Rosen {
 
-bool AccessibilityParam::IsHighContrastEnabled() const
+bool AccessibilityParam::IsHighContrastEnabled()
 {
     return isHighContrastEnabled_;
 }
 
-bool AccessibilityParam::IsCurtainScreenEnabled() const
+bool AccessibilityParam::IsCurtainScreenEnabled()
 {
     return isCurtainScreenEnabled_;
 }
 
-bool AccessibilityParam::IsColorReverseEnabled() const
+bool AccessibilityParam::IsColorReverseEnabled()
 {
     return isColorReverseEnabled_;
 }
 
-bool AccessibilityParam::IsColorCorrectionEnabled() const
+bool AccessibilityParam::IsColorCorrectionEnabled()
 {
     return isColorCorrectionEnabled_;
 }

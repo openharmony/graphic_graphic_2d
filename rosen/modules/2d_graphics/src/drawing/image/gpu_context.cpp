@@ -61,6 +61,13 @@ void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes
     impl_->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
+void GPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
+{
+    if (impl_) {
+        impl_->SetPurgeableResourceLimit(purgeableMaxCount);
+    }
+}
+
 void GPUContext::Flush()
 {
     impl_->Flush();
@@ -196,6 +203,16 @@ void GPUContext::ResetContext()
     impl_->ResetContext();
 }
 
+void GPUContext::GenerateSubmitInfo(int seq)
+{
+    impl_->GenerateSubmitInfo(seq);
+}
+
+void GPUContext::FlushCommands()
+{
+    impl_->FlushCommands();
+}
+
 #ifdef RS_ENABLE_VK
 void GPUContext::StoreVkPipelineCacheData()
 {
@@ -256,6 +273,16 @@ void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
 std::string GPUContextOptions::GetStoreCachePath() const
 {
     return filePath_;
+}
+
+void GPUContextOptions::SetIsUniRender(bool isUniRender)
+{
+    isUniRender_ = isUniRender;
+}
+
+bool GPUContextOptions::GetIsUniRender() const
+{
+    return isUniRender_;
 }
 } // namespace Drawing
 } // namespace Rosen

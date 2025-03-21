@@ -16,7 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 module_output_path =
-    "graphic_2d/rosen/modules/2d_engine/rosen_text/adapter/skia_txt"
+    "graphic_2d/graphic_2d/rosen/modules/2d_engine/rosen_text/adapter/skia_txt"
 
 ohos_unittest("rosen_text_adapt_test") {
   module_out_path = module_output_path

@@ -15,7 +15,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_engine/rosen_text/hm_symbol"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen/modules/2d_engine/rosen_text/hm_symbol"
 
 ohos_unittest("hm_symbol_engine_test") {
   module_out_path = module_output_path

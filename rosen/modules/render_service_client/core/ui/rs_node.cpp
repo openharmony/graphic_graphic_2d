@@ -1913,6 +1913,11 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
         RSModifierType::FOREGROUND_EFFECT_RADIUS, blurRadius);
 }
 
+void RSNode::SetForegroundEffectDisableSystemAdaptation(bool disableSystemAdaptation)
+{
+    return;
+}
+
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     if (backgroundFilter == nullptr) {
@@ -1930,17 +1935,21 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
         float Brightness = materialFilter->GetBrightness();
         Color MaskColor = materialFilter->GetMaskColor();
         int ColorMode = materialFilter->GetColorMode();
+        bool disableSystemAdaptation = materialFilter->GetDisableSystemAdaptation();
         SetBackgroundBlurRadius(Radius);
         SetBackgroundBlurSaturation(Saturation);
         SetBackgroundBlurBrightness(Brightness);
         SetBackgroundBlurMaskColor(MaskColor);
         SetBackgroundBlurColorMode(ColorMode);
+        SetBgBlurDisableSystemAdaptation(disableSystemAdaptation);
     } else if (backgroundFilter->GetFilterType() == RSFilter::BLUR) {
         auto blurFilter = std::static_pointer_cast<RSBlurFilter>(backgroundFilter);
         float blurRadiusX = blurFilter->GetBlurRadiusX();
         float blurRadiusY = blurFilter->GetBlurRadiusY();
+        bool disableSystemAdaptation = blurFilter->GetDisableSystemAdaptation();
         SetBackgroundBlurRadiusX(blurRadiusX);
         SetBackgroundBlurRadiusY(blurRadiusY);
+        SetBgBlurDisableSystemAdaptation(disableSystemAdaptation);
     }
 }
 
@@ -1961,17 +1970,21 @@ void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
         float Brightness = materialFilter->GetBrightness();
         Color MaskColor = materialFilter->GetMaskColor();
         int ColorMode = materialFilter->GetColorMode();
+        bool disableSystemAdaptation = materialFilter->GetDisableSystemAdaptation();
         SetForegroundBlurRadius(Radius);
         SetForegroundBlurSaturation(Saturation);
         SetForegroundBlurBrightness(Brightness);
         SetForegroundBlurMaskColor(MaskColor);
         SetForegroundBlurColorMode(ColorMode);
+        SetFgBlurDisableSystemAdaptation(disableSystemAdaptation);
     } else if (filter->GetFilterType() == RSFilter::BLUR) {
         auto blurFilter = std::static_pointer_cast<RSBlurFilter>(filter);
         float blurRadiusX = blurFilter->GetBlurRadiusX();
         float blurRadiusY = blurFilter->GetBlurRadiusY();
+        bool disableSystemAdaptation = blurFilter->GetDisableSystemAdaptation();
         SetForegroundBlurRadiusX(blurRadiusX);
         SetForegroundBlurRadiusY(blurRadiusY);
+        SetFgBlurDisableSystemAdaptation(disableSystemAdaptation);
     }
 }
 
@@ -2424,6 +2437,12 @@ void RSNode::SetBackgroundBlurRadiusY(float blurRadiusY)
         RSModifierType::BACKGROUND_BLUR_RADIUS_Y, blurRadiusY);
 }
 
+void RSNode::SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation)
+{
+    SetProperty<RSBgBlurDisableSystemAdaptationModifier, RSProperty<bool>>(
+        RSModifierType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION, disableSystemAdaptation);
+}
+
 void RSNode::SetForegroundBlurRadius(float radius)
 {
     SetProperty<RSForegroundBlurRadiusModifier, RSAnimatableProperty<float>>(
@@ -2464,6 +2483,12 @@ void RSNode::SetForegroundBlurRadiusY(float blurRadiusY)
 {
     SetProperty<RSForegroundBlurRadiusYModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_RADIUS_Y, blurRadiusY);
+}
+
+void RSNode::SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation)
+{
+    SetProperty<RSFgBlurDisableSystemAdaptationModifier, RSProperty<bool>>(
+        RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION, disableSystemAdaptation);
 }
 
 bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
@@ -2743,10 +2768,10 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
     }
 }
 
-void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
+void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId, isInSameWindow);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
@@ -2763,13 +2788,15 @@ void RSNode::UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
     }
 }
 
-void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
+void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId,
+    const bool isInSameWindow)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
         return;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
+        isInSameWindow);
     auto transaction = rsUIContext->GetRSTransaction();
     if (transaction != nullptr) {
         transaction->AddCommand(command, true);
@@ -2793,6 +2820,9 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     if (isNodeGroup_ == isNodeGroup) {
+        return;
+    }
+    if (!isForced && !RSSystemProperties::GetNodeGroupGroupedByUIEnabled()) {
         return;
     }
     isNodeGroup_ = isNodeGroup;

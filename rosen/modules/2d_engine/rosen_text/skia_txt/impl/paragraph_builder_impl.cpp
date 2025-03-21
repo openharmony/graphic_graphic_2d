@@ -157,6 +157,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle.setHeightOverride(txt.heightOverride);
         textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
         textStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
+        textStyle.setTextStyleUid(txt.defaultTextStyleUid);
     }
 
     skStyle.setTextStyle(textStyle);
@@ -221,6 +222,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
 
     skStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
     skStyle.setStyleId(txt.styleId);
+    skStyle.setTextStyleUid(txt.textStyleUid);
     skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
         txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
         txt.backgroundRect.leftBottomRadius });
@@ -270,6 +272,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetAnimationStart(txt.symbol.GetAnimationStart());
         paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         paint.symbol.SetSymbolType(txt.symbol.GetSymbolType());
+        paint.symbol.SetSymbolUid(txt.symbol.GetSymbolUid());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

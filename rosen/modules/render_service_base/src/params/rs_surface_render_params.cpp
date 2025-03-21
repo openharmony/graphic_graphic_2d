@@ -485,12 +485,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        if (UNLIKELY(isSurfaceCapturePipeline_)) {
-            bufferSynced_ = false;
-            isSurfaceCapturePipeline_ = false;
-        } else {
-            bufferSynced_ = true;
-        }
+        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -502,6 +497,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->sourceDisplayRenderNodeDrawable_ = sourceDisplayRenderNodeDrawable_;
     targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
     targetSurfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
@@ -576,7 +572,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
-    targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
+    targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;

@@ -16,6 +16,7 @@
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
+#include "feature/capture/rs_ui_capture.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
@@ -434,9 +435,6 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     instance.renderServiceClient_ = nullptr;
@@ -445,7 +443,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -456,9 +454,6 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
 
@@ -468,15 +463,15 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     std::string name2(1, 't');
     res = instance.SetWatermark(name2, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name3(2, 't');
     res = instance.SetWatermark(name3, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name4(128, 't');
     res = instance.SetWatermark(name4, pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     std::string name5(129, 't');
     res = instance.SetWatermark(name5, pixelmap);
@@ -484,7 +479,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     res = instance.SetWatermark("test", pixelmap);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 }
 
 /**
@@ -550,8 +545,8 @@ HWTEST_F(RSInterfacesTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     pid_t pid = 0;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-    int32_t res = instance.GetPixelMapByProcessId(pixelMapVector, pid);
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t res = instance.GetPixelMapByProcessId(pixelMapInfoVector, pid);
     EXPECT_EQ(res, SUCCESS);
 }
 

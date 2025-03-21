@@ -22,6 +22,7 @@ int RSPointerLuminanceChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIPointerLuminanceChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSPointerLuminanceChangeCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
  

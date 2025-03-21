@@ -119,6 +119,16 @@ public:
             std::to_string(bottom_ - top_) + "]");
     }
 
+    inline int GetWidth() const noexcept
+    {
+        return right_ - left_;
+    }
+
+    inline int GetHeight() const noexcept
+    {
+        return bottom_ - top_;
+    }
+
     RectI ToRectI() const
     {
         return RectI{left_, top_, right_ - left_, bottom_ - top_};

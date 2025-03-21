@@ -356,6 +356,15 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
     needSync_ = true;
 }
 
+void RSRenderParams::SetHDRBrightness(float hdrBrightness)
+{
+    if (hdrBrightness_ == hdrBrightness) {
+        return;
+    }
+    hdrBrightness_ = hdrBrightness;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetNeedFilter(bool needFilter)
 {
     if (needFilter_ == needFilter) {
@@ -496,6 +505,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
+    target->hdrBrightness_ = hdrBrightness_;
     target->needFilter_ = needFilter_;
     target->renderNodeType_ = renderNodeType_;
     target->globalAlpha_ = globalAlpha_;
@@ -516,6 +526,13 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     target->absRotation_ = absRotation_;
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
+
+    // [Attention] Only used in PC window resize scene now
+    target->windowKeyframeEnabled_ = windowKeyframeEnabled_;
+    target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
+    target->needSwapBuffer_ = needSwapBuffer_;
+    target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+
     needSync_ = false;
 }
 
@@ -611,5 +628,67 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceD
 void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
     cloneSourceDrawable_ = drawable;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::EnableWindowKeyFrame(bool enable)
+{
+    if (windowKeyframeEnabled_ == enable) {
+        return;
+    }
+
+    windowKeyframeEnabled_ = enable;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+bool RSRenderParams::IsWindowKeyFrameEnabled() const
+{
+    return windowKeyframeEnabled_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    linkedRootNodeDrawable_ = drawable;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetLinkedRootNodeDrawable()
+{
+    return linkedRootNodeDrawable_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
+{
+    if (needSwapBuffer_ == needSwapBuffer) {
+        return;
+    }
+    needSwapBuffer_ = needSwapBuffer;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+bool RSRenderParams::GetNeedSwapBuffer() const
+{
+    return needSwapBuffer_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
+{
+    if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
+        return;
+    }
+    cacheNodeFrameRect_ = cacheNodeFrameRect;
+    needSync_ = true;
+}
+
+// [Attention] Only used in PC window resize scene now
+const Drawing::RectF& RSRenderParams::GetCacheNodeFrameRect() const
+{
+    return cacheNodeFrameRect_;
 }
 } // namespace OHOS::Rosen

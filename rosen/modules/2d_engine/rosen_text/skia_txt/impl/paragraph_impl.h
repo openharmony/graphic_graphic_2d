@@ -19,6 +19,7 @@
 #include <mutex>
 #include <optional>
 #include <pthread.h>
+#include <vector>
 
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/DartTypes.h"
@@ -130,16 +131,28 @@ public:
     void Relayout(double width, const ParagraphStyle& paragraphStyle,
         const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) override;
 
-    bool IsLalyoutDone() override;
+    bool IsLayoutDone() override;
 
     void SetLayoutState(size_t state) override;
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);
 
+    void TextStyleUpdater(Paragraph& skiaParagraph, skt::Block& skiaBlock, const TextStyle& spTextStyle,
+        skt::InternalState& state);
+
+    void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
+        skt::InternalState& state);
+
+    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& txt);
+
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
 
+    void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles);
+
     void RecordDifferentPthreadCall(const char* caller) const;
+
+    void InitSymbolRuns();
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -149,6 +162,8 @@ private:
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
     mutable pthread_t threadId_;
+    std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
+    std::once_flag initSymbolRunsFlag_;
 };
 } // namespace SPText
 } // namespace Rosen

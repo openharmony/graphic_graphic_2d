@@ -27,7 +27,8 @@ config("export_config") {
   defines += gpu_defines
 }
 
-if (!is_mingw && !is_mac && !is_cross_platform) {
+if (!is_mingw && !is_mac && !is_cross_platform &&
+    !(host_os == "linux" && host_cpu == "arm64")) {
   defines = [ "ENABLE_RUST" ]
   rust_cxx("particle_cxx_gen") {
     sources = [ "rust/src/lib.rs" ]
@@ -142,6 +143,7 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
+    "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
@@ -165,6 +167,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
@@ -252,6 +256,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_image_cache.cpp",
     "src/render/rs_kawase_blur.cpp",
     "src/render/rs_kawase_blur_shader_filter.cpp",
+    "src/render/rs_light_blur_shader_filter.cpp",
     "src/render/rs_light_up_effect_filter.cpp",
     "src/render/rs_linear_gradient_blur_shader_filter.cpp",
     "src/render/rs_magnifier_shader_filter.cpp",
@@ -275,6 +280,7 @@ ohos_source_set("render_service_base_src") {
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
     "src/transaction/rs_occlusion_data.cpp",
+    "src/transaction/rs_self_drawing_node_rect_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_handler.cpp",
     "src/transaction/rs_transaction_metric_collector.cpp",
@@ -300,6 +306,9 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
     "src/info_collection/rs_hdr_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
+
+    #monitor
+    "src/monitor/self_drawing_node_monitor.cpp",
   ]
 
   if (rs_enable_gpu) {
@@ -318,6 +327,7 @@ ohos_source_set("render_service_base_src") {
       "src/params/rs_canvas_drawing_render_params.cpp",
       "src/params/rs_display_render_params.cpp",
       "src/params/rs_effect_render_params.cpp",
+      "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
       "src/params/rs_surface_render_params.cpp",
@@ -357,8 +367,6 @@ ohos_source_set("render_service_base_src") {
       "src/command/rs_display_node_command.cpp",
 
       #common
-      "src/common/rs_occlusion_region.cpp",
-      "src/common/rs_occlusion_region_helper.cpp",
       "src/common/rs_thread_handler_generic.cpp",
       "src/common/rs_thread_looper_generic.cpp",
       "src/common/rs_thread_looper_impl.cpp",
@@ -505,10 +513,12 @@ ohos_source_set("render_service_base_src") {
       "hicollie:libhicollie",
       "hisysevent:libhisysevent",
       "image_framework:image_native",
+      "lz4:liblz4_shared",
     ]
   }
 
-  if (!is_mingw && !is_mac && !is_cross_platform) {
+  if (!is_mingw && !is_mac && !is_cross_platform &&
+      !(host_os == "linux" && host_cpu == "arm64")) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
     include_dirs += [
@@ -540,6 +550,12 @@ ohos_source_set("render_service_base_src") {
   if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
       enable_ipc_security_access_counter) {
     defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
+  if (defined(graphic_2d_math_tools_configs.vendor_root)) {
+    sources +=
+        graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources
+    sources -= graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources_del
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

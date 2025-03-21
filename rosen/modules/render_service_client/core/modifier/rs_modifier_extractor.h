@@ -112,6 +112,7 @@ public:
     int GetBackgroundBlurColorMode() const;
     float GetBackgroundBlurRadiusX() const;
     float GetBackgroundBlurRadiusY() const;
+    bool GetBgBlurDisableSystemAdaptation() const;
 
     float GetForegroundBlurRadius() const;
     float GetForegroundBlurSaturation() const;
@@ -120,6 +121,7 @@ public:
     int GetForegroundBlurColorMode() const;
     float GetForegroundBlurRadiusX() const;
     float GetForegroundBlurRadiusY() const;
+    bool GetFgBlurDisableSystemAdaptation() const;
     
     float GetLightIntensity() const;
     Color GetLightColor() const;
@@ -127,6 +129,8 @@ public:
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
     float GetBloom() const;
+    int GetColorBlendMode() const;
+    int GetColorBlendApplyType() const;
 
     std::string Dump() const;
 private:

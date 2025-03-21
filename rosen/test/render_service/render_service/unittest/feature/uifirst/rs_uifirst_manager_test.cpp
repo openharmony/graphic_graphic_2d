@@ -68,6 +68,7 @@ void RSUifirstManagerTest::TearDownTestCase()
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
+    uifirstManager_.pindingResetWindowCachedNodes_.clear();
 
     mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
     mainThread->context_->globalRootRenderNode_ = nullptr;
@@ -477,8 +478,8 @@ HWTEST_F(RSUifirstManagerTest, ProcessTreeStateChange, TestSize.Level1)
 
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode2, nullptr);
-    surfaceNode1->SetIsOnTheTree(false);
-    surfaceNode1->SetIsNodeToBeCaptured(true);
+    surfaceNode2->SetIsOnTheTree(false);
+    surfaceNode2->SetIsNodeToBeCaptured(true);
     uifirstManager_.ProcessTreeStateChange(*surfaceNode2);
 }
 
@@ -760,7 +761,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
 {
-    mainThread_->deviceType_ = DeviceType::PC;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
@@ -808,7 +809,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
-    mainThread_->deviceType_ = DeviceType::PHONE;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     uifirstManager_.isUiFirstOn_ = false;
     uifirstManager_.rotationChanged_ = false;
 }
@@ -918,35 +919,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateSkipSyncNode001, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.UpdateSkipSyncNode();
     EXPECT_TRUE(uifirstManager_.subthreadProcessingNode_.empty());
-}
-
-/**
- * @tc.name: ConvertPendingNodeToDrawable001
- * @tc.desc: Test ConvertPendingNodeToDrawable
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, ConvertPendingNodeToDrawable001, TestSize.Level1)
-{
-    uifirstManager_.useDmaBuffer_ = false;
-    uifirstManager_.ConvertPendingNodeToDrawable();
-    EXPECT_FALSE(uifirstManager_.useDmaBuffer_);
-
-    uifirstManager_.useDmaBuffer_ = true;
-    uifirstManager_.ConvertPendingNodeToDrawable();
-    EXPECT_TRUE(uifirstManager_.useDmaBuffer_);
-
-    uifirstManager_.pendingPostNodes_.clear();
-    std::shared_ptr<RSSurfaceRenderNode> node = nullptr;
-    uifirstManager_.pendingPostNodes_.insert(std::make_pair(0, node));
-    uifirstManager_.ConvertPendingNodeToDrawable();
-    EXPECT_FALSE(uifirstManager_.pendingPostNodes_.empty());
-
-    uifirstManager_.pendingPostNodes_.clear();
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    uifirstManager_.pendingPostNodes_.insert(std::make_pair(0, renderNode));
-    uifirstManager_.ConvertPendingNodeToDrawable();
-    EXPECT_FALSE(uifirstManager_.pendingPostNodes_.empty());
 }
 
 /**
@@ -1492,25 +1464,6 @@ HWTEST_F(RSUifirstManagerTest, EventsCanSkipFirstWait001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsScreenshotAnimation001
- * @tc.desc: Test IsScreenshotAnimation
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, IsScreenshotAnimation001, TestSize.Level1)
-{
-    EXPECT_FALSE(uifirstManager_.currentFrameEvent_.empty());
-    bool res = uifirstManager_.IsScreenshotAnimation();
-    EXPECT_FALSE(res);
-
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "SCREENSHOT_SCALE_ANIMATION"; // for test
-    uifirstManager_.currentFrameEvent_.push_back(info);
-    res = uifirstManager_.IsScreenshotAnimation();
-    EXPECT_TRUE(res);
-}
-
-/**
  * @tc.name: UpdateUifirstNodes001
  * @tc.desc: Test UpdateUifirstNodes
  * @tc.type: FUNC
@@ -1522,7 +1475,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes001, TestSize.Level1)
     bool ancestorNodeHasAnimation = true;
     uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
     EXPECT_TRUE(node.GetUifirstSupportFlag());
-    EXPECT_FALSE(uifirstManager_.isUiFirstOn_);
 
     uifirstManager_.isUiFirstOn_ = true;
     uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
@@ -1531,20 +1483,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes001, TestSize.Level1)
     node.isChildSupportUifirst_ = false;
     uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
     EXPECT_TRUE(uifirstManager_.isUiFirstOn_);
-}
-
-/**
- * @tc.name: UpdateUIFirstNodeUseDma001
- * @tc.desc: Test UpdateUIFirstNodeUseDma
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, UpdateUIFirstNodeUseDma001, TestSize.Level1)
-{
-    RSSurfaceRenderNode node(0);
-    std::vector<RectI> rects;
-    uifirstManager_.UpdateUIFirstNodeUseDma(node, rects);
-    EXPECT_FALSE(uifirstManager_.GetUseDmaBuffer(node.GetName()));
 }
 
 /**
@@ -1594,7 +1532,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 {
     auto type = uifirstManager_.GetUiFirstMode();
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+    if (uifirstManager_.uifirstType_ == UiFirstCcmType::SINGLE) {
         EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
     }
 }
@@ -1608,7 +1546,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
 {
     auto type = uifirstManager_.GetUiFirstMode();
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+    if (uifirstManager_.uifirstType_ == UiFirstCcmType::MULTI) {
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
 }
@@ -1621,7 +1559,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
 {
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::HYBRID) {
         return;
     }
 
@@ -1638,7 +1576,7 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, GetUiFirstMode004, TestSize.Level1)
 {
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::HYBRID) {
         return;
     }
 
@@ -1657,7 +1595,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+    if (uifirstManager_.uifirstType_ != UiFirstCcmType::MULTI) {
         return;
     }
 
@@ -1691,22 +1629,6 @@ HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_RECENTS);
     bool isOccluded = uifirstManager_.IsSubTreeNeedPrepareForSnapshot(*surfaceNode);
     ASSERT_EQ(isOccluded, false);
-}
-
-/**
-@tc.name: UpdateUIFirstLayerInfo
-@tc.desc: Test UpdateUIFirstLayerInfo
-@tc.type: FUNC
-@tc.require: #IBHZJA
-*/
-HWTEST_F(RSUifirstManagerTest, UpdateUIFirstLayerInfo, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-    ScreenInfo screenInfo;
-    float zOrder = 1;
-    ASSERT_NE(uifirstManager_.pendingPostNodes_.size(), 0);
-    uifirstManager_.UpdateUIFirstLayerInfo(screenInfo, zOrder);
 }
 
 /**

@@ -33,15 +33,17 @@ struct CaptureParam {
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
+    bool isSelfCapture_ = false;
     bool isNeedBlur_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
-        bool isSystemCalling = false, bool isNeedBlur = false)
+        bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling),
+        isSelfCapture_(isSelfCapture),
         isNeedBlur_(isNeedBlur) {}
 };
 struct HardCursorInfo {
@@ -464,6 +466,11 @@ public:
     {
         return isMirrorScreen_ && compositeType_ == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
     }
+
+    AdvancedDirtyRegionType GetAdvancedDirtyType() const
+    {
+        return advancedDirtyType_;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -499,6 +506,7 @@ private:
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
+    AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;

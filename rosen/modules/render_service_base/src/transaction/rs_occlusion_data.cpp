@@ -25,7 +25,11 @@ RSOcclusionData::~RSOcclusionData() noexcept
 RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSOcclusionData();
-    auto size = parcel.ReadUint32();
+    uint32_t size{0};
+    if (!parcel.ReadUint32(size)) {
+        ROSEN_LOGE("RSOcclusionData::Unmarshalling Read size failed");
+        return nullptr;
+    }
     size_t readableSize = parcel.GetReadableBytes() / (sizeof(uint64_t) + sizeof(uint32_t));
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > data->visibleData_.max_size()) {
@@ -34,8 +38,12 @@ RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
         return data;
     }
     for (uint32_t i = 0; i < size; i++) {
-        uint64_t id = parcel.ReadUint64();
-        uint32_t visibelLevel = parcel.ReadUint32();
+        uint64_t id{0};
+        uint32_t visibelLevel{0};
+        if (!parcel.ReadUint64(id) || !parcel.ReadUint32(visibelLevel)) {
+            ROSEN_LOGE("RSOcclusionData::Unmarshalling Read parcel failed");
+            return nullptr;
+        }
         data->visibleData_.emplace_back(std::make_pair(id, (WINDOW_LAYER_INFO_TYPE)visibelLevel));
     }
     return data;

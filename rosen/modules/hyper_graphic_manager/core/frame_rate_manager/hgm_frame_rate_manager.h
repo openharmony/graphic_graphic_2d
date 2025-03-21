@@ -35,6 +35,7 @@
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_map.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
@@ -78,6 +79,12 @@ enum LightFactorStatus : int32_t {
     LOW_LEVEL = 3,
     MIDDLE_LEVEL,
     HIGH_LEVEL,
+};
+
+enum SupportASStatus : int32_t {
+    NOT_SUPPORT = 0,
+    SUPPORT_AS = 1,
+    GAME_SCENE_SKIP = 2,
 };
 
 struct VoteInfo {
@@ -166,20 +173,9 @@ public:
     // called by RSHardwareThread
     void HandleRsFrame();
     bool IsLtpo() const { return isLtpo_; };
-    bool IsAdaptive() const { return isAdaptive_.load(); };
+    int32_t AdaptiveStatus() const { return isAdaptive_.load(); };
     // called by RSMainThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
-    // called by RSMainThread
-    void SetGameNodeOnTree(bool isOnTree)
-    {
-        isGameNodeOnTree_.store(isOnTree);
-    }
-    // called by RSMainThread
-    std::string GetGameNodeName() const
-    {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        return curGameNodeName_;
-    }
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
@@ -214,6 +210,8 @@ public:
 
     // only called by RSMainThread
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
+    // only called by RSMainThread
+    void HandleGameNode(const RSRenderNodeMap& nodeMap);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
@@ -281,12 +279,18 @@ private:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    std::string GetGameNodeName() const
+    {
+        std::lock_guard<std::mutex> lock(pendingMutex_);
+        return curGameNodeName_;
+    }
     void CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         curGameNodeName_ = nodeName;
     }
+    void FrameRateReportTask(uint32_t leftRetryTimes);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -300,10 +304,10 @@ private:
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
     HgmSimpleTimer changeGeneratorRateValidTimer_;
-    // current game app's self drawing node name
-    std::string curGameNodeName_;
     // if current game's self drawing node is on tree,default false
     std::atomic<bool> isGameNodeOnTree_ = false;
+    // current game app's self drawing node name
+    std::string curGameNodeName_;
     // concurrency protection <<<
 
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
@@ -354,9 +358,9 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
-    std::atomic<bool> isAdaptive_ = false;
+    std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
     // Does current game require Adaptive Sync
-    bool isGameSupportAS_ = false;
+    int32_t isGameSupportAS_ = SupportASStatus::NOT_SUPPORT;
 
     std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

@@ -90,7 +90,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Color_Blend_Mode)
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Color_Blend_Apply_Type)
 {
     int columnCount = 1;
-    int rowCount = 2;
+    int rowCount = 3;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
@@ -104,6 +104,30 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Color_Blend_Apply_Type)
         testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
         testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
         testNodeBackGround->SetColorBlendApplyType(static_cast<RSColorBlendApplyType>(i));
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Color_Blend_Mode_With_Alpha)
+{
+    int columnCount = 1;
+    int rowCount = 3;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    for (auto i = static_cast<int>(RSColorBlendApplyType::FAST); i <= static_cast<int>(RSColorBlendApplyType::MAX);
+         i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetAlpha(0.5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+        testNodeBackGround->SetColorBlendApplyType(static_cast<RSColorBlendApplyType>(i));
+        testNodeBackGround->SetColorBlendMode(RSColorBlendMode::SRC_OVER);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }

@@ -140,6 +140,9 @@ public:
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
 
+    // uifirst dirty
+    const RectI GetUiLatestHistoryDirtyRegions(const int historyIndex = 4) const; // 4 means default history index
+
     void SetActiveSurfaceRect(const RectI& rect)
     {
         auto dstRect = surfaceRect_.IntersectRect(rect);
@@ -244,6 +247,11 @@ public:
         maxNumOfDirtyRects_ = maxNumOfDirtyRects;
     }
 
+    void SetAdvancedDirtyRegionType(AdvancedDirtyRegionType advancedDirtyRegionType)
+    {
+        advancedDirtyRegionType_ = advancedDirtyRegionType;
+    }
+
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
@@ -265,6 +273,7 @@ private:
     unsigned int historySize_ = 0;
     const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
     int maxNumOfDirtyRects_ = 1;
+    AdvancedDirtyRegionType advancedDirtyRegionType_ = AdvancedDirtyRegionType::DISABLED;
     // may add new set function for bufferAge
     unsigned int bufferAge_ = 0;
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.

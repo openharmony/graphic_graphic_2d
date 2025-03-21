@@ -29,6 +29,7 @@ public:
 
 private:
     int32_t ParseDVSyncInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseFeatureMultiParam(xmlNode &node, std::string &name);
 
     std::shared_ptr<DVSyncParam> dvsyncParam_;
 };

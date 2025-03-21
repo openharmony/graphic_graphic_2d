@@ -93,6 +93,8 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
 
     EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);
     EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 1), 0);
+    controller->vsyncGenerator_ = nullptr;
+    EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);
 }
 
 /*
@@ -106,9 +108,11 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level1)
     ASSERT_NE(controller, nullptr);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = {{1, 30}, {2, 60}, {3, 120}};
     controller->ChangeGeneratorRate(60, appChangeData);
-    EXPECT_EQ(controller->GetCurrentRate(), 60);
+    EXPECT_EQ(controller->GetCurrentRate(), 30);
     controller->ChangeGeneratorRate(60, appChangeData, 0, true);
     controller->ChangeGeneratorRate(60, appChangeData, 0, false);
+    controller->vsyncGenerator_ = nullptr;
+    EXPECT_EQ(controller->ChangeGeneratorRate(60, appChangeData), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

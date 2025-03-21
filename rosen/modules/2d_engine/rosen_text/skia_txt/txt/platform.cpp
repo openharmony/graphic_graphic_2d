@@ -15,6 +15,8 @@
 
 #include "txt/platform.h"
 
+#include <mutex>
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {

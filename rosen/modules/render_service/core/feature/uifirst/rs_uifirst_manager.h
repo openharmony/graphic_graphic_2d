@@ -82,12 +82,31 @@ public:
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
 
-    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
-    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
-    
+    bool GetUiFirstSwitch() const
+    {
+        return isUiFirstOn_;
+    }
+
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
         isUiFirstOn_ = uiFirstSwitch;
+    }
+
+    void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
+    {
+        isCardUiFirstOn_ = cardUiFirstSwitch;
+    }
+
+    UiFirstCcmType GetUiFirstType() const
+    {
+        return uifirstType_;
+    }
+
+    void SetUiFirstType(int type);
+
+    void SetPurgeEnable(bool purgeEnable)
+    {
+        purgeEnable_ = purgeEnable;
     }
 
     void SetNodeNeedForceUpdateFlag(bool flag)
@@ -131,19 +150,10 @@ public:
         collectedCardNodes_.erase(id);
     }
 
-    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> GetPendingPostDrawables()
-    {
-        return pendingPostDrawables_;
-    }
-
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetPendingPostNodes()
     {
         return pendingPostNodes_;
     }
-
-    void SetUseDmaBuffer(bool val);
-    bool GetUseDmaBuffer(const std::string& name);
-    bool IsScreenshotAnimation();
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
@@ -154,6 +164,7 @@ public:
         isFreeMultiWindowEnabled_ = enable;
     }
     UiFirstModeType GetUiFirstMode();
+    void ReadUIFirstCcmParam();
     // only use in mainThread & RT onsync
     inline void UifirstCurStateClear()
     {
@@ -164,8 +175,9 @@ public:
     bool IsSubHighPriorityType(RSSurfaceRenderNode& node) const;
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
+    void MarkPostNodesPriority();
 private:
-    RSUifirstManager();
+    RSUifirstManager() = default;
     ~RSUifirstManager() = default;
     RSUifirstManager(const RSUifirstManager&);
     RSUifirstManager(const RSUifirstManager&&);
@@ -221,8 +233,10 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool purgeEnable_ = false;
+    bool isCardUiFirstOn_ = false;
+    UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool hasForceUpdateNode_ = false;
-    bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
     std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
     // for recents scene
@@ -240,6 +254,10 @@ private:
 
     std::map<NodeId, CacheProcessStatus> uifirstCacheState_;
 
+    // priority
+    bool isFocusNodeFound_ = false;
+    pid_t focusNodeThreadIndex_ = UINT32_MAX;
+
     // only use in RT
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;
     std::set<NodeId> processingNodeSkipSync_;
@@ -256,8 +274,8 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
-    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     std::list<NodeId> sortedSubThreadNodeIds_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> pindingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
@@ -278,10 +296,6 @@ private:
         { "LAUNCHER_SCROLL" }, // desktop swipe
         { "SCROLL_2_AA" }, // desktop to negativeScreen
     };
-    const std::vector<std::string> screenshotAnimation_ = {
-        { "SCREENSHOT_SCALE_ANIMATION" },
-        { "SCREENSHOT_DISMISS_ANIMATION" },
-    };
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
@@ -294,8 +308,6 @@ private:
         { "ecoengine" },
     };
 
-    // use in MainThread & RT & subThread
-    std::mutex useDmaBufferMutex_;
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
 };

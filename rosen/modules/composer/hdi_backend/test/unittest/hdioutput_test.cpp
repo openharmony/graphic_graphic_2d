@@ -663,6 +663,29 @@ HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_001, testing::ext::TestSize
     hdiOutput->SetProtectedFrameBufferState(true);
     EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), true);
 }
+
+/*
+* Function:  CleanLayerBufferBySurfaceId
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call CleanLayerBufferBySurfaceId() with valid param, no crash
+*                  2.call CleanLayerBufferBySurfaceId() with invalid param, no crash
+*/
+HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
+        output->surfaceIdMap_[i]->UpdateLayerInfo(HdiLayerInfo::CreateHdiLayerInfo());
+    }
+    for (size_t i = 0; i < 3; i++) {
+        output->CleanLayerBufferBySurfaceId(i);
+    }
+    // clean the nonexistent surface ID.
+    output->CleanLayerBufferBySurfaceId(4);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

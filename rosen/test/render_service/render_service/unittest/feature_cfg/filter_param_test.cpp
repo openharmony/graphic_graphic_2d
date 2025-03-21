@@ -67,6 +67,21 @@ HWTEST_F(FilterParamTest, SetEffectMergeEnable, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: SetBlurAdaptiveAdjust
+ * @tc.desc: Verify the SetBlurAdaptiveAdjust function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(FilterParamTest, SetBlurAdaptiveAdjust, Function | SmallTest | Level1)
+{
+    FilterParam filterParam;
+    filterParam.SetBlurAdaptiveAdjust(true);
+    EXPECT_EQ(filterParam.isBlurAdaptiveAdjust, true);
+    filterParam.SetBlurAdaptiveAdjust(false);
+    EXPECT_EQ(filterParam.isBlurAdaptiveAdjust, false);
+}
+
+/**
  * @tc.name: IsFilterCacheEnable
  * @tc.desc: Verify the result of IsFilterCacheEnable function
  * @tc.type: FUNC
@@ -94,6 +109,21 @@ HWTEST_F(FilterParamTest, IsEffectMergeEnable, Function | SmallTest | Level1)
     EXPECT_TRUE(filterParam.IsEffectMergeEnable());
     filterParam.isEffectMergeEnable_ = false;
     EXPECT_FALSE(filterParam.IsEffectMergeEnable());
+}
+
+/**
+ * @tc.name: IsBlurAdaptiveAdjust
+ * @tc.desc: Verify the result of IsBlurAdaptiveAdjust function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(FilterParamTest, IsBlurAdaptiveAdjust, Function | SmallTest | Level1)
+{
+    FilterParam filterParam;
+    filterParam.isBlurAdaptiveAdjust = true;
+    EXPECT_TRUE(filterParam.IsBlurAdaptiveAdjust());
+    filterParam.isBlurAdaptiveAdjust = false;
+    EXPECT_FALSE(filterParam.IsBlurAdaptiveAdjust());
 }
 } // namespace Rosen
 } // namespace OHOS

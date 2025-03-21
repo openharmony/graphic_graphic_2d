@@ -24,6 +24,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -491,6 +492,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
     auto rSCanvasDrawingRenderNode = std::make_shared<const RSCanvasDrawingRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSCanvasDrawingRenderNode, adapter);
+    EXPECT_TRUE(adapter->renderParams_ != nullptr);
+    adapter->renderParams_.reset(nullptr);
+
+    auto rSRcdSurfaceRenderNode = std::make_shared<const RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
+    EXPECT_TRUE(adapter->renderParams_ == nullptr);
+    RSRenderNodeDrawableAdapter::InitRenderParams(rSRcdSurfaceRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
 

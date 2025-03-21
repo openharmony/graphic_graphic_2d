@@ -47,11 +47,16 @@ public:
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+
+    virtual void GenerateSubmitInfo(int seq) {}
+    virtual void FlushCommands() {}
+
     virtual void Submit() = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
 
     virtual void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const = 0;
     virtual void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) = 0;
+    virtual void SetPurgeableResourceLimit(int purgeableMaxCount) = 0;
 
     virtual void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const = 0;
 

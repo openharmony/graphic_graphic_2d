@@ -27,7 +27,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class RelayoutParagraphStyleAttribute {
-    // influence Shape
     FONT_SIZE = 0,
     DIRECTION = 1,
     MAXLINES = 2,
@@ -37,8 +36,6 @@ enum class RelayoutParagraphStyleAttribute {
     HEIGHT_SCALE = 6,
     HEIGHT_ONLY = 7,
     HALF_LEADING = 8,
-
-    // strut style
     USE_LINE_STYLE = 9,
     LINE_STYLE_FONT_WEIGHT = 10,
     LINE_STYLE_FONT_WIDTH = 11,
@@ -49,14 +46,10 @@ enum class RelayoutParagraphStyleAttribute {
     LINE_STYLE_HEIGHT_ONLY = 16,
     LINE_STYLE_HALF_LEADING = 17,
     LINE_STYLE_ONLY = 18,
-
-    // influence LineBroken
     BREAKSTRAGY = 19,
     WORD_BREAKTYPE = 20,
     ELLIPSIS = 21,
     ELLIPSIS_MODAL = 22,
-
-    // influence Format
     TEXT_ALIGN = 23,
 
     PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
@@ -147,6 +140,7 @@ struct TypographyStyle {
             this->wordBreakType == rhs.wordBreakType &&
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
+            this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
             this->tab == rhs.tab;
     }
     TextStyle GetTextStyle() const;
@@ -165,6 +159,7 @@ struct TypographyStyle {
     TextTab tab;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
+    size_t defaultTextStyleUid { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

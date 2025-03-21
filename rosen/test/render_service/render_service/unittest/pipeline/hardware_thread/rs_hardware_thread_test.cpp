@@ -87,8 +87,7 @@ void RSHardwareThreadTest::TearDown()
 void RSHardwareThreadTest::SetUp()
 {
     screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    std::unique_ptr<impl::RSScreen> rsScreen =
-        std::make_unique<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
     screenId_ = rsScreen->Id();
     screenManager_->MockHdiScreenConnected(rsScreen);
     CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,
@@ -293,7 +292,7 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
     bool getLtpoEnabled = hgmCore.GetLtpoEnabled();
     if (getLtpoEnabled) {
         isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
-        if (hardwareThread.IsInAdaptiveMode(output)) {
+        if (hardwareThread.AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
             EXPECT_EQ(isDelayRequired == false, true);
         } else {
             EXPECT_EQ(isDelayRequired == true, true);
@@ -433,6 +432,11 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
 
     auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
     ASSERT_EQ(supportedModes.size(), 0);
+    HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
+    HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
 }
 
 /**

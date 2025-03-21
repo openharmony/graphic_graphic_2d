@@ -59,7 +59,7 @@ void RSFile::Create(const std::string& fname)
     headerOff_ = 0; // TEMP VALUE
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
 
-    writeDataOff_ = RSFileLayer::MARKUP_SIZE;
+    writeDataOff_ = Utils::FileTell(file_);
 
     wasChanged_ = true;
 }

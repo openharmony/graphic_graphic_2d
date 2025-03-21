@@ -35,9 +35,9 @@ public:
 
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_1)
 {
-    float zList[] = { 0.0, 0.5, 1, 100.0 };
-    for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 480 + 40, 600, 600 });
+    std::vector<float> zList = { -1, 0.0, 0.5, 1, 100.0 };
+    for (int i = 0; i < zList.size(); i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 380 + 40, 600, 600 });
         testNode->SetPivot(Vector2f(0.5, 0.5));
         testNode->SetRotation(45.0, 0, 45.0);
         testNode->SetCameraDistance(zList[i]);

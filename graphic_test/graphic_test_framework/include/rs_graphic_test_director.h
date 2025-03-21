@@ -39,6 +39,9 @@ public:
     void SetSurfaceBounds(const Vector4f& bounds);
     void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
+    void SetScreenSize(float width, float height);
+    bool IsSingleTest();
+    void SetSingleTest(bool IsSingleTest);
 
     void StartRunUIAnimation();
     bool HasUIRunningAnimation();
@@ -51,6 +54,7 @@ public:
 private:
     ScreenId screenId_ = 0;
     RectF screenBounds_;
+    bool isSingleTest_ = false;
     std::shared_ptr<RSGraphicRootNode> rootNode_;
     std::shared_ptr<RSUIDirector> rsUiDirector_;
 
@@ -59,6 +63,7 @@ private:
     std::shared_ptr<VSyncWaiter> vsyncWaiter_;
 
     friend class RSGraphicTest;
+    friend class TestDefManager;
 };
 
 } // namespace Rosen

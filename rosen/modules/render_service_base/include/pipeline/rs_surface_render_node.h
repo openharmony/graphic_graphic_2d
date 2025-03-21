@@ -151,6 +151,18 @@ public:
         return isHardwareEnableHint_;
     }
 
+    void SetSourceDisplayRenderNodeId(NodeId nodeId)
+    {
+        sourceDisplayRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetSourceDisplayRenderNodeId() const
+    {
+        return sourceDisplayRenderNodeId_;
+    }
+
+    void SetSourceDisplayRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
     void SetExistTransparentHardwareEnabledNode(bool exist)
     {
         existTransparentHardwareEnabledNode_ = exist;
@@ -336,8 +348,7 @@ public:
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
-        return isHardwareForcedDisabled_ ||
-            GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
+        return isHardwareForcedDisabled_;
     }
 
     bool IsLeashOrMainWindow() const
@@ -396,8 +407,6 @@ public:
     }
 
     bool IsUIFirstSelfDrawCheck();
-    bool IsVisibleDirtyEmpty(DeviceType deviceType);
-    bool IsCurFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -470,6 +479,7 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
+    void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
@@ -1132,8 +1142,6 @@ public:
         lastFrameChildrenCnt_ = childrenCnt;
     }
 
-    bool IsUIFirstCacheReusable(DeviceType deviceType);
-
     bool GetUifirstSupportFlag() override
     {
         return RSRenderNode::GetUifirstSupportFlag();
@@ -1420,9 +1428,6 @@ public:
         hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
-    // use for updating hdr and sdr nit
-    static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
-
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1448,6 +1453,17 @@ public:
     std::shared_ptr<RSDirtyRegionManager>& GetDirtyManagerForUifirst()
     {
         return dirtyManager_;
+    }
+
+    // [Attention] Used in uifirst for checking whether node and parent should paint or not
+    void SetSelfAndParentShouldPaint(bool selfAndParentShouldPaint)
+    {
+        selfAndParentShouldPaint_ = selfAndParentShouldPaint;
+    }
+
+    bool GetSelfAndParentShouldPaint() const
+    {
+        return selfAndParentShouldPaint_;
     }
 
 protected:
@@ -1481,8 +1497,6 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
-    // use for updating layerLineraMatrix
-    static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1499,6 +1513,7 @@ private:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     bool isHardwareEnableHint_ = false;
+    NodeId sourceDisplayRenderNodeId_ = INVALID_NODEID;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     bool isNotifyRTBufferAvailablePre_ = false;
     bool isRefresh_ = false;
@@ -1763,6 +1778,9 @@ private:
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
+
+    // used in uifirst for checking whether node and parents should paint or not
+    bool selfAndParentShouldPaint_ = true;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

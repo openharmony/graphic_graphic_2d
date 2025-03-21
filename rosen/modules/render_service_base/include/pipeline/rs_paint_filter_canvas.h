@@ -63,6 +63,7 @@ public:
     void DrawOval(const Drawing::Rect& oval) override;
     void DrawCircle(const Drawing::Point& centerPt, Drawing::scalar radius) override;
     void DrawPath(const Drawing::Path& path) override;
+    void DrawPathWithStencil(const Drawing::Path& path, uint32_t stencilVal) override;
     void DrawBackground(const Drawing::Brush& brush) override;
     void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
@@ -91,6 +92,8 @@ public:
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,
         const Drawing::scalar px, const Drawing::scalar py, const Drawing::SamplingOptions& sampling) override;
+    void DrawImageWithStencil(const Drawing::Image& image, const Drawing::scalar px, const Drawing::scalar py,
+        const Drawing::SamplingOptions& sampling, uint32_t stencilVal) override;
     void DrawImageRect(const Drawing::Image& image, const Drawing::Rect& src, const Drawing::Rect& dst,
         const Drawing::SamplingOptions& sampling, Drawing::SrcRectConstraint constraint) override;
     void DrawImageRect(const Drawing::Image& image,
@@ -98,6 +101,7 @@ public:
     void DrawPicture(const Drawing::Picture& picture) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
+    void ClearStencil(const Drawing::RectI& rect, uint32_t stencilVal) override;
     void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
         bool doAntiAlias = false) override;
     void ClipIRect(const Drawing::RectI& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
@@ -298,6 +302,8 @@ public:
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    float GetHDRBrightness() const;
+    void SetHDRBrightness(float hdrBrightness);
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
@@ -353,6 +359,7 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    float hdrBrightness_ = 1.0f; // Default 1.0f means max available headroom
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     Drawing::Surface* surface_ = nullptr;

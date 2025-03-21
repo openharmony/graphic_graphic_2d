@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <string>
+
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -738,8 +739,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         texture->UpdateSurfaceExtConfig(config);
     }
 #endif
-    ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
-        GetId(), config.type, texture.get());
+    ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u", GetId(), config.type);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), texture);
     AddCommand(command, false);
@@ -892,9 +892,6 @@ void RSSurfaceNode::RegisterNodeMap()
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
 #ifdef ROSEN_OHOS
-    if (!RSSystemProperties::IsPcType()) {
-        return;
-    }
     if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {
         ROSEN_LOGE("SetWatermarkEnabled name[%{public}s] is error.", name.c_str());
         return;
@@ -950,6 +947,13 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetApiCompatibleVersion>(GetId(), version);
     AddCommand(command, true);
     RS_LOGD("RSSurfaceNode::SetApiCompatibleVersion: Node: %{public}" PRIu64 ", version: %{public}u", GetId(), version);
+}
+
+void RSSurfaceNode::SetSourceVirtualDisplayId(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSourceVirtualDisplayId>(GetId(), screenId);
+    AddCommand(command, true);
 }
 
 void RSSurfaceNode::AttachToWindowContainer(ScreenId screenId)

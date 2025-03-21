@@ -122,24 +122,6 @@ HWTEST_F(RsSubThreadTest, AddToReleaseQueue, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderCache
- * @tc.desc: Test RsSubThreadTest.RenderCache
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadTest, RenderCache, TestSize.Level1)
-{
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    const std::shared_ptr<RSSuperRenderTask> threadTask_ = std::make_shared<RSSuperRenderTask>(rsDisplayRenderNode);
-
-    auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
-    ASSERT_TRUE(curThread != nullptr);
-    curThread->RenderCache(threadTask_);
-}
-
-/**
  * @tc.name: PostSyncTaskTest001
  * @tc.desc: Verify function PostSyncTask
  * @tc.type:FUNC
@@ -265,55 +247,6 @@ HWTEST_F(RsSubThreadTest, CreateShareEglContext001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderCache001
- * @tc.desc: Verify function RenderCache
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadTest, RenderCache001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    std::shared_ptr<RSSuperRenderTask> threadTask = nullptr;
-    curThread->RenderCache(threadTask);
-    EXPECT_TRUE(curThread->renderContext_);
-
-    auto renderNode = std::make_shared<RSRenderNode>(0);
-    threadTask = std::make_shared<RSSuperRenderTask>(renderNode);
-    curThread->RenderCache(threadTask);
-    EXPECT_FALSE(threadTask->GetTaskSize());
-
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-    RSRenderTask::RenderNodeStage stage;
-    auto task = std::make_unique<RSRenderTask>(*node, stage);
-    task->node_ = node;
-    task->SetIdx(1);
-    threadTask->AddTask(std::move(task));
-    curThread->RenderCache(threadTask);
-    EXPECT_TRUE(threadTask->GetTaskSize());
-    EXPECT_FALSE(curThread->grContext_);
-
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    curThread->RenderCache(threadTask);
-    EXPECT_TRUE(curThread->grContext_);
-    threadTask->frameCount_ = 1;
-    curThread->RenderCache(threadTask);
-    EXPECT_TRUE(curThread->grContext_);
-
-    auto renderTask = std::make_unique<RSRenderTask>(*node, stage);
-    renderTask->node_ = nullptr;
-    threadTask->AddTask(std::move(renderTask));
-    curThread->RenderCache(threadTask);
-
-    auto rsRenderTask = std::make_unique<RSRenderTask>(*node, stage);
-    rsRenderTask->SetIdx(0);
-    threadTask->AddTask(std::move(rsRenderTask));
-    curThread->RenderCache(threadTask);
-}
-
-/**
  * @tc.name: DrawableCache001
  * @tc.desc: Verify function DrawableCache
  * @tc.type: FUNC
@@ -337,11 +270,6 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    RSUifirstManager::Instance().useDmaBuffer_ = true;
-    nodeDrawable->name_ = "ScreenShotWindow";
-    curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->UseDmaBuffer());
-
     nodeDrawable->SetTaskFrameCount(1);
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetTaskFrameCount());
@@ -358,31 +286,6 @@ HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
     EXPECT_FALSE(curThread->CreateShareGrContext());
-}
-
-/**
- * @tc.name: DrawableCacheWithDma001
- * @tc.desc: Verify function DrawableCacheWithDma
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadTest, DrawableCacheWithDma001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    auto node = std::make_shared<const RSSurfaceRenderNode>(0);
-    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
-    curThread->DrawableCacheWithDma(nodeDrawable);
-
-    nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
-    curThread->DrawableCacheWithDma(nodeDrawable);
-    EXPECT_FALSE(nodeDrawable->surfaceCreated_);
-
-    nodeDrawable->surfaceCreated_ = true;
-    curThread->DrawableCacheWithDma(nodeDrawable);
-    EXPECT_TRUE(curThread->renderContext_);
-    EXPECT_FALSE(curThread->grContext_);
-    EXPECT_TRUE(nodeDrawable->surfaceCreated_);
 }
 
 /**

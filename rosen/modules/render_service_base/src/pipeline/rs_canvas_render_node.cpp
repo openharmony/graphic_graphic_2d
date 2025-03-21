@@ -23,11 +23,13 @@
 #include "recording/recording_canvas.h"
 #include "memory/rs_memory_track.h"
 #include "memory/rs_tag_tracker.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_light_up_effect_filter.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "visitor/rs_node_visitor.h"
 #include "property/rs_property_drawable.h"
 
@@ -288,6 +290,23 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 bool RSCanvasRenderNode::GetHDRPresent() const
 {
     return hasHdrPresent_;
+}
+
+// [Attention] Only used in PC window resize scene now
+void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
+{
+    if (!RSSystemProperties::GetWindowKeyFrameEnabled()) {
+        RS_LOGW("RSCanvasRenderNode::SetLinkedRootNodeId WindowKeyFrame feature disabled");
+        return;
+    }
+
+    linkedRootNodeId_ = rootNodeId;
+}
+
+// [Attention] Only used in PC window resize scene now
+NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
+{
+    return linkedRootNodeId_;
 }
 
 } // namespace Rosen
