@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/create_pixelmap_surface"
+module_out_path = "graphic_2d/graphic_2d/create_pixelmap_surface"
 
 group("unittest") {
   testonly = true
