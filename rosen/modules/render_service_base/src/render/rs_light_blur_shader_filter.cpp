@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "draw/canvas.h"
 #include "draw/surface.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_light_blur_shader_filter.h"
@@ -281,7 +280,8 @@ void RSLightBlurShaderFilter::ApplyLightBlur(Drawing::Canvas& canvas,
     DrawImageOnCanvas(canvas, *curImage, para);
 }
 
-void RSLightBlurShaderFilter::DrawImageOnCanvas(Drawing::Canvas& canvas, const Drawing::Image& image, const LightBlurParameter& para)
+void RSLightBlurShaderFilter::DrawImageOnCanvas(Drawing::Canvas& canvas,
+    const Drawing::Image& image, const LightBlurParameter& para)
 {
     auto brush = para.brush;
     Drawing::Matrix matrix;

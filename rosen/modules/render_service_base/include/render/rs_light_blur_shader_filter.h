@@ -16,8 +16,6 @@
 #define RENDER_SERVICE_BASE_CORE_RENDER_RS_LIGHT_BLUR_SHADER_FILTER_H
 
 #include "common/rs_macros.h"
-#include "draw/canvas.h"
-#include "image/image.h"
 #include "render/rs_shader_filter.h"
 namespace OHOS {
 namespace Rosen {
