@@ -817,8 +817,8 @@ int32_t HdiLayer::SetPerFrameParameterSdrNit()
         }
     }
 
-    std::vector<int8_t> valueBlob(sizeof(int32_t));
-    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetSdrNit();
+    std::vector<int8_t> valueBlob(sizeof(float));
+    *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetSdrNit();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_SDR_NIT, valueBlob);
 }
@@ -831,8 +831,8 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
         }
     }
 
-    std::vector<int8_t> valueBlob(sizeof(int32_t));
-    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
+    std::vector<int8_t> valueBlob(sizeof(float));
+    *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
 }
