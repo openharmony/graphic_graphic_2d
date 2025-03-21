@@ -140,8 +140,9 @@ HWTEST_F(MaskPlayerTest, PlaybackTest002, TestSize.Level1)
     const CmdList list;
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
     uint32_t type = MaskOpItem::OPITEM_HEAD;
-    int number = 0;
-    const void* opItem = &number;
+    PenHandle penHandle;
+    auto maskPenOpItem = std::make_shared<MaskPenOpItem>(penHandle);
+    const void* opItem = maskPenOpItem.get();
     size_t leftOpAllocatorSize = 0;
     ASSERT_TRUE(maskPlayer->Playback(type, opItem, leftOpAllocatorSize));
 
@@ -168,8 +169,7 @@ HWTEST_F(MaskBrushOpItemTest, PlaybackTest003, TestSize.Level1)
     Brush brush;
     const CmdList list;
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
-    int number = 0;
-    const void* opItem = &number;
+    const void* opItem = maskBrushOpItem.get();
     size_t leftOpAllocatorSize = 0;
     maskBrushOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
@@ -195,8 +195,7 @@ HWTEST_F(MaskPathOpItemTest, PlaybackTest004, TestSize.Level1)
     Brush brush;
     const CmdList list;
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
-    int number = 0;
-    const void* opItem = &number;
+    const void* opItem = maskPathOpItem.get();
     size_t leftOpAllocatorSize = 0;
     maskPathOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
@@ -222,8 +221,7 @@ HWTEST_F(MaskPenOpItemTest, PlaybackTest005, TestSize.Level1)
     Brush brush;
     const CmdList list;
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
-    int number = 0;
-    const void* opItem = &number;
+    const void* opItem = maskPenOpItem.get();
     size_t leftOpAllocatorSize = 0;
     maskPenOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
