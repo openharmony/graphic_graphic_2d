@@ -158,6 +158,8 @@ public:
 
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
+    void ResetCrossNodesVisitedStatus();
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -432,7 +434,7 @@ private:
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
     bool hasDisplayHdrOn_ = false;
-    bool hasVisitCrossNode_ = false;
+    std::vector<NodeId> hasVisitedCrossNodeIds_;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;

@@ -1210,13 +1210,33 @@ bool RSUniRenderVisitor::CheckSkipCrossNode(RSSurfaceRenderNode& node)
     }
     node.SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn_);
     curDisplayNode_->SetHasChildCrossNode(true);
-    if (hasVisitCrossNode_) {
+    if (node.HasVisitedCrossNode()) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s cross node[%s] skip", __func__, node.GetName().c_str());
         return true;
     }
     curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
-    hasVisitCrossNode_ = true;
+    node.SetCrossNodeVisitedStatus(true);
+    // If there are n source cross screen nodes, they will enter n times. size of hasVisitedCrossNodeIds_.() is n.
+    hasVisitedCrossNodeIds_.push_back(node.GetId());
     return false;
+}
+
+void RSUniRenderVisitor::ResetCrossNodesVisitedStatus()
+{
+    if (hasVisitedCrossNodeIds_.empty()) {
+        return;
+    }
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (NodeId nodeId : hasVisitedCrossNodeIds_) {
+        auto visitedNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+        if (!visitedNode) {
+            RS_LOGE("%{public}s visitedNode is nullptr NodeId[%{public}" PRIu64 "]", __func__, nodeId);
+            continue;
+        }
+        RS_LOGD("%{public}s NodeId[%{public}" PRIu64 "]", __func__, nodeId);
+        visitedNode->SetCrossNodeVisitedStatus(false);
+    }
+    hasVisitedCrossNodeIds_.clear();
 }
 
 void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion)

@@ -2391,6 +2391,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         rootNode->QuickPrepare(uniVisitor);
+        uniVisitor->ResetCrossNodesVisitedStatus();
 
 #ifdef RES_SCHED_ENABLE
         const auto& nodeMapForFrameReport = GetContext().GetNodeMap();
