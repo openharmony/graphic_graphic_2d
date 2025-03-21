@@ -159,10 +159,12 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
             }
         }
         auto vkTexture = cacheCompletedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
-        auto colorSpace = Drawing::ColorSpace::CreateSRGB() :
+        // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
+        // In other cases, the colorspace follows the targetColorGamut_
+        auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-        } else if(targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
+        } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
@@ -331,6 +333,8 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+        // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
+        // In other cases, the colorspace follows the targetColorGamut_
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
