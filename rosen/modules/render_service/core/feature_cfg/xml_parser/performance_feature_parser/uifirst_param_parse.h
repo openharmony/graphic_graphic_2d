@@ -38,10 +38,8 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseUIFirstInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseUIFirstInternal(xmlNode &node);
     int32_t ParseUIFirstSingleParam(const std::string& name, const std::string& value);
-
-    std::shared_ptr<UIFirstParam> uifirstParam_;
 };
 } // namespace OHOS::Rosen
 #endif // UIFIRST_PARAM_PARSE_H

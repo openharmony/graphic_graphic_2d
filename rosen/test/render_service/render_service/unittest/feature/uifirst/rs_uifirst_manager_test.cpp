@@ -1620,6 +1620,18 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
 @tc.name: IsSubTreeNeedPrepareForSnapshot
 @tc.desc: Test IsSubTreeNeedPrepareForSnapshot in recents.
 @tc.type: FUNC
+@tc.require: #IBV9YJ
+*/
+HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
+{
+    uifirstManager_.RefreshUIFirstParam();
+    ASSERT_EQ(uifirstManager_.purgeEnable_, RSSystemParameters::GetUIFirstPurgeEnabled());
+}
+
+/**
+@tc.name: IsSubTreeNeedPrepareForSnapshot
+@tc.desc: Test IsSubTreeNeedPrepareForSnapshot in recents.
+@tc.type: FUNC
 @tc.require: #IB7WHH
 */
 HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
