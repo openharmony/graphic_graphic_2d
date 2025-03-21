@@ -17,5 +17,7 @@ group("ani_packages") {
   deps = [
     "effect_kit:effectKit_ani",
     "effect_kit:effectKit_etc",
+    "ui_effect:uiEffect_ani",
+    "ui_effect:uiEffect_etc",
   ]
 }

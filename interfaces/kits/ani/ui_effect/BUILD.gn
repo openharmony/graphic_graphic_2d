@@ -1,0 +1,87 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+config("graphic_ani_ui_effect_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-Wno-unused-but-set-variable",
+  ]
+
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
+}
+
+ohos_shared_library("uiEffect_ani") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core/ui_effect",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  public_configs = []
+
+  configs = [ ":graphic_ani_ui_effect_config" ]
+
+  sources = [ "./src/ani_uieffect.cpp" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  output_extension = "so"
+}
+
+generate_static_abc("uiEffect") {
+  base_url = "./ets"
+  files = [ "./ets/@ohos.graphics.uiEffect.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/uiEffect.abc"
+}
+ohos_prebuilt_etc("uiEffect_etc") {
+  source = "$target_out_dir/uiEffect.abc"
+  module_install_dir = "framework"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  deps = [ ":uiEffect" ]
+}
