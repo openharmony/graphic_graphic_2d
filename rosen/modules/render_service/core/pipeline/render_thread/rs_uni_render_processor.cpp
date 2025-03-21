@@ -239,6 +239,13 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         ((layerInfo.dstRect.w != layerInfo.srcRect.w) || (layerInfo.dstRect.h != layerInfo.srcRect.h))) {
         dstRect = {layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h};
     }
+    if (params.GetOffsetX() != 0 || params.GetOffsetY() != 0 || !ROSEN_EQ(params.GetRogWidthRatio(), 1.0f)) {
+        dstRect = {
+            static_cast<int>(std::round((layerInfo.dstRect.x - params.GetOffsetX()) * params.GetRogWidthRatio())),
+            static_cast<int>(std::round((layerInfo.dstRect.y - params.GetOffsetY()) * params.GetRogWidthRatio())),
+            static_cast<int>(std::round((layerInfo.dstRect.w * params.GetRogWidthRatio()))),
+            static_cast<int>(std::round((layerInfo.dstRect.h * params.GetRogWidthRatio())))};
+    }
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
     bool forceClientForDRM = GetForceClientForDRM(params);
@@ -284,9 +291,11 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     }
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X), layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X) - params.GetOffsetX(),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_Y),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y) - params.GetOffsetY(),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());

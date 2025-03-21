@@ -1753,6 +1753,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
 
 void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
+    if (node.GetDRMGlobalPositionEnabled()) {
+        return;
+    }
     auto dstRect = node.GetDstRect();
     auto srcRect = node.GetSrcRect();
     auto originSrcRect = srcRect;

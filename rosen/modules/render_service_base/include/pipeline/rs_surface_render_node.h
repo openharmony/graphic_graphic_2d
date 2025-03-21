@@ -526,6 +526,12 @@ public:
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const override;
 
+    void SetDRMGlobalPositionEnabled(bool isEnabled);
+    bool GetDRMGlobalPositionEnabled() const;
+
+    void SetDRMCrossNode(bool isCrossNode);
+    bool IsDRMCrossNode() const;
+
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
@@ -1501,6 +1507,8 @@ private:
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
+    bool isDRMGlobalPositionEnabled_ = false;
+    bool isDRMCrossNode_ = false;
     bool hasFingerprint_ = false;
     // hdr video
     HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
