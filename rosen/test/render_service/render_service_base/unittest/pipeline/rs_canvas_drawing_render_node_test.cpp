@@ -438,7 +438,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     NodeId nodeId = 1;
     std::weak_ptr<RSContext> context;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     Drawing::Matrix matrix;
     PropertyId id = 1;
     std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
