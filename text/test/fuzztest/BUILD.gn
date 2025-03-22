@@ -17,7 +17,10 @@ group("fuzztest") {
   deps = []
 
   deps += [
-    "skia_txt:fuzztest",
+    "drawing_fuzzer:fuzztest",
+    "drawingrun_fuzzer:fuzztest",
+    "drawingtext_fuzzer:fuzztest",
     "hm_symbol:fuzztest",
+    "skia_txt:fuzztest",
   ]
 }

@@ -15,6 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/text/config.gni")
 module_out_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -23,7 +24,7 @@ ohos_fuzztest("DrawingRunFuzzTest") {
   fuzz_config_file = "."
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$rosen_text_root/interface/export",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",

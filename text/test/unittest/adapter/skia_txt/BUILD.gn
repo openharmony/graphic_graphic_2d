@@ -34,12 +34,12 @@ ohos_unittest("rosen_text_adapt_test") {
   }
   include_dirs = [
     "//third_party/googletest/googletest/include",
-    "$text_root",
-    "$text_root/service/skia_txt",
-    "$text_root/interface/export",
-    "$text_root/interface/export/rosen_text",
-    "$text_root/adapter/skia",
-    "$text_root/adapter/skia/txt",
+    "$rosen_text_root",
+    "$rosen_text_root/service/skia_txt",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
+    "$rosen_text_root/adapter/skia",
+    "$rosen_text_root/adapter/skia/txt",
     "$rosen_root/modules/render_service_base/include",
     "$skia_root_new",
   ]
@@ -72,7 +72,7 @@ ohos_unittest("rosen_text_adapt_test") {
 
   #defines += [ "OHOS_STANDARD_SYSTEM" ]
   deps = [
-    "$text_root/adapter/skia:skia_libtxt_$platform",
+    "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
     "$rosen_root/modules/2d_graphics:2d_graphics",
     "//third_party/googletest:gtest_main",
   ]

@@ -31,8 +31,8 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
 
   include_dirs = [
     "$rosen_root/modules/render_service_base/include",
-    "$text_root/rosen_text",
-    "$text_root/interface/export/rosen_text",
+    "$rosen_text_root/rosen_text",
+    "$rosen_text_root/interface/export/rosen_text",
     "//third_party/googletest/googletest/include",
   ]
 

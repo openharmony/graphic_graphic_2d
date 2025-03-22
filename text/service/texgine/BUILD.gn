@@ -26,7 +26,7 @@ config("libtexgine_config") {
     "-std=c++17",
   ]
 
-  include_dirs = [ "$text_root" ]
+  include_dirs = [ "$rosen_text_root" ]
 }
 
 if (defined(is_arkui_x) && is_arkui_x) {
@@ -37,7 +37,7 @@ if (defined(is_arkui_x) && is_arkui_x) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$text_root/interface/export/rosen_text",
+      "$rosen_text_root/interface/export/rosen_text",
     ]
   }
 } else {
@@ -47,7 +47,7 @@ if (defined(is_arkui_x) && is_arkui_x) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "$graphic_2d_root/rosen/modules/2d_graphics/include",
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$text_root/interface/export/rosen_text",
+      "$rosen_text_root/interface/export/rosen_text",
     ]
   }
 }

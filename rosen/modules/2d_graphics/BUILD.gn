@@ -30,7 +30,6 @@ config("2d_graphics_config") {
     "$drawing_core_src_dir/engine_adapter",
     "$platform_dir/image_native",
     "$rosen_root/modules/render_service_base/include",
-    "$rosen_root/modules/texgine/texgine_drawing/src",
   ]
 }
 
@@ -42,8 +41,8 @@ config("export_config") {
     "$drawing_core_src_dir/engine_adapter",
     "$graphic_2d_root/utils/color_manager/export",
     "$rosen_root/modules/render_service_base/include",
-    "$rosen_root/modules/texgine/texgine_drawing/src",
-    "$text_root/interface/export",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
   ]
 
   if (rs_enable_gpu) {
@@ -212,7 +211,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir",
       "$drawing_core_src_dir/engine_adapter",
       "$rosen_root/modules/render_service_base/include",
-      "$text_root/texgine/src",
+      "$rosen_text_root/texgine/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
 
@@ -290,28 +289,14 @@ template("graphics2d_source_set") {
         defines += [ "USE_TEXGINE" ]
       }
       include_dirs += [
-        "$text_root",
-        "$text_root/service",
-        "$text_root/interface/export",
+        "$rosen_text_root",
+        "$rosen_text_root/service",
+        "$rosen_text_root/interface/export",
         "$platform_dir/image_native",
       ]
       if (defined(use_new_skia) && use_new_skia) {
         defines += [ "NEW_SKIA" ]
       }
-    } else {
-      sources += [
-        "$rosen_text_root/properties/font_collection_txt.cpp",
-        "$rosen_text_root/properties/placeholder_run.cpp",
-        "$rosen_text_root/properties/rosen_converter_txt.cpp",
-        "$rosen_text_root/properties/text_style.cpp",
-        "$rosen_text_root/properties/typography_create_txt.cpp",
-        "$rosen_text_root/properties/typography_style.cpp",
-        "$rosen_text_root/properties/typography_txt.cpp",
-        "$rosen_text_root/ui/font_collection.cpp",
-        "$rosen_text_root/ui/typography.cpp",
-        "$rosen_text_root/ui/typography_create.cpp",
-      ]
-      include_dirs += [ "$text_root" ]
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
@@ -367,7 +352,7 @@ template("graphics2d_source_set") {
       deps += [ "$graphic_2d_root/text:rosen_text_inner" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
-        include_dirs += [ "$text_root/adapter/skia" ]
+        include_dirs += [ "$rosen_text_root/adapter/skia" ]
       }
     }
     if (rosen_is_ohos) {

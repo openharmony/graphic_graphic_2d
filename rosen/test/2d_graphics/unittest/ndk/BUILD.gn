@@ -63,7 +63,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/render_service_client",
-    "$text_root/service/texgine/src",
+    "$rosen_text_root/service/texgine/src",
     "//third_party/googletest/googletest/include",
   ]
 
@@ -75,8 +75,8 @@ ohos_unittest("2d_graphics_ndk_test") {
 
   if (enable_text_gine) {
     include_dirs += [
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
-      "$text_root/adapter/skia",
+      "$rosen_text_root/interface/export",
+      "$rosen_text_root/adapter/skia",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "//third_party/skia",
     ]

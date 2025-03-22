@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/text/config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/test/texgine/unittest"
+module_output_path = "graphic_2d/graphic_2d/rosen/texgine/"
 
 group("unittest") {
   testonly = true
@@ -24,8 +24,8 @@ group("unittest") {
 
 config("texgine_test_config") {
   include_dirs = [
-    "$text_root/service/texgine/src",
-    "$text_root/service/texgine/src/opentype_parser",
+    "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root/service/texgine/src/opentype_parser",
   ]
 
   cflags = [
