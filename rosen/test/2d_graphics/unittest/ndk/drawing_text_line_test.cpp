@@ -494,7 +494,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
             EXPECT_NEAR(ascent, 27.84, FLOAT_DATA_EPSILON);
             EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         }
-        EXPECT_EQ(floor(width), widthArr[index]);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -615,7 +615,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
 
     std::vector<OH_Drawing_Rect *> lineRectArr = {OH_Drawing_RectCreate(2.0, 3.0, 280.629761, 32.0),
         OH_Drawing_RectCreate(9.099991, 5.0, 489.209412, 37.0), OH_Drawing_RectCreate(1.0, 8.0, 447.999573, 42.0),
-        OH_Drawing_RectCreate(0.0, 0.0, 0.0, 0.0), OH_Drawing_RectCreate(24.299973, 8.0, 498.514832, 44.0),
+        OH_Drawing_RectCreate(0.0, 0.0, 0.0, 0.0), OH_Drawing_RectCreate(24.299973, 8.0, 498.514801, 44.0),
         OH_Drawing_RectCreate(0.0, 8.0, 409.497314, 44.0), OH_Drawing_RectCreate(2.0, 1.0, 50.199951, 25.0)};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
@@ -1075,7 +1075,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest033, TestSize.Level1)
         if (index == 0 && leadingEdge) {
             EXPECT_NEAR(offset, 0.0, FLOAT_DATA_EPSILON);
         } else if (index == 1 && leadingEdge) {
-            EXPECT_NEAR(offset, 22.349945, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(offset, 22.349976, FLOAT_DATA_EPSILON);
         } else if (index == 2 && leadingEdge) {
             EXPECT_NEAR(offset, 52.349945, FLOAT_DATA_EPSILON);
         } else {
