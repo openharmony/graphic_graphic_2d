@@ -82,6 +82,7 @@ constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
+constexpr const char* RELIABLE_ONE_HAND_MODE_BACK_SURFACE_NAME = "OneHandModeBackground";
 constexpr int MIN_OVERLAP = 2;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
@@ -4021,12 +4022,15 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
         bool surfaceNodeSet = false;
-        bool needMapAbsRect = true;
         auto windowContainer = curDisplayNode_->GetWindowContainer();
-        if (windowContainer) {
-            if (!ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleX(), 1.0f, EPSILON_SCALE) ||
-                !ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleY(), 1.0f, EPSILON_SCALE)) {
-                needMapAbsRect = false;
+        if (curDisplayNode_->GetWindowContainer()) {
+            for (auto surface : surfaces) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
+                if (surfaceNode != nullptr &&
+                    surfaceNode->GetName().find(RELIABLE_ONE_HAND_MODE_BACK_SURFACE_NAME) != std::string::npos) {
+                    curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
+                    return;
+                }
             }
         }
         for (auto surface : surfaces) {
@@ -4041,9 +4045,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
                 if (!geoPtr) {
                     break;
                 }
-                if (needMapAbsRect) {
-                    tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
-                }
+                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
                 surfaceNodeSet = true;
                 break;
@@ -4054,9 +4056,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
             if (!geoPtr) {
                 return;
             }
-            if (needMapAbsRect) {
-                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
-            }
+            tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
         }
     }
