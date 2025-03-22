@@ -166,6 +166,7 @@ void ParagraphImpl::InitSymbolRuns()
             std::shared_ptr<HMSymbolRun> hmSymbolRun = std::make_shared<HMSymbolRun>();
             hmSymbolRun->SetAnimation(animationFunc_);
             hmSymbolRun->SetSymbolUid(p.symbol.GetSymbolUid());
+            hmSymbolRun->SetSymbolTxt(p.symbol);
             hmSymbols_.push_back(std::move(hmSymbolRun));
         }
     });
