@@ -1383,13 +1383,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
-    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
-    if (!multiScreenFeatureParam) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection multiScreenFeatureParam is null");
-        return;
-    }
-    bool isProcessSecLayer = !multiScreenFeatureParam->IsExternalScreenSecure() &&
+    bool isProcessSecLayer = !MultiScreenParam::IsExternalScreenSecure() &&
         mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
@@ -1481,13 +1475,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
-    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
-    if (!multiScreenFeatureParam) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw multiScreenFeatureParam is null");
-        return;
-    }
-    if (!multiScreenFeatureParam->IsExternalScreenSecure()) {
+    if (!MultiScreenParam::IsExternalScreenSecure()) {
         auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
         if (hasSecSurface) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);

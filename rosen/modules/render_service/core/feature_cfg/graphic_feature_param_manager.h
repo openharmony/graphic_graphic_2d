@@ -95,7 +95,7 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
-    {FEATURE_CONFIGS[MULTISCREEN], [] {return std::make_unique<MultiScreenParamParse>(); },
+    {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },
         [] {return std::make_unique<MultiScreenParam>(); }},
     {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
         [] {return std::make_unique<PrevalidateParam>(); }},

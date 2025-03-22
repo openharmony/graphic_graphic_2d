@@ -547,16 +547,10 @@ void RSScreenManager::ProcessPendingConnections()
         std::lock_guard<std::mutex> lock(hotPlugAndConnectMutex_);
         pendingConnectedIds = std::move(pendingConnectedIds_);
     }
-    auto multiScreenFeatureParam = std::static_pointer_cast<MultiScreenParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[MULTISCREEN]));
-    if (!multiScreenFeatureParam) {
-        RS_LOGE("%{public}s multiScreenFeatureParam is null", __func__);
-        return;
-    }
     for (auto id : pendingConnectedIds) {
         if (!isHwcDead_) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && multiScreenFeatureParam->IsRsReportHwcDead()) {
+        } else if (id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
             TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
         auto screen = GetScreen(id);

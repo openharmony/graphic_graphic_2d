@@ -672,7 +672,7 @@ public:
     {
         return sourceDisplayRenderNodeDrawable_;
     }
-protected:
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
