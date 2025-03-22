@@ -3006,6 +3006,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest114, TestSize.Level
     OH_Drawing_TypographyStyleGetStrutStyle(typoStyle);
     OH_Drawing_TypographyStyleDestroyStrutStyle(nullptr);
 
+    free(strutstyle1->families);
+    OH_Drawing_TypographyStyleDestroyStrutStyle(strutstyle1);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTextStyle(textStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
