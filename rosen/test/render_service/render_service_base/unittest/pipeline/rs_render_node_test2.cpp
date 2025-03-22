@@ -41,7 +41,6 @@ const std::string OUT_STR3 =
 const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
 const std::string OUT_STR5 = ", skipLayer: 0";
 
-const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeTest2 : public testing::Test {
 public:
     constexpr static float floatData[] = {
