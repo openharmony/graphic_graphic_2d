@@ -63,12 +63,12 @@ public:
     void Paint();
 
 protected:
-    OH_Drawing_TypographyCreate* fHandler = nullptr;
-    OH_Drawing_Typography* fTypography = nullptr;
-    OH_Drawing_TypographyStyle* fTypoStyle = nullptr;
-    OH_Drawing_Canvas* fCanvas = nullptr;
-    OH_Drawing_Bitmap* fBitmap = nullptr;
-    int fLayoutWidth = 50;
+    OH_Drawing_TypographyCreate* fHandler{nullptr};
+    OH_Drawing_Typography* fTypography{nullptr};
+    OH_Drawing_TypographyStyle* fTypoStyle{nullptr};
+    OH_Drawing_Canvas* fCanvas{nullptr};
+    OH_Drawing_Bitmap* fBitmap{nullptr};
+    int fLayoutWidth{50};
 };
 
 void OH_Drawing_TypographyTest::SetUp()
@@ -2282,39 +2282,119 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest077, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest078
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest001
  * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level1)
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest001, TestSize.Level1)
 {
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_START);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_LTR);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_LEFT);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_RTL);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_RIGHT);
+    CreateTypographyHandler();
+    AddText();
+    CreateTypography();
+    Layout();
+    OH_Drawing_TextBox* boxes =
+        OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 23);
+}
 
+/*
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest002
+ * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest002, TestSize.Level1)
+{
     OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_END);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_LTR);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_RIGHT);
     OH_Drawing_SetTypographyTextDirection(fTypoStyle, TEXT_DIRECTION_RTL);
     EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_LEFT);
-
-    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_CENTER);
-    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_CENTER);
-    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_JUSTIFY);
-    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_JUSTIFY);
-    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_LEFT);
-    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_LEFT);
-    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_RIGHT);
-    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_RIGHT);
-
-    EXPECT_FALSE(OH_Drawing_TypographyStyleIsHintEnabled(fTypoStyle));
-
     CreateTypographyHandler();
     AddText();
     CreateTypography();
     Layout();
+    OH_Drawing_TextBox* boxes =
+    OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 18);
+}
+
+
+/*
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest003
+ * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest003, TestSize.Level1)
+{
+    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_CENTER);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_CENTER);
+    CreateTypographyHandler();
+    AddText();
+    CreateTypography();
+    Layout();
+    OH_Drawing_TextBox* boxes =
+    OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 20);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest004
+ * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest004, TestSize.Level1)
+{
+    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_JUSTIFY);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_JUSTIFY);
+    CreateTypographyHandler();
+    AddText();
+    CreateTypography();
+    Layout();
+    OH_Drawing_TextBox* boxes =
+    OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 18);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest005
+ * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest005, TestSize.Level1)
+{
+    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_LEFT);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_LEFT);
+    CreateTypographyHandler();
+    AddText();
+    CreateTypography();
+    Layout();
+    OH_Drawing_TextBox* boxes =
+    OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 18);
+}
+
+
+/*
+ * @tc.name: OH_Drawing_TypographyTextDirectionTest006
+ * @tc.desc: test for gets the typoStyle alignment mode and whether to enable text prompts
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTextDirectionTest006, TestSize.Level1)
+{
+    OH_Drawing_SetTypographyTextAlign(fTypoStyle, TEXT_ALIGN_RIGHT);
+    EXPECT_EQ(OH_Drawing_TypographyStyleGetEffectiveAlignment(fTypoStyle), TEXT_ALIGN_RIGHT);
+    CreateTypographyHandler();
+    AddText();
+    CreateTypography();
+    Layout();
+    OH_Drawing_TextBox* boxes =
+    OH_Drawing_TypographyGetRectsForRange(fTypography, 1, 2, RECT_HEIGHT_STYLE_TIGHT, RECT_WIDTH_STYLE_TIGHT);
+    EXPECT_EQ(::round(OH_Drawing_GetLeftFromTextBox(boxes, 0)), 23);
 }
 
 /*
