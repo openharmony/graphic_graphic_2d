@@ -82,7 +82,7 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-    static inline Drawing::Canvas drawingCanvas_;
+    static inline Drawing::Canvas* drawingCanvas_;
 };
 
 class PropertyDrawableTest : public RSPropertyDrawable {
@@ -115,12 +115,15 @@ public:
 
 void RSRenderNodeTest::SetUpTestCase()
 {
-    canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
+    drawingCanvas_ = new Drawing::Canvas();
+    canvas_ = new RSPaintFilterCanvas(drawingCanvas_);
 }
 void RSRenderNodeTest::TearDownTestCase()
 {
-    delete canvas_;
-    canvas_ = nullptr;
+    if (canvas_) {
+        delete canvas_;
+        canvas_ = nullptr;
+    }
 }
 void RSRenderNodeTest::SetUp() {}
 void RSRenderNodeTest::TearDown() {}
@@ -2965,6 +2968,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
         isPropertyChanged = true;
     }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     canvasNode->lastFrameSubTreeSkipped_ = true;
     canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
@@ -2995,6 +2999,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
         isPropertyChanged = true;
     }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = canvasNode->GetMutableRenderProperties();
     properties.clipToBounds_ = true;

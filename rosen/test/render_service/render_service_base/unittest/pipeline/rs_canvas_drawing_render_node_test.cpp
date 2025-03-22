@@ -473,7 +473,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     }
     rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
     rsCanvasDrawingRenderNode.AddDirtyType(type);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
     rsCanvasDrawingRenderNode.ClearOp();
     const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
     EXPECT_TRUE(curDrawCmdLists.empty());

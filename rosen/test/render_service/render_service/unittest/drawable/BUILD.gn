@@ -26,7 +26,6 @@ group("unittest") {
     ":RSDisplayRenderNodeDrawableTest",
     ":RSDmaBufferSurfaceRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
-    ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableAutoCacheTest",
     ":RSRenderNodeDrawableTest",

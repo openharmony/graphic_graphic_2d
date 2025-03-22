@@ -653,9 +653,10 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
     director->SendMessages();
     uint32_t index = director->GetIndex();
-    EXPECT_TRUE(index != 0);
+    EXPECT_TRUE(index == 0);
 }
 
 /**

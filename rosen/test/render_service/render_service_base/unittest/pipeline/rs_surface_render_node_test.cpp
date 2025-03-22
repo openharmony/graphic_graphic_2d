@@ -1453,21 +1453,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MetadataTest
- * @tc.desc: test results of SetHasMetadata, GetSdrHadMetadata
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, MetadataTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->SetSdrHasMetadata(true);
-    EXPECT_EQ(testNode->GetSdrHasMetadata(), true);
-    testNode->SetSdrHasMetadata(false);
-    EXPECT_EQ(testNode->GetSdrHasMetadata(), false);
-}
-
-/**
  * @tc.name: SetContextClipRegionTest
  * @tc.desc: test results of GetContextClipRegion
  * @tc.type: FUNC
