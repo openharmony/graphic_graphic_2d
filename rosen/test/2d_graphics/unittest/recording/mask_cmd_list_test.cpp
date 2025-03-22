@@ -171,12 +171,12 @@ HWTEST_F(MaskBrushOpItemTest, PlaybackTest003, TestSize.Level1)
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
     const void* opItem = maskBrushOpItem.get();
     size_t leftOpAllocatorSize = 0;
-    maskBrushOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
     leftOpAllocatorSize = sizeof(MaskBrushOpItem);
-    maskBrushOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
     const void* item = nullptr;
-    maskBrushOpItem->Playback(*maskPlayer, item, leftOpAllocatorSize);
+    MaskBrushOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
     maskBrushOpItem->Playback(brush, list);
     ASSERT_TRUE(opItem != nullptr);
 }
@@ -197,12 +197,12 @@ HWTEST_F(MaskPathOpItemTest, PlaybackTest004, TestSize.Level1)
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
     const void* opItem = maskPathOpItem.get();
     size_t leftOpAllocatorSize = 0;
-    maskPathOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskPathOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
     leftOpAllocatorSize = sizeof(MaskPathOpItem);
-    maskPathOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskPathOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
     const void* item = nullptr;
-    maskPathOpItem->Playback(*maskPlayer, item, leftOpAllocatorSize);
+    MaskPathOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
     maskPathOpItem->Playback(path, list);
     ASSERT_TRUE(opItem != nullptr);
 }
@@ -223,12 +223,12 @@ HWTEST_F(MaskPenOpItemTest, PlaybackTest005, TestSize.Level1)
     auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
     const void* opItem = maskPenOpItem.get();
     size_t leftOpAllocatorSize = 0;
-    maskPenOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
 
     leftOpAllocatorSize = sizeof(MaskPenOpItem);
-    maskPenOpItem->Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
     const void* item = nullptr;
-    maskPenOpItem->Playback(*maskPlayer, item, leftOpAllocatorSize);
+    MaskPenOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
     Pen pen;
     maskPenOpItem->Playback(pen, list);
     ASSERT_TRUE(opItem != nullptr);
