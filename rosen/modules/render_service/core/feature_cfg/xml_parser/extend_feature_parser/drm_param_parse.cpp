@@ -32,7 +32,7 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
             continue;
         }
 
-        if (ParseDrmInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseDrmInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("DRMParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,27 +41,18 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t DRMParamParse::ParseDrmInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[DRM]);
-    if (iter != featureMap.end()) {
-        drmParam_ = std::static_pointer_cast<DRMParam>(iter->second);
-    } else {
-        RS_LOGD("DRMParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
+    xmlNode *curNode = &node;
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*currNode);
-    auto name = ExtractPropertyValue("name", *currNode);
-    auto val = ExtractPropertyValue("value", *currNode);
+    int xmlParamType = GetXmlNodeAsInt(*curNode);
+    auto name = ExtractPropertyValue("name", *curNode);
+    auto val = ExtractPropertyValue("value", *curNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "DrmEnabled") {
-            drmParam_->SetDrmEnable(isEnabled);
-            RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", drmParam_->IsDrmEnable());
+            DRMParam::SetDrmEnable(isEnabled);
+            RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", DRMParam::IsDrmEnable());
         }
     }
     return PARSE_EXEC_SUCCESS;

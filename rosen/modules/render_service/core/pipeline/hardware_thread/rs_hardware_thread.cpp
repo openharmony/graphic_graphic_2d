@@ -915,8 +915,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
-    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+
+    static bool isCCMDrmEnabled = DRMParam::IsDrmEnable();
     bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
 
 #ifdef RS_ENABLE_VK
