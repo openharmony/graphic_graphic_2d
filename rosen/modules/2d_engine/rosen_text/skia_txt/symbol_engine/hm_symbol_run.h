@@ -79,6 +79,11 @@ public:
         symbolTxt_ = hmsymbolTxt;
     }
 
+    const HMSymbolTxt& GetSymbolTxt()
+    {
+        return symbolTxt_;
+    }
+
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);
 

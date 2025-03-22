@@ -289,6 +289,7 @@ std::shared_ptr<HMSymbolRun> RSCanvasParagraphPainter::generateSymbolRun(
         }
 
         hmSymbol->SetTextBlob(blob);
+        hmSymbol->SetSymbolTxt(pr.symbol);
         return hmSymbol;
     }
     return nullptr;

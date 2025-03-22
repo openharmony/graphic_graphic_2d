@@ -154,6 +154,9 @@ private:
 
     void InitSymbolRuns();
 
+    void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
+        skt::InternalState& state, size_t index);
+
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;

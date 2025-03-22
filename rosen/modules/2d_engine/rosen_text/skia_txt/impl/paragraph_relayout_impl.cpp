@@ -475,6 +475,22 @@ void ParagraphImpl::TextStyleUpdater(skt::Block& skiaBlock, const TextStyle& spT
     }
 }
 
+void ParagraphImpl::UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
+    skt::InternalState& state, size_t index)
+{
+    if (hmSymbolRun->GetSymbolUid() != symbolStyle.GetSymbolUid()) {
+        return;
+    }
+
+    g_symbolStyleHandlers[index](symbolStyle, hmSymbolRun, state);
+    for (PaintRecord& p : paints_) {
+        if (p.symbol.GetSymbolUid() != hmSymbolRun->GetSymbolUid()) {
+            continue;
+        }
+        p.symbol = hmSymbolRun->GetSymbolTxt();
+    }
+}
+
 void ParagraphImpl::SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>&
     hmSymbolRuns, skt::InternalState& state)
 {
@@ -486,11 +502,7 @@ void ParagraphImpl::SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vect
         }
 
         for (size_t j = 0; j < hmSymbolRuns.size(); ++j) {
-            std::shared_ptr<HMSymbolRun>& hmSymbolRun = hmSymbolRuns[j];
-            if (hmSymbolRun->GetSymbolUid() != symbolStyle.GetSymbolUid()) {
-                continue;
-            }
-            g_symbolStyleHandlers[i](symbolStyle, hmSymbolRun, state);
+            UpdateSymbolRun(symbolStyle, hmSymbolRuns[j], state, i);
         }
     }
 }
