@@ -429,6 +429,7 @@ HWTEST_F(RectTest, IntersectRect001, TestSize.Level1)
 {
     RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
     RectF rectf2;
+    rectf1.IntersectRect(rectf2);
     EXPECT_EQ(0.0f, rectf1.GetLeft());
     EXPECT_EQ(0.0f, rectf1.GetTop());
     EXPECT_EQ(0.0f, rectf1.GetRight());
