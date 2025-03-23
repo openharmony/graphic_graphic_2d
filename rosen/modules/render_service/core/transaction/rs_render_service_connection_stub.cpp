@@ -314,7 +314,7 @@ std::string GetBundleName(pid_t pid)
     static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
     if (appMgrClient == nullptr) {
         RS_LOGE("GetBundleName get appMgrClient fail.");
-        retrurn bundleName;
+        return bundleName;
     }
     int32_t uid = 0;
     appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
