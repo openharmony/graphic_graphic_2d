@@ -830,9 +830,9 @@ napi_value JsPath::OnGetSegment(napi_env env, napi_callback_info info)
         stop = length;
     }
     if (start >= stop) {
-        return CreateJsNumber(env, false);
+        return CreateJsValue(env, false);
     }
-    return CreateJsNumber(env, m_path->GetSegment(start, stop, dst, startWithMoveTo, forceClosed));
+    return CreateJsValue(env, m_path->GetSegment(start, stop, dst, startWithMoveTo, forceClosed));
 }
 
 napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
