@@ -187,6 +187,7 @@ public:
 
     void Init(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
+    void SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData);
     void InitTouchManager();
     // called by RSMainThread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn);
