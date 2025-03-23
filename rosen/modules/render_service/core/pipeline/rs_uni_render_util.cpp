@@ -403,7 +403,12 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
     auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer);
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
+    auto& renderParams = const_cast<RSSurfaceRenderNode&>(node).GetStagingRenderParams();
+    auto surfaceRenderParams = renderParams == nullptr
+                            ? nullptr
+                            : static_cast<RSSurfaceRenderParams*>(renderParams.get());
+    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params,
+        surfaceRenderParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     return params.matrix;
 }
