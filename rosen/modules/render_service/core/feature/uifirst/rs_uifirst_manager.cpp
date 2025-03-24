@@ -110,6 +110,9 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     if (!nodePtr) {
         return;
     }
+    RS_LOGD("uifirst ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,"
+        "toBeCaptured:%{public}d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
+        nodePtr->IsNodeToBeCaptured());
     nodePtr->SetUifirstUseStarting(false);
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
@@ -1532,16 +1535,13 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
     }
     if (lastFrameCacheType == MultiThreadCacheType::NONE) { // likely branch: last is disable
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // switch: disable -> enable
-            if (node.isTargetUIFirstDfxEnabled_) {
-                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[0 => 1]",
-                    node.GetName().c_str(), node.GetId());
-            }
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
             if (!surfaceNode) {
                 RS_LOGE("UifirstStateChange surfaceNode is nullptr");
                 return;
             }
-            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch disable -> enable %" PRIu64"", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %" PRIu64, node.GetId());
+            RS_LOGI("uifirst disable -> enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
@@ -1558,25 +1558,19 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             node.SetSubThreadAssignable(true);
             node.SetNeedCacheSurface(false);
         } else { // keep disable
-            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64"", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64, node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
         }
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
-            if (node.isTargetUIFirstDfxEnabled_) {
-                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[1]",
-                    node.GetName().c_str(), node.GetId());
-            }
-            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64"", node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64, node.GetId());
+            RS_LOGD("uifirst keep enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
-            if (node.isTargetUIFirstDfxEnabled_) {
-                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[1 => 0]",
-                    node.GetName().c_str(), node.GetId());
-            }
-            RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64"", node.GetId());
+            RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64, node.GetId());
+            RS_LOGI("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
             RemoveCardNodes(node.GetId());

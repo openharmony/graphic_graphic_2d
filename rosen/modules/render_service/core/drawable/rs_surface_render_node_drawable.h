@@ -331,6 +331,7 @@ private:
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
     struct CacheSurfaceInfo {
         int processedSurfaceCount = -1;
+        int processedNodeCount = -1;
         float alpha = -1.f;
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
