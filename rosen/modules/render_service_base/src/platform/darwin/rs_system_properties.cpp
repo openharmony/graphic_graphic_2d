@@ -78,6 +78,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
@@ -98,12 +103,27 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
     return {};
 }
 
+AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
+{
+    return {};
+}
+
+DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
+{
+    return {};
+}
+
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
     return {};
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
+{
+    return {};
+}
+
+StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     return {};
 }
@@ -470,6 +490,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetWideColorSpaceEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -593,6 +618,21 @@ bool RSSystemProperties::GetOptimizeParentNodeRegionEnabled()
 bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetWindowKeyFrameEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

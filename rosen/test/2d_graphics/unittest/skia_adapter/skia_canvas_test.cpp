@@ -254,6 +254,28 @@ HWTEST_F(SkiaCanvasTest, DrawPath001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawPathWithStencil001
+ * @tc.desc: Test DrawPathWithStencil
+ * @tc.type: FUNC
+ * @tc.require: IBROZ2
+ */
+HWTEST_F(SkiaCanvasTest, DrawPathWithStencil001, TestSize.Level1)
+{
+    constexpr uint32_t stencilVal{10};
+    Path path;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+    skiaCanvas.DrawPathWithStencil(path, stencilVal, paint);
+    EXPECT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawPathWithStencil(path, stencilVal, paint);
+    EXPECT_TRUE(skiaCanvas.ExportSkCanvas() == nullptr);
+}
+
+/**
  * @tc.name: DrawBackground001
  * @tc.desc: Draw Background Test
  * @tc.type: FUNC
@@ -353,6 +375,31 @@ HWTEST_F(SkiaCanvasTest, DrawImage001, TestSize.Level1)
 
     skiaCanvas.ImportSkCanvas(nullptr);
     skiaCanvas.DrawImage(image, px, py, sampling, paint);
+}
+
+/**
+ * @tc.name: DrawImageWithStencil001
+ * @tc.desc: Test DrawImageWithStencil
+ * @tc.type: FUNC
+ * @tc.require: IBROZ2
+ */
+HWTEST_F(SkiaCanvasTest, DrawImageWithStencil001, TestSize.Level1)
+{
+    constexpr uint32_t stencilVal{10};
+    Image image;
+    scalar px = 30.0f;
+    scalar py = 65.0f;
+    SamplingOptions sampling;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+    skiaCanvas.DrawImageWithStencil(image, px, py, sampling, stencilVal, paint);
+    EXPECT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+
+    skiaCanvas.ImportSkCanvas(nullptr);
+    skiaCanvas.DrawImageWithStencil(image, px, py, sampling, stencilVal, paint);
+    EXPECT_TRUE(skiaCanvas.ExportSkCanvas() == nullptr);
 }
 
 /**
@@ -733,6 +780,26 @@ HWTEST_F(SkiaCanvasTest, DrawColor001, TestSize.Level1)
     auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
     ASSERT_TRUE(skiaCanvas != nullptr);
     skiaCanvas->DrawColor(0xFF000000, BlendMode::COLOR_BURN);
+}
+
+/**
+ * @tc.name: ClearStencil001
+ * @tc.desc: Test ClearStencil
+ * @tc.type: FUNC
+ * @tc.require: IBROZ2
+ */
+HWTEST_F(SkiaCanvasTest, ClearStencil001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    RectI rect;
+    constexpr uint32_t stencilVal{10};
+    skiaCanvas->ClearStencil(rect, stencilVal);
+    EXPECT_TRUE(skiaCanvas->ExportSkCanvas() != nullptr);
+
+    skiaCanvas->ImportSkCanvas(nullptr);
+    skiaCanvas->ClearStencil(rect, stencilVal);
+    EXPECT_TRUE(skiaCanvas->ExportSkCanvas() == nullptr);
 }
 
 /**

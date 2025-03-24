@@ -24,6 +24,7 @@ int RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSISurfaceOcclusionChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 

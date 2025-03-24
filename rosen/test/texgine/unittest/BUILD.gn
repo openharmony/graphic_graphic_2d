@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/test/texgine/unittest"
+module_output_path = "graphic_2d/graphic_2d/rosen/texgine/"
 is_ok = true
 
 group("unittest") {
@@ -44,9 +44,6 @@ config("texgine_test_config") {
 group("common_deps") {
   testonly = true
   public_deps = [
-    "$graphic_2d_root/rosen/build/icu:rosen_libicu_ohos",
-    "$graphic_2d_root/rosen/modules/texgine:libtexgine",
-    "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
     "$graphic_2d_root/utils/test_header:test_header",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest",

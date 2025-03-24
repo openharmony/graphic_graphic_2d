@@ -159,6 +159,25 @@ static std::vector<std::string> GetDebugLayerPaths()
     return layerPaths;
 }
 
+static std::vector<std::string> GetSquidHapLayerPaths()
+{
+    WLOGD("GetSquidHapLayerPaths");
+    std::vector<std::string> layerPaths = {};
+    std::string pathStr(DEBUG_SANDBOX_DIR);
+
+    std::string appLibPath = g_bundleInfo.applicationInfo.nativeLibraryPath;
+    if (!appLibPath.empty()) {
+        layerPaths.push_back(pathStr + appLibPath + "/");
+    }
+
+    for (auto hapModuleInfo: g_bundleInfo.hapModuleInfos) {
+        if (!hapModuleInfo.nativeLibraryPath.empty()) {
+            layerPaths.push_back(hapModuleInfo.nativeLibraryPath + "/");
+        }
+    }
+    return layerPaths;
+}
+
 EglWrapperLayer& EglWrapperLayer::GetInstance()
 {
     static EglWrapperLayer layer;
@@ -291,19 +310,62 @@ bool EglWrapperLayer::LoadLayers()
 
     if (!InitBundleInfo()) {
         WLOGD("Get BundleInfo failed.");
+    } else {
+        WLOGD("Get BundleInfo ok.");
     }
 
+    WLOGD("appProvisionType is %{public}s !", g_bundleInfo.applicationInfo.appProvisionType.c_str());
+    if (std::find(layers.begin(), layers.end(), "squid") != layers.end() &&
+        g_bundleInfo.applicationInfo.appProvisionType == "release") {
+        WLOGD("appProvisionType is release.");
+        return false;
+    }
+    return DoLoadLayers(layers);
+}
+
+bool EglWrapperLayer::LoadLayers(const std::string& libname, const std::vector<std::string> &layerPaths)
+{
+    bool success = false;
+    for (auto layerPath : layerPaths) {
+        layerPath += libname;
+        std::string realLayerPath;
+        WLOGD("LoadLayers layerPath=%{public}s", layerPath.c_str());
+        if (!PathToRealPath(layerPath, realLayerPath)) {
+            WLOGD("LoadLayers PathToRealPath is failed");
+            continue;
+        }
+        WLOGD("LoadLayers realLayerPath=%{public}s", realLayerPath.c_str());
+        if (!LoadLayerFuncs(realLayerPath)) {
+            WLOGD("LoadLayers LoadLayerFuncs is failed");
+            return false;
+        } else {
+            success = true;
+        }
+    }
+    return success;
+}
+
+bool EglWrapperLayer::DoLoadLayers(const std::vector<std::string>& layers)
+{
     for (int32_t i = layers.size() - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
-        std::vector<std::string> allLayerPaths = GetDebugLayerPaths();
-        for (std::string layerPath: allLayerPaths) {
-            layerPath += layerLib;
-            std::string realLayerPath;
-            if (!PathToRealPath(layerPath, realLayerPath)) {
-                continue;
-            }
-            if (!LoadLayerFuncs(realLayerPath)) {
+        std::vector<std::string> allLayerPaths;
+        if (layerLib == "libsquid.so") {
+            allLayerPaths = GetSquidHapLayerPaths();
+            if (!LoadLayers(layerLib, allLayerPaths) && !LoadLayerFuncs(layerLib)) {
+                WLOGD("LoadLayers squid is faild");
                 return false;
+            } else {
+                WLOGD("LoadLayers squid is ok!");
+            }
+        } else {
+            allLayerPaths = GetDebugLayerPaths();
+            WLOGD("LoadLayerFuncs layerLib=%{public}s", layerLib.c_str());
+            if (!LoadLayers(layerLib, allLayerPaths)) {
+                WLOGD("LoadLayerFuncs LoadLayers is failed!");
+                return false;
+            } else {
+                WLOGD("LoadLayerFuncs is ok!");
             }
         }
     }

@@ -108,6 +108,7 @@ template("render_service_client_source_set") {
 
       #pipeline
       "core/pipeline/rs_node_map.cpp",
+      "core/pipeline/rs_node_map_v2.cpp",
       "core/pipeline/rs_render_thread.cpp",
 
       #render_thread
@@ -122,6 +123,7 @@ template("render_service_client_source_set") {
       "core/transaction/rs_interfaces.cpp",
       "core/transaction/rs_render_thread_client.cpp",
       "core/transaction/rs_sync_transaction_controller.cpp",
+      "core/transaction/rs_sync_transaction_handler.cpp",
       "core/transaction/rs_transaction.cpp",
 
       #ui
@@ -138,6 +140,8 @@ template("render_service_client_source_set") {
       "core/ui/rs_surface_extractor.cpp",
       "core/ui/rs_surface_node.cpp",
       "core/ui/rs_texture_export.cpp",
+      "core/ui/rs_ui_context.cpp",
+      "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
     ]
 

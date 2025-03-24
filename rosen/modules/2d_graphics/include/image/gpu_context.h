@@ -96,9 +96,17 @@ public:
     void SetStoreCachePath(const std::string& filename);
     std::string GetStoreCachePath() const;
 
+    /**
+     * @brief cache small Texture on UnUni devices.
+     * @param isUniRender isUniRender A boolean value indicating whether to use the unified rendering mode.
+     */
+    void SetIsUniRender(bool isUniRender);
+    bool GetIsUniRender() const;
+
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
+    bool isUniRender_ = true;
     std::string filePath_ = "";
 };
 
@@ -129,6 +137,8 @@ public:
      */
     void Flush();
 
+    void FlushCommands();
+    void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
      */
@@ -161,6 +171,12 @@ public:
      * @param maxResourceBytes  The maximum number of bytes of video memory that can be held in the cache.
      */
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes);
+
+    /**
+     * @brief                   Specify the GPU purgeable resource cache limit.
+     * @param purgeableMaxCount The maximum number of purgeable queue resources that need to be cleaned.
+     */
+    void SetPurgeableResourceLimit(int purgeableMaxCount);
 
     /**
      * @brief                   Gets the current GPU resource cache usage.

@@ -34,27 +34,6 @@ void RSDisplayNodeTest::TearDownTestCase() {}
 void RSDisplayNodeTest::SetUp() {}
 void RSDisplayNodeTest::TearDown() {}
 
-class TestSurfaceCapture : public SurfaceCaptureCallback {
-public:
-    TestSurfaceCapture()
-    {
-        showNode_ = nullptr;
-    }
-    explicit TestSurfaceCapture(std::shared_ptr<RSSurfaceNode> surfaceNode)
-    {
-        showNode_ = surfaceNode;
-    }
-    ~TestSurfaceCapture() override {}
-    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
-    bool IsTestSuccess()
-    {
-        return testSuccess;
-    }
-private:
-    bool testSuccess = true;
-    std::shared_ptr<RSSurfaceNode> showNode_;
-}; // class TestSurfaceCapture
-
 /**
  * @tc.name: Create001
  * @tc.desc:
@@ -113,24 +92,6 @@ HWTEST_F(RSDisplayNodeTest, GetType001, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
     ASSERT_TRUE(displayNode != nullptr);
     ASSERT_TRUE(displayNode->GetType() == RSUINodeType::DISPLAY_NODE);
-}
-
-/**
- * @tc.name: TakeSurfaceCapture001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSDisplayNodeTest, TakeSurfaceCapture001, TestSize.Level1)
-{
-    /**
-     * @tc.steps: step1. create RSDisplayNode
-     */
-    RSDisplayNodeConfig c;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
-    ASSERT_TRUE(displayNode != nullptr);
-    auto surfaceCaptureMock = std::make_shared<TestSurfaceCapture>();
-    RSSurfaceCaptureConfig captureConfig;
-    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, surfaceCaptureMock, captureConfig);
 }
 
 /**
@@ -483,5 +444,30 @@ HWTEST_F(RSDisplayNodeTest, SetScbNodePid, TestSize.Level1)
     oldScbPids.push_back(1);
     oldScbPids.push_back(2);
     displayNode->SetScbNodePid(oldScbPids, currentScbPid);
+}
+
+/**
+ * @tc.name: SetVirtualScreenMuteStatus
+ * @tc.desc: SetVirtualScreenMuteStatus test.
+ * @tc.type: FUNC
+ * @tc.require: issueIBTNC3
+ */
+HWTEST_F(RSDisplayNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    config.screenId = 6000;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    EXPECT_TRUE(displayNode != nullptr);
+
+    displayNode->SetVirtualScreenMuteStatus(true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
+
+    displayNode->SetVirtualScreenMuteStatus(false);
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 } // namespace OHOS::Rosen

@@ -85,8 +85,11 @@ ohos_shared_library("librender_service") {
   sources = [
     "core/feature/anco_manager/rs_anco_manager.cpp",
     "core/feature/capture/rs_surface_capture_task.cpp",
+    "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
+    "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
+    "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/hwc/rs_uni_hwc_visitor.cpp",
     "core/pipeline/main_thread/rs_main_thread.cpp",
@@ -121,36 +124,54 @@ ohos_shared_library("librender_service") {
 
   #feature_cfg
   sources += [
+    "core/feature_cfg/feature_param/extend_feature/capture_base_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/color_gamut_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/drm_param.cpp",
-    "core/feature_cfg/feature_param/extend_feature/hdr_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/hfbc_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/mem_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/multiscreen_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/speciallayer_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/surface_capture_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/ui_capture_param.cpp",
     "core/feature_cfg/feature_param/feature_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/accessibility_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/dirtyregion_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/dvsync_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/filter_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/gpu_resource_release_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/hard_cursor_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hwc_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/opinc_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/prevalidate_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/rotateoffscreen_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/socperf_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/stencil_pixel_occlusion_culling_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/uifirst_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/vrate_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/capture_base_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/color_gamut_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/drm_param_parse.cpp",
-    "core/feature_cfg/xml_parser/extend_feature_parser/hdr_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/hfbc_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/mem_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/multiscreen_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/speciallayer_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/surface_capture_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/ui_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/accessibility_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/dirtyregion_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/dvsync_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/filter_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/gpu_resource_release_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/hard_cursor_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hwc_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/opinc_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/prevalidate_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/rotateoffscreen_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/socperf_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/stencil_pixel_occlusion_culling_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/uifirst_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/vrate_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
@@ -176,7 +197,6 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
       "core/drawable/rs_canvas_render_node_drawable.cpp",
       "core/drawable/rs_display_render_node_drawable.cpp",
-      "core/drawable/rs_dma_buffer_surface_render_node_drawable.cpp",
       "core/drawable/rs_effect_render_node_drawable.cpp",
       "core/drawable/rs_render_node_drawable.cpp",
       "core/drawable/rs_render_node_drawable_autocache.cpp",
@@ -187,10 +207,11 @@ ohos_shared_library("librender_service") {
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",
+      "core/feature/opinc/rs_opinc_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
-      "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
       "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",
       "core/feature/round_corner_display/rs_rcd_surface_render_node.cpp",
+      "core/feature/round_corner_display/rs_rcd_surface_render_node_drawable.cpp",
       "core/feature/round_corner_display/rs_round_corner_config.cpp",
       "core/feature/round_corner_display/rs_round_corner_display.cpp",
       "core/feature/round_corner_display/rs_round_corner_display_manager.cpp",
@@ -228,7 +249,6 @@ ohos_shared_library("librender_service") {
     sources += [
       "core/feature/uifirst/rs_sub_thread.cpp",
       "core/feature/uifirst/rs_sub_thread_manager.cpp",
-      "core/feature/uifirst/rs_ui_first_render_listener.cpp",
       "core/pipeline/parallel_render/rs_render_task.cpp",
     ]
   }
@@ -316,6 +336,7 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_socket.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_test_tree.cpp",
     ]
   }
 
@@ -390,7 +411,10 @@ ohos_shared_library("librender_service") {
   }
 
   if (rosen_is_ohos) {
-    external_deps += [ "image_framework:image_native" ]
+    external_deps += [
+      "image_framework:image_native",
+      "lz4:liblz4_shared",
+    ]
   }
 
   if (defined(global_parts_info) &&

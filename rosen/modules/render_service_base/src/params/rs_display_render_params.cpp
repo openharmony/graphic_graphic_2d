@@ -56,11 +56,6 @@ const std::vector<Occlusion::Rect>& RSDisplayRenderParams::GetTopSurfaceOpaqueRe
     return topSurfaceOpaqueRects_;
 }
 
-void RSDisplayRenderParams::SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
-{
-    std::swap(topSurfaceOpaqueRects_, topSurfaceOpaqueRects);
-}
-
 bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
 {
     return isMainAndLeashSurfaceDirty_;
@@ -89,20 +84,6 @@ float RSDisplayRenderParams::GetGlobalZOrder() const
 bool RSDisplayRenderParams::IsRotationChanged() const
 {
     return isRotationChanged_;
-}
-
-bool RSDisplayRenderParams::IsRotationFinished() const
-{
-    return isRotationFinished_;
-}
-
-void RSDisplayRenderParams::SetRotationFinished(bool finished)
-{
-    if (isRotationFinished_ == finished) {
-        return;
-    }
-    isRotationFinished_ = finished;
-    needSync_ = true;
 }
 
 void RSDisplayRenderParams::SetFingerprint(bool hasFingerprint)
@@ -189,6 +170,21 @@ bool RSDisplayRenderParams::GetZoomed() const
     return isZoomed_;
 }
 
+void RSDisplayRenderParams::SetTargetSurfaceRenderNodeDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    if (ROSEN_EQ(targetSurfaceRenderNodeDrawable_, drawable)) {
+        return;
+    }
+    targetSurfaceRenderNodeDrawable_ = drawable;
+    needSync_ = true;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetTargetSurfaceRenderNodeDrawable() const
+{
+    return targetSurfaceRenderNodeDrawable_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -230,7 +226,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->needOffscreen_ = needOffscreen_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
-    targetDisplayParams->isRotationFinished_ = isRotationFinished_;
     targetDisplayParams->hasFingerprint_ = hasFingerprint_;
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
@@ -238,6 +233,9 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->targetSurfaceRenderNodeDrawable_ = targetSurfaceRenderNodeDrawable_;
+    targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
+    targetDisplayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     RSRenderParams::OnSync(target);
 }
 

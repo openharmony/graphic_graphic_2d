@@ -49,9 +49,9 @@ struct ComposeInfo {
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
-    int32_t sdrNit { 0 };
-    int32_t displayNit { 0 };
-    float brightnessRatio { 0.0 };
+    float sdrNit { 0.0f };
+    float displayNit { 0.0f };
+    float brightnessRatio { 0.0f };
     std::vector<float> layerLinearMatrix;
 };
 #ifdef RS_ENABLE_GPU
@@ -151,7 +151,8 @@ public:
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
         bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false);
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
+        bool needConsume = true);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);

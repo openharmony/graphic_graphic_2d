@@ -747,7 +747,7 @@ HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     node.SetSharedTransitionParam(sharedTransitionParam);
     node.OnTreeStateChanged();
     EXPECT_FALSE(node.sharedTransitionParam_->paired_);
@@ -1383,7 +1383,7 @@ HWTEST_F(RSRenderNodeTest, GetPairedNodeTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     auto ptr = sharedTransitionParam->GetPairedNode(id + 1);
     EXPECT_TRUE(ptr == outNode);
     ptr = sharedTransitionParam->GetPairedNode(id + 2);
@@ -1423,7 +1423,7 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyTest, TestSize.Level1)
     auto otherNodeId = id + 3;
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(inNodeId, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(outNodeId, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE;
     auto ret = sharedTransitionParam->IsLower(inNodeId);
     EXPECT_TRUE(ret);
@@ -1453,7 +1453,7 @@ HWTEST_F(RSRenderNodeTest, HasRelationTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_FALSE(sharedTransitionParam->HasRelation());
 
     sharedTransitionParam->UpdateHierarchy(inNode->GetId());
@@ -1470,7 +1470,7 @@ HWTEST_F(RSRenderNodeTest, SetNeedGenerateDrawableTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
 
     sharedTransitionParam->SetNeedGenerateDrawable(true);
     EXPECT_TRUE(sharedTransitionParam->needGenerateDrawable_);
@@ -1495,7 +1495,7 @@ HWTEST_F(RSRenderNodeTest, GenerateDrawableTest, TestSize.Level1)
     inNode->parent_ = parent;
     outNode->parent_ = parent;
 
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     inNode->SetSharedTransitionParam(sharedTransitionParam);
     outNode->SetSharedTransitionParam(sharedTransitionParam);
 
@@ -1523,7 +1523,7 @@ HWTEST_F(RSRenderNodeTest, UpdateUnpairedSharedTransitionMapTest, TestSize.Level
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_TRUE(SharedTransitionParam::unpairedShareTransitions_.empty());
 
     SharedTransitionParam::UpdateUnpairedSharedTransitionMap(sharedTransitionParam);
@@ -1543,7 +1543,7 @@ HWTEST_F(RSRenderNodeTest, ResetRelationTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
 
     sharedTransitionParam->UpdateHierarchy(inNode->GetId());
     EXPECT_NE(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
@@ -1562,7 +1562,7 @@ HWTEST_F(RSRenderNodeTest, DumpTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     auto dumpStr = sharedTransitionParam->Dump();
 
     EXPECT_FALSE(dumpStr.empty());
@@ -1578,7 +1578,7 @@ HWTEST_F(RSRenderNodeTest, InternalUnregisterSelfTest, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     sharedTransitionParam->InternalUnregisterSelf();
 
     ASSERT_FALSE(inNode->sharedTransitionParam_);
@@ -1648,7 +1648,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     nodeTest->uifirstRootNodeId_ = 1;
@@ -1698,7 +1698,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0");
 }
 
 /**
@@ -2256,7 +2256,7 @@ HWTEST_F(RSRenderNodeTest, ApplyModifiersTest017, TestSize.Level1)
     RSRenderNode::SharedPtr inNode = std::make_shared<RSRenderNode>(0);
     RSRenderNode::SharedPtr outNode = std::make_shared<RSRenderNode>(0);
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam =
-        std::make_shared<SharedTransitionParam>(inNode, outNode);
+        std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     nodeTest->sharedTransitionParam_ = sharedTransitionParam;
     nodeTest->GenerateFullChildrenList();
     EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
@@ -2434,7 +2434,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     RSRenderNode::SharedPtr outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(sharedTransitionParam, nullptr);
     nodeTest->parent_ = std::make_shared<RSRenderNode>(0);
     nodeTest->SetSharedTransitionParam(sharedTransitionParam);
@@ -2948,6 +2948,40 @@ HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
 
     renderNode->SetIsCrossNode(false);
     ASSERT_FALSE(renderNode->isCrossNode_);
+}
+
+/**
+ * @tc.name: SetCrossNodeVisitedStatusTest
+ * @tc.desc: test SetCrossNodeVisitedStatusTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBV3N4
+ */
+HWTEST_F(RSRenderNodeTest, SetCrossNodeVisitedStatusTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    auto cloneNode = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(cloneNode, nullptr);
+    node->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = node;
+    node->cloneCrossNodeVec_.push_back(cloneNode);
+
+    node->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(node->HasVisitedCrossNode());
+    ASSERT_TRUE(cloneNode->HasVisitedCrossNode());
+
+    node->SetCrossNodeVisitedStatus(false);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
+
+    cloneNode->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(node->HasVisitedCrossNode());
+    ASSERT_TRUE(cloneNode->HasVisitedCrossNode());
+
+    cloneNode->SetCrossNodeVisitedStatus(false);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
 }
 
 /**

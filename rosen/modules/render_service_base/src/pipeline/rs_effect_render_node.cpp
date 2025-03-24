@@ -31,7 +31,7 @@ RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>
     : RSRenderNode(id, context, isTextureExportNode)
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = { sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE };
+    MemoryInfo info = { sizeof(*this), ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(id) };
     MemoryTrack::Instance().AddNodeRecord(id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
@@ -151,7 +151,7 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #ifdef RS_ENABLE_GPU
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::FilterCacheEnabled) {
+    if (!RSProperties::filterCacheEnabled_) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
@@ -260,7 +260,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!RSProperties::FilterCacheEnabled) {
+    if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
 #endif

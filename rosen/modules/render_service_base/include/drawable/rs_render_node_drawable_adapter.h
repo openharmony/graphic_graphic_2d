@@ -155,6 +155,7 @@ public:
     {
         return nullptr;
     }
+    virtual void UpdateUifirstDirtyManager() {}
 
     using ClearSurfaceTask = std::function<void()>;
     void RegisterClearSurfaceFunc(ClearSurfaceTask task);
@@ -251,6 +252,11 @@ public:
     inline void DrawableResetLock()
     {
         isOnDraw_.store(false);
+    }
+
+    virtual std::shared_ptr<Drawing::Image> Snapshot() const
+    {
+        return nullptr;
     }
 
 protected:

@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/ace_platforms.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/ipc_callbacks"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/ipc_callbacks"
 
 ##############################  RSRenderServiceBaseIpcCallBacksTest  ##################################
 ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
@@ -29,9 +29,13 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
     "hgm_config_change_callback_proxy_test.cpp",
     "hgm_config_change_callback_stub_test.cpp",
     "rs_application_agent_proxy_test.cpp",
+    "rs_first_frame_commit_callback_proxy_test.cpp",
+    "rs_first_frame_commit_callback_stub_test.cpp",
     "rs_occlusion_change_callback_proxy_test.cpp",
     "rs_occlusion_change_callback_stub_test.cpp",
     "rs_rt_refresh_callback_test.cpp",
+    "rs_self_drawing_node_rect_change_callback_proxy_test.cpp",
+    "rs_self_drawing_node_rect_change_callback_stub_test.cpp",
     "rs_surface_buffer_callback_proxy_test.cpp",
     "rs_surface_buffer_callback_stub_test.cpp",
     "rs_surface_buffer_callback_test.cpp",

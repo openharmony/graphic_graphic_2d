@@ -235,6 +235,7 @@ public:
     {
         return pluseNum_;
     }
+
     // called by RSMainThread/RSUniRenderThread
     bool GetDirectCompositionFlag() const
     {
@@ -314,6 +315,21 @@ public:
     {
         return multiSelfOwnedScreenEnable_.load();
     }
+
+    // only called/used by RSHardwareThread
+    bool IsSwitchDssEnable(ScreenId screenId) const
+    {
+        if (auto iter = screenSwitchDssEnableMap_.find(screenId); iter != screenSwitchDssEnableMap_.end()) {
+            return iter->second;
+        }
+        return false;
+    }
+
+    // only called/used by RSHardwareThread
+    void SetScreenSwitchDssEnable(ScreenId screenId, bool switchDssEnable)
+    {
+        screenSwitchDssEnableMap_[screenId] = switchDssEnable;
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -326,7 +342,7 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
-    void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
+    void SetASConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool IsEnabled() const
     {
@@ -373,6 +389,7 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
+    std::unordered_map<ScreenId, bool> screenSwitchDssEnableMap_; // only called/used by RSHardwareThread
 
     friend class HWCParam;
 };

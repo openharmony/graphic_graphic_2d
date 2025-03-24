@@ -106,6 +106,11 @@ std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds, bool allow
     return impl_->GetImageSnapshot(bounds, allowRefCache);
 }
 
+void Surface::SetParallelRender(bool parallelEnable)
+{
+    impl_->SetParallelRender(parallelEnable);
+}
+
 std::shared_ptr<Surface> Surface::MakeSurface(int width, int height) const
 {
     return impl_->MakeSurface(width, height);
@@ -134,7 +139,7 @@ void Surface::FlushAndSubmit(bool syncCpu)
 void Surface::Flush(FlushInfo *drawingflushInfo)
 {
     if (!impl_) {
-        LOGD("surfaceImpl Flush failed impl nullptr");
+        LOGE("surfaceImpl Flush failed impl nullptr, but not callback rs finishedProc");
         return;
     }
     impl_->Flush(drawingflushInfo);

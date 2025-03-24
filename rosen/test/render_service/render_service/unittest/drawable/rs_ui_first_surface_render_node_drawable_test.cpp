@@ -267,8 +267,79 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, IsCurFrameStaticTest, TestSize.
     if (surfaceDrawable_ == nullptr) {
         return;
     }
-    auto result = surfaceDrawable_->IsCurFrameStatic(DeviceType::PC);
+    auto result = surfaceDrawable_->IsCurFrameStatic();
     ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: UpdateUifirstDirtyManagerTest
+ * @tc.desc: Test UpdateUifirstDirtyManager
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
+{
+    if (surfaceDrawable_ == nullptr) {
+        return;
+    }
+    surfaceDrawable_->syncDirtyManager_->dirtyRegion_ = {0, 0, 10, 10};
+    surfaceDrawable_->isCacheValid_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
+    surfaceDrawable_->UpdateUifirstDirtyManager();
+    ASSERT_EQ(surfaceDrawable_->syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(), 10);
+
+    surfaceDrawable_->isCacheValid_ = false;
+    surfaceParams->absDrawRect_ = {0, 0, 15, 15};
+    surfaceDrawable_->UpdateUifirstDirtyManager();
+    ASSERT_EQ(surfaceDrawable_->syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(), 15);
+    surfaceDrawable_->syncDirtyManager_->Clear();
+    surfaceDrawable_->syncUifirstDirtyManager_->Clear();
+}
+
+/**
+ * @tc.name: CalculateUifirstDirtyRegionTest
+ * @tc.desc: Test CalculateUifirstDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
+{
+    if (surfaceDrawable_ == nullptr) {
+        return;
+    }
+    RectI dirtyRegion = {0, 0, 10, 10};
+    surfaceDrawable_->syncUifirstDirtyManager_->historyHead_ = 0;
+    surfaceDrawable_->syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    surfaceParams->absDrawRect_ = {0, 0, 15, 15};
+    auto region = surfaceDrawable_->CalculateUifirstDirtyRegion(true);
+    ASSERT_EQ(region.GetHeight(), 0);
+    surfaceDrawable_->syncDirtyManager_->Clear();
+    surfaceDrawable_->syncUifirstDirtyManager_->Clear();
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest
+ * @tc.desc: Test MergeUifirstAllSurfaceDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.Level1)
+{
+    if (surfaceDrawable_ == nullptr) {
+        return;
+    }
+    RectI dirtyRegion = {0, 0, 10, 10};
+    surfaceDrawable_->syncUifirstDirtyManager_->historyHead_ = 0;
+    surfaceDrawable_->syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    surfaceParams->absDrawRect_ = {0, 0, 15, 15};
+    surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
+    Drawing::RectF bounds = {1, 1, 2, 2};
+    surfaceParams->boundsRect_ = bounds;
+    auto region = surfaceDrawable_->MergeUifirstAllSurfaceDirtyRegion(true);
+    ASSERT_EQ(region.GetHeight(), 1);
 }
 
 /**
@@ -327,7 +398,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawUIFirstCacheWithStartingTes
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas_.get());
     NodeId id = 0;
     auto result = surfaceDrawable_->DrawUIFirstCacheWithStarting(*rscanvas, id);
-    ASSERT_FALSE(result);
+    ASSERT_TRUE(result);
 
     id = 65535; // for test
     surfaceDrawable_->isTextureValid_.store(true);
@@ -440,7 +511,6 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, ClearCacheSurfaceInThreadTest, 
     ASSERT_NE(surfaceDrawable_, nullptr);
     RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func;
     surfaceDrawable_->ClearCacheSurfaceInThread();
-    ASSERT_FALSE(surfaceDrawable_->UseDmaBuffer());
     ASSERT_FALSE(surfaceDrawable_->clearCacheSurfaceFunc_);
 
     func = [](std::shared_ptr<Drawing::Surface>&& oldSurface, std::shared_ptr<Drawing::Surface>&& newSurface,
@@ -448,13 +518,5 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, ClearCacheSurfaceInThreadTest, 
     surfaceDrawable_->clearCacheSurfaceFunc_ = func;
     surfaceDrawable_->ClearCacheSurfaceInThread();
     ASSERT_TRUE(surfaceDrawable_->clearCacheSurfaceFunc_);
-
-    std::string str = surfaceDrawable_->name_;
-    RSUifirstManager::Instance().useDmaBuffer_ = true;
-    surfaceDrawable_->name_ = "ScreenShotWindow";
-    surfaceDrawable_->ClearCacheSurfaceInThread();
-    ASSERT_TRUE(surfaceDrawable_->UseDmaBuffer());
-    RSUifirstManager::Instance().useDmaBuffer_ = false;
-    surfaceDrawable_->name_ = str;
 }
 }

@@ -31,6 +31,8 @@ namespace Rosen {
 namespace SPText {
 class HMSymbolRun {
 public:
+    HMSymbolRun() {}
+
     ~HMSymbolRun() {}
 
     HMSymbolRun(uint64_t symbolId,
@@ -60,6 +62,27 @@ public:
     void SetAnimation(
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
         animationFunc);
+
+    uint64_t GetSymbolUid() const
+    {
+        return symbolTxt_.GetSymbolUid();
+    }
+
+    void SetSymbolUid(uint64_t symbolUid)
+    {
+        symbolTxt_.SetSymbolUid(symbolUid);
+        symbolId_ = symbolUid;
+    }
+
+    void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
+    {
+        symbolTxt_ = hmsymbolTxt;
+    }
+
+    const HMSymbolTxt& GetSymbolTxt()
+    {
+        return symbolTxt_;
+    }
 
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);

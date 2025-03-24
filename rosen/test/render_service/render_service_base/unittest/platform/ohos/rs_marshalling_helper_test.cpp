@@ -280,9 +280,9 @@ HWTEST_F(RSMarshallingHelperTest, SkipImageTest, TestSize.Level1)
     parcel.WriteInt32(1);
     EXPECT_TRUE(RSMarshallingHelper::SkipImage(parcel));
     parcel.WriteInt32(0);
-    EXPECT_TRUE(RSMarshallingHelper::SkipImage(parcel));
+    EXPECT_FALSE(RSMarshallingHelper::SkipImage(parcel));
     parcel.WriteInt32(RSMarshallingHelper::MIN_DATA_SIZE);
-    EXPECT_TRUE(RSMarshallingHelper::SkipImage(parcel));
+    EXPECT_FALSE(RSMarshallingHelper::SkipImage(parcel));
 }
 
 /**
@@ -314,7 +314,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest006, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<RSShader> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(0);
@@ -439,7 +439,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest010, TestSize.Level1)
 {
     Parcel parcel;
     std::vector<std::shared_ptr<EmitterUpdater>> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(RSMarshallingHelper::MAX_DATA_SIZE);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
@@ -722,7 +722,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest019, TestSize.Level1)
 {
     Parcel parcel;
     std::vector<std::shared_ptr<ParticleRenderParams>> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteUint32(RSMarshallingHelper::MAX_DATA_SIZE);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
@@ -753,7 +753,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest020, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<RSPath> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
@@ -1020,7 +1020,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest028, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<Drawing::DrawCmdList> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(1);
@@ -1117,7 +1117,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest031, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<Drawing::MaskCmdList> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(1);
@@ -1189,7 +1189,7 @@ HWTEST_F(RSMarshallingHelperTest, ReadFromParcelTest, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, SkipFromParcelTest, TestSize.Level1)
 {
     Parcel parcel;
-    EXPECT_TRUE(RSMarshallingHelper::SkipFromParcel(parcel, 0));
+    EXPECT_FALSE(RSMarshallingHelper::SkipFromParcel(parcel, 0));
     parcel.WriteUint32(1);
     EXPECT_FALSE(RSMarshallingHelper::SkipFromParcel(parcel, 0));
     parcel.WriteUint32(RSMarshallingHelper::MAX_DATA_SIZE);

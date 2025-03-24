@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/bootanimation"
+module_output_path = "graphic_2d/graphic_2d/bootanimation"
 
 group("unittest") {
   testonly = true
@@ -29,6 +29,8 @@ ohos_unittest("bootanimation_test") {
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_controller.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_operation.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_animation_strategy.cpp",
+    "$graphic_2d_root/frameworks/bootanimation/src/boot_associative_display_strategy.cpp",
+    "$graphic_2d_root/frameworks/bootanimation/src/boot_compile_progress.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_picture_player.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_sound_player.cpp",
     "$graphic_2d_root/frameworks/bootanimation/src/boot_video_player.cpp",
@@ -37,6 +39,7 @@ ohos_unittest("bootanimation_test") {
     "boot_animation_operation_test.cpp",
     "boot_animation_strategy_test.cpp",
     "boot_animation_utils_test.cpp",
+    "boot_associative_display_strategy_test.cpp",
     "boot_picture_player_test.cpp",
     "boot_sound_player_test.cpp",
     "boot_video_player_test.cpp",

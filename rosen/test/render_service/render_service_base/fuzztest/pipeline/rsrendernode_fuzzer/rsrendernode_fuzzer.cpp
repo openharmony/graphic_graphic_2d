@@ -28,6 +28,12 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "pipeline/rs_draw_cmd.h"
+#include "pipeline/rs_surface_handler.h"
+#include "pipeline/sk_resource_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +43,9 @@ constexpr size_t STR_LEN = 10;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+uint32_t g_gcLevelLow = 30;
+uint32_t g_gcLevelMid = 100;
+uint32_t g_gcLevelHig = 700;
 } // namespace
 
 /*
@@ -356,6 +365,220 @@ bool RSOcclusionConfigFuzzTes(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSContextFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSContext context;
+    NodeId targetId = GetData<NodeId>();
+    context.UnregisterAnimatingRenderNode(targetId);
+
+    context.HasActiveNode(nullptr);
+
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSBaseRenderNode>(targetId);
+    context.HasActiveNode(node);
+
+    context.GetClearMoment();
+    ClearMemoryMoment moment = GetData<ClearMemoryMoment>();
+    context.SetClearMoment(moment);
+
+    RSContext::PurgeType type = GetData<RSContext::PurgeType>();
+    context.MarkNeedPurge(moment, type);
+
+    return true;
+}
+
+bool RSRenderFrameRateFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Rosen::RSRenderFrameRateLinker::ObserverType observer = nullptr;
+    std::shared_ptr<RSRenderFrameRateLinker> node = std::make_shared<RSRenderFrameRateLinker>(observer);
+    std::shared_ptr<RSRenderFrameRateLinker> node1 = std::make_shared<RSRenderFrameRateLinker>(observer);
+    std::shared_ptr<RSRenderFrameRateLinker> node2 = node;
+    node2 = node1;
+    std::shared_ptr<RSRenderFrameRateLinker> node3 = std::move(node);
+
+    return true;
+}
+
+bool RSRenderNodeGcFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    NodeId targetId = GetData<NodeId>();
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSBaseRenderNode>(targetId);
+    OHOS::Rosen::RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(node);
+    NodeId targetId1 = GetData<NodeId>();
+    std::shared_ptr<RSRenderNode> node1 = std::make_shared<RSBaseRenderNode>(targetId1);
+    OHOS::Rosen::RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(node1);
+
+    OHOS::Rosen::RSRenderNodeGC::Instance().IsBucketQueueEmpty();
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseOffTreeNodeBucket();
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseFromTree();
+
+    uint32_t level = GetData<uint32_t>();
+    OHOS::Rosen::RSRenderNodeGC::Instance().JudgeGCLevel(level);
+    OHOS::Rosen::RSRenderNodeGC::Instance().JudgeGCLevel(g_gcLevelLow);
+    OHOS::Rosen::RSRenderNodeGC::Instance().JudgeGCLevel(g_gcLevelMid);
+    OHOS::Rosen::RSRenderNodeGC::Instance().JudgeGCLevel(g_gcLevelHig);
+
+    return true;
+}
+
+bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderNodeMap> nodeMap = std::make_shared<RSRenderNodeMap>();
+    nodeMap->GetSize();
+    NodeId targetId = GetData<NodeId>();
+    nodeMap->IsUIExtensionSurfaceNode(targetId);
+    nodeMap->RemoveUIExtensionSurfaceNode(nullptr);
+
+    pid_t pid = GetData<pid_t>();
+    nodeMap->MoveRenderNodeMap(nullptr, pid);
+    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
+    nodeMap->MoveRenderNodeMap(subRenderNodeMap, pid);
+
+    nodeMap->TraversalNodesByPid(pid, [](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+    });
+
+    nodeMap->TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+    });
+
+    nodeMap->TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+    });
+
+    nodeMap->TraverseSurfaceNodesBreakOnCondition([](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        if (node == nullptr) {
+            return false;
+        }
+
+        return true;
+    });
+
+    pid_t pidnew = GetData<pid_t>();
+    nodeMap->GetSelfDrawingNodeInProcess(pidnew);
+    nodeMap->GetSelfDrawSurfaceNameByPid(pidnew);
+
+    return true;
+}
+
+bool RSSurfaceCallbackManagerFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
+        return;
+    });
+    RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferCallbackSize();
+    OHOS::Rosen::Drawing::DrawSurfaceBufferFinishCbData cbdata;
+    RSSurfaceBufferCallbackManager::Instance().EnqueueSurfaceBufferId(cbdata);
+    RSSurfaceBufferCallbackManager::Instance().RequestNextVSync();
+    RSSurfaceBufferCallbackManager::Instance().OnFinish(cbdata);
+
+    OHOS::Rosen::Drawing::DrawSurfaceBufferAfterAcquireCbData cbdata1;
+    RSSurfaceBufferCallbackManager::Instance().OnAfterAcquireBuffer(cbdata1);
+
+    uint32_t id = GetData<uint32_t>();
+    std::vector<uint32_t> bufferIdVec{id};
+    RSSurfaceBufferCallbackManager::Instance().SerializeBufferIdVec(bufferIdVec);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
+
+    return true;
+}
+
+bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    NodeId targetId = GetData<NodeId>();
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(targetId);
+    surfaceHandler->IncreaseAvailableBuffer();
+    surfaceHandler->ReduceAvailableBuffer();
+
+    float order = GetData<float>();
+    surfaceHandler->SetGlobalZOrder(order);
+    surfaceHandler->GetGlobalZOrder();
+    OHOS::Rosen::RSSurfaceHandler::SurfaceBufferEntry buffer;
+    surfaceHandler->ConsumeAndUpdateBuffer(buffer);
+    surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
+
+    return true;
+}
+
+bool RSSkResourceManagerFuzzerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    SKResourceManager::Instance().DeleteSharedTextureContext(nullptr);
+    std::list<std::shared_ptr<Drawing::Surface>> list;
+    SKResourceManager::Instance().HaveReleaseableResourceCheck(list);
+
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -370,5 +593,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSDisplayRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
     OHOS::Rosen::RSOcclusionConfigFuzzTes(data, size);
+
+    OHOS::Rosen::RSContextFuzzerTest(data, size);
+    OHOS::Rosen::RSRenderFrameRateFuzzerTest(data, size);
+    OHOS::Rosen::RSRenderNodeGcFuzzerTest(data, size);
+    OHOS::Rosen::RSRenderNodeMapFuzzerTest(data, size);
+    OHOS::Rosen::RSSurfaceCallbackManagerFuzzerTest(data, size);
+    OHOS::Rosen::RSSurfaceHandleFuzzerTest(data, size);
+    OHOS::Rosen::RSSkResourceManagerFuzzerTest(data, size);
     return 0;
 }

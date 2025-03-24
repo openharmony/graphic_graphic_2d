@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/gfx"
+module_output_path = "graphic_2d/graphic_2d/render_service_base/gfx"
 
 ##############################  RSRenderServiceBaseGfxTest  ##################################
 ohos_unittest("RSRenderServiceBaseGfxTest") {
@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseGfxTest") {
 
   sources = [
     "dump/rs_dump_manager_test.cpp",
+    "first_frame_notifier/rs_first_frame_notifier_test.cpp",
     "fps_info/rs_surface_fps_manager_test.cpp",
     "fps_info/rs_surface_fps_test.cpp",
   ]

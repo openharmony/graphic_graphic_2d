@@ -12,12 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "gtest/gtest.h"
 #include "rs_profiler.h"
+#include "rs_profiler_cache.h"
+#include "rs_profiler_command.h"
+#include "rs_profiler_file.h"
+#include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
-#include "platform/common/rs_system_properties.h"
- 
+
+#include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_service.h"
+
 using namespace testing;
 using namespace testing::ext;
  
@@ -33,7 +39,128 @@ public:
     };
     void TearDown() override {};
 };
- 
+
+sptr<RSRenderService> GetAndInitRenderService()
+{
+    sptr<RSRenderService> renderService(new RSRenderService());
+    if (renderService) {
+        renderService->mainThread_ = RSMainThread::Instance();
+    }
+    if (renderService->mainThread_) {
+        renderService->mainThread_->context_ = std::make_shared<RSContext>();
+        renderService->mainThread_->context_->Initialize();
+    }
+    return renderService;
+}
+
+void GenerateFullChildrenListForAll(const RSContext& context)
+{
+    context.GetGlobalRootRenderNode()->GenerateFullChildrenList();
+    context.GetNodeMap().TraversalNodes(
+        [](const std::shared_ptr<RSRenderNode>& node) { node->GenerateFullChildrenList(); });
+}
+
+std::vector<RSRenderContent::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
+    const std::vector<std::shared_ptr<RSRenderNode>>& tree)
+{
+    std::vector<RSRenderContent::DrawCmdContainer> bufferOfDrawCmdModifiers;
+    bufferOfDrawCmdModifiers.reserve(tree.size());
+
+    for (const auto& node : tree) {
+        auto& drawCmdModifiers = node->GetDrawCmdModifiers();
+        bufferOfDrawCmdModifiers.emplace_back();
+        for (const auto& [modifierType, modifiers] : drawCmdModifiers) {
+            auto bufferList = std::list<std::shared_ptr<OHOS::Rosen::RSRenderModifier>>();
+            for (const auto& modifier : modifiers) {
+                bufferList.push_back(modifier);
+            }
+            bufferOfDrawCmdModifiers.back().insert({ modifierType, bufferList });
+        }
+    }
+    return bufferOfDrawCmdModifiers;
+}
+
+/*
+    Will not check that is exactly equal because some elemets for "same" object will be different such
+    as uniqueID for Image, checking Desc should be enough.
+*/
+bool CheckDescsInLists(
+    std::list<std::shared_ptr<RSRenderModifier>> firstList, std::list<std::shared_ptr<RSRenderModifier>> secondList)
+{
+    auto bufferElement = secondList.begin();
+    auto patchedElement = firstList.begin();
+    while (bufferElement != secondList.end() && patchedElement != firstList.end()) {
+        auto patchedPropertyDrawCmdList = (*patchedElement)->GetPropertyDrawCmdList();
+        auto bufferPropertyDrawCmdList = (*bufferElement)->GetPropertyDrawCmdList();
+        if (!patchedPropertyDrawCmdList || !bufferPropertyDrawCmdList) {
+            ++bufferElement;
+            ++patchedElement;
+            continue;
+        }
+        auto patchedDesc = patchedPropertyDrawCmdList->GetOpsWithDesc();
+        auto bufferDesc = bufferPropertyDrawCmdList->GetOpsWithDesc();
+        if (bufferDesc.empty()) {
+            /* Empty string suggest that saved node was in IMMEDIATE mode */
+            /* Will skip checking DrawCmdList that is in IMMEDIATE mode */
+            ++bufferElement;
+            ++patchedElement;
+            continue;
+        }
+
+        if (patchedDesc != bufferDesc) {
+            return false;
+        }
+        ++bufferElement;
+        ++patchedElement;
+    }
+    return true;
+}
+
+bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std::shared_ptr<RSRenderNode>>& tree,
+    const std::vector<RSRenderContent::DrawCmdContainer>& bufferOfDrawCmdModifiers)
+{
+    bool isDrawCmdModifiersEqual = true;
+
+    for (size_t index = 0; index < tree.size(); ++index) {
+        const auto& node = tree[index];
+        if (!node) {
+            continue;
+        }
+        NodeId nodeId = node->GetId();
+        NodeId patchedNodeId = Utils::PatchNodeId(nodeId);
+        const auto& patchedNode = context.GetNodeMap().GetRenderNode(patchedNodeId);
+        if (!patchedNode) {
+            isDrawCmdModifiersEqual = false;
+            continue;
+        }
+        const auto& drawCmdModifiers = patchedNode->GetDrawCmdModifiers();
+
+        for (const auto& [modifierType, modifiers] : drawCmdModifiers) {
+            HRPI("TestDoubleReplay: For index %" PRIu64 " and modifierType %{public}hd count in buffer %" PRIu64, index,
+                modifierType, bufferOfDrawCmdModifiers[index].count(modifierType));
+            if (bufferOfDrawCmdModifiers[index].count(modifierType) == 0) {
+                isDrawCmdModifiersEqual = false;
+                continue;
+            }
+
+            const auto& currentBufferList = bufferOfDrawCmdModifiers[index].at(modifierType);
+            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu64 " buffer size %" PRIu64,
+                modifierType, modifiers.size(), currentBufferList.size());
+            if (currentBufferList.size() != modifiers.size()) {
+                isDrawCmdModifiersEqual = false;
+                continue;
+            }
+
+            isDrawCmdModifiersEqual = CheckDescsInLists(modifiers, currentBufferList);
+            if (!isDrawCmdModifiersEqual) {
+                continue;
+            }
+        }
+    }
+
+    return isDrawCmdModifiersEqual;
+}
+
 /*
  * @tc.name: Interface Test
  * @tc.desc: RSProfiler Interface Test
@@ -102,6 +229,63 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
             RSProfiler::ProcessCommands();
         }
         Network::Stop();
+    });
+}
+
+/*
+ * @tc.name: RSDoubleTransformationTest
+ * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, RSDoubleTransformationTest, Function | Reliability | LargeTest | Level2)
+{
+    std::string flag = "0x00000012";
+    RSLogManager::GetInstance().SetRSLogFlag(flag);
+
+    RSProfiler::testing_ = true;
+    const NodeId topId = 54321000;
+
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+
+    EXPECT_NE(renderService->mainThread_, nullptr);
+    RSContext& context = renderService->mainThread_->GetContext();
+
+    EXPECT_NO_THROW({
+        RSProfiler::Init(renderService);
+
+        auto testTreeBuilder = TestTreeBuilder();
+        auto tree = testTreeBuilder.Build(context, topId, true);
+
+        GenerateFullChildrenListForAll(context);
+
+        auto bufferOfDrawCmdModifiers = GetBufferOfDrawCmdModifiersFromTree(tree);
+
+        auto data = RSProfiler::FirstFrameMarshalling(RSFILE_VERSION_LATEST);
+        RSProfiler::FirstFrameUnmarshalling(data, RSFILE_VERSION_LATEST);
+        RSProfiler::TestSwitch(ArgList()); // Should be HiddenSpaceOn
+
+        GenerateFullChildrenListForAll(context);
+
+        RSProfiler::TestSwitch(ArgList()); // Should be HiddenSpaceOff
+
+        GenerateFullChildrenListForAll(context);
+
+        data = RSProfiler::FirstFrameMarshalling(RSFILE_VERSION_LATEST);
+        RSProfiler::FirstFrameUnmarshalling(data, RSFILE_VERSION_LATEST);
+        RSProfiler::TestSwitch(ArgList()); // Should be HiddenSpaceOn
+
+        GenerateFullChildrenListForAll(context);
+
+        bool isDrawCmdModifiersEqual = CheckDrawCmdModifiersEqual(context, tree, bufferOfDrawCmdModifiers);
+
+        RSProfiler::TestSwitch(ArgList()); // Should be HiddenSpaceOff
+
+        GenerateFullChildrenListForAll(context);
+
+        RSProfiler::ClearTestTree(ArgList());
+
+        EXPECT_TRUE(isDrawCmdModifiersEqual);
     });
 }
 } // namespace OHOS::Rosen

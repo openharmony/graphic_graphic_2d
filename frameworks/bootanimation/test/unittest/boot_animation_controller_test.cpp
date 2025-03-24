@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "boot_animation_controller.h"
+#include <if_system_ability_manager.h>
+#include <iservice_registry.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -112,5 +114,18 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_006, TestSize.
     std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
     std::string path = controller->GetConfigFilePath();
     EXPECT_EQ(path.empty(), false);
+}
+
+/**
+ * @tc.name: BootAnimationControllerTest_007
+ * @tc.desc: Verify the WaitRenderServiceInit
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_007, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
+    controller->WaitRenderServiceInit();
+    sptr<ISystemAbilityManager> saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    EXPECT_TRUE(saMgr);
 }
 }

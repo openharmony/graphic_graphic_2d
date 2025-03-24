@@ -87,11 +87,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
 bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas)
 {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    // HDR disable
-    if (!RSSystemProperties::GetHDRImageEnable()) {
-        return false;
-    }
-
     if (pixelMap_ == nullptr || image_ == nullptr) {
         RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
         return false;
@@ -126,12 +121,12 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn())) {
+    if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn() && RSSystemProperties::GetHdrImageEnabled())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_);
+            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRBrightness());
     } else {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD, rscanvas.GetHDRBrightness());
     }
     canvas.AttachPaint(paint_);
     // Avoid cross-thread destruction

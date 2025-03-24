@@ -43,14 +43,7 @@ int32_t AccessibilityParamParse::ParseFeatureParam(FeatureParamMapType &featureM
 int32_t AccessibilityParamParse::ParseAccessibilityInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[Accessibility]);
-    if (iter != featureMap.end()) {
-        accessibilityParam_ = std::static_pointer_cast<AccessibilityParam>(iter->second);
-    } else {
-        RS_LOGD("AccessibilityParamParse stop parsing, no initializing param map");
-    }
-
+    
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
@@ -58,21 +51,21 @@ int32_t AccessibilityParamParse::ParseAccessibilityInternal(FeatureParamMapType 
     if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "HighContrastEnabled") {
-            accessibilityParam_->SetHighContrastEnabled(isEnabled);
+            AccessibilityParam::SetHighContrastEnabled(isEnabled);
             RS_LOGI("AccessibilityParamParse parse HighContrastEnabled %{public}d",
-                    accessibilityParam_->IsHighContrastEnabled());
+                    AccessibilityParam::IsHighContrastEnabled());
         } else if (name == "CurtainScreenEnabled") {
-            accessibilityParam_->SetCurtainScreenEnabled(isEnabled);
+            AccessibilityParam::SetCurtainScreenEnabled(isEnabled);
             RS_LOGI("AccessibilityParamParse parse CurtainScreenEnabled %{public}d",
-                    accessibilityParam_->IsCurtainScreenEnabled());
+                    AccessibilityParam::IsCurtainScreenEnabled());
         } else if (name == "ColorReverseEnabled") {
-            accessibilityParam_->SetColorReverseEnabled(isEnabled);
+            AccessibilityParam::SetColorReverseEnabled(isEnabled);
             RS_LOGI("AccessibilityParamParse parse ColorReverseEnabled %{public}d",
-                    accessibilityParam_->IsColorReverseEnabled());
+                    AccessibilityParam::IsColorReverseEnabled());
         } else if (name == "ColorCorrectionEnabled") {
-            accessibilityParam_->SetColorCorrectionEnabled(isEnabled);
+            AccessibilityParam::SetColorCorrectionEnabled(isEnabled);
             RS_LOGI("AccessibilityParamParse parse ColorCorrectionEnabled %{public}d",
-                    accessibilityParam_->IsColorCorrectionEnabled());
+                    AccessibilityParam::IsColorCorrectionEnabled());
         } else {
             RS_LOGI("AccessibilityParamParse parse %{public}s is not support!", name.c_str());
         }

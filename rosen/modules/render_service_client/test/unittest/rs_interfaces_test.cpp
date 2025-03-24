@@ -1272,6 +1272,33 @@ HWTEST_F(RSInterfacesTest, UnRegisterHgmRefreshRateUpdateCallback_Test, Function
 }
 
 /*
+ * @tc.name: RegisterFirstFrameCommitCallback Test
+ * @tc.desc: RegisterFirstFrameCommitCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBTF2E
+ */
+HWTEST_F(RSInterfacesTest, RegisterFirstFrameCommitCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    FirstFrameCommitCallback cb = [](uint64_t screenId, int64_t timestamp){};
+    int32_t ret = rsInterfaces->RegisterFirstFrameCommitCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterFirstFrameCommitCallback Test
+ * @tc.desc: UnRegisterFirstFrameCommitCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBTF2E
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterFirstFrameCommitCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t ret = rsInterfaces->UnRegisterFirstFrameCommitCallback();
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterHgmConfigChangeCallback Test
  * @tc.desc: RegisterHgmConfigChangeCallback Test
  * @tc.type: FUNC
@@ -2223,6 +2250,20 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
     int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+
+/*
+ * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest
+ * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterSelfDrawingNodeRectChangeCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    SelfDrawingNodeRectChangeCallback callback =
+        [](std::shared_ptr<RSSelfDrawingNodeRectData> SelfDrawingNodeRectData) {};
+    ASSERT_EQ(rsInterfaces->RegisterSelfDrawingNodeRectChangeCallback(callback), SUCCESS);
 }
 
 /*

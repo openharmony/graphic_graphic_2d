@@ -93,6 +93,8 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .tab = Convert(style.tab),
         .paragraphSpacing = style.paragraphSpacing,
         .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
+        .relayoutChangeBitmap = style.relayoutChangeBitmap,
+        .defaultTextStyleUid = style.defaultTextStyleUid,
     };
 }
 
@@ -127,6 +129,8 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
     textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
+    textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
+    textStyle.symbol.SetSymbolBitmap(style.symbol.GetSymbolBitmap());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
@@ -190,9 +194,11 @@ SPText::TextStyle Convert(const TextStyle& style)
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
         style.backgroundRect.leftBottomRadius };
     textStyle.styleId = style.styleId;
+    textStyle.textStyleUid = style.textStyleUid;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -207,6 +213,7 @@ void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
     textStyle.symbol.SetRepeatCount(style.symbol.GetRepeatCount());
     textStyle.symbol.SetAnimationStart(style.symbol.GetAnimationStart());
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
+    textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
 }
 
 void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
@@ -268,6 +275,7 @@ TextStyle Convert(const SPText::TextStyle& style)
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
         style.backgroundRect.leftBottomRadius };
     textStyle.styleId = style.styleId;
+    textStyle.textStyleUid = style.textStyleUid;
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;

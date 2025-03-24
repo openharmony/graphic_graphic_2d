@@ -63,7 +63,7 @@ void RSImplicitCancelAnimationParam::AddPropertyToPendingSyncList(const std::sha
     pendingSyncList_.emplace_back(property);
 }
 
-bool RSImplicitCancelAnimationParam::SyncProperties()
+bool RSImplicitCancelAnimationParam::SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext)
 {
     if (pendingSyncList_.empty()) {
         return false;
@@ -89,21 +89,28 @@ bool RSImplicitCancelAnimationParam::SyncProperties()
 
     bool ret = true;
     if (!renderServicePropertiesMap.empty()) {
-        ret = ret && ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true);
+        ret = ret && ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true, rsUIContext);
     }
     if (!renderThreadPropertiesMap.empty()) {
-        ret = ret && ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false);
+        ret = ret && ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false, rsUIContext);
     }
     return ret;
 }
 
 bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
-    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService)
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService,
+    const std::shared_ptr<RSUIContext>& rsUIContext)
 {
     // create task and execute it in RS (timeout is 400ms)
     auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(4e8, std::move(propertiesMap));
-    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
-
+    if (rsUIContext == nullptr) {
+        RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
+    } else {
+        auto transaction = rsUIContext->GetRSTransaction();
+        if (transaction != nullptr) {
+            transaction->ExecuteSynchronousTask(task, isRenderService);
+        }
+    }
     // Test if the task is executed successfully
     if (!task || !task->IsSuccess()) {
         ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
@@ -113,7 +120,7 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     // Apply task result
     for (const auto& [key, value] : task->GetProperties()) {
         const auto& [nodeId, propertyId] = key;
-        auto node = RSNodeMap::Instance().GetNode(nodeId);
+        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode(nodeId) : RSNodeMap::Instance().GetNode(nodeId);
         if (node == nullptr) {
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
             continue;

@@ -3762,6 +3762,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoGetScreenCurrentRefreshRate(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
-
     return 0;
 }

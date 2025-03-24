@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <functional>
+#include <limits.h>
 #include <limits>
 #include <memory>
 #include <string>
@@ -57,6 +58,7 @@ enum class RSUINodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -79,6 +81,7 @@ enum class RSRenderNodeType : uint32_t {
     PROXY_NODE          = 0x0041u,
     CANVAS_NODE         = 0x0081u,
     EFFECT_NODE         = 0x0101u,
+    ROUND_CORNER_NODE   = 0x0201u,
     ROOT_NODE           = 0x1081u,
     CANVAS_DRAWING_NODE = 0x2081u,
 };
@@ -233,11 +236,34 @@ struct RSSurfaceCaptureBlurParam {
     float blurRadius = 1E-6;
 };
 
+struct RSSurfaceCaptureParam {
+    NodeId id = 0;
+    RSSurfaceCaptureConfig config = {};
+    bool isSystemCalling = false;
+    bool isSelfCapture = false;
+    bool isFreeze = false;
+    RSSurfaceCaptureBlurParam blurParam = {};
+};
+
 struct RSSurfaceCapturePermissions {
     bool screenCapturePermission = false;
     bool isSystemCalling = false;
     bool selfCapture = false;
 };
+
+#define CHECK_FALSE_RETURN(var)      \
+    do {                             \
+        if (!(var)) {                \
+            return;                  \
+        }                            \
+    } while (0)                      \
+
+#define CHECK_FALSE_RETURN_VALUE(var, value)     \
+    do {                                         \
+        if (!(var)) {                            \
+            return value;                        \
+        }                                        \
+    } while (0)
 
 enum class DeviceType : uint8_t {
     PHONE,
@@ -304,13 +330,23 @@ enum class UiFirstModeType : uint8_t {
     MULTI_WINDOW_MODE,
 };
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
+
+enum class UiFirstCcmType : uint8_t {
+    SINGLE = 1,
+    MULTI = 2,
+    HYBRID = 3,
+};
+
 enum class RSUIFirstSwitch {
-    NONE,               // follow RS rules
-    MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
-    FORCE_DISABLE,      // force close uifirst
-    FORCE_ENABLE,       // force open uifirst
-    FORCE_ENABLE_LIMIT, // force open uifirst, but for limited
-    FORCE_DISABLE_NONFOCUS, // force close uifirst when only in nonfocus window
+    NONE = 0,               // follow RS rules
+    MODAL_WINDOW_CLOSE = 1, // open app with modal window animation, close uifirst
+    FORCE_DISABLE = 2,      // force close uifirst
+    FORCE_ENABLE = 3,       // force open uifirst
+    FORCE_ENABLE_LIMIT = 4, // force open uifirst, but for limited
+    FORCE_DISABLE_NONFOCUS = 5, // force close uifirst when only in nonfocus window
 };
 
 enum class SelfDrawingNodeType : uint8_t {
@@ -339,6 +375,25 @@ struct RSSurfaceRenderNodeConfig {
     bool isSync = false;
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
+
+struct RSAdvancedDirtyConfig {
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles to one
+    static const int RECT_NUM_MERGING_ALL = 35;
+    // a threshold, if the number of rectangles is larger than it, we will merge all rectangles by level
+    static const int RECT_NUM_MERGING_BY_LEVEL = 20;
+    // maximal number of dirty rectangles in one surface/display node when advancedDirty is opened
+    static const int MAX_RECT_NUM_EACH_NODE = 10;
+    // number of dirty rectangles in one surface/display node when advancedDirty is closed
+    static const int DISABLED_RECT_NUM_EACH_NODE = 1;
+    // expected number of rectangles after merging
+    static const int EXPECTED_OUTPUT_NUM = 3;
+    // maximal tolerable cost in merging
+    // if the merging cost of two rectangles is larger than it, we will not merge
+    // later it could be set to a quantity related to screen area
+    static const int MAX_TOLERABLE_COST = INT_MAX;
+};
+
+static RSAdvancedDirtyConfig advancedDirtyConfig;
 
 // codes for arkui-x start
 // types for RSSurfaceExt
@@ -411,6 +466,12 @@ inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
     return !(x.owner_before(y) || y.owner_before(x));
 }
 
+template<typename T>
+inline constexpr bool ROSEN_NE(const T& x, const T& y)
+{
+    return !ROSEN_EQ(x, y);
+}
+
 inline bool ROSEN_LNE(float left, float right) // less not equal
 {
     constexpr float epsilon = -0.001f;
@@ -454,6 +515,12 @@ inline constexpr pid_t ExtractPid(uint64_t id)
 {
     // extract high 32 bits of nodeid/animationId/propertyId as pid
     return static_cast<pid_t>(id >> 32);
+}
+
+inline constexpr int32_t ExtractTid(uint64_t token)
+{
+    // extract high 32 bits of token as tid
+    return static_cast<int32_t>(token >> 32);
 }
 
 template<class Container, class Predicate>

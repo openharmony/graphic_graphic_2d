@@ -14,15 +14,17 @@
  */
 
 #include "gtest/gtest.h"
-#include "platform/common/rs_system_properties.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
 #include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 class RSUniRenderEngineTest : public testing::Test {
@@ -33,7 +35,10 @@ public:
     void TearDown() override;
 };
 
-void RSUniRenderEngineTest::SetUpTestCase() {}
+void RSUniRenderEngineTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSUniRenderEngineTest::TearDownTestCase() {}
 void RSUniRenderEngineTest::SetUp() {}
 void RSUniRenderEngineTest::TearDown() {}
@@ -68,10 +73,11 @@ HWTEST_F(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     ASSERT_NE(canvas, nullptr);
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceNode->GetRenderDrawable());
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*surfaceNode);
     param.useCPU = true;
-    uniRenderEngine->DrawSurfaceNodeWithParams(*canvas, *node, param, nullptr, nullptr);
+    uniRenderEngine->DrawSurfaceNodeWithParams(*canvas, *surfaceDrawable.get(), param, nullptr, nullptr);
 }
 
 /**
@@ -113,6 +119,8 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 
     LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("layer3");
+    layer3->SetSurface(cSurface);
 
     if (RSSystemProperties::IsUseVulkan()) {
         layer1->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
@@ -164,4 +172,4 @@ HWTEST_F(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
     param.useCPU = true;
     uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
 }
-}
+} // namespace OHOS::Rosen

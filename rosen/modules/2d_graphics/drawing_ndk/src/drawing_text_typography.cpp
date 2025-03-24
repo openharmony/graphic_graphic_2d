@@ -441,7 +441,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
 
     std::u16string wideText;
     if (OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance()
-        .IsTargetApiVersion(OHOS::Rosen::SPText::SINCE_API16_VERSION)) {
+        .IsTargetApiVersion(OHOS::Rosen::SPText::SINCE_API18_VERSION)) {
         wideText = Str8ToStr16ByIcu(text);
     } else {
         if (!IsUtf8(text, strlen(text))) {

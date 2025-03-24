@@ -108,11 +108,10 @@ void RSRenderNodeGC::ReleaseNodeBucket()
     RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
-            static const bool isPhone = RSSystemProperties::IsPhoneType();
-            if (isPhone) {
-                auto* hook = reinterpret_cast<MemoryHook*>(ptr);
-                hook->Protect();
-            }
+#if defined(__aarch64__)
+            auto* hook = reinterpret_cast<MemoryHook*>(ptr);
+            hook->Protect();
+#endif
             delete ptr;
             ptr = nullptr;
         }

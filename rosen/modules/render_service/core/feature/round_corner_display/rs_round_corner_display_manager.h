@@ -27,6 +27,13 @@
 namespace OHOS {
 namespace Rosen {
 
+// round corner display message declaration
+constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
+constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
+constexpr char TOPIC_RCD_RESOURCE_CHANGE[] = "TOPIC_RCD_RESOURCE_CHANGE";
+constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
+
 class RoundCornerDisplayManager {
 public:
 enum class RCDLayerType : uint32_t {
@@ -46,6 +53,9 @@ public:
     using RCDLayerInfoVec = std::vector<std::pair<NodeId, RCDLayerType>>;
     RoundCornerDisplayManager();
     virtual ~RoundCornerDisplayManager();
+
+    // regist rcd message for multiple callback
+    void RegisterRcdMsg();
 
     // add rendertarget nodeId info to map by layername, if layername exist update info
     void AddLayer(const std::string& name, NodeId id, RCDLayerType type);
@@ -77,16 +87,22 @@ public:
     // update hardwareInfo_.resourceChanged and resourcePreparing
     void UpdateHardwareResourcePrepared(NodeId id, bool prepared);
 
+    // update rcd status and create resource
+    void RefreshFlagAndUpdateResource(NodeId id);
+
     // handle rcdDirtyType_ and assign dirty rect
     bool HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type);
 
     // run rcd hardwareComposer buffer prepare task via rendertarget ID
     void RunHardwareTask(NodeId id, const std::function<void()>& task);
 
-    // get the hardware info via rendertarget ID which rcd hardwareComposer buffer prepare task needed
-    rs_rcd::RoundCornerHardware GetHardwareInfo(NodeId id, bool preparing = false);
+    // get the hardware info via rendertarget ID
+    rs_rcd::RoundCornerHardware GetHardwareInfo(NodeId id);
 
-    // get the rcd enable tag
+    // update and get the hardware info via rendertarget ID which rcd hardwareComposer buffer prepare task needed
+    rs_rcd::RoundCornerHardware PrepareHardwareInfo(NodeId id);
+
+    // get the rcd enable tag, only set to false by system properties durning debug
     bool GetRcdEnable() const;
 
     // get is notch need update tag for the rendertarget id
@@ -110,7 +126,9 @@ private:
     std::mutex rcdMapMut_;
     RoundCornerDisplayMap rcdMap_; // key, value : rendertargetNodeId, rcd module
     std::mutex rcdLayerMapMut_;
-    RCDLayerMap rcdlayerMap_; // key, value : rcdLayerName, rendertargetNodeId
+    RCDLayerMap rcdlayerMap_;  // key, value : rcdLayerName, rendertargetNodeId
+
+    bool isRcdMessageRegisted_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

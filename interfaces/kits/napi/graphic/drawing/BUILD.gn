@@ -29,6 +29,7 @@ config("local_drawing_config") {
 
   include_dirs = [
     "../drawing",
+    "../../../../../rosen/modules/2d_engine/rosen_text/skia_txt",
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
@@ -50,11 +51,6 @@ ohos_shared_library("drawing_napi") {
     "napi:ace_napi",
     "skia:skia_canvaskit",
   ]
-
-  if (current_os == "ohos" || current_os == "ohos_ng") {
-    cflags = [ "-fstack-protector-strong" ]
-    cflags_cc = [ "-fstack-protector-strong" ]
-  }
 
   relative_install_dir = "module/graphics"
   part_name = "graphic_2d"
@@ -150,6 +146,7 @@ if (is_arkui_x) {
       external_deps += [
         "ability_runtime:abilitykit_native",
         "ability_runtime:app_context",
+        "ability_runtime:napi_common",
         "hilog:libhilog",
         "image_framework:image_native",
         "init:libbegetutil",
@@ -157,11 +154,7 @@ if (is_arkui_x) {
       ]
       deps += [ "../../../../../utils:libgraphic_utils" ]
       defines += [ "ROSEN_OHOS" ]
-      cflags = [ "-fstack-protector-strong" ]
-      cflags_cc = [
-        "-fstack-protector-strong",
-        "-std=c++17",
-      ]
+      cflags_cc = [ "-std=c++17" ]
     } else {
       defines += [ "MODULE_DRAWING" ]
       cflags_cc = [ "-std=c++17" ]

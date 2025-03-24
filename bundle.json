@@ -112,7 +112,10 @@
           "ffrt",
           "libxml2",
           "skia",
-          "graphic_2d_ext"
+          "lz4",
+          "faultloggerd",
+          "glslang",
+          "freeytype"
         ],
         "third_party": [
           "skia"
@@ -134,14 +137,13 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-            "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
-            "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
             "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect",
             "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist",
-            "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager"
+            "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager",
+            "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/ddgr:libddgr"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -342,18 +344,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics_new",
-            "header": {
-              "header_files": [
-                "draw/canvas.h",
-                "draw/pen.h",
-                "image/bitmap.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "header": {
               "header_files": [
@@ -373,27 +363,6 @@
                 "export/color_space_convertor.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/color_manager"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
-            "header": {
-              "header_files": [
-                "any_span.h",
-                "dynamic_file_font_provider.h",
-                "dynamic_font_provider.h",
-                "font_providers.h",
-                "ifont_provider.h",
-                "system_font_provider.h",
-                "text_style.h",
-                "theme_font_provider.h",
-                "typography_builder.h",
-                "typography_style.h",
-                "typography_types.h",
-                "typography.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/texgine/export/texgine"
             }
           },
           {
@@ -431,21 +400,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
-            "header": {
-              "header_files": [
-                "font_collection.h",
-                "typography_create.h",
-                "typography_style.h",
-                "text_style.h",
-                "typography.h",
-                "typography_types.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text/export/rosen_text"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -454,6 +408,14 @@
                 "color_mgr_ffi.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/ddgr:libddgr",
+            "header": {
+              "header_files": [],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/ddgr"
             }
           }
         ],

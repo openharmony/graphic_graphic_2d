@@ -2644,7 +2644,8 @@ HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     NodeId id = 1;
     AnimationId animationId = 1;
-    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
+    uint64_t token = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId, token);
     mainThread->SendCommands();
 }
 
@@ -4906,6 +4907,31 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     Drawing::GPUContext gpuContext;
     mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurafceDump01
+ * @tc.desc: RenderServiceAllSurafceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    node2->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+
+    DfxString log;
+    mainThread->RenderServiceAllSurafceDump(log);
 }
 
 } // namespace OHOS::Rosen

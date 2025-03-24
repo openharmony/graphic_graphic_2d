@@ -12,24 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H
 
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <pthread.h>
+#include <vector>
 
 #include "modules/skparagraph/include/Paragraph.h"
+#include "modules/skparagraph/include/DartTypes.h"
+#include "symbol_engine/hm_symbol_run.h"
 #include "txt/paint_record.h"
 #include "txt/paragraph.h"
+#include "txt/paragraph_style.h"
+#include "txt/text_style.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+namespace skt = skia::textlayout;
 class ParagraphImpl : public Paragraph {
 public:
-    ParagraphImpl(std::unique_ptr<skia::textlayout::Paragraph> paragraph,
-        std::vector<PaintRecord>&& paints);
+    ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints);
 
     virtual ~ParagraphImpl() = default;
 
@@ -92,9 +98,9 @@ public:
 
     Range<size_t> GetEllipsisTextRange() override;
 
-    std::vector<skia::textlayout::LineMetrics> GetLineMetrics() override;
+    std::vector<skt::LineMetrics> GetLineMetrics() override;
 
-    bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
+    bool GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const override;
 
     void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc
@@ -118,14 +124,39 @@ public:
         std::vector<Drawing::FontMetrics>& fontMetrics) override;
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
-    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) override;
+    TextStyle SkStyleToTextStyle(const skt::TextStyle& skStyle) override;
     void UpdateColor(size_t from, size_t to, const RSColor& color) override;
     Drawing::RectI GeneratePaintRegion(double x, double y) override;
 
+    void Relayout(double width, const ParagraphStyle& paragraphStyle,
+        const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) override;
+
+    bool IsLayoutDone() override;
+
+    void SetLayoutState(size_t state) override;
 private:
+    void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
+        skt::InternalState& state);
+
+    void TextStyleUpdater(skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state);
+
+    void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
+        skt::InternalState& state);
+
+    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& txt);
+
+    void ApplyParagraphStyleChanges(const ParagraphStyle& style);
+
+    void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles);
+
     void RecordDifferentPthreadCall(const char* caller) const;
 
-    std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
+    void InitSymbolRuns();
+
+    void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
+        skt::InternalState& state, size_t index);
+
+    std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
     std::vector<TextStyle> lineMetricsStyles_;
@@ -133,6 +164,8 @@ private:
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
     mutable pthread_t threadId_;
+    std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
+    std::once_flag initSymbolRunsFlag_;
 };
 } // namespace SPText
 } // namespace Rosen

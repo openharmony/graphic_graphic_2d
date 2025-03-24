@@ -265,17 +265,16 @@ template("graphics2d_source_set") {
         (current_os == "linux" || current_os == "mingw") &&
         ddgr_ext_configs.ddgr_feature_cross_compile) {
       public_deps += [
-        "$graphic_2d_ext_root/ddgr:libddgr",
         "$graphic_2d_ext_root/ddgr/tools/playbackengine:libplaybackengine",
+        "$rosen_root/modules/2d_engine/ddgr:libddgr",
       ]
     }
     cflags = []
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
-      defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
       include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
-      public_external_deps += [ "graphic_2d_ext:libddgr" ]
+      public_deps += [ "$rosen_root/modules/2d_engine/ddgr:libddgr" ]
       cflags += [
         "-fprofile-use=" +
             rebase_path("${ddgr_feature_pgo_path}libddgr.profdata",
@@ -324,11 +323,12 @@ template("graphics2d_source_set") {
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
+        "icu:shared_icuuc",
         "skia:skia_canvaskit",
       ]
 
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
+      deps = []
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
@@ -359,7 +359,7 @@ template("graphics2d_source_set") {
       defines += [ "MODULE_DRAWING" ]
       if (is_arkui_x) {
         defines += [ "CROSS_PLATFORM" ]
-        deps += [ "//foundation/graphic/graphic_2d/rosen/build/icu:rosen_libicu_$platform" ]
+        deps += [ "//third_party/icu/icu4c:static_icuuc" ]
       }
 
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
@@ -432,9 +432,7 @@ if (!is_arkui_x) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps = [ ":2d_graphics_source_$platform" ]
-    }
+    deps = [ ":2d_graphics_source_$platform" ]
 
     external_deps = [
       "bounds_checking_function:libsec_static",
@@ -463,26 +461,6 @@ if (!is_arkui_x) {
       external_deps += [ "bounds_checking_function:libsec_static" ]
     }
     public_configs = [ ":export_config" ]
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
-  }
-}
-
-if (enable_text_gine) {
-  ohos_shared_library("2d_graphics_new") {
-    platform = current_os
-    if (platform == "mingw") {
-      platform = "windows"
-    }
-    deps = [ "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing" ]
-    if (!(host_os == "linux" && host_cpu == "arm64")) {
-      deps += [ ":2d_graphics_source_$platform" ]
-    }
-    external_deps = [ "hilog:libhilog" ]
-    public_external_deps = [ "bounds_checking_function:libsec_static" ]
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-    public_configs = [ ":2d_graphics_config" ]
-    innerapi_tags = [ "platformsdk_indirect" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

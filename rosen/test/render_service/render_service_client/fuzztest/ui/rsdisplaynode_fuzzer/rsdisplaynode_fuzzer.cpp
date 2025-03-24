@@ -406,6 +406,26 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     displayNode->CreateNode(config2, nodeId);
     return true;
 }
+
+bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    bool muteStatus = GetData<bool>();
+    displayNode->SetVirtualScreenMuteStatus(muteStatus);
+    
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -432,5 +452,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScbNodePid(data, size);
     OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
+    OHOS::Rosen::DoSetVirtualScreenMuteStatus(data, size);
     return 0;
 }

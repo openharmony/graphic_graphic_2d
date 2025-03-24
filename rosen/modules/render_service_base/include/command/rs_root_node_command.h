@@ -22,18 +22,21 @@
 namespace OHOS {
 namespace Rosen {
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it,
+//just COMMENT it - and never use this value anymore
 enum RSRootNodeCommandType : uint16_t {
-    ROOT_NODE_CREATE,
-    ROOT_NODE_ATTACH,
-    ATTACH_TO_UNI_SURFACENODE,
-    SET_ENABLE_RENDER,
-    UPDATE_SUGGESTED_BUFFER_SIZE,
+    ROOT_NODE_CREATE = 0,
+    ROOT_NODE_ATTACH = 1,
+    ATTACH_TO_UNI_SURFACENODE = 2,
+    SET_ENABLE_RENDER = 3,
+    UPDATE_SUGGESTED_BUFFER_SIZE = 4,
 };
 
 class RSB_EXPORT RootNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
-    static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
+    static void AttachRSSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId, uint64_t token = 0);
     static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void SetEnableRender(RSContext& context, NodeId id, bool flag);
     static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height);
@@ -44,7 +47,7 @@ ADD_COMMAND(RSRootNodeCreate,
         RootNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
     ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_ATTACH,
-        RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
+        RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId, uint64_t))
 ADD_COMMAND(RSRootNodeSetEnableRender,
     ARG(PERMISSION_APP, ROOT_NODE, SET_ENABLE_RENDER,
         RootNodeCommandHelper::SetEnableRender, NodeId, bool))

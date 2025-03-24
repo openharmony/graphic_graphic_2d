@@ -565,19 +565,20 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawDfxForCacheInfoTest, TestSize.Level1)
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    drawable->DrawDfxForCacheInfo(paintFilterCanvas);
+    auto renderParams = std::make_unique<RSRenderParams>(0);
+    drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
     ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
     ASSERT_TRUE(drawable->isDrawingCacheDfxEnabled_);
     ASSERT_FALSE(drawable->autoCacheDrawingEnable_);
     ASSERT_FALSE(!drawable->isDrawingCacheDfxEnabled_);
 
     drawable->isDrawingCacheEnabled_ = true;
-    drawable->autoCacheDrawingEnable_  = true;
-    drawable->DrawDfxForCacheInfo(paintFilterCanvas);
+    drawable->autoCacheDrawingEnable_ = true;
+    drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 
     drawable->isDrawingCacheDfxEnabled_ = false;
-    drawable->DrawDfxForCacheInfo(paintFilterCanvas);
+    drawable->DrawDfxForCacheInfo(paintFilterCanvas, renderParams);
     ASSERT_FALSE(drawable->isDrawingCacheDfxEnabled_);
 }
 

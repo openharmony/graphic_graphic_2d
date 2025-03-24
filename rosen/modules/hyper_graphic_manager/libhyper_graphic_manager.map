@@ -103,12 +103,13 @@
       *HgmFrameRateManager::ProcessRefreshRateVote*;
       *HgmFrameRateManager::ReportHiSysEvent*;
       *HgmFrameRateManager::SetAceAnimatorVote*;
-      *HgmFrameRateManager::SetShowRefreshRateEnabled*;
       *HgmFrameRateManager::UniProcessDataForLtpo*;
       *HgmFrameRateManager::UpdateGuaranteedPlanVote*;
       *HgmFrameRateManager::UpdateSurfaceTime*;
       *HgmFrameRateManager::UpdateUIFrameworkDirtyNodes*;
       *HgmFrameRateManager::UpdateVoteRule*;
+      *HgmFrameRateManager::HandleGameNode*;
+      *HgmFrameRateManager::UpdateSoftVSync*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
 
@@ -117,6 +118,7 @@
       *HgmIdleDetector::SetAceAnimatorIdleState*;
       *HgmIdleDetector::SetAppSupportedState*;
       *HgmIdleDetector::UpdateSurfaceTime*;
+      *HgmIdleDetector::UpdateSurfaceState*;
 
       *HgmMultiAppStrategy::AnalyzePkgParam*;
       *HgmMultiAppStrategy::CalcVote*;

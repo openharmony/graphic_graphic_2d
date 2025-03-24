@@ -26,14 +26,17 @@ public:
 
     bool IsFilterCacheEnable() const;
     bool IsEffectMergeEnable() const;
+    bool IsBlurAdaptiveAdjust() const;
 
 protected:
     void SetFilterCacheEnable(bool isEnable);
     void SetEffectMergeEnable(bool isEnable);
+    void SetBlurAdaptiveAdjust(bool isEnable);
 
 private:
     bool isFilterCacheEnable_ = true;
     bool isEffectMergeEnable_ = true;
+    bool isBlurAdaptiveAdjust = false;
     friend class FilterParamParse;
 };
 } // namespace OHOS::Rosen

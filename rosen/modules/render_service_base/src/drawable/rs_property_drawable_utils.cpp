@@ -327,7 +327,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+    if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::filterCacheEnabled_) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
@@ -464,7 +464,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+    if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
@@ -1002,7 +1002,16 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
         Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius));
     brush.SetFilter(filter);
     canvas->AttachBrush(brush);
-    canvas->DrawPath(path);
+    auto stencilVal = canvas->GetStencilVal();
+    if (stencilVal > 0) {
+        --stencilVal; // shadow positioned under app window
+    }
+    if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas->GetMaxStencilVal()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawPathWithStencil, stencilVal: %" PRId64 "", stencilVal);
+        canvas->DrawPathWithStencil(path, static_cast<uint32_t>(stencilVal));
+    } else {
+        canvas->DrawPath(path);
+    }
     canvas->DetachBrush();
 }
 

@@ -24,7 +24,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "property/rs_filter_cache_manager.h"
+#include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 
@@ -169,7 +169,7 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 
 RSFilterDrawable::RSFilterDrawable()
 {
-    if (RSProperties::FilterCacheEnabled) {
+    if (RSProperties::filterCacheEnabled_) {
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
@@ -191,10 +191,10 @@ void RSFilterDrawable::OnSync()
 
     needSync_ = false;
 
-    if (!RSProperties::FilterCacheEnabled || stagingCacheManager_ == nullptr ||
+    if (!RSProperties::filterCacheEnabled_ || stagingCacheManager_ == nullptr ||
         cacheManager_ == nullptr || filter_ == nullptr) {
         ROSEN_LOGD("Clear filter cache failed or no need to clear cache, filterCacheEnabled:%{public}d,"
-            "cacheManager:%{public}d, filter:%{public}d", RSProperties::FilterCacheEnabled,
+            "cacheManager:%{public}d, filter:%{public}d", RSProperties::filterCacheEnabled_,
             stagingCacheManager_ != nullptr, filter_ == nullptr);
         return;
     }

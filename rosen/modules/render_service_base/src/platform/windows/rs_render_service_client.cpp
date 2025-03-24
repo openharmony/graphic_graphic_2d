@@ -122,8 +122,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverWindows>();
 }
 
-int32_t RSRenderServiceClient::GetPixelMapByProcessId(
-    std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapVector, pid_t pid)
+int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return 0;
 }
@@ -137,6 +136,12 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig)
 {
     return false;
 }
@@ -549,6 +554,12 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
+    const FirstFrameCommitCallback& callback)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
@@ -740,6 +751,12 @@ void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 
+int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
+    const SelfDrawingNodeRectChangeCallback& callback)
+{
+    return {};
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t SetOverlayDisplayMode(int32_t mode)
 {
@@ -749,6 +766,10 @@ int32_t SetOverlayDisplayMode(int32_t mode)
 
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
+{
+}
+
+void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
 {
 }
 } // namespace Rosen

@@ -45,8 +45,7 @@ typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
-    struct ScreenRenderParams
-    {
+    struct ScreenRenderParams {
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
@@ -155,6 +154,16 @@ public:
     ScreenRotation GetScreenRotation()
     {
         return screenRotation_;
+    }
+
+    void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
+    {
+        virtualScreenMuteStatus_ = virtualScreenMuteStatus;
+    }
+
+    bool GetVirtualScreenMuteStatus() const
+    {
+        return virtualScreenMuteStatus_;
     }
 
     void CollectSurface(
@@ -340,7 +349,6 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
-    bool IsRotationFinished() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
     }
@@ -404,8 +412,16 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
-    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
-    GraphicPixelFormat GetPixelFormat() const;
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    GraphicPixelFormat GetPixelFormat() const
+    {
+        return pixelFormat_;
+    }
+
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetColorSpace() const;
 
@@ -541,9 +557,42 @@ public:
 
     void NotifyScreenNotSwitching();
 
+    // rcd node setter and getter, should be removed in OH 6.0 rcd refactoring
+    void SetRcdSurfaceNodeTop(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeTop_ = node;
+    }
+
+    void SetRcdSurfaceNodeBottom(RSBaseRenderNode::SharedPtr node)
+    {
+        rcdSurfaceNodeBottom_ = node;
+    }
+
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeTop()
+    {
+        return rcdSurfaceNodeTop_;
+    }
+    
+    RSBaseRenderNode::SharedPtr GetRcdSurfaceNodeBottom()
+    {
+        return rcdSurfaceNodeBottom_;
+    }
+
     // Window Container
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
+
+    void SetTargetSurfaceRenderNodeId(NodeId nodeId)
+    {
+        targetSurfaceRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetTargetSurfaceRenderNodeId() const
+    {
+        return targetSurfaceRenderNodeId_;
+    }
+
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
 
 protected:
     void OnSync() override;
@@ -574,6 +623,7 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    bool virtualScreenMuteStatus_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
@@ -631,6 +681,12 @@ private:
 
     std::vector<int32_t> oldScbPids_ {};
 
+    // Use in round corner display
+    // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
+    RSBaseRenderNode::SharedPtr rcdSurfaceNodeBottom_ = nullptr;
+
+    NodeId targetSurfaceRenderNodeId_ = INVALID_NODEID;
     friend class DisplayNodeCommandHelper;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
 

@@ -21,6 +21,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -122,22 +123,6 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostProcessTest
- * @tc.desc: Verify function PostProcess
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST(RSUniRenderProcessorTest, PostProcessTest, TestSize.Level1)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    renderProcessor->PostProcess();
-    EXPECT_FALSE(renderProcessor->isPhone_);
-}
-
-/**
  * @tc.name: CreateLayerTest
  * @tc.desc: Verify function CreateLayer
  * @tc.type:FUNC
@@ -156,6 +141,11 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     RSSurfaceRenderNode node(0);
     auto iConsumerSurface = IConsumerSurface::Create();
     node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    int64_t timestamp = 0;
+    Rect damage;
+    node.GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
     RSSurfaceRenderParams params(0);
     RSLayerInfo layerInfo;
     sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
@@ -165,7 +155,7 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     layerInfo.zOrder = 0;
     params.SetLayerInfo(layerInfo);
     renderProcessor->CreateLayer(node, params);
-    EXPECT_FALSE(renderProcessor->isPhone_);
+    EXPECT_TRUE(params.GetLayerCreated());
 }
 
 /**
@@ -201,9 +191,12 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
-    RSRcdSurfaceRenderNode node(nodeId, type);
-    renderProcessor->ProcessRcdSurface(node);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+    auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
+    renderProcessor->ProcessRcdSurface(*node);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
+    DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
+    renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
+    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
 }
 
 /**
@@ -419,58 +412,6 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
-}
-
-/**
- * @tc.name: CreateUIFirstLayer001
- * @tc.desc: Test RSUniRenderProcessorTest.CreateUIFirstLayer while params is null
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST(RSUniRenderProcessorTest, CreateUIFirstLayer001, TestSize.Level1)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    RSSurfaceRenderParams params(0);
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    ASSERT_NE(surfaceDrawable, nullptr);
-    surfaceDrawable->surfaceHandlerUiFirst_ = std::make_shared<RSSurfaceHandler>(0);
-    ASSERT_NE(surfaceDrawable->surfaceHandlerUiFirst_, nullptr);
-
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->CreateUIFirstLayer(*surfaceDrawable, params);
-}
-
-/**
- * @tc.name: CreateUIFirstLayer002
- * @tc.desc: Test RSUniRenderProcessorTest.CreateUIFirstLayer when params has Buffer
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST(RSUniRenderProcessorTest, CreateUIFirstLayer002, TestSize.Level1)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    RSSurfaceRenderParams params(0);
-    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(buffer, {});
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    ASSERT_NE(surfaceDrawable, nullptr);
-    surfaceDrawable->surfaceHandlerUiFirst_ = std::make_shared<RSSurfaceHandler>(0);
-    ASSERT_NE(surfaceDrawable->surfaceHandlerUiFirst_, nullptr);
-
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->CreateUIFirstLayer(*surfaceDrawable, params);
 }
 
 /**

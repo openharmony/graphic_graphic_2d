@@ -27,6 +27,7 @@
 #include "font_config.h"
 #include "text/common_utils.h"
 #include "text/font_style.h"
+#include "text/font_mgr.h"
 #include "utils/text_log.h"
 
 #define INSTALL_FONT_CONFIG_FILE "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json"

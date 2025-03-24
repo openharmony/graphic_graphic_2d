@@ -62,8 +62,8 @@ bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
         (transactionFlags == "" || transactionFlags.find(std::to_string(lastVotedPid_)) == std::string::npos)) {
         return false;
     }
-    auto lastUpdateTime = currentUpdateTime_ ;  
-    currentUpdateTime_  = OHOS::Rosen::HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
+    auto lastUpdateTime = currentUpdateTime_;
+    currentUpdateTime_ = OHOS::Rosen::HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
     auto duration = currentUpdateTime_ > lastUpdateTime ? currentUpdateTime_ - lastUpdateTime : 0;
     if (duration < DANMU_MAX_INTERVAL_TIME) {
         return true;

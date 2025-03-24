@@ -49,6 +49,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
                 CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_FIRST_FRAME_COMMIT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_FIRST_FRAME_COMMIT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::DISABLE_RENDER_CONTROL_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DISABLE_RENDER_CONTROL_SCREEN");
             break;
@@ -477,6 +481,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WINDOW_CONTAINER");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DISPLAY_IDENTIFICATION_DATA): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DISPLAY_IDENTIFICATION_DATA");
             break;
@@ -491,6 +499,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
 #endif
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TEST_LOAD_FILE_SUB_TREE): {
+            hasPermission = IsStartByHdcd();
+            break;
+        }
         default: {
             break;
         }

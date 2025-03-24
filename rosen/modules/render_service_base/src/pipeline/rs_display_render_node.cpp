@@ -37,7 +37,7 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64
         ", isMirrored:%{public}d, mirrorNodeId:%{public}" PRIu64 ", isSync:%{public}d]",
         id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(id)};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
@@ -159,8 +159,10 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         hasMirroredDisplayChanged_ = true;
     }
     isMirroredDisplay_ = isMirror;
-    RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
-        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%d]",
+        GetId(), IsMirrorDisplay());
+    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}d]",
+        GetId(), IsMirrorDisplay());
 }
 
 void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
@@ -237,6 +239,7 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
         surfaceCountForMultiLayersPerf_++;
     }
     curMainAndLeashSurfaceNodes_.clear();
+    topSurfaceOpaqueRects_.clear();
 }
 
 void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
@@ -268,11 +271,19 @@ void RSDisplayRenderNode::UpdateRenderParams()
     } else {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
+        displayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
+    displayParams->roundCornerSurfaceDrawables_.clear();
+    if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
+    }
+    if (rcdSurfaceNodeBottom_ && rcdSurfaceNodeBottom_->GetRenderDrawable() != nullptr) {
+        displayParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeBottom_->GetRenderDrawable());
+    }
     RSRenderNode::UpdateRenderParams();
 #endif
 }
@@ -320,6 +331,7 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
         return;
     }
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
+    displayParams->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
 #endif
 }
 
@@ -393,18 +405,6 @@ bool RSDisplayRenderNode::IsRotationChanged() const
     return !(ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd);
 }
 
-bool RSDisplayRenderNode::IsRotationFinished() const
-{
-    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeoPtr == nullptr) {
-        return false;
-    }
-    // boundsGeoPtr->IsNeedClientCompose() return false if rotation degree is times of 90
-    // which means rotation is end.
-    bool isRotationEnd = !boundsGeoPtr->IsNeedClientCompose();
-    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd;
-}
-
 void RSDisplayRenderNode::UpdateRotation()
 {
 #ifdef RS_ENABLE_GPU
@@ -419,7 +419,6 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
-    displayParams->SetRotationFinished(IsRotationFinished());
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
@@ -502,30 +501,6 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
         AddToPendingSyncList();
     }
 #endif
-}
-
-void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
-{
-#ifdef RS_ENABLE_GPU
-    if (pixelFormat_ == pixelFormat) {
-        return;
-    }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
-    if (!displayParams) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    displayParams->SetNewPixelFormat(pixelFormat);
-    if (stagingRenderParams_->NeedSync()) {
-        AddToPendingSyncList();
-    }
-    pixelFormat_ = pixelFormat;
-#endif
-}
-
-GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
-{
-    return pixelFormat_;
 }
 
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
@@ -649,6 +624,19 @@ void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> c
 std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
 {
     return windowContainer_;
+}
+
+void RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable displayParams is null");
+        return;
+    }
+    displayParams->SetTargetSurfaceRenderNodeDrawable(drawable);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -159,6 +159,24 @@ bool DoSetScbNodePid(const uint8_t* data, size_t size, RSContext& context)
 
     return true;
 }
+
+bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size, RSContext& context)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    NodeId id = GetData<NodeId>();
+    bool muteStatus = GetData<bool>();
+    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, muteStatus);
+
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -172,6 +190,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetDisplayMode(data, size, *context);
     OHOS::Rosen::DoSetBootAnimation(data, size, *context);
     OHOS::Rosen::DoSetScbNodePid(data, size, *context);
+    OHOS::Rosen::DoSetVirtualScreenMuteStatus(data, size, *context);
 
     context = nullptr;
     OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();

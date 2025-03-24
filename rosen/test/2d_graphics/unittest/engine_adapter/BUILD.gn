@@ -14,7 +14,8 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/2d_graphics/engine_adapter"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen/modules/2d_graphics/engine_adapter"
 
 ohos_unittest("2d_graphics_engine_adapter_test") {
   module_out_path = module_output_path

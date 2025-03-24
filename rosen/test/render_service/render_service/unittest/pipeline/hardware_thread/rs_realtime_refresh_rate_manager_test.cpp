@@ -87,6 +87,10 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus001, TestSize.Level1)
     ASSERT_EQ(ret, false);
     ASSERT_EQ(instance.collectEnabled_, false);
     ASSERT_EQ(instance.isCollectRefreshRateTaskRunning_, false);
+    instance.isCollectRefreshRateTaskRunning_ = false;
+    instance.SetShowRefreshRateEnabled(true, 0);
+    instance.showEnabled_ = true;
+    instance.GetRealtimeRefreshRate(INVALID_SCREEN_ID);
 }
 
 /**

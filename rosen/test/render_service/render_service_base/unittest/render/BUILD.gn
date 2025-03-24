@@ -15,7 +15,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service_base/render"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service_base/render"
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
 ohos_unittest("RSAibarShaderFilterTest") {
@@ -498,6 +499,58 @@ ohos_unittest("RSMESABlurShaderFilterTest") {
 }
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
+ohos_unittest("RSLightBlurShaderFilterTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_light_blur_shader_filter_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceBaseRenderTest  ##################################
 ohos_unittest("RSLightUpEffectFilterTest") {
   module_out_path = module_output_path
 
@@ -802,6 +855,7 @@ group("unittest") {
     ":RSHveFilterTest",
     ":RSImageCacheTest",
     ":RSKawaseBlurShaderFilterTest",
+    ":RSLightBlurShaderFilterTest",
     ":RSLightUpEffectFilterTest",
     ":RSMESABlurShaderFilterTest",
     ":RSMagnifierShaderFilterTest",

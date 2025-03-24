@@ -467,23 +467,31 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
+    std::unordered_map<std::string, std::string>& hwcVideoConfigFromHgm = configData->hwcSourceTuningConfig_;
+    std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm = configData->hwcSolidLayerConfig_;
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
-    if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
+    if (pkgs.size() > 1) {
         return;
     }
     for (auto &param: pkgs) {
         std::string pkgNameForCheck = param.substr(0, param.find(':'));
         // 1 means crop source tuning
-        if (videoConfigFromHgm[pkgNameForCheck] == "1") {
+        auto videoIter = videoConfigFromHgm.find(pkgNameForCheck);
+        auto hwcVideoIter = hwcVideoConfigFromHgm.find(pkgNameForCheck);
+        if ((videoIter != videoConfigFromHgm.end() && videoIter->second == "1") ||
+            (hwcVideoIter != hwcVideoConfigFromHgm.end() && hwcVideoIter->second == "1")) {
             rsCommonHook.SetVideoSurfaceFlag(true);
         // 2 means skip hardware disabled by hwc node and background alpha
-        } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
+        } else if ((videoIter != videoConfigFromHgm.end() && videoIter->second == "2") ||
+                   (hwcVideoIter != hwcVideoConfigFromHgm.end() && hwcVideoIter->second == "2")) {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
         }
         // 1 means enable dss by solid color layer
-        if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
-            iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
+        auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
+        auto hwcIter = hwcSolidLayerConfigFromHgm.find(pkgNameForCheck);
+        if ((iter != solidLayerConfigFromHgm.end() && iter->second == "1") ||
+            (hwcIter != hwcSolidLayerConfigFromHgm.end() && hwcIter->second == "1")) {
             rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }

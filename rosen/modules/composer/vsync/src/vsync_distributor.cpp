@@ -1291,8 +1291,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
         DVSync::Instance().RecordVSync(this, now, period, refreshRate, true);
         vsyncCount = DVSync::Instance().GetVsyncCount(event_.vsyncCount);
         if (refreshRate > 0) {
-            event_.vsyncPulseCount += static_cast<int64_t>(vsyncMaxRefreshRate / refreshRate);
-            generatorRefreshRate_ = refreshRate;
+            generatorRefreshRate = refreshRate;
         }
         vsyncMode_ = vsyncMode;
         ChangeConnsRateLocked(vsyncMaxRefreshRate);
@@ -1322,8 +1321,6 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
 
         countTraceValue_ = (countTraceValue_ + 1) % 2; // 2 : change num
         CountTrace(HITRACE_TAG_GRAPHIC_AGP, "vsync-" + name_, countTraceValue_);
-
-        generatorRefreshRate = generatorRefreshRate_;
     }
     ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, true);
 #endif
@@ -1605,12 +1602,20 @@ void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName)
+bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount,
+    bool &needConsume)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName);
+    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount, needConsume);
 #else
     return false;
+#endif
+}
+
+void VSyncDistributor::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
 #endif
 }
 

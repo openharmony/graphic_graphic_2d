@@ -85,18 +85,10 @@ void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
     vsyncEnabledScreenId_ = vsyncEnabledScreenId;
 }
 
-void VSyncSampler::SetIsFoldScreenFlag(bool isFoldScreenFlag)
+uint64_t VSyncSampler::GetVsyncEnabledScreenId()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    RS_TRACE_NAME_FMT("SetIsFoldScreenFlag:%d", isFoldScreenFlag);
-    VLOGI("SetIsFoldScreenFlag:%{public}d", isFoldScreenFlag);
-    isFoldScreenFlag_ = isFoldScreenFlag;
-}
-
-void VSyncSampler::SetFoldScreenIds(const std::vector<uint64_t>& foldScreenIds)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    foldScreenIds_ = foldScreenIds;
+    return vsyncEnabledScreenId_;
 }
 
 void VSyncSampler::SetVsyncSamplerEnabled(bool enabled)
@@ -336,15 +328,7 @@ bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
         return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    // if isFoldScreenFlag_ is true, vsyncEnabledScreenId is always 5,
-    // should not use vsyncEnabledScreenId to filter PresentFenceTime,
-    // so we record foldScreenIds and use this vector to filter PresentFenceTime.
-    if (isFoldScreenFlag_) {
-        auto it = std::find(foldScreenIds_.begin(), foldScreenIds_.end(), screenId);
-        if (it == foldScreenIds_.end()) {
-            return false;
-        }
-    } else if (screenId != vsyncEnabledScreenId_) {
+    if (screenId != vsyncEnabledScreenId_) {
         return false;
     }
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
@@ -450,12 +434,6 @@ void VSyncSampler::Dump(std::string &result)
     result += "]";
     result += "\npresentFenceTimeOffset:" + std::to_string(presentFenceTimeOffset_);
     result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_);
-    result += "\nisFoldScreenFlag:" + std::to_string(isFoldScreenFlag_);
-    result += "\nfoldScreenIds:[";
-    for (uint64_t foldScreenId : foldScreenIds_) {
-        result += std::to_string(foldScreenId) + ",";
-    }
-    result += "]";
 }
 
 VSyncSampler::~VSyncSampler()

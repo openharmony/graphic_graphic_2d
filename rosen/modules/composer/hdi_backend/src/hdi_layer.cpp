@@ -15,6 +15,7 @@
 
 #include "hdi_layer.h"
 #include "hdi_log.h"
+#include "common/rs_optional_trace.h"
 #include <algorithm>
 #include <cstring>
 #include <securec.h>
@@ -281,16 +282,21 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
 
 int32_t HdiLayer::SetLayerBuffer()
 {
-    sptr<SurfaceBuffer> currBuffer = layerInfo_->GetBuffer();
-    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
-    if (currBuffer == nullptr) {
+    RS_OPTIONAL_TRACE_NAME_FMT("SetLayerBuffer(layerid=%u)", layerId_);
+    currBuffer_ = layerInfo_->GetBuffer();
+    if (currBuffer_ == nullptr) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
+    sptr<SyncFence> currAcquireFence = layerInfo_->GetAcquireFence();
     if (doLayerInfoCompare_) {
         sptr<SurfaceBuffer> prevBuffer = prevLayerInfo_->GetBuffer();
         sptr<SyncFence> prevAcquireFence = prevLayerInfo_->GetAcquireFence();
-        if (currBuffer == prevBuffer && currAcquireFence == prevAcquireFence) {
-            return GRAPHIC_DISPLAY_SUCCESS;
+        if (currBuffer_ == prevBuffer && currAcquireFence == prevAcquireFence) {
+            if (!alreadyClearBuffer_) {
+                return GRAPHIC_DISPLAY_SUCCESS;
+            }
+            HLOGW("layerid=%{public}u: force set same buffer(bufferId=%{public}u)", layerId_, currBuffer_->GetSeqNum());
+            RS_TRACE_NAME_FMT("layerid=%u: force set same buffer(bufferId=%u)", layerId_, currBuffer_->GetSeqNum());
         }
     }
 
@@ -301,7 +307,7 @@ int32_t HdiLayer::SetLayerBuffer()
         ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
-        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer->GetSeqNum(), index, deletingList);
+        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer_->GetSeqNum(), index, deletingList);
     }
 
     GraphicLayerBuffer layerBuffer;
@@ -311,8 +317,10 @@ int32_t HdiLayer::SetLayerBuffer()
     if (bufferCached && index < bufferCacheCountMax_) {
         layerBuffer.handle = nullptr;
     } else {
-        layerBuffer.handle = currBuffer->GetBufferHandle();
+        layerBuffer.handle = currBuffer_->GetBufferHandle();
     }
+
+    alreadyClearBuffer_ = false;
     return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
 
@@ -809,8 +817,8 @@ int32_t HdiLayer::SetPerFrameParameterSdrNit()
         }
     }
 
-    std::vector<int8_t> valueBlob(sizeof(int32_t));
-    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetSdrNit();
+    std::vector<int8_t> valueBlob(sizeof(float));
+    *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetSdrNit();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_SDR_NIT, valueBlob);
 }
@@ -823,8 +831,8 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
         }
     }
 
-    std::vector<int8_t> valueBlob(sizeof(int32_t));
-    *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
+    std::vector<int8_t> valueBlob(sizeof(float));
+    *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
 }
@@ -879,9 +887,18 @@ void HdiLayer::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
+    if (layerInfo_ == nullptr || device_ == nullptr) {
+        return;
+    }
+    if (layerInfo_->GetBuffer() != nullptr) {
+        currBuffer_ = layerInfo_->GetBuffer();
+    }
+    RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
+        bufferCache_.size());
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
     bufferCache_.clear();
+    alreadyClearBuffer_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS

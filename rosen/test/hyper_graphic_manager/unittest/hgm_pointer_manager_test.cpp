@@ -137,7 +137,10 @@ HWTEST_F(HgmPointerManagerTest, HandleTimerResetEvent, Function | SmallTest | Le
             pointerManager.ChangeState(PointerState::POINTER_ACTIVE_STATE);
             usleep(waitTaskFinishNs);
             ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
+            usleep(handleTimerResetTime - waitTaskFinishNs);
+            pointerManager.HandleTimerReset();
             usleep(handleTimerResetTime);
+            ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);
             pointerManager.HandleTimerReset();
             usleep(handleTimerResetTime);
             ASSERT_EQ(pointerManager.GetState(), PointerState::POINTER_ACTIVE_STATE);

@@ -167,17 +167,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable, TestSize.Level
     node.renderContent_->GetMutableRenderProperties().SetBgBrightnessParams(params);
     node.renderContent_->GetMutableRenderProperties().SetBgBrightnessFract(0.0f);
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
-    RSSystemProperties::SetCacheEnabledForRotation(true);
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundColor(Color(1, 1, 1, 1));
-    ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
     node.renderContent_->GetMutableRenderProperties().SetBorderColor(
         { borderColor, borderColor, borderColor, borderColor });
     node.renderContent_->GetMutableRenderProperties().SetBorderStyle(
         { borderStyle, borderStyle, borderStyle, borderStyle });
-    ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
-    RSSystemProperties::SetCacheEnabledForRotation(false);
     ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
 }
 
@@ -196,16 +191,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundShaderDrawable, TestSize.Leve
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
     node.renderContent_->GetMutableRenderProperties().SetBackgroundShader(shader);
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
-    RSSystemProperties::SetCacheEnabledForRotation(true);
-    ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
     auto borderColor = Color(255, 255, 255, 255);
     auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
     node.renderContent_->GetMutableRenderProperties().SetBorderColor(
         { borderColor, borderColor, borderColor, borderColor });
     node.renderContent_->GetMutableRenderProperties().SetBorderStyle(
         { borderStyle, borderStyle, borderStyle, borderStyle });
-    ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
-    RSSystemProperties::SetCacheEnabledForRotation(false);
     ASSERT_NE(DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node), nullptr);
 }
 

@@ -20,10 +20,10 @@
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_round_corner_config.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
 #include "feature/round_corner_display/rs_rcd_render_visitor.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/rs_display_render_node.h"
 #include "surface_buffer_impl.h"
@@ -80,6 +80,92 @@ xmlNodePtr CreateRCDLayer(const std::string& nodeName, const rs_rcd::RoundCorner
         {rs_rcd::ATTR_CLDHEIGHT, std::to_string(layer.cldHeight)}
     };
     return CreateNodeWithProperties(nodeName, properties);
+}
+
+xmlNodePtr CreateRogPortrait(const std::string& nodeName, const rs_rcd::RogPortrait& rogPort)
+{
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), rogPort.layerUp);
+    auto layerDownPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERDOWN), rogPort.layerDown);
+    auto layerHidePtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERHIDE), rogPort.layerHide);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    xmlAddChild(xmlptr, layerDownPtr);
+    xmlAddChild(xmlptr, layerHidePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogPortrait(const std::string& nodeName, xmlNodePtr& layerUpPtr,
+    xmlNodePtr& layerDownPtr, xmlNodePtr& layerHidePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    xmlAddChild(xmlptr, layerDownPtr);
+    xmlAddChild(xmlptr, layerHidePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogLandscape(const std::string& nodeName, const rs_rcd::RogLandscape& rogland)
+{
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), rogland.layerUp);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateRogLandscape(const std::string& nodeName, xmlNodePtr& layerUpPtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, layerUpPtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSurfaceConfig(const std::string& nodeName, xmlNodePtr& topSurfacePtr, xmlNodePtr& bootomSurfacePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, topSurfacePtr);
+    xmlAddChild(xmlptr, bootomSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSurfaceConfig(const std::string& nodeName, const rs_rcd::SurfaceConfig& surfaceCfg)
+{
+    auto topSupport = surfaceCfg.topSurface.support ? "true" : "false";
+    auto bottomSuport = surfaceCfg.bottomSurface.support ? "true" : "false";
+    std::vector<XMLProperty> topProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(topSupport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(surfaceCfg.topSurface.mode)}
+    };
+    std::vector<XMLProperty> bottomProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(bottomSuport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(surfaceCfg.bottomSurface.mode)}
+    };
+    auto topSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_TOPSURFACE), topProperty);
+    auto bootomSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_BOTTOMSURFACE), bottomProperty);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, topSurfacePtr);
+    xmlAddChild(xmlptr, bootomSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSideRegionConfig(const std::string& nodeName, xmlNodePtr& sideSurfacePtr)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, sideSurfacePtr);
+    return xmlptr;
+}
+
+xmlNodePtr CreateSideRegionConfig(const std::string& nodeName, const rs_rcd::SideRegionConfig& sideCfg)
+{
+    auto sideSupport = sideCfg.sideRegion.support ? "true" : "false";
+    std::vector<XMLProperty> sideProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string(sideSupport)},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(sideCfg.sideRegion.mode)}
+    };
+
+    auto sideSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_SIDEREGION), sideProperty);
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlAddChild(xmlptr, sideSurfacePtr);
+    return xmlptr;
 }
 
 /*
@@ -183,7 +269,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
 {
     std::shared_ptr<Drawing::Image> imgBottomPortrait;
-    Drawing::Bitmap bitmapBottomPortrait;
+    std::shared_ptr<Drawing::Bitmap> bitmapBottomPortrait;
     const char* path = "port_down.png";
 
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
@@ -211,7 +297,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest001, TestSize.Level1)
 {
     std::shared_ptr<Drawing::Image> imgBottomPortrait;
-    Drawing::Bitmap bitmapBottomPortrait;
+    std::shared_ptr<Drawing::Bitmap> bitmapBottomPortrait;
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     rcdInstance.Init();
 
@@ -354,107 +440,6 @@ rs_rcd::ROGSetting* GetRogFromLcdModel(rs_rcd::LCDModel* lcdModel, int& width, i
         height = heightMate60;
     }
     return rog;
-}
-
-/*
- * @tc.name: ProcessRcdSurfaceRenderNode1
- * @tc.desc: Test ProcessRcdSurfaceRenderNode1
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1)
-{
-    // prepare test
-    std::shared_ptr<Drawing::Image> imgBottomPortrait;
-    Drawing::Bitmap bitmapBottomPortrait;
-    const char* path = "port_down.png";
-
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
-    rcdInstance.LoadImg(path, imgBottomPortrait);
-    if (imgBottomPortrait == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less rcd source" << std::endl;
-        return;
-    }
-    EXPECT_TRUE(imgBottomPortrait != nullptr);
-    rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
-
-    auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
-    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(std::string(rs_rcd::ATTR_DEFAULT));
-    if (lcdModel == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less lcdModel source" << std::endl;
-        return;
-    }
-    int width = 0;
-    int height = 0;
-    rs_rcd::ROGSetting* rog = GetRogFromLcdModel(lcdModel, width, height);
-    if (rog == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less rog source" << std::endl;
-        return;
-    }
-    rcdInstance.rog_ = rog;
-    EXPECT_TRUE(rcdInstance.rog_ != nullptr);
-    rcdInstance.GetTopSurfaceSource();
-    rcdInstance.GetBottomSurfaceSource();
-    rcdInstance.rog_ = nullptr;
-
-    rs_rcd::RoundCornerHardware hardInfo;
-    auto portrait = rog->GetPortrait(std::string(rs_rcd::NODE_PORTRAIT));
-    if (portrait == std::nullopt) {
-        std::cout << "RSRoundCornerDisplayTest: current os less bottomLayer source" << std::endl;
-        return;
-    }
-    EXPECT_TRUE(portrait != std::nullopt);
-    hardInfo.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
-    hardInfo.displayRect = RectU(0, 0, width, height);
-    hardInfo.bottomLayer->curBitmap = &bitmapBottomPortrait;
-    auto bottomSurfaceNode = RSRcdSurfaceRenderNode::Create(0, RCDSurfaceType::BOTTOM);
-    HardwareLayerInfo info{};
-    bottomSurfaceNode->FillHardwareResource(info, 0, 0);
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-    // test
-    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
-}
-
-/*
- * @tc.name: ConsumeAndUpdateBufferTest
- * @tc.desc: Test RSRoundCornerDisplayTest.ConsumeAndUpdateBufferTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
-{
-    std::shared_ptr<RSRcdSurfaceRenderNode> topSurfaceNode =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
-    std::shared_ptr<RSRcdSurfaceRenderNode> inValidSurfaceNode =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::INVALID);
-    rs_rcd::RoundCornerHardware hardInfo{};
-    auto visitor = std::make_shared<RSRcdRenderVisitor>();
-
-    // 1 null processor
-    std::shared_ptr<RSProcessor> processorPtr = nullptr;
-    visitor->SetUniProcessor(processorPtr);
-    EXPECT_TRUE(visitor->uniProcessor_ == processorPtr);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
-
-    // 2 invalid node
-    processorPtr =
-        RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    visitor->SetUniProcessor(processorPtr);
-    visitor->ProcessRcdSurfaceRenderNode(*inValidSurfaceNode, hardInfo.bottomLayer, true);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*inValidSurfaceNode, true);
-
-    // 3 resource not changed
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
-
-    // processor node changedTag Ok
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
-
-    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
 }
 
 template<typename T1, typename T2, typename T3>
@@ -608,7 +593,6 @@ HWTEST_F(RSRoundCornerDisplayTest, LCDModel, TestSize.Level1)
     rs_rcd::ROGSetting* nullRog = nullptr;
     defaultLcd->rogs.push_back(nullRog);
     defaultLcd->GetRog(0, 0);
-    defaultLcd->GetHardwareComposerConfig();
     defaultLcd->GetSideRegionConfig();
     defaultLcd->GetSurfaceConfig();
 
@@ -675,6 +659,18 @@ HWTEST_F(RSRoundCornerDisplayTest, SideRegionConfig, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.sideRegion.support = true;
+    xmlptr = CreateSideRegionConfig("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr sideSurfacePtr = nullptr;
+    xmlptr = CreateSideRegionConfig("TestName", sideSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -689,6 +685,28 @@ HWTEST_F(RSRoundCornerDisplayTest, SurfaceConfig, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.topSurface.support = true;
+    xmlptr = CreateSurfaceConfig("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr topSurfacePtr = nullptr;
+    xmlNodePtr bootomSurfacePtr = nullptr;
+    xmlptr = CreateSurfaceConfig("TestName", topSurfacePtr, bootomSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+    std::vector<XMLProperty> topProperty = {
+        {rs_rcd::ATTR_SUPPORT, std::string("true")},
+        {rs_rcd::ATTR_DISPLAYMODE, std::to_string(1)}
+    };
+    topSurfacePtr = CreateNodeWithProperties(std::string(rs_rcd::NODE_TOPSURFACE), topProperty);
+    xmlptr = CreateSurfaceConfig("TestName", topSurfacePtr, bootomSurfacePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -717,6 +735,18 @@ HWTEST_F(RSRoundCornerDisplayTest, RogLandscape, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+
+    cfg.layerUp.offsetX = 100;
+    xmlptr = CreateRogLandscape("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    xmlNodePtr layerHidePtr = nullptr;
+    xmlptr = CreateRogLandscape("TestName", layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -731,6 +761,32 @@ HWTEST_F(RSRoundCornerDisplayTest, RogPortrait, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     bool res = cfg.ReadXmlNode(xmlptr);
     EXPECT_EQ(res, false);
+    cfg.layerUp.offsetX = 100;
+    xmlptr = CreateRogPortrait("TestName", cfg);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+    xmlFreeNode(xmlptr);
+
+    auto layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), cfg.layerUp);
+    auto layerDownPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERDOWN), cfg.layerDown);
+    xmlNodePtr layerHidePtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+
+    layerUpPtr = CreateRCDLayer(std::string(rs_rcd::NODE_LAYERUP), cfg.layerUp);
+    layerDownPtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
+
+    layerUpPtr = nullptr;
+    xmlptr = CreateRogPortrait("TestName", layerUpPtr, layerDownPtr, layerHidePtr);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlFreeNode(xmlptr);
 }
 
 /*
@@ -745,15 +801,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
     xmlNodePtr xmlptr = nullptr;
     cfg.ReadXmlNode(xmlptr, {"a", "b"});
 
-    std::vector<std::string> properties = {
-        rs_rcd::ATTR_FILENAME,
-        rs_rcd::ATTR_OFFSET_X,
-        rs_rcd::ATTR_OFFSET_Y,
-        rs_rcd::ATTR_BINFILENAME,
-        rs_rcd::ATTR_BUFFERSIZE,
-        rs_rcd::ATTR_CLDWIDTH,
-        rs_rcd::ATTR_CLDHEIGHT
-    };
+    std::vector<std::string> properties = {rs_rcd::ATTR_FILENAME, rs_rcd::ATTR_OFFSET_X,
+        rs_rcd::ATTR_OFFSET_Y, rs_rcd::ATTR_BINFILENAME, rs_rcd::ATTR_BUFFERSIZE,
+        rs_rcd::ATTR_CLDWIDTH, rs_rcd::ATTR_CLDHEIGHT};
 
     rs_rcd::RoundCornerLayer cfgData = {
         "test", // fileName
@@ -763,9 +813,30 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
         10000, // bufferSize
         2, // cldWidth
         2, // cldHeight
-        nullptr
-    };
+        nullptr};
     auto nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
+    cfg.ReadXmlNode(nodePtr, properties);
+
+    EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
+    EXPECT_EQ(cfg.binFileName.compare(cfgData.binFileName), int{0});
+    EXPECT_EQ(cfg.bufferSize, cfgData.bufferSize);
+    EXPECT_EQ(cfg.offsetX, cfgData.offsetX);
+    EXPECT_EQ(cfg.offsetY, cfgData.offsetY);
+    EXPECT_EQ(cfg.cldWidth, cfgData.cldWidth);
+    EXPECT_EQ(cfg.cldHeight, cfgData.cldHeight);
+    xmlFreeNode(nodePtr);
+    nodePtr = nullptr;
+
+    cfgData = {
+        "bb", // fileName
+        10, // offsetX
+        100, // offsetY
+        "aaa.bin", // binFileName
+        10000, // bufferSize
+        20, // cldWidth
+        200, // cldHeight
+        nullptr};
+    nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
     cfg.ReadXmlNode(nodePtr, properties);
 
     EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
@@ -802,13 +873,34 @@ HWTEST_F(RSRoundCornerDisplayTest, XMLReader, TestSize.Level1)
     EXPECT_TRUE(rs_rcd::XMLReader::ReadAttrInt(numPtr, attrName) == int{2});
     EXPECT_TRUE(rs_rcd::XMLReader::ReadAttrFloat(numPtr, attrName) > 1.0f);
     xmlFreeNode(numPtr);
-    std::vector<std::string> okCase = { "0.0", "0", "123", "1230.0", "8192.0 ", "819200"};
+    std::vector<std::string> okCase = {
+        "0.0",
+        "0",
+        "123",
+        "1230.0",
+        "8192.0 ",
+        "100.0",
+        "101010",
+        "321",
+        "121212",
+        "321321 ",
+        "987654",
+        "56789"};
     for (auto& tmpCase : okCase) {
         bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
         EXPECT_EQ(isOk, true);
     }
 
-    std::vector<std::string> ngCase = {"a0.0", "0a", "a123", "1230.0c", "a8192.0 "};
+    std::vector<std::string> ngCase = {
+        "a0.0",
+        "0a",
+        "a123",
+        "1230.0c",
+        "op0.0",
+        "0afdsd",
+        "yhgfjhgfj",
+        "12g30.0c",
+        "4t7192.0 "};
     for (auto& tmpCase : ngCase) {
         bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
         EXPECT_EQ(isOk, false);
@@ -841,75 +933,41 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
 {
     for (int i = 0; i < 2; i++)
     {
-        RSRcdSurfaceRenderNode rcdRenderNode(0, static_cast<RCDSurfaceType>(i));
-        rcdRenderNode.ClearBufferCache();
-        rcdRenderNode.ResetCurrFrameState();
-        rcdRenderNode.Reset();
+        auto rcdRenderNode = RSRcdSurfaceRenderNode::Create(0, static_cast<RCDSurfaceType>(i));
+        rcdRenderNode->ResetCurrFrameState();
+        rcdRenderNode->Reset();
 
-        rcdRenderNode.GetSrcRect();
-        rcdRenderNode.GetDstRect();
-        rcdRenderNode.IsSurfaceCreated();
-        rcdRenderNode.IsBottomSurface();
-        rcdRenderNode.IsTopSurface();
-        rcdRenderNode.IsInvalidSurface();
-        rcdRenderNode.GetFrameOffsetX();
-        rcdRenderNode.GetFrameOffsetY();
-        rcdRenderNode.GetRSSurface();
-        rcdRenderNode.GetHardenBufferRequestConfig();
-        auto comsumer = rcdRenderNode.GetConsumerListener();
-        rcdRenderNode.CreateSurface(comsumer);
-        rcdRenderNode.SetRcdBufferSize(0);
-        rcdRenderNode.SetRcdBufferHeight(0);
-        rcdRenderNode.SetRcdBufferWidth(0);
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
+        rcdRenderNode->GetSrcRect();
+        rcdRenderNode->GetDstRect();
+        rcdRenderNode->IsBottomSurface();
+        rcdRenderNode->IsTopSurface();
+        rcdRenderNode->IsInvalidSurface();
+        rcdRenderNode->SetRcdBufferSize(0);
+        rcdRenderNode->SetRcdBufferHeight(0);
+        rcdRenderNode->SetRcdBufferWidth(0);
+        rcdRenderNode->PrepareHardwareResourceBuffer(nullptr);
         rs_rcd::RoundCornerLayer layer;
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+        rcdRenderNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
         uint32_t size = 10;
-        rcdRenderNode.SetRcdBufferSize(size);
-        auto bufferSize = rcdRenderNode.GetRcdBufferSize();
+        rcdRenderNode->SetRcdBufferSize(size);
+        auto bufferSize = rcdRenderNode->GetRcdBufferSize();
         EXPECT_EQ(bufferSize, size);
 
         uint32_t height = 20;
-        rcdRenderNode.SetRcdBufferHeight(height);
-        auto bufferHeight = rcdRenderNode.GetRcdBufferHeight();
+        rcdRenderNode->SetRcdBufferHeight(height);
+        auto bufferHeight = rcdRenderNode->GetRcdBufferHeight();
         EXPECT_EQ(bufferHeight, height);
 
         uint32_t width = 100;
-        rcdRenderNode.SetRcdBufferWidth(width);
-        auto bufferWidth = rcdRenderNode.GetRcdBufferWidth();
+        rcdRenderNode->SetRcdBufferWidth(width);
+        auto bufferWidth = rcdRenderNode->GetRcdBufferWidth();
         EXPECT_EQ(bufferWidth, width);
-        rcdRenderNode.GetHardenBufferRequestConfig();
-        rcdRenderNode.SetHardwareResourceToBuffer();
-        rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
-        rcdRenderNode.PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
+        rcdRenderNode->PrepareHardwareResourceBuffer(nullptr);
+        rcdRenderNode->PrepareHardwareResourceBuffer(std::make_shared<rs_rcd::RoundCornerLayer>(layer));
         width = 0;
-        rcdRenderNode.SetRcdBufferWidth(width);
-        rcdRenderNode.GetHardenBufferRequestConfig();
-        EXPECT_EQ(rcdRenderNode.GetRcdBufferWidth(), width);
-        rcdRenderNode.ClearBufferCache();
+        rcdRenderNode->SetRcdBufferWidth(width);
+        EXPECT_EQ(rcdRenderNode->GetRcdBufferWidth(), width);
     }
-}
-
-/*
- * @tc.name: RSRcdSurfaceRenderNodeResource
- * @tc.desc: Test RSRoundCornerDisplayTest.RSRcdSurfaceRenderNodeResource
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNodeResource, TestSize.Level1)
-{
-    auto surfaceNodePtr = std::make_shared<RSRcdSurfaceRenderNode>(0, static_cast<RCDSurfaceType>(0));
-    RSRcdSurfaceRenderNode rcdRenderNode(0, static_cast<RCDSurfaceType>(0)); // bottom
-    auto cldInfo = surfaceNodePtr->GetCldInfo();
-    EXPECT_TRUE(cldInfo.cldWidth >= 0);
-    EXPECT_TRUE(surfaceNodePtr->GetSurfaceWidth() >= 0);
-    EXPECT_TRUE(surfaceNodePtr->GetSurfaceHeight() >= 0);
-
-    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
-    surfaceNodePtr->CreateSurface(listener);
-    surfaceNodePtr->ClearBufferCache();
-    EXPECT_TRUE(surfaceNodePtr->surface_ != nullptr);
 }
 
 /*
@@ -1068,7 +1126,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
     rcdInstance.showResourceType_ = 4;
     rcdInstance.RcdChooseHardwareResource();
 
-    EXPECT_EQ(&rcdInstance.bitmapBottomPortrait_, rcdInstance.hardInfo_.bottomLayer->curBitmap);
+    EXPECT_EQ(rcdInstance.bitmapBottomPortrait_, rcdInstance.hardInfo_.bottomLayer->curBitmap);
     rcdInstance.rog_ = nullptr;
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
 }
@@ -1134,65 +1192,6 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseTopResourceTypeTest, TestSize.Level1
     rcdInstance.RcdChooseTopResourceType();
     EXPECT_TRUE(rcdInstance.curOrientation_ == ScreenRotation::ROTATION_270);
     EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
-}
-
-/*
- * @tc.name: ProcessFillHardwareResource
- * @tc.desc: Test RSRcdSurfaceRenderNode.FillHardwareResource
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ProcessFillHardwareResource, TestSize.Level1)
-{
-    // prepare test
-    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    if (bottomSurfaceNode == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less bottomSurfaceNode source" << std::endl;
-        return;
-    }
-
-    HardwareLayerInfo info{};
-    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
-    bottomSurfaceNode->buffer_.buffer = nullptr;
-    bool flag1 = bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
-    EXPECT_TRUE(flag1 == false);
-
-    BufferHandle* bufferHandle = AllocateBufferHandle(64, 128);
-    EXPECT_TRUE(bufferHandle != nullptr);
-    surfaceBufferImpl->SetBufferHandle(bufferHandle);
-    surfaceBufferImpl->handle_->stride = 1;
-    surfaceBufferImpl->handle_->size = 64 + 128 + sizeof(BufferHandle);
-
-    bool flag2 = true;
-    info.bufferSize = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.bufferSize = 10000;
-    info.cldWidth = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.cldWidth = 2;
-    info.cldHeight = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.cldHeight = 2;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, -1, 2);
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, -1);
-    info.pathBin = "";
-    EXPECT_TRUE(flag2);
-
-    bool flag3 = true;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    std::shared_ptr<uint8_t> buffer = std::make_shared<uint8_t>(10000);
-    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
-    surfaceBufferImpl->handle_->stride = -1;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    surfaceBufferImpl->handle_->stride = 1;
-    surfaceBufferImpl->handle_->size = 0;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    EXPECT_TRUE(flag3);
-
-    surfaceBufferImpl->handle_= nullptr;
-    FreeBufferHandle(bufferHandle);
 }
 
 /*
@@ -1362,55 +1361,6 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerDraw, TestSize.Level
         rcdInstance.DrawBottomRoundCorner(nodeId, canvas.get());
         EXPECT_TRUE(rcdInstance.CheckExist(nodeId) == false);
     }
-}
-
-/*
- * @tc.name: RSRcdRenderManager
- * @tc.desc: Test RSRcdRenderManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
-{
-    auto& rcdManagerInstance = RSRcdRenderManager::GetInstance();
-    rcdManagerInstance.InitInstance();
-    NodeId id = 1;
-    EXPECT_TRUE(rcdManagerInstance.GetRcdRenderEnabled() == true);
-    auto topLayer = rcdManagerInstance.GetTopSurfaceNode(id);
-    EXPECT_TRUE(topLayer == nullptr);
-    auto bottomLayer = rcdManagerInstance.GetBottomSurfaceNode(id);
-    EXPECT_TRUE(bottomLayer == nullptr);
-
-    RcdProcessInfo info{};
-    rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
-    rcdManagerInstance.DoProcessRenderTask(id, info);
-    auto topNode = rcdManagerInstance.GetTopRenderNode(id);
-    auto bottomNode = rcdManagerInstance.GetTopRenderNode(id);
-    RSRenderNodeMap nodeMap;
-    EXPECT_TRUE(RSRcdRenderManager::CheckExist(id, nodeMap) == false);
-
-    // to create layerInfo
-    std::shared_ptr<Drawing::Bitmap> bitMap = std::make_shared<Drawing::Bitmap>();
-    bitMap->Build(896, 1848,
-        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
-    rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
-    std::shared_ptr<rs_rcd::RoundCornerLayer> topPtr = std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp);
-    auto rsHardwareProcessor =
-        RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    RectU displayRect{0, 0, 896, 1848};
-    info = {rsHardwareProcessor, topPtr, topPtr, displayRect, true};
-    rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
-    rcdManagerInstance.DoProcessRenderTask(id, info);
-    RSContext context;
-    pid_t pid = ExtractPid(id);
-    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id);
-    rcdManagerInstance.CheckRenderTargetNode(context);
-    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id + 1);
-    rcdManagerInstance.CheckRenderTargetNode(context);
-    rcdManagerInstance.RemoveRcdResource(id);
-    context.nodeMap.renderNodeMap_.clear();
-    rcdManagerInstance.topSurfaceNodeMap_.clear();
-    rcdManagerInstance.bottomSurfaceNodeMap_.clear();
 }
 
 /*

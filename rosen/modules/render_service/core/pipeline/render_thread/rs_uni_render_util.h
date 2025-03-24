@@ -42,6 +42,8 @@ namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniRenderUtil {
 public:
+    static void MergeDirtyRectAfterMergeHistory(
+        std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion);
     static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
     static std::vector<RectI> MergeDirtyHistoryInVirtual(
@@ -50,9 +52,12 @@ public:
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
-    static void SetAllSurfaceDrawableGlobalDityRegion(
+    static void SetAllSurfaceDrawableGlobalDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const Occlusion::Region& globalDirtyRegion);
+    static void SetDrawRegionForQuickReject(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
+        const Occlusion::Region mergedDirtyRects);
     /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
@@ -60,6 +65,10 @@ public:
     static Occlusion::Region MergeVisibleDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
+    static Occlusion::Region MergeVisibleAdvancedDirtyRegion(
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+        std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec);
+    static Occlusion::Region MergeDirtyRects(Occlusion::Region dirtyRegion);
     static void MergeDirtyHistoryInVirtual(
         DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, bool renderParallel = false);
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
@@ -70,8 +79,6 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
-    static bool HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas);
-    static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
@@ -99,18 +106,12 @@ public:
     static float GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
-    static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren, DeviceType deviceType = DeviceType::PHONE);
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface = true);
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    static bool IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation);
 #ifdef RS_ENABLE_VK
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
@@ -119,14 +120,11 @@ public:
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
-    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo,
-        const Drawing::Matrix& totalMatrix);
-    static void DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerScaleDown(RSSurfaceRenderNode& node);
-    static void LayerScaleFit(RSSurfaceRenderNode& node);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
@@ -142,6 +140,8 @@ public:
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
     static void ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
         const Drawing::Rect& src, const Drawing::Rect& dst);
+    static void ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
+        const RectF& rect);
     static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
     template<typename... Callbacks>
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
@@ -175,20 +175,22 @@ public:
     static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
         const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
     static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
+    static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
+        const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
+    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
+        sptr<IConsumerSurface> consumer);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
-    static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node);
-    static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-        const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
-        sptr<IConsumerSurface> consumer);
     static bool FrameAwareTraceBoost(size_t layerNum);
     static void RequestPerf(uint32_t layerLevel, bool onOffTag);
+    static void GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInfo, const Occlusion::Region& srcDamageRegion,
+        bool isDirtyAlignEnabled, Occlusion::Region& sampledDamageRegion, Occlusion::Region& sampledDrawnRegion);
+
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };

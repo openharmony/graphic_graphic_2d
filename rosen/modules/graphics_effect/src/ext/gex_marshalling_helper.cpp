@@ -25,6 +25,7 @@ constexpr uint32_t MARSHALLING_SIZE_MAX_LIMIT = 100;  // 100 max length
 bool RotateEffectParams::Marshalling(Parcel& parcel)
 {
     if (!parcel.WriteUint32((uint32_t)pathDirection_)) {
+        GE_LOGE("RotateEffectParams::Marshalling Write pathDirection failed!");
         return false;
     }
     auto size = (uint32_t)effectColors_.size();
@@ -33,10 +34,12 @@ bool RotateEffectParams::Marshalling(Parcel& parcel)
         return false;
     }
     if (!parcel.WriteUint32(size)) {
+        GE_LOGE("RotateEffectParams::Marshalling Write size failed!");
         return false;
     }
     for (auto color : effectColors_) {
         if (!parcel.WriteUint32((uint32_t)color.CastToColorQuad())) {
+            GE_LOGE("RotateEffectParams::Marshalling Write color failed!");
             return false;
         }
     }
@@ -47,11 +50,13 @@ bool RotateEffectParams::Unmarshalling(Parcel& parcel)
 {
     uint32_t valueUint32 = 0;
     if (!parcel.ReadUint32(valueUint32)) {
+        GE_LOGE("RotateEffectParams::Unmarshalling Read pathDirection failed!");
         return false;
     }
     pathDirection_ = static_cast<DotMatrixDirection>(valueUint32);
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        GE_LOGE("RotateEffectParams::Unmarshalling Read size failed!");
         return false;
     }
     if (size > MARSHALLING_SIZE_MAX_LIMIT) {
@@ -61,6 +66,7 @@ bool RotateEffectParams::Unmarshalling(Parcel& parcel)
     effectColors_.clear();
     for (uint32_t i = 0; i < size; i++) {
         if (!parcel.ReadUint32(valueUint32)) {
+            GE_LOGE("RotateEffectParams::Unmarshalling Read effectColors failed!");
             return false;
         }
         effectColors_.emplace_back(Drawing::Color(valueUint32));
@@ -76,10 +82,12 @@ bool RippleEffectParams::Marshalling(Parcel& parcel)
         return false;
     }
     if (!parcel.WriteUint32(size)) {
+        GE_LOGE("RippleEffectParams::Marshalling Write effectColorsSize failed!");
         return false;
     }
     for (auto color : effectColors_) {
         if (!parcel.WriteUint32((uint32_t)color.CastToColorQuad())) {
+            GE_LOGE("RippleEffectParams::Marshalling Write effectColors failed!");
             return false;
         }
     }
@@ -90,10 +98,12 @@ bool RippleEffectParams::Marshalling(Parcel& parcel)
         return false;
     }
     if (!parcel.WriteUint32(size)) {
+        GE_LOGE("RippleEffectParams::Marshalling Write colorFractionsSize failed!");
         return false;
     }
     for (auto colorFraction : colorFractions_) {
         if (!parcel.WriteFloat(colorFraction)) {
+            GE_LOGE("RippleEffectParams::Marshalling Write colorFraction failed!");
             return false;
         }
     }
@@ -104,21 +114,27 @@ bool RippleEffectParams::Marshalling(Parcel& parcel)
         return false;
     }
     if (!parcel.WriteUint32(size)) {
+        GE_LOGE("RippleEffectParams::Marshalling Write startPointsSize failed!");
         return false;
     }
     for (auto startPoint : startPoints_) {
         if (!parcel.WriteFloat(startPoint.GetX()) || !parcel.WriteFloat(startPoint.GetY())) {
+            GE_LOGE("RippleEffectParams::Marshalling Write startPointX or startPointY failed!");
             return false;
         }
     }
-
-    return parcel.WriteFloat(pathWidth_) && parcel.WriteBool(inverseEffect_);
+    bool success = parcel.WriteFloat(pathWidth_) && parcel.WriteBool(inverseEffect_);
+    if (!success) {
+        GE_LOGE("RippleEffectParams::Marshalling Write pathWidth or inverseEffect failed!");
+    }
+    return success;
 }
 
 bool RippleEffectParams::Unmarshalling(Parcel& parcel)
 {
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        GE_LOGE("RippleEffectParams::Unmarshalling Read size failed!");
         return false;
     }
     if (size > MARSHALLING_SIZE_MAX_LIMIT) {
@@ -129,12 +145,14 @@ bool RippleEffectParams::Unmarshalling(Parcel& parcel)
     effectColors_.clear();
     for (uint32_t i = 0; i < size; i++) {
         if (!parcel.ReadUint32(valueUint32)) {
+            GE_LOGE("RippleEffectParams::Unmarshalling Read effectColors failed!");
             return false;
         }
         effectColors_.emplace_back(Drawing::Color(valueUint32));
     }
 
     if (!parcel.ReadUint32(size)) {
+        GE_LOGE("RippleEffectParams::Unmarshalling Read size failed!");
         return false;
     }
     if (size > MARSHALLING_SIZE_MAX_LIMIT) {
@@ -145,12 +163,14 @@ bool RippleEffectParams::Unmarshalling(Parcel& parcel)
     colorFractions_.clear();
     for (uint32_t i = 0; i < size; i++) {
         if (!parcel.ReadFloat(valueFloat)) {
+            GE_LOGE("RippleEffectParams::Unmarshalling Read colorFractions failed!");
             return false;
         }
         colorFractions_.emplace_back(valueFloat);
     }
 
     if (!parcel.ReadUint32(size)) {
+        GE_LOGE("RippleEffectParams::Unmarshalling Read startPoints size failed!");
         return false;
     }
     if (size > MARSHALLING_SIZE_MAX_LIMIT) {
@@ -161,23 +181,30 @@ bool RippleEffectParams::Unmarshalling(Parcel& parcel)
     startPoints_.clear();
     for (uint32_t i = 0; i < size; i++) {
         if (!parcel.ReadFloat(valueFloat) || !parcel.ReadFloat(valueFloatTwo)) {
+            GE_LOGE("RippleEffectParams::Unmarshalling Read valueFloat or valueFloatTwo failed!");
             return false;
         }
         startPoints_.emplace_back(Drawing::Point(valueFloat, valueFloatTwo));
     }
-
-    return parcel.ReadFloat(pathWidth_) && parcel.ReadBool(inverseEffect_);
+    bool success = parcel.ReadFloat(pathWidth_) && parcel.ReadBool(inverseEffect_);
+    if (!success) {
+        GE_LOGE("RippleEffectParams::Unmarshalling Read pathWidth or inverseEffect failed!");
+    }
+    return success;
 }
 
 bool DotMatrixNormalParams::Marshalling(Parcel& parcel)
 {
     if (!parcel.WriteUint32((uint32_t)dotColor_.CastToColorQuad())) {
+        GE_LOGE("DotMatrixNormalParams::Marshalling Write dotColor failed!");
         return false;
     }
     if (!parcel.WriteFloat(dotSpacing_) || !parcel.WriteFloat(dotRadius_)) {
+        GE_LOGE("DotMatrixNormalParams::Marshalling Write dotSpacing or dotRadius failed!");
         return false;
     }
     if (!parcel.WriteUint32(bgColor_.CastToColorQuad())) {
+        GE_LOGE("DotMatrixNormalParams::Marshalling Write bgColor failed!");
         return false;
     }
     return true;
@@ -189,6 +216,7 @@ bool DotMatrixNormalParams::Unmarshalling(Parcel& parcel)
     uint32_t valueUint32Two = 0;
     if (!parcel.ReadUint32(valueUint32) || !parcel.ReadFloat(dotSpacing_) || !parcel.ReadFloat(dotRadius_) ||
         !parcel.ReadUint32(valueUint32Two)) {
+        GE_LOGE("DotMatrixNormalParams::Unmarshalling Read parcel failed!");
         return false;
     }
     dotColor_ = Drawing::Color(valueUint32);
@@ -199,6 +227,7 @@ bool DotMatrixNormalParams::Unmarshalling(Parcel& parcel)
 bool DotMatrixShaderParams::Marshalling(Parcel& parcel)
 {
     if (!normalParams_.Marshalling(parcel) || !parcel.WriteUint32((uint32_t)effectType_)) {
+        GE_LOGE("DotMatrixShaderParams::Marshalling Read effectType failed!");
         return false;
     }
 
@@ -238,14 +267,17 @@ bool GEXFlowLightSweepParams::Marshalling(Parcel& parcel)
     }
 
     if (!parcel.WriteUint32(effectColorsSize)) {
+        GE_LOGE("GEXFlowLightSweepParams::Marshalling Write effectColorsSize failed!");
         return false;
     }
 
     for (size_t i = 0; i < effectColorsSize; i++) {
         if (!parcel.WriteUint32((uint32_t)effectColors_[i].first.CastToColorQuad())) {
+            GE_LOGE("GEXFlowLightSweepParams::Marshalling Write effectColorsFirst failed!");
             return false;
         }
         if (!parcel.WriteFloat(effectColors_[i].second)) {
+            GE_LOGE("GEXFlowLightSweepParams::Marshalling Write effectColorsSecond failed!");
             return false;
         }
     }
@@ -257,6 +289,7 @@ bool GEXFlowLightSweepParams::Unmarshalling(Parcel& parcel)
 {
         uint32_t effectColorsSize = 0;
         if (!parcel.ReadUint32(effectColorsSize)) {
+            GE_LOGE("GEXFlowLightSweepParams::Unmarshalling Read effectColorsSize failed!");
             return false;
         }
         if (effectColorsSize > MARSHALLING_SIZE_MAX_LIMIT) {
@@ -270,6 +303,7 @@ bool GEXFlowLightSweepParams::Unmarshalling(Parcel& parcel)
         effectColors_.reserve(effectColorsSize);
         for (size_t i = 0; i < effectColorsSize; i++) {
             if (!parcel.ReadUint32(valueUint32) || !parcel.ReadFloat(valueFloat)) {
+                GE_LOGE("GEXFlowLightSweepParams::Unmarshalling Read effectColor failed!");
                 return false;
             }
             std::pair<Drawing::Color, float> effectColor;

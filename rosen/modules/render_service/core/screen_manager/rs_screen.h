@@ -20,6 +20,7 @@
 #include <mutex>
 #include <optional>
 #include <unordered_set>
+#include <shared_mutex>
 
 #include <common/rs_rect.h>
 #include <surface_type.h>
@@ -49,8 +50,8 @@ public:
     virtual ~RSScreen() noexcept = default;
 
     virtual ScreenId Id() const = 0;
-    virtual ScreenId MirrorId() const = 0;
-    virtual void SetMirror(ScreenId mirrorId) = 0;
+    virtual ScreenId MirroredId() const = 0;
+    virtual void SetMirror(ScreenId mirroredId) = 0;
     virtual const std::string& Name() const = 0;
     virtual uint32_t Width() const = 0;
     virtual uint32_t Height() const = 0;
@@ -123,15 +124,14 @@ public:
     virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
-    virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
+    virtual const std::unordered_set<uint64_t> GetBlackList() const = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
     virtual bool GetDisplayPropertyForHardCursor() = 0;
-    virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
-    virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
+    virtual const std::vector<uint64_t> GetSecurityExemptionList() const = 0;
     virtual int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) = 0;
     virtual std::shared_ptr<Media::PixelMap> GetSecurityMask() const = 0;
     virtual void SetEnableVisibleRect(bool enable) = 0;
@@ -161,8 +161,8 @@ public:
     RSScreen &operator=(const RSScreen &) = delete;
 
     ScreenId Id() const override;
-    ScreenId MirrorId() const override;
-    void SetMirror(ScreenId mirrorId) override;
+    ScreenId MirroredId() const override;
+    void SetMirror(ScreenId mirroredId) override;
     const std::string& Name() const override;
     // render resolution
     uint32_t Width() const override;
@@ -237,15 +237,14 @@ public:
     void AddBlackList(const std::vector<uint64_t>& blackList) override;
     void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
     void SetCastScreenEnableSkipWindow(bool enable) override;
-    const std::unordered_set<uint64_t>& GetBlackList() const override;
+    const std::unordered_set<uint64_t> GetBlackList() const override;
     bool GetCastScreenEnableSkipWindow() override;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus() const override;
     bool GetDisplayPropertyForHardCursor() override;
-    void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
-    const std::vector<uint64_t>& GetSecurityExemptionList() const override;
+    const std::vector<uint64_t> GetSecurityExemptionList() const override;
     int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) override;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const override;
     void SetEnableVisibleRect(bool enable) override;
@@ -276,10 +275,11 @@ private:
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;
     // If this screen is the mirror of other screen, this member would be a valid id.
-    ScreenId mirrorId_ = INVALID_SCREEN_ID;
+    ScreenId mirroredId_ = INVALID_SCREEN_ID;
 
     std::string name_;
 
+    mutable std::shared_mutex screenMutex_;
     uint32_t width_ = 0;
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
@@ -289,21 +289,24 @@ private:
     float samplingTranslateY_ = 0.f;
     float samplingScale_ = 1.f;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
-    VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
     RectI activeRect_ = {};
     RectI maskRect_ = {};
     RectI reviseRect_ = {};
 
+    std::atomic<VirtualScreenStatus> screenStatus_ = VIRTUAL_SCREEN_PLAY;
+
     bool isVirtual_ = true;
-    bool isVirtualSurfaceUpdateFlag_ = false;
+    std::atomic<bool> isVirtualSurfaceUpdateFlag_ = false;
     std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
+
+    mutable std::mutex producerSurfaceMutex_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
     ScreenPowerStatus powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
-    GraphicPixelFormat pixelFormat_;
+    std::atomic<GraphicPixelFormat> pixelFormat_;
 
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,
@@ -311,37 +314,52 @@ private:
         COLOR_GAMUT_ADOBE_RGB,
         COLOR_GAMUT_DISPLAY_P3 };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
-    int32_t currentVirtualColorGamutIdx_ = 0;
-    int32_t currentPhysicalColorGamutIdx_ = 0;
-    ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
+    std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
+    std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
+    std::atomic<ScreenGamutMap> currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
     int32_t currentVirtualHDRFormatIdx_ = 0;
     int32_t currentPhysicalHDRFormatIdx_ = 0;
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
+
+    mutable std::shared_mutex skipFrameMutex_;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
     uint32_t expectedRefreshRate_ = INVALID_EXPECTED_REFRESH_RATE;
     SkipFrameStrategy skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
     bool isEqualVsyncPeriod_ = true;
-    ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
-    bool canvasRotation_ = false; // just for virtual screen to use
-    ScreenScaleMode scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
+
+    std::atomic<ScreenRotation> screenRotation_ = ScreenRotation::ROTATION_0;
+    std::atomic<bool> canvasRotation_ = false; // just for virtual screen to use
+    std::atomic<ScreenScaleMode> scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;
     static std::map<GraphicHDRFormat, ScreenHDRFormat> HDI_HDR_FORMAT_TO_RS_MAP;
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
     std::unordered_set<uint64_t> whiteList_ = {};
+
+    mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> blackList_ = {};
+
+    mutable std::mutex securityExemptionMutex_;
     std::vector<uint64_t> securityExemptionList_ = {};
+
+    mutable std::mutex securityMaskMutex_;
     std::shared_ptr<Media::PixelMap> securityMask_ = nullptr;
-    bool enableVisibleRect_ = false;
+
+    mutable std::mutex visibleRectMutex_;
     Rect mainScreenVisibleRect_ = {};
+
+    std::atomic<bool> enableVisibleRect_ = false;
     std::atomic<bool> skipWindow_ = false;
+
+    std::once_flag hardCursorSupportedFlag_;
     bool isHardCursorSupport_ = false;
-    mutable std::mutex skipFrameMutex_;
-    bool isSupportRotation_ = false;
-    bool hasProtectedLayer_ = false;
+
+    std::atomic<bool> isSupportRotation_ = false;
+    std::atomic<bool> hasProtectedLayer_ = false;
+
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 };
 } // namespace impl

@@ -72,7 +72,6 @@ private:
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     void RemoveConnection(sptr<IRemoteObject> token);
-    void RegisterRcdMsg();
 
     // RS dump init
     void RSGfxDumpInit();
@@ -81,6 +80,10 @@ private:
     void RegisterMemFuncs();
     void RegisterFpsFuncs();
     void RegisterGpuFuncs();
+    void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
+
+    // RS Filter CCM init
+    void FilterCCMInit();
 
     RSMainThread* mainThread_ = nullptr;
     sptr<RSScreenManager> screenManager_;
@@ -95,7 +98,6 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
-    bool isRcdServiceRegister_ = false;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

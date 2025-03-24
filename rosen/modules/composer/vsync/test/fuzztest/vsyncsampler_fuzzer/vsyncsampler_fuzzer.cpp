@@ -60,15 +60,11 @@ namespace OHOS {
         // get data
         int64_t timestamp = GetData<int64_t>();
         bool enabled = GetData<bool>();
-        bool isFoldScreen = GetData<bool>();
-        std::vector<uint64_t> foldScreenIds = {GetData<uint64_t>(), GetData<uint64_t>()};
 
         // test
         sptr<Rosen::VSyncSampler> vsyncSampler = Rosen::CreateVSyncSampler();
         vsyncSampler->AddSample(timestamp);
         vsyncSampler->SetVsyncEnabledScreenId(0);
-        vsyncSampler->SetIsFoldScreenFlag(isFoldScreen);
-        vsyncSampler->SetFoldScreenIds(foldScreenIds);
         vsyncSampler->AddPresentFenceTime(0, timestamp);
         vsyncSampler->SetHardwareVSyncStatus(enabled);
 

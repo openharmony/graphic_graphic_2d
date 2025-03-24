@@ -39,6 +39,7 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "pipeline/main_thread/rs_render_service.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
@@ -165,7 +166,8 @@ bool DoGetMemoryGraphic()
     }
 
     int pid = GetData<int>();
-    rsConn_->GetMemoryGraphic(pid);
+    MemoryGraphic memoryGraphic;
+    rsConn_->GetMemoryGraphic(pid, memoryGraphic);
     return true;
 }
 
@@ -175,7 +177,8 @@ bool DoGetMemoryGraphics()
         return false;
     }
 
-    rsConn_->GetMemoryGraphics();
+    std::vector<MemoryGraphic> memoryGraphics;
+    rsConn_->GetMemoryGraphics(memoryGraphics);
     return true;
 }
 
@@ -185,8 +188,10 @@ bool DoCreateNodeAndSurface()
         return false;
     }
     RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test" };
-    rsConn_->CreateNode(config);
-    rsConn_->CreateNodeAndSurface(config);
+    bool success;
+    rsConn_->CreateNode(config, success);
+    sptr<Surface> surface = nullptr;
+    rsConn_->CreateNodeAndSurface(config, surface);
     return true;
 }
 
@@ -490,7 +495,8 @@ bool DoGetBitmap()
     }
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
-    rsConn_->GetBitmap(id, bm);
+    bool success;
+    rsConn_->GetBitmap(id, bm, success);
     return true;
 }
 
@@ -645,7 +651,8 @@ bool DoSetAncoForceDoDirect()
     }
 
     bool direct = GetData<bool>();
-    rsConn_->SetAncoForceDoDirect(direct);
+    bool res;
+    rsConn_->SetAncoForceDoDirect(direct, res);
     return true;
 }
 
@@ -694,7 +701,8 @@ bool DoGetUniRenderEnabled()
     if (rsConn_ == nullptr) {
         return false;
     }
-    rsConn_->GetUniRenderEnabled();
+    bool enable;
+    rsConn_->GetUniRenderEnabled(enable);
     return true;
 }
 
@@ -709,7 +717,8 @@ bool DoCreateNode1()
     displayNodeConfig.mirrorNodeId = GetData<uint64_t>();
     displayNodeConfig.isSync = GetData<bool>();
     uint64_t nodeId = GetData<uint64_t>();
-    rsConn_->CreateNode(displayNodeConfig, nodeId);
+    bool success;
+    rsConn_->CreateNode(displayNodeConfig, nodeId, success);
     return true;
 }
 
@@ -721,7 +730,8 @@ bool DoCreateNode2()
     RSSurfaceRenderNodeConfig config;
     config.id = GetData<uint64_t>();
     config.name = GetData<std::string>();
-    rsConn_->CreateNode(config);
+    bool success;
+    rsConn_->CreateNode(config, success);
     return true;
 }
 
@@ -759,7 +769,8 @@ bool DoGetTotalAppMemSize()
     }
     float cpuMemSize = GetData<float>();
     float gpuMemSize = GetData<float>();
-    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    bool success;
+    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success);
     return true;
 }
 
@@ -891,9 +902,10 @@ bool DoSetPixelFormat()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t pixelFormat = GetData<uint32_t>();
-    rsConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat));
+    int32_t resCode;
+    rsConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat), resCode);
     GraphicPixelFormat pixelFormat1;
-    rsConn_->GetPixelFormat(id, pixelFormat1);
+    rsConn_->GetPixelFormat(id, pixelFormat1, resCode);
     return true;
 }
 
@@ -904,11 +916,12 @@ bool DOGetScreenSupportedHDRFormats()
     }
     uint64_t id = GetData<uint64_t>();
     int32_t modeIdx = GetData<int32_t>();
-    rsConn_->SetScreenHDRFormat(id, modeIdx);
+    int32_t resCode;
+    rsConn_->SetScreenHDRFormat(id, modeIdx, resCode);
     ScreenHDRFormat hdrFormat;
-    rsConn_->GetScreenHDRFormat(id, hdrFormat);
+    rsConn_->GetScreenHDRFormat(id, hdrFormat, resCode);
     std::vector<ScreenHDRFormat> hdrFormats;
-    rsConn_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    rsConn_->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
     return true;
 }
 
@@ -919,9 +932,10 @@ bool DOGetScreenSupportedColorSpaces()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t colorSpace = GetData<uint32_t>();
-    rsConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace));
+    int32_t resCode;
+    rsConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace), resCode);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    rsConn_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    rsConn_->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
     return true;
 }
 
@@ -1070,7 +1084,8 @@ bool DOSetHidePrivacyContent()
     }
     uint32_t id = GetData<uint32_t>();
     bool needHidePrivacyContent = GetData<bool>();
-    rsConn_->SetHidePrivacyContent(id, needHidePrivacyContent);
+    uint32_t resCode;
+    rsConn_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
     return true;
 }
 
@@ -1231,7 +1246,8 @@ bool DOSetVirtualScreenStatus()
     }
     uint64_t id = GetData<uint64_t>();
     uint64_t screenStatus = GetData<uint64_t>();
-    rsConn_->SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus));
+    bool success;
+    rsConn_->SetVirtualScreenStatus(id, static_cast<VirtualScreenStatus>(screenStatus), success);
     return true;
 }
 
@@ -1284,8 +1300,8 @@ bool DoCreatePixelMapFromSurface()
         .w = GetData<int32_t>(),
         .h = GetData<int32_t>(),
     };
-
-    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect);
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
     return true;
 }
 
@@ -1300,6 +1316,33 @@ bool DoSetOverlayDisplayMode()
     return true;
 }
 #endif
+
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+public:
+    explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
+    ~CustomFirstFrameCommitCallback() override {};
+
+    void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, timestamp);
+        }
+    }
+
+private:
+    FirstFrameCommitCallback cb_;
+};
+
+bool DoRegisterFirstFrameCommitCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    FirstFrameCommitCallback callback = [](uint64_t screenId, int64_t timestamp) {};
+    sptr<CustomFirstFrameCommitCallback> cb = new CustomFirstFrameCommitCallback(callback);
+    rsConn_->RegisterFirstFrameCommitCallback(cb);
+    return true;
+}
 
 void DoFuzzerTest1()
 {
@@ -1411,6 +1454,7 @@ void DoFuzzerTest3()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     DoSetOverlayDisplayMode();
 #endif
+    DoRegisterFirstFrameCommitCallback();
 }
 } // namespace Rosen
 } // namespace OHOS

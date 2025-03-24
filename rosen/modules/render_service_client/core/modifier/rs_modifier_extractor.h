@@ -23,10 +23,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSNode;
+class RSUIContext;
 
 class RSC_EXPORT RSModifierExtractor {
 public:
-    RSModifierExtractor(NodeId id);
+    RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
@@ -111,6 +112,7 @@ public:
     int GetBackgroundBlurColorMode() const;
     float GetBackgroundBlurRadiusX() const;
     float GetBackgroundBlurRadiusY() const;
+    bool GetBgBlurDisableSystemAdaptation() const;
 
     float GetForegroundBlurRadius() const;
     float GetForegroundBlurSaturation() const;
@@ -119,6 +121,7 @@ public:
     int GetForegroundBlurColorMode() const;
     float GetForegroundBlurRadiusX() const;
     float GetForegroundBlurRadiusY() const;
+    bool GetFgBlurDisableSystemAdaptation() const;
     
     float GetLightIntensity() const;
     Color GetLightColor() const;
@@ -126,10 +129,13 @@ public:
     float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
     float GetBloom() const;
+    int GetColorBlendMode() const;
+    int GetColorBlendApplyType() const;
 
     std::string Dump() const;
 private:
     NodeId id_;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -121,6 +121,7 @@ static int FilterTestUnit(int argc, char **argv)
         case ARGS_FOUR:
             unitName = argv[ARGS_TWO];
             caseName = argv[ARGS_THREE];
+            RSGraphicTestDirector::Instance().SetSingleTest(true);
             break;
         default:
             cout << "format fail [-unit unitName [caseName]]" << endl;

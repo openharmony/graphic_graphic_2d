@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "ui/rs_surface_node.h"
@@ -494,6 +495,19 @@ HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Lev
 #endif
 
 /**
+ * @tc.name: RegisterFirstFrameCommitCallback Test
+ * @tc.desc: RegisterFirstFrameCommitCallback Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBTF2E
+ */
+HWTEST_F(RSClientTest, RegisterFirstFrameCommitCallback001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->RegisterFirstFrameCommitCallback([](uint64_t screenId, int64_t timestamp) -> void {}),
+        StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->RegisterFirstFrameCommitCallback(nullptr), StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -960,8 +974,8 @@ HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     pid_t pid = 0;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVector;
-    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapVector, pid);
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t res = rsClient->GetPixelMapByProcessId(pixelMapInfoVector, pid);
     ASSERT_EQ(res, SUCCESS);
 }
 } // namespace Rosen

@@ -16,6 +16,8 @@
 #ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_H
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_H
 
+#include <vector>
+
 #include "include/core/SkRect.h"
 #include "line_metrics.h"
 #include "modules/skparagraph/include/Metrics.h"
@@ -23,6 +25,7 @@
 #include "paragraph_style.h"
 #include "rosen_text/symbol_animation_config.h"
 #include "text_line_base.h"
+#include "txt/text_style.h"
 #include "utils.h"
 
 class SkCanvas;
@@ -197,6 +200,10 @@ public:
     virtual void UpdateColor(size_t from, size_t to, const RSColor& color) = 0;
     virtual Range<size_t> GetEllipsisTextRange() = 0;
     virtual OHOS::Rosen::Drawing::RectI GeneratePaintRegion(double x, double y) = 0;
+    virtual void Relayout(double width, const ParagraphStyle& paragrahStyle,
+        const std::vector<TextStyle>& textStyes) = 0;
+    virtual bool IsLayoutDone() = 0;
+    virtual void SetLayoutState(size_t state) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

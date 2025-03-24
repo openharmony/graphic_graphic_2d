@@ -31,6 +31,8 @@ public:
 private:
     bool IsExtraVideoExist(const std::vector<BootAnimationConfig>& configs);
 
+    bool IsSupportCoordination();
+
     std::shared_ptr<BootAnimationOperation> operator_;
 };
 } // namespace OHOS

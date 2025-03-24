@@ -39,16 +39,15 @@ public:
     virtual void DisableFallback() = 0;
     virtual void DisableSystemFont() = 0;
     virtual std::shared_ptr<Drawing::Typeface> LoadFont(
-        const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
+        const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual std::shared_ptr<Drawing::Typeface> LoadThemeFont(
-        const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
+        const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
+    virtual std::vector<std::shared_ptr<Drawing::Typeface>> LoadThemeFont(
+        const std::string& familyName, const std::vector<std::pair<const uint8_t*, size_t>>& data) = 0;
+    virtual void ClearThemeFont() = 0;
     virtual std::shared_ptr<Drawing::FontMgr> GetFontMgr() = 0;
-    virtual bool RegisterTypeface(std::shared_ptr<Drawing::Typeface> typeface) = 0;
-    virtual LoadSymbolErrorCode LoadSymbolFont(const std::string &familyName,
-        const uint8_t *data, size_t datalen) = 0;
-    virtual LoadSymbolErrorCode LoadSymbolJson(const std::string &familyName,
-        const uint8_t *data, size_t datalen) = 0;
-
+    virtual LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
+    virtual LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual void ClearCaches() = 0;
 };
 } // namespace Rosen

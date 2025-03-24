@@ -26,11 +26,12 @@ namespace OHOS {
 namespace Rosen {
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const auto BLUR_TYPE = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilterOriginal(
-    Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY, Drawing::TileMode::CLAMP, nullptr,
-        BLUR_TYPE)),
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation) :
+    RSDrawingFilterOriginal(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY,
+        Drawing::TileMode::CLAMP, nullptr, BLUR_TYPE)),
     blurRadiusX_(blurRadiusX),
-    blurRadiusY_(blurRadiusY)
+    blurRadiusY_(blurRadiusY),
+    disableSystemAdaptation_(disableSystemAdaptation)
 {
     type_ = FilterType::BLUR;
 
@@ -39,6 +40,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilt
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
     hash_ = SkOpts::hash(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
+    hash_ = SkOpts::hash(&disableSystemAdaptation, sizeof(disableSystemAdaptation), hash_);
 }
 
 RSBlurFilter::~RSBlurFilter() = default;
@@ -51,6 +53,11 @@ float RSBlurFilter::GetBlurRadiusX()
 float RSBlurFilter::GetBlurRadiusY()
 {
     return blurRadiusY_;
+}
+
+bool RSBlurFilter::GetDisableSystemAdaptation()
+{
+    return disableSystemAdaptation_;
 }
 
 std::string RSBlurFilter::GetDescription()
@@ -74,7 +81,8 @@ bool RSBlurFilter::IsValid() const
 std::shared_ptr<RSDrawingFilterOriginal> RSBlurFilter::Compose(
     const std::shared_ptr<RSDrawingFilterOriginal>& other) const
 {
-    std::shared_ptr<RSBlurFilter> result = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_);
+    std::shared_ptr<RSBlurFilter> result = std::make_shared<RSBlurFilter>(blurRadiusX_, blurRadiusY_,
+        disableSystemAdaptation_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
@@ -88,7 +96,7 @@ std::shared_ptr<RSFilter> RSBlurFilter::Add(const std::shared_ptr<RSFilter>& rhs
     }
     auto blurR = std::static_pointer_cast<RSBlurFilter>(rhs);
     return std::make_shared<RSBlurFilter>(
-        blurRadiusX_ + blurR->GetBlurRadiusX(), blurRadiusY_ + blurR->GetBlurRadiusY());
+        blurRadiusX_ + blurR->GetBlurRadiusX(), blurRadiusY_ + blurR->GetBlurRadiusY(), disableSystemAdaptation_);
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
@@ -98,17 +106,17 @@ std::shared_ptr<RSFilter> RSBlurFilter::Sub(const std::shared_ptr<RSFilter>& rhs
     }
     auto blurR = std::static_pointer_cast<RSBlurFilter>(rhs);
     return std::make_shared<RSBlurFilter>(
-        blurRadiusX_ - blurR->GetBlurRadiusX(), blurRadiusY_ - blurR->GetBlurRadiusY());
+        blurRadiusX_ - blurR->GetBlurRadiusX(), blurRadiusY_ - blurR->GetBlurRadiusY(), disableSystemAdaptation_);
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Multiply(float rhs)
 {
-    return std::make_shared<RSBlurFilter>(blurRadiusX_ * rhs, blurRadiusY_ * rhs);
+    return std::make_shared<RSBlurFilter>(blurRadiusX_ * rhs, blurRadiusY_ * rhs, disableSystemAdaptation_);
 }
 
 std::shared_ptr<RSFilter> RSBlurFilter::Negate()
 {
-    return std::make_shared<RSBlurFilter>(-blurRadiusX_, -blurRadiusY_);
+    return std::make_shared<RSBlurFilter>(-blurRadiusX_, -blurRadiusY_, disableSystemAdaptation_);
 }
 
 bool RSBlurFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
@@ -119,7 +127,8 @@ bool RSBlurFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float thr
         return true;
     }
     return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX(), threshold) &&
-           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY(), threshold);
+           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY(), threshold) &&
+           disableSystemAdaptation_ == otherBlurFilter->GetDisableSystemAdaptation();
 }
 
 bool RSBlurFilter::IsNearZero(float threshold) const
@@ -135,7 +144,8 @@ bool RSBlurFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
         return true;
     }
     return ROSEN_EQ(blurRadiusX_, otherBlurFilter->GetBlurRadiusX()) &&
-           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY());
+           ROSEN_EQ(blurRadiusY_, otherBlurFilter->GetBlurRadiusY()) &&
+           disableSystemAdaptation_ == otherBlurFilter->GetDisableSystemAdaptation();
 }
 
 bool RSBlurFilter::IsEqualZero() const

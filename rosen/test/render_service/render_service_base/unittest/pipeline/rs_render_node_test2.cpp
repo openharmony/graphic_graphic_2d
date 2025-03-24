@@ -768,7 +768,7 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSBaseRenderNode>(id, context);
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
-    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     parentNode->GetRenderProperties().GetBoundsGeometry()->absMatrix_ = Drawing::Matrix();
     inNode->parent_ = parentNode;
     inNode->shouldPaint_ = true;
@@ -1041,7 +1041,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
@@ -1110,7 +1110,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -1449,7 +1449,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     nodeTest->uifirstRootNodeId_ = 1;
@@ -1573,7 +1573,7 @@ HWTEST_F(RSRenderNodeTest2, RSRenderNodeDumpTest02, TestSize.Level1)
     EXPECT_NE(inNode, nullptr);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(outNode, nullptr);
-    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    nodeTest->sharedTransitionParam_ = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
     EXPECT_NE(nodeTest->sharedTransitionParam_, nullptr);
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     nodeTest->uifirstRootNodeId_ = 1;
@@ -1668,7 +1668,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode03, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2436,6 +2436,18 @@ HWTEST_F(RSRenderNodeTest2, SetUIFirstSwitchTest002, TestSize.Level1)
     rsContext->nodeMap.RegisterRenderNode(firstNode);
     node->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
     ASSERT_EQ(firstNode->GetUIFirstSwitch(), RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+}
+
+/**
+ * @tc.name: GenerateIDTest
+ * @tc.desc: SetUIFirstSwitch with Node has firstLevelNoode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH5UD
+ */
+HWTEST_F(RSRenderNodeTest2, GenerateIDTest, TestSize.Level1)
+{
+    auto id = RSRenderNode::GenerateId();
+    ASSERT_EQ(RSRenderNode::GenerateId() - id, 1);
 }
 } // namespace Rosen
 } // namespace OHOS

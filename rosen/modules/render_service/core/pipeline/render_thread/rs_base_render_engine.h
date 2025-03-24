@@ -158,8 +158,6 @@ public:
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
         PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
-    virtual void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
-
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
         BufferDrawParam& params);
     void DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
@@ -185,8 +183,6 @@ public:
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
     static bool IsHighContrastEnabled();
-    static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
-    static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()

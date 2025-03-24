@@ -52,13 +52,11 @@ HWTEST(RSRenderNodeDrawableAutoCacheTest, OpincCalculateBeforeTest, TestSize.Lev
     RSRenderParams params(nodeId);
     bool isOpincDropNodeExt = true;
     drawable->OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
-    ASSERT_TRUE(drawable->IsOpincRealDrawCacheEnable());
     ASSERT_FALSE(drawable->IsOpListDrawAreaEnable());
 
     drawable->rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
     drawable->recordState_ = NodeRecordState::RECORD_CALCULATE;
     drawable->OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
-    ASSERT_TRUE(drawable->IsOpincRealDrawCacheEnable());
     ASSERT_TRUE(drawable->IsOpListDrawAreaEnable());
 }
 

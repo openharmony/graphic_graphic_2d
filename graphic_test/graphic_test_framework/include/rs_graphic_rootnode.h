@@ -28,6 +28,7 @@ public:
     void AddChild(std::shared_ptr<RSNode> child, int index = -1);
     void RemoveChild(std::shared_ptr<RSNode> child);
     void ClearChildren();
+    void RegisterNode(std::shared_ptr<RSNode> node);
 
 private:
     void SetTestSurface(std::shared_ptr<OHOS::Rosen::RSSurfaceNode> node);
@@ -35,6 +36,9 @@ private:
 
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> screenSurfaceNode_;
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> testSurfaceNode_;
+
+    std::vector<std::shared_ptr<OHOS::Rosen::RSSurfaceNode>> testSurfaceNodes_;
+    std::vector<std::shared_ptr<RSNode>> nodes_;
 
     friend class RSGraphicTestDirector;
     friend class RSGraphicTest;

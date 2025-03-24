@@ -67,8 +67,7 @@ void RSUniRenderComposerAdapterTest::SetUp()
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    std::unique_ptr<impl::RSScreen> rsScreen =
-        std::make_unique<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
     ASSERT_NE(rsScreen, nullptr);
     screenManager_->MockHdiScreenConnected(rsScreen);
     auto info = screenManager_->QueryScreenInfo(screenId_);

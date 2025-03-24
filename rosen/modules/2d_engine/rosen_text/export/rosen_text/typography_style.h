@@ -16,15 +16,45 @@
 #ifndef ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_STYLE_H
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TYPOGRAPHY_STYLE_H
 
+#include <bitset>
 #include <string>
 #include <vector>
 
+#include "modules/skparagraph/include/TextStyle.h"
 #include "text_style.h"
 #include "typography_types.h"
-#include "modules/skparagraph/include/TextStyle.h"
 
 namespace OHOS {
 namespace Rosen {
+enum class RelayoutParagraphStyleAttribute {
+    FONT_SIZE = 0,
+    DIRECTION = 1,
+    MAXLINES = 2,
+    FONT_WEIGHT = 3,
+    FONT_STYLE = 4,
+    FONT_FAMILY = 5,
+    HEIGHT_SCALE = 6,
+    HEIGHT_ONLY = 7,
+    HALF_LEADING = 8,
+    USE_LINE_STYLE = 9,
+    LINE_STYLE_FONT_WEIGHT = 10,
+    LINE_STYLE_FONT_WIDTH = 11,
+    LINE_STYLE_FONT_STYLE = 12,
+    LINE_STYLE_FONT_FAMILY = 13,
+    LINE_STYLE_FONT_SIZE = 14,
+    LINE_STYLE_HEIGHT_SCALE = 15,
+    LINE_STYLE_HEIGHT_ONLY = 16,
+    LINE_STYLE_HALF_LEADING = 17,
+    LINE_STYLE_ONLY = 18,
+    BREAKSTRAGY = 19,
+    WORD_BREAKTYPE = 20,
+    ELLIPSIS = 21,
+    ELLIPSIS_MODAL = 22,
+    TEXT_ALIGN = 23,
+
+    PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
+};
+
 struct TextTab {
     TextTab() = default;
     TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
@@ -110,6 +140,7 @@ struct TypographyStyle {
             this->wordBreakType == rhs.wordBreakType &&
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
+            this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
             this->tab == rhs.tab;
     }
     TextStyle GetTextStyle() const;
@@ -126,6 +157,9 @@ struct TypographyStyle {
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
     TextTab tab;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
+        relayoutChangeBitmap;
+    size_t defaultTextStyleUid { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

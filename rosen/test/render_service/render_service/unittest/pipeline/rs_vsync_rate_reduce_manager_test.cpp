@@ -93,13 +93,10 @@ HWTEST_F(RSVsyncRateReduceManagerTest, EnqueueFrameDuration001, TestSize.Level1)
  */
 HWTEST_F(RSVsyncRateReduceManagerTest, Init001, TestSize.Level1)
 {
-    auto instance = RSMainThread::Instance();
-    instance->SetDeviceType();
     RSVsyncRateReduceManager rateReduceManager;
     sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
     rateReduceManager.Init(vSyncDistributor);
-    if (instance->GetDeviceType() == DeviceType::PC) {
-        EXPECT_EQ(DeviceType::PC, rateReduceManager.deviceType_);
+    if (rateReduceManager.GetVRateDeviceSupport()) {
         EXPECT_EQ(true, rateReduceManager.GetVRateReduceEnabled());
     }
     EXPECT_NE(nullptr, rateReduceManager.appVSyncDistributor_);

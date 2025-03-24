@@ -195,7 +195,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionT
     param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
     allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(allSurfaceDrawables, globalDirtyRegion);
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
     ASSERT_NE(drawable->renderParams_, nullptr);
 }
 
@@ -219,7 +219,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionT
     drawable->renderParams_ = std::move(param);
     allSurfaceDrawables.push_back(nullptr);
     allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(allSurfaceDrawables, globalDirtyRegion);
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
     ASSERT_NE(drawable->renderParams_, nullptr);
 }
 
@@ -229,7 +229,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionT
  * @tc.type: FUNC
  * @tc.require: issueIAE6P0
 */
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDityRegionTest003, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionTest003, Function | SmallTest | Level2)
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
@@ -237,7 +237,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDityRegionTe
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(allSurfaceDrawables, globalDirtyRegion);
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
     ASSERT_EQ(drawable->renderParams_, nullptr);
 }
 

@@ -496,4 +496,36 @@ HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
     ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
     ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
 }
+
+/**
+ * @tc.name: CreateSamplingOptions
+ * @tc.desc: test results of CreateSamplingOptions
+ * @tc.type:FUNC
+ * @tc.require: issueIATYWQ
+ */
+HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
+{
+    Drawing::Matrix matrix;
+
+    Drawing::scalar tx = 100;
+    Drawing::scalar ty = 100;
+    matrix.Translate(tx, ty);
+    Drawing::SamplingOptions samplingOptions;
+    samplingOptions = Drawing::DrawSurfaceBufferOpItem::CreateSamplingOptions(matrix);
+    ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::NEAREST);
+    ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
+
+    Drawing::scalar sx = 10;
+    Drawing::scalar sy = 10;
+    matrix.SetScale(sx, sy);
+    samplingOptions = Drawing::DrawSurfaceBufferOpItem::CreateSamplingOptions(matrix);
+    ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::LINEAR);
+    ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
+
+    Drawing::scalar rd = 30;
+    matrix.Rotate(rd, 0, 0);
+    samplingOptions = Drawing::DrawSurfaceBufferOpItem::CreateSamplingOptions(matrix);
+    ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::LINEAR);
+    ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
+}
 } // namespace OHOS::Rosen

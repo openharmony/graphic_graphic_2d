@@ -353,7 +353,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
 
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
-        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+        OHOS::Rosen::SPText::SINCE_API18_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
 
@@ -386,7 +386,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
 
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = true;
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().bundleApiVersion_ =
-        OHOS::Rosen::SPText::SINCE_API16_VERSION;
+        OHOS::Rosen::SPText::SINCE_API18_VERSION;
     typographyCreate->AppendText(text);
     OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().initStatus_ = false;
 
@@ -404,9 +404,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 1000;
-    std::u16string text = u"testParagraphSpacing";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -414,10 +412,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"testParagraphSpacing";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 1000;
     typography0->Layout(maxWidth);
-    // 测试为只包含1个run的文本设置段落间距的场景
+
+    // Test the scenario of setting paragraph spacing for text containing one runs.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = true;
     typographyStyle1.paragraphSpacing = 40;
@@ -438,9 +439,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 100;
-    std::u16string text = u"test ParagraphSpacing. 不是一个run.";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -448,10 +447,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"test ParagraphSpacing. 不是一个run.";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 100;
     typography0->Layout(maxWidth);
-    // 测试为包含多个run的文本设置段落间距的场景。
+
+    // Test the scenario of setting paragraph spacing for text containing multiple runs.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = true;
     typographyStyle1.paragraphSpacing = 40;
@@ -472,10 +474,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level1)
 {
-    // 初始化环境：创建一个不包含段落间距的段落，其段落高度作为基线与后文进行对比。
-    double maxWidth = 500;
-    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
-                          u"false, paragraph spacing should not take effect at this time.";
+    // Init: Create a paragraph without spacing between paragraphs. Use its height as baseline.
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.isEndAddParagraphSpacing = false;
     typographyStyle0.paragraphSpacing = 0;
@@ -483,10 +482,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
         OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"Test paragraphSpacing. Without hard line breaks and with isEndAddParagraphSpacing set to "
+                        u"false, paragraph spacing should not take effect at this time.";
     typographyCreate0->AppendText(text);
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 500;
     typography0->Layout(maxWidth);
-    // 测试paragraphSpacing设为正值，但是段落中没有硬换行且isEndAddParagraphSpacing为false的场景：该场景下段落间距不生效。
+    
+    // Test paragraphSpacing is positive, there is no hard break within the paragraph, and isEndAddParagraphSpacing
+    // is false: In this scenario, the paragraph spacing does not take effect.
     OHOS::Rosen::TypographyStyle typographyStyle1;
     typographyStyle1.isEndAddParagraphSpacing = false;
     typographyStyle1.paragraphSpacing = 40;
@@ -499,7 +503,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
     typography1->Layout(maxWidth);
     EXPECT_EQ(typography0->GetHeight(), typography1->GetHeight());
 
-    // 测试设置异常的paragraphSpacing，该场景下段落间距不生效。
+    // Test paragraphSpacing is abnormal. In this scenario, the paragraph spacing does not take effect.
     OHOS::Rosen::TypographyStyle typographyStyle2;
     typographyStyle2.isEndAddParagraphSpacing = true;
     typographyStyle2.paragraphSpacing = -40;
@@ -511,6 +515,278 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
     std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
     typography2->Layout(maxWidth);
     EXPECT_EQ(typography0->GetHeight(), typography2->GetHeight());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest016
+ * @tc.desc: test for the actual effective value of textstyle: fallback textstyle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level1)
+{
+    // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.fontSize = 100; // set the fallback text style in typographstyle
+    typographyStyle0.heightOnly = true;
+    typographyStyle0.heightScale = 1;
+    OHOS::Rosen::TextStyle textStyle = typographyStyle0.GetTextStyle();
+    EXPECT_EQ(textStyle.fontSize, 100);
+    EXPECT_EQ(textStyle.heightOnly, true);
+    EXPECT_EQ(textStyle.heightScale, 1);
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    std::u16string text = u"text textstyle";
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 10000.0;
+    typography0->Layout(maxWidth);
+    EXPECT_EQ(typography0->GetHeight(), 100);
+    std::vector<LineMetrics> myLinesMetric = typography0->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
+    EXPECT_EQ(runMetrics.size(), 1);
+    for (const auto& item : runMetrics) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 100);
+        EXPECT_EQ(item.second.textStyle->heightScale, 1);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest017
+ * @tc.desc: test for the actual effective value of textstyle: default textstyle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level1)
+{
+    // After setting the default text style in typographstyle, the fallback text style becomes ineffective.
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.fontSize = 100;
+    typographyStyle1.heightOnly = true;
+    typographyStyle1.heightScale = 1;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    OHOS::Rosen::TextStyle textStyle1;
+    textStyle1.fontSize = 30;
+    textStyle1.heightOnly = true;
+    textStyle1.heightScale = 2;
+    typographyStyle1.SetTextStyle(textStyle1); // set the default text style in typographstyle
+    std::u16string text1 = u"你好测试文本样式";
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->AppendText(text1);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    double maxWidth = 10000.0;
+    typography1->Layout(maxWidth);
+    EXPECT_EQ(typography1->GetHeight(), 60);
+    std::vector<LineMetrics> myLinesMetric1 = typography1->GetLineMetrics();
+    auto runMetrics1 = myLinesMetric1[0].runMetrics;
+    EXPECT_EQ(runMetrics1.size(), 1);
+    for (const auto& item : runMetrics1) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 30);
+        EXPECT_EQ(item.second.textStyle->heightScale, 2);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest018
+ * @tc.desc: test for the actual effective value of textstyle: pushtext style.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level1)
+{
+    // After pushing a new text style, the default text style becomes ineffective.
+    OHOS::Rosen::TypographyStyle typographyStyle2;
+    typographyStyle2.fontSize = 100;
+    typographyStyle2.heightOnly = true;
+    typographyStyle2.heightScale = 1;
+    OHOS::Rosen::TextStyle textStyle2;
+    textStyle2.fontSize = 30;
+    textStyle2.heightOnly = true;
+    textStyle2.heightScale = 2;
+    typographyStyle2.SetTextStyle(textStyle2);
+    textStyle2.fontSize = 50;
+    textStyle2.heightOnly = true;
+    textStyle2.heightScale = 3;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection2 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection2);
+    typographyCreate2->PushStyle(textStyle2); // pushtext style
+    std::u16string text2 = u"你好测试 textstyle hello ";
+    typographyCreate2->AppendText(text2);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    double maxWidth = 10000.0;
+    typography2->Layout(maxWidth);
+    EXPECT_EQ(typography2->GetHeight(), 150);
+    std::vector<LineMetrics> myLinesMetric2 = typography2->GetLineMetrics();
+    auto runMetrics2 = myLinesMetric2[0].runMetrics;
+    for (const auto& item : runMetrics2) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 50);
+        EXPECT_EQ(item.second.textStyle->heightScale, 3);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest019
+ * @tc.desc: test obtaining some textStyle property from runMetrics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 50;
+    textStyle.heightOnly = true;
+    textStyle.heightScale = 3;
+    textStyle.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    TextShadow myShadow;
+    myShadow.color = Drawing::Color::ColorQuadSetARGB(255, 0, 255, 255);
+    myShadow.blurRadius = 10;
+    Drawing::Point myPoint(10, -10);
+    myShadow.offset = myPoint;
+    TextShadow myShadowNull;
+    textStyle.shadows = { myShadow, myShadow, myShadowNull };
+    textStyle.decorationColor = Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0);
+    textStyle.decorationStyle = TextDecorationStyle::DASHED;
+    textStyle.decorationThicknessScale = 10;
+    textStyle.decoration = TextDecoration::OVERLINE;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"测试textstyle的runMetrics: fontSize, heightOnly, heightScale, color, shadows, decoration.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = 100.0;
+    typography->Layout(maxWidth);
+    std::vector<LineMetrics> myLinesMetric = typography->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
+
+    for (const auto& item : runMetrics) {
+        EXPECT_EQ(item.second.textStyle->fontSize, 50);
+        EXPECT_EQ(item.second.textStyle->heightOnly, true);
+        EXPECT_EQ(item.second.textStyle->heightScale, 3);
+        EXPECT_EQ(item.second.textStyle->color.CastToColorQuad(), Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
+        EXPECT_EQ(item.second.textStyle->shadows.size(), 3);
+        EXPECT_EQ(item.second.textStyle->shadows.at(0).color.CastToColorQuad(),
+            Drawing::Color::ColorQuadSetARGB(255, 0, 255, 255));
+        EXPECT_EQ(item.second.textStyle->shadows.at(0).HasShadow(), true);
+        EXPECT_EQ(item.second.textStyle->shadows.at(0).offset.GetX(), 10);
+        EXPECT_EQ(item.second.textStyle->shadows.at(0).offset.GetY(), -10);
+        EXPECT_EQ(item.second.textStyle->shadows.at(1).blurRadius, 10);
+        EXPECT_EQ(item.second.textStyle->shadows.at(2).HasShadow(), false);
+        EXPECT_EQ(
+            item.second.textStyle->decorationColor.CastToColorQuad(), Drawing::Color::ColorQuadSetARGB(255, 0, 255, 0));
+        EXPECT_EQ(item.second.textStyle->decorationStyle, TextDecorationStyle::DASHED);
+        EXPECT_EQ(item.second.textStyle->decorationThicknessScale, 10);
+        EXPECT_EQ(item.second.textStyle->decoration, TextDecoration::OVERLINE);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest020
+ * @tc.desc: test obtaining the some textStyle property from runMetrics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    FontFeatures myFontFeatures;
+    myFontFeatures.SetFeature("frac", 1);
+    myFontFeatures.SetFeature("sups", 1);
+    textStyle.fontFeatures = myFontFeatures;
+    std::optional<Drawing::Brush> myBrush;
+    myBrush->SetARGB(255, 255, 0, 0);
+    textStyle.foregroundBrush = myBrush;
+    textStyle.backgroundBrush = myBrush;
+    std::optional<Drawing::Pen> myPen;
+    myPen->SetARGB(255, 0, 255, 255);
+    textStyle.foregroundPen = myPen;
+    textStyle.backgroundPen = myPen;
+    RectStyle myBackgroundRect = { Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0), 10.0, 11.0, 1.0, 2.0 };
+    textStyle.backgroundRect = myBackgroundRect;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, textstyle中的runMetrics: fontFeatures, forebackgroundBrushPen, backgroundRect.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = 100.0;
+    typography->Layout(maxWidth);
+    std::vector<LineMetrics> myLinesMetric = typography->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
+
+    for (const auto& item : runMetrics) {
+        EXPECT_EQ(item.second.textStyle->fontFeatures.GetFontFeatures().at(0).first, "frac");
+        EXPECT_EQ(item.second.textStyle->fontFeatures.GetFontFeatures().at(0).second, 1);
+        EXPECT_EQ(item.second.textStyle->fontFeatures.GetFontFeatures().at(1).first, "sups");
+        EXPECT_EQ(item.second.textStyle->fontFeatures.GetFontFeatures().size(), 2);
+        EXPECT_EQ(item.second.textStyle->fontFeatures.GetFeatureSettings(), "frac=1,sups=1");
+        EXPECT_EQ(item.second.textStyle->fontFeatures.featureSet_.size(), 2);
+        EXPECT_EQ(item.second.textStyle->fontFeatures.featureSet_.at(1).second, 1);
+        EXPECT_EQ(item.second.textStyle->foregroundBrush, myBrush);
+        EXPECT_EQ(item.second.textStyle->backgroundBrush, myBrush);
+        EXPECT_EQ(item.second.textStyle->foregroundPen, myPen);
+        EXPECT_EQ(item.second.textStyle->backgroundPen, myPen);
+        EXPECT_EQ(item.second.textStyle->backgroundRect, myBackgroundRect);
+    }
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest021
+ * @tc.desc: test obtaining the remaining textStyle property from runMetrics.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontWeight = FontWeight::W100;
+    textStyle.fontStyle = FontStyle::ITALIC;
+    textStyle.baseline = TextBaseline::ALPHABETIC;
+    textStyle.fontFamilies = { "Text", "Text2" };
+    textStyle.letterSpacing = -10;
+    textStyle.wordSpacing = 5;
+    textStyle.halfLeading = true;
+    textStyle.locale = "zh-Hans";
+    textStyle.baseLineShift = 10;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好, 测试, textstyle中的runMetrics: fontWeight, fontStyle, baseline, fontFamilies, "
+                          u"letterSpacing, wordSpacing, halfLeading, locale, baseLineShift.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    double maxWidth = 100.0;
+    typography->Layout(maxWidth);
+    std::vector<LineMetrics> myLinesMetric = typography->GetLineMetrics();
+    auto runMetrics = myLinesMetric[0].runMetrics;
+
+    for (const auto& item : runMetrics) {
+        EXPECT_EQ(item.second.textStyle->fontWeight, FontWeight::W100);
+        EXPECT_EQ(item.second.textStyle->fontStyle, FontStyle::ITALIC);
+        EXPECT_EQ(item.second.textStyle->baseline, TextBaseline::ALPHABETIC);
+        EXPECT_EQ(item.second.textStyle->fontFamilies.size(), 4);
+
+        // The first two are the theme font and the system font, respectively.
+        EXPECT_EQ(item.second.textStyle->fontFamilies.at(2), "Text");
+        EXPECT_EQ(item.second.textStyle->fontFamilies.at(3), "Text2");
+        EXPECT_EQ(item.second.textStyle->letterSpacing, -10);
+        EXPECT_EQ(item.second.textStyle->wordSpacing, 5);
+        EXPECT_EQ(item.second.textStyle->halfLeading, true);
+        EXPECT_EQ(item.second.textStyle->locale, "zh-Hans");
+        EXPECT_EQ(item.second.textStyle->baseLineShift, 10);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

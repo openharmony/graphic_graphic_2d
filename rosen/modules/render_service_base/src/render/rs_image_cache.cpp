@@ -70,18 +70,8 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
-        }
-        auto type = pixelMap->GetAllocatorType();
-        pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-        if (type != Media::AllocatorType::DMA_ALLOC && pid) {
-            auto realSize = type == Media::AllocatorType::SHARE_MEM_ALLOC
-                ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-                : pixelMap->GetCapacity();
-            MemorySnapshot::Instance().AddCpuMemory(pid, realSize);
-        }
+        std::lock_guard<std::mutex> lock(mutex_);
+        pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
     }
 }
 
@@ -145,14 +135,6 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
             it->second.second--;
             if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
-                bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
-                pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-                if (shouldCount && pid) {
-                    auto realSize = pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC
-                        ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-                        : pixelMap->GetCapacity();
-                    MemorySnapshot::Instance().RemoveCpuMemory(pid, realSize);
-                }
                 pixelMapCache_.erase(it);
                 ReleaseDrawingImageCacheByPixelMapId(uniqueId);
             }

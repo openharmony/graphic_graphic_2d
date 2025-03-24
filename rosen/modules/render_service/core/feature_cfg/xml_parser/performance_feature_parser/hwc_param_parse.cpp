@@ -20,7 +20,7 @@
 
 namespace OHOS::Rosen {
 
-int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node)
 {
     RS_LOGI("start");
     xmlNode *currNode = &node;
@@ -43,7 +43,7 @@ int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode& node)
 {
     xmlNode *currNode = &node;
 
@@ -52,6 +52,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
         hwcParam_ = std::static_pointer_cast<HWCParam>(iter->second);
     } else {
         RS_LOGD("stop parsing, no initializing param map");
+        return PARSE_NO_PARAM;
     }
 
     // Start Parse Feature Params
@@ -62,8 +63,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "HwcExpandingScreenEnabled") {
             hwcParam_->SetHwcExpandingScreenEnabled(isEnabled);
-            RS_LOGI("parse HwcExpandingScreenEnabled %{public}d",
-                hwcParam_->IsHwcExpandingScreenEnabled());
+            RS_LOGI("parse HwcExpandingScreenEnabled %{public}d", hwcParam_->IsHwcExpandingScreenEnabled());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
@@ -74,7 +74,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &name)
+int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& name)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {

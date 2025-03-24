@@ -84,6 +84,32 @@ int32_t DVSyncParamParse::ParseDVSyncInternal(FeatureParamMapType &featureMap, x
             dvsyncParam_->SetWebBufferCount(std::atoi(val.c_str()));
             RS_LOGI("DVSyncParamParse parse DVSyncWebBufferCount %{public}d", dvsyncParam_->GetWebBufferCount());
         }
+    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+        if (ParseFeatureMultiParam(*currNode, name) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("parse MultiParam fail");
+        }
+    }
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t DVSyncParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &name)
+{
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        RS_LOGD("DVSyncParamParse stop parsing, no children nodes");
+        return PARSE_GET_CHILD_FAIL;
+    }
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto paramName = ExtractPropertyValue("name", *currNode);
+        auto val = ExtractPropertyValue("value", *currNode);
+        if (!IsNumber(val)) {
+            return PARSE_ERROR;
+        }
+        dvsyncParam_->SetAdaptiveConfig(paramName, val);
     }
     return PARSE_EXEC_SUCCESS;
 }

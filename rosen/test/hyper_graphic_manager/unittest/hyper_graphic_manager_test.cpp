@@ -677,6 +677,27 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
 }
 
 /**
+ * @tc.name: SetHfbcConfigMap
+ * @tc.desc: Verify the result of SetHfbcConfigMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), 0);
+    std::unordered_map<std::string, std::string> hfbcConfig = {
+        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
+    };
+    hgmCore.SetHfbcConfigMap(hfbcConfig);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), hfbcConfig.size());
+    for (const auto& pkg : hfbcConfig) {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.find(pkg.first) !=
+            hgmCore.mPolicyConfigData_->hfbcConfig_.end(), true);
+    }
+}
+
+/**
  * @tc.name: TestAbnormalCase
  * @tc.desc: Verify the abnormal case of HgmCore
  * @tc.type: FUNC
@@ -786,6 +807,23 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest |
     int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
     hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
+}
+
+/**
+ * @tc.name: IsSwitchDssEnable
+ * @tc.desc: Verify the result of IsSwitchDssEnable function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, IsSwitchDssEnable, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    ScreenId screenId = 2;
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
+    hgmCore.SetScreenSwitchDssEnable(screenId, true);
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), true);
+    hgmCore.SetScreenSwitchDssEnable(screenId, false);
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
 }
 } // namespace Rosen
 } // namespace OHOS
