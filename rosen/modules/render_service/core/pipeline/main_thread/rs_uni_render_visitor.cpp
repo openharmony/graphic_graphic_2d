@@ -4024,15 +4024,15 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
             return;
         }
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
+        bool surfaceNodeSet = false;
+        bool needMapAbsRect = true;
         auto windowContainer = curDisplayNode_->GetWindowContainer();
         if (windowContainer) {
             if (!ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleX(), 1.0f, EPSILON_SCALE) ||
                 !ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleY(), 1.0f, EPSILON_SCALE)) {
-                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
-                return;
+                needMapAbsRect = false;
             }
         }
-        bool surfaceNodeSet = false;
         for (auto surface : surfaces) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
             if (surfaceNode == nullptr) {
@@ -4045,7 +4045,9 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
                 if (!geoPtr) {
                     break;
                 }
-                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+                if (needMapAbsRect) {
+                    tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+                }
                 curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
                 surfaceNodeSet = true;
                 break;
@@ -4056,7 +4058,9 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
             if (!geoPtr) {
                 return;
             }
-            tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            if (needMapAbsRect) {
+                tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
+            }
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
         }
     }
