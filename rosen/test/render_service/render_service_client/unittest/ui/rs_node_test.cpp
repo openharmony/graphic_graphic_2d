@@ -2259,6 +2259,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderWidth005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams001, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_ZERO);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2269,6 +2271,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams002, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_POSITIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2279,6 +2283,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams003, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2289,6 +2295,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams004, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_MAX);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2299,6 +2307,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams004, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams005, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_MIN);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2369,6 +2379,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineWidth005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams001, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_ZERO);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2379,6 +2391,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams002, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_POSITIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2389,6 +2403,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams003, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2399,6 +2415,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams004, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_MAX);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2409,6 +2427,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams004, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams005, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_MIN);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
