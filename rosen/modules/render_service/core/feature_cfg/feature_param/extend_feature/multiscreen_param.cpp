@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
  
-bool MultiScreenParam::IsExternalScreenSecure() const
+bool MultiScreenParam::IsExternalScreenSecure()
 {
     return isExternalScreenSecure_;
 }
@@ -27,7 +27,7 @@ void MultiScreenParam::SetExternalScreenSecure(bool isSecure)
     isExternalScreenSecure_ = isSecure;
 }
 
-bool MultiScreenParam::IsSlrScaleEnabled() const
+bool MultiScreenParam::IsSlrScaleEnabled()
 {
     return isSlrScaleEnabled_;
 }
@@ -37,7 +37,7 @@ void MultiScreenParam::SetSlrScaleEnabled(bool isEnabled)
     isSlrScaleEnabled_ = isEnabled;
 }
 
-bool MultiScreenParam::IsRsReportHwcDead() const
+bool MultiScreenParam::IsRsReportHwcDead()
 {
     return isRsReportHwcDead_;
 }
@@ -47,7 +47,7 @@ void MultiScreenParam::SetRsReportHwcDead(bool isEnabled)
     isRsReportHwcDead_ = isEnabled;
 }
 
-bool MultiScreenParam::IsRsSetScreenPowerStatus() const
+bool MultiScreenParam::IsRsSetScreenPowerStatus()
 {
     return isRsSetScreenPowerStatus_;
 }

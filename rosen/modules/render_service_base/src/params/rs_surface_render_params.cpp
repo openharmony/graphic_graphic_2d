@@ -406,6 +406,24 @@ bool RSSurfaceRenderParams::GetGlobalPositionEnabled() const
     return isGlobalPositionEnabled_;
 }
 
+void RSSurfaceRenderParams::SetDRMGlobalPositionEnabled(bool isEnabled)
+{
+    isDRMGlobalPositionEnabled_ = isEnabled;
+}
+bool RSSurfaceRenderParams::GetDRMGlobalPositionEnabled() const
+{
+    return isDRMGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderParams::SetDRMCrossNode(bool isCrossNode)
+{
+    isDRMCrossNode_ = isCrossNode;
+}
+bool RSSurfaceRenderParams::IsDRMCrossNode() const
+{
+    return isDRMCrossNode_;
+}
+
 void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
 {
     isNodeToBeCaptured_ = isNodeToBeCaptured;
@@ -546,6 +564,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
+    targetSurfaceParams->isDRMGlobalPositionEnabled_ = isDRMGlobalPositionEnabled_;
+    targetSurfaceParams->isDRMCrossNode_ = isDRMCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;

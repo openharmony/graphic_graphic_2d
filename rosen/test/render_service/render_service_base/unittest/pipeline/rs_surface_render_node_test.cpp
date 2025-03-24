@@ -653,6 +653,36 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDRMGlobalPositionEnabledTest
+ * @tc.desc: SetDRMGlobalPositionEnabled and GetDRMGlobalPositionEnabled
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDRMGlobalPositionEnabledTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetDRMGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetDRMGlobalPositionEnabled(), true);
+}
+
+/**
+ * @tc.name: SetDRMCrossNodeTest
+ * @tc.desc: SetDRMCrossNode and GetDRMCrossNode
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDRMCrossNodeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetDRMCrossNode(true);
+    ASSERT_EQ(node->IsDRMCrossNode(), true);
+    node->SetDRMCrossNode(false);
+    ASSERT_FALSE(node->IsDRMCrossNode());
+}
+
+/**
  * @tc.name: AncestorDisplayNodeTest
  * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
  * @tc.type:FUNC

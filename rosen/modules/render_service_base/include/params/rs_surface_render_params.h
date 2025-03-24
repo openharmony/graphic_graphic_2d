@@ -147,6 +147,30 @@ public:
     {
         return stencilVal_;
     }
+    void SetOffsetX(int32_t offsetX)
+    {
+        offsetX_ = offsetX;
+    }
+    int32_t GetOffsetX() const
+    {
+        return offsetX_;
+    }
+    void SetOffsetY(int32_t offsetY)
+    {
+        offsetY_ = offsetY;
+    }
+    int32_t GetOffsetY() const
+    {
+        return offsetY_;
+    }
+    void SetRogWidthRatio(float rogWidthRatio)
+    {
+        rogWidthRatio_ = rogWidthRatio;
+    }
+    float GetRogWidthRatio() const
+    {
+        return rogWidthRatio_;
+    }
     void SetIsOutOfScreen(bool isOutOfScreen)
     {
         if (isOutOfScreen_ == isOutOfScreen) {
@@ -342,6 +366,12 @@ public:
 
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
+
+    void SetDRMGlobalPositionEnabled(bool isEnabled);
+    bool GetDRMGlobalPositionEnabled() const;
+
+    void SetDRMCrossNode(bool isCrossNode);
+    bool IsDRMCrossNode() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
@@ -642,7 +672,7 @@ public:
     {
         return sourceDisplayRenderNodeDrawable_;
     }
-protected:
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
@@ -734,6 +764,12 @@ private:
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
+
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    float rogWidthRatio_ = 1.0f;
+    bool isDRMGlobalPositionEnabled_ = false;
+    bool isDRMCrossNode_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

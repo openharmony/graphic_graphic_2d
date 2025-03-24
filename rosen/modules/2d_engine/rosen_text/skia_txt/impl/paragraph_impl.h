@@ -138,8 +138,7 @@ private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);
 
-    void TextStyleUpdater(Paragraph& skiaParagraph, skt::Block& skiaBlock, const TextStyle& spTextStyle,
-        skt::InternalState& state);
+    void TextStyleUpdater(skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state);
 
     void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
         skt::InternalState& state);
@@ -153,6 +152,9 @@ private:
     void RecordDifferentPthreadCall(const char* caller) const;
 
     void InitSymbolRuns();
+
+    void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
+        skt::InternalState& state, size_t index);
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;

@@ -133,7 +133,7 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
     }
 
     bool isTextStyleChange = std::any_of(textStyles.begin(), textStyles.end(), [](const TextStyle& style) {
-        return style.relayoutChangeBitmap.any();
+        return style.relayoutChangeBitmap.any() || style.symbol.GetSymbolBitmap().any();
     });
     if (!typograhyStyle.relayoutChangeBitmap.any() && !isTextStyleChange) {
         if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {

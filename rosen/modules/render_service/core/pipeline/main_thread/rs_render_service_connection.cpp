@@ -48,6 +48,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
@@ -1141,8 +1142,12 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
+        RSHardwareThread::Instance().ScheduleTask([=]() {
+            if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+                HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
+            }
+            screenManager_->SetScreenPowerStatus(id, status);
+        }).wait();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
@@ -1447,17 +1452,20 @@ ErrCode RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& 
 
 ErrCode RSRenderServiceConnection::GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic)
 {
-    if (!mainThread_) {
+    if (!mainThread_ || !mainThread_->GetContext().GetNodeMap().ContainPid(pid)) {
         return ERR_INVALID_VALUE;
     }
     bool enable;
     if (GetUniRenderEnabled(enable) == ERR_OK && enable) {
-        RSMainThread* mainThread = mainThread_;
-        mainThread_->ScheduleTask([mainThread, &pid, &memoryGraphic]() {
-            if (RSMainThread::Instance()->GetContext().GetNodeMap().ContainPid(pid)) {
-                mainThread->CountMem(pid, memoryGraphic);
-            }
-        }).wait();
+        renderThread_.PostSyncTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphic, &pid] {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr) {
+                    return;
+                }
+                memoryGraphic = MemoryManager::CountPidMemory(pid,
+                    connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+            });
         return ERR_OK;
     } else {
         return ERR_INVALID_VALUE;
@@ -1470,14 +1478,24 @@ ErrCode RSRenderServiceConnection::GetMemoryGraphics(std::vector<MemoryGraphic>&
     if (!mainThread_ || GetUniRenderEnabled(res) != ERR_OK || !res) {
         return ERR_INVALID_VALUE;
     }
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics]() {
+    
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    std::vector<pid_t> pids;
+    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        auto pid = ExtractPid(node->GetId());
+        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+            pids.emplace_back(pid);
+        }
+    });
+    renderThread_.PostSyncTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics, &pids] {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
+            if (connection == nullptr) {
                 return;
             }
-            return connection->mainThread_->CountMem(memoryGraphics);
-        }).wait();
+            MemoryManager::CountMemory(pids,
+                connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), memoryGraphics);
+        });
     return ERR_OK;
 }
 

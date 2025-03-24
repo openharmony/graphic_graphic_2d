@@ -24,13 +24,13 @@ public:
     DRMParam() = default;
     ~DRMParam() = default;
 
-    bool IsDrmEnable() const;
+    static bool IsDrmEnable();
 
 protected:
-    void SetDrmEnable(bool isEnable);
+    static void SetDrmEnable(bool isEnable);
 
 private:
-    bool isDrmEnable_ = false;
+    inline static bool isDrmEnable_ = false;
 
     friend class DRMParamParse;
 };

@@ -116,7 +116,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
+        MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(config.id)};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
@@ -831,6 +832,46 @@ void RSSurfaceRenderNode::SetGlobalPositionEnabled(bool isEnabled)
 bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
 {
     return isGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderNode::SetDRMGlobalPositionEnabled(bool isEnabled)
+{
+    if (isGlobalPositionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMGlobalPositionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isDRMGlobalPositionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderNode::GetDRMGlobalPositionEnabled() const
+{
+    return isDRMGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderNode::SetDRMCrossNode(bool isDRMCrossNode)
+{
+    if (isDRMCrossNode_ == isDRMCrossNode) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMCrossNode(isDRMCrossNode);
+    AddToPendingSyncList();
+
+    isDRMCrossNode_ = isDRMCrossNode;
+}
+
+bool RSSurfaceRenderNode::IsDRMCrossNode() const
+{
+    return isDRMCrossNode_;
 }
 
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)

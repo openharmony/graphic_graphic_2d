@@ -24,22 +24,22 @@ public:
     MultiScreenParam() = default;
     ~MultiScreenParam() = default;
  
-    bool IsExternalScreenSecure() const;
-    bool IsSlrScaleEnabled() const;
-    bool IsRsReportHwcDead() const;
-    bool IsRsSetScreenPowerStatus() const;
- 
+    static bool IsExternalScreenSecure();
+    static bool IsSlrScaleEnabled();
+    static bool IsRsReportHwcDead();
+    static bool IsRsSetScreenPowerStatus();
+
 protected:
-    void SetExternalScreenSecure(bool isSecure);
-    void SetSlrScaleEnabled(bool isEnabled);
-    void SetRsReportHwcDead(bool isEnabled);
-    void SetRsSetScreenPowerStatus(bool isEnabled);
- 
+    static void SetExternalScreenSecure(bool isSecure);
+    static void SetSlrScaleEnabled(bool isEnabled);
+    static void SetRsReportHwcDead(bool isEnabled);
+    static void SetRsSetScreenPowerStatus(bool isEnabled);
+
 private:
-    bool isExternalScreenSecure_ = false;
-    bool isSlrScaleEnabled_ = false;
-    bool isRsReportHwcDead_ = false;
-    bool isRsSetScreenPowerStatus_ = false;
+    inline static bool isExternalScreenSecure_ = false;
+    inline static bool isSlrScaleEnabled_ = false;
+    inline static bool isRsReportHwcDead_ = false;
+    inline static bool isRsSetScreenPowerStatus_ = true;
  
     friend class MultiScreenParamParse;
 };

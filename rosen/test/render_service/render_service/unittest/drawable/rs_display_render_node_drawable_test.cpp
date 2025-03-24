@@ -555,6 +555,33 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
 }
 
 /**
+ * @tc.name: DRMCreateLayer
+ * @tc.desc: Test DRMCreateLayer
+ * @tc.type: FUNC
+ * @tc.require: #IAX2SN
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DRMCreateLayerTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    ASSERT_NE(processor, nullptr);
+    displayDrawable_->DRMCreateLayer(processor);
+
+    NodeId id = 1;
+    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
+    params->hardwareEnabledDrawables_.push_back(drawableAdapter);
+    ASSERT_TRUE(params->GetHardwareEnabledDrawables().size() != 0);
+
+    displayDrawable_->DRMCreateLayer(processor);
+}
+
+/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC

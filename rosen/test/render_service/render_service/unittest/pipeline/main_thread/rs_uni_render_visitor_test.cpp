@@ -1540,6 +1540,56 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSkipCrossNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetCrossNodesVisitedStatusTest
+ * @tc.desc: Test ResetCrossNodesVisitedStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBV3N4
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCrossNodesVisitedStatusTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config = {};
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto cloneNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneNode, nullptr);
+    node->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = node;
+    node->cloneCrossNodeVec_.push_back(cloneNode);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    pid_t pid1 = ExtractPid(node->GetId());
+    pid_t pid2 = ExtractPid(cloneNode->GetId());
+    nodeMap.renderNodeMap_[pid1][node->GetId()] = node;
+    nodeMap.renderNodeMap_[pid2][cloneNode->GetId()] = cloneNode;
+
+    node->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(cloneNode->HasVisitedCrossNode());
+    rsUniRenderVisitor->hasVisitedCrossNodeIds_.push_back(node->GetId());
+    ASSERT_EQ(rsUniRenderVisitor->hasVisitedCrossNodeIds_.size(), 1);
+    rsUniRenderVisitor->ResetCrossNodesVisitedStatus();
+    ASSERT_EQ(rsUniRenderVisitor->hasVisitedCrossNodeIds_.size(), 0);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
+
+    cloneNode->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(node->HasVisitedCrossNode());
+    rsUniRenderVisitor->hasVisitedCrossNodeIds_.push_back(cloneNode->GetId());
+    ASSERT_EQ(rsUniRenderVisitor->hasVisitedCrossNodeIds_.size(), 1);
+    rsUniRenderVisitor->ResetCrossNodesVisitedStatus();
+    ASSERT_EQ(rsUniRenderVisitor->hasVisitedCrossNodeIds_.size(), 0);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
+    nodeMap.renderNodeMap_.clear();
+}
+
+/**
  * @tc.name: HandleColorGamuts001
  * @tc.desc: HandleColorGamuts for virtual screen
  * @tc.type: FUNC

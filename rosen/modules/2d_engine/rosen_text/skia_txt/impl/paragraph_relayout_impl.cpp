@@ -461,8 +461,7 @@ void ParagraphImpl::ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const P
     }
 }
 
-void ParagraphImpl::TextStyleUpdater(Paragraph& skiaParagraph, skt::Block& skiaBlock, const TextStyle& spTextStyle,
-    skt::InternalState& state)
+void ParagraphImpl::TextStyleUpdater(skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state)
 {
     const std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)>&
         relayoutChangeBitmap = spTextStyle.relayoutChangeBitmap;
@@ -472,7 +471,23 @@ void ParagraphImpl::TextStyleUpdater(Paragraph& skiaParagraph, skt::Block& skiaB
             continue;
         }
 
-        g_textStyleHandlers[i](skiaParagraph, skiaBlock, spTextStyle, state);
+        g_textStyleHandlers[i](*this, skiaBlock, spTextStyle, state);
+    }
+}
+
+void ParagraphImpl::UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
+    skt::InternalState& state, size_t index)
+{
+    if (hmSymbolRun->GetSymbolUid() != symbolStyle.GetSymbolUid()) {
+        return;
+    }
+
+    g_symbolStyleHandlers[index](symbolStyle, hmSymbolRun, state);
+    for (PaintRecord& p : paints_) {
+        if (p.symbol.GetSymbolUid() != hmSymbolRun->GetSymbolUid()) {
+            continue;
+        }
+        p.symbol = hmSymbolRun->GetSymbolTxt();
     }
 }
 
@@ -481,20 +496,13 @@ void ParagraphImpl::SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vect
 {
     const SymbolBitmapType& symbolStyleBitmap = symbolStyle.GetSymbolBitmap();
 
-    size_t preSymbolRunIndex = 0;
     for (size_t i = 0; i < symbolStyleBitmap.size(); ++i) {
         if (!symbolStyleBitmap.test(i)) {
             continue;
         }
 
-        for (size_t j = preSymbolRunIndex; j <= hmSymbolRuns.size(); ++j) {
-            ++preSymbolRunIndex;
-            std::shared_ptr<HMSymbolRun>& hmSymbolRun = hmSymbolRuns[j];
-            if (hmSymbolRun->GetSymbolUid() != symbolStyle.GetSymbolUid()) {
-                continue;
-            }
-            g_symbolStyleHandlers[i](symbolStyle, hmSymbolRun, state);
-            break;
+        for (size_t j = 0; j < hmSymbolRuns.size(); ++j) {
+            UpdateSymbolRun(symbolStyle, hmSymbolRuns[j], state, i);
         }
     }
 }
@@ -518,15 +526,12 @@ void ParagraphImpl::ApplyTextStyleChanges(const std::vector<TextStyle>& textStyl
 
     SkTArray<skt::Block, true>& skiaTextStyles = paragraph_->exportTextStyles();
     skt::InternalState state = paragraph_->getState();
-    // The style to be updated is order-preserving
-    size_t preSkiaStyleIndex = 0;
 
     for (size_t i = 0; i < textStyles.size(); ++i) {
         const TextStyle& spTextStyle = textStyles[i];
         size_t spTextStyleUid = spTextStyle.textStyleUid;
 
-        for (size_t j = preSkiaStyleIndex; j < skiaTextStyles.size(); ++j) {
-            ++preSkiaStyleIndex;
+        for (size_t j = 0; j < skiaTextStyles.size(); ++j) {
             skt::Block& skiaBlock = skiaTextStyles[j];
             size_t skiaTextStyleUid = skiaBlock.fStyle.getTextStyleUid();
             if (skiaTextStyleUid != spTextStyleUid) {
@@ -538,9 +543,8 @@ void ParagraphImpl::ApplyTextStyleChanges(const std::vector<TextStyle>& textStyl
             }
 
             if (spTextStyle.relayoutChangeBitmap.any()) {
-                TextStyleUpdater(*this, skiaBlock, spTextStyle, state);
+                TextStyleUpdater(skiaBlock, spTextStyle, state);
             }
-            break;
         }
     }
     paragraph_->setState(state);
@@ -555,7 +559,6 @@ void ParagraphImpl::Relayout(double width, const ParagraphStyle& paragrahStyle,
     ApplyTextStyleChanges(textStyles);
     paragraph_->layout(width);
 }
-
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

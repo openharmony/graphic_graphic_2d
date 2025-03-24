@@ -710,6 +710,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
     }
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    hgmCore.SetScreenSwitchDssEnable(id, true);
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId ||
         needRetrySetRate_) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
@@ -775,7 +776,7 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
     if (followPipline) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
-            if (vsyncId != refreshRateParam_.vsyncId) {
+            if (vsyncId != refreshRateParam_.vsyncId || !HgmCore::Instance().IsSwitchDssEnable(screenId)) {
                 return;
             }
             // switch hardware vsync
@@ -786,6 +787,9 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
     } else {
         auto outputIter = outputMap_.find(screenId);
         if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+            return;
+        }
+        if (HgmCore::Instance().GetActiveScreenId() != screenId) {
             return;
         }
         ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
@@ -911,18 +915,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
-    bool isDefaultScreen = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
-    }
-    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+
+    static bool isCCMDrmEnabled = DRMParam::IsDrmEnable();
     bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (isDrmEnabled && isDefaultScreen) {
+        if (isDrmEnabled) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;

@@ -33,16 +33,24 @@ public:
     void ApplyLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const LightBlurParameter& param);
 private:
-    Drawing::Rect GetDownSampleRect(int width, int height) const;
+    static bool InitDownSample4xAndMixShader();
+    static bool InitDownSample4xShader();
+    Drawing::RectI GetDownSampleRect(int width, int height) const;
     std::shared_ptr<Drawing::Image> GetDownSampleImage(Drawing::Image& srcImage,
-        Drawing::Surface& surface, Drawing::Rect& src, Drawing::Rect& dst) const;
-    RSColor MixColor(const RSColor& twoFrameBefore, const RSColor& oneFrameBefore, const RSColor& curColor) const;
-    bool GetAverageColorFromImageAndCache(Drawing::Image& image, RSColor& color) const;
-    void UpdateLightBlurResultCache(const RSColor& color);
-    int radius_ {0};
+        Drawing::Surface& surface, Drawing::RectI& src, Drawing::RectI& dst) const;
+    std::shared_ptr<Drawing::Image> GetDownSampleImage4x(const std::shared_ptr<Drawing::Image>& srcImage,
+        Drawing::Canvas& canvas, Drawing::RectI& src, Drawing::RectI& dst) const;
+    std::shared_ptr<Drawing::Image> GetDownSample4xAndMixImage(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image) const;
+    void UpdateLightBlurResultCache(const std::shared_ptr<Drawing::Image>& image);
+    void DrawImageOnCanvas(Drawing::Canvas& canvas, const Drawing::Image& image, const LightBlurParameter& param);
 
+    static std::shared_ptr<Drawing::RuntimeEffect> downSample4xAndMixShader_;
+    static std::shared_ptr<Drawing::RuntimeEffect> downSample4xShader_;
+
+    int radius_ {0};
     // save light blur result, if current is the nth light blur, first is the (n-2) result, second is n-1.
-    std::unique_ptr<std::pair<RSColor, RSColor>> lightBlurResultCache_ {nullptr};
+    std::array<std::shared_ptr<Drawing::Image>, 2> lightBlurResultCache_ = {nullptr, nullptr};
 };
 }
 }
