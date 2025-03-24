@@ -45,34 +45,33 @@ void DirtyRegionParamTest::TearDown() {}
  */
 HWTEST_F(DirtyRegionParamTest, ParamSettingAndGettingTest, Function | SmallTest | Level1)
 {
-    DirtyRegionParam dirtyRegionParam;
-    dirtyRegionParam.SetDirtyRegionEnable(true);
-    ASSERT_TRUE(dirtyRegionParam.IsDirtyRegionEnable());
-    dirtyRegionParam.SetDirtyRegionEnable(false);
-    ASSERT_FALSE(dirtyRegionParam.IsDirtyRegionEnable());
+    DirtyRegionParam::SetDirtyRegionEnable(true);
+    ASSERT_TRUE(DirtyRegionParam::IsDirtyRegionEnable());
+    DirtyRegionParam::SetDirtyRegionEnable(false);
+    ASSERT_FALSE(DirtyRegionParam::IsDirtyRegionEnable());
 
-    dirtyRegionParam.SetExpandScreenDirtyRegionEnable(true);
-    ASSERT_TRUE(dirtyRegionParam.IsExpandScreenDirtyRegionEnable());
-    dirtyRegionParam.SetExpandScreenDirtyRegionEnable(false);
-    ASSERT_FALSE(dirtyRegionParam.IsExpandScreenDirtyRegionEnable());
+    DirtyRegionParam::SetExpandScreenDirtyRegionEnable(true);
+    ASSERT_TRUE(DirtyRegionParam::IsExpandScreenDirtyRegionEnable());
+    DirtyRegionParam::SetExpandScreenDirtyRegionEnable(false);
+    ASSERT_FALSE(DirtyRegionParam::IsExpandScreenDirtyRegionEnable());
 
-    dirtyRegionParam.SetMirrorScreenDirtyRegionEnable(true);
-    ASSERT_TRUE(dirtyRegionParam.IsMirrorScreenDirtyRegionEnable());
-    dirtyRegionParam.SetMirrorScreenDirtyRegionEnable(false);
-    ASSERT_FALSE(dirtyRegionParam.IsMirrorScreenDirtyRegionEnable());
+    DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(true);
+    ASSERT_TRUE(DirtyRegionParam::IsMirrorScreenDirtyRegionEnable());
+    DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(false);
+    ASSERT_FALSE(DirtyRegionParam::IsMirrorScreenDirtyRegionEnable());
 
-    dirtyRegionParam.SetAdvancedDirtyRegionEnable(true);
-    ASSERT_TRUE(dirtyRegionParam.IsAdvancedDirtyRegionEnable());
-    dirtyRegionParam.SetAdvancedDirtyRegionEnable(false);
-    ASSERT_FALSE(dirtyRegionParam.IsAdvancedDirtyRegionEnable());
+    DirtyRegionParam::SetAdvancedDirtyRegionEnable(true);
+    ASSERT_TRUE(DirtyRegionParam::IsAdvancedDirtyRegionEnable());
+    DirtyRegionParam::SetAdvancedDirtyRegionEnable(false);
+    ASSERT_FALSE(DirtyRegionParam::IsAdvancedDirtyRegionEnable());
 
-    dirtyRegionParam.SetTileBasedAlignEnable(true);
-    ASSERT_TRUE(dirtyRegionParam.IsTileBasedAlignEnable());
-    dirtyRegionParam.SetTileBasedAlignEnable(false);
-    ASSERT_FALSE(dirtyRegionParam.IsTileBasedAlignEnable());
+    DirtyRegionParam::SetTileBasedAlignEnable(true);
+    ASSERT_TRUE(DirtyRegionParam::IsTileBasedAlignEnable());
+    DirtyRegionParam::SetTileBasedAlignEnable(false);
+    ASSERT_FALSE(DirtyRegionParam::IsTileBasedAlignEnable());
 
-    dirtyRegionParam.SetTileBasedAlignBits(DEFAULT_ALIGN_BITS);
-    ASSERT_EQ(dirtyRegionParam.GetTileBasedAlignBits(), DEFAULT_ALIGN_BITS);
+    DirtyRegionParam::SetTileBasedAlignBits(DEFAULT_ALIGN_BITS);
+    ASSERT_EQ(DirtyRegionParam::GetTileBasedAlignBits(), DEFAULT_ALIGN_BITS);
 }
 } // namespace Rosen
 } // namespace OHOS

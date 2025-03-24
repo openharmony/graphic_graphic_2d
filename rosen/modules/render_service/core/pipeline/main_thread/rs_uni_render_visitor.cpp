@@ -174,12 +174,10 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
 {
-    if (auto dirtyRegionParam = std::static_pointer_cast<DirtyRegionParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam("DirtyRegionConfig"))) {
-        isPartialRenderEnabled_ = dirtyRegionParam->IsDirtyRegionEnable();
-        isAdvancedDirtyRegionEnabled_ = dirtyRegionParam->IsAdvancedDirtyRegionEnable();
-        isDirtyAlignEnabled_ = dirtyRegionParam->IsTileBasedAlignEnable();
-    }
+    isPartialRenderEnabled_ = DirtyRegionParam::IsDirtyRegionEnable();
+    isAdvancedDirtyRegionEnabled_ = DirtyRegionParam::IsAdvancedDirtyRegionEnable();
+    isDirtyAlignEnabled_ = DirtyRegionParam::IsTileBasedAlignEnable();
+
     if (RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() == StencilPixelOcclusionCullingType::DEFAULT) {
         if (auto spocParam = std::static_pointer_cast<StencilPixelOcclusionCullingParam>(
             GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig"))) {

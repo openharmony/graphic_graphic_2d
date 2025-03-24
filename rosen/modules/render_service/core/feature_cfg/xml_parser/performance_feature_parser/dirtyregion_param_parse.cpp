@@ -34,7 +34,7 @@ int32_t DirtyRegionParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
             continue;
         }
 
-        if (ParseDirtyRegionInternal(featureMap, *curNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseDirtyRegionInternal(*curNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("DirtyRegionParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -43,16 +43,8 @@ int32_t DirtyRegionParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(xmlNode &node)
 {
-    auto iter = featureMap.find(FEATURE_CONFIGS[DIRTYREGION]);
-    if (iter != featureMap.end()) {
-        dirtyRegionParam_ = std::static_pointer_cast<DirtyRegionParam>(iter->second);
-    } else {
-        RS_LOGE("DirtyRegionParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);
     auto name = ExtractPropertyValue("name", node);
@@ -60,17 +52,17 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &fea
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "DirtyRegionEnabled") {
-            dirtyRegionParam_->SetDirtyRegionEnable(isEnabled);
+            DirtyRegionParam::SetDirtyRegionEnable(isEnabled);
         } else if (name == "ExpandScreenDirtyRegionEnabled") {
-            dirtyRegionParam_->SetExpandScreenDirtyRegionEnable(isEnabled);
+            DirtyRegionParam::SetExpandScreenDirtyRegionEnable(isEnabled);
         } else if (name == "ExpandScreenDirtyRegionEnabled") {
-            dirtyRegionParam_->SetExpandScreenDirtyRegionEnable(isEnabled);
+            DirtyRegionParam::SetExpandScreenDirtyRegionEnable(isEnabled);
         } else if (name == "MirrorScreenDirtyRegionEnabled") {
-            dirtyRegionParam_->SetMirrorScreenDirtyRegionEnable(isEnabled);
+            DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(isEnabled);
         } else if (name == "AdvancedDirtyRegionEnabled") {
-            dirtyRegionParam_->SetAdvancedDirtyRegionEnable(isEnabled);
+            DirtyRegionParam::SetAdvancedDirtyRegionEnable(isEnabled);
         } else if (name == "TileBasedAlignEnabled") {
-            dirtyRegionParam_->SetTileBasedAlignEnable(isEnabled);
+            DirtyRegionParam::SetTileBasedAlignEnable(isEnabled);
         } else {
             return PARSE_ERROR;
         }
@@ -80,14 +72,14 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(FeatureParamMapType &fea
             int num;
             std::istringstream iss(val);
             if (iss >> num) {
-                dirtyRegionParam_->SetTileBasedAlignBits(num);
+                DirtyRegionParam::SetTileBasedAlignBits(num);
                 RS_LOGI("DirtyRegionParamParse parse SetTileBasedAlignBits %{public}d", num);
             } else {
-                dirtyRegionParam_->SetTileBasedAlignEnable(false);
+                DirtyRegionParam::SetTileBasedAlignEnable(false);
                 return PARSE_ERROR;
             }
         } else {
-            dirtyRegionParam_->SetTileBasedAlignEnable(false);
+            DirtyRegionParam::SetTileBasedAlignEnable(false);
             return PARSE_ERROR;
         }
     } else {
