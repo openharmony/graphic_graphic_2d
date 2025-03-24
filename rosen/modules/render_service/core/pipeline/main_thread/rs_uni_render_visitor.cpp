@@ -4220,7 +4220,7 @@ void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)
         return;
     }
     if (node.GetAncoFlags() == static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
-        // Dirty Region use abstract coordinate, ptoperty of node use relative coordinate
+        // Dirty Region use abstract coordinate, property of node use relative coordinate
         // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry
         if (property.GetClipToBounds()) {
             prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
