@@ -7743,4 +7743,20 @@ HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
     rsNode->MarkUifirstNode(false);
     EXPECT_TRUE(!rsNode->isUifirstNode_);
 }
+
+/**
+ * @tc.name: SetUIFirstSwitch
+ * @tc.desc: test results of SetUIFirstSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIBVGNY
+ */
+HWTEST_F(RSNodeTest, SetUIFirstSwitch, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetUIFirstSwitch(RSUIFirstSwitch::NONE);
+    EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::NONE);
+
+    rsNode->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+    EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+}
 } // namespace OHOS::Rosen
