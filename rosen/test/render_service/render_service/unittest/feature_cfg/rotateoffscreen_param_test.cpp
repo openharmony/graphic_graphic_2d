@@ -44,10 +44,9 @@ void RotateOffScreenParamTest::TearDown() {}
  */
 HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenDisplayNodeEnable, Function | SmallTest | Level1)
 {
-    RotateOffScreenParam rotateOffScreenParam;
-    rotateOffScreenParam.SetRotateOffScreenDisplayNodeEnable (true);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable (true);
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), true);
-    rotateOffScreenParam.SetRotateOffScreenDisplayNodeEnable(false);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(false);
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), false);
 }
 } // namespace Rosen
