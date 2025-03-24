@@ -2928,9 +2928,9 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     return filterCompose;
 }
 
-bool RSProperties::NeedLightBlur()
+bool RSProperties::NeedLightBlur(bool disableSystemAdaptation)
 {
-    return blurAdaptiveAdjustEnabled_ && !bgBlurDisableSystemAdaptation &&
+    return blurAdaptiveAdjustEnabled_ && !disableSystemAdaptation &&
         (NeedBlurFuzed() || RSSystemProperties::GetKawaseEnabled());
 }
 
@@ -2946,7 +2946,7 @@ std::shared_ptr<RSFilter> RSProperties::GenerateLightBlurFilter(float radius)
     if (originalFilter == nullptr) {
         originalFilter = std::make_shared<RSDrawingFilter>(lightBlurShaderFilter);
     } else {
-        originalFilter->Compose(lightBlurShaderFilter);
+        originalFilter = originalFilter->Compose(lightBlurShaderFilter);
     }
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(radius));
     originalFilter->SetFilterType(RSFilter::BLUR);
@@ -2968,7 +2968,7 @@ std::shared_ptr<RSFilter> RSProperties::GenerateMaterialLightBlurFilter(
     if (originalFilter == nullptr) {
         originalFilter = std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
     } else {
-        originalFilter->Compose(colorImageFilter, hash);
+        originalFilter = originalFilter->Compose(colorImageFilter, hash);
     }
 
     std::shared_ptr<RSLightBlurShaderFilter> lightBlurFilter = std::make_shared<RSLightBlurShaderFilter>(radius);
@@ -2992,7 +2992,7 @@ void RSProperties::GenerateBackgroundBlurFilter()
     uint32_t hash = SkOpts::hash(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
-    if (NeedLightBlur()) {
+    if (NeedLightBlur(bgBlurDisableSystemAdaptation)) {
         backgroundFilter_ = GenerateLightBlurFilter(backgroundBlurRadiusX_);
         return;
     }
@@ -3054,7 +3054,7 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
-    if (NeedLightBlur()) {
+    if (NeedLightBlur(bgBlurDisableSystemAdaptation)) {
         backgroundFilter_ = GenerateMaterialLightBlurFilter(colorFilter, hash, backgroundBlurRadius_,
             backgroundColorMode_, backgroundMaskColor_);
         return;
@@ -3099,7 +3099,7 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
 
 void RSProperties::GenerateForegroundBlurFilter()
 {
-    if (NeedLightBlur()) {
+    if (NeedLightBlur(fgBlurDisableSystemAdaptation)) {
         filter_ = GenerateLightBlurFilter(foregroundBlurRadiusX_);
         return;
     }
@@ -3158,7 +3158,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         foregroundBlurSaturation_, foregroundBlurBrightness_);
-    if (NeedLightBlur()) {
+    if (NeedLightBlur(fgBlurDisableSystemAdaptation)) {
         filter_ = GenerateMaterialLightBlurFilter(colorFilter, hash, foregroundBlurRadius_,
             foregroundColorMode_, foregroundMaskColor_);
         return;
