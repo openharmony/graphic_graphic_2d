@@ -4021,14 +4021,12 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
     // Debug dirtyregion of show current refreshRation
     if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
         RectI tempRect = {100, 100, 500, 200};   // setDirtyRegion for RealtimeRefreshRate
-        if (curDisplayNode_->GetWindowContainer()) {
-            for (auto surface : surfaces) {
-                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-                if (surfaceNode != nullptr &&
-                    surfaceNode->GetName().find(RELIABLE_ONE_HAND_MODE_BACK_SURFACE_NAME) != std::string::npos) {
-                    curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
-                    return;
-                }
+        auto windowContainer = curDisplayNode_->GetWindowContainer();
+        if (windowContainer) {
+            if (!ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleX(), 1.0f, EPSILON_SCALE) ||
+                !ROSEN_EQ(windowContainer->GetRenderProperties().GetScaleY(), 1.0f, EPSILON_SCALE)) {
+                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
+                return;
             }
         }
         bool surfaceNodeSet = false;
