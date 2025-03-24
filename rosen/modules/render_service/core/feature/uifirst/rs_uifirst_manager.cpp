@@ -377,7 +377,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
-        RSMainThread::Instance()->IsUIFirstOn();
+        GetUiFirstSwitch();
     bool changeColorSpace = drawable->GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         if (isScRGBEnable && changeColorSpace) {
@@ -1656,19 +1656,11 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
 
 void RSUifirstManager::ReadUIFirstCcmParam()
 {
-    auto uifirstFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("UIFirstConfig");
-    std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
-    isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
-    isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
-    SetUiFirstType(uifirstParam->GetUIFirstType());
-    auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
-    if (param) {
-        isUiFirstOn_ = param->IsUIFirstEnable();
-        isCardUiFirstOn_ = param->IsCardUIFirstEnable();
-        SetUiFirstType(param->GetUIFirstType());
-        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-            " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
-    }
+    isUiFirstOn_ = UIFirstParam::IsUIFirstEnable();
+    isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
+    SetUiFirstType(UIFirstParam::GetUIFirstType());
+    RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
+        " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -1683,6 +1675,27 @@ void RSUifirstManager::SetUiFirstType(int type)
     } else if (type == (int)UiFirstCcmType::HYBRID) {
         uifirstType_ = UiFirstCcmType::HYBRID;
     }
+}
+
+void RSUifirstManager::RefreshUIFirstParam()
+{
+#ifdef RS_ENABLE_GPU
+    RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
+    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext()
+        .GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    auto firstChildren = rootNode->GetFirstChild();
+    if (!firstChildren) {
+        return;
+    }
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
+    if (!displayNode) {
+        return;
+    }
+    isUiFirstSupportFlag_ = true;
+#endif
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

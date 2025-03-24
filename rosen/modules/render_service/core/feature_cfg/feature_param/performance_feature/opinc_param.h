@@ -24,16 +24,16 @@ public:
     OPIncParam() = default;
     ~OPIncParam() = default;
 
-    bool IsOPIncEnable() const;
-    int GetCacheWidthThresholdPercentValue() const;
+    static bool IsOPIncEnable();
+    static int GetCacheWidthThresholdPercentValue();
 
 protected:
-    void SetOPIncEnable(bool isEnable);
-    void SetCacheWidthThresholdPercentValue(int cacheWidthThresholdPercentValue);
+    static void SetOPIncEnable(bool isEnable);
+    static void SetCacheWidthThresholdPercentValue(int cacheWidthThresholdPercentValue);
 
 private:
-    int isOPIncEnable_ = true;
-    int cacheWidthThresholdPercentValue_ = 150;
+    inline static int isOPIncEnable_ = true;
+    inline static int cacheWidthThresholdPercentValue_ = 150;
 
     friend class OPIncParamParse;
 };

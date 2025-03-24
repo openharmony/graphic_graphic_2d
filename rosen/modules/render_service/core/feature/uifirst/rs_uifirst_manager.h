@@ -84,12 +84,7 @@ public:
 
     bool GetUiFirstSwitch() const
     {
-        return isUiFirstOn_;
-    }
-
-    void SetUiFirstSwitch(bool uiFirstSwitch)
-    {
-        isUiFirstOn_ = uiFirstSwitch;
+        return isUiFirstOn_ && isUiFirstSupportFlag_;
     }
 
     void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
@@ -165,6 +160,7 @@ public:
     }
     UiFirstModeType GetUiFirstMode();
     void ReadUIFirstCcmParam();
+    void RefreshUIFirstParam();
     // only use in mainThread & RT onsync
     inline void UifirstCurStateClear()
     {
@@ -233,6 +229,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
+    bool isUiFirstSupportFlag_ = false;
     bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;

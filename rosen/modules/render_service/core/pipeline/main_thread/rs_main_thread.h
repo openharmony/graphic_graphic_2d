@@ -115,7 +115,6 @@ public:
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
-    bool IsUIFirstOn() const;
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
@@ -490,7 +489,6 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
-    void UpdateUIFirstSwitch();
     // ROG: Resolution Online Government
     void UpdateRogSizeIfNeeded();
     void UpdateDisplayNodeScreenId();
@@ -612,7 +610,6 @@ private:
     bool hasProtectedLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
-    bool isUiFirstOn_ = false;
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool forceUpdateUniRenderFlag_ = false;
     bool idleTimerExpiredFlag_ = false;

@@ -25,20 +25,11 @@ RSOpincManager& RSOpincManager::Instance()
     return instance;
 }
 
-bool RSOpincManager::ReadOPIncCcmParam()
+void RSOpincManager::ReadOPIncCcmParam()
 {
-    bool res = false;
-    auto opincFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("OPIncConfig");
-    std::shared_ptr<OPIncParam> opincParam = std::make_shared<OPIncParam>();
-    isOPIncOn_ = opincParam->IsOPIncEnable();
-    auto param = std::static_pointer_cast<OPIncParam>(opincFeature);
-    if (param) {
-        isOPIncOn_ = param->IsOPIncEnable();
-        res = true;
-        RS_LOGI("RSOpincManager::ReadOPIncCcmParam isOPIncOn_=%{public}d", isOPIncOn_);
-    }
+    isOPIncOn_ = OPIncParam::IsOPIncEnable();
+    RS_LOGI("RSOpincManager::ReadOPIncCcmParam isOPIncOn_=%{public}d", isOPIncOn_);
     DrawableV2::RSRenderNodeDrawable::SetAutoCacheEnable(isOPIncOn_);
-    return res;
 }
 }
 }

@@ -19,7 +19,7 @@
 
 namespace OHOS::Rosen {
 
-bool UIFirstParam::IsUIFirstEnable() const
+bool UIFirstParam::IsUIFirstEnable()
 {
     return isUIFirstEnable_;
 }
@@ -29,7 +29,7 @@ void UIFirstParam::SetUIFirstEnable(bool isEnable)
     isUIFirstEnable_ = isEnable;
 }
 
-bool UIFirstParam::IsCardUIFirstEnable() const
+bool UIFirstParam::IsCardUIFirstEnable()
 {
     return isCardUIFirstEnable_;
 }
@@ -39,7 +39,7 @@ void UIFirstParam::SetCardUIFirstEnable(bool isCardUIFirstEnable)
     isCardUIFirstEnable_ = isCardUIFirstEnable;
 }
 
-bool UIFirstParam::IsCacheOptimizeRotateEnable() const
+bool UIFirstParam::IsCacheOptimizeRotateEnable()
 {
     return isCacheOptimizeRotateEnable_;
 }
@@ -49,7 +49,7 @@ void UIFirstParam::SetCacheOptimizeRotateEnable(bool isCacheOptimizeRotateEnable
     isCacheOptimizeRotateEnable_ = isCacheOptimizeRotateEnable;
 }
 
-bool UIFirstParam::IsFreeMultiWindowEnable() const
+bool UIFirstParam::IsFreeMultiWindowEnable()
 {
     return isFreeMultiWindowEnable_;
 }
@@ -59,7 +59,7 @@ void UIFirstParam::SetFreeMultiWindowEnable(bool isFreeMultiWindowEnable)
     isFreeMultiWindowEnable_ = isFreeMultiWindowEnable;
 }
 
-int UIFirstParam::GetUIFirstEnableWindowThreshold() const
+int UIFirstParam::GetUIFirstEnableWindowThreshold()
 {
     return uiFirstEnableWindowThreshold_;
 }
@@ -69,7 +69,7 @@ void UIFirstParam::SetUIFirstEnableWindowThreshold(int uiFirstEnableWindowThresh
     uiFirstEnableWindowThreshold_ = uiFirstEnableWindowThreshold;
 }
 
-int UIFirstParam::GetUIFirstType() const
+int UIFirstParam::GetUIFirstType()
 {
     return uiFirstType_;
 }

@@ -18,6 +18,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -822,7 +823,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     pid_t threadId = gettid();
     bool isHdrOn = false; // todo: temporary set false, fix in future
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
-        RSMainThread::Instance()->IsUIFirstOn();
+        RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
