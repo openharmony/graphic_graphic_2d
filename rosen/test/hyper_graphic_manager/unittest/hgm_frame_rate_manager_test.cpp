@@ -919,8 +919,8 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
 
-    auto time1 = mgr.touchManager_.upTimeoutTimer.interval_.load();
-    auto time2 = mgr.touchManager_.rsIdleTimeoutTimer.interval_.load();
+    auto time1 = mgr.touchManager_.upTimeoutTimer_.interval_.load();
+    auto time2 = mgr.touchManager_.rsIdleTimeoutTimer_.interval_.load();
     ASSERT_EQ(time1, std::chrono::milliseconds(3000));
     ASSERT_EQ(time2, std::chrono::milliseconds(600));
 
@@ -930,8 +930,8 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
     configData->timeoutStrategyConfig_["rs_idle_timeout_ms"] = rsIdleTimeoutMs;
 
     mgr.SetTimeoutParamsFromConfig(configData);
-    auto time3 = mgr.touchManager_.upTimeoutTimer.interval_.load();
-    auto time4 = mgr.touchManager_.rsIdleTimeoutTimer.interval_.load();
+    auto time3 = mgr.touchManager_.upTimeoutTimer_.interval_.load();
+    auto time4 = mgr.touchManager_.rsIdleTimeoutTimer_.interval_.load();
     ASSERT_EQ(time3, std::chrono::milliseconds(upTimeoutMs));
     ASSERT_EQ(time4, std::chrono::milliseconds(rsIdleTimeoutMs));
 }
