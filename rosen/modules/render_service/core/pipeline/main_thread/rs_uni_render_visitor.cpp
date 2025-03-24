@@ -798,7 +798,9 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     RSUifirstManager::Instance().SetRotationChanged(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
+        rsDisplayNodeChildNum = 0;
         QuickPrepareChildren(node);
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareDisplayRenderNode nodeNumber: %d", rsDisplayNodeChildNum);
         TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
@@ -1596,6 +1598,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             if (!child) {
                 return;
             }
+            rsDisplayNodeChildNum++;
             auto containerDirty = curContainerDirty_;
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
@@ -1612,6 +1615,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             if (!child) {
                 return;
             }
+            rsDisplayNodeChildNum++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
             child->zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
