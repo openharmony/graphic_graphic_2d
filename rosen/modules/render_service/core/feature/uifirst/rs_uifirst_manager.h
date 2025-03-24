@@ -132,6 +132,16 @@ public:
         return isRecentTaskScene_.load();
     }
 
+    bool IsMissionCenterScene() const
+    {
+        return isMissionCenterScene_.load();
+    }
+
+    bool IsSplitScreenScene() const
+    {
+        return isSplitScreenScene_.load();
+    }
+
     void AddCapturedNodes(NodeId id);
 
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
@@ -241,6 +251,8 @@ private:
     std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
+    std::atomic<bool> isMissionCenterScene_ = false;
+    std::atomic<bool> isSplitScreenScene_ = false;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     int32_t scbPid_ = 0;
