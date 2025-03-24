@@ -197,12 +197,12 @@ HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
     hblob = hb_blob_create(
             reinterpret_cast<const char *>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
     ASSERT_NE(hblob, nullptr);
-    const char* data_ = nullptr;
-    unsigned int length_ = 0;
-    data_ = hb_blob_get_data(hblob, nullptr);
-    length_ = hb_blob_get_length(hblob);
-    auto parseName = std::make_shared<NameTableParser>(data_, length_);
-    auto nameTable = parseName->Parse(data_, length_);
+    const char* data = nullptr;
+    unsigned int length = 0;
+    data = hb_blob_get_data(hblob, nullptr);
+    length = hb_blob_get_length(hblob);
+    auto parseName = std::make_shared<NameTableParser>(data, length);
+    auto nameTable = parseName->Parse(data, length);
     parseName->Dump();
     hb_blob_destroy(hblob);
     EXPECT_NE(nameTable, nullptr);
