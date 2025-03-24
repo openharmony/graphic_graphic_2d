@@ -774,11 +774,15 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Scaling mode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Parameters creation completed");
     return params;
 }
 
@@ -830,6 +834,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
+        " Parameters creation completed");
     return params;
 }
 
@@ -875,6 +881,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
         static_cast<float>(dstRect.w), static_cast<float>(dstRect.h) };
     DealWithRotationAndGravityForRotationFixed(transform, renderParams.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(DrawableV2::RSSurfaceRenderNodeDrawable):"
+        " Parameters creation completed");
     return params;
 }
 
@@ -922,6 +931,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     params.acquireFence = surfaceHandler->GetAcquireFence();
     SetSrcRect(params, buffer);
     params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSDisplayRenderNode): Parameters creation completed");
     return params;
 }
 
@@ -942,6 +953,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     bufferDrawParam.acquireFence = surfaceHandler.GetAcquireFence();
     SetSrcRect(bufferDrawParam, buffer);
     bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceHandler): Parameters creation completed");
     return bufferDrawParam;
 }
 
@@ -1017,6 +1030,9 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
+
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
     return params;
 }
 
