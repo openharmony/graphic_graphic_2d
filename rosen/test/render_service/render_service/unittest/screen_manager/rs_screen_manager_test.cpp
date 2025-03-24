@@ -1870,39 +1870,6 @@ HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenStatus_001
- * @tc.desc: Test SetVirtualScreenStatus, input invalid id, expect false.
- * @tc.type: FUNC
- * @tc.require: issueIAINL7
- */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_001, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-
-    ScreenId screenId = INVALID_SCREEN_ID;
-    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
-}
-
-/*
- * @tc.name: SetVirtualScreenStatus_002
- * @tc.desc: Test SetVirtualScreenStatus, input screens_ with nullptr, expect false.
- * @tc.type: FUNC
- * @tc.require: issueIAINL7
- */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_002, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-
-    ScreenId screenId = SCREEN_ID;
-    screenManagerImpl.screens_[screenId] = nullptr;
-    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
-}
-
-/*
  * @tc.name: GetCanvasRotation_001
  * @tc.desc: Test GetCanvasRotation, input invalid id, expect false.
  * @tc.type: FUNC
@@ -2936,20 +2903,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenStatus
- * @tc.desc: Test SetVirtualScreenStatus
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus, TestSize.Level1)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    auto res = screenManager->SetVirtualScreenStatus(SCREEN_ID, VIRTUAL_SCREEN_PLAY);
-    ASSERT_EQ(res, false);
-}
-
-/*
  * @tc.name: GetVirtualScreenStatus
  * @tc.desc: Test GetVirtualScreenStatus
  * @tc.type: FUNC
@@ -3162,12 +3115,12 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenStatus001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenStatus003
- * @tc.desc: Test SetVirtualScreenStatus003
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
  * @tc.type: FUNC
  * @tc.require: issueIBIQ0Q
  */
-HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus003, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus, TestSize.Level1)
 {
     sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
         sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
