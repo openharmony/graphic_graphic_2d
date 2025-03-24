@@ -460,7 +460,7 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
         RS_LOGE("RSRenderService::CreateNodeAndSurface CreateNode fail");
         return ERR_INVALID_VALUE;
     }
-    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name + config.id);
     if (surface == nullptr) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface get consumer surface fail");
         return ERR_INVALID_VALUE;
