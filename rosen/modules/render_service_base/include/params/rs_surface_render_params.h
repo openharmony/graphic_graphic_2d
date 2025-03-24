@@ -531,6 +531,20 @@ public:
         return sdrNit_;
     }
 
+    void SetColorFollow(bool colorFollow)
+    {
+        if (colorFollow_ == colorFollow) {
+            return;
+        }
+        colorFollow_ = colorFollow;
+        needSync_ = true;
+    }
+
+    bool GetColorFollow() const
+    {
+        return colorFollow_;
+    }
+
     void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
@@ -779,6 +793,8 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    bool colorFollow_ = false;
+
     // color temperature
     std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
     bool hasMetadata_ = false; // SDR with metadata
