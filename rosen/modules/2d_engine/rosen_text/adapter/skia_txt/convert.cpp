@@ -95,6 +95,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
         .relayoutChangeBitmap = style.relayoutChangeBitmap,
         .defaultTextStyleUid = style.defaultTextStyleUid,
+        .halfLeading = style.halfLeading,
     };
 }
 
