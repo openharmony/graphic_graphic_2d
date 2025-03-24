@@ -3576,7 +3576,9 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
     if (!node) {
         return;
     }
-    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 &&
+    auto filterNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(filterNodeId);
+    bool isBackground = filterNode->GetRenderProperties().GetBackgroundFilter() != nullptr;
+    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 && isBackground &&
         node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
         return;
     }
