@@ -195,7 +195,8 @@ HWTEST_F(UtilTest, UtilTest_006, TestSize.Level1)
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
     parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
-    EXPECT_EQ(true, parseResult);
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(isFileExist ? true : false, parseResult);
 }
 
 /**
@@ -215,7 +216,8 @@ HWTEST_F(UtilTest, UtilTest_007, TestSize.Level1)
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
     content = OHOS::ReadFile(filePath);
-    EXPECT_NE(0, content.length());
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(content.empty(), isFileExist ? false : true);
 }
 
 /**
