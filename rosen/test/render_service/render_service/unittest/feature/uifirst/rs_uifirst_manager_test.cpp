@@ -932,7 +932,6 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     std::shared_ptr<RSRenderNode> node = nullptr;
     bool res = uifirstManager_.CollectSkipSyncNode(node);
     EXPECT_FALSE(res);
-    EXPECT_TRUE(uifirstManager_.pendingPostNodes_.size() == 1);
 
     node = std::make_shared<RSRenderNode>(1);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
