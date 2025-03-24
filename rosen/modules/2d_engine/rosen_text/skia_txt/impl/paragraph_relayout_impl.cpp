@@ -126,11 +126,11 @@ namespace {
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle =  paragraph.getParagraphStyle().exportTextStyle();
-            skiaTextStyle.setHalfLeading(style.spTextStyle.halfLeading);
+            skiaTextStyle.setHalfLeading(style.halfLeading);
 
             SkTArray<skt::Block, true>& textStyles = paragraph.exportTextStyles();
             if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
-                textStyles.front().fStyle.setHalfLeading(style.spTextStyle.halfLeading);
+                textStyles.front().fStyle.setHalfLeading(style.halfLeading);
                 state = std::min(skt::InternalState::kIndexed, state);
             }
         },
@@ -301,7 +301,7 @@ namespace {
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             RSFontStyle skiaFontStyle = skiaTextStyle.getFontStyle();
-            skiaTextStyle.setFontStyle(RSFontStyle(skiaFontStyle.GetWeight(), skiaFontStyle.GetSlant(),
+            skiaTextStyle.setFontStyle(RSFontStyle(skiaFontStyle.GetWeight(), skiaFontStyle.GetWidth(),
                 TextFontUtils::GetSkiaFontSlant(spTextStyle.fontStyle)));
             state = std::min(skt::InternalState::kIndexed, state);
         },

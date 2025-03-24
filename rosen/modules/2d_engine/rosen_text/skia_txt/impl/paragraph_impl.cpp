@@ -333,6 +333,8 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     }
 
     txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
+    txt.fontWidth = static_cast<FontWidth>(skStyle.getFontStyle().GetWidth());
+    txt.styleId = skStyle.getStyleId();
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
