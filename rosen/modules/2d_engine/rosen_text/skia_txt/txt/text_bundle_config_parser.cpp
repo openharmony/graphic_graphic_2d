@@ -118,7 +118,7 @@ void TextBundleConfigParser::InitBundleInfo()
 #else
     InitTextBundleFailed();
 #endif
-    skia::textlayout::SkTextBundleConfigParser::GetInstance().SetTargetVersion(bundleApiVersion_);
+    skia::textlayout::SkTextBundleConfigParser::SetTargetVersion(bundleApiVersion_);
 }
 } // namespace SPText
 } // namespace Rosen
