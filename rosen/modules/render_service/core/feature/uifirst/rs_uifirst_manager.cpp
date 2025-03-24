@@ -1171,10 +1171,32 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
 {
     RS_TRACE_NAME_FMT("RSUifirstManager::OnProcessAnimateScene systemAnimatedScene:%d", systemAnimatedScene);
-    if ((systemAnimatedScene == SystemAnimatedScenes::ENTER_RECENTS) && !isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = true;
-    } else if ((systemAnimatedScene == SystemAnimatedScenes::EXIT_RECENTS) && isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = false;
+    RS_LOGI("RSUifirstManager::OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
+    switch (systemAnimatedScene) {
+        // recent task scene for phone
+        case SystemAnimatedScenes::ENTER_RECENTS:
+            isRecentTaskScene_.store(true);
+            break;
+        case SystemAnimatedScenes::EXIT_RECENTS:
+            isRecentTaskScene_.store(false);
+            break;
+        // enter and exit mission center are two independent animations, the same goes for enter and exit split screen
+        // enter and exit mission center or enter and exit split screen animation starts for PC
+        case SystemAnimatedScenes::ENTER_MISSION_CENTER:
+        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
+            isMissionCenterScene_.store(true);
+            break;
+        case SystemAnimatedScenes::ENTER_SPLIT_SCREEN:
+        case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
+            isSplitScreenScene_.store(true);
+            break;
+        // enter and exit mission center or enter and exit split screen animation ends for PC
+        case SystemAnimatedScenes::OTHERS:
+            isMissionCenterScene_.store(false);
+            isSplitScreenScene_.store(false);
+            break;
+        default:
+            break;
     }
 }
 
@@ -1344,6 +1366,12 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        return false;
+    }
+    // disable uifirst when leash window has no app window at recent task scene or split screen scene
+    if (node.IsLeashWindow() && node.IsScale() && !LeashWindowContainMainWindow(node) &&
+        (RSUifirstManager::Instance().IsMissionCenterScene() || RSUifirstManager::Instance().IsSplitScreenScene())) {
+        RS_TRACE_NAME("leash window has no app window, disable uifirst");
         return false;
     }
     return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
