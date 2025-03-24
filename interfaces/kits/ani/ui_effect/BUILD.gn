@@ -15,24 +15,24 @@ import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-group("ani_color_space_manager") {
-  deps = [
-    ":color_space_manager_etc",
-    ":colorspacemanager_ani",
-  ]
-}
-
-config("color_manager_ani_config") {
+config("graphic_ani_ui_effect_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/color_manager",
-    "$graphic_2d_root/interfaces/kits/ani/color_manager/src/color_space_object_convertor",
-    "$graphic_2d_root/utils/color_manager/export",
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-Wno-unused-but-set-variable",
   ]
+
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
 }
 
-ohos_shared_library("colorspacemanager_ani") {
+ohos_shared_library("uiEffect_ani") {
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -42,23 +42,26 @@ ohos_shared_library("colorspacemanager_ani") {
     debug = false
   }
 
-  include_dirs = []
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core/ui_effect",
+    "$graphic_2d_root/utils/log",
+  ]
 
   public_configs = []
 
-  configs = [
-    ":color_manager_ani_config",
-    "$graphic_2d_root/utils/color_manager:color_manager_public_config",
-  ]
+  configs = [ ":graphic_ani_ui_effect_config" ]
 
-  sources = [
-    "./src/ani_color_space_manager.cpp",
-    "./src/ani_color_space_manager_module.cpp",
-  ]
+  sources = [ "./src/ani_uieffect.cpp" ]
 
-  deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
@@ -69,17 +72,16 @@ ohos_shared_library("colorspacemanager_ani") {
   output_extension = "so"
 }
 
-generate_static_abc("color_space_manager") {
+generate_static_abc("uiEffect") {
   base_url = "./ets"
-  files = [ "./ets/@ohos.graphics.colorSpaceManager.ets" ]
+  files = [ "./ets/@ohos.graphics.uiEffect.ets" ]
   is_boot_abc = "True"
-  device_dst_file = "/system/framework/color_space_manager.abc"
+  device_dst_file = "/system/framework/uiEffect.abc"
 }
-
-ohos_prebuilt_etc("color_space_manager_etc") {
-  source = "$target_out_dir/color_space_manager.abc"
+ohos_prebuilt_etc("uiEffect_etc") {
+  source = "$target_out_dir/uiEffect.abc"
   module_install_dir = "framework"
-  subsystem_name = "graphic"
   part_name = "graphic_2d"
-  deps = [ ":color_space_manager" ]
+  subsystem_name = "graphic"
+  deps = [ ":uiEffect" ]
 }

@@ -19,5 +19,7 @@ group("ani_packages") {
     "effect_kit:effectKit_ani",
     "effect_kit:effectKit_etc",
     "hdr_capability:ani_hdr_capability",
+    "ui_effect:uiEffect_ani",
+    "ui_effect:uiEffect_etc",
   ]
 }
