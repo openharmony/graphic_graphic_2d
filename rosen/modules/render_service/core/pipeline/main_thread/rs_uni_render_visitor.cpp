@@ -145,6 +145,8 @@ std::string VisibleDataToString(const VisibleData& val)
 }
 } // namespace
 
+bool RSUniRenderVisitor::isLastFrameRotating_ = false;
+
 RSUniRenderVisitor::RSUniRenderVisitor()
     : rsUniHwcVisitor_(std::make_unique<RSUniHwcVisitor>(*this)),
       curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
@@ -161,6 +163,8 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #endif
     RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
     isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
+    isFirstFrameAfterScreenRotation_ = !isScreenRotationAnimating_ && isLastFrameRotating_;
+    isLastFrameRotating_ = isScreenRotationAnimating_;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (renderEngine_ && renderEngine_->GetRenderContext()) {
         auto subThreadManager = RSSubThreadManager::Instance();
