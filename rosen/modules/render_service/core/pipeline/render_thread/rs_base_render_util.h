@@ -101,6 +101,7 @@ struct BufferDrawParam {
     bool isHdrToSdr = false;
     bool hasMetadata = false; // SDR has metadata
 #endif
+    bool colorFollow = false;
     bool preRotation = false;
 };
 

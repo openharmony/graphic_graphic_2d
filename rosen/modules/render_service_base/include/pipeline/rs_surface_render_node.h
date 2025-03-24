@@ -1312,6 +1312,7 @@ public:
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
+    void SetColorFollow(bool colorFollow);
     void SetBrightnessRatio(float brightnessRatio);
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
     void SetSdrHasMetadata(bool hasMetadata);

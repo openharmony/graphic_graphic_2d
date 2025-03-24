@@ -3215,6 +3215,19 @@ void RSSurfaceRenderNode::SetDisplayNit(float displayNit)
 #endif
 }
 
+void RSSurfaceRenderNode::SetColorFollow(bool colorFollow)
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetColorFollow(colorFollow);
+    }
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+#endif
+}
+
 void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
 #ifdef RS_ENABLE_GPU

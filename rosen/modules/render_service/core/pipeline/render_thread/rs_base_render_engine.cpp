@@ -721,7 +721,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     videoInfo.parameter_ = {};
     videoInfo.retGetColorSpaceInfo_ = MetadataHelper::GetColorSpaceInfo(params.buffer,
         videoInfo.parameter_.inputColorSpace.colorSpaceInfo);
-    if (videoInfo.retGetColorSpaceInfo_ == GSERROR_OK) {
+    if (videoInfo.retGetColorSpaceInfo_ == GSERROR_OK || params.colorFollow) {
         videoInfo.drawingColorSpace_ = GetCanvasColorSpace(canvas);
     }
 #endif
@@ -861,6 +861,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         inClrInfo.primaries, inClrInfo.transfunc);
     if (!ConvertDrawingColorSpaceToSpaceInfo(videoInfo.drawingColorSpace_, outClrInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
+        DrawImageRect(canvas, image, params, samplingOptions);
+        return;
+    }
+
+    if (params.colorFollow) {
+        // force input and output color spaces to be consistent to avoid color space conversion
+        RS_LOGD("RSBaseRenderEngine::DrawImage force to avoid color space conversion");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
