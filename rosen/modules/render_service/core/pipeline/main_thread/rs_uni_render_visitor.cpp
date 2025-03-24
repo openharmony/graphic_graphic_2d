@@ -800,7 +800,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (node.IsSubTreeDirty() || node.IsRotationChanged()) {
         rsDisplayNodeChildNum = 0;
         QuickPrepareChildren(node);
-        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareDisplayRenderNode nodeNumber: %d", rsDisplayNodeChildNum);
+        RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareDisplayRenderNode childNumber: %d", rsDisplayNodeChildNum);
         TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
