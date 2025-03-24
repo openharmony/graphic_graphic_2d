@@ -27,6 +27,7 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "common/rs_optional_trace.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "rs_trace.h"
 
 #undef LOG_TAG
@@ -1527,6 +1528,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
      */
     if (status == ScreenPowerStatus::POWER_STATUS_ON ||
         status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED) {
+        RSFirstFrameNotifier::GetInstance().AddFirstFrameCommitScreen(id);
         auto mainThread = RSMainThread::Instance();
         if (mainThread == nullptr) {
             RS_LOGE("[UL_POWER] %{public}s: mainThread is nullptr", __func__);

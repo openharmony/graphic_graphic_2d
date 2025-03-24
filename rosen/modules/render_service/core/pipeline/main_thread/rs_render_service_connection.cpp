@@ -39,6 +39,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -2342,6 +2343,17 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     HgmTaskHandleThread::Instance().PostSyncTask([this, &callback] () {
         HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
     });
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::RegisterFirstFrameCommitCallback(
+    sptr<RSIFirstFrameCommitCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    RSHardwareThread::Instance().ScheduleTask([pid = remotePid_, &callback] () {
+        RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(pid, callback);
+    }).wait();
     return StatusCode::SUCCESS;
 }
 

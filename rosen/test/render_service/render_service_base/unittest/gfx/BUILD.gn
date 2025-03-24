@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseGfxTest") {
 
   sources = [
     "dump/rs_dump_manager_test.cpp",
+    "first_frame_notifier/rs_first_frame_notifier_test.cpp",
     "fps_info/rs_surface_fps_manager_test.cpp",
     "fps_info/rs_surface_fps_test.cpp",
   ]

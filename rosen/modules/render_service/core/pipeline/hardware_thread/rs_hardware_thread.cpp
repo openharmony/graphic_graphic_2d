@@ -41,6 +41,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "platform/common/rs_hisysevent.h"
 #include "graphic_feature_param_manager.h"
 
@@ -253,6 +254,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
+
+        RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(output->GetScreenId());
+
         RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData hasGameScene is %{public}d %{public}s",
             hasGameScene, surfaceName.c_str());
         if (hasGameScene) {
