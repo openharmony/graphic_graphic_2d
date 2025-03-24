@@ -113,8 +113,9 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_006, TestSize.
 {
     std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
     std::string path = controller->GetConfigFilePath();
-    std::string filePath = "/sys_prod/etc/bootanimation/"
-    EXPECT_EQ(path.empty(), false);
+    std::string filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(path.empty(), isFileExist ? false : true);
 }
 
 /**
