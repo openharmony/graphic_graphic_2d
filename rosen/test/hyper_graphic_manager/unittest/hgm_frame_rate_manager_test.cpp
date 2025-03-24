@@ -926,8 +926,8 @@ HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest |
 
     int32_t upTimeoutMs = 2000;
     int32_t rsIdleTimeoutMs = 300;
-    configData->timeoutStrategyConfig_["up_timeout_ms"] = upTimeoutMs;
-    configData->timeoutStrategyConfig_["rs_idle_timeout_ms"] = rsIdleTimeoutMs;
+    configData->timeoutStrategyConfig_["up_timeout_ms"] = "2000";
+    configData->timeoutStrategyConfig_["rs_idle_timeout_ms"] = "300";
 
     mgr.SetTimeoutParamsFromConfig(configData);
     auto time3 = mgr.touchManager_.upTimeoutTimer_.interval_.load();
