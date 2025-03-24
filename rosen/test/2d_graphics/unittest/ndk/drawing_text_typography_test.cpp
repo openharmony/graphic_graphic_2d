@@ -3084,12 +3084,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetTest001, TestSize.Lev
     EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(nullptr), TEXT_DECORATION_STYLE_SOLID);
 
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
-    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(txtStyle), false);
+    EXPECT_FALSE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
     EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(nullptr), TEXT_DECORATION_STYLE_SOLID);
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, -2);
-    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(txtStyle), true);
+    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, 20);
-    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(txtStyle), true);
+    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
 
     OH_Drawing_SetTextStyleFontSize(txtStyle, -20); // This value does not actually take effect.
     EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), -20);
@@ -3297,7 +3297,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetTest005, TestSize.Lev
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_NONE));
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_BACKGROUND));
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_ALL_ATTRIBUTES));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_FONT)); 
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_FONT));
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_SHADOW));
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_DECORATIONS));
     EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_WORD_SPACING));
