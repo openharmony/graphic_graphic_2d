@@ -89,6 +89,8 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     std::string uname = GetStringFromData(STR_LEN);
     NodeId id = GetData<NodeId>();
     NodeId uid = GetData<NodeId>();
+    pid_t pid = GetData<pid_t>();
+    pid_t upid = GetData<pid_t>();
     uint64_t timestamp = GetData<uint64_t>();
     uint32_t seqNum = GetData<uint32_t>();
 
@@ -99,10 +101,22 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     surfaceFpsManager.RecordPresentTime(uid, timestamp, seqNum);
     surfaceFpsManager.Dump(result, id);
     surfaceFpsManager.Dump(result, uid);
+    surfaceFpsManager.Dump(result, name);
+    surfaceFpsManager.Dump(result, uname);
+    surfaceFpsManager.DumpByPid(result, pid);
+    surfaceFpsManager.DumpByPid(result, upid);
     surfaceFpsManager.ClearDump(result, id);
     surfaceFpsManager.ClearDump(result, uid);
+    surfaceFpsManager.ClearDump(result, name);
+    surfaceFpsManager.ClearDump(result, uname);
+    surfaceFpsManager.ClearDumpByPid(result, pid);
+    surfaceFpsManager.ClearDumpByPid(result, upid);
     surfaceFpsManager.GetSurfaceFps(id);
     surfaceFpsManager.GetSurfaceFps(uid);
+    surfaceFpsManager.GetSurfaceFps(name);
+    surfaceFpsManager.GetSurfaceFps(uname);
+    surfaceFpsManager.GetSurfaceFpsByPid(pid);
+    surfaceFpsManager.GetSurfaceFpsByPid(upid);
     surfaceFpsManager.UnregisterSurfaceFps(id);
     surfaceFpsManager.UnregisterSurfaceFps(uid);
 
