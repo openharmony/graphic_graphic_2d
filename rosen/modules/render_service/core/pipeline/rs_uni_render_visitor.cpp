@@ -3442,8 +3442,12 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(
     if (!node) {
         return;
     }
-    auto dstRect = node->GetDstRect();
-    bool isIntersect = !dstRect.IntersectRect(filterRect).IsEmpty();
+    auto& geoPtr = node->GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return;
+    }
+    auto bound = geoPtr->GetAbsRect();
+    bool isIntersect = !bound.IntersectRect(filterRect).IsEmpty();
     if (isIntersect) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by filter rect",
             node->GetName().c_str(), node->GetId());
@@ -3643,6 +3647,9 @@ RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
         if (auto& subnode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
             childEffectRect = childEffectRect.JoinRect(subnode->GetOldDirtyInSurface());
         }
+    }
+    if (!childEffectRect.IsEmpty()) {
+        childEffectRect = childEffectRect.JoinRect(node.GetFilterRect());
     }
     return childEffectRect;
 }
