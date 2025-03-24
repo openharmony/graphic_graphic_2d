@@ -542,6 +542,7 @@ public:
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
+    bool IsColorBlendModeValid() const;
     void SetColorBlendApplyType(int colorBlendApplyType);
     int GetColorBlendApplyType() const;
 
