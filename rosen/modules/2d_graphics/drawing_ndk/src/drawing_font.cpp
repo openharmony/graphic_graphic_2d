@@ -401,11 +401,22 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
     }
     ret = font->GetMetrics(&metrics);
 
+    cFontMetrics->flags = metrics.fFlags;
     cFontMetrics->top = metrics.fTop;
     cFontMetrics->ascent = metrics.fAscent;
     cFontMetrics->descent = metrics.fDescent;
     cFontMetrics->leading = metrics.fLeading;
     cFontMetrics->bottom = metrics.fBottom;
+    cFontMetrics->avgCharWidth = metrics.fAvgCharWidth;
+    cFontMetrics->maxCharWidth = metrics.fMaxCharWidth;
+    cFontMetrics->xMin = metrics.fXMin;
+    cFontMetrics->xMax = metrics.fXMax;
+    cFontMetrics->xHeight = metrics.fXHeight;
+    cFontMetrics->capHeight = metrics.fCapHeight;
+    cFontMetrics->underlineThickness = metrics.fUnderlineThickness;
+    cFontMetrics->underlinePosition = metrics.fUnderlinePosition;
+    cFontMetrics->strikeoutThickness = metrics.fStrikeoutThickness;
+    cFontMetrics->strikeoutPosition = metrics.fStrikeoutPosition;
     return ret;
 }
 
