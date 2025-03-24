@@ -6008,4 +6008,24 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
     rsUniRenderVisitor->UpdateDisplayRcdRenderNode();
 }
+
+/*
+ * @tc.name: UpdateAncoPrepareClip
+ * @tc.desc: Test UpdateAncoPrepareClip001, clipToBounds_ & clipToFrame_ = true;
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateAncoPrepareClip001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    hwcNodePtr->GetMutableRenderProperties().clipToBounts_ = true;
+    hwcNodePtr->GetMutableRenderProperties().clipToFrame_ = true;
+    rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);	
+}
 } // OHOS::Rosen

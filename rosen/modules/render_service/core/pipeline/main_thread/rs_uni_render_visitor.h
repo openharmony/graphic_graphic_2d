@@ -239,6 +239,7 @@ private:
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateAncoPrepareClip(RSSurfaceRenderNode& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
