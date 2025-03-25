@@ -4224,7 +4224,7 @@ void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)
         // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry
         if (property.GetClipToBounds()) {
             prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
-		}
+        }
         if (property.GetClipToRRect()) {
             RectF rect = property.GetClipRRect().rect_;
             prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(rect));
