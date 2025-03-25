@@ -711,5 +711,117 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest003, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest003 end";
 }
+
+/**
+ * @tc.name: RSNodeAnimateTest004
+ * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, RSNodeAnimateTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest004 start";
+    /**
+     * @tc.steps: step1. init RSNodeAnimate
+     */
+    std::string surfaceNodeName = "AnimationSurface";
+    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
+    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    auto effect = RSTransitionEffect::Create()->Translate({500.f, 300.f, 0.f});
+    animationSurfaceNode->SetBoundsWidth(200.f);
+    animationSurfaceNode->SetBoundsHeight(300.f);
+    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
+    animationSurfaceNode->SetTransitionEffect(effect);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&animationSurfaceNode]() {
+        rootNode->AddChild(animationSurfaceNode, -1);
+    });
+
+    /**
+     * @tc.steps: step2. start RSNodeAnimate test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest004 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateTest005
+ * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, RSNodeAnimateTest005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest005 start";
+    /**
+     * @tc.steps: step1. init RSNodeAnimate
+     */
+    std::string surfaceNodeName = "AnimationSurface";
+    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
+    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    auto effect = RSTransitionEffect::Create()->Opacity(0.5f);
+    animationSurfaceNode->SetFrame(ANIMATION_START_BOUNDS);
+    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
+    animationSurfaceNode->SetTransitionEffect(effect);
+    rootNode->AddChild(animationSurfaceNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&animationSurfaceNode]() {
+        animationSurfaceNode->SetVisible(false);
+    });
+
+    /**
+     * @tc.steps: step2. start RSNodeAnimate test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest005 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateTest006
+ * @tc.desc: Verify the RSNodeAnimate of RSTransitionTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransitionTest, RSNodeAnimateTest006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest006 start";
+    /**
+     * @tc.steps: step1. init RSNodeAnimate
+     */
+    std::string surfaceNodeName = "AnimationSurface";
+    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
+    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    animationSurfaceNode->SetFrame(ANIMATION_START_BOUNDS);
+    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(animationSurfaceNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&animationSurfaceNode, &effect]() {
+        animationSurfaceNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start RSNodeAnimate test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest006 end";
+}
 } // namespace Rosen
 } // namespace OHOS

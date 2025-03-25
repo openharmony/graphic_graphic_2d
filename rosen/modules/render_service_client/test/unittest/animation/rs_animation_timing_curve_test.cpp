@@ -474,5 +474,335 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateInterpolatingSpring001, TestSize.Leve
     EXPECT_TRUE(timingCurve2.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING_SPRING);
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateInterpolatingSpring001 end";
 }
+
+/**
+ * @tc.name: CreateCubicCurveTest004
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest004 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto alphaProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto alphaModifier = std::make_shared<RSAlphaModifier>(alphaProperty);
+    canvasNode->AddModifier(alphaModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.9f, 0.1f, 0.56f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&alphaProperty]() {
+        alphaProperty->Set(0.6f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest004 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest005
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest005 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto scaleProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(ANIMATION_NORMAL_SCALE);
+    auto scaleModifier = std::make_shared<RSScaleModifier>(scaleProperty);
+    canvasNode->AddModifier(scaleModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.234f, 0.12f, 0.25f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&scaleProperty]() {
+        scaleProperty->Set(ANIMATION_DOUBLE_SCALE);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest005 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest006
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest006 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.33f, 0.5f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest006 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest007
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest007 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.33f, 0.4f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest007 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest008
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest008, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest008 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.178f, 0.523f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest008 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest009
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest009, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest009 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.84f, 0.989f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest009 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest010
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest010, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest010 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.45f, 0.12f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest010 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest011
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest011, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest011 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.84f, 0.14f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest011 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest012
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest012, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest012 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.15f, 0.23f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest012 end";
+}
+
+/**
+ * @tc.name: CreateCubicCurveTest013
+ * @tc.desc: Verify the CreateCubicCurve of animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest013, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest013 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto rotationProperty = std::make_shared<RSAnimatableProperty<float>>(ANIMATION_START_VALUE);
+    auto rotationModifier = std::make_shared<RSRotationModifier>(rotationProperty);
+    canvasNode->AddModifier(rotationModifier);
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.314f, 0.541f, 0.58f, 1.0f);
+    RSAnimationTimingProtocol protocol;
+    auto curveAnimations = RSNode::Animate(protocol, timingCurve, [&rotationProperty]() {
+        rotationProperty->Set(90.f);
+    });
+    /**
+     * @tc.steps: step2. start animation test
+     */
+    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    if (curveAnimations.size() != CORRECT_SIZE) {
+        return;
+    }
+    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateCubicCurveTest013 end";
+}
 } // namespace Rosen
 } // namespace OHOS
