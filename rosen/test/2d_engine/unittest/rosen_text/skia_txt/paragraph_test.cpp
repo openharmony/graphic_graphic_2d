@@ -538,4 +538,112 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis008, TestSize.Level1)
     EXPECT_EQ(range.start, 3);
     EXPECT_EQ(range.end, 41);
 }
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis009
+ * @tc.desc: test for Middle Ellipsis 009, long tail space
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis009, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"Hello Wolrd                ");
+    paragraphMiddleEllipsis_->Layout(100);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 2);
+    EXPECT_EQ(range.end, 23);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis010
+ * @tc.desc: test for Middle Ellipsis 010, empty text
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis010, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"");
+    paragraphMiddleEllipsis_->Layout(1);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
+    EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis011
+ * @tc.desc: test for Middle Ellipsis 011, empty ellipsis
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis011, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"", u"Hello World");
+    paragraphMiddleEllipsis_->Layout(1);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
+    EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis012
+ * @tc.desc: test for Middle Ellipsis 012, add placeholder
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis012, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = maxLines;
+    paragraphStyle.ellipsis = u"...";
+    paragraphStyle.ellipsisModal = OHOS::Rosen::SPText::EllipsisModal::MIDDLE;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = 30; // 30 default fontsize
+    PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE, SPText::TextBaseline::ALPHABETIC, 0.0);
+    paragraphBuilder->AddPlaceholder(placeholderRun);
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(u"Hello World");
+    PlaceholderRun placeholderRun2(150, 150, PlaceholderAlignment::BASELINE, SPText::TextBaseline::ALPHABETIC, 0.0);
+    paragraphBuilder->AddPlaceholder(placeholderRun2);
+    paragraphMiddleEllipsis_ = paragraphBuilder->Build();
+    ASSERT_NE(paragraphMiddleEllipsis_, nullptr);
+    paragraphMiddleEllipsis_->Layout(100);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 1);
+    EXPECT_EQ(range.end, 13);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis013
+ * @tc.desc: test for Middle Ellipsis 013, \n
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis013, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"A\nB");
+    paragraphMiddleEllipsis_->Layout(1);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, 0);
+    EXPECT_EQ(range.end, 2);
+}
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis014
+ * @tc.desc: test for Middle Ellipsis 014, \n
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"\nB");
+    paragraphMiddleEllipsis_->Layout(1);
+    OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
+    EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
+    EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+}
 } // namespace txt
