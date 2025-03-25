@@ -11,15 +11,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-group("ani_packages") {
-  deps = [
-    "color_manager:ani_color_space_manager",
-    "effect_kit:effectKit_ani",
-    "effect_kit:effectKit_etc",
-    "hdr_capability:ani_hdr_capability",
-    "ui_effect:uiEffect_ani",
-    "ui_effect:uiEffect_etc",
-  ]
+group("ani_hdr_capability") {
+  deps = [ ":hdr_capability_etc" ]
+}
+
+generate_static_abc("hdr_capability") {
+  base_url = "./ets"
+  files = [ "./ets/@ohos.graphics.hdrCapability.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/hdr_capability.abc"
+}
+
+ohos_prebuilt_etc("hdr_capability_etc") {
+  source = "$target_out_dir/hdr_capability.abc"
+  module_install_dir = "framework"
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+  deps = [ ":hdr_capability" ]
 }
