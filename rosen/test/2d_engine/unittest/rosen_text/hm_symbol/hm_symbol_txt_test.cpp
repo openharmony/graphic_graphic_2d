@@ -316,5 +316,38 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest011, TestSize.Level1)
     symbolTxt1.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::SINGLE);
     EXPECT_EQ(symbolTxt == symbolTxt1, true);
 }
+
+/*
+ * @tc.name: SymbolUid001
+ * @tc.desc: test GetSymbolUid and SetSymbolUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SymbolUid001, TestSize.Level1)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    EXPECT_EQ(symbolTxt.GetSymbolUid(), 0);
+    symbolTxt.SetSymbolUid(100);
+    EXPECT_EQ(symbolTxt.GetSymbolUid(), 100);
+}
+
+/*
+ * @tc.name: SymbolBitmap001
+ * @tc.desc: test GetSymbolBitmap and SetSymbolBitmap
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SymbolBitmap001, TestSize.Level1)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // test get method
+    auto bitmap = symbolTxt.GetSymbolBitmap();
+    EXPECT_TRUE(bitmap.none());
+
+    // test set method
+    SymbolBitmapType symbolBitmap;
+    symbolBitmap.flip();
+    symbolTxt.SetSymbolBitmap(symbolBitmap);
+    int symbolAttrLen = static_cast<int>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT);
+    EXPECT_EQ(symbolTxt.GetSymbolBitmap().size(), symbolAttrLen);
+}
 } // namespace Rosen
 } // namespace OHOS
