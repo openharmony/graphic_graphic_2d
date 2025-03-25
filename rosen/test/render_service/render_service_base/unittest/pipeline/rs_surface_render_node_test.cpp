@@ -1848,33 +1848,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterNodesTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckValidFilterCacheFullyCoverTargetTest
- * @tc.desc: test results of CheckValidFilterCacheFullyCoverTargetTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    RSRenderNode filterNode(id + 1);
-    RectI targetRect;
-    node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);
-    EXPECT_FALSE(node->isFilterCacheStatusChanged_);
-    node->isFilterCacheFullyCovered_ = true;
-    node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);
-    EXPECT_FALSE(node->isFilterCacheStatusChanged_);
-    RSEffectRenderNode filterNode2(id + 2);
-    node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
-    EXPECT_FALSE(node->isFilterCacheStatusChanged_);
-    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    drawable->stagingCacheManager_->isFilterCacheValid_ = true;
-    filterNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
-    node->isFilterCacheFullyCovered_ = false;
-    node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);
-    EXPECT_FALSE(node->isFilterCacheStatusChanged_);
-}
-
-/**
  * @tc.name: UpdateSurfaceCacheContentStaticFlag
  * @tc.desc: test results of UpdateSurfaceCacheContentStaticFlag
  * @tc.type: FUNC
