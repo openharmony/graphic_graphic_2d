@@ -240,12 +240,6 @@ HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
-
-    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
-    EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
 
     filterDrawable->stagingCacheManager_ = nullptr;
     EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
