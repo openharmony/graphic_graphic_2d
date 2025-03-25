@@ -58,7 +58,7 @@ public:
             .aplStr = "system_basic",
         };
         tokenId = GetAccessTokenId(&infoInstance);
-        SetSelfToken(tokenId);
+        SetSelfTokenID(tokenId);
         OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     }
 
