@@ -297,7 +297,9 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetScreenId(nodeDrawable->GetScreenId());
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
+    rscanvas->Save();
     nodeDrawable->SubDraw(*rscanvas);
+    rscanvas->Restore();
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !nodeDrawable->IsHighPostPriority()) ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
