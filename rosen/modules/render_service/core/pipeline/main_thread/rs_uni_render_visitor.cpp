@@ -3576,8 +3576,12 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
     if (!node) {
         return;
     }
-    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 &&
-        node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
+    auto filterNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(filterNodeId);
+    bool isBackground = filterNode->GetRenderProperties().GetBackgroundFilter() != nullptr;
+    bool isReverseNode = filterNode->GetCurFrameInfoDetail().curFrameReverseChildren ||
+         node->GetCurFrameInfoDetail().curFrameReverseChildren;
+    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 && isBackground && !isReverseNode &&
+        !isReverseOrder && node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
         return;
     }
     auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
