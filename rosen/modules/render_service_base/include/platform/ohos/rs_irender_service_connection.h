@@ -377,6 +377,8 @@ public:
 #endif
 
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
+
+    virtual void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif

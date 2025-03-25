@@ -2024,6 +2024,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
+void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetColorFollow(nodeIdStr, isColorFollow);
+    }
+}
+
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

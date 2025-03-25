@@ -2902,6 +2902,31 @@ void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool i
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeIdStr, isColorFollow]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isColorFollow](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                surfaceNode->SetColorFollow(isColorFollow);
+                return;
+            }
+        });
+        connection->mainThread_->SetDirtyFlag();
+        connection->mainThread_->RequestNextVSync();
+    };
+    mainThread_->PostTask(task);
+}
+
 void RSRenderServiceConnection::NotifyScreenSwitched()
 {
     std::lock_guard<std::mutex> lock(mutex_);

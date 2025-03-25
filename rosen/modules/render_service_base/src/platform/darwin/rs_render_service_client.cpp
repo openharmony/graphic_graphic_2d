@@ -742,6 +742,10 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
+void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+}
+
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
 }

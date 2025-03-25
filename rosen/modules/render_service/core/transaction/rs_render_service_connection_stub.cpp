@@ -183,6 +183,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -3206,6 +3207,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetLayerTop(nodeIdStr, isTop);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW) : {
+            std::string nodeIdStr;
+            bool isColorFollow{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isColorFollow)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_COLOR_FOLLOW Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetColorFollow(nodeIdStr, isColorFollow);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {

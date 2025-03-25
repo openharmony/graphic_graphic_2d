@@ -365,6 +365,8 @@ public:
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+
     void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
