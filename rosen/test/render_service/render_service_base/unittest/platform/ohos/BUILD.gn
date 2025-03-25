@@ -760,6 +760,9 @@ ohos_unittest("RSClientTest") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
   ]
 
   subsystem_name = "graphic"

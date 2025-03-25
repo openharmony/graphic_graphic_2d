@@ -45,6 +45,9 @@ ohos_unittest("RSVirtualScreenRefreshRateTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
   ]
 }
 
@@ -56,6 +59,9 @@ ohos_unittest("RSScreenSkipFrameTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
   ]
 }
 
@@ -78,7 +84,12 @@ ohos_unittest("RSInterfacesTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
   deps = [ ":rs_client_test_common" ]
-  external_deps = [ "graphic_surface:surface" ]
+  external_deps = [
+    "graphic_surface:surface",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    ]
 }
 
 ## Build RSTransactionsTest
