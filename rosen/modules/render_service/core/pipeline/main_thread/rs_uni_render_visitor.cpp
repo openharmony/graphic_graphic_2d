@@ -1535,7 +1535,7 @@ void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
     // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry.
     if (property.GetClipToBounds()) {
         prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
-    }
+     }
     // FrameRect(if exists) is mapped to rect using abstract coordinate explicitly by calling MapAbsRect.
     if (property.GetClipToFrame()) {
         // MapAbsRect do not handle the translation of OffsetX and OffsetY
