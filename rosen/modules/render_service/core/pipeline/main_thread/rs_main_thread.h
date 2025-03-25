@@ -115,7 +115,6 @@ public:
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
-    bool IsUIFirstOn() const;
     void UpdateAnimateNodeFlag();
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
@@ -490,7 +489,6 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
-    void UpdateUIFirstSwitch();
     // ROG: Resolution Online Government
     void UpdateRogSizeIfNeeded();
     void UpdateDisplayNodeScreenId();
@@ -612,7 +610,6 @@ private:
     bool hasProtectedLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
-    bool isUiFirstOn_ = false;
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool forceUpdateUniRenderFlag_ = false;
     bool idleTimerExpiredFlag_ = false;
@@ -805,6 +802,8 @@ private:
         std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
+    std::unordered_map<NodeId, // map<first level node ID, drm surface node>
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -838,7 +837,6 @@ private:
     std::atomic<uint64_t> dvsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
-    std::shared_ptr<AccessibilityParam> accessibilityParamConfig_ = nullptr;
 #if defined(ACCESSIBILITY_ENABLE)
     std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
 #endif

@@ -166,6 +166,7 @@ void ParagraphImpl::InitSymbolRuns()
             std::shared_ptr<HMSymbolRun> hmSymbolRun = std::make_shared<HMSymbolRun>();
             hmSymbolRun->SetAnimation(animationFunc_);
             hmSymbolRun->SetSymbolUid(p.symbol.GetSymbolUid());
+            hmSymbolRun->SetSymbolTxt(p.symbol);
             hmSymbols_.push_back(std::move(hmSymbolRun));
         }
     });
@@ -266,7 +267,7 @@ Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpaces)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    if (lineNumber >=0 && lineNumber <= static_cast<int>(paragraph_->lineNumber())) {
+    if (lineNumber >= 0 && lineNumber < static_cast<int>(paragraph_->lineNumber())) {
         skt::SkRange<size_t> range = paragraph_->getActualTextRange(lineNumber, includeSpaces);
         return Range<size_t>(range.start, range.end);
     } else {
@@ -297,6 +298,21 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
+void ParagraphImpl::GetExtraTextStyleAttributes(const skia::textlayout::TextStyle& skStyle, TextStyle& textstyle)
+{
+    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
+        textstyle.fontFeatures.SetFeature(tag.c_str(), value);
+    }
+    textstyle.textShadows.clear();
+    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
+        TextShadow shadow;
+        shadow.offset = skShadow.fOffset;
+        shadow.blurSigma = skShadow.fBlurSigma;
+        shadow.color = skShadow.fColor;
+        textstyle.textShadows.emplace_back(shadow);
+    }
+}
+
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -317,11 +333,18 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     }
 
     txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
+    txt.fontWidth = static_cast<FontWidth>(skStyle.getFontStyle().GetWidth());
+    txt.styleId = skStyle.getStyleId();
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
-
+    txt.heightOverride = skStyle.getHeightOverride();
+    txt.halfLeading = skStyle.getHalfLeading();
+    txt.baseLineShift = SkScalarToDouble(skStyle.getBaselineShift());
     txt.locale = skStyle.getLocale().c_str();
+    txt.backgroundRect = { skStyle.getBackgroundRect().color, skStyle.getBackgroundRect().leftTopRadius,
+        skStyle.getBackgroundRect().rightTopRadius, skStyle.getBackgroundRect().rightBottomRadius,
+        skStyle.getBackgroundRect().leftBottomRadius };
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
         if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
@@ -338,16 +361,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
             TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }
     }
-
-    txt.textShadows.clear();
-    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
-        TextShadow shadow;
-        shadow.offset = skShadow.fOffset;
-        shadow.blurSigma = skShadow.fBlurSigma;
-        shadow.color = skShadow.fColor;
-        txt.textShadows.emplace_back(shadow);
-    }
-
+    GetExtraTextStyleAttributes(skStyle, txt);
     return txt;
 }
 
@@ -435,7 +449,7 @@ Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
     return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 
-bool ParagraphImpl::IsLalyoutDone()
+bool ParagraphImpl::IsLayoutDone()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getState() >= skt::kFormatted ? true : false;

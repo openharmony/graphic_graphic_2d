@@ -245,7 +245,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_NONE);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 }
 
 /**
@@ -313,6 +313,9 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub006
         RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK)),
+        ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT)),
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK)), ERR_INVALID_DATA);

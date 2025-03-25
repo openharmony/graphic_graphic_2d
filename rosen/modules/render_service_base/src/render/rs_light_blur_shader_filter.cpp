@@ -21,20 +21,99 @@ namespace Rosen {
 namespace {
 const int MAX_DOWN_SAMPLE_NUM = 12;
 const int DOWN_SAMPLE_BOUNDARY_PIXEL_SIZE = 100;
-const int DOWN_SAMPLE_STEP_4 = 4;
-const int DOWN_SAMPLE_STEP_2 = 2;
-const int MIX_COLOR_FACTOR = 3;
-const int COLOR_MAX = 255;
-const Drawing::SamplingOptions SMAPLING_OPTIONS(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-const float TWO_FRAME_BEFORE_COLOR_WEIGHT = 0.6f;
-const float ONE_FRAME_BEFORE_COLOR_WEIGHT = 0.9f;
-const float CUR_FRAME_BEFORE_COLOR_WEIGHT = 1.5f;
-const float COLOR_THRESHOLD = 5.f;
+const int DOWN_SAMPLE_STEP = 4;
+const float DOWN_SAMPLE_4X_OFFSET = 0.25f;
+const Drawing::SamplingOptions SAMPLING_OPTIONS(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 }
+std::shared_ptr<Drawing::RuntimeEffect> RSLightBlurShaderFilter::downSample4xAndMixShader_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSLightBlurShaderFilter::downSample4xShader_ = nullptr;
 
 RSLightBlurShaderFilter::RSLightBlurShaderFilter(int radius) : radius_(radius)
 {
     type_ = ShaderFilterType::LIGHT_BLUR;
+}
+
+bool RSLightBlurShaderFilter::InitDownSample4xAndMixShader()
+{
+    if (downSample4xAndMixShader_ != nullptr) {
+        return true;
+    }
+
+    static const std::string mixString(R"(
+        uniform shader imageInput1;
+        uniform shader imageInput2;
+        uniform shader imageInput3;
+        uniform float2 offset;
+        const half COLOR1_WEIGHT = 0.2;
+        const half COLOR2_WEIGHT = 0.3;
+        const half COLOR3_WEIGHT = 0.5;
+        const half COLOR_THRESHOLD = 5;
+        const half COLOR_MAX = 255;
+
+        half4 mixColor(half4 color1, half4 color2, half4 color3) {
+            return color1 * COLOR1_WEIGHT + color2 * COLOR2_WEIGHT + color3 * COLOR3_WEIGHT;
+        }
+
+        half4 getImageInput3Color(float2 xy) {
+            half4 c = imageInput3.eval(float2(xy.x + offset.x, xy.y + offset.y));
+            c += imageInput3.eval(float2(xy.x - offset.x, xy.y + offset.y));
+            c += imageInput3.eval(float2(xy.x + offset.x, xy.y - offset.y));
+            c += imageInput3.eval(float2(xy.x - offset.x, xy.y - offset.y));
+            return c * 0.25;
+        }
+
+        half4 main(float2 xy) {
+            half4 color1 = imageInput1.eval(xy) * COLOR_MAX;
+            half4 color2 = imageInput2.eval(xy) * COLOR_MAX;
+            half4 color3 = getImageInput3Color(xy)  * COLOR_MAX;
+            half4 mixedColor = mixColor(color1, color2, color3);
+            half4 colorDist = mixedColor - color2;
+            half dist = dot(colorDist, colorDist);
+            if (dist < COLOR_THRESHOLD) {
+                return clamp(mixedColor / COLOR_MAX, 0, 1);
+            }
+            half4 absColorDist = abs(colorDist);
+            half4 weight = half4(colorDist.r * absColorDist.r, colorDist.g * absColorDist.g,
+                colorDist.b * absColorDist.b, colorDist.a * absColorDist.a);
+            return clamp((color2 + weight * COLOR_THRESHOLD / dist) / COLOR_MAX, 0, 1);
+        }
+    )");
+
+    downSample4xAndMixShader_ = Drawing::RuntimeEffect::CreateForShader(mixString);
+    if (downSample4xAndMixShader_ == nullptr) {
+        ROSEN_LOGE("RSLightBlurShaderFilter::InitDownSample4xAndMixShader create shader failed");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSLightBlurShaderFilter::InitDownSample4xShader()
+{
+    if (downSample4xShader_ != nullptr) {
+        return true;
+    }
+
+    static const std::string downSample4xString(R"(
+        uniform shader imageInput;
+        uniform float2 offset;
+
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(float2(xy.x + offset.x, xy.y + offset.y));
+            c += imageInput.eval(float2(xy.x - offset.x, xy.y + offset.y));
+            c += imageInput.eval(float2(xy.x + offset.x, xy.y - offset.y));
+            c += imageInput.eval(float2(xy.x - offset.x, xy.y - offset.y));
+            return half4(c.rgba * 0.25);
+        }
+    )");
+
+    downSample4xShader_ = Drawing::RuntimeEffect::CreateForShader(downSample4xString);
+    if (downSample4xShader_ == nullptr) {
+        ROSEN_LOGE("RSLightBlurShaderFilter::InitDownSample4xShader create shader failed");
+        return false;
+    }
+
+    return true;
 }
 
 int RSLightBlurShaderFilter::GetRadius() const
@@ -42,21 +121,15 @@ int RSLightBlurShaderFilter::GetRadius() const
     return radius_;
 }
 
-Drawing::Rect RSLightBlurShaderFilter::GetDownSampleRect(int width, int height) const
+Drawing::RectI RSLightBlurShaderFilter::GetDownSampleRect(int width, int height) const
 {
-    if (width + height > DOWN_SAMPLE_BOUNDARY_PIXEL_SIZE) {
-        int downSampleWidth = width <= DOWN_SAMPLE_STEP_4 ? 1 : width / DOWN_SAMPLE_STEP_4;
-        int downSampleHeight = height <= DOWN_SAMPLE_STEP_4 ? 1 : height / DOWN_SAMPLE_STEP_4;
-        return Drawing::Rect(0, 0, downSampleWidth, downSampleHeight);
-    }
-
-    int downSampleWidth = width <= DOWN_SAMPLE_STEP_2 ? 1 : width / DOWN_SAMPLE_STEP_2;
-    int downSampleHeight = height <= DOWN_SAMPLE_STEP_2 ? 1 : height / DOWN_SAMPLE_STEP_2;
-    return Drawing::Rect(0, 0, downSampleWidth, downSampleHeight);
+    int downSampleWidth = width <= DOWN_SAMPLE_STEP ? 1 : width / DOWN_SAMPLE_STEP;
+    int downSampleHeight = height <= DOWN_SAMPLE_STEP ? 1 : height / DOWN_SAMPLE_STEP;
+    return Drawing::RectI(0, 0, downSampleWidth, downSampleHeight);
 }
 
 std::shared_ptr<Drawing::Image> RSLightBlurShaderFilter::GetDownSampleImage(Drawing::Image& srcImage,
-    Drawing::Surface& surface, Drawing::Rect& src, Drawing::Rect& dst) const
+    Drawing::Surface& surface, Drawing::RectI& src, Drawing::RectI& dst) const
 {
     int dstWidth = dst.GetWidth();
     int dstHeight = dst.GetHeight();
@@ -76,136 +149,167 @@ std::shared_ptr<Drawing::Image> RSLightBlurShaderFilter::GetDownSampleImage(Draw
 
     Drawing::Brush brush;
     offscreenCanvas->AttachBrush(brush);
-    offscreenCanvas->DrawImageRect(srcImage, src, dst, SMAPLING_OPTIONS);
+    offscreenCanvas->DrawImageRect(srcImage, Drawing::Rect(src), Drawing::Rect(dst), SAMPLING_OPTIONS);
     offscreenCanvas->DetachBrush();
     return offscreenSurface->GetImageSnapshot();
 }
 
-RSColor RSLightBlurShaderFilter::MixColor(const RSColor& twoFrameBefore,
-    const RSColor& oneFrameBefore, const RSColor& curColor) const
+std::shared_ptr<Drawing::Image> RSLightBlurShaderFilter::GetDownSampleImage4x(
+    const std::shared_ptr<Drawing::Image>& srcImage, Drawing::Canvas& canvas,
+    Drawing::RectI& src, Drawing::RectI& dst) const
 {
-    int16_t alpha = (twoFrameBefore.GetAlpha() * TWO_FRAME_BEFORE_COLOR_WEIGHT +
-        oneFrameBefore.GetAlpha() * ONE_FRAME_BEFORE_COLOR_WEIGHT +
-        curColor.GetAlpha() * CUR_FRAME_BEFORE_COLOR_WEIGHT) / MIX_COLOR_FACTOR;
-    int16_t red = (twoFrameBefore.GetRed() * TWO_FRAME_BEFORE_COLOR_WEIGHT +
-        oneFrameBefore.GetRed() * ONE_FRAME_BEFORE_COLOR_WEIGHT +
-        curColor.GetRed() * CUR_FRAME_BEFORE_COLOR_WEIGHT) / MIX_COLOR_FACTOR;
-    int16_t green = (twoFrameBefore.GetGreen() * TWO_FRAME_BEFORE_COLOR_WEIGHT +
-        oneFrameBefore.GetGreen() * ONE_FRAME_BEFORE_COLOR_WEIGHT +
-        curColor.GetGreen() * CUR_FRAME_BEFORE_COLOR_WEIGHT) / MIX_COLOR_FACTOR;
-    int16_t blue = (twoFrameBefore.GetBlue() * TWO_FRAME_BEFORE_COLOR_WEIGHT +
-        oneFrameBefore.GetBlue() * ONE_FRAME_BEFORE_COLOR_WEIGHT +
-        curColor.GetBlue() * CUR_FRAME_BEFORE_COLOR_WEIGHT) / MIX_COLOR_FACTOR;
-    return RSColor(red, green, blue, alpha);
+    if (srcImage == nullptr) {
+        return nullptr;
+    }
+
+    int dstWidth = dst.GetWidth();
+    int dstHeight = dst.GetHeight();
+    if (dstWidth <= 0 || dstHeight <= 0) {
+        return nullptr;
+    }
+
+    if (downSample4xShader_ == nullptr) {
+        return nullptr;
+    }
+
+    float scaleW = src.GetWidth() > 0 ? (dstWidth / static_cast<float>(src.GetWidth())) : 1.f;
+    float scaleH = src.GetHeight() > 0 ? (dstHeight / static_cast<float>(src.GetHeight())) : 1.f;
+    Drawing::Matrix matrix;
+    matrix.SetScale(scaleW, scaleH);
+    auto originImageInfo = srcImage->GetImageInfo();
+    auto middleInfo = Drawing::ImageInfo(dstWidth, dstHeight, originImageInfo.GetColorType(),
+        originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+
+    Drawing::RuntimeShaderBuilder downSample4xBuilder(downSample4xShader_);
+    downSample4xBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*srcImage,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, SAMPLING_OPTIONS, matrix));
+
+    downSample4xBuilder.SetUniform("offset", DOWN_SAMPLE_4X_OFFSET, DOWN_SAMPLE_4X_OFFSET);
+    return downSample4xBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
 }
 
-bool RSLightBlurShaderFilter::GetAverageColorFromImageAndCache(Drawing::Image& image, RSColor& color) const
+std::shared_ptr<Drawing::Image> RSLightBlurShaderFilter::GetDownSample4xAndMixImage(Drawing::Canvas& canvas,
+    const std::shared_ptr<Drawing::Image>& image) const
 {
-    if (image.GetWidth() != 1 || image.GetHeight() != 1) {
-        return false;
+    if (downSample4xAndMixShader_ == nullptr) {
+        return nullptr;
     }
 
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format;
-    format.alphaType = image.GetAlphaType();
-    format.colorType = image.GetColorType();
-    bitmap.Build(1, 1, format);
-    if (!image.ReadPixels(bitmap, 0, 0)) {
-        return false;
+    if (image == nullptr) {
+        return nullptr;
     }
 
-    auto extraceColor = bitmap.GetColor(0, 0);
-    color.SetAlpha(Drawing::Color::ColorQuadGetA(extraceColor));
-    color.SetBlue(Drawing::Color::ColorQuadGetB(extraceColor));
-    color.SetGreen(Drawing::Color::ColorQuadGetG(extraceColor));
-    color.SetRed(Drawing::Color::ColorQuadGetR(extraceColor));
-
-    if (lightBlurResultCache_ != nullptr) {
-        const RSColor& colorTwoFrameBefore = lightBlurResultCache_->first;
-        const RSColor& colorOneFrameBefore = lightBlurResultCache_->second;
-        RSColor mixedColor = MixColor(colorTwoFrameBefore, colorOneFrameBefore, color);
-        RSColor colorDist = mixedColor - colorOneFrameBefore;
-        auto dist = colorDist.GetRed() * colorDist.GetRed() + colorDist.GetBlue() * colorDist.GetBlue() +
-            colorDist.GetGreen() * colorDist.GetGreen() + colorDist.GetAlpha() * colorDist.GetAlpha();
-        if (dist > COLOR_THRESHOLD) {
-            auto red = static_cast<int>(COLOR_THRESHOLD * colorDist.GetRed() * std::abs(colorDist.GetRed()) / dist);
-            auto green =
-                static_cast<int>(COLOR_THRESHOLD * colorDist.GetGreen() * std::abs(colorDist.GetGreen()) / dist);
-            auto blue = static_cast<int>(COLOR_THRESHOLD * colorDist.GetBlue() * std::abs(colorDist.GetBlue()) / dist);
-            auto alpha =
-                static_cast<int>(COLOR_THRESHOLD * colorDist.GetAlpha() * std::abs(colorDist.GetAlpha()) / dist);
-            color.SetAlpha(std::clamp(colorOneFrameBefore.GetAlpha() + alpha, 0, COLOR_MAX));
-            color.SetRed(std::clamp(colorOneFrameBefore.GetRed() + red, 0, COLOR_MAX));
-            color.SetGreen(std::clamp(colorOneFrameBefore.GetGreen() + green, 0, COLOR_MAX));
-            color.SetBlue(std::clamp(colorOneFrameBefore.GetBlue() + blue, 0, COLOR_MAX));
-        } else {
-            color = mixedColor;
-        }
+    auto twoFrameBeforeImage = lightBlurResultCache_[0];
+    auto oneFrameBeforeImage = lightBlurResultCache_[1];
+    if (twoFrameBeforeImage == nullptr || oneFrameBeforeImage == nullptr) {
+        return nullptr;
     }
-    return true;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(1, 1);
+    Drawing::Matrix matrix2;
+    float scaleW = image->GetWidth() > 0 ? 1.f / image->GetWidth() : 1.f;
+    float scaleH = image->GetHeight() > 0 ? 1.f / image->GetHeight() : 1.f;
+    matrix2.SetScale(scaleW, scaleH);
+
+    auto originImageInfo = image->GetImageInfo();
+    auto middleInfo = Drawing::ImageInfo(1, 1, originImageInfo.GetColorType(),
+        originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+
+    Drawing::RuntimeShaderBuilder downsample4xAndMixBuilder(downSample4xAndMixShader_);
+    downsample4xAndMixBuilder.SetChild("imageInput1", Drawing::ShaderEffect::CreateImageShader(*twoFrameBeforeImage,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, SAMPLING_OPTIONS, matrix));
+    downsample4xAndMixBuilder.SetChild("imageInput2", Drawing::ShaderEffect::CreateImageShader(*oneFrameBeforeImage,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, SAMPLING_OPTIONS, matrix));
+    downsample4xAndMixBuilder.SetChild("imageInput3", Drawing::ShaderEffect::CreateImageShader(*image,
+    Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, SAMPLING_OPTIONS, matrix2));
+    downsample4xAndMixBuilder.SetUniform("offset", DOWN_SAMPLE_4X_OFFSET, DOWN_SAMPLE_4X_OFFSET);
+    return downsample4xAndMixBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
 }
 
 void RSLightBlurShaderFilter::ApplyLightBlur(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image>& image, const LightBlurParameter& para)
 {
     if (image == nullptr) {
-        ROSEN_LOGE("LightBlurFilter apply light blur failed, image is nullptr");
+        ROSEN_LOGE("RSLightBlurShaderFilter apply light blur failed, image is nullptr");
         return;
     }
 
     auto width = image->GetWidth();
     auto height = image->GetHeight();
     if (width <= 0 || height <= 0) {
-        ROSEN_LOGE("LightBlurFilter apply light blur failed, image width or height <= 0");
+        ROSEN_LOGE("RSLightBlurShaderFilter apply light blur failed, image width or height <= 0");
         return;
     }
 
     Drawing::Surface* surface = canvas.GetSurface();
     if (surface == nullptr) {
-        ROSEN_LOGE("LightBlurFilter apply light blur failed, surface is nullptr");
+        ROSEN_LOGE("RSLightBlurShaderFilter apply light blur failed, surface is nullptr");
         return;
     }
+
+    bool hasDownSample4xShader = InitDownSample4xShader();
+    bool canDownSample4xAndMixImage = InitDownSample4xAndMixShader() &&
+        lightBlurResultCache_[0] != nullptr && lightBlurResultCache_[1] != nullptr;
 
     auto curImage = image;
     for (int i = 0; i < MAX_DOWN_SAMPLE_NUM; ++i) {
         if (width == 1 && height == 1) {
             break;
         }
-        Drawing::Rect srcRect(0, 0, width, height);
-        Drawing::Rect dstRect = GetDownSampleRect(width, height);
-        auto downsampleImage = GetDownSampleImage(*curImage, *surface, srcRect, dstRect);
-        if (downsampleImage == nullptr) {
+        Drawing::RectI srcRect(0, 0, width, height);
+        Drawing::RectI dstRect = GetDownSampleRect(width, height);
+        std::shared_ptr<Drawing::Image> downSampleImage = nullptr;
+
+        if (dstRect.GetWidth() == 1 && dstRect.GetHeight() == 1 && canDownSample4xAndMixImage) {
+            downSampleImage = GetDownSample4xAndMixImage(canvas, curImage);
+        } else if (width + height <= DOWN_SAMPLE_BOUNDARY_PIXEL_SIZE && hasDownSample4xShader) {
+            downSampleImage = GetDownSampleImage4x(curImage, canvas, srcRect, dstRect);
+        } else {
+            downSampleImage = GetDownSampleImage(*curImage, *surface, srcRect, dstRect);
+        }
+        if (downSampleImage == nullptr) {
             break;
         }
-        curImage = downsampleImage;
+        curImage = downSampleImage;
         width = dstRect.GetWidth();
         height = dstRect.GetHeight();
     }
 
-    RSColor color;
-    if (!GetAverageColorFromImageAndCache(*curImage, color)) {
-        canvas.AttachBrush(para.brush);
-        canvas.DrawImageRect(*curImage, para.dst, SMAPLING_OPTIONS);
+    UpdateLightBlurResultCache(curImage);
+    DrawImageOnCanvas(canvas, *curImage, para);
+}
+
+void RSLightBlurShaderFilter::DrawImageOnCanvas(Drawing::Canvas& canvas,
+    const Drawing::Image& image, const LightBlurParameter& para)
+{
+    auto brush = para.brush;
+    Drawing::Matrix matrix;
+    matrix.SetScale(para.dst.GetWidth(), para.dst.GetHeight());
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, SAMPLING_OPTIONS, matrix);
+    if (imageShader == nullptr) {
+        canvas.AttachBrush(brush);
+        canvas.DrawImageRect(image, para.dst, SAMPLING_OPTIONS);
         canvas.DetachBrush();
         return;
     }
-
-    UpdateLightBlurResultCache(color);
-    auto brush = para.brush;
-    brush.SetColor(color.AsArgbInt());
+    // the 1x1 shader loss is smaller than DrawImageRect in test.
+    brush.SetShaderEffect(imageShader);
     canvas.AttachBrush(brush);
     canvas.DrawRect(para.dst);
     canvas.DetachBrush();
 }
 
-void RSLightBlurShaderFilter::UpdateLightBlurResultCache(const RSColor& color)
+void RSLightBlurShaderFilter::UpdateLightBlurResultCache(const std::shared_ptr<Drawing::Image>& image)
 {
-    if (lightBlurResultCache_ == nullptr) {
-        lightBlurResultCache_ = std::make_unique<std::pair<RSColor, RSColor>>(color, color);
+    if (lightBlurResultCache_[1] == nullptr) {
+        lightBlurResultCache_[0] = image;
+        lightBlurResultCache_[1] = image;
         return;
     }
-    lightBlurResultCache_->first = lightBlurResultCache_->second;
-    lightBlurResultCache_->second = color;
+    lightBlurResultCache_[0] = lightBlurResultCache_[1];
+    lightBlurResultCache_[1] = image;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -38,122 +38,58 @@ void MultiScreenParamTest::TearDown() {}
 
 /**
  * @tc.name: SetExternalScreenSecure
- * @tc.desc: Verify the SetExternalScreenSecure function
+ * @tc.desc: Verify the SetExternalScreenSecure/IsExternalScreenSecure function
  * @tc.type: FUNC
  * @tc.require: #IBOA5Q
  */
 HWTEST_F(MultiScreenParamTest, SetExternalScreenSecure, Function | SmallTest | Level1)
 {
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.SetExternalScreenSecure(true);
-    EXPECT_EQ(multiScreenParam.isExternalScreenSecure_, true);
-    multiScreenParam.SetExternalScreenSecure(false);
-    EXPECT_EQ(multiScreenParam.isExternalScreenSecure_, false);
-}
-
-/**
- * @tc.name: IsExternalScreenSecure
- * @tc.desc: Verify the result of IsExternalScreenSecure function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, IsExternalScreenSecure, Function | SmallTest | Level1)
-{
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.isExternalScreenSecure_ = true;
-    EXPECT_TRUE(multiScreenParam.IsExternalScreenSecure());
-    multiScreenParam.isExternalScreenSecure_ = false;
-    EXPECT_FALSE(multiScreenParam.IsExternalScreenSecure());
+    MultiScreenParam::SetExternalScreenSecure(true);
+    EXPECT_TRUE(MultiScreenParam::IsExternalScreenSecure());
+    MultiScreenParam::SetExternalScreenSecure(false);
+    EXPECT_FALSE(MultiScreenParam::IsExternalScreenSecure());
 }
 
 /**
  * @tc.name: SetSlrScaleEnabled
- * @tc.desc: Verify the SetSlrScaleEnabled function
+ * @tc.desc: Verify the SetSlrScaleEnabled/IsSlrScaleEnabled function
  * @tc.type: FUNC
  * @tc.require: #IBOA5Q
  */
 HWTEST_F(MultiScreenParamTest, SetSlrScaleEnabled, Function | SmallTest | Level1)
 {
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.SetSlrScaleEnabled(true);
-    EXPECT_EQ(multiScreenParam.isSlrScaleEnabled_, true);
-    multiScreenParam.SetSlrScaleEnabled(false);
-    EXPECT_EQ(multiScreenParam.isSlrScaleEnabled_, false);
-}
-
-/**
- * @tc.name: IsSlrScaleEnabled
- * @tc.desc: Verify the result of IsSlrScaleEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, IsSlrScaleEnabled, Function | SmallTest | Level1)
-{
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.isSlrScaleEnabled_ = true;
-    EXPECT_TRUE(multiScreenParam.IsSlrScaleEnabled());
-    multiScreenParam.isSlrScaleEnabled_ = false;
-    EXPECT_FALSE(multiScreenParam.IsSlrScaleEnabled());
+    MultiScreenParam::SetSlrScaleEnabled(true);
+    EXPECT_TRUE(MultiScreenParam::IsSlrScaleEnabled());
+    MultiScreenParam::SetSlrScaleEnabled(false);
+    EXPECT_FALSE(MultiScreenParam::IsSlrScaleEnabled());
 }
 
 /**
  * @tc.name: SetRsReportHwcDead
- * @tc.desc: Verify the SetRsReportHwcDead function
+ * @tc.desc: Verify the SetRsReportHwcDead/IsRsReportHwcDead function
  * @tc.type: FUNC
  * @tc.require: #IBOA5Q
  */
 HWTEST_F(MultiScreenParamTest, SetRsReportHwcDead, Function | SmallTest | Level1)
 {
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.SetRsReportHwcDead(true);
-    EXPECT_EQ(multiScreenParam.isRsReportHwcDead_, true);
-    multiScreenParam.SetRsReportHwcDead(false);
-    EXPECT_EQ(multiScreenParam.isRsReportHwcDead_, false);
-}
-
-/**
- * @tc.name: IsRsReportHwcDead
- * @tc.desc: Verify the result of IsRsReportHwcDead function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, IsRsReportHwcDead, Function | SmallTest | Level1)
-{
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.isRsReportHwcDead_ = true;
-    EXPECT_TRUE(multiScreenParam.IsRsReportHwcDead());
-    multiScreenParam.isRsReportHwcDead_ = false;
-    EXPECT_FALSE(multiScreenParam.IsRsReportHwcDead());
+    MultiScreenParam::SetRsReportHwcDead(true);
+    EXPECT_TRUE(MultiScreenParam::IsRsReportHwcDead());
+    MultiScreenParam::SetRsReportHwcDead(false);
+    EXPECT_FALSE(MultiScreenParam::IsRsReportHwcDead());
 }
 
 /**
  * @tc.name: SetRsSetScreenPowerStatus
- * @tc.desc: Verify the SetRsSetScreenPowerStatus function
+ * @tc.desc: Verify the SetRsSetScreenPowerStatus/IsRsSetScreenPowerStatus function
  * @tc.type: FUNC
  * @tc.require: #IBOA5Q
  */
 HWTEST_F(MultiScreenParamTest, SetRsSetScreenPowerStatus, Function | SmallTest | Level1)
 {
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.SetRsSetScreenPowerStatus(true);
-    EXPECT_EQ(multiScreenParam.isRsSetScreenPowerStatus_, true);
-    multiScreenParam.SetRsSetScreenPowerStatus(false);
-    EXPECT_EQ(multiScreenParam.isRsSetScreenPowerStatus_, false);
-}
-
-/**
- * @tc.name: IsRsSetScreenPowerStatus
- * @tc.desc: Verify the result of IsRsSetScreenPowerStatus function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, IsRsSetScreenPowerStatus, Function | SmallTest | Level1)
-{
-    MultiScreenParam multiScreenParam;
-    multiScreenParam.isRsSetScreenPowerStatus_ = true;
-    EXPECT_TRUE(multiScreenParam.IsRsSetScreenPowerStatus());
-    multiScreenParam.isRsSetScreenPowerStatus_ = false;
-    EXPECT_FALSE(multiScreenParam.IsRsSetScreenPowerStatus());
+    MultiScreenParam::SetRsSetScreenPowerStatus(true);
+    EXPECT_TRUE(MultiScreenParam::IsRsSetScreenPowerStatus());
+    MultiScreenParam::SetRsSetScreenPowerStatus(false);
+    EXPECT_FALSE(MultiScreenParam::IsRsSetScreenPowerStatus());
 }
 } // namespace Rosen
 } // namespace OHOS

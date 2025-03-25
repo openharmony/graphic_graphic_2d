@@ -40,7 +40,7 @@ RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(NodeId id, RCDSurfaceType type, c
 {
     RS_LOGD("RCD: Start Create RSRcdSurfaceRenderNode %{public}d", type);
     rcdExtInfo_.surfaceType = type;
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(id)};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }

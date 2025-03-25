@@ -42,7 +42,7 @@ private:
     std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffect();
     std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectSM(const int rippleMode);
     std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectSS();
-    std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectKM();
+    std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectMR();
     float progress_ = 0.0f;
     uint32_t waveCount_ = 2;
     float rippleCenterX_ = 0.5f;
@@ -302,7 +302,7 @@ private:
         }
     )";
 
-    inline static const std::string shaderStringKeyMouse = R"(
+    inline static const std::string shaderStringMiniRecv = R"(
         uniform shader image;
         uniform vec2 iResolution;
         uniform float progress;

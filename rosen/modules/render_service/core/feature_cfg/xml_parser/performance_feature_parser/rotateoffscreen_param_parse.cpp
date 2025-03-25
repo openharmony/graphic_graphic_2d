@@ -43,7 +43,7 @@ int32_t RotateOffScreenParamParse::ParseRotateOffScreenInternal(FeatureParamMapT
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[RotateOffScreen]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
     if (iter == featureMap.end()) {
         RS_LOGE("RotateOffScreenParamParse stop parsing, no initializing param map");
         return PARSE_INTERNAL_FAIL;

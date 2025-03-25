@@ -187,4 +187,24 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_005, TestSize.Level1)
     player->Play();
     ASSERT_NE(nullptr, player->mediaPlayer_);
 }
+
+/**
+ * @tc.name: BootVideoPlayerTest_006
+ * @tc.desc: Verify the IsNormalBoot
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_006, TestSize.Level1)
+{
+    PlayerParams params;
+    params.surface = nullptr;
+    BootAnimationCallback callback_ = {
+        .userData = this,
+        .callback = [&](void*) {},
+    };
+    params.callback = &callback_;
+    std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
+    bool result = player->IsNormalBoot();
+    std::string bootReason = system::GetParameter("ohos.boot.reboot_reason", "");
+    EXPECT_EQ(result, bootReason.empty() ? false : true);
+}
 }

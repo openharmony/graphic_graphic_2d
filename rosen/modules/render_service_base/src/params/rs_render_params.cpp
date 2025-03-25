@@ -356,6 +356,15 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
     needSync_ = true;
 }
 
+void RSRenderParams::SetHDRBrightness(float hdrBrightness)
+{
+    if (hdrBrightness_ == hdrBrightness) {
+        return;
+    }
+    hdrBrightness_ = hdrBrightness;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetNeedFilter(bool needFilter)
 {
     if (needFilter_ == needFilter) {
@@ -496,6 +505,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
+    target->hdrBrightness_ = hdrBrightness_;
     target->needFilter_ = needFilter_;
     target->renderNodeType_ = renderNodeType_;
     target->globalAlpha_ = globalAlpha_;

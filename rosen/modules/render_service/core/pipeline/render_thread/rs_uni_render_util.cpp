@@ -774,11 +774,15 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
     ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Scaling mode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceRenderNode): Parameters creation completed");
     return params;
 }
 
@@ -830,6 +834,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
+        " Parameters creation completed");
     return params;
 }
 
@@ -875,6 +881,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
         static_cast<float>(dstRect.w), static_cast<float>(dstRect.h) };
     DealWithRotationAndGravityForRotationFixed(transform, renderParams.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(DrawableV2::RSSurfaceRenderNodeDrawable):"
+        " Parameters creation completed");
     return params;
 }
 
@@ -922,6 +931,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode
     params.acquireFence = surfaceHandler->GetAcquireFence();
     SetSrcRect(params, buffer);
     params.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSDisplayRenderNode): Parameters creation completed");
     return params;
 }
 
@@ -942,6 +953,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     bufferDrawParam.acquireFence = surfaceHandler.GetAcquireFence();
     SetSrcRect(bufferDrawParam, buffer);
     bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(RSSurfaceHandler): Parameters creation completed");
     return bufferDrawParam;
 }
 
@@ -1017,6 +1030,9 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
+
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
     return params;
 }
 
@@ -1511,17 +1527,13 @@ RectI RSUniRenderUtil::SrcRectRotateTransform(const SurfaceBuffer& buffer,
 Drawing::Rect RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
     const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect)
 {
-    const float frameWidth = buffer.GetSurfaceBufferWidth();
-    const float frameHeight = buffer.GetSurfaceBufferHeight();
-    int left = std::clamp<int>(newSrcRect.GetLeft(), 0, frameWidth);
-    int top = std::clamp<int>(newSrcRect.GetTop(), 0, frameHeight);
-    int width = std::clamp<int>(newSrcRect.GetWidth(), 0, frameWidth - left);
-    int height = std::clamp<int>(newSrcRect.GetHeight(), 0, frameHeight - top);
+    const auto frameWidth = buffer.GetSurfaceBufferWidth();
+    const auto frameHeight = buffer.GetSurfaceBufferHeight();
+    auto left = newSrcRect.left_;
+    auto top = newSrcRect.top_;
+    auto width = newSrcRect.right_ - newSrcRect.left_;
+    auto height = newSrcRect.bottom_ - newSrcRect.top_;
     switch (consumerTransformType) {
-        case GraphicTransformType::GRAPHIC_ROTATE_NONE: {
-            newSrcRect = Drawing::Rect(left, top, left + width, top + height);
-            break;
-        }
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
             newSrcRect = Drawing::Rect(frameWidth - width - left, top, frameWidth - left, top + height);
             break;
@@ -1538,6 +1550,10 @@ Drawing::Rect RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& 
         default:
             break;
     }
+    newSrcRect.left_ = std::clamp<int>(std::floor(newSrcRect.GetLeft()), 0, frameWidth);
+    newSrcRect.top_ = std::clamp<int>(std::floor(newSrcRect.GetTop()), 0, frameHeight);
+    newSrcRect.right_ = std::clamp<int>(std::ceil(newSrcRect.GetRight()), left, frameWidth);
+    newSrcRect.bottom_ = std::clamp<int>(std::ceil(newSrcRect.GetBottom()), top, frameHeight);
     return newSrcRect;
 }
 
@@ -1753,6 +1769,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
 
 void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
+    if (node.GetDRMGlobalPositionEnabled()) {
+        return;
+    }
     auto dstRect = node.GetDstRect();
     auto srcRect = node.GetSrcRect();
     auto originSrcRect = srcRect;
@@ -2075,6 +2094,28 @@ void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
     canvas.DrawImageRect(cacheImageProcessed, src, dst, sampling, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
+}
+
+void RSUniRenderUtil::ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas,
+    Drawing::Image& cacheImageProcessed, const RectF& rect)
+{
+    if (cacheImageProcessed.GetWidth() == 0 || cacheImageProcessed.GetHeight() == 0) {
+        RS_TRACE_NAME("ProcessCacheImageForMultiScreenView cacheImageProcessed is invalid");
+        return;
+    }
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    canvas.Save();
+    // Use Fill Mode
+    const float scaleX = rect.GetWidth() / cacheImageProcessed.GetWidth();
+    const float scaleY = rect.GetHeight() / cacheImageProcessed.GetHeight();
+    canvas.Scale(scaleX, scaleY);
+    canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.Restore();
     canvas.DetachBrush();
 }
 

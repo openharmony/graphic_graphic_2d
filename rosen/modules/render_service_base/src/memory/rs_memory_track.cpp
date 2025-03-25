@@ -314,14 +314,16 @@ std::string MemoryTrack::GenerateDumpTitle()
     std::string type_title = Data2String("Type", MEM_TYPE_STRING_LEN);
     std::string pixelmap_info_title = Data2String("Type,UseCnt,IsUnMap,UnMapCnt,Format", PIXELMAP_INFO_STRING_LEN);
     std::string pid_title = Data2String("Pid", MEM_PID_STRING_LEN);
+    std::string initial_pid_title = Data2String("InitialPid", MEM_PID_STRING_LEN);
     std::string wid_title = Data2String("Wid", MEM_WID_STRING_LEN);
     std::string uid_title = Data2String("Uid", MEM_UID_STRING_LEN);
     std::string surfaceNode_title = Data2String("SurfaceName", MEM_SURNODE_STRING_LEN);
     std::string frame_title = Data2String("Frame", MEM_FRAME_STRING_LEN);
     std::string nid_title = Data2String("NodeId", MEM_NODEID_STRING_LEN);
     std::string addr_tile = Data2String("Addr", MEM_ADDR_STRING_LEN);
-    return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + wid_title + "\t" +
-        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title + "\t" + addr_tile;
+    return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + initial_pid_title +
+        "\t" + wid_title + "\t" + uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title +
+        "\t" + addr_tile;
 }
 
 std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::string& wName, RectI& nFrame)
@@ -330,13 +332,14 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
     std::string type_str = Data2String(MemoryType2String(info.type), MEM_TYPE_STRING_LEN);
     std::string pixelmap_info_str = Data2String(PixelMapInfo2String(info), PIXELMAP_INFO_STRING_LEN);
     std::string pid_str = Data2String(std::to_string(ExtractPid(info.nid)), MEM_PID_STRING_LEN);
+    std::string initial_pid_str = Data2String(std::to_string(info.initialPid), MEM_PID_STRING_LEN);
     std::string wid_str = Data2String(std::to_string(wId), MEM_WID_STRING_LEN);
     std::string uid_str = Data2String(std::to_string(info.uid), MEM_UID_STRING_LEN);
     std::string wname_str = Data2String(wName, MEM_SURNODE_STRING_LEN);
     std::string frame_str = Data2String(nFrame.ToString(), MEM_FRAME_STRING_LEN);
     std::string nid_str = Data2String(std::to_string(info.nid), MEM_NODEID_STRING_LEN);
-    return size_str + "\t" + type_str + "\t" + pixelmap_info_str + "\t" + pid_str + "\t" + wid_str + "\t" +
-        uid_str + "\t" + wname_str + "\t" + frame_str + nid_str;
+    return size_str + "\t" + type_str + "\t" + pixelmap_info_str + "\t" + pid_str + "\t" + initial_pid_str +
+        "\t" + wid_str + "\t" + uid_str + "\t" + wname_str + "\t" + frame_str + nid_str;
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
@@ -390,6 +393,17 @@ void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memPicRecord_.emplace(addr, info);
+}
+
+bool MemoryTrack::GetPictureRecordMemInfo(const void* addr, MemoryInfo& info)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto itr = memPicRecord_.find(addr);
+    if (itr != memPicRecord_.end()) {
+        info = itr->second;
+        return true;
+    }
+    return false;
 }
 
 void MemoryTrack::RemovePictureRecord(const void* addr)

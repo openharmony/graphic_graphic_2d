@@ -263,4 +263,32 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest002, testing::ext::TestSize.Lev
     int ret = 1;
     ASSERT_EQ(ret, 1);
 }
+
+/**
+ * @tc.name: GetPictureRecordMemInfoTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetPictureRecordMemInfoTest001, testing::ext::TestSize.Level1)
+{
+    void* addr = reinterpret_cast<void*>(0x12345678); // for index
+    MemoryInfo info = { 1, 2, 3, 4, MEMORY_TYPE::MEM_SKIMAGE, 5, // for test, compare
+        OHOS::Media::AllocatorType::HEAP_ALLOC, OHOS::Media::PixelFormat::ARGB_8888};
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+    MemoryInfo testInfo = { 0 };
+    bool ret = MemoryTrack::Instance().GetPictureRecordMemInfo(addr, testInfo);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(testInfo.size, info.size);
+    ASSERT_EQ(testInfo.pid, info.pid);
+    ASSERT_EQ(testInfo.nid, info.nid);
+    ASSERT_EQ(testInfo.uid, info.uid);
+    ASSERT_EQ(testInfo.type, info.type);
+    ASSERT_EQ(testInfo.initialPid, info.initialPid);
+    ASSERT_EQ(testInfo.allocType, info.allocType);
+    ASSERT_EQ(testInfo.pixelMapFormat, info.pixelMapFormat);
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+    ret = MemoryTrack::Instance().GetPictureRecordMemInfo(addr, testInfo);
+    ASSERT_FALSE(ret);
+}
 } // namespace OHOS::Rosen

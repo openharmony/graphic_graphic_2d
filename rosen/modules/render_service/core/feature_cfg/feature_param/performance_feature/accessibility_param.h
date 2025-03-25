@@ -26,22 +26,22 @@ public:
     AccessibilityParam() = default;
     ~AccessibilityParam() = default;
 
-    bool IsHighContrastEnabled() const;
-    bool IsCurtainScreenEnabled() const;
-    bool IsColorReverseEnabled() const;
-    bool IsColorCorrectionEnabled() const;
+    static bool IsHighContrastEnabled();
+    static bool IsCurtainScreenEnabled();
+    static bool IsColorReverseEnabled();
+    static bool IsColorCorrectionEnabled();
 
 protected:
-    void SetHighContrastEnabled(bool isEnable);
-    void SetCurtainScreenEnabled(bool isEnable);
-    void SetColorReverseEnabled(bool isEnable);
-    void SetColorCorrectionEnabled(bool isEnable);
+    static void SetHighContrastEnabled(bool isEnable);
+    static void SetCurtainScreenEnabled(bool isEnable);
+    static void SetColorReverseEnabled(bool isEnable);
+    static void SetColorCorrectionEnabled(bool isEnable);
 
 private:
-    bool isHighContrastEnabled_ = true;
-    bool isCurtainScreenEnabled_ = true;
-    bool isColorReverseEnabled_ = true;
-    bool isColorCorrectionEnabled_ = true;
+    inline static bool isHighContrastEnabled_ = true;
+    inline static bool isCurtainScreenEnabled_ = true;
+    inline static bool isColorReverseEnabled_ = true;
+    inline static bool isColorCorrectionEnabled_ = true;
 
     friend class AccessibilityParamParse;
 };

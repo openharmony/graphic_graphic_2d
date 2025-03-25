@@ -39,6 +39,8 @@ public:
 private:
     EglWrapperLayer() : initialized_(false), dlhandle_(nullptr) {};
     bool LoadLayers(void);
+    bool LoadLayers(const std::string& libname, const std::vector<std::string> &layerPaths);
+    bool DoLoadLayers(const std::vector<std::string>& layers);
     bool LoadLayerFuncs(const std::string& realLayerPath);
     void InitLayers(EglWrapperDispatchTable *table);
     void SetupLayerFuncTbl(EglWrapperDispatchTable *table);

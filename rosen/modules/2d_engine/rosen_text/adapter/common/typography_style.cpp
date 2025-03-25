@@ -28,7 +28,7 @@ TextStyle TypographyStyle::GetTextStyle() const
         .halfLeading = halfLeading,
         .heightOnly = heightOnly,
         .locale = locale,
-        .textStyleUid = textStyleUid,
+        .textStyleUid = defaultTextStyleUid,
     };
     if (fontSize >= 0) {
         style.fontSize = fontSize;

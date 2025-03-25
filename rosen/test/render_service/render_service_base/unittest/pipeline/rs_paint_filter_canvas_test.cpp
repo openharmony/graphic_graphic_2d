@@ -1509,6 +1509,21 @@ HWTEST_F(RSPaintFilterCanvasTest, HdrOnTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRBrightness GetHDRBrightness
+ * @tc.desc: SetHDRBrightness/GetHDRBrightness
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetHDRBrightness(1.0f);
+    EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 1.0f);
+    paintFilterCanvas_->SetHDRBrightness(0.2f);
+    EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 0.2f);
+}
+
+/**
  * @tc.name: DrawSdfTest001
  * @tc.desc: DrawSdf Test
  * @tc.type:FUNC

@@ -37,63 +37,32 @@ void ColorGamutParamTest::SetUp() {}
 void ColorGamutParamTest::TearDown() {}
 
 /**
- * @tc.name: SetCoveredSurfaceCloseP3
- * @tc.desc: Verify the SetCoveredSurfaceCloseP3 function
+ * @tc.name: SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3
+ * @tc.desc: Verify the SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3 function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, SetCoveredSurfaceCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, CoveredSurfaceCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.SetCoveredSurfaceCloseP3(true);
-    EXPECT_EQ(colorGamutParam.isCoveredSurfaceCloseP3_, true);
-    colorGamutParam.SetCoveredSurfaceCloseP3(false);
-    EXPECT_EQ(colorGamutParam.isCoveredSurfaceCloseP3_, false);
+    ColorGamutParam::SetCoveredSurfaceCloseP3(true);
+    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), true);
+    ColorGamutParam::SetCoveredSurfaceCloseP3(false);
+    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), false);
 }
 
 /**
- * @tc.name: SetSLRCloseP3
- * @tc.desc: Verify the SetSLRCloseP3 function
+ * @tc.name: SetSLRCloseP3 IsSLRCloseP3
+ * @tc.desc: Verify the SetSLRCloseP3 IsSLRCloseP3 function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, SetSLRCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, SLRCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.SetSLRCloseP3(true);
-    EXPECT_EQ(colorGamutParam.isSLRCloseP3_, true);
-    colorGamutParam.SetSLRCloseP3(false);
-    EXPECT_EQ(colorGamutParam.isSLRCloseP3_, false);
+    ColorGamutParam::SetSLRCloseP3(true);
+    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), true);
+    ColorGamutParam::SetSLRCloseP3(false);
+    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), false);
 }
 
-/**
- * @tc.name: IsCoveredSurfaceCloseP3
- * @tc.desc: Verify the result of IsCoveredSurfaceCloseP3 function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(ColorGamutParamTest, IsCoveredSurfaceCloseP3, Function | SmallTest | Level1)
-{
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.isCoveredSurfaceCloseP3_ = true;
-    EXPECT_TRUE(colorGamutParam.IsCoveredSurfaceCloseP3());
-    colorGamutParam.isCoveredSurfaceCloseP3_ = false;
-    EXPECT_FALSE(colorGamutParam.IsCoveredSurfaceCloseP3());
-}
-
-/**
- * @tc.name: IsSLRCloseP3
- * @tc.desc: Verify the result of IsSLRCloseP3 function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(ColorGamutParamTest, IsSLRCloseP3, Function | SmallTest | Level1)
-{
-    ColorGamutParam colorGamutParam;
-    colorGamutParam.isSLRCloseP3_ = true;
-    EXPECT_TRUE(colorGamutParam.IsSLRCloseP3());
-    colorGamutParam.isSLRCloseP3_ = false;
-    EXPECT_FALSE(colorGamutParam.IsSLRCloseP3());
-}
 } // namespace Rosen
 } // namespace OHOS

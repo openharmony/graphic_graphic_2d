@@ -29,8 +29,6 @@ public:
 
 private:
     int32_t ParseAccessibilityInternal(FeatureParamMapType &featureMap, xmlNode &node);
-
-    std::shared_ptr<AccessibilityParam> accessibilityParam_;
 };
 } // namespace OHOS::Rosen
 #endif // ACCESSIBILITY_PARAM_PARSE_H

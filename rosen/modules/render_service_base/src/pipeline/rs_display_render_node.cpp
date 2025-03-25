@@ -37,7 +37,7 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64
         ", isMirrored:%{public}d, mirrorNodeId:%{public}" PRIu64 ", isSync:%{public}d]",
         id, screenId_, config.isMirrored, config.mirrorNodeId, config.isSync);
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(id)};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
@@ -159,10 +159,10 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         hasMirroredDisplayChanged_ = true;
     }
     isMirroredDisplay_ = isMirror;
-    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%s]",
-        GetId(), IsMirrorDisplay() ? "true" : "false");
-    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
-        GetId(), IsMirrorDisplay() ? "true" : "false");
+    RS_TRACE_NAME_FMT("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%" PRIu64 "], isMirrorDisplay: [%d]",
+        GetId(), IsMirrorDisplay());
+    RS_LOGI("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}d]",
+        GetId(), IsMirrorDisplay());
 }
 
 void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
@@ -405,18 +405,6 @@ bool RSDisplayRenderNode::IsRotationChanged() const
     return !(ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd);
 }
 
-bool RSDisplayRenderNode::IsRotationFinished() const
-{
-    auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeoPtr == nullptr) {
-        return false;
-    }
-    // boundsGeoPtr->IsNeedClientCompose() return false if rotation degree is times of 90
-    // which means rotation is end.
-    bool isRotationEnd = !boundsGeoPtr->IsNeedClientCompose();
-    return !ROSEN_EQ(boundsGeoPtr->GetRotation(), lastRotation_) && isRotationEnd;
-}
-
 void RSDisplayRenderNode::UpdateRotation()
 {
 #ifdef RS_ENABLE_GPU
@@ -431,7 +419,6 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
-    displayParams->SetRotationFinished(IsRotationFinished());
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
@@ -637,6 +624,19 @@ void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> c
 std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
 {
     return windowContainer_;
+}
+
+void RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable displayParams is null");
+        return;
+    }
+    displayParams->SetTargetSurfaceRenderNodeDrawable(drawable);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -117,7 +117,7 @@ HWTEST_F(RSCustomInterpolatorTest, UnmarshallingTest, TestSize.Level1)
     Parcel parcel;
     RSCustomInterpolator* rsCustom;
     rsCustom = rsCustomInterpolator.Unmarshalling(parcel);
-    EXPECT_NE(rsCustom, nullptr);
+    EXPECT_EQ(rsCustom, nullptr);
 }
 
 /**

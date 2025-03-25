@@ -87,6 +87,8 @@ namespace {
         {"STYLUS_NO_LINK", STYLUS_NO_LINK},
         {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
         {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE}};
+    constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
+    constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -154,6 +156,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         std::string strategy, const bool isAddVoter) {
         ProcessPageUrlVote(pid, strategy, isAddVoter);
     });
+    FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
 }
 
 void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
@@ -1274,7 +1277,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
     RS_TRACE_NAME_FMT("MarkVoteChange: %d %d", currRefreshRate_.load(), refreshRate);
     currRefreshRate_.store(refreshRate);
-    schedulePreferredFpsChange_ = true;
+    schedulePreferredFpsChange_ = needChangeDssRefreshRate;
     FrameRateReport();
 
     bool frameRateChanged = false;
@@ -1895,6 +1898,23 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
     }
+}
+
+void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
+{
+    HgmTaskHandleThread::Instance().PostTask(
+        [this, leftRetryTimes] () {
+            if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
+                HGM_LOGI("FrameRateReportTask run and left retry: %{public}d", leftRetryTimes);
+                schedulePreferredFpsChange_ = true;
+                FrameRateReport();
+                return;
+            }
+            if (leftRetryTimes > 1) {
+                FrameRateReportTask(leftRetryTimes - 1);
+            }
+        },
+        FRAME_RATE_REPORT_DELAY_TIME);
 }
 } // namespace Rosen
 } // namespace OHOS

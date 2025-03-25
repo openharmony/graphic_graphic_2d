@@ -54,9 +54,6 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-RSUifirstManager::RSUifirstManager() : useDmaBuffer_(false)
-{}
-
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
@@ -380,7 +377,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
-        RSMainThread::Instance()->IsUIFirstOn();
+        GetUiFirstSwitch();
     bool changeColorSpace = drawable->GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         if (isScRGBEnable && changeColorSpace) {
@@ -537,6 +534,8 @@ void RSUifirstManager::PostSubTask(NodeId id)
     // 1.find in cache list(done to dele) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (drawable) {
+        // record uifirst dirty region
+        drawable->UpdateUifirstDirtyManager();
         // ref drawable
         subthreadProcessingNode_.emplace(id, drawable);
         // post task
@@ -624,30 +623,10 @@ void RSUifirstManager::UpdateSkipSyncNode()
 void RSUifirstManager::ProcessSubDoneNode()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("ProcessSubDoneNode");
-    ConvertPendingNodeToDrawable();
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
     ResetCurrentFrameDeletedCardNodes();
-}
-
-void RSUifirstManager::ConvertPendingNodeToDrawable()
-{
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    pendingPostDrawables_.clear();
-    for (const auto& iter : pendingPostNodes_) {
-        if (iter.second && GetUseDmaBuffer(iter.second->GetName())) {
-            if (auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second)) {
-                pendingPostDrawables_.emplace_back(
-                    std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
-            }
-        }
-    }
 }
 
 static inline void SetUifirstSkipPartialSync(const std::shared_ptr<RSRenderNode> &node, bool needSync)
@@ -1192,10 +1171,32 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
 {
     RS_TRACE_NAME_FMT("RSUifirstManager::OnProcessAnimateScene systemAnimatedScene:%d", systemAnimatedScene);
-    if ((systemAnimatedScene == SystemAnimatedScenes::ENTER_RECENTS) && !isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = true;
-    } else if ((systemAnimatedScene == SystemAnimatedScenes::EXIT_RECENTS) && isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = false;
+    RS_LOGI("RSUifirstManager::OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
+    switch (systemAnimatedScene) {
+        // recent task scene for phone
+        case SystemAnimatedScenes::ENTER_RECENTS:
+            isRecentTaskScene_.store(true);
+            break;
+        case SystemAnimatedScenes::EXIT_RECENTS:
+            isRecentTaskScene_.store(false);
+            break;
+        // enter and exit mission center are two independent animations, the same goes for enter and exit split screen
+        // enter and exit mission center or enter and exit split screen animation starts for PC
+        case SystemAnimatedScenes::ENTER_MISSION_CENTER:
+        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
+            isMissionCenterScene_.store(true);
+            break;
+        case SystemAnimatedScenes::ENTER_SPLIT_SCREEN:
+        case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
+            isSplitScreenScene_.store(true);
+            break;
+        // enter and exit mission center or enter and exit split screen animation ends for PC
+        case SystemAnimatedScenes::OTHERS:
+            isMissionCenterScene_.store(false);
+            isSplitScreenScene_.store(false);
+            break;
+        default:
+            break;
     }
 }
 
@@ -1234,17 +1235,6 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     }
     for (auto& item : events) {
         if (IsCardSkipFirstWaitScene(item.sceneId, item.appPid)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool RSUifirstManager::IsScreenshotAnimation()
-{
-    for (auto& it : currentFrameEvent_) {
-        if (std::find(screenshotAnimation_.begin(), screenshotAnimation_.end(), it.sceneId) !=
-            screenshotAnimation_.end()) {
             return true;
         }
     }
@@ -1307,9 +1297,6 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    if (RSUifirstManager::Instance().GetUseDmaBuffer(node.GetName())) {
-        return true;
-    }
     bool isNeedAssignToSubThread = false;
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
@@ -1379,6 +1366,12 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        return false;
+    }
+    // disable uifirst when leash window has no app window at recent task scene or split screen scene
+    if (node.IsLeashWindow() && node.IsScale() && !LeashWindowContainMainWindow(node) &&
+        (RSUifirstManager::Instance().IsMissionCenterScene() || RSUifirstManager::Instance().IsSplitScreenScene())) {
+        RS_TRACE_NAME("leash window has no app window, disable uifirst");
         return false;
     }
     return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
@@ -1543,30 +1536,6 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 
-void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects)
-{
-    if (!GetUseDmaBuffer(node.GetName())) {
-        return;
-    }
-    bool intersect = false;
-    for (auto& rect : rects) {
-        if (rect.Intersect(node.GetAbsDrawRect())) {
-            intersect = true;
-            break;
-        }
-    }
-    node.SetHardwareForcedDisabledState(intersect);
-    if (intersect) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
-            node.GetName().c_str(), node.GetId());
-    }
-    Drawing::Matrix totalMatrix;
-    float alpha = 1.f;
-    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    RSUniRenderUtil::AccumulateMatrixAndAlpha(surfaceNode, totalMatrix, alpha);
-    node.SetTotalMatrix(totalMatrix);
-}
-
 void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType)
 {
     auto lastFrameCacheType = node.GetLastFrameUifirstFlag();
@@ -1653,51 +1622,6 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
     node.SetUifirstChildrenDirtyRectParam(rect);
 }
 
-void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
-{
-    if (!processor) {
-        return;
-    }
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    for (auto& drawable : pendingPostDrawables_) {
-        if (!drawable) {
-            continue;
-        }
-        auto& param = drawable->GetRenderParams();
-        if (!param) {
-            continue;
-        }
-        auto params = static_cast<RSSurfaceRenderParams*>(param.get());
-        if (params && params->GetHardwareEnabled()) {
-            processor->CreateUIFirstLayer(*drawable, *params);
-        }
-    }
-}
-
-void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
-{
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    for (const auto& iter : pendingPostNodes_) {
-        auto& node = iter.second;
-        if (node && GetUseDmaBuffer(node->GetName())) {
-            node->GetRSSurfaceHandler()->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
-            auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
-            node->UpdateHwcNodeLayerInfo(transform);
-            node->SetIsLastFrameHwcEnabled(!node->IsHardwareForcedDisabled());
-        }
-    }
-}
-
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
     RSUifirstManager::Instance().CheckCurrentFrameHasCardNodeReCreate(node);
@@ -1722,17 +1646,6 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 void RSUifirstManager::AddCapturedNodes(NodeId id)
 {
     capturedNodes_.push_back(id);
-}
-
-void RSUifirstManager::SetUseDmaBuffer(bool val)
-{
-    useDmaBuffer_ = false;
-}
-
-bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
-{
-    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-    return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
 
 void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()
@@ -1771,19 +1684,11 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
 
 void RSUifirstManager::ReadUIFirstCcmParam()
 {
-    auto uifirstFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("UIFirstConfig");
-    std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
-    isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
-    isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
-    SetUiFirstType(uifirstParam->GetUIFirstType());
-    auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
-    if (param) {
-        isUiFirstOn_ = param->IsUIFirstEnable();
-        isCardUiFirstOn_ = param->IsCardUIFirstEnable();
-        SetUiFirstType(param->GetUIFirstType());
-        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-            " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
-    }
+    isUiFirstOn_ = UIFirstParam::IsUIFirstEnable();
+    isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
+    SetUiFirstType(UIFirstParam::GetUIFirstType());
+    RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
+        " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -1798,6 +1703,27 @@ void RSUifirstManager::SetUiFirstType(int type)
     } else if (type == (int)UiFirstCcmType::HYBRID) {
         uifirstType_ = UiFirstCcmType::HYBRID;
     }
+}
+
+void RSUifirstManager::RefreshUIFirstParam()
+{
+#ifdef RS_ENABLE_GPU
+    RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
+    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext()
+        .GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    auto firstChildren = rootNode->GetFirstChild();
+    if (!firstChildren) {
+        return;
+    }
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
+    if (!displayNode) {
+        return;
+    }
+    isUiFirstSupportFlag_ = true;
+#endif
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

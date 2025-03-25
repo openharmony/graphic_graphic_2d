@@ -41,6 +41,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "platform/common/rs_hisysevent.h"
 #include "graphic_feature_param_manager.h"
 
@@ -253,6 +254,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
+
+        RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(output->GetScreenId());
+
         RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData hasGameScene is %{public}d %{public}s",
             hasGameScene, surfaceName.c_str());
         if (hasGameScene) {
@@ -710,6 +714,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
     }
     ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    hgmCore.SetScreenSwitchDssEnable(id, true);
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId ||
         needRetrySetRate_) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
@@ -775,7 +780,7 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
     if (followPipline) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
-            if (vsyncId != refreshRateParam_.vsyncId) {
+            if (vsyncId != refreshRateParam_.vsyncId || !HgmCore::Instance().IsSwitchDssEnable(screenId)) {
                 return;
             }
             // switch hardware vsync
@@ -786,6 +791,9 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
     } else {
         auto outputIter = outputMap_.find(screenId);
         if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+            return;
+        }
+        if (HgmCore::Instance().GetActiveScreenId() != screenId) {
             return;
         }
         ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
@@ -911,18 +919,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
     bool isProtected = false;
-    bool isDefaultScreen = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        isDefaultScreen = screenManager->GetDefaultScreenId() == ToScreenId(screenId);
-    }
-    static bool isCCMDrmEnabled = std::static_pointer_cast<DRMParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DRM]))->IsDrmEnable();
+
+    static bool isCCMDrmEnabled = DRMParam::IsDrmEnable();
     bool isDrmEnabled = RSSystemProperties::GetDrmEnabled() && isCCMDrmEnabled;
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (isDrmEnabled && isDefaultScreen) {
+        if (isDrmEnabled) {
             for (const auto& layer : layers) {
                 if (layer && layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
                     isProtected = true;
@@ -945,6 +949,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
+    RS_LOGD("RSHardwareThread::Redraw computed target color gamut: %{public}d,"
+        "pixel format: %{public}d, frame width: %{public}d, frame height: %{public}d",
+        colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
         isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);

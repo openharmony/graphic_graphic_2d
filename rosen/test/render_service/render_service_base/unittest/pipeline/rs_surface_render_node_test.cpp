@@ -653,6 +653,36 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDRMGlobalPositionEnabledTest
+ * @tc.desc: SetDRMGlobalPositionEnabled and GetDRMGlobalPositionEnabled
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDRMGlobalPositionEnabledTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetDRMGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetDRMGlobalPositionEnabled(), true);
+}
+
+/**
+ * @tc.name: SetDRMCrossNodeTest
+ * @tc.desc: SetDRMCrossNode and GetDRMCrossNode
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetDRMCrossNodeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetDRMCrossNode(true);
+    ASSERT_EQ(node->IsDRMCrossNode(), true);
+    node->SetDRMCrossNode(false);
+    ASSERT_FALSE(node->IsDRMCrossNode());
+}
+
+/**
  * @tc.name: AncestorDisplayNodeTest
  * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
  * @tc.type:FUNC
@@ -2515,6 +2545,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, DealWithDrawBehindWindowTransparentRegion002, 
 
     testNode->DealWithDrawBehindWindowTransparentRegion();
     ASSERT_FALSE(regionBeforeProcess.Sub(testNode->opaqueRegion_).IsEmpty());
+}
+
+/**
+ * @tc.name: GetSourceDisplayRenderNodeId
+ * @tc.desc: test Set/GetSourceDisplayRenderNodeId.
+ * @tc.type: FUNC
+ * @tc.require: issueIBJJRI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    NodeId sourceDisplayRenderNodeId = 1;
+    testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
+    ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

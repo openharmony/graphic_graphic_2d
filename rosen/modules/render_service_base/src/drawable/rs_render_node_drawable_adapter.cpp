@@ -424,7 +424,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec(const std::shared_ptr<R
 bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (paintFilterCanvas->IsDirtyRegionStackEmpty() || paintFilterCanvas->GetIsParallelCanvas()) {
+    if (paintFilterCanvas->IsDirtyRegionStackEmpty()) {
         return false;
     }
 

@@ -506,7 +506,9 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
         delete object;
         return nullptr;
     }
-    object->rsImage_->MarkPurgeable();
+    if (object->rsImage_) {
+        object->rsImage_->MarkPurgeable();
+    }
     return object;
 }
 

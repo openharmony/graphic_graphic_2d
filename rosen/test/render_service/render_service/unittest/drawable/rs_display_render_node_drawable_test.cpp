@@ -195,7 +195,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
     auto rotateOffScreenFeatureParam =
-         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[RotateOffScreen]);
+         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
     auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
     if (rotateOffScreenParam == nullptr) {
         rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();
@@ -233,28 +233,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender002, TestSize.Le
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
-}
-
-/**
- * @tc.name: InitTranslateForWallpaper
- * @tc.desc: Test InitTranslateForWallpaper
- * @tc.type: FUNC
- * @tc.require: #IB5JZQ
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    system::SetParameter("const.cache.optimize.rotate.enable", "true");
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    params->frameRect_ = {0.f, 0.f, 100.f, 100.f};
-    params->screenInfo_.width = 100;
-    params->screenInfo_.height = 100;
-    displayDrawable_->InitTranslateForWallpaper();
-    auto& rtThread = RSUniRenderThread::Instance();
-    EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
-    EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
-    system::SetParameter("const.cache.optimize.rotate.enable", "false");
 }
 
 /**
@@ -577,6 +555,33 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
 }
 
 /**
+ * @tc.name: DRMCreateLayer
+ * @tc.desc: Test DRMCreateLayer
+ * @tc.type: FUNC
+ * @tc.require: #IAX2SN
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DRMCreateLayerTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    ASSERT_NE(processor, nullptr);
+    displayDrawable_->DRMCreateLayer(processor);
+
+    NodeId id = 1;
+    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
+    params->hardwareEnabledDrawables_.push_back(drawableAdapter);
+    ASSERT_TRUE(params->GetHardwareEnabledDrawables().size() != 0);
+
+    displayDrawable_->DRMCreateLayer(processor);
+}
+
+/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC
@@ -594,11 +599,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     auto result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
-
-    std::shared_ptr<RSSurfaceRenderNodeDrawable> drawable = nullptr;
-    RSUifirstManager::Instance().pendingPostDrawables_.push_back(drawable);
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    ASSERT_EQ(result, false);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
@@ -625,7 +625,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
-    RSUifirstManager::Instance().pendingPostDrawables_.clear();
 }
 
 /**
@@ -827,17 +826,41 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawExpandScreen
+ * @tc.name: DrawExpandScreen001
  * @tc.desc: Test DrawExpandScreen
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest, TestSize.Level1)
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest001, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
+    NodeId id = 1;
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(renderNode, nullptr);
+    auto surfaceRenderNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
+    auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
+    displayRenderParams->SetTargetSurfaceRenderNodeDrawable(surfaceRenderNodeDrawable);
+    displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
+    ASSERT_EQ(displayDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+}
 
-    auto virtualProcesser = new RSUniRenderVirtualProcessor();
-    displayDrawable_->DrawExpandScreen(*virtualProcesser);
+/**
+ * @tc.name: DrawExpandScreen002
+ * @tc.desc: Test DrawExpandScreen
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest002, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    NodeId id = 1;
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
+    displayRenderParams->SetTargetSurfaceRenderNodeDrawable(std::weak_ptr<RSSurfaceRenderNodeDrawable>());
+    displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
+    ASSERT_EQ(displayDrawable_->GetCacheImgForMultiScreenView(), nullptr);
 }
 
 /**

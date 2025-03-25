@@ -38,8 +38,9 @@ public:
 
 class MockRSColorspaceConvert : public RSColorSpaceConvert {
 public:
-    MOCK_METHOD5(SetColorSpaceConverterDisplayParameter, bool(const sptr<SurfaceBuffer>& surfaceBuffer,
-        VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode));
+    MOCK_METHOD6(SetColorSpaceConverterDisplayParameter, bool(const sptr<SurfaceBuffer>& surfaceBuffer,
+        VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
+        float hdrBrightness));
 };
 
 void RSColorspaceConvertTest::SetUpTestCase() {}
@@ -59,9 +60,10 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor001, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(nullptr, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -77,6 +79,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor002, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -88,7 +91,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor002, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -104,6 +107,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor201, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -115,7 +119,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor201, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -131,6 +135,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor202, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -142,7 +147,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor202, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -158,6 +163,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor203, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -169,7 +175,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor203, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -185,6 +191,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor204, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -196,7 +203,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor204, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -212,6 +219,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor205, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -223,7 +231,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor205, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -239,6 +247,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor206, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -250,7 +259,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor206, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, nullptr, paint, targetColorSpace,
-        screenId, dynamicRangeMode);
+        screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -266,6 +275,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor003, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     Drawing::SamplingOptions sampling;
     Drawing::Matrix matrix;  //Identity Matrix
@@ -279,7 +289,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor003, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, surfaceBuffer, paint,
-        targetColorSpace, screenId, dynamicRangeMode);
+        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -300,9 +310,10 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor004, TestSize.Level1)
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
     Drawing::Paint paint;
 
-    EXPECT_CALL(*mockRSColorspaceConvert, SetColorSpaceConverterDisplayParameter(_, _, _, _, _))
+    EXPECT_CALL(*mockRSColorspaceConvert, SetColorSpaceConverterDisplayParameter(_, _, _, _, _, _))
         .WillRepeatedly(testing::Return(true));
 
     Drawing::SamplingOptions sampling;
@@ -314,7 +325,7 @@ HWTEST_F(RSColorspaceConvertTest, ColorSpaceConvertor004, TestSize.Level1)
     ASSERT_TRUE(imageShader != nullptr);
 
     bool ret = mockRSColorspaceConvert->ColorSpaceConvertor(imageShader, surfaceBuffer, paint,
-        targetColorSpace, screenId, dynamicRangeMode);
+        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -329,13 +340,14 @@ HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter001, Tes
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create().GetRefPtr();
     ASSERT_TRUE(surfaceBuffer != nullptr);
     VPEParameter parameter;
 
     bool ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter,
-        targetColorSpace, screenId, dynamicRangeMode);
+        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 
@@ -350,12 +362,13 @@ HWTEST_F(RSColorspaceConvertTest, SetColorSpaceConverterDisplayParameter002, Tes
     GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ScreenId screenId = 0;
     uint32_t dynamicRangeMode = 1;
+    float hdrBrightness = 1.0f;
 
     sptr<SurfaceBuffer> surfaceBuffer;
     VPEParameter parameter;
 
     bool ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(nullptr, parameter,
-        targetColorSpace, screenId, dynamicRangeMode);
+        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     ASSERT_TRUE(ret == false);
 }
 

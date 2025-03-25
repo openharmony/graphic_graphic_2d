@@ -350,7 +350,7 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling001, TestSize.Level1)
     Parcel parcel2;
     parcel2.WriteUint16(InterpolatorType::CUSTOM);
     std::shared_ptr<RSInterpolator> interpolator2(RSInterpolator::Unmarshalling(parcel2));
-    EXPECT_TRUE(interpolator2 != nullptr);
+    EXPECT_FALSE(interpolator2 != nullptr);
 
     Parcel parcel3;
     parcel3.WriteUint16(InterpolatorType::CUBIC_BEZIER);
@@ -390,7 +390,7 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling002, TestSize.Level1)
     Parcel parcel2;
     parcel2.WriteUint16(InterpolatorType::CUSTOM);
     std::shared_ptr<RSInterpolator> interpolator2(RSInterpolator::UnmarshallingFromParcel(parcel2));
-    EXPECT_TRUE(interpolator2 != nullptr);
+    EXPECT_FALSE(interpolator2 != nullptr);
 
     Parcel parcel3;
     parcel3.WriteUint16(InterpolatorType::CUBIC_BEZIER);

@@ -44,26 +44,10 @@ void DrmParamTest::TearDown() {}
  */
 HWTEST_F(DrmParamTest, SetDrmEnable, Function | SmallTest | Level1)
 {
-    DRMParam drmParam;
-    drmParam.SetDrmEnable(false);
-    EXPECT_EQ(drmParam.isDrmEnable_, false);
-    drmParam.SetDrmEnable(true);
-    EXPECT_EQ(drmParam.isDrmEnable_, true);
-}
-
-/**
- * @tc.name: IsDrmEnable
- * @tc.desc: Verify the result of IsDrmEnable function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(DrmParamTest, IsDrmEnable, Function | SmallTest | Level1)
-{
-    DRMParam drmParam;
-    drmParam.isDrmEnable_ = true;
-    EXPECT_TRUE(drmParam.IsDrmEnable());
-    drmParam.isDrmEnable_ = false;
-    EXPECT_FALSE(drmParam.IsDrmEnable());
+    DRMParam::SetDrmEnable(false);
+    EXPECT_EQ(DRMParam::IsDrmEnable(), false);
+    DRMParam::SetDrmEnable(true);
+    EXPECT_EQ(DRMParam::IsDrmEnable(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

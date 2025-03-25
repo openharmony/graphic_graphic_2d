@@ -361,4 +361,21 @@ HWTEST_F(RSRectTest, Unmarshalling001, TestSize.Level1)
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
     ASSERT_FALSE(rect.Unmarshalling(parcel));
 }
+
+/**
+ * @tc.name: Inset001
+ * @tc.desc: Verify function RRect Inset
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRectTest, Inset001, TestSize.Level1)
+{
+    RRect rrect;
+    rrect.rect_.SetAll(1.f, 1.f, 10.f, 10.f); // width_ and height_ set 10.f
+    Vector4f width = { 1.f };
+    RRect rrect1 = rrect.Inset(width);
+    EXPECT_EQ(rrect1.rect_.GetLeft(), 2.f); // 2.f is left + width.x_
+    EXPECT_EQ(rrect1.rect_.GetWidth(), 8.f); // 8.f is width_ - (width.x_ + width.y_)
+    EXPECT_NE(rrect1.radius_[0], rrect.radius_[0]);
+}
 } // namespace OHOS::Rosen

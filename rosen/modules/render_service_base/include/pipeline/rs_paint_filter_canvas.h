@@ -302,6 +302,8 @@ public:
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
+    float GetHDRBrightness() const;
+    void SetHDRBrightness(float hdrBrightness);
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
@@ -357,6 +359,7 @@ private:
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    float hdrBrightness_ = 1.0f; // Default 1.0f means max available headroom
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     Drawing::Surface* surface_ = nullptr;

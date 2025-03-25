@@ -430,7 +430,7 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer_);
         auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
         if (!RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint, targetColorSpace, 0,
-            DynamicRangeMode::STANDARD)) {
+            DynamicRangeMode::STANDARD, 1.0f)) {
             RS_LOGE("[PixelMapFromSurface] CanvasDrawImage ColorSpaceConvertor fail");
             return false;
         }

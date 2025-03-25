@@ -1,0 +1,131 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+if (defined(graphic_2d_ext_feature_enable_ddgr) &&
+    (graphic_2d_ext_feature_enable_ddgr || ddgr_feature_cross_compile)) {
+  action("generate_shader_register_code") {
+    sources = ddgr_shader_register_set.sources
+    script = ddgr_shader_register_set.script
+    args = ddgr_shader_register_set.args
+    outputs = ddgr_shader_register_set.outputs
+  }
+
+  ohos_shared_library("libddgr_compiler") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+
+    ldflags = ddgr_compiler_set.ldflags
+    deps = [ ":ddgr_compiler_src_set" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+
+  ohos_source_set("ddgr_compiler_src_set") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+
+    configs = [ ":ddgr_compiler_config" ]
+    sources = ddgr_compiler_src_set.sources
+    public_external_deps = ddgr_compiler_src_set.public_external_deps
+    configs += ddgr_compiler_src_set.configs
+
+    deps = [ ":generate_shader_register_code" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+
+  config("ddgr_compiler_config") {
+    cflags = ddgr_compiler_src_set.cflags
+    cflags_cc = ddgr_compiler_src_set.cflags_cc
+    defines = ddgr_compiler_src_set.defines
+    include_dirs = ddgr_compiler_src_set.include_dirs
+  }
+
+  ohos_shared_library("libddgr") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+
+    deps = [ ":ddgr_src_set" ]
+    data_deps = [ ":libddgr_compiler" ]
+    public_configs = [ ":public_ddgr_config" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+
+  ohos_source_set("ddgr_src_set") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+
+    sources = ddgr_src_set.sources
+    configs = [ ":ddgr_config" ]
+    external_deps = ddgr_src_set.external_deps
+    deps = ddgr_src_set.deps
+
+    deps += [ ":generate_shader_register_code" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+
+  config("ddgr_config") {
+    cflags = ddgr_src_set.cflags
+    cflags_cc = ddgr_src_set.cflags_cc
+    defines = ddgr_src_set.defines
+    include_dirs = ddgr_src_set.include_dirs
+  }
+
+  config("public_ddgr_config") {
+    defines = public_ddgr_config_set.defines
+    include_dirs = public_ddgr_config_set.include_dirs
+  }
+} else {
+  ohos_shared_library("libddgr") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      cfi_vcall_icall_only = true
+      debug = false
+    }
+    sources = []
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}

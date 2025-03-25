@@ -16,7 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
 module_output_path =
-    "graphic_2d/rosen_engine/render_service_base/display_engine"
+    "graphic_2d/graphic_2d/rosen_engine/render_service_base/display_engine"
 
 ##############################  RSRenderServiceBaseDisplayEngineTest  ##################################
 ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {

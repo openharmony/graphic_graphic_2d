@@ -986,6 +986,25 @@ bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
     surfaceNode->SetHardwareEnableHint(hardwareEnable);
     return true;
 }
+
+bool DoSetSourceVirtualDisplayId(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    uint64_t screenId = GetData<uint64_t>();
+    surfaceNode->SetSourceVirtualDisplayId(screenId);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1038,6 +1057,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetAbilityState(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoSetHardwareEnableHint(data, size);
+    OHOS::Rosen::DoSetSourceVirtualDisplayId(data, size);
     return 0;
 }
 

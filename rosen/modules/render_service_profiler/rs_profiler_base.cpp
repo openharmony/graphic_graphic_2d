@@ -74,13 +74,13 @@ static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
 std::vector<std::shared_ptr<RSRenderNode>> RSProfiler::testTree_ = std::vector<std::shared_ptr<RSRenderNode>>();
-RSContext* RSProfiler::context_ = nullptr;
-RSMainThread* RSProfiler::mainThread_ = nullptr;
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
+
+static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -1481,4 +1481,18 @@ std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream
     }
     return errorReason;
 }
+
+TextureRecordType RSProfiler::GetTextureRecordType()
+{
+    if (IsBetaRecordEnabled()) {
+        return TextureRecordType::ONE_PIXEL;
+    }
+    return g_textureRecordType;
+}
+
+void RSProfiler::SetTextureRecordType(TextureRecordType type)
+{
+    g_textureRecordType = type;
+}
+
 } // namespace OHOS::Rosen

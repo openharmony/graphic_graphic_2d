@@ -82,12 +82,13 @@ RSColorSpaceConvert& RSColorSpaceConvert::Instance()
 
 bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
     const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
-    ScreenId screenId, uint32_t dynamicRangeMode)
+    ScreenId screenId, uint32_t dynamicRangeMode, float hdrBrightness)
 {
     RS_LOGD("RSColorSpaceConvertor HDRDraw targetColorSpace: %{public}d, screenId: %{public}" PRIu64 ""
-        ", dynamicRangeMode: %{public}u", targetColorSpace, screenId, dynamicRangeMode);
+        ", dynamicRangeMode: %{public}u, hdrBrightness: %{public}f",
+        targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     RS_TRACE_NAME_FMT("RSColorSpaceConvertor HDRDraw targetColorSpace: %d, screenId: %" PRIu64 ""
-        ", dynamicRangeMode: %u", targetColorSpace, screenId, dynamicRangeMode);
+        ", dynamicRangeMode: %u, hdrBrightness: %f", targetColorSpace, screenId, dynamicRangeMode, hdrBrightness);
     VPEParameter parameter;
 
     if (inputShader == nullptr) {
@@ -96,7 +97,7 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     }
 
     if (!SetColorSpaceConverterDisplayParameter(surfaceBuffer, parameter, targetColorSpace, screenId,
-        dynamicRangeMode)) {
+        dynamicRangeMode, hdrBrightness)) {
         return false;
     }
 
@@ -152,7 +153,8 @@ void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
 }
 
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
-    VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode)
+    VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
+    float hdrBrightness)
 {
     using namespace HDIV;
 
@@ -180,10 +182,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     auto& rsLuminance = RSLuminanceControl::Get();
     if (parameter.staticMetadata.size() != sizeof(HdrStaticMetadata)) {
         RS_LOGD("bhdr parameter.staticMetadata size is invalid");
+        scaler = hdrBrightness * (scaler - 1.0f) + 1.0f;
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
-            ret == GSERROR_OK ? parameter.dynamicMetadata.size() : DEFAULT_DYNAMIC_METADATA_SIZE);
+            ret == GSERROR_OK ? parameter.dynamicMetadata.size() : DEFAULT_DYNAMIC_METADATA_SIZE, hdrBrightness);
     }
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
@@ -203,8 +206,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         RS_LOGD("bhdr Matrix[0]:%{public}.2f. Matrix[4]:%{public}.2f. Matrix[8]:%{public}.2f",
             parameter.layerLinearMatrix[0], parameter.layerLinearMatrix[4], parameter.layerLinearMatrix[8]);
     }
-    RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u",
-        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
+    RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u "
+        "hdrBrightness:%{public}f", parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits,
+        dynamicRangeMode, hdrBrightness);
     return true;
 }
 

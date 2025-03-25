@@ -19,7 +19,7 @@
 
 namespace OHOS::Rosen {
 
-bool OPIncParam::IsOPIncEnable() const
+bool OPIncParam::IsOPIncEnable()
 {
     return isOPIncEnable_;
 }
@@ -29,7 +29,7 @@ void OPIncParam::SetOPIncEnable(bool isEnable)
     isOPIncEnable_ = isEnable;
 }
 
-int OPIncParam::GetCacheWidthThresholdPercentValue() const
+int OPIncParam::GetCacheWidthThresholdPercentValue()
 {
     return cacheWidthThresholdPercentValue_;
 }

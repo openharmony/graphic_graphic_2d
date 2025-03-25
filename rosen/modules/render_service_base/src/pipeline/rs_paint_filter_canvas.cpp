@@ -1360,6 +1360,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
     isHdrOn_ = other.isHdrOn_;
+    hdrBrightness_ = other.hdrBrightness_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1605,6 +1606,16 @@ bool RSPaintFilterCanvas::GetHdrOn() const
 void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
 {
     isHdrOn_ = isHdrOn;
+}
+
+float RSPaintFilterCanvas::GetHDRBrightness() const
+{
+    return hdrBrightness_;
+}
+
+void RSPaintFilterCanvas::SetHDRBrightness(float hdrBrightness)
+{
+    hdrBrightness_ = hdrBrightness;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

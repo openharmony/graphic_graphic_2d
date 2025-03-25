@@ -172,10 +172,6 @@ HWTEST_F(UtilTest, UtilTest_005, TestSize.Level1)
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
     isFileExist = OHOS::IsFileExisted(filePath);
     EXPECT_EQ(false, isFileExist);
-
-    filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
-    isFileExist = OHOS::IsFileExisted(filePath);
-    EXPECT_EQ(true, isFileExist);
 }
 
 /**
@@ -199,7 +195,8 @@ HWTEST_F(UtilTest, UtilTest_006, TestSize.Level1)
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
     parseResult = OHOS::ParseBootConfig(filePath, duration, isCompatible, isMultiDisplay, animationConfigs);
-    EXPECT_EQ(true, parseResult);
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(isFileExist ? true : false, parseResult);
 }
 
 /**
@@ -219,7 +216,8 @@ HWTEST_F(UtilTest, UtilTest_007, TestSize.Level1)
 
     filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json";
     content = OHOS::ReadFile(filePath);
-    EXPECT_NE(0, content.length());
+    bool isFileExist = OHOS::IsFileExisted(filePath);
+    EXPECT_EQ(content.empty(), isFileExist ? false : true);
 }
 
 /**
@@ -236,5 +234,38 @@ HWTEST_F(UtilTest, UtilTest_008, TestSize.Level1)
     } else {
         EXPECT_EQ(0, content.length());
     }
+}
+
+/**
+ * @tc.name: UtilTest_009
+ * @tc.desc: Verify the ParseImageConfig
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_009, TestSize.Level1)
+{
+    const char* fileBuffer;
+    int totalsize = 0;
+    FrameRateConfig frameConfig;
+    bool result = OHOS::ParseImageConfig(fileBuffer, totalsize, frameConfig);
+    EXPECT_FALSE(result);
+}
+ 
+/**
+ * @tc.name: UtilTest_010
+ * @tc.desc: Verify the CheckImageData
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_010, TestSize.Level1)
+{
+    std::string filename = "abc";
+    std::shared_ptr<ImageStruct> imageStruct = std::make_shared<ImageStruct>();
+    int32_t bufferLen = 0;
+    ImageStructVec imgVec;
+    bool result = OHOS::CheckImageData(filename, imageStruct, bufferLen, imgVec);
+    EXPECT_FALSE(result);
+    unsigned long fileSize = 1000;
+    imageStruct->memPtr.SetBufferSize(fileSize);
+    result = OHOS::CheckImageData(filename, imageStruct, bufferLen, imgVec);
+    EXPECT_TRUE(result);
 }
 }

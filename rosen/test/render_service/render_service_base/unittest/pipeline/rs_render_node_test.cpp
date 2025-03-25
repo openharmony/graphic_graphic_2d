@@ -1698,7 +1698,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0");
 }
 
 /**
@@ -2948,6 +2948,40 @@ HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
 
     renderNode->SetIsCrossNode(false);
     ASSERT_FALSE(renderNode->isCrossNode_);
+}
+
+/**
+ * @tc.name: SetCrossNodeVisitedStatusTest
+ * @tc.desc: test SetCrossNodeVisitedStatusTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBV3N4
+ */
+HWTEST_F(RSRenderNodeTest, SetCrossNodeVisitedStatusTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    auto cloneNode = std::make_shared<RSRenderNode>(2);
+    ASSERT_NE(cloneNode, nullptr);
+    node->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = node;
+    node->cloneCrossNodeVec_.push_back(cloneNode);
+
+    node->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(node->HasVisitedCrossNode());
+    ASSERT_TRUE(cloneNode->HasVisitedCrossNode());
+
+    node->SetCrossNodeVisitedStatus(false);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
+
+    cloneNode->SetCrossNodeVisitedStatus(true);
+    ASSERT_TRUE(node->HasVisitedCrossNode());
+    ASSERT_TRUE(cloneNode->HasVisitedCrossNode());
+
+    cloneNode->SetCrossNodeVisitedStatus(false);
+    ASSERT_FALSE(node->HasVisitedCrossNode());
+    ASSERT_FALSE(cloneNode->HasVisitedCrossNode());
 }
 
 /**

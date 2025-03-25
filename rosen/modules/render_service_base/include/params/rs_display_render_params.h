@@ -149,9 +149,6 @@ public:
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
 
-    bool IsRotationFinished() const;
-    void SetRotationFinished(bool finished);
-
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
 
@@ -168,6 +165,9 @@ public:
 
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
+
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
 
     bool IsSpecialLayerChanged() const
     {
@@ -233,7 +233,6 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
-    bool isRotationFinished_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     bool virtualScreenMuteStatus_ = false;
@@ -242,6 +241,7 @@ private:
     bool isZoomed_ = false;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

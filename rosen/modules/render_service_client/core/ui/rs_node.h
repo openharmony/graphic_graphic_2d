@@ -343,7 +343,6 @@ public:
     void SetVisualEffect(const VisualEffect* visualEffect);
 
     void SetForegroundEffectRadius(const float blurRadius);
-    void SetForegroundEffectDisableSystemAdaptation(bool disableSystemAdaptation);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);

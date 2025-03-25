@@ -72,6 +72,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto isOpincDraw = PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
+    paintFilterCanvas->SetHDRBrightness(params->GetHDRBrightness());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw && !params->HasUnobscuredUEC() &&
@@ -107,6 +109,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+    paintFilterCanvas->SetHDRBrightness(hdrBrightness);
     RSRenderNodeDrawable::ProcessedNodeCountInc();
 #endif
 }

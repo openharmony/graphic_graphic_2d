@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
 
-int32_t MultiScreenParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t MultiScreenParamParse::ParseFeatureParam([[maybe_unused]] FeatureParamMapType& featureMap, xmlNode& node)
 {
     RS_LOGI("MultiScreenParamParse start");
     xmlNode *currNode = &node;
@@ -32,32 +32,22 @@ int32_t MultiScreenParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
             continue;
         }
 
-        if (ParseMultiScreenInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseMultiScreenInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGW("MultiScreenParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
     RS_LOGI("MultiScreenParamParse end, isExternalScreenSecure: %{public}d, isSlrScaleEnabled: %{public}d,"
         " isRsReportHwcDead: %{public}d, isRsSetScreenPowerStatus: %{public}d",
-        multiScreenParam_->IsExternalScreenSecure(), multiScreenParam_->IsSlrScaleEnabled(),
-        multiScreenParam_->IsRsReportHwcDead(), multiScreenParam_->IsRsSetScreenPowerStatus());
+        MultiScreenParam::IsExternalScreenSecure(), MultiScreenParam::IsSlrScaleEnabled(),
+        MultiScreenParam::IsRsReportHwcDead(), MultiScreenParam::IsRsSetScreenPowerStatus());
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t MultiScreenParamParse::ParseMultiScreenInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[MULTISCREEN]);
-    if (iter == featureMap.end()) {
-        RS_LOGW("MultiScreenParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-    multiScreenParam_ = std::static_pointer_cast<MultiScreenParam>(iter->second);
-    if (!multiScreenParam_) {
-        RS_LOGW("MultiScreenParamParse stop parsing, multiScreenParam_ is null");
-        return PARSE_ERROR;
-    }
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
@@ -65,13 +55,13 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(FeatureParamMapType &fea
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "IsExternalScreenSecure") {
-            multiScreenParam_->SetExternalScreenSecure(isEnabled);
+            MultiScreenParam::SetExternalScreenSecure(isEnabled);
         } else if (name == "IsSlrScaleEnabled") {
-            multiScreenParam_->SetSlrScaleEnabled(isEnabled);
+            MultiScreenParam::SetSlrScaleEnabled(isEnabled);
         } else if (name == "IsRsReportHwcDead") {
-            multiScreenParam_->SetRsReportHwcDead(isEnabled);
+            MultiScreenParam::SetRsReportHwcDead(isEnabled);
         } else if (name == "IsRsSetScreenPowerStatus") {
-            multiScreenParam_->SetRsSetScreenPowerStatus(isEnabled);
+            MultiScreenParam::SetRsSetScreenPowerStatus(isEnabled);
         }
     }
     return PARSE_EXEC_SUCCESS;

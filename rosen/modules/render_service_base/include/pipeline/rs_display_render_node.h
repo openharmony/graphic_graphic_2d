@@ -349,7 +349,6 @@ public:
 
     void UpdateRotation();
     bool IsRotationChanged() const;
-    bool IsRotationFinished() const;
     bool IsLastRotationChanged() const {
         return lastRotationChanged_;
     }
@@ -583,6 +582,18 @@ public:
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
+    void SetTargetSurfaceRenderNodeId(NodeId nodeId)
+    {
+        targetSurfaceRenderNodeId_ = nodeId;
+    }
+
+    NodeId GetTargetSurfaceRenderNodeId() const
+    {
+        return targetSurfaceRenderNodeId_;
+    }
+
+    void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
 protected:
     void OnSync() override;
 private:
@@ -675,6 +686,7 @@ private:
     RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
     RSBaseRenderNode::SharedPtr rcdSurfaceNodeBottom_ = nullptr;
 
+    NodeId targetSurfaceRenderNodeId_ = INVALID_NODEID;
     friend class DisplayNodeCommandHelper;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
 

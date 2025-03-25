@@ -123,10 +123,10 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
     if (LIKELY(!rscanvas.IsOnMultipleScreen() && rscanvas.GetHdrOn() && RSSystemProperties::GetHdrImageEnabled())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_);
+            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRBrightness());
     } else {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD, rscanvas.GetHDRBrightness());
     }
     canvas.AttachPaint(paint_);
     // Avoid cross-thread destruction

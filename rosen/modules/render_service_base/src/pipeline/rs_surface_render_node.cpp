@@ -116,7 +116,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
+        MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(config.id)};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
@@ -831,6 +832,46 @@ void RSSurfaceRenderNode::SetGlobalPositionEnabled(bool isEnabled)
 bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
 {
     return isGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderNode::SetDRMGlobalPositionEnabled(bool isEnabled)
+{
+    if (isGlobalPositionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMGlobalPositionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isDRMGlobalPositionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderNode::GetDRMGlobalPositionEnabled() const
+{
+    return isDRMGlobalPositionEnabled_;
+}
+
+void RSSurfaceRenderNode::SetDRMCrossNode(bool isDRMCrossNode)
+{
+    if (isDRMCrossNode_ == isDRMCrossNode) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetDRMCrossNode(isDRMCrossNode);
+    AddToPendingSyncList();
+
+    isDRMCrossNode_ = isDRMCrossNode;
+}
+
+bool RSSurfaceRenderNode::IsDRMCrossNode() const
+{
+    return isDRMCrossNode_;
 }
 
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
@@ -2299,6 +2340,9 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
     auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
     if (boundsGeometry) {
         absRect = absRect.IntersectRect(boundsGeometry->GetAbsRect());
+        auto absChildrenRectF = boundsGeometry->MapRectWithoutRounding(GetChildrenRect().ConvertTo<float>(),
+            boundsGeometry->GetAbsMatrix());
+        absRect = absRect.IntersectRect(boundsGeometry->DeflateToRectI(absChildrenRectF));
         const auto& absMatrix = boundsGeometry->GetAbsMatrix();
         auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
             absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
@@ -3008,6 +3052,20 @@ void RSSurfaceRenderNode::SetClonedNodeRenderDrawable(
     AddToPendingSyncList();
 }
 
+void RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetSourceDisplayRenderNodeDrawable stagingSurfaceParams is null");
+        return;
+    }
+    // CacheImg does not support UIFirst, clost UIFirst
+    SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE);
+    stagingSurfaceParams->sourceDisplayRenderNodeDrawable_ = drawable;
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -3150,6 +3208,19 @@ void RSSurfaceRenderNode::SetDisplayNit(float displayNit)
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetDisplayNit(displayNit);
+    }
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+#endif
+}
+
+void RSSurfaceRenderNode::SetColorFollow(bool colorFollow)
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetColorFollow(colorFollow);
     }
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -3309,6 +3380,7 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
     auto context = GetContext().lock();
     if (!context) {
         RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, invalid context");
+        return;
     }
     RectI region;
     auto geoPtr = GetMutableRenderProperties().GetBoundsGeometry();

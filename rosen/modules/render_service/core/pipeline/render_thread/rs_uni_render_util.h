@@ -140,6 +140,8 @@ public:
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
     static void ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
         const Drawing::Rect& src, const Drawing::Rect& dst);
+    static void ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
+        const RectF& rect);
     static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
     template<typename... Callbacks>
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
@@ -176,14 +178,14 @@ public:
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
     static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
         const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
+    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
+        sptr<IConsumerSurface> consumer);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
-    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
-        sptr<IConsumerSurface> consumer);
     static bool FrameAwareTraceBoost(size_t layerNum);
     static void RequestPerf(uint32_t layerLevel, bool onOffTag);
     static void GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInfo, const Occlusion::Region& srcDamageRegion,

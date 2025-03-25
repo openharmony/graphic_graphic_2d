@@ -71,11 +71,17 @@ public:
     void SetSymbolUid(uint64_t symbolUid)
     {
         symbolTxt_.SetSymbolUid(symbolUid);
+        symbolId_ = symbolUid;
     }
 
     void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
     {
         symbolTxt_ = hmsymbolTxt;
+    }
+
+    const HMSymbolTxt& GetSymbolTxt()
+    {
+        return symbolTxt_;
     }
 
 private:

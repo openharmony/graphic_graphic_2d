@@ -1913,11 +1913,6 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
         RSModifierType::FOREGROUND_EFFECT_RADIUS, blurRadius);
 }
 
-void RSNode::SetForegroundEffectDisableSystemAdaptation(bool disableSystemAdaptation)
-{
-    return;
-}
-
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
 {
     if (backgroundFilter == nullptr) {

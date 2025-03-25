@@ -147,6 +147,30 @@ public:
     {
         return stencilVal_;
     }
+    void SetOffsetX(int32_t offsetX)
+    {
+        offsetX_ = offsetX;
+    }
+    int32_t GetOffsetX() const
+    {
+        return offsetX_;
+    }
+    void SetOffsetY(int32_t offsetY)
+    {
+        offsetY_ = offsetY;
+    }
+    int32_t GetOffsetY() const
+    {
+        return offsetY_;
+    }
+    void SetRogWidthRatio(float rogWidthRatio)
+    {
+        rogWidthRatio_ = rogWidthRatio;
+    }
+    float GetRogWidthRatio() const
+    {
+        return rogWidthRatio_;
+    }
     void SetIsOutOfScreen(bool isOutOfScreen)
     {
         if (isOutOfScreen_ == isOutOfScreen) {
@@ -343,6 +367,12 @@ public:
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
 
+    void SetDRMGlobalPositionEnabled(bool isEnabled);
+    bool GetDRMGlobalPositionEnabled() const;
+
+    void SetDRMCrossNode(bool isCrossNode);
+    bool IsDRMCrossNode() const;
+
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
 
@@ -408,7 +438,8 @@ public:
 
     bool GetNeedOffscreen() const
     {
-        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
+        return (RSSystemProperties::GetSurfaceOffscreenEnadbled() &&
+                !RSSystemProperties::IsPcType()) ? needOffscreen_ : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -498,6 +529,20 @@ public:
     float GetSdrNit() const
     {
         return sdrNit_;
+    }
+
+    void SetColorFollow(bool colorFollow)
+    {
+        if (colorFollow_ == colorFollow) {
+            return;
+        }
+        colorFollow_ = colorFollow;
+        needSync_ = true;
+    }
+
+    bool GetColorFollow() const
+    {
+        return colorFollow_;
     }
 
     void SetDisplayNit(float displayNit)
@@ -637,12 +682,11 @@ public:
         return IsUnobscuredUIExtension_;
     }
 
-    void MarkSurfaceCapturePipeline()
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetSourceDisplayRenderNodeDrawable() const
     {
-        isSurfaceCapturePipeline_ = true;
+        return sourceDisplayRenderNodeDrawable_;
     }
 
-protected:
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
@@ -652,6 +696,7 @@ private:
     RSRenderNode::WeakPtr ancestorDisplayNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
 
     float alpha_ = 0;
     bool isClonedNodeOnTheTree_ = false;
@@ -734,6 +779,12 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
 
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    float rogWidthRatio_ = 1.0f;
+    bool isDRMGlobalPositionEnabled_ = false;
+    bool isDRMCrossNode_ = false;
+
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
@@ -742,6 +793,8 @@ private:
     float sdrNit_ = 500.0f; // default sdrNit
     float displayNit_ = 500.0f; // default displayNit_
     float brightnessRatio_ = 1.0f; // 1.0f means no discount.
+    bool colorFollow_ = false;
+
     // color temperature
     std::vector<float> layerLinearMatrix_; // matrix for linear colorspace
     bool hasMetadata_ = false; // SDR with metadata
@@ -752,8 +805,6 @@ private:
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
-
-    bool isSurfaceCapturePipeline_ = false;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

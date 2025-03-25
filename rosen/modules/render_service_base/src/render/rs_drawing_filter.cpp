@@ -341,6 +341,8 @@ bool RSDrawingFilter::ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas,
         ApplyColorFilter(canvas, image, attr.src, attr.dst, attr.brushAlpha);
         return true;
     }
+    RS_OPTIONAL_TRACE_NAME("ApplyLightBlur width: " + std::to_string(attr.dst.GetWidth()) +
+        ", height: " + std::to_string(attr.dst.GetHeight()));
     LightBlurParameter para { attr.src, attr.dst, brush };
     tmpFilter->ApplyLightBlur(canvas, image, para);
     return true;

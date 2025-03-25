@@ -191,18 +191,16 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const L
 void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
     BufferDrawParam& params)
 {
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderEngine::DrawHdiLayerWithParams: matrix=[%{public}.2f, %{public}.2f, "
+        "%{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f]",
+        params.matrix.Get(Drawing::Matrix::SCALE_X), params.matrix.Get(Drawing::Matrix::SKEW_X),
+        params.matrix.Get(Drawing::Matrix::TRANS_X), params.matrix.Get(Drawing::Matrix::SKEW_Y),
+        params.matrix.Get(Drawing::Matrix::SCALE_Y), params.matrix.Get(Drawing::Matrix::TRANS_Y),
+        params.matrix.Get(Drawing::Matrix::PERSP_0), params.matrix.Get(Drawing::Matrix::PERSP_1),
+        params.matrix.Get(Drawing::Matrix::PERSP_2));
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), true);
-        DrawImage(canvas, params);
-    } else {
-        DrawBuffer(canvas, params);
-    }
-}
-
-void RSUniRenderEngine::DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
-{
-    if (!params.useCPU) {
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

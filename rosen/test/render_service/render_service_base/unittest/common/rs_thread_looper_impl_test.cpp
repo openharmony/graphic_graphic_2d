@@ -105,6 +105,7 @@ HWTEST_F(RSThreadLooperImplTest, GetThreadInstance001, TestSize.Level1)
 HWTEST_F(RSThreadLooperImplTest, ProcessOneMessageTest, TestSize.Level1)
 {
     int timeoutMillis = 1;
+    ASSERT_TRUE(threadlooperimpl_ != nullptr);
     threadlooperimpl_->ProcessOneMessage(timeoutMillis);
 }
 
@@ -117,6 +118,7 @@ HWTEST_F(RSThreadLooperImplTest, ProcessOneMessageTest, TestSize.Level1)
 HWTEST_F(RSThreadLooperImplTest, ProcessAllMessagesTest, TestSize.Level1)
 {
     int timeoutMillis = 0;
+    ASSERT_TRUE(threadlooperimpl_ != nullptr);
     threadlooperimpl_->ProcessAllMessages(timeoutMillis);
 }
 

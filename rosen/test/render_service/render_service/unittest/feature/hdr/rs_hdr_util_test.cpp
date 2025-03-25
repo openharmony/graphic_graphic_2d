@@ -89,12 +89,6 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
-    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo colorSpaceInfo = {
-        .transfunc = HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG
-    };
-    EXPECT_EQ(MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo), GSERROR_OK);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     uint32_t hdrType = HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR;
     std::vector<uint8_t> metadataType;

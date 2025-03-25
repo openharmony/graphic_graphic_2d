@@ -18,7 +18,7 @@
 #include <string>
 
 #include "common/rs_occlusion_region.h"
-#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 
 #include "platform/common/rs_log.h"
 namespace OHOS {
@@ -531,6 +531,20 @@ std::vector<RectI> RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i)
         i = (i + historyHead_) % historySize_;
     }
     return advancedDirtyHistory_[i];
+}
+
+const RectI RSDirtyRegionManager::GetUiLatestHistoryDirtyRegions(const int historyIndex) const
+{
+    if (historyHead_ < 0) {
+        return {0, 0, 0, 0};
+    }
+    RectI resultRect = {0, 0, 0, 0};
+    for (int i = historyIndex - 1; i >= 0; i--) {
+        auto index = (historyHead_ - i + HISTORY_QUEUE_MAX_SIZE) % HISTORY_QUEUE_MAX_SIZE;
+        const RectI& tmpRect = dirtyHistory_[index];
+        resultRect = resultRect.JoinRect(tmpRect);
+    }
+    return resultRect;
 }
 
 void RSDirtyRegionManager::AlignHistory()

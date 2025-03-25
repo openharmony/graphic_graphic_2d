@@ -513,6 +513,27 @@ HWTEST_F(RSRenderParamsTest, SetNeedFilter_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetHDRBrightness
+ * @tc.desc: Test function SetHDRBrightness
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetHDRBrightnessTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    renderParams->hdrBrightness_ = false;
+    bool hdrBrightness = true;
+    renderParams->needSync_ = false;
+
+    renderParams->SetHDRBrightness(hdrBrightness);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_EQ(renderParams->hdrBrightness_, hdrBrightness);
+}
+
+/**
  * @tc.name: OnCanvasDrawingSurfaceChange_001
  * @tc.desc: Test function OnCanvasDrawingSurfaceChange
  * @tc.type:FUNC

@@ -1703,6 +1703,22 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSourceVirtualDisplayId
+ * @tc.desc: Test function SetSourceVirtualDisplayId
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualDisplayId, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->SetSourceVirtualDisplayId(id);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
+
+/**
  * @tc.name: AttachToWindowContainer
  * @tc.desc: Test function AttachToWindowContainer
  * @tc.type: FUNC

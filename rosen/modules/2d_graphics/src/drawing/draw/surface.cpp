@@ -139,7 +139,7 @@ void Surface::FlushAndSubmit(bool syncCpu)
 void Surface::Flush(FlushInfo *drawingflushInfo)
 {
     if (!impl_) {
-        LOGD("surfaceImpl Flush failed impl nullptr");
+        LOGE("surfaceImpl Flush failed impl nullptr, but not callback rs finishedProc");
         return;
     }
     impl_->Flush(drawingflushInfo);

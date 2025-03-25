@@ -47,6 +47,8 @@ namespace OHOS::Rosen {
 
 // (user): Move to RSProfiler
 static RSRenderService* g_renderService = nullptr;
+static RSContext* g_context = nullptr;
+static RSMainThread* g_mainThread = nullptr;
 static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static std::atomic<int32_t> g_renderServiceRenderCpuId = 0;
 static uint64_t g_frameSyncTimestamp = 0u;
@@ -162,10 +164,10 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     const double maxPercentValue = 100.0;
     g_dirtyRegionPercentage = maxPercentValue;
 
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*RSProfiler::context_);
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*g_context);
     if (!displayNode) {
         return;
     }
@@ -206,8 +208,8 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 void RSProfiler::Init(RSRenderService* renderService)
 {
     g_renderService = renderService;
-    RSProfiler::mainThread_ = g_renderService ? g_renderService->mainThread_ : nullptr;
-    RSProfiler::context_ = RSProfiler::mainThread_ ? RSProfiler::mainThread_->context_.get() : nullptr;
+    g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
+    g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
@@ -336,7 +338,7 @@ void RSProfiler::CreateMockConnection(pid_t pid)
     auto tokenObj = new IRemoteStub<RSIConnectionToken>();
 
     sptr<RSIRenderServiceConnection> newConn(new RSRenderServiceConnection(pid, g_renderService,
-        RSProfiler::mainThread_, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
+        g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
 
     sptr<RSIRenderServiceConnection> tmp;
 
@@ -347,7 +349,7 @@ void RSProfiler::CreateMockConnection(pid_t pid)
     }
     g_renderService->connections_[tokenObj] = newConn;
     lock.unlock();
-    RSProfiler::mainThread_->AddTransactionDataPidInfo(pid);
+    g_mainThread->AddTransactionDataPidInfo(pid);
 }
 
 RSRenderServiceConnection* RSProfiler::GetConnection(pid_t pid)
@@ -608,8 +610,8 @@ void RSProfiler::OnFrameEnd()
     RecordUpdate();
 
     UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);
-    if (RSProfiler::context_) {
-        UpdateBetaRecord(*RSProfiler::context_);
+    if (g_context) {
+        UpdateBetaRecord(*g_context);
     }
     BlinkNodeUpdate();
     CalcPerfNodeUpdate();
@@ -679,7 +681,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
 {
     RS_TRACE_NAME("GetDumpTreeJSON");
 
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
 
@@ -690,7 +692,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
 
     auto& animation = out["Animation Node"];
     animation.PushArray();
-    for (auto& [nodeId, _] : RSProfiler::context_->animatingNodeList_) {
+    for (auto& [nodeId, _] : g_context->animatingNodeList_) {
         if (!pid) {
             animation.Append(nodeId);
         } else if (pid == Utils::ExtractPid(nodeId)) {
@@ -699,7 +701,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
     }
     animation.PopArray();
 
-    auto rootNode = RSProfiler::context_->GetGlobalRootRenderNode();
+    auto rootNode = g_context->GetGlobalRootRenderNode();
     if (pid) {
         rootNode = nullptr;
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
@@ -757,48 +759,188 @@ bool RSProfiler::IsPlaying()
 
 void RSProfiler::ScheduleTask(std::function<void()> && task)
 {
-    if (RSProfiler::mainThread_) {
-        RSProfiler::mainThread_->PostTask(std::move(task));
+    if (g_mainThread) {
+        g_mainThread->PostTask(std::move(task));
     }
 }
 
 void RSProfiler::RequestNextVSync()
 {
-    if (RSProfiler::mainThread_) {
-        RSProfiler::mainThread_->RequestNextVSync();
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
     }
-    ScheduleTask([]() { RSProfiler::mainThread_->RequestNextVSync(); });
+    ScheduleTask([]() { g_mainThread->RequestNextVSync(); });
 }
 
 void RSProfiler::AwakeRenderServiceThread()
 {
-    if (RSProfiler::mainThread_) {
-        RSProfiler::mainThread_->RequestNextVSync();
-        RSProfiler::mainThread_->SetAccessibilityConfigChanged();
-        RSProfiler::mainThread_->SetDirtyFlag();
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
+        g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
     }
     ScheduleTask([]() {
-        RSProfiler::mainThread_->SetAccessibilityConfigChanged();
-        RSProfiler::mainThread_->SetDirtyFlag();
-        RSProfiler::mainThread_->RequestNextVSync();
+        g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
+        g_mainThread->RequestNextVSync();
     });
 }
 
 void RSProfiler::ResetAnimationStamp()
 {
-    if (RSProfiler::mainThread_ && RSProfiler::context_) {
-        RSProfiler::mainThread_->lastAnimateTimestamp_ = RSProfiler::context_->GetCurrentTimestamp();
+    if (g_mainThread && g_context) {
+        g_mainThread->lastAnimateTimestamp_ = g_context->GetCurrentTimestamp();
     }
 }
 
 std::shared_ptr<RSRenderNode> RSProfiler::GetRenderNode(uint64_t id)
 {
-    return RSProfiler::context_ ? RSProfiler::context_->GetMutableNodeMap().GetRenderNode(id) : nullptr;
+    return g_context ? g_context->GetMutableNodeMap().GetRenderNode(id) : nullptr;
 }
 
 bool RSProfiler::IsLoadSaveFirstScreenInProgress()
 {
     return IsWriteEmulationMode() || IsReadEmulationMode();
+}
+
+std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
+{
+    if (!g_context) {
+        return "";
+    }
+
+    RS_TRACE_NAME("Profiler FirstFrameMarshalling");
+    std::stringstream stream;
+    stream.exceptions(0); // 0: disable all exceptions for stringstream
+    TypefaceMarshalling(stream, fileVersion);
+    if (!stream.good()) {
+        HRPD("strstream error with typeface marshalling");
+    }
+
+    SetMode(Mode::WRITE_EMUL);
+    DisableSharedMemory();
+    MarshalNodes(*g_context, stream, fileVersion);
+    if (!stream.good()) {
+        HRPD("strstream error with marshalling nodes");
+    }
+    EnableSharedMemory();
+    SetMode(Mode::NONE);
+
+    const int32_t focusPid = g_mainThread->focusAppPid_;
+    stream.write(reinterpret_cast<const char*>(&focusPid), sizeof(focusPid));
+
+    const int32_t focusUid = g_mainThread->focusAppUid_;
+    stream.write(reinterpret_cast<const char*>(&focusUid), sizeof(focusUid));
+
+    const uint64_t focusNodeId = g_mainThread->focusNodeId_;
+    stream.write(reinterpret_cast<const char*>(&focusNodeId), sizeof(focusNodeId));
+
+    const std::string bundleName = g_mainThread->focusAppBundleName_;
+    size_t size = bundleName.size();
+    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    stream.write(reinterpret_cast<const char*>(bundleName.data()), size);
+
+    const std::string abilityName = g_mainThread->focusAppAbilityName_;
+    size = abilityName.size();
+    stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    stream.write(reinterpret_cast<const char*>(abilityName.data()), size);
+
+    if (!stream.good()) {
+        HRPE("error with stringstream in FirstFrameMarshalling");
+    }
+    return stream.str();
+}
+
+std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
+{
+    std::stringstream stream;
+    std::string errReason;
+
+    stream.str(data);
+
+    errReason = TypefaceUnmarshalling(stream, fileVersion);
+    if (errReason.size()) {
+        return errReason;
+    }
+
+    SetMode(Mode::READ_EMUL);
+
+    DisableSharedMemory();
+    errReason = UnmarshalNodes(*g_context, stream, fileVersion);
+    EnableSharedMemory();
+
+    SetMode(Mode::NONE);
+
+    if (errReason.size()) {
+        return errReason;
+    }
+
+    int32_t focusPid = 0;
+    stream.read(reinterpret_cast<char*>(&focusPid), sizeof(focusPid));
+
+    int32_t focusUid = 0;
+    stream.read(reinterpret_cast<char*>(&focusUid), sizeof(focusUid));
+
+    uint64_t focusNodeId = 0;
+    stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
+
+    constexpr size_t nameSizeMax = 4096;
+    size_t size = 0;
+    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (size > nameSizeMax) {
+        return "FirstFrameUnmarshalling failed, file is damaged";
+    }
+    std::string bundleName;
+    bundleName.resize(size, ' ');
+    stream.read(reinterpret_cast<char*>(bundleName.data()), size);
+
+    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (size > nameSizeMax) {
+        return "FirstFrameUnmarshalling failed, file is damaged";
+    }
+
+    std::string abilityName;
+    abilityName.resize(size, ' ');
+    stream.read(reinterpret_cast<char*>(abilityName.data()), size);
+
+    focusPid = Utils::GetMockPid(focusPid);
+    focusNodeId = Utils::PatchNodeId(focusNodeId);
+
+    CreateMockConnection(focusPid);
+    g_mainThread->SetFocusAppInfo(focusPid, focusUid, bundleName, abilityName, focusNodeId);
+
+    return "";
+}
+
+void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
+{
+    if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
+        std::stringstream fontStream;
+        RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+        size_t fontStreamSize = fontStream.str().size();
+        stream.write(reinterpret_cast<const char*>(&fontStreamSize), sizeof(fontStreamSize));
+        stream.write(reinterpret_cast<const char*>(fontStream.str().c_str()), fontStreamSize);
+    }
+}
+
+std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
+{
+    if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
+        std::vector<uint8_t> fontData;
+        std::stringstream fontStream;
+        size_t fontStreamSize;
+        constexpr size_t fontStreamSizeMax = 100'000'000;
+        
+        stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
+        if (fontStreamSize > fontStreamSizeMax) {
+            return "Typeface track is damaged";
+        }
+        fontData.resize(fontStreamSize);
+        stream.read(reinterpret_cast<char*>(fontData.data()), fontData.size());
+        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontData.size());
+        return RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
+    }
+    return "";
 }
 
 void RSProfiler::HiddenSpaceTurnOn()
@@ -807,7 +949,7 @@ void RSProfiler::HiddenSpaceTurnOn()
         HiddenSpaceTurnOff();
     }
 
-    const auto& rootRenderNode = RSProfiler::context_->GetGlobalRootRenderNode();
+    const auto& rootRenderNode = g_context->GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
         HRPE("RSProfiler::HiddenSpaceTurnOn rootRenderNode is nullptr");
         return;
@@ -825,13 +967,13 @@ void RSProfiler::HiddenSpaceTurnOn()
         }
     }
 
-    RSProfiler::mainThread_->SetDirtyFlag();
+    g_mainThread->SetDirtyFlag();
     AwakeRenderServiceThread();
 }
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    const auto& rootRenderNode = RSProfiler::context_->GetGlobalRootRenderNode();
+    const auto& rootRenderNode = g_context->GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
         HRPE("RSProfiler::HiddenSpaceTurnOff rootRenderNode is nullptr");
         return;
@@ -852,12 +994,12 @@ void RSProfiler::HiddenSpaceTurnOff()
             }
         }
         listPostponed.clear();
-        FilterMockNode(*RSProfiler::context_);
+        FilterMockNode(*g_context);
         RSTypefaceCache::Instance().ReplayClear();
         g_childOfDisplayNodes.clear();
     }
 
-    RSProfiler::mainThread_->SetDirtyFlag();
+    g_mainThread->SetDirtyFlag();
 
     AwakeRenderServiceThread();
 }
@@ -870,19 +1012,6 @@ void RSProfiler::SaveRdc(const ArgList& args)
 
     AwakeRenderServiceThread();
     Respond("Recording current frame cmds (for .rdc) into : /data/default.drawing");
-}
-
-void RSProfiler::SaveSkp(const ArgList& args)
-{
-    const auto nodeId = args.Node();
-    RSCaptureRecorder::GetInstance().SetDrawingCanvasNodeId(nodeId);
-    if (nodeId == 0) {
-        RSSystemProperties::SetInstantRecording(true);
-        Respond("Recording full frame .skp");
-    } else {
-        Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
-    }
-    AwakeRenderServiceThread();
 }
 
 void RSProfiler::ProcessSendingRdc()
@@ -943,7 +1072,7 @@ void RSProfiler::RecordUpdate()
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION_LIST, g_dirtyRegionList.str());
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
-        uint64_t vsyncId = RSProfiler::mainThread_ ? RSProfiler::mainThread_->vsyncId_ : 0;
+        uint64_t vsyncId = g_mainThread ? g_mainThread->vsyncId_ : 0;
         captureData.SetProperty(RSCaptureData::KEY_RS_VSYNC_ID, vsyncId);
         if (!g_recordMinVsync) {
             g_recordMinVsync = vsyncId;
@@ -1025,38 +1154,6 @@ void RSProfiler::SendMessage(const char* format, ...)
     Network::SendMessage(out);
 }
 
-void RSProfiler::SetSystemParameter(const ArgList& args)
-{
-    if (!SystemParameter::Set(args.String(0), args.String(1))) {
-        Respond("There is no such a system parameter");
-    }
-}
-
-void RSProfiler::GetSystemParameter(const ArgList& args)
-{
-    const auto parameter = SystemParameter::Find(args.String());
-    Respond(parameter ? parameter->ToString() : "There is no such a system parameter");
-}
-
-void RSProfiler::Reset(const ArgList& args)
-{
-    const ArgList dummy;
-    RecordStop(dummy);
-    PlaybackStop(dummy);
-
-    Utils::FileDelete(RSFile::GetDefaultPath());
-
-    SendMessage("Reset");
-
-    RSSystemProperties::SetProfilerDisabled();
-    HRPI("Reset: persist.graphic.profiler.enabled 0");
-}
-
-void RSProfiler::DumpSystemParameters(const ArgList& args)
-{
-    Respond(SystemParameter::Dump());
-}
-
 void RSProfiler::DumpConnections(const ArgList& args)
 {
     if (!g_renderService) {
@@ -1085,26 +1182,12 @@ void RSProfiler::DumpConnections(const ArgList& args)
     Respond(out);
 }
 
-void RSProfiler::DumpNodeModifiers(const ArgList& args)
-{
-    if (const auto node = GetRenderNode(args.Node())) {
-        Respond("Modifiers=" + DumpModifiers(*node));
-    }
-}
-
-void RSProfiler::DumpNodeProperties(const ArgList& args)
-{
-    if (const auto node = GetRenderNode(args.Node())) {
-        Respond("RenderProperties=" + DumpRenderProperties(*node));
-    }
-}
-
 void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
 {
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
-    const auto& map = const_cast<RSContext&>(*RSProfiler::context_).GetMutableNodeMap();
+    const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
     for (const auto& [_, subMap] : map.renderNodeMap_) {
         for (const auto& [_, node] : subMap) {
             if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
@@ -1120,32 +1203,16 @@ void RSProfiler::PlaybackSetImmediate(const ArgList& args)
     Respond("Playback immediate mode: " + std::to_string(g_playbackImmediate));
 }
 
-void RSProfiler::PlaybackSetSpeed(const ArgList& args)
-{
-    const auto speed = args.Fp64();
-    if (BaseSetPlaybackSpeed(speed)) {
-        Respond("Playback speed: " + std::to_string(speed));
-    } else {
-        Respond("Playback speed: change rejected");
-    }
-}
-
-void RSProfiler::DrawingCanvasRedrawEnable(const ArgList& args)
-{
-    const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
-    RSProfiler::SetDrawingCanvasNodeRedraw(enable > 0);
-}
-
 void RSProfiler::DumpTree(const ArgList& args)
 {
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
 
     std::map<std::string, std::tuple<NodeId, std::string>> list;
-    GetSurfacesTrees(*RSProfiler::context_, list);
+    GetSurfacesTrees(*g_context, list);
 
-    std::string out = "Tree: count=" + std::to_string(static_cast<int>(GetRenderNodeCount(*RSProfiler::context_))) +
+    std::string out = "Tree: count=" + std::to_string(static_cast<int>(GetRenderNodeCount(*g_context))) +
                       " time=" + std::to_string(Now()) + "\n";
 
     const std::string& node = args.String();
@@ -1162,7 +1229,7 @@ void RSProfiler::DumpTree(const ArgList& args)
 
 void RSProfiler::DumpTreeToJson(const ArgList& args)
 {
-    if (!RSProfiler::context_ || !RSProfiler::mainThread_) {
+    if (!g_context || !g_mainThread) {
         return;
     }
 
@@ -1172,7 +1239,7 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     RenderServiceTreeDump(json, pid);
 
     auto& display = json["Display"];
-    auto displayNode = GetDisplayNode(*RSProfiler::context_);
+    auto displayNode = GetDisplayNode(*g_context);
     auto dirtyManager = displayNode ? displayNode->GetDirtyManager() : nullptr;
     if (dirtyManager) {
         const auto displayRect = dirtyManager->GetSurfaceRect();
@@ -1181,9 +1248,9 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
         display = { 0.0f, 0.0f, 0.0f, 0.0f };
     }
 
-    json["transactionFlags"] = RSProfiler::mainThread_->transactionFlags_;
-    json["timestamp"] = RSProfiler::mainThread_->timestamp_;
-    json["vsyncID"] = RSProfiler::mainThread_->vsyncId_;
+    json["transactionFlags"] = g_mainThread->transactionFlags_;
+    json["timestamp"] = g_mainThread->timestamp_;
+    json["vsyncID"] = g_mainThread->vsyncId_;
 
     json.PopObject();
     Network::SendRSTreeDumpJSON(json.GetDumpString());
@@ -1191,27 +1258,14 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     Respond(json.GetDumpString());
 }
 
-void RSProfiler::ClearFilter(const ArgList& args)
-{
-    const auto node = GetRenderNode(args.Node());
-    if (!node) {
-        Respond("error: node not found");
-        return;
-    }
-
-    node->GetMutableRenderProperties().backgroundFilter_ = nullptr;
-    Respond("OK");
-    AwakeRenderServiceThread();
-}
-
 void RSProfiler::DumpSurfaces(const ArgList& args)
 {
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
 
     std::map<NodeId, std::string> surfaces;
-    GetSurfacesTrees(*RSProfiler::context_, args.Pid(), surfaces);
+    GetSurfacesTrees(*g_context, args.Pid(), surfaces);
 
     std::string out;
     for (const auto& item : surfaces) {
@@ -1219,7 +1273,7 @@ void RSProfiler::DumpSurfaces(const ArgList& args)
                " lowId=" + std::to_string(Utils::ExtractNodeId(item.first)) + "\n" + item.second + "\n";
     }
 
-    out += "TREE: count=" + std::to_string(static_cast<int32_t>(GetRenderNodeCount(*RSProfiler::context_))) +
+    out += "TREE: count=" + std::to_string(static_cast<int32_t>(GetRenderNodeCount(*g_context))) +
            " time=" + std::to_string(Now()) + "\n";
 
     Respond(out);
@@ -1241,7 +1295,7 @@ void RSProfiler::PatchNode(const ArgList& args)
         return;
     }
 
-    const Vector4f screenRect = GetScreenRect(*RSProfiler::context_);
+    const Vector4f screenRect = GetScreenRect(*g_context);
 
     auto surfaceNode = static_cast<RSSurfaceRenderNode*>(node.get());
     {
@@ -1257,14 +1311,6 @@ void RSProfiler::PatchNode(const ArgList& args)
     AwakeRenderServiceThread();
 }
 
-void RSProfiler::KillNode(const ArgList& args)
-{
-    if (const auto node = GetRenderNode(args.Node())) {
-        node->RemoveFromTree(false);
-        AwakeRenderServiceThread();
-        Respond("OK");
-    }
-}
 
 void RSProfiler::BlinkNode(const ArgList& args)
 {
@@ -1292,17 +1338,6 @@ void RSProfiler::BlinkNode(const ArgList& args)
     }
 }
 
-void RSProfiler::AttachChild(const ArgList& args)
-{
-    auto child = GetRenderNode(args.Uint64(0));
-    auto parent = GetRenderNode(args.Uint64(1));
-    if (parent && child) {
-        parent->AddChild(child);
-        AwakeRenderServiceThread();
-        Respond("OK");
-    }
-}
-
 void RSProfiler::KillPid(const ArgList& args)
 {
     const pid_t pid = args.Pid();
@@ -1311,7 +1346,7 @@ void RSProfiler::KillPid(const ArgList& args)
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
 
-        RSProfiler::context_->GetMutableNodeMap().FilterNodeByPid(pid);
+        g_context->GetMutableNodeMap().FilterNodeByPid(pid);
         AwakeRenderServiceThread();
         Respond(out);
     }
@@ -1319,14 +1354,14 @@ void RSProfiler::KillPid(const ArgList& args)
 
 void RSProfiler::GetRoot(const ArgList& args)
 {
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
 
     std::string out;
 
-    const RSRenderNodeMap& map = RSProfiler::context_->GetMutableNodeMap();
-    std::shared_ptr<RSRenderNode> node = map.GetRenderNode<RSRenderNode>(GetRandomSurfaceNode(*RSProfiler::context_));
+    const RSRenderNodeMap& map = g_context->GetMutableNodeMap();
+    std::shared_ptr<RSRenderNode> node = map.GetRenderNode<RSRenderNode>(GetRandomSurfaceNode(*g_context));
     while (node && (node->GetId() != 0)) {
         std::string type;
         const RSRenderNodeType nodeType = node->GetType();
@@ -1359,27 +1394,9 @@ void RSProfiler::GetRoot(const ArgList& args)
     Respond(out);
 }
 
-void RSProfiler::GetDeviceInfo(const ArgList& args)
-{
-    Respond(RSTelemetry::GetDeviceInfoString());
-}
-
-void RSProfiler::GetDeviceFrequency(const ArgList& args)
-{
-    Respond(RSTelemetry::GetDeviceFrequencyString());
-    Respond(RSTelemetry::GetCpuAffinityString());
-}
-
-void RSProfiler::FixDeviceEnv(const ArgList& args)
-{
-    constexpr int32_t cpu = 8;
-    Utils::SetCpuAffinity(cpu);
-    Respond("OK");
-}
-
 void RSProfiler::GetPerfTree(const ArgList& args)
 {
-    if (!RSProfiler::context_) {
+    if (!g_context) {
         return;
     }
 
@@ -1395,7 +1412,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
     PerfTreeFlatten(rootNode, g_nodeListPerf, g_mapNode2Count, 0);
 
     std::string outString;
-    auto& nodeMap = RSProfiler::context_->GetMutableNodeMap();
+    auto& nodeMap = g_context->GetMutableNodeMap();
     for (auto it = g_nodeListPerf.begin(); it != g_nodeListPerf.end(); it++) {
         auto node = nodeMap.GetRenderNode(it->first);
         if (!node) {
@@ -1490,28 +1507,6 @@ void RSProfiler::PrintNodeCacheLo(const std::shared_ptr<RSRenderNode>& node)
     Respond(nodeStr);
 }
 
-void RSProfiler::PrintNodeCache(const ArgList& args)
-{
-    NodeId nodeId = args.Uint64();
-    auto node = GetRenderNode(nodeId);
-    if (node == nullptr) {
-        Respond("node not found");
-        return;
-    }
-    PrintNodeCacheLo(node);
-}
-
-void RSProfiler::PrintNodeCacheAll(const ArgList& args)
-{
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr) {
-            return;
-        }
-        PrintNodeCacheLo(node);
-    });
-}
-
 void RSProfiler::CalcPerfNode(const ArgList& args)
 {
     NodeId nodeId = args.Uint64();
@@ -1535,21 +1530,6 @@ void RSProfiler::CalcPerfNode(const ArgList& args)
     g_effectiveNodeTimeCount = timeCount;
     CalcPerfNodeAllStep();
     AwakeRenderServiceThread();
-}
-
-void RSProfiler::SocketShutdown(const ArgList& args)
-{
-    Network::ForceShutdown();
-}
-
-void RSProfiler::Version(const ArgList& args)
-{
-    Respond("Version: " + std::to_string(RSFILE_VERSION_LATEST));
-}
-
-void RSProfiler::FileVersion(const ArgList& args)
-{
-    Respond("File version: " + std::to_string(RSFILE_VERSION_LATEST));
 }
 
 void RSProfiler::CalcPerfNodeAll(const ArgList& args)
@@ -1632,7 +1612,7 @@ void RSProfiler::TestSwitch(const ArgList& args)
 
 void RSProfiler::BuildTestTree(const ArgList& args)
 {
-    if (!RSProfiler::context_ || !RSProfiler::mainThread_) {
+    if (!g_context || !g_mainThread) {
         return;
     }
 
@@ -1647,7 +1627,7 @@ void RSProfiler::BuildTestTree(const ArgList& args)
 
     auto testTreeBuilder = TestTreeBuilder();
 
-    RSProfiler::testTree_ = testTreeBuilder.Build(*RSProfiler::context_, topId, withDisplay);
+    RSProfiler::testTree_ = testTreeBuilder.Build(*g_context, topId, withDisplay);
 
     SendMessage("Build test tree");
 }
@@ -1685,7 +1665,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     g_recordFile.AddLayer(); // add 0 layer
 
-    FilterMockNode(*RSProfiler::context_);
+    FilterMockNode(*g_context);
     RSTypefaceCache::Instance().ReplayClear();
 
     g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
@@ -1796,7 +1776,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     std::string errReason = FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
     if (errReason.size()) {
         Respond("Can't open file: " + errReason);
-        FilterMockNode(*RSProfiler::context_);
+        FilterMockNode(*g_context);
         g_playbackFile.Close();
         return;
     }
@@ -1818,17 +1798,6 @@ void RSProfiler::AnimeGetStartTimesFromFile(std::unordered_map<AnimationId, std:
             list.push_back(item.second);
             animeMap.insert({ Utils::PatchNodeId(item.first), list });
         }
-    }
-}
-
-void RSProfiler::RecordSendBinary(const ArgList& args)
-{
-    bool flag = args.Int8(0);
-    Network::SetBlockBinary(!flag);
-    if (flag) {
-        SendMessage("Result: data will be sent to client during recording"); // DO NOT TOUCH!
-    } else {
-        SendMessage("Result: data will NOT be sent to client during recording"); // DO NOT TOUCH!
     }
 }
 
@@ -1909,7 +1878,7 @@ void RSProfiler::PlaybackStop(const ArgList& args)
         g_playbackShouldBeTerminated = true;
         HiddenSpaceTurnOff();
     }
-    FilterMockNode(*RSProfiler::context_);
+    FilterMockNode(*g_context);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
         RSRenderNodeGC::Instance().ReleaseNodeBucket();
@@ -1986,7 +1955,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
 void RSProfiler::PlaybackPrepare(const ArgList& args)
 {
     const pid_t pid = args.Pid();
-    if (!RSProfiler::context_ || (pid == 0)) {
+    if (!g_context || (pid == 0)) {
         return;
     }
 
@@ -2042,22 +2011,6 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
     Respond("OK");
 }
 
-void RSProfiler::PlaybackPauseClear(const ArgList& args)
-{
-    TimePauseClear();
-    Respond("OK");
-}
-
-void RSProfiler::PlaybackResume(const ArgList& args)
-{
-    if (!IsPlaying()) {
-        return;
-    }
-
-    TimePauseResume(Utils::Now());
-    ResetAnimationStamp();
-    Respond("OK");
-}
 
 void RSProfiler::ProcessCommands()
 {
@@ -2186,7 +2139,7 @@ void RSProfiler::TestLoadFileSubTree(NodeId nodeId, const std::string &filePath)
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
-    std::string errorReason = UnmarshalSubTree(*RSProfiler::context_, stream, *node, RSFILE_VERSION_LATEST);
+    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
     if (errorReason.size()) {
         RS_LOGE("RSProfiler::TestLoadFileSubTree failed: %{public}s", errorReason.c_str());
     }
@@ -2202,7 +2155,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     }
 
     std::stringstream stream;
-    MarshalSubTree(*RSProfiler::context_, stream, *node, RSFILE_VERSION_LATEST);
+    MarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
     g_testDataSubTree = stream.str();
 
     Respond("Save SubTree Size: " + std::to_string(g_testDataSubTree.size()));
@@ -2230,7 +2183,7 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
 
     std::stringstream stream;
     stream.str(g_testDataSubTree);
-    std::string errorReason = UnmarshalSubTree(*RSProfiler::context_, stream, *node, RSFILE_VERSION_LATEST);
+    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
     if (!errorReason.size()) {
         errorReason = "OK";
     }
@@ -2304,7 +2257,7 @@ std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& 
             node->SetDirty();
         }
     });
-    RSProfiler::mainThread_->SetDirtyFlag();
+    g_mainThread->SetDirtyFlag();
     AwakeRenderServiceThread();
     return errReason;
 }

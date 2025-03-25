@@ -16,6 +16,7 @@
 #include "drawing_bitmap.h"
 #include "drawing_font_collection.h"
 #include "drawing_point.h"
+#include "drawing_rect.h"
 #include "drawing_text_line.h"
 #include "drawing_text_run.h"
 #include "drawing_text_typography.h"
@@ -26,6 +27,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
+namespace {
+constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 
 class NativeDrawingRunTest : public testing::Test {
 public:
@@ -105,7 +109,7 @@ void NativeDrawingRunTest::TearDown()
 
 /*
  * @tc.name: OH_Drawing_RunTest001
- * @tc.desc: Test for the run one line testing.
+ * @tc.desc: Test for get run by index.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest001, TestSize.Level1)
@@ -115,337 +119,313 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest001, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        EXPECT_TRUE(runs != nullptr);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
-            uint64_t location = 0;
-            uint64_t length = 0;
-            OH_Drawing_GetRunStringRange(run, &location, &length);
-            EXPECT_TRUE(location >= 0);
-            EXPECT_TRUE(length > 0);
-            OH_Drawing_Array* stringIndicesArr = OH_Drawing_GetRunStringIndices(run, 0, count);
-            size_t size = OH_Drawing_GetDrawingArraySize(stringIndicesArr);
-            for (size_t stringIndex = 0; stringIndex < size; stringIndex++) {
-                uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, stringIndex);
-                EXPECT_TRUE(indices >= 0);
-            }
-            OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
-            OH_Drawing_Rect* bounds = OH_Drawing_GetRunImageBounds(run);
-            EXPECT_TRUE(bounds != nullptr);
-            OH_Drawing_DestroyRunImageBounds(bounds);
-            OH_Drawing_RunPaint(canvas_, run, 0.0, 0.0);
-        }
-        OH_Drawing_DestroyRuns(runs);
-    }
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(nullptr, 0);
+    EXPECT_EQ(run, nullptr);
+    run = OH_Drawing_GetRunByIndex(runs, -1);
+    EXPECT_EQ(run, nullptr);
+    run = OH_Drawing_GetRunByIndex(runs, runsSize);
+    EXPECT_EQ(run, nullptr);
+    run = OH_Drawing_GetRunByIndex(runs, 0);
+    uint32_t count = OH_Drawing_GetRunGlyphCount(run);
+    EXPECT_EQ(count, 6);
+
+    // branchCoverage
+    auto nullCount = OH_Drawing_GetDrawingArraySize(nullptr);
+    EXPECT_EQ(nullCount, 0);
+    OH_Drawing_DestroyRuns(nullptr);
+
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest002
- * @tc.desc: Test for the run one line testing.
+ * @tc.desc: Test for get run glyph count.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest002, TestSize.Level1)
 {
-    text_ = "Hello 你好 World";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            float ascent = 0.0;
-            float descent = 0.0;
-            float leading = 0.0;
-            float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
-            EXPECT_TRUE(ascent > 0);
-            EXPECT_TRUE(descent > 0);
-            EXPECT_TRUE(leading >= 0); // The leading minimum is 0
-            EXPECT_TRUE(width > 0);
-            OH_Drawing_Array* glyphs = OH_Drawing_GetRunGlyphs(run, 0, count);
-            EXPECT_TRUE(glyphs != nullptr);
-            size_t glyphSize = OH_Drawing_GetDrawingArraySize(glyphs);
-            for (size_t glyphsIndex = 0; glyphsIndex < glyphSize; glyphsIndex++) {
-                EXPECT_TRUE(OH_Drawing_GetRunGlyphsByIndex(glyphs, glyphsIndex) > 0);
-            }
-            OH_Drawing_DestroyRunGlyphs(glyphs);
-            OH_Drawing_Array* positions = OH_Drawing_GetRunPositions(run, 0, count);
-            EXPECT_TRUE(positions != nullptr);
-            size_t positionSize = OH_Drawing_GetDrawingArraySize(positions);
-            for (size_t posIndex = 0; posIndex < positionSize; posIndex++) {
-                OH_Drawing_Point* pos = OH_Drawing_GetRunPositionsByIndex(positions, posIndex);
-                EXPECT_TRUE(pos != nullptr);
-                float x = 0.0;
-                OH_Drawing_PointGetX(pos, &x);
-                EXPECT_TRUE(x >= 0.0);
-            }
-            OH_Drawing_DestroyRunPositions(positions);
-        }
-        OH_Drawing_DestroyRuns(runs);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+ 
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    std::vector<int32_t> countArr = {6, 2, 1, 5, 5, 5};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        uint32_t count = OH_Drawing_GetRunGlyphCount(run);
+        EXPECT_EQ(count, countArr[i]);
     }
+
+    // branchCoverage
+    OH_Drawing_GetRunGlyphCount(nullptr);
+
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest003
- * @tc.desc: Test for the run of multilingual, multi-line string testing.
+ * @tc.desc: Test for get glyph index in paragraph.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest003, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -="
-        " ,. < >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
-            uint64_t location = 0;
-            uint64_t length = 0;
-            OH_Drawing_GetRunStringRange(run, &location, &length);
-            EXPECT_TRUE(location >= 0);
-            EXPECT_TRUE(length > 0);
-            OH_Drawing_Array* stringIndicesArr = OH_Drawing_GetRunStringIndices(run, 0, count);
-            size_t indiceSize = OH_Drawing_GetDrawingArraySize(stringIndicesArr);
-            for (size_t stringIndex = 0; stringIndex < indiceSize; stringIndex++) {
-                uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, stringIndex);
-                EXPECT_TRUE(indices >= 0);
-            }
-            OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
-            stringIndicesArr = nullptr;
-            OH_Drawing_Rect* bounds = OH_Drawing_GetRunImageBounds(run);
-            EXPECT_TRUE(bounds != nullptr);
-            OH_Drawing_DestroyRunImageBounds(bounds);
-            OH_Drawing_RunPaint(canvas_, run, 0, 0);
-        }
-        OH_Drawing_DestroyRuns(runs);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+  
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    OH_Drawing_Run* run1 = OH_Drawing_GetRunByIndex(runs, 1);
+    uint32_t count = OH_Drawing_GetRunGlyphCount(run1);
+    auto glyphIndexArr = OH_Drawing_GetRunStringIndices(run1, 0, count);
+    auto glyphIndexArrSize = OH_Drawing_GetDrawingArraySize(glyphIndexArr);
+    std::vector<int32_t> indexndexArr = {6, 7};
+    for (int j = 0; j < glyphIndexArrSize; j++) {
+        auto glyphIndex = OH_Drawing_GetRunStringIndicesByIndex(glyphIndexArr, j);
+        EXPECT_EQ(glyphIndex, indexndexArr[j]);
     }
+    // branchCoverage
+    OH_Drawing_GetRunStringIndices(nullptr, -1, -1);
+    OH_Drawing_GetRunStringIndicesByIndex(glyphIndexArr, glyphIndexArrSize);
+    OH_Drawing_DestroyRunStringIndices(glyphIndexArr);
+    OH_Drawing_GetRunGlyphCount(nullptr);
+    
+     
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest004
- * @tc.desc: Test for the run of multilingual, multi-line string testing.
+ * @tc.desc: Test for get run string range.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest004, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -="
-        " ,. < >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            float ascent = 0.0;
-            float descent = 0.0;
-            float leading = 0.0;
-            float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
-            EXPECT_TRUE(ascent > 0);
-            EXPECT_TRUE(descent > 0);
-            EXPECT_TRUE(leading >= 0); // The leading minimum is 0
-            EXPECT_TRUE(width > 0);
-            OH_Drawing_Array* glyphs = OH_Drawing_GetRunGlyphs(run, 0, count);
-            size = OH_Drawing_GetDrawingArraySize(glyphs);
-            EXPECT_TRUE(glyphs != nullptr);
-            for (size_t glyphsIndex = 0; glyphsIndex < size; glyphsIndex++) {
-                EXPECT_TRUE(OH_Drawing_GetRunGlyphsByIndex(glyphs, glyphsIndex) > 0);
-            }
-            OH_Drawing_DestroyRunGlyphs(glyphs);
-            OH_Drawing_Array* positions = OH_Drawing_GetRunPositions(run, 0, count);
-            size = OH_Drawing_GetDrawingArraySize(positions);
-            EXPECT_TRUE(positions != nullptr);
-            for (size_t posIndex = 0; posIndex < size; posIndex++) {
-                OH_Drawing_Point* pos = OH_Drawing_GetRunPositionsByIndex(positions, posIndex);
-                EXPECT_TRUE(pos != nullptr);
-                float x = 0.0;
-                OH_Drawing_PointGetX(pos, &x);
-                EXPECT_TRUE(x >= 0.0);
-            }
-            OH_Drawing_DestroyRunPositions(positions);
-        }
-        OH_Drawing_DestroyRuns(runs);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+   
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    
+    std::vector<int32_t> locationArr = {0, 6, 8, 9, 14, 19};
+    std::vector<int32_t> lengthArr = {6, 2, 1, 5, 5, 5};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        uint64_t location = 0;
+        uint64_t length = 0;
+        OH_Drawing_GetRunStringRange(run, &location, &length);
+        EXPECT_EQ(location, locationArr[i]);
+        EXPECT_EQ(length, lengthArr[i]);
+        // branchCoverage
+        OH_Drawing_GetRunStringRange(run, nullptr, nullptr);
     }
+    
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest005
- * @tc.desc: Test for invalid input parameters testing.
+ * @tc.desc: Test for get run typographic bounds.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest005, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -="
-        " ,. < >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        EXPECT_TRUE(runs != nullptr);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            // Get the actual size of the run
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
-
-            // -1 and -100 is invalid parameters
-            OH_Drawing_Array* stringIndicesArr = OH_Drawing_GetRunStringIndices(run, -1, -100);
-            EXPECT_TRUE(stringIndicesArr == nullptr);
-
-            stringIndicesArr = OH_Drawing_GetRunStringIndices(run, 0, count);
-            EXPECT_TRUE(stringIndicesArr != nullptr);
-
-            // -1 is invalid parameter
-            uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, -1);
-            EXPECT_TRUE(indices == 0);
-
-            // 1000 is greater than the actual size of run is also an invalid parameter
-            indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, 1000);
-            EXPECT_TRUE(indices == 0);
-
-            OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
-            stringIndicesArr = nullptr;
-        }
-        OH_Drawing_DestroyRuns(runs);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    
+    std::vector<float> widthArr = {78.929932, 59.999939, 8.099991, 81.509903, 187.187500, 64.349945};
+    std::vector<float> ascentArr = {27.840000, 27.840000, 27.840000, 27.840000, 27.798166, 35.369999};
+    std::vector<float> descentArr = {7.320000, 7.320000, 7.320000, 7.320000, 7.431193, 9.690001};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        float ascent = 0.0;
+        float descent = 0.0;
+        float leading = 0.0;
+        float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
+        EXPECT_EQ(leading, 0);
+        EXPECT_NEAR(ascent, ascentArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, descentArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(width, widthArr[i], FLOAT_DATA_EPSILON);
+        // branchCoverage
+        OH_Drawing_GetRunTypographicBounds(run, nullptr, nullptr, nullptr);
+        OH_Drawing_GetRunTypographicBounds(nullptr, &ascent, &descent, &leading);
     }
+     
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest006
- * @tc.desc: Test for invalid input parameters testing.
+ * @tc.desc: Test for get run image bounds.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest006, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -= ,."
-        " < >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        EXPECT_TRUE(runs != nullptr);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            // Get the actual size of the run
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+     
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    
+    std::vector<float> leftArr = {2.0, 78.929932, 147.029861, 147.029861, 228.539764, 417.727264};
+    std::vector<float> topArr = {1.0, 3.0, 0.0, 1.0, 8.0, 3.0};
+    std::vector<float> bottomArr = {25.0, 32.0, 0.0, 25.0, 44.0, 33.0};
+    std::vector<float> rightArr = {70.099960, 137.929901, 147.029861, 226.329788, 416.289764, 484.857208};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        OH_Drawing_Rect* bounds = OH_Drawing_GetRunImageBounds(run);
 
-            // -1 and -100 is invalid parameters
-            OH_Drawing_Array* glyphs = OH_Drawing_GetRunGlyphs(run, -1, -100);
-            EXPECT_TRUE(glyphs == nullptr);
-
-            glyphs = OH_Drawing_GetRunGlyphs(run, 0, count);
-            EXPECT_TRUE(glyphs != nullptr);
-
-            // -1 is invalid parameter
-            uint64_t glyphId = OH_Drawing_GetRunGlyphsByIndex(glyphs, -1);
-            EXPECT_TRUE(glyphId == 0);
-
-            // 1000 is greater than the actual size of run is also an invalid parameter
-            glyphId = OH_Drawing_GetRunGlyphsByIndex(glyphs, 1000);
-            EXPECT_TRUE(glyphId == 0);
-            OH_Drawing_DestroyRunGlyphs(glyphs);
-            glyphs = nullptr;
-        }
-        OH_Drawing_DestroyRuns(runs);
+        EXPECT_NEAR(OH_Drawing_RectGetLeft(bounds), leftArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(OH_Drawing_RectGetTop(bounds), topArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(OH_Drawing_RectGetBottom(bounds), bottomArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(OH_Drawing_RectGetRight(bounds), rightArr[i], FLOAT_DATA_EPSILON);
+        OH_Drawing_DestroyRunImageBounds(bounds);
     }
+    // branchCoverage
+    OH_Drawing_GetRunImageBounds(nullptr);
+      
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest007
- * @tc.desc: Test for invalid input parameters testing.
+ * @tc.desc: Test for get run glyphs.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest007, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -= ,."
-        "< >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        EXPECT_TRUE(runs != nullptr);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            // Get the actual size of the run
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
-
-            // -1 and -100 is invalid parameters
-            OH_Drawing_Array* positions = OH_Drawing_GetRunPositions(run, -1, -100);
-            EXPECT_TRUE(positions == nullptr);
-
-            positions = OH_Drawing_GetRunPositions(run, 0, count);
-            EXPECT_TRUE(positions != nullptr);
-            OH_Drawing_DestroyRunPositions(positions);
-            // -1 is invalid parameter
-            OH_Drawing_Point* point = OH_Drawing_GetRunPositionsByIndex(positions, -1);
-            EXPECT_TRUE(point == nullptr);
-
-            // 1000 is greater than the actual size of run is also an invalid parameter
-            point = OH_Drawing_GetRunPositionsByIndex(positions, 1000);
-            EXPECT_TRUE(point == nullptr);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+      
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    
+    std::vector<int32_t> glyphSizeArr = {6, 2, 1, 5, 5, 5};
+    std::vector<int32_t> glyphArr = {7824, 10413};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        uint32_t count = OH_Drawing_GetRunGlyphCount(run);
+        OH_Drawing_Array* glyphs = OH_Drawing_GetRunGlyphs(run, 0, count);
+        size_t glyphSize = OH_Drawing_GetDrawingArraySize(glyphs);
+        EXPECT_EQ(glyphSize, glyphSizeArr[i]);
+        if (i == 1) {
+            for (int j = 0; j < glyphSize; j++) {
+                EXPECT_EQ(OH_Drawing_GetRunGlyphsByIndex(glyphs, j), glyphArr[j]);
+            }
         }
-        OH_Drawing_DestroyRuns(runs);
+        // branchCoverage
+        OH_Drawing_GetRunGlyphsByIndex(glyphs, glyphSize);
+
+        OH_Drawing_DestroyRunGlyphs(glyphs);
     }
+    // branchCoverage
+    OH_Drawing_GetRunGlyphs(nullptr, -1, -1);
+       
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
 /*
  * @tc.name: OH_Drawing_RunTest008
+ * @tc.desc: Test for get run positions.
+ * @tc.type: FUNC
+ */
+ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest008, TestSize.Level1)
+ {
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    PrepareCreateTextLine();
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines != nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+       
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+    
+    std::vector<int32_t> positionSizeArr = {6, 2, 1, 5, 5, 5};
+    std::vector<float> posXArr = {0, 29.999969};
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 1);
+    uint32_t count = OH_Drawing_GetRunGlyphCount(run);
+    OH_Drawing_Array* positions = OH_Drawing_GetRunPositions(run, 0, count);
+    EXPECT_TRUE(positions != nullptr);
+    size_t positionSize = OH_Drawing_GetDrawingArraySize(positions);
+    for (size_t posIndex = 0; posIndex < positionSize; posIndex++) {
+        OH_Drawing_Point* pos = OH_Drawing_GetRunPositionsByIndex(positions, posIndex);
+        EXPECT_TRUE(pos != nullptr);
+        float x = 0.0;
+        OH_Drawing_PointGetX(pos, &x);
+        EXPECT_NEAR(x, posXArr[posIndex], FLOAT_DATA_EPSILON);
+    }
+    EXPECT_EQ(positionSize, 2);
+    
+    // branchCoverage
+    OH_Drawing_GetRunPositionsByIndex(positions, positionSize);
+    OH_Drawing_DestroyRunPositions(positions);
+    OH_Drawing_GetRunPositions(nullptr, -1, -1);
+        
+    OH_Drawing_DestroyRuns(runs);
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: OH_Drawing_RunTest009
  * @tc.desc: Test for special value input parameters testing.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest008, TestSize.Level1)
+HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest009, TestSize.Level1)
 {
     text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -= ,."
         "< >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
@@ -492,11 +472,11 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest008, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_RunTest009
+ * @tc.name: OH_Drawing_RunTest010
  * @tc.desc: Test for the run of nullptr pointer testing.
  * @tc.type: FUNC
  */
-HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest009, TestSize.Level1)
+HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest010, TestSize.Level1)
 {
     OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(nullptr, 0);
     EXPECT_TRUE(run == nullptr);

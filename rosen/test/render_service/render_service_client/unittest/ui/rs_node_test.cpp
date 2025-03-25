@@ -2259,6 +2259,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderWidth005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams001, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_ZERO);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2269,6 +2271,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams002, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_POSITIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2279,6 +2283,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams003, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2289,6 +2295,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams004, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_MAX);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2299,6 +2307,8 @@ HWTEST_F(RSNodeTest, SetandGetBorderDashParams004, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetBorderDashParams005, TestSize.Level1)
 {
     SetBorderDashParamsAndTest(FLOAT_DATA_MIN);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2369,6 +2379,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineWidth005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams001, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_ZERO);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2379,6 +2391,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams002, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_POSITIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2389,6 +2403,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams003, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2399,6 +2415,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams004, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_MAX);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -2409,6 +2427,8 @@ HWTEST_F(RSNodeTest, SetandGetOutlineDashParams004, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetOutlineDashParams005, TestSize.Level1)
 {
     SetOutlineDashParamsAndTest(FLOAT_DATA_MIN);
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
 }
 
 /**
@@ -4973,12 +4993,16 @@ HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     ASSERT_NE(rsNode, nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::NONE));
     RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::NONE));
     blendModeType = RSColorBlendMode::DST_IN;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::DST_IN));
     blendModeType = RSColorBlendMode::SRC_IN;
     rsNode->SetColorBlendMode(blendModeType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendMode(), static_cast<int>(RSColorBlendMode::SRC_IN));
 }
 
 /**
@@ -6244,15 +6268,22 @@ HWTEST_F(RSNodeTest, SetUseShadowBatching, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendApplyType, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_FALSE(rsNode == nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::FAST));
     RSColorBlendApplyType colorBlendApplyType = RSColorBlendApplyType::FAST;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::FAST));
     colorBlendApplyType = RSColorBlendApplyType::SAVE_LAYER;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(),
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
     colorBlendApplyType = RSColorBlendApplyType::SAVE_LAYER_ALPHA;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(),
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
     colorBlendApplyType = RSColorBlendApplyType::MAX;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
-    ASSERT_FALSE(rsNode == nullptr);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::MAX));
 }
 
 /**
@@ -7731,5 +7762,21 @@ HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
 
     rsNode->MarkUifirstNode(false);
     EXPECT_TRUE(!rsNode->isUifirstNode_);
+}
+
+/**
+ * @tc.name: SetUIFirstSwitch
+ * @tc.desc: test results of SetUIFirstSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIBVGNY
+ */
+HWTEST_F(RSNodeTest, SetUIFirstSwitch, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetUIFirstSwitch(RSUIFirstSwitch::NONE);
+    EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::NONE);
+
+    rsNode->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+    EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
 }
 } // namespace OHOS::Rosen

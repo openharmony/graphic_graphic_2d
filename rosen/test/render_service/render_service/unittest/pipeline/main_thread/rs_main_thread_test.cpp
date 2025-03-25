@@ -1204,7 +1204,6 @@ HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->subThreadNodes_.clear();
     mainThread->subThreadNodes_.push_back(nullptr);
-    mainThread->isUiFirstOn_ = false;
     mainThread->CheckParallelSubThreadNodesStatus();
 
     auto node1 = std::make_shared<RSSurfaceRenderNode>(0xFFFFFFFFFFFFFFFF);
@@ -3351,67 +3350,6 @@ HWTEST_F(RSMainThreadTest, UpdateRogSizeIfNeeded, TestSize.Level1)
     mainThread->context_ = context;
     mainThread->UpdateRogSizeIfNeeded();
     mainThread->context_ = contextInit;
-}
-
-/**
- * @tc.name: UpdateUIFirstSwitch001
- * @tc.desc: UpdateUIFirstSwitch Test, root node nullptr
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, UpdateUIFirstSwitch001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    mainThread->context_->globalRootRenderNode_ = nullptr;
-    mainThread->UpdateUIFirstSwitch();
-    mainThread->context_->globalRootRenderNode_ = rootNode;
-}
-
-/**
- * @tc.name: UpdateUIFirstSwitch002
- * @tc.desc: UpdateUIFirstSwitch Test, with surfacenode child
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, UpdateUIFirstSwitch002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    // one child
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSRenderNode>(id);
-    id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(id);
-    node1->AddChild(node2);
-    mainThread->context_->globalRootRenderNode_ = node1;
-    mainThread->UpdateUIFirstSwitch();
-    mainThread->context_->globalRootRenderNode_ = rootNode;
-}
-
-/**
- * @tc.name: UpdateUIFirstSwitch003
- * @tc.desc: UpdateUIFirstSwitch Test, with displaynode child
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, UpdateUIFirstSwitch003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    // one child
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSRenderNode>(id);
-    id = 2;
-    RSDisplayNodeConfig config;
-    auto node2 = std::make_shared<RSDisplayRenderNode>(id, config);
-    node1->AddChild(node2);
-    mainThread->context_->globalRootRenderNode_ = node1;
-    mainThread->UpdateUIFirstSwitch();
-    mainThread->context_->globalRootRenderNode_ = rootNode;
 }
 
 /**

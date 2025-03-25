@@ -25,38 +25,38 @@ public:
 
     ~DirtyRegionParam() = default;
 
-    bool IsDirtyRegionEnable() const;
+    static bool IsDirtyRegionEnable();
 
-    bool IsExpandScreenDirtyRegionEnable() const;
+    static bool IsExpandScreenDirtyRegionEnable();
 
-    bool IsMirrorScreenDirtyRegionEnable() const;
+    static bool IsMirrorScreenDirtyRegionEnable();
 
-    bool IsAdvancedDirtyRegionEnable() const;
+    static bool IsAdvancedDirtyRegionEnable();
 
-    bool IsTileBasedAlignEnable() const;
+    static bool IsTileBasedAlignEnable();
 
-    int GetTileBasedAlignBits() const;
+    static int GetTileBasedAlignBits();
 
 protected:
-    void SetDirtyRegionEnable(bool isEnable);
+    static void SetDirtyRegionEnable(bool isEnable);
 
-    void SetExpandScreenDirtyRegionEnable(bool isEnable);
+    static void SetExpandScreenDirtyRegionEnable(bool isEnable);
 
-    void SetMirrorScreenDirtyRegionEnable(bool isEnable);
+    static void SetMirrorScreenDirtyRegionEnable(bool isEnable);
 
-    void SetAdvancedDirtyRegionEnable(bool isEnable);
+    static void SetAdvancedDirtyRegionEnable(bool isEnable);
 
-    void SetTileBasedAlignEnable(bool isEnable);
+    static void SetTileBasedAlignEnable(bool isEnable);
 
-    void SetTileBasedAlignBits(int tileBasedAlignBits);
+    static void SetTileBasedAlignBits(int tileBasedAlignBits);
 
 private:
-    bool isDirtyRegionEnable_ = true;
-    bool isExpandScreenDirtyRegionEnable_ = true;
-    bool isMirrorScreenDirtyRegionEnable_ = true;
-    bool isAdvancedDirtyRegionEnable_ = false;
-    bool isTileBasedAlignEnable_ = false;
-    int tileBasedAlignBits_ = 128;
+    inline static bool isDirtyRegionEnable_ = true;
+    inline static bool isExpandScreenDirtyRegionEnable_ = true;
+    inline static bool isMirrorScreenDirtyRegionEnable_ = true;
+    inline static bool isAdvancedDirtyRegionEnable_ = false;
+    inline static bool isTileBasedAlignEnable_ = false;
+    inline static int tileBasedAlignBits_ = 128;
     friend class DirtyRegionParamParse;
 };
 } // namespace OHOS::Rosen

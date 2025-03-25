@@ -521,6 +521,22 @@ HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterAndUnRegisterFirstFrameCommitCallback001
+ * @tc.desc: test results of RegisterFirstFrameCommitCallback and UnRegisterFirstFrameCommitCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIBTF2E
+ */
+HWTEST_F(RSInterfacesTest, RegisterAndUnRegisterFirstFrameCommitCallback001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+
+    auto callback = [](uint64_t, int64_t) {};
+    EXPECT_EQ(instance.RegisterFirstFrameCommitCallback(callback), 0);
+    EXPECT_EQ(instance.UnRegisterFirstFrameCommitCallback(), 0);
+}
+
+/**
  * @tc.name: SetWindowContainer001
  * @tc.desc: test results of SetWindowContainer
  * @tc.type: FUNC

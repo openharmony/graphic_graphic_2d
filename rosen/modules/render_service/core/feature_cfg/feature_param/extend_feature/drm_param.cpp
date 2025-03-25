@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
 
-bool DRMParam::IsDrmEnable() const
+bool DRMParam::IsDrmEnable()
 {
     return isDrmEnable_;
 }
