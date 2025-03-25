@@ -3484,32 +3484,35 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     RSRenderNode::SharedPtr hwcNodeParent = hwcNodePtr;
     while (hwcNodeParent && hwcNodeParent->GetType() != RSRenderNodeType::DISPLAY_NODE &&
            hwcNodeParent->GetId() != rootNode.GetId()) {
-        const auto& parentProperties = hwcNodeParent->GetRenderProperties();
-        const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
-        parentGeoPtr->GetMatrix().MapRect(childRectMapped, childRectMapped);
-        if (parentProperties.GetClipToBounds()) {
-            auto selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
-            Drawing::Rect clipSelfDrawRect(selfDrawRectF.left_, selfDrawRectF.top_,
-                selfDrawRectF.GetRight(), selfDrawRectF.GetBottom());
-            Drawing::Rect clipBoundRectMapped;
-            parentGeoPtr->GetMatrix().MapRect(clipBoundRectMapped, clipSelfDrawRect);
-            childRectMapped.Intersect(clipBoundRectMapped);
-        }
-        if (parentProperties.GetClipToFrame()) {
-            auto left = parentProperties.GetFrameOffsetX() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_X);
-            auto top = parentProperties.GetFrameOffsetY() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_Y);
-            Drawing::Rect clipFrameRect(
-                left, top, left + parentProperties.GetFrameWidth(), top + parentProperties.GetFrameHeight());
-            Drawing::Rect clipFrameRectMapped;
-            parentGeoPtr->GetMatrix().MapRect(clipFrameRectMapped, clipFrameRect);
-            childRectMapped.Intersect(clipFrameRectMapped);
-        }
-        if (parentProperties.GetClipToRRect()) {
-            RectF rectF = parentProperties.GetClipRRect().rect_;
-            Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetRight(), rectF.GetBottom());
-            Drawing::Rect clipRectMapped;
-            parentGeoPtr->GetMatrix().MapRect(clipRectMapped, clipRect);
-            childRectMapped.Intersect(clipRectMapped);
+        if (hwcNodeParent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+            const auto& parentProperties = hwcNodeParent->GetRenderProperties();
+            const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+            parentGeoPtr->GetMatrix().MapRect(childRectMapped, childRectMapped);
+            if (parentProperties.GetClipToBounds()) {
+                auto selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
+                Drawing::Rect clipSelfDrawRect(selfDrawRectF.left_, selfDrawRectF.top_,
+                    selfDrawRectF.GetRight(), selfDrawRectF.GetBottom());
+                Drawing::Rect clipBoundRectMapped;
+                parentGeoPtr->GetMatrix().MapRect(clipBoundRectMapped, clipSelfDrawRect);
+                childRectMapped.IntersectRect(clipBoundRectMapped);
+            }
+            if (parentProperties.GetClipToFrame()) {
+                auto left = parentProperties.GetFrameOffsetX() *
+                    parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_X);
+                auto top = parentProperties.GetFrameOffsetY() * parentGeoPtr->GetMatrix().Get(Drawing::Matrix::SCALE_Y);
+                Drawing::Rect clipFrameRect(
+                    left, top, left + parentProperties.GetFrameWidth(), top + parentProperties.GetFrameHeight());
+                Drawing::Rect clipFrameRectMapped;
+                parentGeoPtr->GetMatrix().MapRect(clipFrameRectMapped, clipFrameRect);
+                childRectMapped.IntersectRect(clipFrameRectMapped);
+            }
+            if (parentProperties.GetClipToRRect()) {
+                RectF rectF = parentProperties.GetClipRRect().rect_;
+                Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetRight(), rectF.GetBottom());
+                Drawing::Rect clipRectMapped;
+                parentGeoPtr->GetMatrix().MapRect(clipRectMapped, clipRect);
+                childRectMapped.IntersectRect(clipRectMapped);
+            }
         }
         hwcNodeParent = hwcNodeParent->GetParent().lock();
     }
@@ -3518,7 +3521,7 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     rootNodeAbsMatrix.MapRect(absClipRect, childRectMapped);
     Drawing::Rect prepareClipRect(prepareClipRect_.left_, prepareClipRect_.top_,
         prepareClipRect_.GetRight(), prepareClipRect_.GetBottom());
-    absClipRect.Intersect(prepareClipRect);
+    absClipRect.IntersectRect(prepareClipRect);
     clipRect.left_ = static_cast<int>(std::floor(absClipRect.GetLeft()));
     clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
     clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
