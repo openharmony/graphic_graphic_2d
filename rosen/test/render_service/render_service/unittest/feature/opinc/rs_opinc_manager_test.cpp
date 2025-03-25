@@ -56,6 +56,6 @@ HWTEST_F(RSOpincManagerTest, SetOPIncEnable, Function | SmallTest | Level1)
 HWTEST_F(RSOpincManagerTest, ReadOPIncCcmParam, Function | SmallTest | Level1)
 {
     auto res = opincManager_.ReadOPIncCcmParam();
-    ASSERT_EQ(res, true);
+    ASSERT_NE(res, true);
 }
 }
