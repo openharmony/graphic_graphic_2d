@@ -100,6 +100,7 @@ public:
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
     size_t defaultTextStyleUid { 0 };
+    bool halfLeading { false };
 };
 } // namespace SPText
 } // namespace Rosen

@@ -607,7 +607,6 @@ void RSMainThread::Init()
     }
     RSOpincManager::Instance().ReadOPIncCcmParam();
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
-    isUiFirstOn_ = RSUifirstManager::Instance().GetUiFirstSwitch();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
         RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
@@ -1119,7 +1118,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     cacheCmdSkippedNodes_.clear();
     if (subThreadNodes_.empty() &&
         (RSUifirstManager::Instance().GetUiFirstType() != UiFirstCcmType::MULTI
-            || (leashWindowCount_ > 0 && isUiFirstOn_ == false))) {
+            || (leashWindowCount_ > 0 && !RSUifirstManager::Instance().GetUiFirstSwitch()))) {
 #ifdef RS_ENABLE_GPU
         if (!isUniRender_) {
             RSSubThreadManager::Instance()->ResetSubThreadGrContext(); // planning: move to prepare
@@ -1176,7 +1175,7 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     if (!cacheCmdSkippedNodes_.empty()) {
         return true;
     }
-    if (!isUiFirstOn_) {
+    if (!RSUifirstManager::Instance().GetUiFirstSwitch()) {
         // clear subThreadNodes_ when UIFirst off and none of subThreadNodes_ is in the state of doing
         subThreadNodes_.clear();
     }
@@ -1601,7 +1600,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
 #endif
             }
-            if (isUiFirstOn_ && surfaceHandler->IsCurrentFrameBufferConsumed()
+            if (RSUifirstManager::Instance().GetUiFirstSwitch() && surfaceHandler->IsCurrentFrameBufferConsumed()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
                     RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
                         " SetContentDirty for UIFirst assigning to subthread");
@@ -2235,7 +2234,6 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
         auto node = nodeMap.GetRenderNode(id);
         bool flag = context_->GetUiCaptureCmdsExecutedFlag(id);
         if (!flag) {
-            RS_LOGD("RSMainThread::PrepareUiCaptureTasks cmds not be processed, id: %{public}llu", id);
             remainUiCaptureTasks.emplace_back(id, captureTask);
             continue;
         }
@@ -2350,7 +2348,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (isAccessibilityConfigChanged_) {
         RS_LOGD("RSMainThread::UniRender AccessibilityConfig has Changed");
     }
-    UpdateUIFirstSwitch();
+    RSUifirstManager::Instance().RefreshUIFirstParam();
     UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
@@ -3444,8 +3442,6 @@ void RSMainThread::Animate(uint64_t timestamp)
         return;
     }
     UpdateAnimateNodeFlag();
-    doDirectComposition_ = false;
-    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
     bool curWinAnim = false;
     bool needRequestNextVsync = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
@@ -3529,6 +3525,8 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
+        doDirectComposition_ = false;
+        RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
         RequestNextVSync("animate", timestamp_);
     } else if (isUniRender_) {
@@ -4801,34 +4799,6 @@ void RSMainThread::UpdateDisplayNodeScreenId()
 }
 
 const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
-
-void RSMainThread::UpdateUIFirstSwitch()
-{
-#ifdef RS_ENABLE_GPU
-    RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (!rootNode) {
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
-    auto firstChildren = rootNode->GetFirstChild();
-    if (!firstChildren) {
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
-    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
-    if (!displayNode) {
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
-    RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-#endif
-}
-
-bool RSMainThread::IsUIFirstOn() const
-{
-    return isUiFirstOn_;
-}
 
 void RSMainThread::UpdateAnimateNodeFlag()
 {

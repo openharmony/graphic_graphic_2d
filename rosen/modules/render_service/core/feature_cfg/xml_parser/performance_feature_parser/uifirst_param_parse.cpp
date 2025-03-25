@@ -47,27 +47,15 @@ int32_t UIFirstParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xm
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-
-        if (ParseUIFirstInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("UIFirstParamParse stop parsing, parse internal fail");
-            return PARSE_INTERNAL_FAIL;
-        }
+        ParseUIFirstInternal(*currNode);
     }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t UIFirstParamParse::ParseUIFirstInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[UIFirst]);
-    if (iter == featureMap.end()) {
-        RS_LOGD("UIFirstParamParse stop parsing, no initializing param map");
-        return PARSE_INTERNAL_FAIL;
-    }
-    uifirstParam_ = std::static_pointer_cast<UIFirstParam>(iter->second);
-
     // Start Parse Feature Params
+    xmlNode *currNode = &node;
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
@@ -75,23 +63,23 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(FeatureParamMapType &featureMap,
         bool isEnabled = ParseFeatureSwitch(val);
         switch (GetUIFirstSwitchType(name)) {
             case UIFirstSwitchType::UIFIRST_ENABLED:
-                uifirstParam_->SetUIFirstEnable(isEnabled);
-                RS_LOGI("UIFirstParamParse parse UIFirstEnabled %{public}d", uifirstParam_->IsUIFirstEnable());
+                UIFirstParam::SetUIFirstEnable(isEnabled);
+                RS_LOGI("UIFirstParamParse parse UIFirstEnabled %{public}d", UIFirstParam::IsUIFirstEnable());
                 break;
             case UIFirstSwitchType::CARD_UIFIRST_ENABLED:
-                uifirstParam_->SetCardUIFirstEnable(isEnabled);
+                UIFirstParam::SetCardUIFirstEnable(isEnabled);
                 RS_LOGI("UIFirstParamParse parse CardUIFirstEnabled %{public}d",
-                    uifirstParam_->IsCardUIFirstEnable());
+                    UIFirstParam::IsCardUIFirstEnable());
                 break;
             case UIFirstSwitchType::ROTATE_ENABLED:
-                uifirstParam_->SetCacheOptimizeRotateEnable(isEnabled);
+                UIFirstParam::SetCacheOptimizeRotateEnable(isEnabled);
                 RS_LOGI("UIFirstParamParse parse CacheOptimizeRotateEnabled %{public}d",
-                    uifirstParam_->IsCacheOptimizeRotateEnable());
+                    UIFirstParam::IsCacheOptimizeRotateEnable());
                 break;
             case UIFirstSwitchType::FREE_MULTI_WINDOW_ENABLED:
-                uifirstParam_->SetFreeMultiWindowEnable(isEnabled);
+                UIFirstParam::SetFreeMultiWindowEnable(isEnabled);
                 RS_LOGI("UIFirstParamParse parse FreeMultiWindowEnabled %{public}d",
-                    uifirstParam_->IsFreeMultiWindowEnable());
+                    UIFirstParam::IsFreeMultiWindowEnable());
                 break;
             default:
                 RS_LOGI("UIFirstParamParse parse %{public}s is not support!", name.c_str());
@@ -110,16 +98,16 @@ int32_t UIFirstParamParse::ParseUIFirstSingleParam(const std::string& name, cons
         int num;
         std::istringstream iss(value);
         if (iss >> num) {
-            uifirstParam_->SetUIFirstEnableWindowThreshold(num);
+            UIFirstParam::SetUIFirstEnableWindowThreshold(num);
             RS_LOGI("UIFirstParamParse parse UIFirstEnableWindowThreshold %{public}d",
-                uifirstParam_->GetUIFirstEnableWindowThreshold());
+                UIFirstParam::GetUIFirstEnableWindowThreshold());
         }
     } else if (name == "UIFirstType" && IsNumber(value)) {
         int num;
         std::istringstream iss(value);
         if (iss >> num) {
-            uifirstParam_->SetUIFirstType(num);
-            RS_LOGI("UIFirstParamParse parse UIFirstType %{public}d", uifirstParam_->GetUIFirstType());
+            UIFirstParam::SetUIFirstType(num);
+            RS_LOGI("UIFirstParamParse parse UIFirstType %{public}d", UIFirstParam::GetUIFirstType());
         }
     }
     return PARSE_EXEC_SUCCESS;

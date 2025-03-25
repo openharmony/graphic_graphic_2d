@@ -309,7 +309,8 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged();
+        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
+               isFirstFrameAfterScreenRotation_;
     }
 
     inline bool IsValidInVirtualScreen(const RSSurfaceRenderNode& node) const
@@ -402,6 +403,9 @@ private:
     float curAlpha_ = 1.f;
     float globalZOrder_ = 0.0f;
     bool isScreenRotationAnimating_ = false;
+    // use for not skip subtree prepare in first frame after screen rotation
+    bool isFirstFrameAfterScreenRotation_ = false;
+    static bool isLastFrameRotating_;
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
     bool unchangeMarkEnable_ = false;
@@ -494,6 +498,8 @@ private:
 
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;
+
+    int32_t rsDisplayNodeChildNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

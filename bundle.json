@@ -46,7 +46,6 @@
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
         "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_ddgr",
         "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
@@ -412,6 +411,14 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/effect_kit:cj_effect_kit_ffi",
+            "header": {
+              "header_files": [],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/effect_kit"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/ddgr:libddgr",
             "header": {
               "header_files": [],
@@ -427,6 +434,7 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/safuzz:safuzztest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
           "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",

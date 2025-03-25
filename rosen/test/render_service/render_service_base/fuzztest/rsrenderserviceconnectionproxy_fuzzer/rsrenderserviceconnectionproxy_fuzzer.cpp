@@ -180,7 +180,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.CreateNode(config, createNodeSuccess);
     sptr<Surface> sface = nullptr;
     rsRenderServiceConnectionProxy.CreateNodeAndSurface(config, sface);
-    rsRenderServiceConnectionProxy.CreateVSyncConnection(name, token, id1, windowNodeId);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id1, windowNodeId, false};
+    rsRenderServiceConnectionProxy.CreateVSyncConnection(conn, name, token, vsyncConnParam);
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect, pixelMap);
     rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);

@@ -311,15 +311,15 @@ ErrCode RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfaceRend
     return ERR_OK;
 }
 
-sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(const std::string& name,
-                                                                             const sptr<VSyncIConnectionToken>& token,
-                                                                             uint64_t id,
-                                                                             NodeId windowNodeId,
-                                                                             bool fromXcomponent)
+ErrCode RSRenderServiceConnectionProxy::CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
+                                                              const std::string& name,
+                                                              const sptr<VSyncIConnectionToken>& token,
+                                                              VSyncConnParam vsyncConnParam)
 {
     if (token == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateVSyncConnection: token is nullptr.");
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
     MessageParcel data;
     MessageParcel reply;
@@ -327,36 +327,43 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
 
     if (!data.WriteString(name)) {
         ROSEN_LOGE("CreateVSyncConnection: WriteString name err.");
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("CreateVSyncConnection: WriteRemoteObject token->AsObject() err.");
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
-    if (!data.WriteUint64(id)) {
+    if (!data.WriteUint64(vsyncConnParam.id)) {
         ROSEN_LOGE("CreateVSyncConnection: WriteUint64 id err.");
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
-    if (!data.WriteUint64(windowNodeId)) {
+    if (!data.WriteUint64(vsyncConnParam.windowNodeId)) {
         ROSEN_LOGE("CreateVSyncConnection: WriteUint64 windowNodeId err.");
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     if (!Remote()) {
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
 
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     if (rObj == nullptr) {
-        return nullptr;
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
     }
-    sptr<IVSyncConnection> conn = iface_cast<IVSyncConnection>(rObj);
-    return conn;
+    vsyncConn = iface_cast<IVSyncConnection>(rObj);
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
@@ -3138,42 +3145,49 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, 
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate(
-    ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+ErrCode RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate(
+    ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetVirtualScreenRefreshRate: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        retVal = RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("SetVirtualScreenRefreshRate: WriteUint64 id err.");
-        return WRITE_PARCEL_ERR;
+        retVal = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteUint32(maxRefreshRate)) {
         ROSEN_LOGE("SetVirtualScreenRefreshRate: WriteUint32 maxRefreshRate err.");
-        return WRITE_PARCEL_ERR;
+        retVal = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
+        retVal = RS_CONNECTION_ERROR;
+        return ERR_INVALID_VALUE;
     }
     int32_t result{0};
     if (!reply.ReadInt32(result)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate Read result failed");
-        return READ_PARCEL_ERR;
+        retVal = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
     }
     if (result == SUCCESS) {
         if (!reply.ReadUint32(actualRefreshRate)) {
             ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate Read actualRefreshRate failed");
-            return READ_PARCEL_ERR;
+            retVal = READ_PARCEL_ERR;
+            return ERR_INVALID_VALUE;
         }
     }
-    return result;
+    retVal = result;
+    return ERR_OK;
 }
 
 uint32_t RSRenderServiceConnectionProxy::SetScreenActiveRect(

@@ -143,9 +143,13 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreateVSyncConnection, TestSize.Lev
     std::string name("name");
     uint64_t id = 1;
     NodeId windowNodeId = 1;
-    ASSERT_EQ(proxy->CreateVSyncConnection(name, token, id, windowNodeId), nullptr);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, windowNodeId, false};
+    proxy->CreateVSyncConnection(conn, name, token, vsyncConnParam);
+    ASSERT_EQ(conn, nullptr);
     token = new IRemoteStub<VSyncIConnectionToken>();
-    ASSERT_EQ(proxy->CreateVSyncConnection(name, token, id, windowNodeId), nullptr);
+    proxy->CreateVSyncConnection(conn, name, token, vsyncConnParam);
+    ASSERT_EQ(conn, nullptr);
 }
 
 /**

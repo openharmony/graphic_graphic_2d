@@ -1780,7 +1780,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token, id, windowNodeID);
+            sptr<IVSyncConnection> conn = nullptr;
+            VSyncConnParam vsyncConnParam = {id, windowNodeID, false};
+            CreateVSyncConnection(conn, name, token, vsyncConnParam);
             if (conn == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -2268,7 +2270,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             uint32_t actualRefreshRate = 0;
-            int32_t result = SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+            int32_t result = 0;
+            SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, result);
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_REFRESH_RATE Write result failed!");
                 return ERR_INVALID_REPLY;

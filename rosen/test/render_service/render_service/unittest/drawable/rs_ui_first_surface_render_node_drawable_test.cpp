@@ -313,8 +313,9 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, CalculateUifirstDirtyRegionTest
     surfaceDrawable_->syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     surfaceParams->absDrawRect_ = {0, 0, 15, 15};
-    auto region = surfaceDrawable_->CalculateUifirstDirtyRegion(true);
-    ASSERT_EQ(region.GetHeight(), 0);
+    Drawing::RectI dirtyRect = {};
+    bool isCalculateSucc = surfaceDrawable_->CalculateUifirstDirtyRegion(dirtyRect);
+    ASSERT_EQ(isCalculateSucc, false);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->syncUifirstDirtyManager_->Clear();
 }
@@ -338,8 +339,9 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, MergeUifirstAllSurfaceDirtyRegi
     surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
     Drawing::RectF bounds = {1, 1, 2, 2};
     surfaceParams->boundsRect_ = bounds;
-    auto region = surfaceDrawable_->MergeUifirstAllSurfaceDirtyRegion(true);
-    ASSERT_EQ(region.GetHeight(), 1);
+    Drawing::RectI dirtyRect = {};
+    bool dirtyEnableFlag = surfaceDrawable_->MergeUifirstAllSurfaceDirtyRegion(dirtyRect);
+    ASSERT_EQ(dirtyEnableFlag, false);
 }
 
 /**

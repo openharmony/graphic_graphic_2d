@@ -14,6 +14,7 @@
  */
 
 #include "feature/opinc/rs_opinc_manager.h"
+#include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "gtest/gtest.h"
 
 using namespace testing;
@@ -55,7 +56,7 @@ HWTEST_F(RSOpincManagerTest, SetOPIncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(RSOpincManagerTest, ReadOPIncCcmParam, Function | SmallTest | Level1)
 {
-    auto res = opincManager_.ReadOPIncCcmParam();
-    ASSERT_EQ(res, true);
+    opincManager_.ReadOPIncCcmParam();
+    ASSERT_EQ(opincManager_.isOPIncOn_, OPIncParam::IsOPIncEnable());
 }
 }

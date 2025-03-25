@@ -377,7 +377,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
-        RSMainThread::Instance()->IsUIFirstOn();
+        GetUiFirstSwitch();
     bool changeColorSpace = drawable->GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         if (isScRGBEnable && changeColorSpace) {
@@ -1171,10 +1171,32 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
 {
     RS_TRACE_NAME_FMT("RSUifirstManager::OnProcessAnimateScene systemAnimatedScene:%d", systemAnimatedScene);
-    if ((systemAnimatedScene == SystemAnimatedScenes::ENTER_RECENTS) && !isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = true;
-    } else if ((systemAnimatedScene == SystemAnimatedScenes::EXIT_RECENTS) && isRecentTaskScene_.load()) {
-        isRecentTaskScene_ = false;
+    RS_LOGI("RSUifirstManager::OnProcessAnimateScene SystemAnimatedScene:[%{public}d]", systemAnimatedScene);
+    switch (systemAnimatedScene) {
+        // recent task scene for phone
+        case SystemAnimatedScenes::ENTER_RECENTS:
+            isRecentTaskScene_.store(true);
+            break;
+        case SystemAnimatedScenes::EXIT_RECENTS:
+            isRecentTaskScene_.store(false);
+            break;
+        // enter and exit mission center are two independent animations, the same goes for enter and exit split screen
+        // enter and exit mission center or enter and exit split screen animation starts for PC
+        case SystemAnimatedScenes::ENTER_MISSION_CENTER:
+        case SystemAnimatedScenes::EXIT_MISSION_CENTER:
+            isMissionCenterScene_.store(true);
+            break;
+        case SystemAnimatedScenes::ENTER_SPLIT_SCREEN:
+        case SystemAnimatedScenes::EXIT_SPLIT_SCREEN:
+            isSplitScreenScene_.store(true);
+            break;
+        // enter and exit mission center or enter and exit split screen animation ends for PC
+        case SystemAnimatedScenes::OTHERS:
+            isMissionCenterScene_.store(false);
+            isSplitScreenScene_.store(false);
+            break;
+        default:
+            break;
     }
 }
 
@@ -1344,6 +1366,12 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
         !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
+        return false;
+    }
+    // disable uifirst when leash window has no app window at recent task scene or split screen scene
+    if (node.IsLeashWindow() && node.IsScale() && !LeashWindowContainMainWindow(node) &&
+        (RSUifirstManager::Instance().IsMissionCenterScene() || RSUifirstManager::Instance().IsSplitScreenScene())) {
+        RS_TRACE_NAME("leash window has no app window, disable uifirst");
         return false;
     }
     return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
@@ -1656,19 +1684,11 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
 
 void RSUifirstManager::ReadUIFirstCcmParam()
 {
-    auto uifirstFeature = GraphicFeatureParamManager::GetInstance().GetFeatureParam("UIFirstConfig");
-    std::shared_ptr<UIFirstParam> uifirstParam = std::make_shared<UIFirstParam>();
-    isUiFirstOn_ = uifirstParam->IsUIFirstEnable();
-    isCardUiFirstOn_ = uifirstParam->IsCardUIFirstEnable();
-    SetUiFirstType(uifirstParam->GetUIFirstType());
-    auto param = std::static_pointer_cast<UIFirstParam>(uifirstFeature);
-    if (param) {
-        isUiFirstOn_ = param->IsUIFirstEnable();
-        isCardUiFirstOn_ = param->IsCardUIFirstEnable();
-        SetUiFirstType(param->GetUIFirstType());
-        RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-            " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
-    }
+    isUiFirstOn_ = UIFirstParam::IsUIFirstEnable();
+    isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
+    SetUiFirstType(UIFirstParam::GetUIFirstType());
+    RS_LOGI("RSUifirstManager::ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
+        " uifirstType_=%{public}d", isUiFirstOn_, isCardUiFirstOn_, (int)uifirstType_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -1683,6 +1703,27 @@ void RSUifirstManager::SetUiFirstType(int type)
     } else if (type == (int)UiFirstCcmType::HYBRID) {
         uifirstType_ = UiFirstCcmType::HYBRID;
     }
+}
+
+void RSUifirstManager::RefreshUIFirstParam()
+{
+#ifdef RS_ENABLE_GPU
+    RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
+    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext()
+        .GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    auto firstChildren = rootNode->GetFirstChild();
+    if (!firstChildren) {
+        return;
+    }
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(firstChildren);
+    if (!displayNode) {
+        return;
+    }
+    isUiFirstSupportFlag_ = true;
+#endif
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

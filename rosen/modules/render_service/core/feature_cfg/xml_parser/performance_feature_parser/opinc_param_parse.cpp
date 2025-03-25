@@ -31,44 +31,32 @@ int32_t OPIncParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlN
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-
-        if (ParseOPIncInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("OPIncParamParse stop parsing, parse internal fail");
-            return PARSE_INTERNAL_FAIL;
-        }
+        ParseOPIncInternal(*currNode);
     }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t OPIncParamParse::ParseOPIncInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t OPIncParamParse::ParseOPIncInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[OPInc]);
-    if (iter == featureMap.end()) {
-        RS_LOGD("OPIncParamParse stop parsing, no initializing param map");
-        return PARSE_INTERNAL_FAIL;
-    }
-    opincParam_ = std::static_pointer_cast<OPIncParam>(iter->second);
-
     // Start Parse Feature Params
+    xmlNode *currNode = &node;
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "OPIncEnabled") {
-            opincParam_->SetOPIncEnable(isEnabled);
-            RS_LOGI("OPIncParamParse parse OPIncEnabled %{public}d", opincParam_->IsOPIncEnable());
+            OPIncParam::SetOPIncEnable(isEnabled);
+            RS_LOGI("OPIncParamParse parse OPIncEnabled %{public}d", OPIncParam::IsOPIncEnable());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "CacheWidthThresholdPercentValue" && IsNumber(val)) {
             int num;
             std::istringstream iss(val);
             if (iss >> num) {
-                opincParam_->SetCacheWidthThresholdPercentValue(num);
+                OPIncParam::SetCacheWidthThresholdPercentValue(num);
                 RS_LOGI("OPIncParamParse parse CacheWidthThresholdPercentValue %{public}d",
-                    opincParam_->GetCacheWidthThresholdPercentValue());
+                    OPIncParam::GetCacheWidthThresholdPercentValue());
             }
         }
     }

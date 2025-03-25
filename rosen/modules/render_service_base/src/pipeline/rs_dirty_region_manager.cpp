@@ -533,6 +533,7 @@ std::vector<RectI> RSDirtyRegionManager::GetAdvancedDirtyHistory(unsigned int i)
     return advancedDirtyHistory_[i];
 }
 
+// for uifirst
 const RectI RSDirtyRegionManager::GetUiLatestHistoryDirtyRegions(const int historyIndex) const
 {
     if (historyHead_ < 0) {

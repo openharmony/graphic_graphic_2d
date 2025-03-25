@@ -2166,7 +2166,7 @@ void RSDisplayRenderNodeDrawable::FinishHdrDraw(Drawing::Brush& paint, float hdr
 
 bool RSDisplayRenderNodeDrawable::EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut)
 {
-    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSMainThread::Instance()->IsUIFirstOn();
+    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSUifirstManager::Instance().GetUiFirstSwitch();
 }
 
 void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
