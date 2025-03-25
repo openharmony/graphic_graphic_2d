@@ -86,7 +86,6 @@ std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(u
         return cacheSurface_;
     }
 
-    // freeze cache scene
     ClearCacheSurfaceInThread();
     return nullptr;
 }
