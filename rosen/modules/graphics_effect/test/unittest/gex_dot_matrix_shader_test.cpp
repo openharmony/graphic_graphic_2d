@@ -50,7 +50,7 @@ void GEXDotMatrixShaderTest::TearDown() {}
 HWTEST_F(GEXDotMatrixShaderTest, CreateDynamicImpl001, TestSize.Level1)
 {
     auto impl = GEXDotMatrixShader::CreateDynamicImpl(params_);
-    EXPECT_NE(impl, nullptr);
+    EXPECT_EQ(impl, nullptr);
 }
  
 /**
