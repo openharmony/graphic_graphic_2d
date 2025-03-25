@@ -498,29 +498,35 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNodeDrawable::GetSyncUifirs
     return syncUifirstDirtyManager_;
 }
 
-void RSSurfaceRenderNodeDrawable::UpdateCacheSurfaceDirtyManager(bool hasCompleteCache, int bufferAge)
+bool RSSurfaceRenderNodeDrawable::UpdateCacheSurfaceDirtyManager(bool hasCompleteCache)
 {
     if (!syncUifirstDirtyManager_ || !syncDirtyManager_) {
-        return;
+        RS_LOGE("UpdateCacheSurfaceDirtyManager dirty manager is nullptr");
+        return false;
     }
     syncUifirstDirtyManager_->Clear();
     auto curDirtyRegion = syncDirtyManager_->GetDirtyRegion();
     auto& curFrameDirtyRegion = syncDirtyManager_->GetUifirstFrameDirtyRegion();
     curDirtyRegion = curDirtyRegion.JoinRect(curFrameDirtyRegion);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("UpdateCacheSurfaceDirtyManager surfaceParams is nullptr");
+        return false;
+    }
     RS_TRACE_NAME_FMT("UpdateCacheSurfaceDirtyManager[%s] %" PRIu64", curDirtyRegion[%d %d %d %d], hasCache:%d",
         GetName().c_str(), GetId(), curDirtyRegion.GetLeft(), curDirtyRegion.GetTop(),
         curDirtyRegion.GetWidth(), curDirtyRegion.GetHeight(), hasCompleteCache);
-    if (surfaceParams && !hasCompleteCache) {
+    if (!hasCompleteCache) {
         RectI surfaceDirtyRect = surfaceParams->GetAbsDrawRect();
         syncUifirstDirtyManager_->MergeDirtyRect(surfaceDirtyRect);
     } else {
         syncUifirstDirtyManager_->MergeDirtyRect(curDirtyRegion);
     }
     // set history dirty count
-    syncUifirstDirtyManager_->SetBufferAge(bufferAge);
+    syncUifirstDirtyManager_->SetBufferAge(1); // 1 means buffer age
     // update history dirty count
     syncUifirstDirtyManager_->UpdateDirty(false);
+    return true;
 }
 
 void RSSurfaceRenderNodeDrawable::UpdateUifirstDirtyManager()
@@ -528,15 +534,32 @@ void RSSurfaceRenderNodeDrawable::UpdateUifirstDirtyManager()
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("UpdateUifirstDirtyManager params is nullptr");
+        UpdateDirtyRecordCompletatedState(false);
         return;
     }
+    auto isCacheValid = IsCacheValid();
+    auto isRecordCompletate = UpdateCacheSurfaceDirtyManager(isCacheValid);
     // nested surfacenode uifirstDirtyManager update is required
     for (const auto& nestedDrawable : GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
-            surfaceNodeDrawable->UpdateCacheSurfaceDirtyManager(IsCacheValid());
+            isRecordCompletate =
+                isRecordCompletate && surfaceNodeDrawable->UpdateCacheSurfaceDirtyManager(isCacheValid);
         }
     }
+    UpdateDirtyRecordCompletatedState(isRecordCompletate);
+}
+
+bool RSSurfaceRenderNodeDrawable::IsDirtyRecordCompletated()
+{
+    bool isDirtyRecordCompletated = isDirtyRecordCompletated_;
+    isDirtyRecordCompletated_ = false;
+    return isDirtyRecordCompletated;
+}
+
+void RSSurfaceRenderNodeDrawable::UpdateDirtyRecordCompletatedState(bool isCompletate)
+{
+    isDirtyRecordCompletated_ = isCompletate;
 }
 
 void RSSurfaceRenderNodeDrawable::SetUifirstDirtyRegion(Drawing::Region dirtyRegion)
@@ -559,75 +582,95 @@ bool RSSurfaceRenderNodeDrawable::GetUifrstDirtyEnableFlag() const
     return uifrstDirtyEnableFlag_;
 }
 
-Drawing::RectI RSSurfaceRenderNodeDrawable::CalculateUifirstDirtyRegion(bool dirtyEnableFlag)
+bool RSSurfaceRenderNodeDrawable::CalculateUifirstDirtyRegion(Drawing::RectI& dirtyRect)
 {
     auto uifirstDirtyManager = GetSyncUifirstDirtyManager();
     if (!uifirstDirtyManager) {
         RS_LOGE("CalculateUifirstDirtyRegion uifirstDirtyManager is nullptr");
-        SetUifrstDirtyEnableFlag(false);
-        return {};
+        return false;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceParams is nullptr");
-        SetUifrstDirtyEnableFlag(false);
-        return {};
+        return false;
     }
-    RectI uifirstDirtyRect = uifirstDirtyManager->GetUiLatestHistoryDirtyRegions();
+    RectI latestDirtyRect = uifirstDirtyManager->GetUiLatestHistoryDirtyRegions();
+    if (latestDirtyRect.IsEmpty()) {
+        dirtyRect = {};
+        RS_TRACE_NAME_FMT("uifirstDirtyManager[%s] %" PRIu64", dirtyRect[%d %d %d %d]", GetName().c_str(), GetId(),
+            dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight());
+        return true;
+    }
     auto absDrawRect = surfaceParams->GetAbsDrawRect();
     if (absDrawRect.GetWidth() == 0 || absDrawRect.GetHeight() == 0) {
         RS_LOGE("absDrawRect width or height is zero");
-        SetUifrstDirtyEnableFlag(false);
-        return {};
+        return true;
     }
     auto surfaceBounds = surfaceParams->GetBounds();
     float widthScale = surfaceBounds.GetWidth() / static_cast<float>(absDrawRect.GetWidth());
     float heightScale = surfaceBounds.GetHeight() / static_cast<float>(absDrawRect.GetHeight());
-    float left = (static_cast<float>(uifirstDirtyRect.GetLeft() - absDrawRect.GetLeft())) * widthScale;
-    float top = (static_cast<float>(uifirstDirtyRect.GetTop() - absDrawRect.GetTop())) * heightScale;
-    float width = static_cast<float>(uifirstDirtyRect.GetWidth()) * widthScale;
-    float height = static_cast<float>(uifirstDirtyRect.GetHeight()) * heightScale;
+    float left = (static_cast<float>(latestDirtyRect.GetLeft() - absDrawRect.GetLeft())) * widthScale;
+    float top = (static_cast<float>(latestDirtyRect.GetTop() - absDrawRect.GetTop())) * heightScale;
+    float width = static_cast<float>(latestDirtyRect.GetWidth()) * widthScale;
+    float height = static_cast<float>(latestDirtyRect.GetHeight()) * heightScale;
     Drawing::RectF tempRect = Drawing::RectF(left, top, left + width, top + height);
-    Drawing::RectI resultRect = tempRect.RoundOut();
-    RS_TRACE_NAME_FMT("uifirstDirtyManager[%s] %" PRIu64", widthScale:%.1f heightScale:%.1f, resultRect[%d %d %d %d]",
-        GetName().c_str(), GetId(), widthScale, heightScale,
-        resultRect.GetLeft(), resultRect.GetTop(), resultRect.GetWidth(), resultRect.GetHeight());
-    Drawing::Region resultRegion;
-    resultRegion.SetRect(resultRect);
-    SetUifirstDirtyRegion(resultRegion);
-    SetUifrstDirtyEnableFlag(dirtyEnableFlag);
-    return resultRect;
+    dirtyRect = tempRect.RoundOut();
+    RS_TRACE_NAME_FMT("uifirstDirtyManager[%s] %" PRIu64", scaleW:%.1f scaleH:%.1f, bounds[w:%.1f h:%.1f]"
+        ", lR[%d %d %d %d], absR[%d %d %d %d], tR[%.1f %.1f %.1f %.1f], resultR[%d %d %d %d]",
+        GetName().c_str(), GetId(), widthScale, heightScale, surfaceBounds.GetWidth(), surfaceBounds.GetHeight(),
+        latestDirtyRect.GetLeft(), latestDirtyRect.GetTop(), latestDirtyRect.GetWidth(), latestDirtyRect.GetHeight(),
+        absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight(),
+        tempRect.GetLeft(), tempRect.GetTop(), tempRect.GetWidth(), tempRect.GetHeight(),
+        dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight());
+    return true;
 }
 
-Drawing::RectI RSSurfaceRenderNodeDrawable::MergeUifirstAllSurfaceDirtyRegion(bool dirtyEnableFlag)
+bool RSSurfaceRenderNodeDrawable::MergeUifirstAllSurfaceDirtyRegion(Drawing::RectI& dirtyRects)
 {
-    Drawing::RectI curSurfaceDrityRect = {};
+    uifirstMergedDirtyRegion_ = {};
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion params is nullptr");
-        return {};
+        return false;
+    }
+    if (!surfaceParams->IsLeashWindow() || !IsDirtyRecordCompletated()) {
+        RS_LOGD("MergeUifirstAllSurfaceDirtyRegion not support");
+        return false;
+    }
+    Drawing::RectI tempRect = {};
+    bool isCalculateSucc = CalculateUifirstDirtyRegion(tempRect);
+    uifirstMergedDirtyRegion_.SetRect(tempRect);
+    dirtyRects.Join(tempRect);
+    for (const auto& nestedDrawable : GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
+        if (surfaceNodeDrawable) {
+            tempRect = {};
+            isCalculateSucc = isCalculateSucc &&
+            surfaceNodeDrawable->CalculateUifirstDirtyRegion(tempRect);
+            Drawing::Region resultRegion;
+            resultRegion.SetRect(tempRect);
+            uifirstMergedDirtyRegion_.Op(resultRegion, Drawing::RegionOp::UNION);
+            dirtyRects.Join(tempRect);
+        }
+    }
+    return isCalculateSucc;
+}
+
+void RSSurfaceRenderNodeDrawable::UpadteAllSurfaceUifirstDirtyEnableState(bool isEnableDirtyRegion)
+{
+    SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
+    SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("UpadteAllSurfaceUifirstDirtyState params is nullptr");
+        return;
     }
     for (const auto& nestedDrawable : GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
-            auto tempRect = surfaceNodeDrawable->CalculateUifirstDirtyRegion(dirtyEnableFlag);
-            curSurfaceDrityRect.Join(tempRect);
+            surfaceNodeDrawable->SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
+            surfaceNodeDrawable->SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
         }
-    }
-    return curSurfaceDrityRect;
-}
-
-void RSSurfaceRenderNodeDrawable::PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion)
-{
-    if (canvas.GetIsParallelCanvas()) {
-        if (GetUifrstDirtyEnableFlag()) {
-            auto uifirstDirtyRegion = GetUifirstDirtyRegion();
-            canvas.ClipRegion(uifirstDirtyRegion);
-            canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
-            canvas.PushDirtyRegion(uifirstDirtyRegion);
-        }
-    } else {
-        canvas.PushDirtyRegion(resultRegion);
     }
 }
 
@@ -651,15 +694,20 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
     // merge uifirst dirty region
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
-    bool dirtyEnableFlag = (surfaceParams && surfaceParams->IsLeashWindow() &&
-        RSSystemProperties::GetUIFirstDirtyEnabled());
-    Drawing::RectI uifirstSurfaceDrawRects = MergeUifirstAllSurfaceDirtyRegion(dirtyEnableFlag);
-    RS_TRACE_NAME_FMT("uifirstDirtyDfx[%s] %" PRIu64" uifirstDirtyDfx[%d %d %d %d]",
-        GetName().c_str(), GetId(), uifirstSurfaceDrawRects.GetLeft(), uifirstSurfaceDrawRects.GetTop(),
-        uifirstSurfaceDrawRects.GetWidth(), uifirstSurfaceDrawRects.GetHeight());
+    Drawing::RectI uifirstSurfaceDrawRects = {};
+    auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(uifirstSurfaceDrawRects) &&
+    RSSystemProperties::GetUIFirstDirtyEnabled() && !RSUifirstManager::Instance().IsRecentTaskScene();
+    UpadteAllSurfaceUifirstDirtyEnableState(dirtyEnableFlag);
     if (!dirtyEnableFlag) {
         rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    } else {
+        rscanvas->ClipRegion(uifirstMergedDirtyRegion_);
+        rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
+    {
+        RS_TRACE_NAME_FMT("uifirstDirtyMerged[%d %d %d %d], dirtyEnableFlag:%d",
+            uifirstSurfaceDrawRects.GetLeft(), uifirstSurfaceDrawRects.GetTop(),
+            uifirstSurfaceDrawRects.GetWidth(), uifirstSurfaceDrawRects.GetHeight(), dirtyEnableFlag);
     }
 
     ClearTotalProcessedSurfaceCount();
@@ -668,6 +716,18 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     // uifirst dirty dfx
     UifirstDirtyRegionDfx(*rscanvas, uifirstSurfaceDrawRects);
+}
+
+void RSSurfaceRenderNodeDrawable::PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion)
+{
+    if (canvas.GetIsParallelCanvas()) {
+        if (GetUifrstDirtyEnableFlag()) {
+            auto uifirstDirtyRegion = GetUifirstDirtyRegion();
+            canvas.PushDirtyRegion(uifirstDirtyRegion);
+        }
+    } else {
+        canvas.PushDirtyRegion(resultRegion);
+    }
 }
 
 void RSSurfaceRenderNodeDrawable::UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect)
