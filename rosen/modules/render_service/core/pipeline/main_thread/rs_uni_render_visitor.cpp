@@ -1801,6 +1801,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
             node.SetDRMCrossNode(firstLevelNode->IsFirstLevelCrossNode());
         }
     }
+    UpdateAncoPrepareClip(node);
     UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
     node.UpdatePositionZ();
     if (node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_) {
@@ -4229,6 +4230,26 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
     auto rect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     std::string nodeName = node.GetName();
     monitor.InsertCurRectMap(node.GetId(), nodeName, rect);
+}
+
+void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)
+{
+    const auto& property = node.GetRenderProperties();
+    auto& geoPtr = property.GetBoundsGeometry();
+    if (geoPtr == nullptr) {
+        return;
+    }
+    if (node.GetAncoFlags() == static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
+        // Dirty Region use abstract coordinate, property of node use relative coordinate
+        // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry
+        if (property.GetClipToBounds()) {
+            prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
+        }
+        if (property.GetClipToRRect()) {
+            RectF rect = property.GetClipRRect().rect_;
+            prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(rect));
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
