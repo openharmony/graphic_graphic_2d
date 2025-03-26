@@ -2356,10 +2356,7 @@ int32_t RSRenderServiceConnection::RegisterFirstFrameCommitCallback(
     sptr<RSIFirstFrameCommitCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-
-    RSHardwareThread::Instance().ScheduleTask([pid = remotePid_, &callback] () {
-        RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(pid, callback);
-    }).wait();
+    RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 
