@@ -53,7 +53,7 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
     ani_status ret;
     ani_long nativeObj {};
     if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
-        EFFECT_LOG_E("Object_GetField_Long fetch field ");
+        EFFECT_LOG_E("Object_GetField_Long fetch field");
         return nullptr;
     }
     AniFilter* aniFilter = reinterpret_cast<AniFilter*>(nativeObj);
@@ -69,7 +69,7 @@ Media::PixelMap* AniEffectKitUtils::GetPixelMapFromEnv([[maybe_unused]] ani_env*
     ani_status ret;
     ani_long nativeObj {};
     if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
-        EFFECT_LOG_E("Object_GetField_Long fetch field ");
+        EFFECT_LOG_E("Object_GetField_Long fetch field");
         return nullptr;
     }
     Media::PixelMapAni* pixelMapAni = reinterpret_cast<Media::PixelMapAni*>(nativeObj);

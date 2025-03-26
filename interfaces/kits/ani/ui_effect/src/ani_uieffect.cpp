@@ -117,7 +117,7 @@ ani_object AniEffect::CreateEffect(ani_env* env)
 {
     ani_object retVal {};
     std::unique_ptr<VisualEffect> effectObj = std::make_unique<VisualEffect>();
-    retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj.get()));
+    retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj.release()));
     return retVal;
 }
 
