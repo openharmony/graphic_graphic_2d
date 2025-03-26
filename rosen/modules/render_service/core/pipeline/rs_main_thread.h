@@ -450,10 +450,13 @@ private:
 
     void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
+    // SyncTransaction
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void StartSyncTransactionFallbackTask(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessAllSyncTransactionData();
+    bool IsNeedSyncTransaction(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
+
     void ProcessCommandForDividedRender();
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();
