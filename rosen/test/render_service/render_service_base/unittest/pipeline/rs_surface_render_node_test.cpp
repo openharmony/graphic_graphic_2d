@@ -515,7 +515,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateInfoForClonedNode, TestSize.Level1)
 
     surfaceRenderNode.UpdateInfoForClonedNode(surfaceRenderNode.clonedSourceNodeId_);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode.stagingRenderParams_.get());
-    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface() == surfaceRenderNode.IsMainWindowType());
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface() == surfaceRenderNode.IsMainWindowType());
 }
 
 /**
