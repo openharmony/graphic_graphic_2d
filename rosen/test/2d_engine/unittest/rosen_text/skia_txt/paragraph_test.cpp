@@ -114,6 +114,8 @@ HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
     EXPECT_EQ(paragraph_->GetWordBoundary(0).start, 0);
     EXPECT_EQ(paragraph_->GetActualTextRange(0, false).start, 0);
     EXPECT_EQ(paragraph_->GetActualTextRange(-1, false).start, 0);
+    EXPECT_EQ(paragraph_->GetActualTextRange(paragraph_->GetLineCount(), false).start, 0);
+    EXPECT_EQ(paragraph_->GetActualTextRange(paragraph_->GetLineCount(), false).end, 0);
     EXPECT_EQ(paragraph_->GetLineMetrics().size(), 1);
     EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLineWithIndent()), 44);
 }
