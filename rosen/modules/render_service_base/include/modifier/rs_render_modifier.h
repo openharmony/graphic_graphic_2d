@@ -354,23 +354,6 @@ public:
     }
 };
 
-class RSB_EXPORT RSBehindWindowFilterEnabledRenderModifier : public RSBackgroundRenderModifier {
-public:
-    RSBehindWindowFilterEnabledRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
-        : RSBackgroundRenderModifier(property)
-    {
-        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
-    }
-    ~RSBehindWindowFilterEnabledRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override {}
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-    RSModifierType GetType() override
-    {
-        return RSModifierType::BEHIND_WINDOW_FILTER_ENABLED;
-    }
-};
-
 class RSB_EXPORT RSBehindWindowFilterRadiusRenderModifier : public RSBackgroundRenderModifier {
 public:
     RSBehindWindowFilterRadiusRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)

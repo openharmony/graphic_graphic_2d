@@ -177,13 +177,12 @@ enum class RSModifierType : int16_t {
     GEOMETRYTRANS = 144,
     CUSTOM_CLIP_TO_FRAME = 145,
     HDR_BRIGHTNESS = 146,
-    BEHIND_WINDOW_FILTER_ENABLED = 147,
-    BEHIND_WINDOW_FILTER_RADIUS = 148,
-    BEHIND_WINDOW_FILTER_SATURATION = 149,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 150,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 151,
-    CHILDREN = 152, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 153,
+    BEHIND_WINDOW_FILTER_RADIUS = 147,
+    BEHIND_WINDOW_FILTER_SATURATION = 148,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 149,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 150,
+    CHILDREN = 151, // PLACEHOLDER, no such modifier, but we need a dirty flag
+    MAX_RS_MODIFIER_TYPE = 152,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -366,7 +365,6 @@ public:
             case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
             case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
             case RSModifierType::HDR_BRIGHTNESS: return "HDRBrightness";
-            case RSModifierType::BEHIND_WINDOW_FILTER_ENABLED: return "BehindWindowFilterEnabled";
             case RSModifierType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSModifierType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
