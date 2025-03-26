@@ -155,6 +155,18 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return flag;
         }
+        case RSRenderPropertyType::PROPERTY_VECTOR3F: {
+            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector3f>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_VECTOR3F failed");
+            }
+            return flag;
+        }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(val);
             if (property == nullptr) {
@@ -271,6 +283,14 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             val.reset(new RSRenderAnimatableProperty<Vector2f>(value, id, type, unit));
             break;
         }
+        case RSRenderPropertyType::PROPERTY_VECTOR3F: {
+            Vector3f value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                return false;
+            }
+            val.reset(new RSRenderAnimatableProperty<Vector3f>(value, id, type, unit));
+            break;
+        }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             Vector4f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
@@ -324,6 +344,12 @@ template<>
 float RSRenderAnimatableProperty<Vector2f>::ToFloat() const
 {
     return RSRenderProperty<Vector2f>::stagingValue_.GetLength();
+}
+
+template<>
+float RSRenderAnimatableProperty<Vector3f>::ToFloat() const
+{
+    return RSRenderProperty<Vector3f>::stagingValue_.GetLength();
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator+=(
@@ -511,6 +537,15 @@ void RSRenderProperty<Vector2f>::Dump(std::string& out) const
     Vector2f v2f = Get();
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1) << "[x:" << v2f.x_ << " y:" << v2f.y_ << "]";
+    out += ss.str();
+}
+
+template<>
+void RSRenderProperty<Vector3f>::Dump(std::string& out) const
+{
+    Vector3f v3f = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << "[x:" << v3f.x_ << " y:" << v3f.y_ << " z:" << v3f.z_ << "]";
     out += ss.str();
 }
 
@@ -758,6 +793,18 @@ bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
 }
 
 template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
+{
+    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector3f>>(value);
+    if (animatableProperty != nullptr) {
+        return RSRenderProperty<Vector3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
+    }
+    ROSEN_LOGE("RSRenderAnimatableProperty<Vector3f>::IsNearEqual: the value of the comparison is a null pointer!");
+    return true;
+}
+
+template<>
 bool RSRenderAnimatableProperty<Quaternion>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
@@ -901,6 +948,7 @@ template class RSRenderProperty<Vector4<uint32_t>>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
 template class RSRenderProperty<Vector2f>;
+template class RSRenderProperty<Vector3f>;
 template class RSRenderProperty<Matrix3f>;
 template class RSRenderProperty<Color>;
 template class RSRenderProperty<std::shared_ptr<RSFilter>>;
@@ -925,6 +973,7 @@ template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;
 template class RSRenderAnimatableProperty<Quaternion>;
 template class RSRenderAnimatableProperty<Vector2f>;
+template class RSRenderAnimatableProperty<Vector3f>;
 template class RSRenderAnimatableProperty<Matrix3f>;
 template class RSRenderAnimatableProperty<Color>;
 template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
