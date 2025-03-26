@@ -17,7 +17,7 @@
 #include <test_header.h>
 
 #include "rs_frame_rate_vote.h"
-#include "hgm_core.h"
+#include "hgm_test_base.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 }
-class RSFrameRateVoteTest : public testing::Test {
+class RSFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -35,7 +35,10 @@ public:
     void TearDown();
 };
 
-void RSFrameRateVoteTest::SetUpTestCase() {}
+void RSFrameRateVoteTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void RSFrameRateVoteTest::TearDownTestCase() {}
 void RSFrameRateVoteTest::SetUp() {}
 void RSFrameRateVoteTest::TearDown() {}
