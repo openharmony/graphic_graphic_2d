@@ -4533,7 +4533,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest001
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x11, 0x11, 0xFF));
     OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
-    OH_Drawing_SetTypographyTextMaxLines (typoStyle, 4);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 4);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     const char *elipss = "...";
@@ -4589,7 +4589,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest002
     OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x11, 0x11, 0xFF));
     OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
-    OH_Drawing_SetTypographyTextMaxLines (typoStyle, 4);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 4);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     const char *elipss = "...";
@@ -4600,13 +4600,14 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest002
     OH_Drawing_TypographyHandlerAddText(handler, text);
     text = "这是一个排版信息བསདབད获取接口的སངབངསབ测试文lo World这是一个 ..... \u1234排版信息的测试文སསསས本Drawing.དདདདདད.       ";
     OH_Drawing_TypographyHandlerAddText(handler, text);
+
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_Range *range1 = OH_Drawing_TypographyGetLineTextRange(typography, 0, false);
     EXPECT_EQ(0, OH_Drawing_GetStartFromRange(range1));
     EXPECT_EQ(0, OH_Drawing_GetEndFromRange(range1));
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
-    double lineCount = OH_Drawing_TypographyGetLineCount(typography);
 
+    double lineCount = OH_Drawing_TypographyGetLineCount(typography);
     OH_Drawing_Range *range2 = OH_Drawing_TypographyGetLineTextRange(typography, lineCount, false);
     EXPECT_EQ(0, OH_Drawing_GetStartFromRange(range2));
     EXPECT_EQ(0, OH_Drawing_GetEndFromRange(range2));
