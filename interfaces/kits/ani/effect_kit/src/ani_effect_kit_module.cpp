@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,21 +21,21 @@ extern "C" {
 ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
-    if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
+    if (vm->GetEnv(ANI_VERSION_1, &env) != ANI_OK) {
         EFFECT_LOG_I("[ANI_Constructor] Unsupported ANI_VERSION_1");
         return ANI_ERROR;
     }
 
     static const char* staticClassName = "L@ohos/effectKit/effectKit;";
     ani_class staticCls;
-    if (ANI_OK != env->FindClass(staticClassName, &staticCls)) {
+    if (env->FindClass(staticClassName, &staticCls) != ANI_OK) {
         EFFECT_LOG_I("[ANI_Constructor] FindClass failed");
         return ANI_ERROR;
     }
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) },
     };
-    if (ANI_OK != env->Class_BindNativeMethods(staticCls, staticMethods.data(), staticMethods.size())) {
+    if (env->Class_BindNativeMethods(staticCls, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         EFFECT_LOG_I("[ANI_Constructor] Class_BindNativeMethods failed");
         return ANI_ERROR;
     };

@@ -37,16 +37,6 @@ ani_object AniEffect::CreateAniObject(ani_env* env, std::string name, const char
     return obj;
 }
 
-ani_long AniEffect::GetLongValue(ani_env* env, ani_object object, std::string name)
-{
-    ani_long value;
-    if (env->Object_GetFieldByName_Long(object, name.c_str(), &value) != ANI_OK) {
-        UIEFFECT_LOG_E("get generator object failed '%{public}s'", name.c_str());
-        return 0;
-    };
-    return value;
-}
-
 bool CheckCreateBrightnessBlender(ani_env* env, ani_object para_obj, ani_object& blender_obj)
 {
     ani_double cubicRateAni;
@@ -82,7 +72,7 @@ bool CheckCreateBrightnessBlender(ani_env* env, ani_object para_obj, ani_object&
     return true;
 }
 
-void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender> blender)
+void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::shared_ptr<BrightnessBlender>& blender)
 {
     ani_double cubicRateAni;
     ani_double quadraticRateAni;
@@ -126,7 +116,7 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
 ani_object AniEffect::CreateEffect(ani_env* env)
 {
     ani_object retVal {};
-    std::shared_ptr<VisualEffect> effectObj = std::make_shared<VisualEffect>();
+    std::unique_ptr<VisualEffect> effectObj = std::make_unique<VisualEffect>();
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj.get()));
     return retVal;
 }
@@ -164,7 +154,11 @@ ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_o
     std::shared_ptr<BackgroundColorEffectPara> bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
     bgColorEffectPara->SetBlender(blender);
     VisualEffect* effectObj = nullptr;
-    ani_long nativeObj = GetLongValue(env, obj, "visualEffectNativeObj");
+    ani_long nativeObj;
+    if (env->Object_GetFieldByName_Long(obj, "visualEffectNativeObj", &nativeObj) != ANI_OK) {
+        UIEFFECT_LOG_E("get generator visualEffectNativeObj failed");
+        return retVal;
+    };
     effectObj = reinterpret_cast<VisualEffect*>(nativeObj);
     effectObj->AddPara(bgColorEffectPara);
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj));

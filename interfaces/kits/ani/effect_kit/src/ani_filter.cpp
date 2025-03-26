@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,6 @@ std::shared_ptr<Media::PixelMap> AniFilter::GetSrcPixelMap()
 
 DrawError AniFilter::Render(bool forceCPU)
 {
-    LOGE("width= %{public}d, height=%{public}d", srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight());
     Rosen::SKImageChain skImage(srcPixelMap_);
     DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
 
@@ -61,7 +60,7 @@ void AniFilter::AddNextFilter(sk_sp<SkImageFilter> filter)
 ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
 {
     SkTileMode tileMode = SkTileMode::kDecal;
-    std::unique_ptr<AniFilter> aniFilter(AniEffectKitUtils::GetFilterFromEnv(env, obj));
+    AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
     if (aniFilter == nullptr) {
         EFFECT_LOG_E("GetFilterFromEnv failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
@@ -76,7 +75,7 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
     static const char* className = ANI_CLASS_FILTER.c_str();
     const char* methodSig = "J:V";
     return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter.release()));
+        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
@@ -110,7 +109,7 @@ ani_status AniFilter::Init(ani_env* env)
 {
     static const char* className = ANI_CLASS_FILTER.c_str();
     ani_class cls;
-    if (ANI_OK != env->FindClass(className, &cls)) {
+    if (env->FindClass(className, &cls) != ANI_OK) {
         EFFECT_LOG_E("Not found L@ohos/effectKit/effectKit/FilterInternal");
         return ANI_NOT_FOUND;
     }
@@ -122,7 +121,7 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    if (ANI_OK != ret) {
+    if (ret != ANI_OK) {
         EFFECT_LOG_I("Class_BindNativeMethods failed: %{public}d", ret);
         return ANI_ERROR;
     }
