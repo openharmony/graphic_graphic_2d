@@ -14,7 +14,7 @@
  */
 
 #include "text_bundle_config_parser.h"
-#include "modules/skparagraph/include/SkTextBundleConfigParser.h"
+#include "modules/skparagraph/include/TextGlobalConfig.h"
 
 #ifdef OHOS_TEXT_ENABLE
 #include "application_info.h"
@@ -118,7 +118,7 @@ void TextBundleConfigParser::InitBundleInfo()
 #else
     InitTextBundleFailed();
 #endif
-    skia::textlayout::SkTextBundleConfigParser::SetTargetVersion(bundleApiVersion_);
+    skia::textlayout::TextGlobalConfig::SetTargetVersion(bundleApiVersion_);
 }
 } // namespace SPText
 } // namespace Rosen
