@@ -76,8 +76,7 @@ void RSRenderServiceListener::OnBufferAvailable()
                 "bufferTimeStamp : %" PRId64, supportFastCompose, lastFlushedDesiredPresentTimeStamp);
                 RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
                 return;
-            }
-            
+            }   
         }
     }
     RSMainThread::Instance()->RequestNextVSync("selfdrawing");
