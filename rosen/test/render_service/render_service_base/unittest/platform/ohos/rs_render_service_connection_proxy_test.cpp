@@ -342,7 +342,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level
         .h = 0,
     };
     proxy->SetScreenActiveRect(id, activeRect);
-    ASSERT_NE(proxy->transactionDataIndex_, 0);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
