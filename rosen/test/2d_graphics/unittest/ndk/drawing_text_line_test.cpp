@@ -142,7 +142,8 @@ bool NativeDrawingLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing
     return
     std::round(OH_Drawing_RectGetLeft(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION == OH_Drawing_RectGetLeft(rect2) &&
     std::round(OH_Drawing_RectGetTop(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION == OH_Drawing_RectGetTop(rect2) &&
-    std::round(OH_Drawing_RectGetBottom(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION == OH_Drawing_RectGetBottom(rect2) &&
+    std::round(OH_Drawing_RectGetBottom(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION ==
+        OH_Drawing_RectGetBottom(rect2) &&
     std::round(OH_Drawing_RectGetRight(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION == OH_Drawing_RectGetRight(rect2);
 }
 
