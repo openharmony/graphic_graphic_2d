@@ -3581,12 +3581,14 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
         return;
     }
     auto filterNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(filterNodeId);
-    bool isBackground = filterNode->GetRenderProperties().GetBackgroundFilter() != nullptr;
-    bool isReverseNode = filterNode->GetCurFrameInfoDetail().curFrameReverseChildren ||
-         node->GetCurFrameInfoDetail().curFrameReverseChildren;
-    if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 && isBackground && !isReverseNode &&
-        !isReverseOrder && node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
-        return;
+    if (filterNode) {
+        bool isBackground = filterNode->GetRenderProperties().GetBackgroundFilter() != nullptr;
+        bool isReverseNode = filterNode->GetCurFrameInfoDetail().curFrameReverseChildren ||
+            node->GetCurFrameInfoDetail().curFrameReverseChildren;
+        if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 && isBackground && !isReverseNode &&
+            !isReverseOrder && node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
+            return;
+        }
     }
     auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     bool isIntersect = !bound.IntersectRect(filterRect).IsEmpty();
