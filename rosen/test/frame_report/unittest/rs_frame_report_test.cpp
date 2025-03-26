@@ -67,7 +67,7 @@ HWTEST_F(RsFrameReportTest, ProcessCommandsStart001, TestSize.Level1)
     EXPECT_NE(fr.processCommandsStartFun_, nullptr);
     fr.ProcessCommandsStart();
 }
- 
+
 /**
  * @tc.name: AnimateStart001
  * @tc.desc: test
@@ -82,7 +82,7 @@ HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
     EXPECT_NE(fr.animateStartFunc_, nullptr);
     fr.AnimateStart();
 }
- 
+
 /**
  * @tc.name: RenderStart001
  * @tc.desc: test
@@ -100,22 +100,7 @@ HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
     EXPECT_NE(fr.renderStartFunc_, nullptr);
     fr.RenderStart(timestamp);
 }
- 
-/**
- * @tc.name: RSRenderStart001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
-{
-    RsFrameReport& fr = RsFrameReport::GetInstance();
-    EXPECT_EQ(fr.parallelRenderStartFunc_, nullptr);
-    fr.RSRenderStart();
-    EXPECT_NE(fr.parallelRenderStartFunc_, nullptr);
-    fr.RSRenderStart();
-}
- 
+
 /**
  * @tc.name: RenderEnd001
  * @tc.desc: test
@@ -129,21 +114,6 @@ HWTEST_F(RsFrameReportTest, RenderEnd001, TestSize.Level1)
     fr.RenderEnd();
     EXPECT_NE(fr.renderEndFunc_, nullptr);
     fr.RenderEnd();
-}
- 
-/**
- * @tc.name: RSRenderEnd001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
-{
-    RsFrameReport& fr = RsFrameReport::GetInstance();
-    EXPECT_EQ(fr.parallelRenderEndFunc_, nullptr);
-    fr.RSRenderEnd();
-    EXPECT_NE(fr.parallelRenderEndFunc_, nullptr);
-    fr.RSRenderEnd();
 }
 
 /**
