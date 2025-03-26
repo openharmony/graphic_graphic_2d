@@ -519,7 +519,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
 
-    Point3 offset, lightPos;
+    Point3 offset;
+    Point3 lightPos;
     if (!ConvertFromJsPoint3d(env, argv[ARGC_ONE], offset) || !ConvertFromJsPoint3d(env, argv[ARGC_TWO], lightPos)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_ONE] or argv[ARGC_TWO] is invalid.");
         return nullptr;
@@ -528,7 +529,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     double lightRadius = 0.0f;
     GET_DOUBLE_PARAM(ARGC_THREE, lightRadius);
 
-    ColorQuad ambientColor, spotColor;
+    ColorQuad ambientColor;
+    ColorQuad spotColor;
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_FOUR], ambientColor) ||
         !ConvertFromAdaptHexJsColor(env, argv[ARGC_FIVE], spotColor)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_FOUR] or argv[ARGC_FIVE] is invalid.");
