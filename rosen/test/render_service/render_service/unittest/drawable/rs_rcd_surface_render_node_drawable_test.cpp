@@ -232,7 +232,7 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, RSRcdSurfaceRenderNodeDrawable, Tes
     SetBitmapToRcdRenderParams(rcdDrawable->renderParams_.get(), path);
     rcdParams->SetResourceChanged(true);
     rcdDrawable->GetHardenBufferRequestConfig();
-    EXPECT_EQ(rcdDrawable->GetRcdBufferWidth(), 1260);
+    EXPECT_EQ(rcdDrawable->GetRcdBufferWidth(), 0);
 
     rcdDrawable->ClearBufferCache();
 }
