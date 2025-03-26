@@ -29,9 +29,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseVRateInternal(FeatureParamMapType &featureMap, xmlNode &node);
-
-    std::shared_ptr<VRateParam> vRateParam_;
+    int32_t ParseVRateInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // VRATE_PARAM_PARSE_H

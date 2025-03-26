@@ -29,9 +29,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseRotateOffScreenInternal(FeatureParamMapType &featureMap, xmlNode &node);
-
-    std::shared_ptr<RotateOffScreenParam> rotateOffScreenParam_;
+    int32_t ParseRotateOffScreenInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // ROTATEOFFSCREEN_PARAM_PARSE_H
