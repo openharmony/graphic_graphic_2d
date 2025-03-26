@@ -91,7 +91,7 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
 
 ani_object AniFilter::CreateEffect(ani_env* env, ani_object obj, ani_object para)
 {
-    std::unique_ptr<AniFilter> aniFilter = std::make_unique<AniFilter>();
+    auto aniFilter = std::make_unique<AniFilter>();
     std::shared_ptr<Media::PixelMap> pixelMap(AniEffectKitUtils::GetPixelMapFromEnv(env, para));
     if (!pixelMap) {
         EFFECT_LOG_E("pixelMap is null");

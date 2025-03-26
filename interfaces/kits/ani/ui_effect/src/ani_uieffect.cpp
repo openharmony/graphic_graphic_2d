@@ -116,7 +116,7 @@ void AniEffect::ParseBrightnessBlender(ani_env* env, ani_object para_obj, std::s
 ani_object AniEffect::CreateEffect(ani_env* env)
 {
     ani_object retVal {};
-    std::unique_ptr<VisualEffect> effectObj = std::make_unique<VisualEffect>();
+    auto effectObj = std::make_unique<VisualEffect>();
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj.release()));
     return retVal;
 }
@@ -148,10 +148,10 @@ ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object obj, ani_
 ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para)
 {
     ani_object retVal {};
-    std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
+    auto blender = std::make_shared<BrightnessBlender>();
     ParseBrightnessBlender(env, para, blender);
 
-    std::shared_ptr<BackgroundColorEffectPara> bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
+    auto bgColorEffectPara = std::make_shared<BackgroundColorEffectPara>();
     bgColorEffectPara->SetBlender(blender);
     VisualEffect* effectObj = nullptr;
     ani_long nativeObj;
