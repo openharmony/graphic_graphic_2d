@@ -27,6 +27,10 @@
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/rs_modifiers_draw.h"
+#include "media_errors.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -75,6 +79,11 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureEx
 RSCanvasNode::~RSCanvasNode()
 {
     CheckThread();
+#ifdef RS_ENABLE_VK
+    if (GetHybridRender()) {
+        RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
+    }
+#endif
 }
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
@@ -221,6 +230,60 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
   std::lock_guard<std::mutex> lock(mutex_);
   boundsChangedCallback_ = callback;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    if (!GetHybridRender()) {
+        return false;
+    }
+    auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), Drawing::ColorType::COLORTYPE_BGRA_8888);
+    if (pixelMap == nullptr) {
+        RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
+        return false;
+    }
+    Drawing::ImageInfo info(pixelMap->GetWidth(), pixelMap->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+    if (!bitmap.InstallPixels(info, pixelMap->GetWritablePixels(), pixelMap->GetRowBytes())) {
+        RS_LOGE("RSCanvasNode::GetBitmap get bitmap fail");
+        return false;
+    }
+    return true;
+}
+
+bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
+{
+    if (!GetHybridRender()) {
+        return false;
+    }
+    if (pixelMap == nullptr || rect == nullptr) {
+        RS_LOGE("RSCanvasNode::GetPixelmap pixelMap or rect is nullptr");
+        return false;
+    }
+    auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId());
+    if (srcPixelMap == nullptr) {
+        RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
+        return false;
+    }
+    Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
+    auto ret = srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
+        pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
+    if (ret != Media::SUCCESS) {
+        RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
+        return false;
+    }
+    return true;
+}
+
+bool RSCanvasNode::ResetSurface(int width, int height)
+{
+    if (!GetHybridRender()) {
+        return false;
+    }
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, this->GetId(), true);
+}
+#endif
 
 void RSCanvasNode::CheckThread()
 {

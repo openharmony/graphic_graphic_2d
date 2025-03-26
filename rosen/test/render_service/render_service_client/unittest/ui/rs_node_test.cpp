@@ -6379,6 +6379,47 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: HybridRender001
+ * @tc.desc: Test SetHybridRender and GetHybridRender
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, HybridRender001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto ret = rsNode->GetHybridRender();
+    EXPECT_EQ(ret, false);
+
+    rsNode->SetHybridRender(true);
+    ret = rsNode->GetHybridRender();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Test Dump
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config = {
+        .SurfaceNodeName = "testNode"
+    };
+    RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
+    string out1;
+    rsNode->Dump(out1);
+    ASSERT_TRUE(!out1.empty());
+
+    rsNode->SetHybridRender(true);
+    string out2;
+    rsNode->Dump(out2);
+    ASSERT_TRUE(!out2.empty());
+}
+#endif
+
 /**
  * @tc.name: SetTakeSurfaceForUIFlag
  * @tc.desc: test results of SetTakeSurfaceForUIFlag

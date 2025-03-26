@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_client/ui"
 
@@ -51,6 +52,10 @@ ohos_unittest("RSCanvasNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_canvas_node_test.cpp" ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -141,6 +146,10 @@ ohos_unittest("RSNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_node_test.cpp" ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -322,6 +331,10 @@ ohos_unittest("RSUIDirectorTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_ui_director_test.cpp" ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
