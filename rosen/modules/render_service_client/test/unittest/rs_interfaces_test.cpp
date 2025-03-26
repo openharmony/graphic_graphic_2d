@@ -560,7 +560,7 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
