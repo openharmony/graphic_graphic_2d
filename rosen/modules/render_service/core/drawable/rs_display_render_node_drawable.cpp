@@ -774,7 +774,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    UpdateSlrScale(screenInfo);
+    UpdateSlrScale(screenInfo, params);
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
     std::vector<RectI> curFrameVisibleRegionRects;
@@ -1576,6 +1576,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
         RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen mirroredParams is null");
         return;
     }
+    auto& mirrorDisplayParams = static_cast<RSDisplayRenderParams&>(*mirroredParams);
     const auto& nodeParams = GetRenderParams();
     if (!nodeParams) {
         RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
@@ -1618,6 +1619,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
         } else {
             scaleManager_->CheckOrRefreshScreen(mirrorWidth, mirrorHeight, mainWidth, mainHeight);
         }
+        scaleManager_->CheckOrRefreshColorSpace(mirrorDisplayParams.GetNewColorSpace());
         isMirrorSLRCopy_ = scaleManager_->GetIsSLRCopy();
     }
     // Scale
@@ -2096,7 +2098,7 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
 }
 
-void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
+void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo, RSDisplayRenderParams* params)
 {
     if (screenInfo.isSamplingOn && RSSystemProperties::GetSLRScaleEnabled()) {
         if (slrScale_ == nullptr) {
@@ -2105,6 +2107,9 @@ void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
         } else {
             slrScale_->CheckOrRefreshScreen(
                 screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
+        }
+        if (params != nullptr) {
+            slrScale_->CheckOrRefreshColorSpace(params->GetNewColorSpace());
         }
         screenInfo.samplingDistance = slrScale_->GetKernelSize();
     } else {
