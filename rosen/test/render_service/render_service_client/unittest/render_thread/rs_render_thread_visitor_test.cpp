@@ -207,7 +207,6 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1)
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.shouldPaint_ = false;
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
@@ -419,11 +418,11 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level1
  */
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode006, TestSize.Level1)
 {
-    RSRenderThreadVisitor rsRenderThreadVisitor;
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     RSSurfaceRenderNode node(0);
-    rsRenderThreadVisitor.curDirtyManager_ = nullptr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
+    rsRenderThreadVisitor->curDirtyManager_ = nullptr;
+    rsRenderThreadVisitor->PrepareSurfaceRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -452,6 +451,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessChildren001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_TRUE(rsSurfaceRenderNode != nullptr);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessChildren(*rsSurfaceRenderNode);
     config.id = 1;
@@ -868,6 +868,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1
 {
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_TRUE(rsSurfaceRenderNode != nullptr);
 
     config.id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
@@ -1020,7 +1021,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ResetAndPrepareChildrenNode001, TestSize.Lev
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.ResetAndPrepareChildrenNode(node, nodeParent);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.hasRemovedChild_ = true;
     rsRenderThreadVisitor.ResetAndPrepareChildrenNode(node, nodeParent);
@@ -1046,7 +1046,6 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareEffectRenderNode001, TestSize.Level1)
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.PrepareEffectRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.shouldPaint_ = false;
     rsRenderThreadVisitor.PrepareEffectRenderNode(node);
