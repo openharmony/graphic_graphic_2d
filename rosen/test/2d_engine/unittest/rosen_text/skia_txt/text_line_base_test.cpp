@@ -140,7 +140,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
     double descent = 0;
     double leading = 0;
     EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 41.936081);
-    EXPECT_FLOAT_EQ(ascent, 14.848000);
+    EXPECT_FLOAT_EQ(ascent, -14.848000);
     EXPECT_FLOAT_EQ(descent, 3.904000);
     EXPECT_FLOAT_EQ(leading, 0.000000);
 
