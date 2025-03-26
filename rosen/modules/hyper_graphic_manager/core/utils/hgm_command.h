@@ -173,6 +173,8 @@ public:
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;
+    // <"syncEnhancement", "0">
+    bool syncEnhancementSwitch_ = false;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

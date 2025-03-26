@@ -1190,7 +1190,7 @@ void RSMainThread::ProcessCommandForUniRender()
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
-                if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
+                if (IsNeedSyncTransaction(rsTransaction, rsTransactionElem.first)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
                     continue;
                 }
@@ -1288,6 +1288,25 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
                " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
         rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
+}
+
+bool RSMainThread::IsNeedSyncTransaction(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
+{
+    if (rsTransactionData == nullptr) {
+        return false;
+    }
+    // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
+    // 0, or if there have been previous transactions of this process considered as synchronous, then all
+    // subsequent transactions of this process need to be synchronized.
+    if (syncTransactionData_.count(pid) > 0) {
+        return true;
+    }
+    auto config = HgmCore::Instance().GetPolicyConfigData();
+    if (config && config->syncEnhancementSwitch_) {
+        return rsTransactionData->IsNeedSync() && rsTransactionData->GetSyncId() > 0;
+    } else {
+        return rsTransactionData->IsNeedSync();
+    }
 }
 
 void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
