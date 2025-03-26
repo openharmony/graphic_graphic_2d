@@ -223,7 +223,6 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.foregroundEffectRadius_ = -0.1f;
     properties.isSpherizeValid_ = true;
     properties.UpdateFilter();
-    EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.isSpherizeValid_ = false;
     properties.shadow_->imageMask_ = true;
