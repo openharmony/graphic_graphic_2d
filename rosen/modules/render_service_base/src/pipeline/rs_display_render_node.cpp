@@ -271,6 +271,7 @@ void RSDisplayRenderNode::UpdateRenderParams()
     } else {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
+        displayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
     displayParams->mirrorSource_ = GetMirrorSource();
