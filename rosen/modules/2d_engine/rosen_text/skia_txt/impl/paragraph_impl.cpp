@@ -166,6 +166,7 @@ void ParagraphImpl::InitSymbolRuns()
             std::shared_ptr<HMSymbolRun> hmSymbolRun = std::make_shared<HMSymbolRun>();
             hmSymbolRun->SetAnimation(animationFunc_);
             hmSymbolRun->SetSymbolUid(p.symbol.GetSymbolUid());
+            hmSymbolRun->SetSymbolTxt(p.symbol);
             hmSymbols_.push_back(std::move(hmSymbolRun));
         }
     });
@@ -316,6 +317,8 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     }
 
     txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
+    txt.fontWidth = static_cast<FontWidth>(skStyle.getFontStyle().GetWidth());
+    txt.styleId = skStyle.getStyleId();
     txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
     txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
     txt.height = SkScalarToDouble(skStyle.getHeight());
@@ -434,7 +437,7 @@ Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
     return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 
-bool ParagraphImpl::IsLalyoutDone()
+bool ParagraphImpl::IsLayoutDone()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getState() >= skt::kFormatted ? true : false;

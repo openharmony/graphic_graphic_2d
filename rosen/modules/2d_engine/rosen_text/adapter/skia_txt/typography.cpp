@@ -127,19 +127,20 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
 
-    if (!paragraph_->IsLalyoutDone()) {
+    if (!paragraph_->IsLayoutDone()) {
         TEXT_LOGI_LIMIT3_MIN("Need to layout first");
         return;
     }
 
-    if (!typograhyStyle.relayoutChangeBitmap.any()) {
+    bool isTextStyleChange = std::any_of(textStyles.begin(), textStyles.end(), [](const TextStyle& style) {
+        return style.relayoutChangeBitmap.any() || style.symbol.GetSymbolBitmap().any();
+    });
+    if (!typograhyStyle.relayoutChangeBitmap.any() && !isTextStyleChange) {
         if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {
             TEXT_LOGI("No relayout required");
             return;
         }
         paragraph_->SetLayoutState(skt::InternalState::kShaped);
-        lineMetrics_.reset();
-        lineMetricsStyles_.clear();
 
         paragraph_->Layout(width);
     } else {
@@ -151,6 +152,8 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
 
         paragraph_->Relayout(width, paragraphStyle, spTextStyles);
     }
+    lineMetrics_.reset();
+    lineMetricsStyles_.clear();
 }
 
 void Typography::Layout(double width)

@@ -157,6 +157,8 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle.setHeightOverride(txt.heightOverride);
         textStyle.setFontFamilies({ SkString(txt.fontFamily.c_str()) });
         textStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
+        textStyle.setTextStyleUid(txt.defaultTextStyleUid);
+        textStyle.setHalfLeading(txt.halfLeading);
     }
 
     skStyle.setTextStyle(textStyle);
