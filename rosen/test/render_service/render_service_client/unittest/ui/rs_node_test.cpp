@@ -3304,6 +3304,24 @@ HWTEST_F(RSNodeTest, SetandGetClipToFrame002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAnimationsCount
+ * @tc.desc: test results of GetAnimationsCount
+ * @tc.type: FUNC
+ * @tc.require: issueIBWOU7
+ */
+HWTEST_F(RSNodeTest, GetAnimationsCount, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    AnimationId animationId = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->animations_.clear();
+    EXPECT_TRUE(rsNode->animations_.empty());
+    rsNode->animations_.insert({ animationId, animation });
+    auto animationsSize = rsNode->GetAnimationsCount();
+    EXPECT_EQ(animationsSize, 1);
+}
+
+/**
  * @tc.name: SetBoundsWidth
  * @tc.desc: test results of SetBoundsWidth
  * @tc.type: FUNC
