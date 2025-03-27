@@ -957,6 +957,37 @@ HWTEST_F(CanvasTest, GetMaxStencilVal001, TestSize.Level1)
     canvas.SetMaxStencilVal(testStencilVal);
     EXPECT_EQ(canvas.GetMaxStencilVal(), testStencilVal);
 }
+
+/**
+ * @tc.name: SetGrContext001
+ * @tc.desc: Test for SetGrContext
+ * @tc.type: FUNC
+ * @tc.require: IBROZ2
+ */
+HWTEST_F(CanvasTest, SetGrContext001, TestSize.Level1)
+{
+    std::shared_ptr<Canvas> canvas;
+    auto overDrawCanvas = std::make_shared<OverDrawCanvas>(canvas);
+    auto gpuContext = std::make_shared<GPUContext>();
+    overDrawCanvas->SetGrContext(gpuContext);
+    ASSERT_TRUE(overDrawCanvas->GetGPUContext() != nullptr);
+}
+
+/**
+ * @tc.name: GetGPUContext001
+ * @tc.desc: Test for GetGPUContext
+ * @tc.type: FUNC
+ * @tc.require: IBROZ2
+ */
+HWTEST_F(CanvasTest, GetGPUContext001, TestSize.Level1)
+{
+    std::shared_ptr<Canvas> canvas;
+    auto overDrawCanvas = std::make_shared<OverDrawCanvas>(canvas);
+    auto gpuContext = std::make_shared<GPUContext>();
+    ASSERT_FALSE(overDrawCanvas->GetGPUContext() == gpuContext);
+    overDrawCanvas->SetGrContext(gpuContext);
+    ASSERT_TRUE(overDrawCanvas->GetGPUContext() == gpuContext);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
