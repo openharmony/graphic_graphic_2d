@@ -1452,39 +1452,36 @@ bool HgmFrameRateManager::IsCurrentScreenSupportAS()
 
 void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 {
-    bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
-
-    if (isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
-        isAdaptive_.store(isGameSupportAS_);
-        return;
-    }
-
-    if (!isAdaptiveSyncEnabled) {
-        return;
-    }
-
     // VOTER_GAMES wins, enter adaptive vsync mode
     bool isGameVoter = voterName == "VOTER_GAMES";
 
-    if ((isAdaptive_.load() == SupportASStatus::SUPPORT_AS && isGameVoter) ||
-        (isAdaptive_.load() == SupportASStatus::NOT_SUPPORT && !isGameVoter)) {
+    if (!isGameVoter) {
+        isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
         return;
     }
 
-    if (isGameVoter && isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
+    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+        isAdaptive_.store(isGameSupportAS_);
+        return;
+    }
+    
+    if (!HgmCore::Instance().GetAdaptiveSyncEnabled()) {
+        return;
+    }
+
+    if (isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
         HGM_LOGI("this game does not support adaptive sync mode");
         return;
     }
 
-    if (isGameVoter && !IsCurrentScreenSupportAS()) {
+    if (!IsCurrentScreenSupportAS()) {
         HGM_LOGI("current screen not support adaptive sync mode");
         return;
     }
 
     HGM_LOGI("ProcessHgmFrameRate RSAdaptiveVsync change mode");
     RS_TRACE_BEGIN("ProcessHgmFrameRate RSAdaptiveVsync change mode");
-    isAdaptive_.load() == SupportASStatus::NOT_SUPPORT ? isAdaptive_.store(SupportASStatus::SUPPORT_AS) :
-        isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     RS_TRACE_END();
 }
 
