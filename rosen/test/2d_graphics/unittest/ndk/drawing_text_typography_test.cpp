@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -3922,20 +3922,18 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowCountTest001, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Level1)
 {
-    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
+    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
     ASSERT_NE(shadow, nullptr);
     uint32_t color = 0;
     OH_Drawing_Point* offset = OH_Drawing_PointCreate(0, 0);
     ASSERT_NE(offset, nullptr);
-    double blurRadius = true;
+    double blurRadius = 0.0;
     OH_Drawing_SetTextShadow(shadow, color, offset, blurRadius);
     OH_Drawing_SetTextShadow(shadow, color, nullptr, blurRadius);
     OH_Drawing_SetTextShadow(nullptr, color, offset, blurRadius);
 
-    OH_Drawing_DestroyTextStyle(style);
     OH_Drawing_PointDestroy(offset);
-    OH_Drawing_DestroyTextShadows(shadow);
+    OH_Drawing_DestroyTextShadow(shadow);
 }
 
 /*
