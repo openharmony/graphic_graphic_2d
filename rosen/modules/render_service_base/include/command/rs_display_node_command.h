@@ -35,6 +35,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_ADD_TO_TREE,
     DISPLAY_NODE_REMOVE_FROM_TREE,
     DISPLAY_NODE_SET_NODE_PID,
+    DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
