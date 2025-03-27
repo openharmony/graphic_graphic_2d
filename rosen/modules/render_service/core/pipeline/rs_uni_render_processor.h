@@ -56,7 +56,6 @@ private:
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
-    void ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo, sptr<SurfaceBuffer> buffer);
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;

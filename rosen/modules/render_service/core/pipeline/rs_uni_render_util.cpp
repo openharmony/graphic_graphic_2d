@@ -1318,45 +1318,6 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
         (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     return transformType;
 }
-
-RectI RSUniRenderUtil::SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType)
-{
-    RectI srcRect = node.GetSrcRect();
-    int left = srcRect.GetLeft();
-    int top = srcRect.GetTop();
-    int width = srcRect.GetWidth();
-    int height = srcRect.GetHeight();
-    int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
-    int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
-    // Left > 0 means move xComponent to the left outside of the screen
-    // Top > 0 means move xComponent to the top outside of the screen
-    // The left and top should recalculate when transformType is not GRAPHIC_ROTATE_NONEq
-    // The width and height should exchange when transformType is GRAPHIC_ROTATE_270 and GRAPHIC_ROTATE_90
-    switch (transformType) {
-        case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            left = std::max(top, 0);
-            top = std::max(boundsWidth - width - srcRect.GetLeft(), 0);
-            srcRect = RectI {left, top, height, width};
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            left = std::max(boundsWidth - width - left, 0);
-            top = std::max(boundsHeight - height - top, 0);
-            srcRect = RectI {left, top, width, height};
-            break;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            left = std::max(boundsHeight - height - top, 0);
-            top = std::max(srcRect.GetLeft(), 0);
-            srcRect = RectI {left, top, height, width};
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    return srcRect;
-}
  
 void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect)
 {
@@ -1366,21 +1327,18 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     if (!consumer || !buffer) {
         return;
     }
-    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    if (node.GetFixRotationByUser()) {
-        transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
-    } else {
-        transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
-    }
-    auto srcRect = SrcRectRotateTransform(node, transformType);
+    auto bufferRotateTransformType = node.GetFixRotationByUser() ?
+    RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer) :
+    RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer));
     const auto& property = node.GetRenderProperties();
-    const auto bufferWidth = buffer->GetSurfaceBufferWidth();
-    const auto bufferHeight = buffer->GetSurfaceBufferHeight();
-    auto boundsWidth = property.GetBoundsWidth();
-    auto boundsHeight = property.GetBoundsHeight();
-    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
-        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        std::swap(boundsWidth, boundsHeight);
+    auto bufferWidth = buffer->GetSurfaceBufferWidth();
+    auto bufferHeight = buffer->GetSurfaceBufferHeight();
+    const auto boundsWidth = property.GetBoundsWidth();
+    const auto boundsHeight = property.GetBoundsHeight();
+    auto srcRect = node.GetSrcRect();
+    if (bufferRotateTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        bufferRotateTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        std::swap(bufferWidth, bufferHeight);
     }
     if ((bufferWidth != boundsWidth || bufferHeight != boundsHeight) &&
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
@@ -1412,8 +1370,81 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         }
     }
     RectI bufferRect(0, 0, bufferWidth, bufferHeight);
-    RectI newSrcRect = srcRect.IntersectRect(bufferRect);
+    RectI calibratedSrcRect = srcRect.IntersectRect(bufferRect);
+    if (bufferRotateTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        bufferRotateTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        std::swap(calibratedSrcRect.left_, calibratedSrcRect.top_);
+        std::swap(calibratedSrcRect.width_, calibratedSrcRect.height_);
+    }
+    auto newSrcRect = SrcRectRotateTransform(*buffer, bufferRotateTransformType, calibratedSrcRect);
     node.SetSrcRect(newSrcRect);
+}
+
+void RSUniRenderUtil::CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
+{
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    auto consumer = surfaceHandler->GetConsumer();
+    auto buffer = surfaceHandler->GetBuffer();
+    if (!consumer || !buffer) {
+        return;
+    }
+    const auto bufferWidth = buffer->GetSurfaceBufferWidth();
+    const auto bufferHeight = buffer->GetSurfaceBufferHeight();
+    const auto dstRect = node.GetDstRect();
+    RectI srcRect = node.GetSrcRect();
+    auto bufferFlipTransformType =
+        RSBaseRenderUtil::GetFlipTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer));
+    switch (bufferFlipTransformType) {
+        case GraphicTransformType::GRAPHIC_FLIP_H: {
+            if (srcRect.left_ >= 0) {
+                srcRect.left_ = bufferWidth - srcRect.left_ - srcRect.width_;
+            } else if (dstRect.left_ + dstRect.width_ >= static_cast<int32_t>(screenInfo.width)) {
+                srcRect.left_ = bufferWidth - srcRect.width_;
+            }
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V: {
+            if (srcRect.top_ >= 0) {
+                srcRect.top_ = bufferHeight - srcRect.top_ - srcRect.height_;
+            } else if (dstRect.top_ + dstRect.height_ >= static_cast<int32_t>(screenInfo.height)) {
+                srcRect.top_ = bufferHeight - srcRect.height_;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    node.SetSrcRect(srcRect);
+}
+
+RectI RSUniRenderUtil::SrcRectRotateTransform(const SurfaceBuffer& buffer,
+    const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect)
+{
+    const auto bufferWidth = buffer.GetSurfaceBufferWidth();
+    const auto bufferHeight = buffer.GetSurfaceBufferHeight();
+    int left = newSrcRect.GetLeft();
+    int top = newSrcRect.GetTop();
+    int width = newSrcRect.GetWidth();
+    int height = newSrcRect.GetHeight();
+
+    RectI srcRect(newSrcRect);
+    switch (bufferRotateTransformType) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            srcRect = RectI {bufferWidth - width - left, top, width, height};
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            srcRect = RectI {bufferWidth - width - left, bufferHeight - height - top, width, height};
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            srcRect = RectI {left, bufferHeight - height - top, width, height};
+            break;
+        }
+        default:
+            break;
+    }
+    return srcRect;
 }
  
 void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
