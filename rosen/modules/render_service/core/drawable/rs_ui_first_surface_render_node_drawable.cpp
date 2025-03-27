@@ -646,7 +646,7 @@ bool RSSurfaceRenderNodeDrawable::MergeUifirstAllSurfaceDirtyRegion(Drawing::Rec
         if (surfaceNodeDrawable) {
             tempRect = {};
             isCalculateSucc = isCalculateSucc &&
-            surfaceNodeDrawable->CalculateUifirstDirtyRegion(tempRect);
+                surfaceNodeDrawable->CalculateUifirstDirtyRegion(tempRect);
             Drawing::Region resultRegion;
             resultRegion.SetRect(tempRect);
             uifirstMergedDirtyRegion_.Op(resultRegion, Drawing::RegionOp::UNION);
@@ -696,7 +696,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     // merge uifirst dirty region
     Drawing::RectI uifirstSurfaceDrawRects = {};
     auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(uifirstSurfaceDrawRects) &&
-    RSSystemProperties::GetUIFirstDirtyEnabled() && !RSUifirstManager::Instance().IsRecentTaskScene();
+        RSSystemProperties::GetUIFirstDirtyEnabled() && !RSUifirstManager::Instance().IsRecentTaskScene();
     UpadteAllSurfaceUifirstDirtyEnableState(dirtyEnableFlag);
     if (!dirtyEnableFlag) {
         rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);

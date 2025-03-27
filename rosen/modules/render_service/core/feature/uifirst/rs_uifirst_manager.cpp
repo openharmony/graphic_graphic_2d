@@ -809,7 +809,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
 {
     auto isFocusId = RSMainThread::Instance()->GetFocusNodeId();
     auto isLeashId = RSMainThread::Instance()->GetFocusLeashWindowId();
-    uint32_t postOrder = 0;
+    int32_t postOrder = 0;
     for (auto& item : pendingNode) {
         postOrder++;
         auto const& [id, value] = item;
