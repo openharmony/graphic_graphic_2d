@@ -1707,12 +1707,12 @@ HWTEST_F(RSUifirstManagerTest, CheckHwcChildrenType, TestSize.Level1)
 */
 HWTEST_F(RSUifirstManagerTest, ResetWindowCache, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    ASSERT_EQ(surfaceNode, nullptr);
-    uifirstManager_.ResetWindowCache(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode1;
+    ASSERT_EQ(surfaceNode1, nullptr);
+    uifirstManager_.ResetWindowCache(surfaceNode1);
 
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-    uifirstManager_.ResetWindowCache(surfaceNode);
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode2, nullptr);
+    uifirstManager_.ResetWindowCache(surfaceNode2);
 }
 }
