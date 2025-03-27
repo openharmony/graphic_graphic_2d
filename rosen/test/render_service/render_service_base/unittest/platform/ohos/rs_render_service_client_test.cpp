@@ -641,6 +641,20 @@ HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
     EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
 }
 
+/*
+ * @tc.name: SetPhysicalScreenResolution Test
+ * @tc.desc: SetPhysicalScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = rsClient->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
 /**
  * @tc.name: SetVirtualScreenResolution Test
  * @tc.desc: SetVirtualScreenResolution Test
