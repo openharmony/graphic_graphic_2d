@@ -87,7 +87,7 @@ HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
      */
     std::unique_ptr<RSTransactionData> data = std::make_unique<RSTransactionData>();
     RSRenderThread::Instance().RecvTransactionData(data);
-    EXPECT_TRUE(data != nullptr);
+    EXPECT_TRUE(data == nullptr);
 }
 
 /**

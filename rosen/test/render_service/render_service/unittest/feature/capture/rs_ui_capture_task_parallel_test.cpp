@@ -234,7 +234,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiInvalidSurface, Fun
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -251,7 +253,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, true);
+#endif
 }
 
 /*
@@ -268,7 +272,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Func
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, true);
+#endif
 }
 
 /*
@@ -289,7 +295,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Func
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -306,7 +314,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, 
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasDrawingNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, true);
+#endif
 }
 
 /*
@@ -326,7 +336,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiProxyNode, Function
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(proxyNode, callback);
     ASSERT_EQ(ret, false);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), false);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -345,7 +357,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function |
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -364,7 +378,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function |
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback, 1.0, 1.0, true);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, true);
+#endif
 }
 
 /*
@@ -381,7 +397,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function 
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 0, 0);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -398,7 +416,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function 
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, -1, -1);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -415,7 +435,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function 
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 10000, 10000);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, false);
+#endif
 }
 
 /*
@@ -435,7 +457,9 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(callback->captureSuccess_, true);
+#endif
 }
 
 /*

@@ -840,18 +840,13 @@ HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: FindNodeInTargetListSucess
- * @tc.desc: FindNodeInTargetListSucess Test
+ * @tc.name: FindNodeInTargetListSuccess
+ * @tc.desc: FindNodeInTargetListSuccess Test
  * @tc.type:FUNC
  * @tc.require: issueI9V3Y2
  */
-HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSuccess, TestSize.Level1)
 {
-    std::string targetStr1("");
-    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr1);
-    std::string nodeStr1("A");
-    RSSystemProperties::FindNodeInTargetList(nodeStr1);
-
     std::string targetStr("A;B;C;D");
     system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
     std::string nodeStr("A");
