@@ -32,6 +32,7 @@
 #include "common/rs_background_thread.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "include/gpu/GrDirectContext.h"
+#include "memory/rs_memory_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
@@ -1077,16 +1078,19 @@ bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpu
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 {
     MemoryGraphic memoryGraphic;
-    if (!mainThread_) {
+    if (!mainThread_ || !mainThread_->GetContext().GetNodeMap().ContainPid(pid)) {
         return memoryGraphic;
     }
     if (GetUniRenderEnabled()) {
-        RSMainThread* mainThread = mainThread_;
-        mainThread_->ScheduleTask([mainThread, &pid, &memoryGraphic]() {
-            if (RSMainThread::Instance()->GetContext().GetNodeMap().ContainPid(pid)) {
-                mainThread->CountMem(pid, memoryGraphic);
-            }
-        }).wait();
+        renderThread_.PostSyncTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphic, &pid] {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr) {
+                    return;
+                }
+                memoryGraphic = MemoryManager::CountPidMemory(pid,
+                    connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+            });
         return memoryGraphic;
     } else {
         return memoryGraphic;
@@ -1096,22 +1100,28 @@ MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 std::vector<MemoryGraphic> RSRenderServiceConnection::GetMemoryGraphics()
 {
     std::vector<MemoryGraphic> memoryGraphics;
-    if (!mainThread_) {
+    if (!mainThread_ || !GetUniRenderEnabled()) {
         return memoryGraphics;
     }
-    if (GetUniRenderEnabled()) {
-        mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics]() {
-                sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (!connection) {
-                    return;
-                }
-                return connection->mainThread_->CountMem(memoryGraphics);
-            }).wait();
-        return memoryGraphics;
-    } else {
-        return memoryGraphics;
-    }
+
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    std::vector<pid_t> pids;
+    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
+        auto pid = ExtractPid(node->GetId());
+        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+            pids.emplace_back(pid);
+        }
+    });
+    renderThread_.PostSyncTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics, &pids] {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr) {
+                return;
+            }
+            MemoryManager::CountMemory(pids,
+                connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), memoryGraphics);
+        });
+    return memoryGraphics;
 }
 
 std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes(ScreenId id)
