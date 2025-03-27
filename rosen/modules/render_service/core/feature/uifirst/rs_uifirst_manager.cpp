@@ -140,6 +140,21 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     }
 }
 
+void RSUifirstManager::ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr)
+{
+    if (!nodePtr) {
+        RS_LOGE("RSUifirstManager::ResetWindowCache nodePtr is null");
+        return;
+    }
+    auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
+    if (!drawable) {
+        RS_LOGE("RSUifirstManager::ResetWindowCache drawable is null");
+        return;
+    }
+    // run in RT thread
+    drawable->ResetWindowCache();
+}
+
 void RSUifirstManager::MergeOldDirty(NodeId id)
 {
     if (!mainThread_) {
@@ -336,10 +351,10 @@ void RSUifirstManager::ProcessDoneNode()
             it++;
         }
     }
-    for (auto& surfaceNode : pindingResetWindowCachedNodes_) {
-        ResetUifirstNode(surfaceNode);
+    for (auto& surfaceNode : pendingResetWindowCachedNodes_) {
+        ResetWindowCache(surfaceNode);
     }
-    pindingResetWindowCachedNodes_.clear();
+    pendingResetWindowCachedNodes_.clear();
 
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end();) {
         auto id = it->first;
@@ -1634,7 +1649,7 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 
     auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
-    pindingResetWindowCachedNodes_.emplace_back(surfaceNode);
+    pendingResetWindowCachedNodes_.emplace_back(surfaceNode);
 }
 
 void RSUifirstManager::AddCapturedNodes(NodeId id)

@@ -109,6 +109,10 @@ public:
         } else {
             ClearCacheSurfaceInThread();
         }
+    }
+
+    void ResetWindowCache()
+    {
         drawWindowCache_.ClearCache();
     }
 
