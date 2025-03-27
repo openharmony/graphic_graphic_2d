@@ -17,17 +17,17 @@
 
 namespace OHOS::Rosen {
 
-bool FilterParam::IsFilterCacheEnable() const
+bool FilterParam::IsFilterCacheEnable()
 {
     return isFilterCacheEnable_;
 }
 
-bool FilterParam::IsEffectMergeEnable() const
+bool FilterParam::IsEffectMergeEnable()
 {
     return isEffectMergeEnable_;
 }
 
-bool FilterParam::IsBlurAdaptiveAdjust() const
+bool FilterParam::IsBlurAdaptiveAdjust()
 {
     return isBlurAdaptiveAdjust;
 }

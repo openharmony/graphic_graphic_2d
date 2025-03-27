@@ -37,7 +37,7 @@ int32_t FilterParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xml
             continue;
         }
 
-        if (ParseFilterCacheInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseFilterCacheInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("FilterParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -46,34 +46,26 @@ int32_t FilterParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xml
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t FilterParamParse::ParseFilterCacheInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[FILTER]);
-    if (iter == featureMap.end()) {
-        RS_LOGD("FilterCacheParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-    filterParam_ = std::static_pointer_cast<FilterParam>(iter->second);
-
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*currNode);
-    auto name = ExtractPropertyValue(XML_KEY_NAME, *currNode);
-    auto val = ExtractPropertyValue(XML_KEY_VALUE, *currNode);
+    int xmlParamType = GetXmlNodeAsInt(node);
+    auto name = ExtractPropertyValue(XML_KEY_NAME, node);
+    auto val = ExtractPropertyValue(XML_KEY_VALUE, node);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == XML_PARAM_FILTER_CACHE_ENABLED) {
-            filterParam_->SetFilterCacheEnable(isEnabled);
-            RS_LOGI("FilterParamParse parse FilterCacheEnabled %{public}d", filterParam_->IsFilterCacheEnable());
+            FilterParam::SetFilterCacheEnable(isEnabled);
+            RS_LOGI("FilterParamParse parse FilterCacheEnabled %{public}d", FilterParam::IsFilterCacheEnable());
         } else if (name == XML_PARAM_EFFECT_MERGE_ENABLED) {
-            filterParam_->SetEffectMergeEnable(isEnabled);
-            RS_LOGI("FilterParamParse parse EffectMergeEnabled %{public}d", filterParam_->IsEffectMergeEnable());
+            FilterParam::SetEffectMergeEnable(isEnabled);
+            RS_LOGI("FilterParamParse parse EffectMergeEnabled %{public}d", FilterParam::IsEffectMergeEnable());
         } else if (name == XML_PARAM_BLUR_ADAPTIVE_ADJUST) {
-            filterParam_->SetBlurAdaptiveAdjust(isEnabled);
-            RS_LOGI("FilterParamParse parse BlurAdaptiveAdjust %{public}d", filterParam_->IsBlurAdaptiveAdjust());
+            FilterParam::SetBlurAdaptiveAdjust(isEnabled);
+            RS_LOGI("FilterParamParse parse BlurAdaptiveAdjust %{public}d", FilterParam::IsBlurAdaptiveAdjust());
         } else {
             RS_LOGD("FilterParamParse unknown feature name");
+            return PARSE_ERROR;
         }
     }
 

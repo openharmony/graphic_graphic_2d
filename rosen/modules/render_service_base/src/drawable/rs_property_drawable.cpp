@@ -385,8 +385,7 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
     if (stagingCacheManager_  == nullptr) {
         return;
     }
-    RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu]", stagingNodeId_);
-    stagingCacheManager_->MarkNeedClearFilterCache();
+    stagingCacheManager_->MarkNeedClearFilterCache(stagingNodeId_);
     ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%{public}lld]",
         static_cast<long long>(stagingNodeId_));
 }

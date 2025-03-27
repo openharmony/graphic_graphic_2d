@@ -880,38 +880,39 @@ HWTEST_F(RSFilterCacheManagerTest, MarkNeedClearFilterCacheTest, TestSize.Level1
 {
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     EXPECT_NE(rsFilterCacheManager, nullptr);
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    NodeId nodeId = 0;
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->isFilterCacheValid_ = true;
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = true;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     EXPECT_FALSE(rsFilterCacheManager->isFilterCacheValid_);
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
     rsFilterCacheManager->lastCacheType_ = FilterCacheType::NONE;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->lastCacheType_ = FilterCacheType::SNAPSHOT;
     rsFilterCacheManager->stagingForceUseCache_ = true;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->stagingForceUseCache_ = false;
     rsFilterCacheManager->stagingForceClearCache_ = true;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->stagingForceClearCache_ = false;
     rsFilterCacheManager->stagingFilterRegionChanged_ = true;
     rsFilterCacheManager->stagingRotationChanged_ = false;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->stagingFilterRegionChanged_ = false;
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
     rsFilterCacheManager->pendingPurge_ = true;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
     rsFilterCacheManager->cacheUpdateInterval_ = 0;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = false;
     rsFilterCacheManager->pendingPurge_ = false;
     rsFilterCacheManager->stagingRotationChanged_ = true;
     rsFilterCacheManager->cacheUpdateInterval_ = 0;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
     rsFilterCacheManager->cacheUpdateInterval_ = 1;
-    rsFilterCacheManager->MarkNeedClearFilterCache();
+    rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS
