@@ -17,14 +17,10 @@
 
 #include "rosen_text/font_collection.h"
 
-#ifndef USE_TEXGINE
 #ifdef USE_SKIA_TXT
-#include "adapter/skia_txt/font_collection.h"
+#include "skia_txt/font_collection.h"
 #else
-#include "adapter/txt/font_collection.h"
-#endif
-#else
-#include "texgine/font_collection.h"
+#include "txt/font_collection.h"
 #endif
 
 #include "utils/object_mgr.h"

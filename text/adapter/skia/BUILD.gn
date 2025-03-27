@@ -1,0 +1,289 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/text/config.gni")
+
+config("skia_libtxt_config") {
+  defines = [
+    "OHOS_SUPPORT",
+    "USE_SKIA_TXT",
+  ]
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
+
+  include_dirs = [
+    "$rosen_text_root",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
+  ]
+
+  cflags_cc = [
+    "-Wno-implicit-fallthrough",
+    "-fvisibility-inlines-hidden",
+    "-std=c++17",
+  ]
+}
+
+skparagraph_root = "//third_party/skia/modules/skparagraph"
+skunicode_root = "//third_party/skia/modules/skunicode"
+skshaper_root = "//third_party/skia/modules/skshaper"
+
+template("skia_libtxt") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+    defines += invoker.defines
+    cflags_cc += invoker.cflags_cc
+
+    public_configs = [ ":skia_libtxt_config" ]
+    include_dirs = [
+      "$rosen_root/modules/render_service_base/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "$rosen_text_root",
+      "$rosen_text_root/service/skia_txt",
+      "$rosen_text_root/adapter/skia",
+      "$rosen_text_root/adapter/skia/txt",
+      "$rosen_text_root/service/texgine/src",
+    ]
+
+    sources = [
+      "common_utils/string_util.cpp",
+      "impl/drawing_painter_impl.cpp",
+      "impl/paragraph_builder_impl.cpp",
+      "impl/paragraph_impl.cpp",
+      "impl/paragraph_line_fetcher_impl.cpp",
+      "impl/paragraph_relayout_impl.cpp",
+      "impl/run_impl.cpp",
+      "impl/text_font_utils.cpp",
+      "impl/text_line_impl.cpp",
+      "symbol_engine/hm_symbol_node_build.cpp",
+      "symbol_engine/hm_symbol_run.cpp",
+      "symbol_engine/hm_symbol_txt.cpp",
+      "symbol_resource/symbol_config_parser.cpp",
+      "txt/asset_font_manager.cpp",
+      "txt/font_asset_provider.cpp",
+      "txt/font_collection.cpp",
+      "txt/paragraph_builder.cpp",
+      "txt/paragraph_style.cpp",
+      "txt/placeholder_run.cpp",
+      "txt/platform.cpp",
+      "txt/text_bundle_config_parser.cpp",
+      "txt/text_style.cpp",
+      "txt/typeface_font_asset_provider.cpp",
+    ]
+
+    external_deps = [ "jsoncpp:jsoncpp" ]
+    if (platform == "ohos" || platform == "ohos_ng") {
+      external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+      ]
+      defines += [
+        "OHOS_TEXT_ENABLE",
+        "HM_SYMBOL_TXT_ENABLE",
+      ]
+    } else {
+      defines += [ "MODULE_TEXTING" ]
+    }
+
+    deps = [
+      ":skia_paragraph",
+      ":skia_shaper",
+      ":skia_unicode",
+    ]
+
+    if (is_arkui_x) {
+      deps += [
+        "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/jsoncpp:jsoncpp_static",
+        "//third_party/skia:skia_$platform",
+      ]
+    } else {
+      external_deps += [
+        "bounds_checking_function:libsec_shared",
+        "hilog:libhilog",
+        "skia:skia_canvaskit",
+      ]
+      defines += [ "OHOS_STANDARD_SYSTEM" ]
+    }
+  }
+}
+
+foreach(item, ace_platforms) {
+  skia_libtxt("skia_libtxt_" + item.name) {
+    defines = []
+    cflags_cc = []
+    config = {
+    }
+
+    if (defined(item.config)) {
+      config = item.config
+    }
+
+    if (defined(config.defines)) {
+      defines = config.defines
+    }
+
+    if (defined(config.cflags_cc)) {
+      cflags_cc = config.cflags_cc
+    }
+  }
+}
+
+ohos_source_set("skia_paragraph") {
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  public_configs = [ ":skia_libtxt_config" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$skparagraph_root",
+  ]
+
+  sources = [
+    "$skparagraph_root/src/Decorations.cpp",
+    "$skparagraph_root/src/FontArguments.cpp",
+    "$skparagraph_root/src/FontCollection.cpp",
+    "$skparagraph_root/src/HyphenTrie.cpp",
+    "$skparagraph_root/src/Hyphenator.cpp",
+    "$skparagraph_root/src/OneLineShaper.cpp",
+    "$skparagraph_root/src/ParagraphBuilderImpl.cpp",
+    "$skparagraph_root/src/ParagraphCache.cpp",
+    "$skparagraph_root/src/ParagraphImpl.cpp",
+    "$skparagraph_root/src/ParagraphLineFetcherImpl.cpp",
+    "$skparagraph_root/src/ParagraphPainterImpl.cpp",
+    "$skparagraph_root/src/ParagraphStyle.cpp",
+    "$skparagraph_root/src/Run.cpp",
+    "$skparagraph_root/src/RunBaseImpl.cpp",
+    "$skparagraph_root/src/TextGlobalConfig.cpp",
+    "$skparagraph_root/src/TextLine.cpp",
+    "$skparagraph_root/src/TextLineBaseImpl.cpp",
+    "$skparagraph_root/src/TextLineJustify.cpp",
+    "$skparagraph_root/src/TextShadow.cpp",
+    "$skparagraph_root/src/TextStyle.cpp",
+    "$skparagraph_root/src/TextTabAlign.cpp",
+    "$skparagraph_root/src/TextWrapper.cpp",
+    "$skparagraph_root/src/TypefaceFontProvider.cpp",
+  ]
+
+  deps = [
+    ":skia_shaper",
+    ":skia_unicode",
+  ]
+
+  if (is_arkui_x) {
+    deps += [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/icu/icu4c:static_icuuc",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "hilog:libhilog",
+      "icu:shared_icuuc",
+      "skia:skia_canvaskit",
+    ]
+  }
+
+  if (platform == "ohos" || platform == "ohos_ng") {
+    defines = [ "OHOS_TEXT_ENABLE" ]
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+    ]
+  }
+}
+
+ohos_source_set("skia_unicode") {
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  public_configs = [ ":skia_libtxt_config" ]
+  include_dirs = []
+  defines = [
+    "SKUNICODE_IMPLEMENTATION=1",
+    "SK_UNICODE_AVAILABLE",
+    "SK_UNICODE_ICU_IMPLEMENTATION",
+  ]
+  public = [ "$skunicode_root/include/SkUnicode.h" ]
+  if (!is_arkui_x) {
+    sources = [
+      "$skunicode_root/src/SkUnicode.cpp",
+      "$skunicode_root/src/SkUnicode_icu.cpp",
+      "$skunicode_root/src/SkUnicode_icu.h",
+      "$skunicode_root/src/SkUnicode_icu_bidi.cpp",
+      "$skunicode_root/src/SkUnicode_icu_bidi.h",
+      "$skunicode_root/src/SkUnicode_icu_builtin.cpp",
+    ]
+  }
+
+  external_deps = [
+    "icu:shared_icuuc",
+    "skia:skia_canvaskit",
+  ]
+}
+
+ohos_source_set("skia_shaper") {
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  public_configs = [ ":skia_libtxt_config" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
+  defines = [ "SKSHAPER_IMPLEMENTATION=1" ]
+
+  sources = [
+    "$skshaper_root/src/SkShaper.cpp",
+    "$skshaper_root/src/SkShaper_harfbuzz.cpp",
+    "$skshaper_root/src/SkShaper_primitive.cpp",
+  ]
+
+  deps = [ ":skia_unicode" ]
+
+  if (is_arkui_x) {
+    deps += [
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "skia:skia_canvaskit",
+    ]
+  }
+}

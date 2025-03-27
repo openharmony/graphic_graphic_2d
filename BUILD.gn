@@ -42,7 +42,6 @@ group("graphic_common_test") {
     "rosen/test/hyper_graphic_manager:test",
     "rosen/test/render_frame_trace:test",
     "rosen/test/render_service:test",
-    "rosen/test/texgine:test",
     "utils/color_manager:test",
     "utils/rs_frame_report_ext:test",
     "utils/scoped_bytrace:test",

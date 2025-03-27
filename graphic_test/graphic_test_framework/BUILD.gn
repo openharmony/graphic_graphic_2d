@@ -22,7 +22,6 @@ config("rs_graphic_test_config") {
     "$graphic_2d_root/rosen/modules",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/utils",

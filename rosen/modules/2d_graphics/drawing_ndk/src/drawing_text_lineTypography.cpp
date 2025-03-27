@@ -18,7 +18,7 @@
 #include "array_mgr.h"
 #include "rosen_text/typography_create.h"
 #include "skia_txt/text_line_base.h"
-#include "skia_txt/txt/paragraph_line_fetcher.h"
+#include "skia/txt/paragraph_line_fetcher.h"
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
