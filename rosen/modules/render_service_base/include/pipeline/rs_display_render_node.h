@@ -156,6 +156,16 @@ public:
         return screenRotation_;
     }
 
+    void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
+    {
+        virtualScreenMuteStatus_ = virtualScreenMuteStatus;
+    }
+
+    bool GetVirtualScreenMuteStatus() const
+    {
+        return virtualScreenMuteStatus_;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -602,6 +612,7 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    bool virtualScreenMuteStatus_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;

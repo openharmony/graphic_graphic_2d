@@ -62,6 +62,8 @@ public:
 
     void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid);
 
+    void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus);
+
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
