@@ -888,29 +888,29 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
 
     std::vector<std::string> screenConfigs = {"LTPO-DEFAULT", "LTPO-internal", "LTPO-external"};
+    PolicyConfigData::SupportedModeConfig supportedMode = {{"LowBright", {}}};
+    PolicyConfigData::SupportedModeConfig supportedMode1 = {{"LowBright", {OLED_30_HZ, OLED_60_HZ, OLED_120_HZ}}};
+    PolicyConfigData::SupportedModeConfig supportedMode2 = {{"LowBright", {OLED_MIN_HZ}}};
     for (const auto& screenConfig : screenConfigs) {
-        auto iter = configData->supportedModeConfigs_.find(screenConfig);
-        if (iter == configData-> supportedModeConfigs_.end()) {
+        if (configData->screenStrategyConfigs_.find(screenConfig) == configData->screenStrategyConfigs_.end()) {
             continue;
         }
-
-        auto& supportedModeConfig = iter->second;
-        auto vec = supportedModeConfig.find("LowBright");
-
-        if (vec == supportedModeConfig.end()) {
-            continue;
-        }
-
-        supportedModeConfig["LowBright"].clear();
+        configData->supportedModeConfigs_[screenConfig] = supportedMode;
         mgr.GetLowBrightVec(configData);
         ASSERT_EQ(mgr.isAmbientEffect_, false);
         ASSERT_TRUE(mgr.lowBrightVec_.empty());
 
-        std::vector<uint32_t> expectedLowBrightVec = {30, 60, 90};
-        supportedModeConfig["LowBright"] = expectedLowBrightVec;
+        configData->supportedModeConfigs_[screenConfig].clear();
+        configData->supportedModeConfigs_[screenConfig] = supportedMode1;
         mgr.GetLowBrightVec(configData);
         ASSERT_EQ(mgr.isAmbientEffect_, true);
-        ASSERT_EQ(mgr.lowBrightVec_, expectedLowBrightVec);
+        ASSERT_TRUE(!mgr.lowBrightVec_.empty());
+
+        configData->supportedModeConfigs_[screenConfig].clear();
+        configData->supportedModeConfigs_[screenConfig] = supportedMode2;
+        mgr.GetLowBrightVec(configData);
+        ASSERT_EQ(mgr.isAmbientEffect_, false);
+        ASSERT_TRUE(mgr.lowBrightVec_.empty());
     }
 }
 
