@@ -240,8 +240,8 @@ if (exec_script(check_graphic_ext_file_script,
   ddgr_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
   }
+  import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
   if (graphic_2d_feature_ace_enable_gpu && graphic_2d_feature_enable_vulkan) {
-    import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
     if (defined(graphic_2d_ext_feature_enable_ddgr) &&
         graphic_2d_ext_feature_enable_ddgr) {
       gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
