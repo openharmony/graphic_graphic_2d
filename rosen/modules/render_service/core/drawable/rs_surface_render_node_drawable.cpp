@@ -28,6 +28,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "graphic_feature_param_manager.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
@@ -581,6 +582,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kAll);
     bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
+        RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == (surfaceParams->GetOpaqueRegion().Area() +
@@ -617,7 +619,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (surfaceParams->IsMainWindowType()) {
         RSRenderNodeDrawable::ClearTotalProcessedNodeCount();
         RSRenderNodeDrawable::ClearProcessedNodeCount();
-        if (!surfaceParams->GetNeedOffscreen()) {
+        if (!(surfaceParams->GetNeedOffscreen() && RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable())) {
             PushDirtyRegionToStack(*curCanvas_, curSurfaceDrawRegion);
         }
     }
@@ -665,7 +667,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // Draw base pipeline end
     if (surfaceParams->IsMainWindowType()) {
-        if (!surfaceParams->GetNeedOffscreen()) {
+        if (!(surfaceParams->GetNeedOffscreen() && RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable())) {
             curCanvas_->PopDirtyRegion();
         }
         int processedNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
