@@ -985,7 +985,7 @@ HWTEST_F(RSUniRenderUtilTest, GetLayerTransformTest, Function | SmallTest | Leve
  * @tc.name: SrcRectRotateTransformTest
  * @tc.desc: Verify function SrcRectRotateTransform
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest, Function | SmallTest | Level2)
 {
