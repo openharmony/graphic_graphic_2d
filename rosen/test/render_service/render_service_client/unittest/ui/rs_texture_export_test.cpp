@@ -97,9 +97,6 @@ HWTEST_F(RSTextureExportTest, StopTextureExport, TestSize.Level1)
     SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
     text.StopTextureExport();
-    bool res = true;
-    ASSERT_TRUE(res == true);
-    res = false;
-    ASSERT_TRUE(res == false);
+    ASSERT_NE(rootNode, nullptr);
 }
 }
