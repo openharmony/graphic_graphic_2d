@@ -3567,7 +3567,7 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         }
 
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() &&
-            backgroundAlphaRect.Intersect(hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect())) {
+            backgroundAlphaRect.IntersectRect(hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect())) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             continue;
         }
