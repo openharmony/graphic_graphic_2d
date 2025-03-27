@@ -16,7 +16,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 import("$graphic_2d_root/text/config.gni")
 
-
 ohos_unittest("2d_engine_rosen_text_skia_test") {
   module_out_path = text_test_out_path
   sources = [ "skia_txt_test.cpp" ]
@@ -36,8 +35,6 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [ "googletest:gtest_main" ]
-
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
