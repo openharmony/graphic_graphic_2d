@@ -2291,5 +2291,17 @@ HWTEST_F(RSInterfacesTest, NotifyPageName, Function | SmallTest | Level2)
     rsInterfaces->NotifyPageName("com.package.other", "page", false);
     ASSERT_NE(rsInterfaces, nullptr);
 }
+
+/*
+ * @tc.name: GetMemoryGraphics
+ * @tc.desc: Test GetMemoryGraphics
+ * @tc.type: FUNC
+ * @tc.require: issueIBPH63
+ */
+HWTEST_F(RSInterfacesTest, GetMemoryGraphics, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->GetMemoryGraphics();
+}
 } // namespace Rosen
 } // namespace OHOS
