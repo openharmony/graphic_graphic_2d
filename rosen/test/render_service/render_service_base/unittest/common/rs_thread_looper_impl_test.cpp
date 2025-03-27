@@ -160,7 +160,7 @@ HWTEST_F(RSThreadLooperImplTest, HaveDelayedMessageToProcessTest, TestSize.Level
 HWTEST_F(RSThreadLooperImplTest, WaitForMessageTest, TestSize.Level1)
 {
     auto message = std::make_shared<ThreadLooperMessageTest>();
-    std::thread wakeUpThread([&]() {
+    std::thread wakeUpThread([this]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         threadlooperimpl_->wakeup_ = true;
         threadlooperimpl_->cv_.notify_one();
@@ -200,7 +200,7 @@ HWTEST_F(RSThreadLooperImplTest, ProcessOneMessageInternalTest, TestSize.Level1)
 HWTEST_F(RSThreadLooperImplTest, ProcessAllMessagesTest002, TestSize.Level1)
 {
     threadlooperimpl_->ProcessAllMessages(1);
-    std::thread wakeUpThread([&]() {
+    std::thread wakeUpThread([this]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         threadlooperimpl_->wakeup_ = true;
         threadlooperimpl_->cv_.notify_one();
