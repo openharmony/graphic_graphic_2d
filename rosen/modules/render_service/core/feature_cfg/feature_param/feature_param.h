@@ -73,6 +73,8 @@ enum FeatureModule {
     VRATE,
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
+    // Do not change it.
+    ENUM_LENGTH,
 };
 
 enum ParseErrCode {
