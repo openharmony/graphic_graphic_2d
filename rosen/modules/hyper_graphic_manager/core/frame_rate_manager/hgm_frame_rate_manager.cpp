@@ -210,10 +210,13 @@ void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<Polic
         XMLParser::IsNumber(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS])) {
         rsIdleTimeoutMs = static_cast<int32_t>(std::stoi(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS]));
     }
-    if (upTimeoutMs != 0 && rsIdleTimeoutMs != 0) {
+    if (upTimeoutMs != 0) {
         touchManager_.SetUpTimeout(upTimeoutMs);
+        HGM_LOGI("set upTimeout from Config");
+    }
+    if (rsIdleTimeoutMs != 0) {
         touchManager_.SetRsIdleTimeout(rsIdleTimeoutMs);
-        HGM_LOGI("Changed timeout params from Config");
+        HGM_LOGI("set rsIdleTimeout from Config");
     }
 }
 
