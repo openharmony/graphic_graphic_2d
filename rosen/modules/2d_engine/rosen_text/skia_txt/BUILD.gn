@@ -193,6 +193,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/ParagraphStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/Run.cpp",
     "//third_party/skia/modules/skparagraph/src/RunBaseImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextGlobalConfig.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLine.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLineJustify.cpp",
