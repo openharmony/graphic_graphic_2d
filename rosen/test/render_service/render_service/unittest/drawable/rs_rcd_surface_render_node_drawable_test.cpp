@@ -181,11 +181,11 @@ void SetBitmapToRcdRenderParams(RSRenderParams *params, const char* path)
 std::shared_ptr<DrawableV2::RSRcdSurfaceRenderNodeDrawable> GetRcdTestDrawable(
     RCDSurfaceType type = RCDSurfaceType::BOTTOM)
 {
-    auto rcdDrawable = RSRcdSurfaceRenderNode::Create(0, type);
-    if (rcdDrawable == nullptr) {
+    auto node = RSRcdSurfaceRenderNode::Create(0, type);
+    if (node == nullptr) {
         return nullptr;
     }
-    return std::static_pointer_cast<DrawableV2::RSRcdSurfaceRenderNodeDrawable>(rcdDrawable->renderDrawable_);
+    return std::static_pointer_cast<DrawableV2::RSRcdSurfaceRenderNodeDrawable>(node->renderDrawable_);
 }
 
 /*
