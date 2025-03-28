@@ -141,5 +141,16 @@ void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
         node->SetScbNodePid(oldScbPids, currentScbPid);
     }
 }
+
+void DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(RSContext& context, NodeId nodeId,
+    bool virtualScreenMuteStatus)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
+        ROSEN_LOGI("SetVirtualScreenMuteStatus NodeId:[%{public}" PRIu64 "]"
+            " screenId: %{public}" PRIu64 " virtualScreenMuteStatus: %{public}d",
+            nodeId, node->GetScreenId(), virtualScreenMuteStatus);
+        node->SetVirtualScreenMuteStatus(virtualScreenMuteStatus);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

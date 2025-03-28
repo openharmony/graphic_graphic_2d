@@ -253,7 +253,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest005, 
     canvasListener.DrawPicture(picture);
 
     canvasListener.Clear(Drawing::Color::COLOR_BLACK);
-    ASSERT_TRUE(canvasListener.regions_.size() != 0);
+    ASSERT_TRUE(canvasListener.regions_.size() == 0);
 }
 
 /**

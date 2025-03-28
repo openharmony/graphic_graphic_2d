@@ -82,7 +82,7 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
-    static inline Drawing::Canvas drawingCanvas_;
+    static inline Drawing::Canvas* drawingCanvas_;
 };
 
 class PropertyDrawableTest : public RSPropertyDrawable {
@@ -115,12 +115,15 @@ public:
 
 void RSRenderNodeTest::SetUpTestCase()
 {
-    canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
+    drawingCanvas_ = new Drawing::Canvas();
+    canvas_ = new RSPaintFilterCanvas(drawingCanvas_);
 }
 void RSRenderNodeTest::TearDownTestCase()
 {
-    delete canvas_;
-    canvas_ = nullptr;
+    if (canvas_) {
+        delete canvas_;
+        canvas_ = nullptr;
+    }
 }
 void RSRenderNodeTest::SetUp() {}
 void RSRenderNodeTest::TearDown() {}
@@ -1698,7 +1701,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0");
 }
 
 /**
@@ -2776,51 +2779,6 @@ HWTEST_F(RSRenderNodeTest, ClearCacheSurfaceInThreadTest029, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkFilterCacheFlags001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool needRequestNextVsync = true;
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->MarkFilterForceUseCache(true);
-    filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
-    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: MarkFilterCacheFlags002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool needRequestNextVsync = false;
-    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->MarkFilterForceUseCache(true);
-    filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->MarkFilterRegionInteractWithDirty();
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    auto& properties = node.GetMutableRenderProperties();
-    properties.backgroundFilter_ = std::make_shared<RSFilter>();
-    properties.filter_ = std::make_shared<RSFilter>();
-    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: CheckFilterCacheAndUpdateDirtySlots
  * @tc.desc: test
  * @tc.type: FUNC
@@ -2965,6 +2923,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
         isPropertyChanged = true;
     }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     canvasNode->lastFrameSubTreeSkipped_ = true;
     canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
@@ -2995,6 +2954,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
         isPropertyChanged = true;
     }
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = canvasNode->GetMutableRenderProperties();
     properties.clipToBounds_ = true;

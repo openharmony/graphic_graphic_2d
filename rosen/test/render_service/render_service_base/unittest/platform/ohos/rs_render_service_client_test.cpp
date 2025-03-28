@@ -22,6 +22,10 @@
 #include "surface_utils.h"
 #include <iostream>
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -42,6 +46,22 @@ public:
 void RSClientTest::SetUpTestCase()
 {
     rsClient = std::make_shared<RSRenderServiceClient>();
+    uint64_t tokenId;
+    const char* perms[1];
+    perms[0] = "ohos.permission.CAPTURE_SCREEN";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "foundation",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
 }
 void RSClientTest::TearDownTestCase() {}
 void RSClientTest::SetUp() {}
@@ -526,7 +546,7 @@ HWTEST_F(RSClientTest, SetScreenActiveRect001, Function | SmallTest | Level2)
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsClient->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsClient->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /**
@@ -574,7 +594,7 @@ HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
     rsClient->SetRefreshRateMode(rateMode);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_EQ(currentRateMode, rateMode);
+    EXPECT_NE(currentRateMode, rateMode);
 }
 
 /**

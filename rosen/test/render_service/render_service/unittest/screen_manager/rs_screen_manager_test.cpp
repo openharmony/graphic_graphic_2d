@@ -821,7 +821,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Lev
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*

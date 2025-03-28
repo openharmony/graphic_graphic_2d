@@ -35,7 +35,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class RelayoutTextStyleAttribute {
-    // influence Shape
     FONT_SIZE = 0,
     FONT_WEIGHT = 1,
     FONT_WIDTH = 2,
@@ -48,8 +47,6 @@ enum class RelayoutTextStyleAttribute {
     FONT_FEATURES = 9,
     FONT_VARIATIONS = 10,
     BASELINE_SHIFT = 11,
-
-    // influence Draw
     DECORATION = 12,
     DECORATION_COLOR = 13,
     DECORATION_STYLE = 14,
@@ -58,6 +55,7 @@ enum class RelayoutTextStyleAttribute {
     STYLE_ID = 17,
     FONT_COLOR = 18,
     SHADOWS = 19,
+    HALF_LEADING = 20,
 
     TEXT_STYLE_ATTRIBUTE_BUTT,
 };

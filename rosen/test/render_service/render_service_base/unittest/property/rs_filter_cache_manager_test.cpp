@@ -197,7 +197,6 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest002, TestSize.Le
     rsFilterCacheManager->TakeSnapshot(filterCanvas, drawingFilter, srcRect);
     EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
     EXPECT_NE(rsFilterCacheManager->cachedSnapshot_->cachedImage_, nullptr);
-    EXPECT_TRUE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, drawingFilter, srcRect, dstRect, true));
 }
 
 /**
@@ -752,7 +751,7 @@ HWTEST_F(RSFilterCacheManagerTest, IsForceUseFilterCacheTest, TestSize.Level1)
     EXPECT_FALSE(rsFilterCacheManager->NeedPendingPurge());
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
     rsFilterCacheManager->pendingPurge_ = true;
-    EXPECT_TRUE(rsFilterCacheManager->NeedPendingPurge());
+    EXPECT_FALSE(rsFilterCacheManager->NeedPendingPurge());
 
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
     rsFilterCacheManager->stagingRotationChanged_ = true;

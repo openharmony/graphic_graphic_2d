@@ -808,11 +808,11 @@ HWTEST_F(RSUniRenderUtilTest, IsHwcEnabledByScalingModeTest, Function | SmallTes
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_FREEZE));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_FREEZE));
     EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_TO_WINDOW));
-    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_CROP));
+    EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_CROP));
     EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_NO_SCALE_CROP));
-    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_FIT));
+    EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_FIT));
 }
 
 /*

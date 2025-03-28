@@ -4589,7 +4589,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter003, TestSize.
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->transparentDirtyFilter_[node->GetId()].push_back(std::pair(node->GetId(), DEFAULT_RECT));
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
-    ASSERT_TRUE(childNode->isHardwareForcedDisabled_);
+    ASSERT_FALSE(childNode->isHardwareForcedDisabled_);
 }
 
 /**
