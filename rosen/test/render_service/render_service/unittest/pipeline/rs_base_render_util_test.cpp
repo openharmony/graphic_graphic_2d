@@ -1058,7 +1058,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_001, TestSize.Level2)
     matrix.PreTranslate(0, boundsHeight);
     matrix.PreRotate(-90);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_90;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
 }
 
 /*
@@ -1076,7 +1076,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_002, TestSize.Level2)
     matrix.PreTranslate(boundsWidth, boundsHeight);
     matrix.PreRotate(-180);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_180;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
 }
 
 /*
@@ -1093,7 +1093,59 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
     matrix.PreTranslate(boundsWidth, 0);
     matrix.PreRotate(-270);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_270;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
+}
+
+/*
+ * @tc.name: GetSurfaceTransformMatrixForRotationFixed_001
+ * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_90
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_001, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    Drawing::Matrix matrix;
+    const float boundsHeight = bounds.GetHeight();
+    matrix.PreTranslate(0, boundsHeight);
+    matrix.PreRotate(-90);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_90;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform, bounds));
+}
+ 
+ /*
+  * @tc.name: GetSurfaceTransformMatrixForRotationFixed_002
+  * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_180
+  * @tc.type: FUNC
+  * @tc.require:
+  */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_002, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    Drawing::Matrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    const float boundsHeight = bounds.GetHeight();
+    matrix.PreTranslate(boundsWidth, boundsHeight);
+    matrix.PreRotate(-180);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_180;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform, bounds));
+}
+ 
+ /*
+  * @tc.name: GetSurfaceTransformMatrixForRotationFixed_003
+  * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_270
+  * @tc.type: FUNC
+  * @tc.require:
+  */
+HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_003, TestSize.Level2)
+{
+    RectF bounds(1, 2, 3, 4);
+    Drawing::Matrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    matrix.PreTranslate(boundsWidth, 0);
+    matrix.PreRotate(-270);
+    GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_270;
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform, bounds));
 }
 
 /*
