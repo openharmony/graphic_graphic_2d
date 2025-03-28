@@ -115,7 +115,7 @@ public:
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
-    static void SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId);
+    static void SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
@@ -224,7 +224,7 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
         SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetClonedNodeId,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_CLONED_NODE_ID,
-        SurfaceNodeCommandHelper::SetClonedNodeId, NodeId, NodeId))
+        SurfaceNodeCommandHelper::SetClonedNodeId, NodeId, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST,
         SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))

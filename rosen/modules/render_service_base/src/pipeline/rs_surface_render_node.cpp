@@ -209,7 +209,7 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
     bool isClonedNode = GetId() == nodeId;
-    if (isClonedNode && IsMainWindowType()) {
+    if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
@@ -1109,10 +1109,21 @@ bool RSSurfaceRenderNode::IsCloneNode() const
     return isCloneNode_;
 }
 
-void RSSurfaceRenderNode::SetClonedNodeId(NodeId id)
+void RSSurfaceRenderNode::SetClonedNodeId(NodeId id, bool needOffscreen)
 {
     isCloneNode_ = (id != INVALID_NODEID);
     clonedSourceNodeId_ = id;
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeId invalid context");
+        return;
+    }
+    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedSourceNodeId_);
+    if (clonedSurfaceNode) {
+        clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
+    }
+    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeId clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d",
+        id, needOffscreen);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)

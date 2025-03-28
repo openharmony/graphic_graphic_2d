@@ -836,10 +836,10 @@ void RSSurfaceNode::SetForeground(bool isForeground)
     AddCommand(commandRT, false);
 }
 
-void RSSurfaceNode::SetClonedNodeId(NodeId nodeId)
+void RSSurfaceNode::SetClonedNodeId(NodeId nodeId, bool needOffscreen)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId);
+        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId, needOffscreen);
     AddCommand(command, true);
 }
 
