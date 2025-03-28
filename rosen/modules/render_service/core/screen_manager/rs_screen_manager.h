@@ -117,6 +117,8 @@ public:
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
+    virtual void SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerStatus status) = 0;
+
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
@@ -361,6 +363,8 @@ public:
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
+    void SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerStatus status) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 

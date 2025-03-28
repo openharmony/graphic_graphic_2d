@@ -27,7 +27,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-static constexpr uint32_t SET_REFRESHRATE_SLEEP_US = 50000;  // wait for refreshrate change
+static constexpr uint32_t SET_REFRESHRATE_SLEEP_US = 1000000;  // wait for refreshrate change
 static constexpr uint64_t TEST_ID = 123;
 class RSClientTest : public testing::Test {
 public:

@@ -22,10 +22,12 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "vsync_sampler.h"
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
+#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "rs_trace.h"
@@ -1510,7 +1512,7 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
     return SUCCESS;
 }
 
-void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
+void RSScreenManager::SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerStatus status)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1562,6 +1564,19 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     RSColorTemperature::Get().UpdateScreenStatus(id, status);
     std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
     screenPowerStatus_[id] = status;
+}
+
+void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
+{
+    if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
+        RS_LOGD("[power_off_ongoing] ScreenID: %{public}" PRIu64 " PowerStatus is %{public}d", id, status);
+        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+        screenPowerStatus_[id] = ScreenPowerStatus::POWER_STATUS_OFF_ONGOING;
+    }
+
+    RSBackgroundThread::Instance().PostTask([id, status, this]() {
+        SetScreenPowerStatusForBackgroud(id, status);
+    });
 }
 
 bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
@@ -2256,7 +2271,8 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
         return false;
     }
     return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||
-        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF ||
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ONGOING;
 }
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
