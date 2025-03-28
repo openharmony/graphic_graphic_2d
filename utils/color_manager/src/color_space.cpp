@@ -1,5 +1,4 @@
 /*
-
  * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +31,7 @@ const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404
 // use unique g value to represent HLG and PG transfer function
 constexpr float HLG_G = -3.0f;
 constexpr float PQ_G = -2.0f;
+constexpr float LOG_G = -100.0f;
 
 const TransferFunc TF_ADOBE_RGB = {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 const TransferFunc TF_GAMMA_2_6 = {2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -41,6 +41,7 @@ const TransferFunc TF_HLG = {HLG_G, 2.0f, 2.0f, 1 / 0.17883277f, 0.28466892f, 0.
 const TransferFunc TF_PQ = {PQ_G, -107 / 128.0f, 1.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f};
 const TransferFunc TF_LINEAR = {1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 const TransferFunc TF_PRO_PHOTO_RGB = {1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
+const TransferFunc TF_LOG = {LOG_G, 5.555556f, 0.050943f, 0.130233f, 0.452962f, 6.842619f, 0.092864f};
 
 const ColorSpace CS_ADOBE_RGB = {CSP_ADOBE_RGB, TF_ADOBE_RGB};
 const ColorSpace CS_DCI_P3 = {CSP_P3_DCI, TF_GAMMA_2_6};
@@ -60,6 +61,7 @@ const ColorSpace CS_DISPLAY_BT2020_SRGB = {CSP_BT2020, TF_SRGB};
 const ColorSpace CS_BT2020 = {CSP_BT2020, TF_BT709};
 const ColorSpace CS_NTSC_1953 = {CSP_NTSC_1953, TF_BT709};
 const ColorSpace CS_PRO_PHOTO_RGB = {CSP_PRO_PHOTO_RGB, TF_PRO_PHOTO_RGB};
+const ColorSpace CS_H_LOG = {CSP_BT2020, TF_LOG};
 
 const std::map<ColorSpaceName, ColorSpace> NamedColorSpace = {
     { ColorSpaceName::ADOBE_RGB, CS_ADOBE_RGB },
@@ -97,6 +99,7 @@ const std::map<ColorSpaceName, ColorSpace> NamedColorSpace = {
     { ColorSpaceName::BT2020, CS_BT2020 },
     { ColorSpaceName::NTSC_1953, CS_NTSC_1953 },
     { ColorSpaceName::PRO_PHOTO_RGB, CS_PRO_PHOTO_RGB },
+    { ColorSpaceName::H_LOG, CS_H_LOG },
 };
 
 ColorSpace::ColorSpace(ColorSpaceName name)
@@ -340,6 +343,9 @@ Vector3 ColorSpace::ToLinear(Vector3 v) const
         } else if (FloatEqual(p.g, PQ_G)) {
             float tmp = std::pow(n, p.c);
             n = std::pow(std::max(p.a + p.b * tmp, 0.0f) / (p.d + p.e * tmp), p.f);
+        } else if (FloatEqual(p.g, LOG_G)) {
+            float coef = p.e * (1 / -p.g) + p.f;
+            n = n > coef ? std::exp(n / p.c - p.d / p.c) / p.a - p.b / p.a : (n - p.f) / p.e;
         } else {
             n = n >= p.d ? std::pow(p.a * n + p.b, p.g) + p.e : p.c * n + p.f;
         }
@@ -358,6 +364,8 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
         } else if (FloatEqual(p.g, PQ_G)) {
             float tmp = std::pow(n, 1 / p.f);
             n = std::pow((-p.a + p.d * tmp) / (p.b - p.e * tmp), 1 / p.c);
+        } else if (FloatEqual(p.g, LOG_G)) {
+            n = n > 1 / -p.g ? std::log(p.a * n + p.b) * p.c + p.d : p.e * n + p.f;
         } else {
             n = n >= p.d * p.c ? (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a : (n - p.f) / p.c;
         }
