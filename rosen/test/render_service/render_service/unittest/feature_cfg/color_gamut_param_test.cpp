@@ -37,20 +37,6 @@ void ColorGamutParamTest::SetUp() {}
 void ColorGamutParamTest::TearDown() {}
 
 /**
- * @tc.name: SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3
- * @tc.desc: Verify the SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3 function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(ColorGamutParamTest, CoveredSurfaceCloseP3, Function | SmallTest | Level1)
-{
-    ColorGamutParam::SetCoveredSurfaceCloseP3(true);
-    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), true);
-    ColorGamutParam::SetCoveredSurfaceCloseP3(false);
-    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), false);
-}
-
-/**
  * @tc.name: SetSLRCloseP3 IsSLRCloseP3
  * @tc.desc: Verify the SetSLRCloseP3 IsSLRCloseP3 function
  * @tc.type: FUNC

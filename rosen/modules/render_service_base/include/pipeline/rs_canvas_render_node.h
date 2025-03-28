@@ -69,6 +69,10 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
+    void SetIsWideColorGamut(bool isWideColorGamut);
+    bool GetIsWideColorGamut() const;
+    void ModifyWideWindowColorGamutNum(bool flag);
+
     // [Attention] Only used in PC window resize scene now
     void SetLinkedRootNodeId(NodeId rootNodeId);
     RSB_EXPORT NodeId GetLinkedRootNodeId() const;
@@ -91,6 +95,7 @@ private:
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
+    bool isWideColorGamut_ = false;
 
     // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;

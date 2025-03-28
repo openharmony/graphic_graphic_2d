@@ -47,7 +47,9 @@ public:
     void SetFreeze(bool isFreeze) override;
 
     void SetHDRPresent(bool hdrPresent);
-    
+
+    void SetIsWideColorGamut(bool isWideColorGamut);
+
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     void CheckThread();

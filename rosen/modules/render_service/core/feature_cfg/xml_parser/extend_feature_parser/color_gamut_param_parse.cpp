@@ -50,11 +50,7 @@ int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "CoveredSurfaceCloseP3") {
-            ColorGamutParam::SetCoveredSurfaceCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse CoveredSurfaceCloseP3 %{public}d",
-                ColorGamutParam::IsCoveredSurfaceCloseP3());
-        } else if (name == "SLRCloseP3") {
+        if (name == "SLRCloseP3") {
             ColorGamutParam::SetSLRCloseP3(isEnabled);
             RS_LOGI("ColorGamutParamParse parse SLRCloseP3 %{public}d", ColorGamutParam::IsSLRCloseP3());
         } else {
