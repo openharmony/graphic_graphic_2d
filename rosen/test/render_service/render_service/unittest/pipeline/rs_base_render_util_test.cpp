@@ -1113,12 +1113,12 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_001, Te
     ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform, bounds));
 }
  
- /*
-  * @tc.name: GetSurfaceTransformMatrixForRotationFixed_002
-  * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_180
-  * @tc.type: FUNC
-  * @tc.require:
-  */
+/*
+ * @tc.name: GetSurfaceTransformMatrixForRotationFixed_002
+ * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_180
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_002, TestSize.Level2)
 {
     RectF bounds(1, 2, 3, 4);
@@ -1131,12 +1131,12 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_002, Te
     ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform, bounds));
 }
  
- /*
-  * @tc.name: GetSurfaceTransformMatrixForRotationFixed_003
-  * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_270
-  * @tc.type: FUNC
-  * @tc.require:
-  */
+/*
+ * @tc.name: GetSurfaceTransformMatrixForRotationFixed_003
+ * @tc.desc: Test GetSurfaceTransformMatrixForRotationFixed GRAPHIC_ROTATE_270
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrixForRotationFixed_003, TestSize.Level2)
 {
     RectF bounds(1, 2, 3, 4);
