@@ -25,12 +25,15 @@ public:
     ~MEMParam() = default;
 
     std::string GetRSWatchPoint() const;
+    static bool IsReclaimEnabled();
 
 protected:
     void SetRSWatchPoint(std::string rsWatchPoint);
+    static void SetReclaimEnabled(bool isEnabled);
 
 private:
     std::string rsWatchPoint_ = "";
+    inline static bool isReclaimEnabled_ = false;
 
     friend class MEMParamParse;
 };

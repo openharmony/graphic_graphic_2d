@@ -62,6 +62,12 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
             memParam_->SetRSWatchPoint(val);
             RS_LOGI("MEMParamParse parse RSWatchPoint %{public}s", memParam_->GetRSWatchPoint().c_str());
         }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
+        if (name == "ReclaimEnabled") {
+            bool isEnabled = ParseFeatureSwitch(val);
+            memParam_->SetReclaimEnabled(isEnabled);
+            RS_LOGI("MEMParamParse parse ReclaimEnabled %{public}d", memParam_->IsReclaimEnabled());
+        }
     }
 
     return PARSE_EXEC_SUCCESS;

@@ -25,4 +25,14 @@ void MEMParam::SetRSWatchPoint(std::string rsWatchPoint)
 {
     rsWatchPoint_ = rsWatchPoint;
 }
+
+bool MEMParam::IsReclaimEnabled()
+{
+    return isReclaimEnabled_;
+}
+
+void MEMParam::SetReclaimEnabled(bool isEnabled)
+{
+    isReclaimEnabled_ = isEnabled;
+}
 } // namespace OHOS::Rosen
