@@ -7783,6 +7783,19 @@ HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBackgroundShaderProgress001
+ * @tc.desc: SetBackgroundShaderProgress
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeTest, SetBackgroundShaderProgress001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetBackgroundShaderProgress(1.0f);
+}
+
+/**
  * @tc.name: SetUIFirstSwitch
  * @tc.desc: test results of SetUIFirstSwitch
  * @tc.type: FUNC
