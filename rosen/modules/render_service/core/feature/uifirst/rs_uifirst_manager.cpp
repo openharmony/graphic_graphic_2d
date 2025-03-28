@@ -105,6 +105,22 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
     subthreadProcessDoneNode_.push_back(id);
 }
 
+void RSUifirstManager::AddProcessSkippedNode(NodeId id)
+{
+    if (id == INVALID_NODEID) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("sub skipped %" PRIu64, id);
+    std::lock_guard<std::mutex> lock(skippedNodeMutex_);
+    subthreadProcessSkippedNode_.insert(id);
+}
+
+bool RSUifirstManager::NeedNextDrawForSkippedNode()
+{
+    std::lock_guard<std::mutex> lock(skippedNodeMutex_);
+    return !subthreadProcessSkippedNode_.empty();
+}
+
 void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr)
 {
     if (!nodePtr) {
@@ -317,6 +333,51 @@ void RSUifirstManager::ProcessDoneNodeInner()
     }
 }
 
+void RSUifirstManager::ProcessSkippedNode()
+{
+    std::unordered_set<NodeId> tmp;
+    {
+        std::lock_guard<std::mutex> lock(skippedNodeMutex_);
+        if (subthreadProcessSkippedNode_.empty()) {
+            return;
+        }
+        std::swap(tmp, subthreadProcessSkippedNode_);
+    }
+    RS_TRACE_NAME_FMT("ProcessSkippedNode num %zu", tmp.size());
+    for (auto& id : tmp) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+        if (UNLIKELY(!surfaceNode)) {
+            continue;
+        }
+        // If node not on the tree, do not draw it.
+        if (UNLIKELY(!surfaceNode->IsOnTheTree())) {
+            RS_TRACE_NAME_FMT("ProcessSkippedNode %s %" PRIu64 " not OnTheTree", surfaceNode->GetName().c_str(), id);
+            continue;
+        }
+        // If node not enable uifirst, do not draw it in subThread.
+        if (UNLIKELY(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE)) {
+            RS_TRACE_NAME_FMT("ProcessSkippedNode %s %" PRIu64 " disabled", surfaceNode->GetName().c_str(), id);
+            continue;
+        }
+        if (surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
+            if (pendingPostCardNodes_.find(id) == pendingPostCardNodes_.end()) {
+                pendingPostCardNodes_.emplace(id, surfaceNode);
+                surfaceNode->SetForceDrawWithSkipped(true);
+                RS_TRACE_NAME_FMT("ProcessSkippedCardNode %" PRIu64 " added", id);
+                RS_LOGI("ProcessSkippedCardNode %{public}" PRIu64 " added", id);
+            }
+        } else {
+            if (pendingPostNodes_.find(id) == pendingPostNodes_.end()) {
+                pendingPostNodes_.emplace(id, surfaceNode);
+                surfaceNode->SetForceDrawWithSkipped(true);
+                RS_TRACE_NAME_FMT("ProcessSkippedNode %s %" PRIu64 " Type %d added", surfaceNode->GetName().c_str(), id,
+                    static_cast<int>(surfaceNode->GetLastFrameUifirstFlag()));
+            }
+        }
+    }
+}
+
 void RSUifirstManager::ProcessDoneNode()
 {
 #ifdef RS_ENABLE_PREFETCH
@@ -370,8 +431,11 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         RS_LOGI("erase processingNode %{public}" PRIu64, id);
+        RS_TRACE_NAME_FMT("erase processingNode %s %{public}" PRIu64, drawable->GetName().c_str(), id);
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
+        // skipped by doing, need update cache because the doing cache is too old
+        RSUifirstManager::Instance().AddProcessSkippedNode(it->first);
         ++it;
     }
 }
@@ -499,6 +563,8 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             ++it;
             continue;
         }
+        auto forceDraw = node->GetForceDrawWithSkipped();
+        node->SetForceDrawWithSkipped(false);
         SyncHDRDisplayParam(drawable, node->GetFirstLevelNodeColorGamut());
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         if (!surfaceParams) {
@@ -511,9 +577,17 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
 
+        if (forceDraw) {
+            RS_TRACE_NAME_FMT("Purge GetForceDrawWithSkipped name: %s %" PRIu64,
+                surfaceParams->GetName().c_str(), drawable->GetId());
+            ++it;
+            continue;
+        }
+
         bool staticContent = drawable->IsCurFrameStatic();
-        RS_TRACE_NAME_FMT("Purge node name: %s, PurgeEnable:%d, HasCachedTexture:%d, staticContent: %d",
-            surfaceParams->GetName().c_str(), purgeEnable_, drawable->HasCachedTexture(), staticContent);
+        RS_TRACE_NAME_FMT("Purge node name: %s, PurgeEnable:%d, HasCachedTexture:%d, staticContent: %d %" PRIu64,
+            surfaceParams->GetName().c_str(), purgeEnable_,
+            drawable->HasCachedTexture(), staticContent, drawable->GetId());
         if (purgeEnable_ && drawable->HasCachedTexture() &&
             (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
@@ -642,6 +716,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
 void RSUifirstManager::ProcessSubDoneNode()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("ProcessSubDoneNode");
+    ProcessSkippedNode(); // try rescheduale skipped node
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
