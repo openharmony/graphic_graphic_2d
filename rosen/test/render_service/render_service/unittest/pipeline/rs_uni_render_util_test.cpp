@@ -985,17 +985,88 @@ HWTEST_F(RSUniRenderUtilTest, GetLayerTransformTest, Function | SmallTest | Leve
  * @tc.name: SrcRectRotateTransformTest
  * @tc.desc: Verify function SrcRectRotateTransform
  * @tc.type: FUNC
- * @tc.require: issuesI9KRF1
+ * @tc.require:
  */
 HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest, Function | SmallTest | Level2)
 {
+    constexpr uint32_t DEFAULT_FRAME_WIDTH = 800;
+    constexpr uint32_t DEFAULT_FRAME_HEIGHT = 600;
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    surfaceBuffer->SetSurfaceBufferWidth(DEFAULT_FRAME_WIDTH);
+    surfaceBuffer->SetSurfaceBufferHeight(DEFAULT_FRAME_HEIGHT);
+    int left = 10;
+    int top = 20;
+    int width = 30;
+    int height = 40;
+    RectI srcRect(left, top, width, height);
+    RectI newSrcRect;
+    GraphicTransformType bufferRotateTransformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    newSrcRect = RSUniRenderUtil::SrcRectRotateTransform(*surfaceBuffer, bufferRotateTransformType, srcRect);
+    ASSERT_EQ(newSrcRect, srcRect);
+    bufferRotateTransformType = GraphicTransformType::GRAPHIC_ROTATE_90;
+    newSrcRect = RSUniRenderUtil::SrcRectRotateTransform(*surfaceBuffer, bufferRotateTransformType, srcRect);
+    RectI desiredSrcRect(760, 20, 30, 40);
+    ASSERT_EQ(newSrcRect, desiredSrcRect);
+    bufferRotateTransformType = GraphicTransformType::GRAPHIC_ROTATE_180;
+    newSrcRect = RSUniRenderUtil::SrcRectRotateTransform(*surfaceBuffer, bufferRotateTransformType, srcRect);
+    desiredSrcRect = {760, 540, 30, 40};
+    ASSERT_EQ(newSrcRect, desiredSrcRect);
+    bufferRotateTransformType = GraphicTransformType::GRAPHIC_ROTATE_270;
+    newSrcRect = RSUniRenderUtil::SrcRectRotateTransform(*surfaceBuffer, bufferRotateTransformType, srcRect);
+    desiredSrcRect = {10, 540, 30, 40};
+    ASSERT_EQ(newSrcRect, desiredSrcRect);
+}
+
+/*
+ * @tc.name: CalcSrcRectBufferFlip
+ * @tc.desc: Verify function CalcSrcRectBufferFlip
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CalcSrcRectBufferFlipTest, Function | SmallTest | Level2)
+{
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_ROTATE_NONE);
-
+    node.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(id);
+    ASSERT_NE(node.surfaceHandler_, nullptr);
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    EXPECT_FALSE(node.GetRSSurfaceHandler()->GetBuffer());
+    constexpr uint32_t DEFAULT_FRAME_WIDTH = 800;
+    constexpr uint32_t DEFAULT_FRAME_HEIGHT = 600;
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(DEFAULT_FRAME_WIDTH);
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(DEFAULT_FRAME_HEIGHT);
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_FLIP_H);
+    ScreenInfo screenInfo;
+    screenInfo.width = 1440;
+    screenInfo.height = 1080;
+    int left = 10;
+    int top = 20;
+    int width = 30;
+    int height = 40;
+    RectI dstRect(left, top, width, height);
+    RectI srcRect(left, top, width, height);
+    node.SetDstRect(dstRect);
+    node.SetSrcRect(srcRect);
+    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo);
+    RectI newSrcRect = node.GetSrcRect();
+    RectI desiredSrcRect(DEFAULT_FRAME_WIDTH - left - width, top, width, height);
+    EXPECT_EQ(newSrcRect, desiredSrcRect);
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    node.SetSrcRect({left, top, width, height});
+    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo);
+    newSrcRect = node.GetSrcRect();
+    EXPECT_EQ(newSrcRect, desiredSrcRect);
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_FLIP_V);
+    node.SetSrcRect({left, top, width, height});
+    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo);
+    newSrcRect = node.GetSrcRect();
+    desiredSrcRect = {left, DEFAULT_FRAME_HEIGHT - top - height, width, height};
+    EXPECT_EQ(newSrcRect, desiredSrcRect);
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    node.SetSrcRect({left, top, width, height});
+    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo);
+    newSrcRect = node.GetSrcRect();
+    EXPECT_EQ(newSrcRect, desiredSrcRect);
 }
 
 /*

@@ -1413,6 +1413,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
     RSUniRenderUtil::DealWithScalingMode(node, screenInfo_);
+    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo_);
     node.SetCalcRectInPrepare(true);
 }
 
