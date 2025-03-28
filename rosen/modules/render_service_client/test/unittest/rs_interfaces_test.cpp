@@ -130,6 +130,20 @@ HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: SetPhysicalScreenResolution001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, SetPhysicalScreenResolution001, Function | SmallTest | Level2)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = rsInterfaces->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
+/*
 * Function: SetVirtualScreenResolution/GetVirtualScreenResolution
 * Type: Function
 * Rank: Important(2)

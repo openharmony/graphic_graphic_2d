@@ -454,6 +454,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetRealtimeRefreshRate, TestSize.Le
 }
 
 /**
+ * @tc.name: SetPhysicalScreenResolution Test
+ * @tc.desc: SetPhysicalScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetPhysicalScreenResolution, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = proxy->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
+/**
  * @tc.name: SetVirtualScreenResolution Test
  * @tc.desc: SetVirtualScreenResolution Test
  * @tc.type:FUNC
