@@ -988,17 +988,10 @@ void RSRenderService::RegisterGpuFuncs()
 // need called after GraphicFeatureParamManager::GetInstance().Init();
 void RSRenderService::FilterCCMInit()
 {
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    if (filterParam == nullptr) {
-        return;
-    }
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
-    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(
-        std::static_pointer_cast<FilterParam>(filterParam)->IsBlurAdaptiveAdjust());
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -24,19 +24,19 @@ public:
     FilterParam() = default;
     ~FilterParam() = default;
 
-    bool IsFilterCacheEnable() const;
-    bool IsEffectMergeEnable() const;
-    bool IsBlurAdaptiveAdjust() const;
+    static bool IsFilterCacheEnable();
+    static bool IsEffectMergeEnable();
+    static bool IsBlurAdaptiveAdjust();
 
 protected:
-    void SetFilterCacheEnable(bool isEnable);
-    void SetEffectMergeEnable(bool isEnable);
-    void SetBlurAdaptiveAdjust(bool isEnable);
+    static void SetFilterCacheEnable(bool isEnable);
+    static void SetEffectMergeEnable(bool isEnable);
+    static void SetBlurAdaptiveAdjust(bool isEnable);
 
 private:
-    bool isFilterCacheEnable_ = true;
-    bool isEffectMergeEnable_ = true;
-    bool isBlurAdaptiveAdjust = false;
+    static inline bool isFilterCacheEnable_ = true;
+    static inline bool isEffectMergeEnable_ = true;
+    static inline bool isBlurAdaptiveAdjust = false;
     friend class FilterParamParse;
 };
 } // namespace OHOS::Rosen

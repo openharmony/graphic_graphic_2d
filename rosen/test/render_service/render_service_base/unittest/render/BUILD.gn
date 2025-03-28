@@ -26,6 +26,7 @@ ohos_unittest("RSAibarShaderFilterTest") {
     "rs_aibar_shader_filter_test.cpp",
     "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",
+    "rs_filter_cache_manager_test.cpp",
   ]
 
   cflags = [
