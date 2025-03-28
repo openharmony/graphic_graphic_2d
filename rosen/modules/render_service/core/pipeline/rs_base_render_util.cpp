@@ -1272,7 +1272,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
-    if (nodeParams != nullptr && nodeParams->GetName() == "RosenWeb")) {
+    if (nodeParams != nullptr && nodeParams->GetName() == "RosenWeb") {
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(
