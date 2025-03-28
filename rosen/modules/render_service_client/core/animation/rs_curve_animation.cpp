@@ -91,7 +91,6 @@ void RSCurveAnimation::OnStart()
 bool RSCurveAnimation::IsSupportInteractiveAnimator()
 {
     auto interpolator = timingCurve_.GetInterpolator(GetDuration());
-
     if (interpolator == nullptr) {
         ROSEN_LOGD("RSCurveAnimation::IsSupportInteractiveAnimator, interpolator is null!");
         return false;

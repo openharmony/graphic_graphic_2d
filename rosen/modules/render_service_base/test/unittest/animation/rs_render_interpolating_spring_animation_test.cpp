@@ -223,7 +223,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling006, TestSize.Leve
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 {
-
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
