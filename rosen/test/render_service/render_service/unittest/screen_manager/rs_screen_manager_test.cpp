@@ -1857,16 +1857,17 @@ HWTEST_F(RSScreenManagerTest, IsAllScreensPowerOff_002, TestSize.Level1)
 }
 
 /*
- * @tc.name: ForceRefreshOneFrameIfNoRNV_001
- * @tc.desc: Test ForceRefreshOneFrameIfNoRNV.
+ * @tc.name: PostAndRemoveForceRefreshTaskTest
+ * @tc.desc: Test PostForceRefreshTask and RemoveForceRefreshTask.
  * @tc.type: FUNC
  * @tc.require: issueI9S56D
  */
-HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, PostAndRemoveForceRefreshTaskTest, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
-    screenManager->ForceRefreshOneFrameIfNoRNV();
+    screenManager->PostForceRefreshTask();
+    screenManager->RemoveForceRefreshTask();
 }
 
 /*

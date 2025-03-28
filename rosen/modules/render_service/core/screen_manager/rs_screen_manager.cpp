@@ -50,6 +50,7 @@ namespace {
     constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
     constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+    const std::string FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
     void SensorPostureDataCallback(SensorEvent* event)
     {
         OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
@@ -304,15 +305,23 @@ float RSScreenManager::GetScreenBrightnessNits(ScreenId id) const
 }
 #endif
 
-void RSScreenManager::ForceRefreshOneFrameIfNoRNV()
+void RSScreenManager::PostForceRefreshTask()
 {
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr && !mainThread->IsRequestedNextVSync()) {
-        RS_TRACE_NAME("No RNV, ForceRefreshOneFrame");
         mainThread->PostTask([mainThread]() {
+            RS_TRACE_NAME("No RNV, ForceRefreshOneFrame");
             mainThread->SetDirtyFlag();
-        });
-        mainThread->RequestNextVSync();
+            mainThread->RequestNextVSync();
+        }, FORCE_REFRESH_ONE_FRAME_TASK_NAME, 20); // delay 20ms
+    }
+}
+
+void RSScreenManager::RemoveForceRefreshTask()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread != nullptr) {
+        mainThread->RemoveTask(FORCE_REFRESH_ONE_FRAME_TASK_NAME);
     }
 }
 
