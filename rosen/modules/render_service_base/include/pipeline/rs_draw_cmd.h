@@ -87,7 +87,7 @@ public:
     void SetPaint(Drawing::Paint paint) override;
     void Purge() override;
 protected:
-    std::shared_ptr<RSImage> rsImage_;
+    std::shared_ptr<RSImage> rsImage_ = nullptr;
 private:
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -120,7 +120,7 @@ public:
     void SetNodeId(NodeId id) override;
     void Purge() override;
 protected:
-    std::shared_ptr<RSImageBase> rsImage_;
+    std::shared_ptr<RSImageBase> rsImage_ = nullptr;
 };
 
 class RSB_EXPORT RSExtendImageNineObject : public Drawing::ExtendImageNineObject {
@@ -135,7 +135,7 @@ public:
     void SetNodeId(NodeId id) override;
     void Purge() override;
 protected:
-    std::shared_ptr<RSImageBase> rsImage_;
+    std::shared_ptr<RSImageBase> rsImage_ = nullptr;
 };
 
 class RSB_EXPORT RSExtendImageLatticeObject : public Drawing::ExtendImageLatticeObject {
@@ -150,7 +150,7 @@ public:
     void SetNodeId(NodeId id) override;
     void Purge() override;
 protected:
-    std::shared_ptr<RSImageBase> rsImage_;
+    std::shared_ptr<RSImageBase> rsImage_ = nullptr;
 };
 
 class RSB_EXPORT RSExtendDrawFuncObj : public Drawing::ExtendDrawFuncObj {
