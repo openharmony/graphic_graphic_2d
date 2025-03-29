@@ -17,8 +17,8 @@
 #include <gmock/gmock.h>
 #include "limit_number.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_vsync_rate_reduce_manager.h"
-#include "rs_test_util.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
 
 using namespace testing;
@@ -32,7 +32,7 @@ constexpr float V_VAL_LEVEL_2 = 0.8f;
 constexpr float V_VAL_LEVEL_3 = 0.6f;
 constexpr float V_VAL_LEVEL_4 = 0.4f;
 constexpr float V_VAL_LEVEL_5 = 0.2f;
-constexpr float V_VAL_MIN = 0.0f;
+constexpr float V_VAL_LEVEL_6 = 0.1f;
 constexpr float CONTINUOUS_RATIO_LEVEL_0 = 4.0f / 8.0f;
 constexpr float CONTINUOUS_RATIO_LEVEL_1 = 3.0f / 8.0f;
 constexpr float CONTINUOUS_RATIO_LEVEL_2 = 2.0f / 8.0f;
@@ -522,10 +522,10 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CalcVValByAreas001, TestSize.Level1)
 
     maxVisRectArea = windowArea * CONTINUOUS_RATIO_LEVEL_5 - deltaArea;
     visTotalArea = windowArea * CONTINUOUS_RATIO_LEVEL_4 - 1;
-    EXPECT_EQ(rateReduceManager.CalcVValByAreas(windowArea, maxVisRectArea, visTotalArea), V_VAL_MIN);
+    EXPECT_EQ(rateReduceManager.CalcVValByAreas(windowArea, maxVisRectArea, visTotalArea), V_VAL_LEVEL_6);
     maxVisRectArea = windowArea * CONTINUOUS_RATIO_LEVEL_5 - 1;
     visTotalArea = windowArea * CONTINUOUS_RATIO_LEVEL_5 - deltaArea;
-    EXPECT_EQ(rateReduceManager.CalcVValByAreas(windowArea, maxVisRectArea, visTotalArea), V_VAL_MIN);
+    EXPECT_EQ(rateReduceManager.CalcVValByAreas(windowArea, maxVisRectArea, visTotalArea), V_VAL_LEVEL_6);
 }
 
 /**

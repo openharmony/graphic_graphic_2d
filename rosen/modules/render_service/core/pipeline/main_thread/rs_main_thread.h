@@ -46,7 +46,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_vsync_rate_reduce_manager.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
