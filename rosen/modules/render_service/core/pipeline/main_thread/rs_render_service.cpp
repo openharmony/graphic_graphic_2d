@@ -319,6 +319,17 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
+static unsigned long long SafeStringToULL(const std::string& str)
+{
+    char* endptr = nullptr;
+    errno = 0;
+    unsigned long long value = std::strtoull(str.c_str(), &endptr, 10);
+    if (endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
+        return 0;
+    }
+    return value;
+}
+
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
@@ -337,8 +348,8 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     for (const std::u16string& arg : argSets) {
         std::string argStr = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
             .to_bytes(arg);
-        if (!argStr.empty() && IsNumber(argStr) && argStr.length() < 21) {
-            nodeId = std::stoull(argStr);
+        if (!argStr.empty() && IsNumber(argStr)) {
+            nodeId = static_cast<NodeId>(SafeStringToULL(argStr));
         } else {
             layerName = argStr;
         }
@@ -426,7 +437,7 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         std::string argStr = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
             .to_bytes(arg);
         if (!argStr.empty() && IsNumber(argStr)) {
-            nodeId = std::stoull(argStr);
+            nodeId = static_cast<NodeId>(SafeStringToULL(argStr));
         } else {
             layerName = argStr;
         }
