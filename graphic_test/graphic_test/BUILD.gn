@@ -33,7 +33,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/appearance_pixelstretch_test.cpp",
   "rs_display_effect/property_display/appearance_shadow_test.cpp",
   "rs_display_effect/property_display/appearance_spherize_test.cpp",
-  "rs_display_effect/property_display/background_blender_tedst.cpp",
+  "rs_display_effect/property_display/background_blender_test.cpp",
   "rs_display_effect/property_display/background_blur_test.cpp",
   "rs_display_effect/property_display/background_color_test.cpp",
   "rs_display_effect/property_display/background_effect_test.cpp",

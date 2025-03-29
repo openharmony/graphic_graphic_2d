@@ -32,15 +32,13 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 
     void setNode(std::shared_ptr<RSCanvasNode>& node, float alpha)
     {
-        int radius = 30;
         int borderstyle = 0;
         Vector4f borderWidth = { 5, 5, 5, 5 };
-        node->SetBackgroundBlurRadius(radius);
         node->SetBorderStyle(borderstyle);
         node->SetBorderWidth(borderWidth);
         node->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
@@ -50,36 +48,56 @@ public:
 
 GRAPHIC_TEST(ContentEffectNodeTest, CONTENT_DISPLAY_TEST, EffectNode_Use_Effect_Test)
 {
-    int columnCount = 1;
-    int rowCount = 2;
+    int columnCount = 2;
+    int rowCount = 3;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    for (int i = 0; i < 2; i++) {
+    std::vector<float> blurRadiusList = { 0, 100, 100 };
+    std::vector<bool> useEffectList = { false, true };
+    std::vector<UseEffectType> useEffectTypeList = {
+        UseEffectType::EFFECT_COMPONENT,
+        UseEffectType::EFFECT_COMPONENT,
+        UseEffectType::BEHIND_WINDOW,
+    };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
         float x = (i % columnCount) * sizeX;
         float y = (i / columnCount) * sizeY;
         auto testFaNode = RSEffectNode::Create();
-        testFaNode->SetBounds({ 0, 0, sizeX - 10, sizeY - 10 });
-        RegisterNode(testFaNode);
-        auto testNodeBackGround =
-            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap("/data/local/tmp/Images/backGroundImage.jpg", Media::AllocatorType::SHARE_MEM_ALLOC);
+        auto image = std::make_shared<Rosen::RSImage>();
+        image->SetPixelMap(pixelmap);
+        image->SetImageFit((int)ImageFit::FILL);
+        testFaNode->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testFaNode->SetBgImageWidth(sizeX - 10);  // image width
+        testFaNode->SetBgImageHeight(sizeY - 10); // image height
+        testFaNode->SetBgImage(image);
+        testFaNode->SetBorderStyle(0); // Set border style to initial
+        testFaNode->SetBorderWidth({ 5, 5, 5, 5 }); // Set border width to 5
+        testFaNode->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
+        // BlurMerge need FatherNode have a blur
+        testFaNode->SetBackgroundBlurRadius(blurRadiusList[i / columnCount]);
         auto childNode1 =
             SetUpNodeBgImage("/data/local/tmp/Images/475x327.jpg", { sizeX / 4, sizeY / 4, sizeX / 3, sizeY / 3 });
-        setNode(childNode1, 0.3);
-        RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
-        childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
-        childNode2->SetBackgroundColor(0xff00ff00);
-        setNode(childNode2, 0.5);
-        childNode2->SetUseEffect(i);
-        RegisterNode(childNode2);
-        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        setNode(childNode1, 1);
+        childNode1->SetUseEffect(useEffectList[i % columnCount]);
+        childNode1->SetUseEffectType(useEffectTypeList[i / columnCount]);
+
+        auto childNode2 =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { sizeX / 4, sizeY / 4, sizeX / 3, sizeY / 3 });
+        setNode(childNode2, 1);
+        childNode2->SetUseEffect(useEffectList[i % columnCount]);
+        childNode2->SetUseEffectType(useEffectTypeList[i / columnCount]);
+
+        childNode1->AddChild(childNode2);
         testFaNode->AddChild(childNode1);
-        testFaNode->AddChild(childNode2);
-        testNodeBackGround->AddChild(testFaNode);
-        setNode(testNodeBackGround, 1);
-        GetRootNode()->AddChild(testNodeBackGround);
-        RegisterNode(testNodeBackGround);
+        GetRootNode()->AddChild(testFaNode);
+
+        RegisterNode(testFaNode);
+        RegisterNode(childNode1);
+        RegisterNode(childNode2);
     }
 }
 

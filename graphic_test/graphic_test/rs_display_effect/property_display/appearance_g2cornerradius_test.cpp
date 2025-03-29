@@ -30,7 +30,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -329,6 +329,49 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_ClipRoundRect_Test_0
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetCornerRadius(nodeSize / (2 * radiusMultiplier[i]));
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawNestedRoundRect)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    int i = 0;
+    int j = 0;
+
+    // Normal Radius
+    std::vector<float> normalRadius = { 50, 100 };
+    for (; i < 2; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff0000ff);
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(20, 25, 10, 30);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNodeBackGround->SetCornerRadius(normalRadius[i]);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+
+    // Asymmetry Radius and Capsule Radius
+    std::vector<Vector4f> asymmetryRadius = { { 20, 60, 100, 160 }, { 0, 0, 150, 150 }, Vector4f(150), Vector4f(200),
+        Vector4f(260), { 160, 180, 200, 220 } };
+    for (; i < 8; i++, j++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff0000ff);
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(50, 20, 50, 20);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }
