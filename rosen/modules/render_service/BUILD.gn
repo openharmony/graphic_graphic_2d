@@ -398,6 +398,9 @@ ohos_shared_library("librender_service") {
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
   ]
+  if (graphic_2d_feature_rs_enable_uni_render) {
+    external_deps += [ "ability_runtime:ability_manager" ]
+  }
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }

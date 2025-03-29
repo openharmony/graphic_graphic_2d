@@ -50,13 +50,13 @@
 #include "image/gpu_context.h"
 #include "platform/common/rs_hisysevent.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#endif
+
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-#ifdef RES_SCHED_ENABLE
-#include "res_sched_client.h"
-#include "res_sched_kill_reason.h"
 #endif
 static inline const char* GetThreadName()
 {
@@ -72,6 +72,7 @@ static inline const char* GetThreadName()
 namespace OHOS::Rosen {
 namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
+const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
@@ -83,6 +84,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
+constexpr int KILL_PROCESS_TYPE = 301;
 }
 
 std::mutex MemoryManager::mutex_;
@@ -738,15 +740,12 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 
 static void KillProcessByPid(const pid_t pid, const std::string& processName, const std::string& reason)
 {
-#ifdef RES_SCHED_ENABLE
-    std::unordered_map<std::string, std::string> killInfo;
-    killInfo["pid"] = std::to_string(pid);
-    killInfo["processName"] = processName;
-    killInfo["killReason"] = reason;
+#ifdef RS_ENABLE_UNI_RENDER
     if (pid > 0) {
         int32_t eventWriteStatus = -1;
-        int32_t killStatus = ResourceSchedule::ResSchedClient::GetInstance().KillProcess(killInfo);
-        if (killStatus == 0) {
+        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+        int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+        if (ret != ERR_OK) {
             RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
             eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
                 HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
@@ -755,7 +754,7 @@ static void KillProcessByPid(const pid_t pid, const std::string& processName, co
         // To prevent the print from being filtered, use RS_LOGE.
         RS_LOGE("KillProcessByPid, pid: %{public}d, process name: %{public}s, "
             "killStatus: %{public}d, eventWriteStatus: %{public}d, reason: %{public}s",
-            static_cast<int32_t>(pid), processName.c_str(), killStatus, eventWriteStatus, reason.c_str());
+            static_cast<int32_t>(pid), processName.c_str(), ret, eventWriteStatus, reason.c_str());
     }
 #endif
 }
@@ -796,16 +795,30 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
     const std::string& reportName)
 {
+    std::string gpuMemInfo;
+    std::ifstream gpuMemInfoFile;
+    gpuMemInfoFile.open(GPUMEM_INFO_PATH);
+    if (gpuMemInfoFile.is_open()) {
+        std::stringstream gpuMemInfoStream;
+        gpuMemInfoStream << gpuMemInfoFile.rdbuf();
+        gpuMemInfo = gpuMemInfoStream.str();
+        gpuMemInfoFile.close();
+    } else {
+        gpuMemInfo = reportName;
+        RS_LOGE("MemoryManager::MemoryOverReport can not open gpumem info");
+    }
+
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
         "BUNDLE_NAME", bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
-        "TOTAL_MEMORY", info.TotalMemory());
-    RS_LOGW("RSMemoryOverReport pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] "
-        "gpu[%{public}zu] total[%{public}zu] ret[%{public}d]",
-        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory(), ret);
+        "TOTAL_MEMORY", info.TotalMemory(),
+        "GPU_PROCESS_INFO", gpuMemInfo);
+    RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
+        "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+        ret, pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
 }
 
 void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
