@@ -2196,6 +2196,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest072, TestSize.Level
     OH_Drawing_FontConfigInfo* configJsonInfo = OH_Drawing_GetSystemFontConfigInfo(&code);
     if (configJsonInfo != nullptr) {
         EXPECT_EQ(code, SUCCESS_FONT_CONFIG_INFO);
+        uint32_t fontGenericInfoSize = configJsonInfo->fontGenericInfoSize;
+        uint32_t fallbackInfoSize = configJsonInfo->fallbackGroupSet[0].fallbackInfoSize;
+        EXPECT_EQ(fontGenericInfoSize, 5);
+        EXPECT_EQ(fallbackInfoSize, 135);
     } else {
         EXPECT_NE(code, SUCCESS_FONT_CONFIG_INFO);
     }
@@ -2942,6 +2946,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest102, TestSize.Level
         OH_Drawing_DestroySystemFontList(list, fontNum);
         OH_Drawing_DestroySystemFontList(nullptr, fontNum);
     }
+    char** listNull = OH_Drawing_FontParserGetSystemFontList(parser, nullptr);
+    EXPECT_EQ(listNull, nullptr);
     OH_Drawing_DestroyFontParser(parser);
 }
 

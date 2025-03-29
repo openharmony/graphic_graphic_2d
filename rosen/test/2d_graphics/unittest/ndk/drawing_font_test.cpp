@@ -19,6 +19,7 @@
 #include "drawing_font.h"
 #include "drawing_path.h"
 #include "drawing_rect.h"
+#include "drawing_typeface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,6 +27,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+constexpr float FLOAT_DATA_EPSILON = 1e-6f;
+constexpr char TTF_FILE_PATH[] = {0x2F, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x2F, 0x66, 0x6F, 0x6E, 0x74, 0x73,
+    0x2F, 0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x5F, 0x53, 0x61, 0x6E, 0x73, 0x5F,
+    0x53, 0x43, 0x2E, 0x74, 0x74, 0x66, 0x00};
 class NativeFontTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -55,6 +60,102 @@ HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics001, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_TRUE(OH_Drawing_FontGetMetrics(nullptr, nullptr) < 0);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics002
+ * @tc.desc: test for sans sc metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile(TTF_FILE_PATH, 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -12.672000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -11.136000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 2.928000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 3.252000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 29.832001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, -6.576000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 23.256001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 2.484000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.600000, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics003
+ * @tc.desc: test for symbol metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMSymbolVF.ttf", 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -10.559999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -10.559999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 1.440000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 1.440000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 11.988000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 16.644001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, -0.684000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 15.960001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 1.200000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.000000, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics004
+ * @tc.desc: test for emoji metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics004, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMOSColorEmojiFlags.ttf", 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 2.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 2.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 14.941406, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 14.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 14.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 11.132812, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.767578, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 7.289062, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.597656, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.105469, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
     OH_Drawing_FontDestroy(font);
 }
 
