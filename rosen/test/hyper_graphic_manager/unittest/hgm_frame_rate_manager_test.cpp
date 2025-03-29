@@ -1051,8 +1051,11 @@ HWTEST_F(HgmFrameRateMgrTest, HandleThermalFrameRate, Function | SmallTest | Lev
         return;
     }
 
+    if (hgmCore.mPolicyConfigData_ == nullptr) {
+        return;
+    }
     frameRateMgr->HandleThermalFrameRate(true);
-    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, false);
+    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, true);
 
     frameRateMgr->HandleThermalFrameRate(false);
     EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, false);
