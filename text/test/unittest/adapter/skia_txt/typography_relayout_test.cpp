@@ -37,7 +37,7 @@ class TypographyRelayoutTest : public testing::Test {
 
 /*
  * @tc.name: OHDrawingTypographyRelayoutTest001
- * @tc.desc: test for relayout but not change paragraph style
+ * @tc.desc: test for relayout but not change paragraph style and text style
  * @tc.type: FUNC
  */
 HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest001, TestSize.Level1)
@@ -146,7 +146,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest004, TestSize.Le
 
     typographyStyle.fontSize = 100;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(0);
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_SIZE));
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -178,7 +178,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest005, TestSize.Le
 
     typographyStyle.maxLines = 0;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(2);
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::MAXLINES));
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -214,7 +214,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest006, TestSize.Le
 
     typographyStyle.ellipsis = u"省略号";
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(21);
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS));
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -249,7 +249,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest007, TestSize.Le
 
     typographyStyle.ellipsisModal = EllipsisModal::HEAD;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(22);
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::ELLIPSIS_MODAL));
     typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -283,7 +283,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest008, TestSize.Le
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(0);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_SIZE));
     textStyle.fontSize = 100;
     textStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -317,7 +317,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest009, TestSize.Le
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(10);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_VARIATIONS));
     textStyle.relayoutChangeBitmap = styleBitset;
     textStyle.fontVariations.SetAxisValue("wght", 900);
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -352,7 +352,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest010, TestSize.Le
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(1);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_WEIGHT));
     textStyle.fontWeight = FontWeight::W900;
     textStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -386,7 +386,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Le
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(5);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::LETTER_SPACING));
     textStyle.relayoutChangeBitmap = styleBitset;
     textStyle.letterSpacing = 10;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -399,7 +399,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest011, TestSize.Le
 
 /*
  * @tc.name: OHDrawingTypographyRelayoutTest012
- * @tc.desc: test for relayout textstyle height scale and height override
+ * @tc.desc: test for relayout textstyle height override
  * @tc.type: FUNC
  */
 HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Level1)
@@ -422,7 +422,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest012, TestSize.Le
     double preParagraphHeight = typography->GetHeight();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(7);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::HEIGHT_ONLY));
     textStyle.relayoutChangeBitmap = styleBitset;
     textStyle.heightOnly = false;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -456,7 +456,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest013, TestSize.Le
     double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(9);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_FEATURES));
     textStyle.relayoutChangeBitmap = styleBitset;
     textStyle.fontFeatures.SetFeature("liga", 0);
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
@@ -492,12 +492,12 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest014, TestSize.Le
 
     typographyStyle.useLineStyle = true;
     typographyStyle.lineStyleHeightScale = 10;
-    typographyStyle.lineStyleHeightOnly = false;
-    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(9);
-    styleBitset.set(15);
-    styleBitset.set(16);
-    textStyle.relayoutChangeBitmap = styleBitset;
+    typographyStyle.lineStyleHeightOnly = true;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::USE_LINE_STYLE));
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_HEIGHT_SCALE));
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_HEIGHT_ONLY));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
@@ -531,9 +531,9 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Le
     double preParagraphHeight = typography->GetHeight();
 
     typographyStyle.useLineStyle = false;
-    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(9);
-    textStyle.relayoutChangeBitmap = styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::USE_LINE_STYLE));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
@@ -567,10 +567,10 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest016, TestSize.Le
 
     typographyStyle.useLineStyle = true;
     typographyStyle.lineStyleFontSize = 50;
-    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(9);
-    styleBitset.set(14);
-    textStyle.relayoutChangeBitmap = styleBitset;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::USE_LINE_STYLE));
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_SIZE));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
@@ -608,13 +608,13 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest017, TestSize.Le
     textStyle.heightScale = 3;
     textStyle.baseLineShift = 11;
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(2);
-    styleBitset.set(3);
-    styleBitset.set(4);
-    styleBitset.set(6);
-    styleBitset.set(7);
-    styleBitset.set(8);
-    styleBitset.set(11);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_WIDTH));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_STYLE));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_FAMILIES));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::WORD_SPACING));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::HEIGHT_ONLY));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::HEIGHT_SCALE));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::BASELINE_SHIFT));
     textStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -663,8 +663,8 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest018, TestSize.Le
     TextShadow myShadowNull;
     textStyle.shadows = { myShadow, myShadow, myShadowNull };
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(19);
-    styleBitset.set(20);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::SHADOWS));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::HALF_LEADING));
     textStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -712,13 +712,13 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest019, TestSize.Le
     textStyle.decoration = TextDecoration::OVERLINE;
     textStyle.backgroundRect = { 0xFFFF0000, 16.0, 16.0, 16.0, 16.0 };
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
-    styleBitset.set(12);
-    styleBitset.set(13);
-    styleBitset.set(14);
-    styleBitset.set(15);
-    styleBitset.set(16);
-    styleBitset.set(17);
-    styleBitset.set(18);
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_COLOR));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::BACKGROUND_RECT));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::STYLE_ID));
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
     textStyle.relayoutChangeBitmap = styleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -764,10 +764,10 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest020, TestSize.Le
 
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         paragraphStyleBitset;
-    paragraphStyleBitset.set(1);
-    paragraphStyleBitset.set(3);
-    paragraphStyleBitset.set(4);
-    paragraphStyleBitset.set(5);
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_SIZE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_WEIGHT));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_STYLE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_FAMILY));
     typographyStyle.relayoutChangeBitmap = paragraphStyleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -814,11 +814,11 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest021, TestSize.Le
 
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         paragraphStyleBitset;
-    paragraphStyleBitset.set(6);
-    paragraphStyleBitset.set(7);
-    paragraphStyleBitset.set(8);
-    paragraphStyleBitset.set(19);
-    paragraphStyleBitset.set(23);
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::HEIGHT_SCALE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::HEIGHT_ONLY));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::HALF_LEADING));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::BREAKSTRAGY));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::TEXT_ALIGN));
     typographyStyle.relayoutChangeBitmap = paragraphStyleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -867,12 +867,12 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest022, TestSize.Le
     typographyStyle.lineStyleFontSize = 100;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
     paragraphStyleBitset;
-    paragraphStyleBitset.set(9);
-    paragraphStyleBitset.set(10);
-    paragraphStyleBitset.set(11);
-    paragraphStyleBitset.set(12);
-    paragraphStyleBitset.set(13);
-    paragraphStyleBitset.set(14);
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::USE_LINE_STYLE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_WEIGHT));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_WIDTH));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_STYLE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_FAMILY));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_FONT_SIZE));
     typographyStyle.relayoutChangeBitmap = paragraphStyleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -921,11 +921,11 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest023, TestSize.Le
     typographyStyle.wordBreakType = WordBreakType::BREAK_ALL;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
     paragraphStyleBitset;
-    paragraphStyleBitset.set(15);
-    paragraphStyleBitset.set(16);
-    paragraphStyleBitset.set(17);
-    paragraphStyleBitset.set(18);
-    paragraphStyleBitset.set(20);
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_HEIGHT_SCALE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_HEIGHT_ONLY));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_HALF_LEADING));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_STYLE_ONLY));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::WORD_BREAKTYPE));
     typographyStyle.relayoutChangeBitmap = paragraphStyleBitset;
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
@@ -974,12 +974,12 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
 
     textStyle.symbol.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
     std::bitset<static_cast<size_t>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT)> symbolStyleBitset;
-    symbolStyleBitset.set(0);
-    symbolStyleBitset.set(1);
-    symbolStyleBitset.set(2);
-    symbolStyleBitset.set(3);
-    symbolStyleBitset.set(4);
-    symbolStyleBitset.set(5);
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::EFFECT_STRATEGY));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::ANIMATION_MODE));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::ANIMATION_START));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::COMMONSUB_TYPE));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::COLOR_LIST));
+    symbolStyleBitset.set(static_cast<size_t>(RelayoutSymbolStyleAttribute::RENDER_MODE));
     textStyle.symbol.SetSymbolBitmap(symbolStyleBitset);
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     relayoutTextStyles.push_back(textStyle);
