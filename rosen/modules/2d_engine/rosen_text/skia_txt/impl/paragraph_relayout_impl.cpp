@@ -266,7 +266,7 @@ namespace {
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             paragraph.updateTextAlign(static_cast<skt::TextAlign>(style.textAlign));
-            state = std::min(skt::InternalState::kLineBroken, state);
+            state = std::min(skt::InternalState::kShaped, state);
         }
     };
 

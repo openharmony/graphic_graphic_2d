@@ -125,7 +125,7 @@ float Typography::DetectIndents(size_t index)
 
 void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, const std::vector<TextStyle> &textStyles)
 {
-    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
 
     if (!paragraph_->IsLayoutDone()) {
         TEXT_LOGI_LIMIT3_MIN("Need to layout first");
@@ -137,7 +137,7 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
     });
     if (!typograhyStyle.relayoutChangeBitmap.any() && !isTextStyleChange) {
         if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {
-            TEXT_LOGI("No relayout required");
+            TEXT_LOGI_LIMIT3_MIN("No relayout required");
             return;
         }
         paragraph_->SetLayoutState(skt::InternalState::kShaped);
