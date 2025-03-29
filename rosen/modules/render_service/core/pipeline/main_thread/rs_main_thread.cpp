@@ -771,10 +771,10 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (cacheLimitsResourceSize > maxResourcesSize) {
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
     }
-    static int systemCacheLimitReasourceSize = MEMParam::GetRSCacheLimitsResourceSize();
-    RS_LOGD("systemCacheLimitReasourceSize: %{public}d", systemCacheLimitReasourceSize);
-    if (systemCacheLimitReasourceSize > 0) {
-        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitReasourceSize);
+    static int systemCacheLimitResourceSize = MEMParam::GetRSCacheLimitsResourceSize();
+    RS_LOGD("systemCacheLimitResourceSize: %{public}d", systemCacheLimitResourceSize);
+    if (systemCacheLimitResourceSize > 0) {
+        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitResourceSize);
     }
 
     auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();

@@ -62,15 +62,9 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
         if (name == "RsWatchPoint") {
             memParam_->SetRSWatchPoint(val);
             RS_LOGI("MEMParamParse parse RSWatchPoint %{public}s", memParam_->GetRSWatchPoint().c_str());
-        } else if (name == "RSCacheLimitsResourceSize") {
-            int num;
-            std::istringstream iss(val);
-            if (iss >> num) {
-                memParam_->SetRSCacheLimitsResourceSize(num);
+        } else if (name == "RSCacheLimitsResourceSize" && IsNumber(val)) {
+                memParam_->SetRSCacheLimitsResourceSize(stoi(val));
                 RS_LOGI("RSCacheLimitsResourceSize %{public}d", memParam_->GetRSCacheLimitsResourceSize());
-            } else {
-                RS_LOGE("MEMParamParse parse RSCacheLimitsResourceSize Fail.");
-            }
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         if (name == "ReclaimEnabled") {
