@@ -53,6 +53,8 @@ namespace {
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
+    const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
+    const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
     const static std::string LOW_BRIGHT = "LowBright";
     const static std::string STYLUS_PEN = "StylusPen";
     // CAUTION: with priority
@@ -136,6 +138,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        SetTimeoutParamsFromConfig(configData);
         GetLowBrightVec(configData);
         GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
@@ -190,6 +193,31 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+}
+
+void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (configData == nullptr || configData->timeoutStrategyConfig_.empty()) {
+        return;
+    }
+    int32_t upTimeoutMs = 0;
+    int32_t rsIdleTimeoutMs = 0;
+    if (configData->timeoutStrategyConfig_.find(S_UP_TIMEOUT_MS) != configData->timeoutStrategyConfig_.end() &&
+        XMLParser::IsNumber(configData->timeoutStrategyConfig_[S_UP_TIMEOUT_MS])) {
+        upTimeoutMs = static_cast<int32_t>(std::stoi(configData->timeoutStrategyConfig_[S_UP_TIMEOUT_MS]));
+    }
+    if (configData->timeoutStrategyConfig_.find(S_RS_IDLE_TIMEOUT_MS) != configData->timeoutStrategyConfig_.end() &&
+        XMLParser::IsNumber(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS])) {
+        rsIdleTimeoutMs = static_cast<int32_t>(std::stoi(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS]));
+    }
+    if (upTimeoutMs != 0) {
+        touchManager_.SetUpTimeout(upTimeoutMs);
+        HGM_LOGI("set upTimeout from Config");
+    }
+    if (rsIdleTimeoutMs != 0) {
+        touchManager_.SetRsIdleTimeout(rsIdleTimeoutMs);
+        HGM_LOGI("set rsIdleTimeout from Config");
+    }
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -618,7 +646,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
 {
     isAmbientEffect_ = false;
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
-    if (!configData) {
+    if (configData == nullptr) {
         return;
     }
 

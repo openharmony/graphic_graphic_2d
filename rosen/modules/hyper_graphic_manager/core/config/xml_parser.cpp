@@ -167,6 +167,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
         setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
     } else if (paraName == "rs_solid_color_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
+    } else if (paraName == "timeout_strategy_config") {
+        setResult = ParseSimplex(node, mParsedData_->timeoutStrategyConfig_);
     } else if (paraName == "video_call_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->videoCallLayerConfig_);
     } else {
