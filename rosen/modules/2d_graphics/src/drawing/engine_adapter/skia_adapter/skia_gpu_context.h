@@ -67,6 +67,7 @@ public:
 
     void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const override;
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) override;
+    void SetPurgeableResourceLimit(int purgeableMaxCount) override;
 
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const override;
 

@@ -636,6 +636,8 @@ void RSMainThread::Init()
         } else {
             gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
         }
+        auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();
+        gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
     }
 #endif // RS_ENABLE_GL
     RSInnovation::OpenInnovationSo();

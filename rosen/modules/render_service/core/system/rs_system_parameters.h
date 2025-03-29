@@ -75,6 +75,7 @@ public:
     static bool GetTcacheEnabled();
     static bool GetWiredScreenOndrawEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
+    static int32_t GetPurgeableResourceLimit();
 };
 
 } // namespace Rosen
