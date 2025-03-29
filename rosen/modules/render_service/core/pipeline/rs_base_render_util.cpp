@@ -1156,7 +1156,7 @@ GraphicTransformType RSBaseRenderUtil::GetSurfaceBufferTransformType(
 }
 
 Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
-    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds)
 {
     Drawing::Matrix matrix;
     const float bufferWidth = bufferBounds.GetWidth();
@@ -1335,15 +1335,30 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
-    // deal with buffer's gravity effect in node's inner space.
-    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
-    params.matrix.PreConcat(
-        RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
-    if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
-        rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
-        // after rotate, we should swap dstRect and bound's width and height.
-        std::swap(localBounds.width_, localBounds.height_);
+    if (nodeParams != nullptr && nodeParams->GetName() == "RosenWeb") {
+        // deal with buffer's gravity effect in node's inner space.
+        params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
+        params.matrix.PreConcat(
+            RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds));
+        if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            // after rotate, we should swap dstRect and bound's width and height.
+            std::swap(localBounds.width_, localBounds.height_);
+        }
+    } else {
+        params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform,
+            localBounds, bufferBounds, gravity));
+        if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            // after rotate, we should swap dstRect and bound's width and height.
+            std::swap(localBounds.width_, localBounds.height_);
+            params.dstRect = Drawing::Rect(0, 0, localBounds.GetWidth(), localBounds.GetHeight());
+            std::swap(bufferBounds.width_, bufferBounds.height_);
+        }
+        // deal with buffer's gravity effect in node's inner space.
+        params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
     }
+
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     params.dstRect = params.srcRect;
