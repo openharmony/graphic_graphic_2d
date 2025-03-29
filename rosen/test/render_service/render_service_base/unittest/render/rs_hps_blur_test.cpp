@@ -14,11 +14,11 @@
  */
 #include "gtest/gtest.h"
 
-#include "utils/rect.h"
 #include "draw/color.h"
 #include "image/bitmap.h"
-#include "render/rs_hps_blur.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "render/rs_hps_blur.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -98,8 +98,552 @@ HWTEST_F(RSHpsBlurTest, SetShaderEffectTest, TestSize.Level1)
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     Drawing::Matrix blurMatrix;
     auto imageCache = std::make_shared<Drawing::Image>();
-    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*imageCache, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, linear, blurMatrix);
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileXIsREPEATTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileXIsREPEATTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileYIsREPEATTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileYIsREPEATTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::REPEAT, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileXIsMIRRORTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileXIsMIRRORTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::MIRROR, Drawing::TileMode::CLAMP, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileYIsMIRRORTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileYIsMIRRORTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::MIRROR, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileXIsDECALTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileXIsDECALTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::DECAL, Drawing::TileMode::CLAMP, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTileYIsCLAMPTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTileYIsCLAMPTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::DECAL, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileXIsCLAMP
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001TileXIsCLAMP, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::DECAL, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileXIsDECAL
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001TileXIsDECAL, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::DECAL, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileYIsMIRROR
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001TileYIsMIRROR, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::MIRROR, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileYIsCLAMP
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001TileYIsCLAMP, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::MIRROR, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileYIsREPEAT
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001TileYIsREPEAT, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::REPEAT, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest001TileYIsCLAMP
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest005TileYIsCLAMP, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest002
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest002, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest003
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest003, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest004
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest004, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::REPEAT, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest005
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest005, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::MIRROR, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest006
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest006, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::MIRROR, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest007
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest007, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::DECAL, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest008
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest008, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::DECAL, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest009
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest009, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest010
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest010, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::REPEAT, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest011
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest011, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::REPEAT, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest012
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest012, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::MIRROR, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest013
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest013, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::MIRROR, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest014
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest014, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::DECAL, Drawing::TileMode::CLAMP, nearest, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest015
+ * @tc.desc: FilterMode is NEAREST
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest015, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::LINEAR);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::DECAL, nearest, blurMatrix);
 
     bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
     EXPECT_EQ(res, true);
@@ -118,8 +662,9 @@ HWTEST_F(RSHpsBlurTest, SetShaderEffectTest001, TestSize.Level1)
     Drawing::SamplingOptions nearest(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     Drawing::Matrix blurMatrix;
     auto imageCache = std::make_shared<Drawing::Image>();
-    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*imageCache, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, nearest, blurMatrix);
+    ASSERT_NE(imageCache, nullptr);
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(
+        *imageCache, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, nearest, blurMatrix);
 
     bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
     EXPECT_EQ(res, true);
@@ -135,6 +680,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     auto image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
     float radius = 10;
     float saturationForHPS = 1.1;
     float brightnessForHPS = 1.0;
@@ -155,9 +701,11 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
 {
     auto canvas = std::make_unique<Drawing::Canvas>();
+    ASSERT_NE(canvas, nullptr);
     RSPaintFilterCanvas paintFilterCanvas(canvas.get());
 
     auto image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
     float radius = -1;
     float saturationForHPS = 1.1;
     float brightnessForHPS = 1.0;
