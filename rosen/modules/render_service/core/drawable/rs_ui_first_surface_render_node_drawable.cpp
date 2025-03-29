@@ -163,8 +163,12 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
             }
         }
         auto vkTexture = cacheCompletedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
+        auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+        } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
+            colorSpace =
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
 #endif
         auto image = std::make_shared<Drawing::Image>();
@@ -182,8 +186,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 #ifdef RS_ENABLE_VK
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-            auto colorSpace = targetColorGamut_ == GRAPHIC_COLOR_GAMUT_SRGB ? Drawing::ColorSpace::CreateSRGB() :
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
             image->BuildFromTexture(*gpuContext, cacheCompletedBackendTexture_.GetTextureInfo(),
                 origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
@@ -332,9 +334,13 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+        auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+        } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
+            colorSpace =
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
         cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
@@ -350,8 +356,6 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-        auto colorSpace = targetColorGamut_ == GRAPHIC_COLOR_GAMUT_SRGB ? Drawing::ColorSpace::CreateSRGB() :
-            Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
