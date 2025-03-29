@@ -105,9 +105,9 @@ HWTEST_F(AccessibilityParamTest, SetColorCorrectionEnabled, Function | SmallTest
 HWTEST_F(AccessibilityParamTest, IsHighContrastEnabled, Function | SmallTest | Level1)
 {
     AccessibilityParam accessibilityParam_;
-    accessibilityParam_.isColorCorrectionEnabled_ = true;
+    accessibilityParam_.isHighContrastEnabled_ = true;
     ASSERT_EQ(accessibilityParam_.IsHighContrastEnabled(), true);
-    accessibilityParam_.isColorCorrectionEnabled_ = false;
+    accessibilityParam_.isHighContrastEnabled_ = false;
     ASSERT_EQ(accessibilityParam_.IsHighContrastEnabled(), false);
 }
 
