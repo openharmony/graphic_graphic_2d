@@ -17,6 +17,8 @@
 
 namespace OHOS::Rosen {
 
+std::unordered_map<std::string, std::string> HFBCParam::hfbcConfig_ = {};
+
 const std::unordered_map<std::string, std::string>& HFBCParam::GetHfbcConfigMap() const
 {
     return hfbcConfig_;

@@ -716,6 +716,21 @@ HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level
 }
 
 /**
+ * @tc.name: SetHfbcControlMode
+ * @tc.desc: Verify the result of SetHfbcControlMode function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetHfbcControlMode, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.SetHfbcControlMode(true);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcMode_, true);
+    hgmCore.SetHfbcControlMode(false);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcMode_, false);
+}
+
+/**
  * @tc.name: TestAbnormalCase
  * @tc.desc: Verify the abnormal case of HgmCore
  * @tc.type: FUNC
