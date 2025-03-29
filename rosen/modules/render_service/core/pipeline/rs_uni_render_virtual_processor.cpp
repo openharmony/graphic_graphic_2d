@@ -116,7 +116,6 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
 
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
-
     uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
     auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
     if (SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
