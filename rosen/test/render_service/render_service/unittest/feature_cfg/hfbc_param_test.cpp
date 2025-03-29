@@ -90,12 +90,9 @@ HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
  */
 HWTEST_F(HfbcParamTest, SetHfbcConfigForApp2, Function | SmallTest | Level1)
 {
+    // disable list mode
     g_blackListMode = false;
     EXPECT_EQ(HFBCParam::GetHfbcConfigMap().size(), 0);
-
-    // blask list mode
-    EXPECT_EQ(g_blackListMode, false);
-
     std::string appName = "com.test.banapp";
     std::vector<std::string> packages = { appName };
 

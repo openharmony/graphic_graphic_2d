@@ -24,7 +24,7 @@ public:
     HFBCParam() = default;
     ~HFBCParam() = default;
 
-    static const std::unordered_map<std::string, std::string>& GetHfbcConfigMap() const;
+    static const std::unordered_map<std::string, std::string>& GetHfbcConfigMap();
 
 protected:
     static void SetHfbcConfigForApp(const std::string& appName, const std::string& val);
