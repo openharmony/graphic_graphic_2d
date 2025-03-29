@@ -516,6 +516,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest015, TestSize.Le
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;
     typographyStyle.useLineStyle = true;
+    typographyStyle.lineStyleFontSize = 50;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
@@ -764,7 +765,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest020, TestSize.Le
 
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         paragraphStyleBitset;
-    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_SIZE));
+    paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::DIRECTION));
     paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_WEIGHT));
     paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_STYLE));
     paragraphStyleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FONT_FAMILY));
