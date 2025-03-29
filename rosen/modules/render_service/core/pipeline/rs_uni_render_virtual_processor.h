@@ -18,7 +18,7 @@
 
 #include "rs_uni_render_processor.h"
 #include "metadata_helper.h"
-#include <v1_0/buffer_handle_meta_key_type.h>
+#include "v1_0/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace Rosen {
