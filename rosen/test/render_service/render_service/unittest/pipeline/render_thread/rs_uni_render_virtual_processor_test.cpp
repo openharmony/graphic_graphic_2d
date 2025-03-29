@@ -123,7 +123,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
  * @tc.type:FUNC
  * @tc.require: issueIB7AGV
  */
-HWTEST(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level1)
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
