@@ -36,7 +36,7 @@ protected:
 private:
     static inline bool isFilterCacheEnable_ = true;
     static inline bool isEffectMergeEnable_ = true;
-    static inline bool isBlurAdaptiveAdjust = false;
+    static inline bool isBlurAdaptiveAdjust_ = false;
     friend class FilterParamParse;
 };
 } // namespace OHOS::Rosen
