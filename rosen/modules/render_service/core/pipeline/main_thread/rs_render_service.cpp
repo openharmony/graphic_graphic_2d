@@ -319,6 +319,14 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
+static bool IsNumber(const std::string& type)
+{
+    auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
+        return std::isdigit(c);
+    }));
+    return number == type.length();
+}
+
 static unsigned long long SafeStringToULL(const std::string& str)
 {
     char* endptr = nullptr;
@@ -614,14 +622,6 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     }
     dumpString += "Consumer Info: \n";
     consumer->Dump(dumpString);
-}
-
-static bool IsNumber(const std::string& type)
-{
-    auto number = static_cast<uint32_t>(std::count_if(type.begin(), type.end(), [](unsigned char c) {
-        return std::isdigit(c);
-    }));
-    return number == type.length();
 }
 
 static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
