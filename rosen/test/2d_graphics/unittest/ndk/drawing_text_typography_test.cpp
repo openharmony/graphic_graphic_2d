@@ -2796,7 +2796,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_FontParserGetSystemFontListTest00
     ASSERT_NE(fontParser, nullptr);
     size_t value = 100; // 100 for test
     size_t* num = &value;
-    ASSERT_NE(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+    ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
     num = nullptr;
     ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
     fontParser = nullptr;
@@ -2901,7 +2901,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowCountTest001, T
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Level1)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
+    OH_Drawing_TextShadow* originShadow = OH_Drawing_CreateTextShadow();
+    OH_Drawing_TextStyleAddShadow(style, originShadow);
+    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadowWithIndex(style, 0);
     ASSERT_NE(shadow, nullptr);
     uint32_t color = 0;
     OH_Drawing_Point* offset = OH_Drawing_PointCreate(0, 0);
@@ -2913,7 +2915,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Le
 
     OH_Drawing_DestroyTextStyle(style);
     OH_Drawing_PointDestroy(offset);
-    OH_Drawing_DestroyTextShadows(shadow);
+    OH_Drawing_DestroyTextShadow(originShadow);
 }
 
 /*

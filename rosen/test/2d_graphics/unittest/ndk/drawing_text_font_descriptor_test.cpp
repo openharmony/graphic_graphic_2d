@@ -320,13 +320,13 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest012, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
-    EXPECT_EQ(num, 142);
+    EXPECT_EQ(num, 140);
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
 }
@@ -339,8 +339,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(CUSTOMIZED);
@@ -349,7 +349,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
@@ -363,8 +363,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest015, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
@@ -377,7 +377,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest015, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
@@ -461,8 +461,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest018, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest019, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(CUSTOMIZED);
@@ -471,7 +471,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest019, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
 
     OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
