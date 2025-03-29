@@ -117,6 +117,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
 
+    uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
+    auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
+    if (SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
+    }
     canvas_ = renderFrame_->GetCanvas();
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): Canvas is null!",
@@ -165,6 +170,41 @@ int32_t RSUniRenderVirtualProcessor::GetBufferAge() const
         return 0;
     }
     return renderFrame_->GetBufferAge();
+}
+
+GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut colorSpace)
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata renderFrame is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto& rsSurface = renderFrame_->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata surface is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata buffer is null, not support get surfacebuffer.");
+        return GSERROR_NO_BUFFER;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto iter = COLORSPACE_TYPE.find(colorSpace);
+    if (iter == COLORSPACE_TYPE.end()) {
+        return GSERROR_OK;
+    }
+    CM_ColorSpaceInfo colorSpaceInfo;
+    GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(iter->second, colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertColorSpaceTypeToInfo failed.");
+        return ret;
+    }
+    std::vector<uint8_t> colorSpaceVec;
+    if (MetadataHelper::ConvertMetadataToVec(colorSpaceInfo, colorSpaceVec) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertMetadataToVec failed.");
+        return GSERROR_API_FAILED;
+    }
+    return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
 void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
