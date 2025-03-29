@@ -241,6 +241,10 @@ int32_t HdiScreen::SetScreenColorTransform(const std::vector<float>& matrix) con
 int32_t HdiScreen::SetScreenLinearMatrix(const std::vector<float> &matrix) const
 {
     CHECK_DEVICE_NULL(device_);
+    if (matrix.size() != MATRIX_SIZE) {
+        HLOGE("[%{public}s]: ScreenLinearMatrix size is invalid.", __func__);
+        return -1;
+    }
     std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
     if (memcpy_s(valueBlob.data(), valueBlob.size(), matrix.data(),
         MATRIX_SIZE * sizeof(float)) != EOK) {
