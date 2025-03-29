@@ -216,7 +216,7 @@ private:
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
-    RectI GetHwcVisibleEffectDirty(RSRenderNode& node) const;
+    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI globalFilterRect) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
