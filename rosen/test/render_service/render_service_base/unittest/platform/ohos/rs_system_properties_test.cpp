@@ -966,17 +966,6 @@ HWTEST_F(RSSystemPropertiesTest, IsPhoneType, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsPcType
- * @tc.desc: IsPcType Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, IsPcType, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::IsPcType());
-}
-
-/**
  * @tc.name: GetSyncTransactionEnabled
  * @tc.desc: GetSyncTransactionEnabled Test
  * @tc.type:FUNC

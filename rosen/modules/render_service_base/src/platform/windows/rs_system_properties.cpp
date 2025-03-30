@@ -429,16 +429,6 @@ bool RSSystemProperties::IsPhoneType()
     return false;
 }
 
-bool RSSystemProperties::IsTabletType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    return false;
-}
-
 bool RSSystemProperties::IsBetaRelease()
 {
     return false;
