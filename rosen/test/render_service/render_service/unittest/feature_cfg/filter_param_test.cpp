@@ -77,5 +77,33 @@ HWTEST_F(FilterParamTest, SetBlurAdaptiveAdjust, Function | SmallTest | Level1)
     FilterParam::SetBlurAdaptiveAdjust(false);
     EXPECT_EQ(FilterParam::IsBlurAdaptiveAdjust(), false);
 }
+
+/**
+ * @tc.name: MesablurAllEnableTest
+ * @tc.desc: Verify the SetMesablurAllEnable and IsMesablurAllEnable function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(FilterParamTest, MesablurAllEnableTest, Function | SmallTest | Level1)
+{
+    FilterParam::SetMesablurAllEnable(true);
+    EXPECT_EQ(FilterParam::IsMesablurAllEnable(), true);
+    FilterParam::SetMesablurAllEnable(false);
+    EXPECT_EQ(FilterParam::IsMesablurAllEnable(), false);
+}
+
+/**
+ * @tc.name: SimplifiedMesaModeTest
+ * @tc.desc: Verify the SetSimplifiedMesaMode and GetSimplifiedMesaMode function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(FilterParamTest, SimplifiedMesaModeTest, Function | SmallTest | Level1)
+{
+    for (int i = 0; i < 3; i++) {
+        FilterParam::SetSimplifiedMesaMode(i);
+        EXPECT_EQ(FilterParam::GetSimplifiedMesaMode(), i);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

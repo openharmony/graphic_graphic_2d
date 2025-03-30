@@ -27,16 +27,22 @@ public:
     static bool IsFilterCacheEnable();
     static bool IsEffectMergeEnable();
     static bool IsBlurAdaptiveAdjust();
+    static bool IsMesablurAllEnable();
+    static int GetSimplifiedMesaMode();
 
 protected:
     static void SetFilterCacheEnable(bool isEnable);
     static void SetEffectMergeEnable(bool isEnable);
     static void SetBlurAdaptiveAdjust(bool isEnable);
+    static void SetMesablurAllEnable(bool isEnable);
+    static void SetSimplifiedMesaMode(int mode);
 
 private:
     static inline bool isFilterCacheEnable_ = true;
     static inline bool isEffectMergeEnable_ = true;
     static inline bool isBlurAdaptiveAdjust_ = false;
+    static inline bool isMesablurAllEnbale_ = false;
+    static inline int simplifiedMesaMode_ = 0;
     friend class FilterParamParse;
 };
 } // namespace OHOS::Rosen
