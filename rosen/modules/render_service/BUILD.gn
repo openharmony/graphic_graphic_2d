@@ -289,9 +289,6 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
   ]
-  if (use_video_processing_engine) {
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-  }
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",

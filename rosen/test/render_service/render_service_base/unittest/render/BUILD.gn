@@ -68,7 +68,6 @@ ohos_unittest("RSAibarShaderFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -120,7 +119,6 @@ ohos_unittest("RSBorderTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -175,7 +173,6 @@ ohos_unittest("RSColorExtractTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -236,7 +233,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -291,7 +287,6 @@ ohos_unittest("RSImageCacheTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -343,7 +338,6 @@ ohos_unittest("RSKawaseBlurShaderFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -395,7 +389,6 @@ ohos_unittest("RSHpsBlurTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -492,7 +485,6 @@ ohos_unittest("RSMESABlurShaderFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -545,7 +537,6 @@ ohos_unittest("RSLightBlurShaderFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -597,7 +588,6 @@ ohos_unittest("RSLightUpEffectFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -654,7 +644,6 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -711,7 +700,6 @@ ohos_unittest("RSMaterialFilterTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -773,7 +761,6 @@ ohos_unittest("RSPixelMapUtilTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }
 
@@ -826,7 +813,6 @@ ohos_unittest("RSColorspaceConvertTest") {
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
     sources += [ "rs_colorspace_convert_test.cpp" ]
   }
