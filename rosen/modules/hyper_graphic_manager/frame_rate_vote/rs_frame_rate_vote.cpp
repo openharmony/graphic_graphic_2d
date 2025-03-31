@@ -79,7 +79,9 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
     if (CheckSurfaceAndUi(sourceType)) {
         std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         if (surfaceVideoFrameRateVote_.find(lastSurfaceNodeId_) != surfaceVideoFrameRateVote_.end()) {
-            surfaceVideoFrameRateVote_[lastSurfaceNodeId_]->ReSetLastRate();
+            if (surfaceVideoFrameRateVote_[lastSurfaceNodeId_]) {
+                surfaceVideoFrameRateVote_[lastSurfaceNodeId_]->ReSetLastRate();
+            }
         }
         SurfaceVideoVote(lastSurfaceNodeId_, 0);
         return;
