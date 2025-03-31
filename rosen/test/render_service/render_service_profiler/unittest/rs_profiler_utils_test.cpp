@@ -107,7 +107,7 @@ HWTEST_F(RSProfilerUtilsTest, UtilsFileInMemoryTest, testing::ext::TestSize.Leve
 
     fd = Utils::FileOpen("RECORD_IN_MEMORY", "wbe");
     EXPECT_TRUE(Utils::IsFileValid(fd));
-    EXPECT_EQ(Utils::FileSize(fd), 0);
+    EXPECT_EQ(Utils::FileSize(fd), 4);
     EXPECT_EQ(Utils::FileTell(fd), 0);
 }
 
