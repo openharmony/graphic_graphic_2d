@@ -1139,6 +1139,16 @@ bool RSSurfaceRenderNode::GetForceUIFirst() const
     return forceUIFirst_;
 }
 
+bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
+{
+    return uifirstForceDrawWithSkipped_;
+}
+
+void RSSurfaceRenderNode::SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
+{
+    uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
+}
+
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
     auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

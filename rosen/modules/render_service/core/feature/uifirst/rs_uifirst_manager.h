@@ -49,10 +49,13 @@ public:
     };
 
     void AddProcessDoneNode(NodeId id);
+    void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddReuseNode(NodeId id);
+
+    bool NeedNextDrawForSkippedNode();
 
     CacheProcessStatus GetNodeStatus(NodeId id);
     // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
@@ -199,6 +202,7 @@ private:
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
     void ProcessResetNode();
+    void ProcessSkippedNode();
     void ProcessDoneNode();
     void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
@@ -279,6 +283,8 @@ private:
     // use in RT & subThread
     std::mutex childernDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
+    std::mutex skippedNodeMutex_;
+    std::unordered_set<NodeId> subthreadProcessSkippedNode_;
 
     // pending post node: collect in main, use&clear in RT
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
