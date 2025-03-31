@@ -285,7 +285,10 @@ ohos_shared_library("librender_service") {
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
-  public_external_deps += [ "libxml2:libxml2" ]
+  public_external_deps += [
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "libxml2:libxml2",
+  ]
 
   external_deps = [
     "ability_runtime:app_manager",
