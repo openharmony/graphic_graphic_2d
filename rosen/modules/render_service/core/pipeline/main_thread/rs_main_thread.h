@@ -440,7 +440,7 @@ public:
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 
-    // Enable HWC
+    // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();
@@ -570,7 +570,7 @@ private:
     std::string SubHistoryEventQueue(std::string input);
     std::string SubPriorityEventQueue(std::string input);
 
-    // Enable HWC
+    // Enable HWCompose
     void CollectInfoForHardwareComposer();
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
@@ -759,7 +759,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
 
-    // Enable HWC
+    // Enable HWCompose
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     DrawablesVec hardwareEnabledDrwawables_;
     bool isHardwareEnabledBufferUpdated_ = false;
