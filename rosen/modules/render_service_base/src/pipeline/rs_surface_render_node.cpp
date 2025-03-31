@@ -113,7 +113,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
+      bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
@@ -3067,6 +3068,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isRotating_ = isRotating_;
     surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     surfaceParams->name_= name_;
+    surfaceParams->bundleName_= bundleName_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetVisibleRegion(visibleRegion_);
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());

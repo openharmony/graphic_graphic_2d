@@ -436,6 +436,11 @@ public:
         return name_;
     }
 
+    const std::string& GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -1696,6 +1701,7 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
+    std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     /*

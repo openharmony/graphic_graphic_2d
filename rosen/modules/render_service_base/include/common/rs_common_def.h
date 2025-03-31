@@ -374,6 +374,7 @@ struct RSSurfaceRenderNodeConfig {
     bool isTextureExportNode = false;
     bool isSync = false;
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    std::string bundleName = "";
 };
 
 struct RSAdvancedDirtyConfig {
