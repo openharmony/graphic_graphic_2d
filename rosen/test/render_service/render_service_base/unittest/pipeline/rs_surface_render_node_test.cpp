@@ -451,15 +451,15 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetClonedNodeId
- * @tc.desc: function test SetClonedNodeId
+ * @tc.name: SetClonedNodeInfo
+ * @tc.desc: function test SetClonedNodeInfo
  * @tc.type:FUNC
  * @tc.require: issueIBKU7U
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeId, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeInfo, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    surfaceRenderNode.SetClonedNodeId(id + 1);
+    surfaceRenderNode.SetClonedNodeInfo(id + 1, true);
     bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
     ASSERT_TRUE(result);
 }
