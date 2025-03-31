@@ -849,7 +849,6 @@ ohos_unittest("RSDividedRenderUtilTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
-
   }
 }
 
@@ -953,7 +952,6 @@ ohos_unittest("RSDrawWindowCacheTest") {
       "drivers_interface_display:display_commontype_idl_headers",
       "video_processing_engine:videoprocessingengine",
     ]
-
   }
 }
 
