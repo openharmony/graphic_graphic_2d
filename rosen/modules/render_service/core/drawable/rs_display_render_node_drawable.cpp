@@ -1569,7 +1569,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
     return damageRegionRects;
 }
 
-bool RecalculateCoordinates(int angle)
+bool RSDisplayRenderNodeDrawable::RecalculateCoordinates(int angle)
 {
     return RSSystemProperties::IsSuperFoldDisplay() && (angle == RS_ROTATION_90 || angle == RS_ROTATION_270);
 }
