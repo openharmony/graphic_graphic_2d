@@ -12,9 +12,9 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
-import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 ohos_unittest("2d_engine_rosen_text_skia_test") {
   module_out_path = text_test_out_path

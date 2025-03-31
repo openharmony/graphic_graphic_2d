@@ -14,8 +14,8 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("ConvertFuzzTest") {

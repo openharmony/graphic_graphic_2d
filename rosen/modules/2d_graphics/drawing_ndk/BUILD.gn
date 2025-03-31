@@ -13,8 +13,8 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"

@@ -12,8 +12,8 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build libtexgine.so {{{
 config("libtexgine_config") {
