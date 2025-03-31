@@ -61,6 +61,9 @@ static std::vector<const char*> gDeviceExtensions = {
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
 static const int32_t CACHE_LIMITS_TIMES = 5;  // this will change RS memory!
+std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoCnt_ = 0;
+std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_ = 0;
+std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_ = 0;
 
 void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected)
 {
@@ -477,6 +480,15 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
             } else {
                 it++;
             }
+        }
+        // 120 : 120fps print once every 1s.
+        if (RsVulkanInterface::callbackSemaphoreInfoCnt_.load() % 120 == 0) {
+            RS_LOGI("used fences, dup fence count[%{public}" PRIu64 "], rs deref count[%{public}" PRIu64 "],"
+                "skia deref count[%{public}" PRIu64 "], wait close fence count[%{public}zu]",
+                RsVulkanInterface::callbackSemaphoreInfoCnt_.load(),
+                RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.load(),
+                RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.load(),
+                usedSemaphoreFenceList_.size());
         }
     }
 
