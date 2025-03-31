@@ -307,7 +307,7 @@ void HgmCore::SetHfbcConfigMap(const std::unordered_map<std::string, std::string
 void HgmCore::SetHfbcControlMode(bool mode)
 {
     if (!mPolicyConfigData_) {
-        HGM_LOGE("Fail to set hfbcMode, HgmCore is not initialized");
+        HGM_LOGE("Fail to set isHfbcDisableListMode, HgmCore is not initialized");
         return;
     }
     mPolicyConfigData_->isHfbcDisableListMode_ = mode;
