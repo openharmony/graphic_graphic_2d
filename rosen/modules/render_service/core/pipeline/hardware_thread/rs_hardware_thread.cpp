@@ -272,7 +272,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount(output);
-        if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId == 0) {
+        if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId() == 0) {
             std::vector<LayerInfoPtr> reviseLayers = layers;
             ChangeLayersForActiveRectOutside(reviseLayers, curScreenId);
             output->SetLayerInfo(reviseLayers);
