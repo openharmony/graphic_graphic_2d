@@ -310,7 +310,7 @@ void HgmCore::SetHfbcControlMode(bool mode)
         HGM_LOGE("Fail to set hfbcMode, HgmCore is not initialized");
         return;
     }
-    mPolicyConfigData_->hfbcMode_ = mode;
+    mPolicyConfigData_->isHfbcDisableListMode_ = mode;
 }
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)

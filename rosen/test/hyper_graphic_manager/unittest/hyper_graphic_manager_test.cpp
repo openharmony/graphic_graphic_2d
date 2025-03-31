@@ -725,9 +725,9 @@ HWTEST_F(HyperGraphicManagerTest, SetHfbcControlMode, Function | SmallTest | Lev
 {
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetHfbcControlMode(true);
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcMode_, true);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->isHfbcDisableListMode_, true);
     hgmCore.SetHfbcControlMode(false);
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcMode_, false);
+    EXPECT_EQ(hgmCore.mPolicyConfigData_->isHfbcDisableListMode_, false);
 }
 
 /**
