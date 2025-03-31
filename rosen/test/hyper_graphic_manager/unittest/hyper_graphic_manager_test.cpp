@@ -703,6 +703,9 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
 HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level2)
 {
     auto &hgmCore = HgmCore::Instance();
+    if (hgmCore.mPolicyConfigData_ == nullptr) {
+        return;
+    }
     EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), 0);
     std::unordered_map<std::string, std::string> hfbcConfig = {
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }

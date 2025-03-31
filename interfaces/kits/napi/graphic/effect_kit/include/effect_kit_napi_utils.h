@@ -85,21 +85,6 @@ do \
     status = napi_get_cb_info(env, info, nullptr, nullptr, &(thisVar), nullptr); \
 } while (0)
 
-#define EFFECT_CREATE_ASYNC_WORK_WITH_QOS(env, status, workName, exec, complete, aContext, work, qos) \
-do \
-{ \
-    napi_value _resource = nullptr; \
-    napi_create_string_utf8((env), (workName), NAPI_AUTO_LENGTH, &_resource); \
-    (status) = napi_create_async_work(env, nullptr, _resource, (exec), \
-            (complete), static_cast<void*>((aContext).get()), &(work)); \
-    if ((status) == napi_ok) { \
-        (status) = napi_queue_async_work_with_qos((env), (work), (qos)); \
-        if ((status) == napi_ok) { \
-            (aContext).release(); \
-        } \
-    } \
-} while (0)
-
 #define EFFECT_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 namespace OHOS {

@@ -16,10 +16,12 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
+#include "command/rs_surface_node_command.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -256,6 +258,65 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.SetHDRPresent(false);
     EXPECT_FALSE(rsCanvasRenderNode.GetHDRPresent());
+}
+
+/**
+ * @tc.name: SetIsWideColorGamut001
+ * @tc.desc: test true of SetIsWideColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.SetIsWideColorGamut(true);
+    EXPECT_TRUE(rsCanvasRenderNode.GetIsWideColorGamut());
+}
+
+/**
+ * @tc.name: SetIsWideColorGamut002
+ * @tc.desc: test false of SetIsWideColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetIsWideColorGamut002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.SetIsWideColorGamut(false);
+    EXPECT_FALSE(rsCanvasRenderNode.GetIsWideColorGamut());
+}
+
+/**
+ * @tc.name: ModifyWideWindowColorGamutNum001
+ * @tc.desc: test ModifyWideWindowColorGamutNum
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ModifyWideWindowColorGamutNum001, TestSize.Level1)
+{
+    NodeId testId = 0;
+    std::shared_ptr<RSCanvasRenderNode> testNode = std::make_shared<RSCanvasRenderNode>(testId);
+    testNode->ModifyWideWindowColorGamutNum(false);
+    EXPECT_TRUE(testNode->GetContext().lock() == nullptr);
+
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->context_ = context;
+    EXPECT_TRUE(node->GetContext().lock() != nullptr);
+    NodeId surfaceNodeId = 2;
+    SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
+    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+    node->instanceRootNodeId_ = surfaceNodeId;
+    
+    node->ModifyWideWindowColorGamutNum(true);
+    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 1);
+    node->ModifyWideWindowColorGamutNum(false);
+    ASSERT_EQ(surfaceNode->wideColorGamutNum_, 0);
 }
 
 /**

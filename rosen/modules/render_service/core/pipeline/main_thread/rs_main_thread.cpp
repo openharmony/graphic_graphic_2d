@@ -156,6 +156,7 @@
 // blur predict
 #include "rs_frame_blur_predict.h"
 #include "rs_frame_deadline_predict.h"
+#include "feature_cfg/feature_param/extend_feature/mem_param.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -770,11 +771,12 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (cacheLimitsResourceSize > maxResourcesSize) {
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
     }
-    int systemCacheLimitsResourceSize =
-            std::atoi((system::GetParameter("persist.sys.graphics.skiacachelimit", "0")).c_str());
-    if (systemCacheLimitsResourceSize > 0) {
-        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitsResourceSize);
+    static int systemCacheLimitResourceSize = MEMParam::GetRSCacheLimitsResourceSize();
+    RS_LOGD("systemCacheLimitResourceSize: %{public}d", systemCacheLimitResourceSize);
+    if (systemCacheLimitResourceSize > 0) {
+        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitResourceSize);
     }
+
     auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();
     gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
 #endif
@@ -1359,7 +1361,7 @@ void RSMainThread::ProcessCommandForUniRender()
             for (auto& rsTransaction : rsTransactionElem.second) {
                 // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
                 // 0, or if there have been previous transactions of this process considered as synchronous, then all
-                // subsequent transactions of this process need to be synchronized.
+                // subsequent transactions of this process will be synchronized.
                 if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
                     syncTransactionData_.count(rsTransactionElem.first) > 0)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);

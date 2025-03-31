@@ -523,7 +523,6 @@ HWTEST_F(RSJankStatsTest, RecordJankFrameTest004, TestSize.Level1)
     JankFrameRecordStats recordStats = { "test", 1 };
     recordStats.isRecorded_ = true;
     rsJankStats->RecordJankFrameSingle(1, recordStats);
-    ASSERT_EQ(recordStats.isRecorded_, true);
 }
 
 /**

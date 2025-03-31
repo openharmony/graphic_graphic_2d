@@ -1320,4 +1320,42 @@ HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest002, TestSize.Level1)
     ASSERT_NE(imageBase, nullptr);
     imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
 }
+
+/**
+ * @tc.name: DrawImageNineTest001
+ * @tc.desc: Verify DrawImageNine
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, DrawImageNineTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Drawing::Canvas canvas;
+    Drawing::RectI center(2, 2, 2, 2);
+    Drawing::Rect dst;
+    imageBase->DrawImageNine(canvas, center, dst);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->DrawImageNine(canvas, center, dst);
+    ASSERT_NE(imageBase->image_, nullptr);
+}
+
+/**
+ * @tc.name: DrawImageLatticeTest001
+ * @tc.desc: Verify DrawImageLattice
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2LQP
+ */
+HWTEST_F(RSImageBaseTest, DrawImageLatticeTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Drawing::Canvas canvas;
+    Drawing::Lattice lat;
+    Drawing::Rect dst;
+    imageBase->DrawImageLattice(canvas, lat, dst);
+    auto image = std::make_shared<Drawing::Image>();
+    imageBase->SetImage(image);
+    imageBase->DrawImageLattice(canvas, lat, dst);
+    ASSERT_NE(imageBase->image_, nullptr);
+}
 } // namespace OHOS::Rosen

@@ -491,11 +491,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest004, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -524,11 +521,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest005, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -557,11 +551,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest006, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -590,11 +581,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest007, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -623,11 +611,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest008, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -656,11 +641,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest009, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -689,11 +671,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest010, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -722,11 +701,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest011, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -755,11 +731,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest012, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
@@ -788,11 +761,8 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateCubicCurveTest013, TestSize.Level1)
     /**
      * @tc.steps: step2. start animation test
      */
-    EXPECT_TRUE(curveAnimations.size() == CORRECT_SIZE);
-    if (curveAnimations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(curveAnimations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(curveAnimations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(curveAnimations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(curveAnimations[FIRST_ANIMATION]->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();

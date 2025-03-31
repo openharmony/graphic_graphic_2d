@@ -192,12 +192,18 @@ public:
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;
+    // <"p3NodeCount", "0">
+    bool p3NodeCountSwitch_ = false;
+    // <"isCoveredSurfaceCloseP3", "0">
+    bool isCoveredSurfaceCloseP3_ = false;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
+    // <"up_timeout_ms", 3000>
+    std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;

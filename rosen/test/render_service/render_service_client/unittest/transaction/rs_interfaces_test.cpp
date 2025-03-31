@@ -172,7 +172,11 @@ HWTEST_F(RSInterfacesTest, GetMemoryGraphics001, TestSize.Level1)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     auto res = instance.GetMemoryGraphics();
-    EXPECT_FALSE(res.empty());
+    if (!instance.renderServiceClient_->GetUniRenderEnabled()) {
+        EXPECT_TRUE(res.empty());
+    } else {
+        EXPECT_FALSE(res.empty());
+    }
 }
 
 /**

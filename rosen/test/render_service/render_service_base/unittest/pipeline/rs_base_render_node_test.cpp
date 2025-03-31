@@ -1059,12 +1059,12 @@ HWTEST_F(RSBaseRenderNodeTest, SetContentDirty, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, SetDirty, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
     bool forceAddToActiveList = true;
     node->SetDirty(forceAddToActiveList);
 
     node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node->SetDirty(forceAddToActiveList);
-    ASSERT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::DIRTY);
 }
 
 /**

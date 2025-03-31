@@ -15,6 +15,7 @@
 
 #include "rs_trace.h"
 
+#include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -138,6 +139,21 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         nodePtr->SetIsNodeToBeCaptured(false);
         drawable->ResetUifirst(false);
     }
+}
+
+void RSUifirstManager::ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr)
+{
+    if (!nodePtr) {
+        RS_LOGE("RSUifirstManager::ResetWindowCache nodePtr is null");
+        return;
+    }
+    auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
+    if (!drawable) {
+        RS_LOGE("RSUifirstManager::ResetWindowCache drawable is null");
+        return;
+    }
+    // run in RT thread
+    drawable->ResetWindowCache();
 }
 
 void RSUifirstManager::MergeOldDirty(NodeId id)
@@ -336,10 +352,10 @@ void RSUifirstManager::ProcessDoneNode()
             it++;
         }
     }
-    for (auto& surfaceNode : pindingResetWindowCachedNodes_) {
-        ResetUifirstNode(surfaceNode);
+    for (auto& surfaceNode : pendingResetWindowCachedNodes_) {
+        ResetWindowCache(surfaceNode);
     }
-    pindingResetWindowCachedNodes_.clear();
+    pendingResetWindowCachedNodes_.clear();
 
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end();) {
         auto id = it->first;
@@ -383,7 +399,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         GetUiFirstSwitch();
     bool changeColorSpace = drawable->GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
-        if (isScRGBEnable && changeColorSpace) {
+        if ((isScRGBEnable || RsCommonHook::Instance().GetP3NodeCountFlag()) && changeColorSpace) {
             RS_LOGI("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
@@ -812,7 +828,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
 {
     auto isFocusId = RSMainThread::Instance()->GetFocusNodeId();
     auto isLeashId = RSMainThread::Instance()->GetFocusLeashWindowId();
-    uint32_t postOrder = 0;
+    int32_t postOrder = 0;
     for (auto& item : pendingNode) {
         postOrder++;
         auto const& [id, value] = item;
@@ -1634,7 +1650,7 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 
     auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
-    pindingResetWindowCachedNodes_.emplace_back(surfaceNode);
+    pendingResetWindowCachedNodes_.emplace_back(surfaceNode);
 }
 
 void RSUifirstManager::AddCapturedNodes(NodeId id)

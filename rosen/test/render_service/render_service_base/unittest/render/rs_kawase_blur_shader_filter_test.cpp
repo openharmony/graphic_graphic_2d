@@ -56,6 +56,7 @@ HWTEST_F(RSKawaseBlurShaderFilterTest, GetRadiusTest, TestSize.Level1)
 HWTEST_F(RSKawaseBlurShaderFilterTest, GenerateGEVisualEffectTest, TestSize.Level1)
 {
     int radius = 0;
+    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(false);
     auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     kawaseBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);

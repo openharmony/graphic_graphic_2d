@@ -101,6 +101,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus001, TestSize.Level1)
  */
 HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus002, TestSize.Level1)
 {
+    constexpr int32_t waitTaskFinishNs = 100000;
     auto& instance = RSRealtimeRefreshRateManager::Instance();
     uint32_t threadNums = 100;
     std::vector<std::thread> thds;
@@ -115,6 +116,11 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus002, TestSize.Level1)
             thd.join();
         }
     }
+    usleep(waitTaskFinishNs);
+    instance.SetShowRefreshRateEnabled(false, 1);
+    instance.SetShowRefreshRateEnabled(false, 0);
+    ASSERT_EQ(instance.showEnabled_, false);
+    ASSERT_EQ(instance.collectEnabled_, false);
 }
 
 /**

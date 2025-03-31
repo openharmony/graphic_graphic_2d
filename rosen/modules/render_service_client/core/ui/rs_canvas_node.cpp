@@ -86,6 +86,12 @@ void RSCanvasNode::SetHDRPresent(bool hdrPresent)
     }
 }
 
+void RSCanvasNode::SetIsWideColorGamut(bool isWideColorGamut)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetIsWideColorGamut>(GetId(), isWideColorGamut);
+    AddCommand(command, true);
+}
+
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     CheckThread();

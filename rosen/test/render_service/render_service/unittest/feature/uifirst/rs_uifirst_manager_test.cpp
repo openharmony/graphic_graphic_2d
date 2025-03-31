@@ -68,7 +68,7 @@ void RSUifirstManagerTest::TearDownTestCase()
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
-    uifirstManager_.pindingResetWindowCachedNodes_.clear();
+    uifirstManager_.pendingResetWindowCachedNodes_.clear();
 
     mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
     mainThread->context_->globalRootRenderNode_ = nullptr;
@@ -1697,5 +1697,22 @@ HWTEST_F(RSUifirstManagerTest, CheckHwcChildrenType, TestSize.Level1)
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+}
+
+/**
+@tc.name: ResetWindowCache
+@tc.desc: Test ResetWindowCache
+@tc.type: FUNC
+@tc.require: #IBWRGL
+*/
+HWTEST_F(RSUifirstManagerTest, ResetWindowCache, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode1;
+    ASSERT_EQ(surfaceNode1, nullptr);
+    uifirstManager_.ResetWindowCache(surfaceNode1);
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode2, nullptr);
+    uifirstManager_.ResetWindowCache(surfaceNode2);
 }
 }

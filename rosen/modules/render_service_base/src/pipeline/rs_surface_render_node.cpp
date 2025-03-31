@@ -113,7 +113,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
+      bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
@@ -209,7 +210,7 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
     bool isClonedNode = GetId() == nodeId;
-    if (isClonedNode && IsMainWindowType()) {
+    if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
@@ -1085,7 +1086,7 @@ void RSSurfaceRenderNode::SyncColorGamutInfoToFirstLevelNode()
     if (colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         if (firstLevelNode) {
-            firstLevelNode->SetFirstLevelNodeColorGamut(IsOnTheTree());
+            firstLevelNode->SetFirstLevelNodeColorGamutByWindow(IsOnTheTree());
         }
     }
 }
@@ -1109,10 +1110,21 @@ bool RSSurfaceRenderNode::IsCloneNode() const
     return isCloneNode_;
 }
 
-void RSSurfaceRenderNode::SetClonedNodeId(NodeId id)
+void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen)
 {
     isCloneNode_ = (id != INVALID_NODEID);
     clonedSourceNodeId_ = id;
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid context");
+        return;
+    }
+    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedSourceNodeId_);
+    if (clonedSurfaceNode) {
+        clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
+    }
+    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d",
+        id, needOffscreen);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
@@ -1157,6 +1169,54 @@ void RSSurfaceRenderNode::ReduceHDRNum()
     }
     hdrNum_--;
     RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+bool RSSurfaceRenderNode::GetIsWideColorGamut() const
+{
+    return wideColorGamutNum_ > 0;
+}
+
+void RSSurfaceRenderNode::IncreaseWideColorGamutNum()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    // If the count was zero brfore this increment, meaning the first P3 resource appears in the subtree.
+    // Notify firstLevelNode to increment the wide color window count.
+    if (!GetIsWideColorGamut()) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+        if (!firstLevelNode) {
+            RS_LOGE("RSSurfaceRenderNode::IncreaseWideColorGamutNum firstLevelNode is nullptr");
+            wideColorGamutNum_++;
+            return;
+        }
+        RS_LOGD("RSSurfaceRenderNode::IncreaseWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_ + 1);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(true);
+    }
+    wideColorGamutNum_++;
+#endif
+}
+
+void RSSurfaceRenderNode::ReduceWideColorGamutNum()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (!GetIsWideColorGamut()) {
+        ROSEN_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum error");
+        return;
+    }
+    // If the count was zero after this decrement, meaning no P3 resources remain in the subtree.
+    // Notify firstLevelNode to decrement the wide color window count.
+    wideColorGamutNum_--;
+    if (!GetIsWideColorGamut()) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+        if (!firstLevelNode) {
+            RS_LOGE("RSSurfaceRenderNode::ReduceWideColorGamutNum firstLevelNode is nullptr");
+            return;
+        }
+        RS_LOGD("RSSurfaceRenderNode::ReduceWideColorGamutNum notify firstLevelNodeId[%{public}" PRIu64
+            "] now wideColorGamutNum_[%{public}d]", firstLevelNode->GetId(), wideColorGamutNum_);
+        firstLevelNode->SetFirstLevelNodeColorGamutByResource(false);
+    }
+#endif
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
@@ -1267,13 +1327,16 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
         RS_LOGE("RSSurfaceRenderNode::SetColorSpace firstLevelNode is nullptr");
         return;
     }
-    firstLevelNode->SetFirstLevelNodeColorGamut(colorSpace != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    firstLevelNode->SetFirstLevelNodeColorGamutByWindow(colorSpace_ != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    if (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutNum_ > 0) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return colorSpace_;
 }
@@ -1283,19 +1346,29 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (wideColorGamutInChildNodeCount_ > 0) {
+    if (wideColorGamutWindowCount_ > 0 ||
+        (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutResourceWindowCount_ > 0)) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     } else {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
 }
 
-void RSSurfaceRenderNode::SetFirstLevelNodeColorGamut(bool changeToP3)
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByResource(bool changeToP3)
 {
     if (changeToP3) {
-        wideColorGamutInChildNodeCount_++;
+        wideColorGamutResourceWindowCount_++;
     } else {
-        wideColorGamutInChildNodeCount_--;
+        wideColorGamutResourceWindowCount_--;
+    }
+}
+
+void RSSurfaceRenderNode::SetFirstLevelNodeColorGamutByWindow(bool changeToP3)
+{
+    if (changeToP3) {
+        wideColorGamutWindowCount_++;
+    } else {
+        wideColorGamutWindowCount_--;
     }
 }
 
@@ -3006,6 +3079,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isRotating_ = isRotating_;
     surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     surfaceParams->name_= name_;
+    surfaceParams->bundleName_= bundleName_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetVisibleRegion(visibleRegion_);
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());

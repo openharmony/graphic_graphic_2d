@@ -164,6 +164,25 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsWideColorGamut001
+ * @tc.desc: test results of SetIsWideColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSCanvasNodeCommandTest, SetIsWideColorGamut001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+
+    RSCanvasNodeCommandHelper::SetIsWideColorGamut(context, id, true);
+    ASSERT_EQ(node->isWideColorGamut_, true);
+    RSCanvasNodeCommandHelper::SetIsWideColorGamut(context, id, false);
+    ASSERT_EQ(node->isWideColorGamut_, false);
+}
+
+/**
  * @tc.name: SetLinkedRootNodeId
  * @tc.desc: test SetLinkedRootNodeId
  * @tc.type: FUNC

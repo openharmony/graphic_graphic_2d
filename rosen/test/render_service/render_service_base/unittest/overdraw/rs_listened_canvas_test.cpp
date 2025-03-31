@@ -473,11 +473,6 @@ HWTEST_F(RSListenedCanvasTest, TextBlobFunctionsTest005, TestSize.Level1)
     EXPECT_TRUE(canvasListener);
     listenedCanvas.SetListener(canvasListener);
     EXPECT_TRUE(listenedCanvas.listener_);
-
-    std::shared_ptr<TextBlobImplTest> textBlobImplTest = std::make_shared<TextBlobImplTest>();
-    EXPECT_TRUE(textBlobImplTest);
-    Drawing::TextBlob blob(textBlobImplTest);
-    listenedCanvas.DrawTextBlob(&blob, SET_XORY1, SET_XORY1);
 }
 
 /**

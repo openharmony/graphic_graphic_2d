@@ -24,15 +24,12 @@ public:
     ColorGamutParam() = default;
     ~ColorGamutParam() = default;
 
-    static bool IsCoveredSurfaceCloseP3();
     static bool IsSLRCloseP3();
 
 protected:
-    static void SetCoveredSurfaceCloseP3(bool isEnable);
     static void SetSLRCloseP3(bool isEnable);
 
 private:
-    inline static bool isCoveredSurfaceCloseP3_ = true;
     inline static bool isSLRCloseP3_ = true;
 
     friend class ColorGamutParamParse;

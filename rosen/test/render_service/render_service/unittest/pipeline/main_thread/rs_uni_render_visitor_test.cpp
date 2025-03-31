@@ -1359,7 +1359,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode001, TestSize.Level1)
     surfaceRenderNodeCloned->renderDrawable_ = clonedNodeRenderDrawableSharedPtr;
 
     surfaceRenderNode.isCloneNode_ = true;
-    surfaceRenderNode.SetClonedNodeId(surfaceRenderNodeCloned->GetId());
+    surfaceRenderNode.SetClonedNodeInfo(surfaceRenderNodeCloned->GetId(), true);
     auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
     ASSERT_TRUE(result);
 }
@@ -4487,7 +4487,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty001, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->containerFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->containerFilter_.empty());
 }
 
@@ -4513,7 +4513,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty002, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->globalFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->globalFilter_.empty());
 }
 
@@ -4539,7 +4539,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty003, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 
@@ -4568,7 +4568,8 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty004, TestSize.Le
     rsUniRenderVisitor->curDisplayDirtyManager_->currentFrameDirtyRegion_ = {};
 
     ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*surfaceNode, *dirtyManager, globalFilterRect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*surfaceNode, *dirtyManager,
+        globalFilterRect, globalFilterRect);
     ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 
@@ -4883,7 +4884,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter003, TestSize.
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->transparentDirtyFilter_[node->GetId()].push_back(std::pair(node->GetId(), DEFAULT_RECT));
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
-    ASSERT_TRUE(childNode->isHardwareForcedDisabled_);
+    ASSERT_FALSE(childNode->isHardwareForcedDisabled_);
 }
 
 /**

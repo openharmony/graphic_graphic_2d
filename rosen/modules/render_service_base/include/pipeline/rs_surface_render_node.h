@@ -436,6 +436,11 @@ public:
         return name_;
     }
 
+    const std::string& GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -570,7 +575,7 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     void SetClonedNodeRenderDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable);
     bool IsCloneNode() const;
-    void SetClonedNodeId(NodeId id);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree);
 
@@ -602,6 +607,11 @@ public:
 
     void IncreaseHDRNum();
     void ReduceHDRNum();
+
+    bool GetIsWideColorGamut() const;
+
+    void IncreaseWideColorGamutNum();
+    void ReduceWideColorGamutNum();
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -799,7 +809,8 @@ public:
     GraphicColorGamut GetColorSpace() const;
     // Only call this if the node is first level node.
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
-    void SetFirstLevelNodeColorGamut(bool changeToP3);
+    void SetFirstLevelNodeColorGamutByResource(bool changeToP3);
+    void SetFirstLevelNodeColorGamutByWindow(bool changeToP3);
 
     // Only call this if the node is self-drawing surface node.
     void UpdateColorSpaceWithMetadata();
@@ -1618,6 +1629,7 @@ private:
     float contextAlpha_ = 1.0f;
     // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
     int hdrNum_ = 0;
+    int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     int64_t stencilVal_ = -1;
@@ -1636,7 +1648,8 @@ private:
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    uint32_t wideColorGamutInChildNodeCount_ = 0;
+    uint32_t wideColorGamutWindowCount_ = 0;
+    uint32_t wideColorGamutResourceWindowCount_ = 0;
     uint32_t apiCompatibleVersion_ = 0;
     std::atomic<uint32_t> ancoFlags_ = 0;
     Drawing::GPUContext* grContext_ = nullptr;
@@ -1688,6 +1701,7 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
+    std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     /*
@@ -1781,6 +1795,7 @@ private:
     bool isCloneNode_ = false;
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
+    bool clonedSourceNodeNeedOffscreen_ = true;
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};

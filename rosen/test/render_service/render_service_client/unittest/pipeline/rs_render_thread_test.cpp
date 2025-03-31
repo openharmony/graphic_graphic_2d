@@ -87,7 +87,7 @@ HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
      */
     std::unique_ptr<RSTransactionData> data = std::make_unique<RSTransactionData>();
     RSRenderThread::Instance().RecvTransactionData(data);
-    EXPECT_TRUE(data != nullptr);
+    EXPECT_TRUE(data == nullptr);
 }
 
 /**
@@ -177,7 +177,7 @@ HWTEST_F(RSRenderThreadTest, GetTid001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
 {
-    uint64_t timestamp = 123456; // for test
+    uint64_t timestamp = 123456; // for test update
     uint64_t frameCount = 1; // for test
     RSRenderThread::Instance().activeWindowCnt_ = 1;
     RSRenderThread::Instance().OnVsync(timestamp, frameCount);
@@ -225,7 +225,7 @@ HWTEST_F(RSRenderThreadTest, ProcessCommands001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
 {
-    uint64_t timestamp = 1; // for test
+    uint64_t timestamp = 1; // for test update
     RSRenderThread::Instance().context_ = std::make_shared<RSContext>();
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
     RSRenderThread::Instance().Animate(timestamp);
