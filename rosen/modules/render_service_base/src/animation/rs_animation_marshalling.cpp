@@ -65,9 +65,13 @@ bool RSCubicBezierInterpolator::Marshalling(Parcel& parcel) const
 
 RSCubicBezierInterpolator* RSCubicBezierInterpolator::Unmarshalling(Parcel& parcel)
 {
-    auto id = parcel.ReadUint64();
-    if (id == 0) {
+    uint64_t id{0};
+    if (!parcel.ReadUint64(id)) {
         ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
+        return nullptr;
+    }
+    if (id == 0) {
+        ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id == 0");
         return nullptr;
     }
     float x1 = 0;
@@ -168,9 +172,13 @@ bool LinearInterpolator::Marshalling(Parcel& parcel) const
 
 LinearInterpolator* LinearInterpolator::Unmarshalling(Parcel& parcel)
 {
-    uint64_t id = parcel.ReadUint64();
+    uint64_t id{0};
+    if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id failed");
+        return nullptr;
+    }
     if (id == 0) {
-        ROSEN_LOGE("Unmarshalling LinearInterpolator failed");
+        ROSEN_LOGE("Unmarshalling RSCubicBezierInterpolator id == 0");
         return nullptr;
     }
     return new LinearInterpolator(id);
@@ -195,7 +203,11 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
 
 RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
-    uint64_t id = parcel.ReadUint64();
+    uint64_t id{0};
+    if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("Unmarshalling RSCustomInterpolator id failed");
+        return nullptr;
+    }
     std::vector<float> times;
     std::vector<float> values;
     if (!(RSMarshallingHelper::UnmarshallingVec(parcel, times, MAX_SAMPLE_POINTS) &&
@@ -860,7 +872,11 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 
 RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
 {
-    uint64_t id = parcel.ReadUint64();
+    uint64_t id{0};
+    if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("RSSpringInterpolator::Unmarshalling Read id failed");
+        return nullptr;
+    }
     float response = 0.0;
     float dampingRatio = 0.0;
     float initialVelocity = 0.0;
@@ -891,7 +907,11 @@ bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
 
 RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
 {
-    uint64_t id = parcel.ReadUint64();
+    uint64_t id{0};
+    if (!parcel.ReadUint64(id)) {
+        ROSEN_LOGE("RSStepsInterpolator::Unmarshalling Read id failed");
+        return nullptr;
+    }
     int32_t steps = 0;
     int32_t position = 0;
     if (!(parcel.ReadInt32(steps) && parcel.ReadInt32(position))) {

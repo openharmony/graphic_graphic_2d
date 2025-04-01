@@ -22,6 +22,7 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIScreenChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSScreenChangeCallbackStub::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 
