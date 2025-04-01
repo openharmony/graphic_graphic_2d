@@ -29,6 +29,7 @@
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
+#include "modules/skparagraph/include/TextStyle.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -267,10 +268,16 @@ Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpaces)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    if (lineNumber >=0 && lineNumber <= static_cast<int>(paragraph_->lineNumber())) {
+    if (lineNumber >= 0 && lineNumber < static_cast<int>(paragraph_->lineNumber())) {
         skt::SkRange<size_t> range = paragraph_->getActualTextRange(lineNumber, includeSpaces);
-        return Range<size_t>(range.start, range.end);
+        if (range == skia::textlayout::EMPTY_TEXT) {
+            TEXT_LOGE_LIMIT3_MIN("Invalid line number %{public}d", lineNumber);
+            return Range<size_t>(0, 0);
+        } else {
+            return Range<size_t>(range.start, range.end);
+        }
     } else {
+        TEXT_LOGE_LIMIT3_MIN("Invalid line number %{public}d", lineNumber);
         return Range<size_t>(0, 0);
     }
 }
