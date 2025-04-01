@@ -408,7 +408,7 @@ namespace {
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
-            bool hasShadow = skiaTextStyle.getShadowNumber() > 0 ? true : false;
+            bool hasShadow = skiaTextStyle.getShadowNumber() > 0;
             skiaTextStyle.resetShadows();
             for (const TextShadow& txtShadow : spTextStyle.textShadows) {
                 skiaTextStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));
