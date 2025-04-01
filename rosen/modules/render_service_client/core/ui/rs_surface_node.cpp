@@ -611,12 +611,12 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
 
 RSSurfaceNode::RSSurfaceNode(
     const RSSurfaceNodeConfig& config, bool isRenderServiceNode, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, config.isTextureExportNode, rsUIContext), name_(config.SurfaceNodeName)
+    : RSNode(isRenderServiceNode, config.isTextureExportNode, rsUIContext, true), name_(config.SurfaceNodeName)
 {}
 
 RSSurfaceNode::RSSurfaceNode(
     const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, id, config.isTextureExportNode, rsUIContext), name_(config.SurfaceNodeName)
+    : RSNode(isRenderServiceNode, id, config.isTextureExportNode, rsUIContext, true), name_(config.SurfaceNodeName)
 {}
 
 RSSurfaceNode::~RSSurfaceNode()
