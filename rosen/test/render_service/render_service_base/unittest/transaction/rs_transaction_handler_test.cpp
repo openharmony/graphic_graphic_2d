@@ -104,8 +104,8 @@ HWTEST_F(RSTransactionHandlerTest, SetRenderServiceClient001, TestSize.Level1)
 HWTEST_F(RSTransactionHandlerTest, SetRenderServiceClient002, TestSize.Level1)
 {
     auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_NE(transaction, nullptr);
     auto renderServiceClient = nullptr;
-    ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderServiceClient(renderServiceClient);
 }
 

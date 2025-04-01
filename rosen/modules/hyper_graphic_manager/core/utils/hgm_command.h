@@ -202,6 +202,8 @@ public:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
+    // <"up_timeout_ms", 3000>
+    std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;

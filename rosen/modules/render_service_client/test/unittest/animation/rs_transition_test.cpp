@@ -740,11 +740,8 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest004, TestSize.Level1)
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest004 end";
@@ -778,11 +775,8 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest005, TestSize.Level1)
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest005 end";
@@ -814,11 +808,8 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest006, TestSize.Level1)
     /**
      * @tc.steps: step2. start RSNodeAnimate test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
-    EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
+    ASSERT_TRUE(animations[FIRST_ANIMATION] != nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSTransitionTest RSNodeAnimateTest006 end";

@@ -33,7 +33,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
         SetSurfaceColor(RSColor(0xff000000));
     }
 };

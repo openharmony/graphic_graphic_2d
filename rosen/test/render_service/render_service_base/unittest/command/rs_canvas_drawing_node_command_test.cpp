@@ -45,10 +45,9 @@ HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
     int height = 1;
     NodeId targetId = static_cast<NodeId>(1);
     RSCanvasDrawingNodeCommandHelper::Create(context, targetId, false);
-
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(targetId), nullptr);
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId, width, height);
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0, width, height);
-    ASSERT_EQ(targetId, static_cast<NodeId>(1));
 }
 
 } // namespace OHOS::Rosen

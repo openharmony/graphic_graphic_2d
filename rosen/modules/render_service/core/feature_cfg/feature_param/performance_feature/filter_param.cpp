@@ -29,7 +29,17 @@ bool FilterParam::IsEffectMergeEnable()
 
 bool FilterParam::IsBlurAdaptiveAdjust()
 {
-    return isBlurAdaptiveAdjust;
+    return isBlurAdaptiveAdjust_;
+}
+
+bool FilterParam::IsMesablurAllEnable()
+{
+    return isMesablurAllEnbale_;
+}
+
+int FilterParam::GetSimplifiedMesaMode()
+{
+    return simplifiedMesaMode_;
 }
 
 void FilterParam::SetFilterCacheEnable(bool isEnable)
@@ -44,6 +54,16 @@ void FilterParam::SetEffectMergeEnable(bool isEnable)
 
 void FilterParam::SetBlurAdaptiveAdjust(bool isEnable)
 {
-    isBlurAdaptiveAdjust = isEnable;
+    isBlurAdaptiveAdjust_ = isEnable;
+}
+
+void FilterParam::SetMesablurAllEnable(bool isEnable)
+{
+    isMesablurAllEnbale_ = isEnable;
+}
+
+void FilterParam::SetSimplifiedMesaMode(int mode)
+{
+    simplifiedMesaMode_ = mode;
 }
 } // namespace OHOS::Rosen

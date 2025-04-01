@@ -510,9 +510,14 @@ bool JsTool::GetResourceColor(napi_env env, napi_value res, uint32_t& result)
     if (valueType == napi_string) {
         size_t len = 0;
         napi_get_value_string_utf8(env, res, nullptr, 0, &len);
-        char str[len + 1];
+        char* str = new(std::nothrow) char[len + 1];
+        if (!str) {
+            ROSEN_LOGE("JsTool::GetResourceColor memory is insufficient and failed to apply");
+            return false;
+        }
         napi_get_value_string_utf8(env, res, str, len + 1, &len);
         std::string colorStr(str, len);
+        delete[] str;
         if (!GetColorStringResult(colorStr, result)) {
             ROSEN_LOGE("JsTool::GetResourceColor failed to GetColorStringResult!");
             return false;

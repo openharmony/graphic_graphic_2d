@@ -146,7 +146,7 @@ public:
 #endif
     void SetForeground(bool isForeground);
     // [Attention] The function only used for unlocking screen for PC currently
-    void SetClonedNodeId(NodeId nodeId);
+    void SetClonedNodeInfo(NodeId nodeId, bool needOffscreen = true);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);

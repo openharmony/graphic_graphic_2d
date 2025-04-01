@@ -113,7 +113,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
+      bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
@@ -209,7 +210,7 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
 {
     bool isClonedNode = GetId() == nodeId;
-    if (isClonedNode && IsMainWindowType()) {
+    if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
@@ -1109,10 +1110,21 @@ bool RSSurfaceRenderNode::IsCloneNode() const
     return isCloneNode_;
 }
 
-void RSSurfaceRenderNode::SetClonedNodeId(NodeId id)
+void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen)
 {
     isCloneNode_ = (id != INVALID_NODEID);
     clonedSourceNodeId_ = id;
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid context");
+        return;
+    }
+    auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(clonedSourceNodeId_);
+    if (clonedSurfaceNode) {
+        clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
+    }
+    RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d",
+        id, needOffscreen);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
@@ -1125,6 +1137,16 @@ void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 bool RSSurfaceRenderNode::GetForceUIFirst() const
 {
     return forceUIFirst_;
+}
+
+bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
+{
+    return uifirstForceDrawWithSkipped_;
+}
+
+void RSSurfaceRenderNode::SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
+{
+    uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
 }
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
@@ -3067,6 +3089,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isRotating_ = isRotating_;
     surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     surfaceParams->name_= name_;
+    surfaceParams->bundleName_= bundleName_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetVisibleRegion(visibleRegion_);
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());

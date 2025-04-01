@@ -39,6 +39,7 @@
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -308,6 +309,19 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     return true;
 }
 
+std::string GetBundleName(pid_t pid)
+{
+    std::string bundleName;
+    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        RS_LOGE("GetBundleName get appMgrClient fail.");
+        return bundleName;
+    }
+    int32_t uid = 0;
+    appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+    return bundleName;
+}
+
 bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 {
     return (callingPid == getpid()) || (callingPid == pid);
@@ -525,7 +539,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .nodeType = static_cast<RSSurfaceNodeType>(type),
                 .isTextureExportNode = isTextureExportNode,
                 .isSync = isSync,
-                .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType) };
+                .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
+                .bundleName = surfaceName == "RosenWeb" ? GetBundleName(ExtractPid(nodeId)) : "" };
             sptr<Surface> surface = nullptr;
             ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
             if ((err != ERR_OK) || (surface == nullptr)) {

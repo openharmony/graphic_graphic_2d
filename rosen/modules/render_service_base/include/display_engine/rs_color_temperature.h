@@ -80,10 +80,10 @@ private:
     void *extLibHandle_{nullptr};
     RSCctInterface* rSCctInterface_{nullptr};
 
-    using CreatFunc = RSCctInterface*(*)();
+    using CreateFunc = RSCctInterface*(*)();
     using DestroyFunc = void(*)();
 
-    CreatFunc create_{nullptr};
+    CreateFunc create_{nullptr};
     DestroyFunc destroy_{nullptr};
 #endif
 };

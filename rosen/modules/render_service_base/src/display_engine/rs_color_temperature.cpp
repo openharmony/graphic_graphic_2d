@@ -75,7 +75,7 @@ bool RSColorTemperature::LoadLibrary()
         RS_LOGI("ColorTemp dlopen error:%{public}s", dlerror());
         return false;
     }
-    create_ = reinterpret_cast<CreatFunc>(dlsym(extLibHandle_, "Create"));
+    create_ = reinterpret_cast<CreateFunc>(dlsym(extLibHandle_, "Create"));
     if (create_ == nullptr) {
         RS_LOGE("ColorTemp link create error!");
         return false;

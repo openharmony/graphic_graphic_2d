@@ -193,6 +193,7 @@ constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
 constexpr int MAX_PAIRS_PATHVERB = 4;
+constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 extern const char* const JSCOLOR[4];
 
 enum class DrawingErrorCode : int32_t {

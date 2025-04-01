@@ -45,9 +45,9 @@ void FilterParamTest::TearDown() {}
 HWTEST_F(FilterParamTest, SetFilterCacheEnable, Function | SmallTest | Level1)
 {
     FilterParam::SetFilterCacheEnable(true);
-    EXPECT_EQ(FilterParam::isFilterCacheEnable_, true);
+    EXPECT_EQ(FilterParam::IsFilterCacheEnable(), true);
     FilterParam::SetFilterCacheEnable(false);
-    EXPECT_EQ(FilterParam::isFilterCacheEnable_, false);
+    EXPECT_EQ(FilterParam::IsFilterCacheEnable(), false);
 }
 
 /**
@@ -59,9 +59,9 @@ HWTEST_F(FilterParamTest, SetFilterCacheEnable, Function | SmallTest | Level1)
 HWTEST_F(FilterParamTest, SetEffectMergeEnable, Function | SmallTest | Level1)
 {
     FilterParam::SetEffectMergeEnable(true);
-    EXPECT_EQ(FilterParam::isEffectMergeEnable_, true);
+    EXPECT_EQ(FilterParam::IsEffectMergeEnable(), true);
     FilterParam::SetEffectMergeEnable(false);
-    EXPECT_EQ(FilterParam::isEffectMergeEnable_, false);
+    EXPECT_EQ(FilterParam::IsEffectMergeEnable(), false);
 }
 
 /**
@@ -73,51 +73,37 @@ HWTEST_F(FilterParamTest, SetEffectMergeEnable, Function | SmallTest | Level1)
 HWTEST_F(FilterParamTest, SetBlurAdaptiveAdjust, Function | SmallTest | Level1)
 {
     FilterParam::SetBlurAdaptiveAdjust(true);
-    EXPECT_EQ(FilterParam::isBlurAdaptiveAdjust, true);
+    EXPECT_EQ(FilterParam::IsBlurAdaptiveAdjust(), true);
     FilterParam::SetBlurAdaptiveAdjust(false);
-    EXPECT_EQ(FilterParam::isBlurAdaptiveAdjust, false);
+    EXPECT_EQ(FilterParam::IsBlurAdaptiveAdjust(), false);
 }
 
 /**
- * @tc.name: IsFilterCacheEnable
- * @tc.desc: Verify the result of IsFilterCacheEnable function
+ * @tc.name: MesablurAllEnableTest
+ * @tc.desc: Verify the SetMesablurAllEnable and IsMesablurAllEnable function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(FilterParamTest, IsFilterCacheEnable, Function | SmallTest | Level1)
+HWTEST_F(FilterParamTest, MesablurAllEnableTest, Function | SmallTest | Level1)
 {
-    FilterParam::isFilterCacheEnable_ = true;
-    EXPECT_TRUE(FilterParam::IsFilterCacheEnable());
-    FilterParam::isFilterCacheEnable_ = false;
-    EXPECT_FALSE(FilterParam::IsFilterCacheEnable());
+    FilterParam::SetMesablurAllEnable(true);
+    EXPECT_EQ(FilterParam::IsMesablurAllEnable(), true);
+    FilterParam::SetMesablurAllEnable(false);
+    EXPECT_EQ(FilterParam::IsMesablurAllEnable(), false);
 }
 
 /**
- * @tc.name: IsEffectMergeEnable
- * @tc.desc: Verify the result of IsEffectMergeEnable function
+ * @tc.name: SimplifiedMesaModeTest
+ * @tc.desc: Verify the SetSimplifiedMesaMode and GetSimplifiedMesaMode function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(FilterParamTest, IsEffectMergeEnable, Function | SmallTest | Level1)
+HWTEST_F(FilterParamTest, SimplifiedMesaModeTest, Function | SmallTest | Level1)
 {
-    FilterParam::isEffectMergeEnable_ = true;
-    EXPECT_TRUE(FilterParam::IsEffectMergeEnable());
-    FilterParam::isEffectMergeEnable_ = false;
-    EXPECT_FALSE(FilterParam::IsEffectMergeEnable());
-}
-
-/**
- * @tc.name: IsBlurAdaptiveAdjust
- * @tc.desc: Verify the result of IsBlurAdaptiveAdjust function
- * @tc.type: FUNC
- * @tc.require: #IBIE4T
- */
-HWTEST_F(FilterParamTest, IsBlurAdaptiveAdjust, Function | SmallTest | Level1)
-{
-    FilterParam::isBlurAdaptiveAdjust = true;
-    EXPECT_TRUE(FilterParam::IsBlurAdaptiveAdjust());
-    FilterParam::isBlurAdaptiveAdjust = false;
-    EXPECT_FALSE(FilterParam::IsBlurAdaptiveAdjust());
+    for (int i = 0; i < 3; i++) {
+        FilterParam::SetSimplifiedMesaMode(i);
+        EXPECT_EQ(FilterParam::GetSimplifiedMesaMode(), i);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

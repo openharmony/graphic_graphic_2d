@@ -102,6 +102,7 @@
       *HgmFrameRateManager::ProcessRefreshRateVote*;
       *HgmFrameRateManager::ReportHiSysEvent*;
       *HgmFrameRateManager::SetAceAnimatorVote*;
+      *HgmFrameRateManager::SetTimeoutParamsFromConfig*;
       *HgmFrameRateManager::UniProcessDataForLtpo*;
       *HgmFrameRateManager::UpdateGuaranteedPlanVote*;
       *HgmFrameRateManager::UpdateSurfaceTime*;
@@ -154,6 +155,7 @@
 
       *HgmSimpleTimer::HgmSimpleTimer*;
       *HgmSimpleTimer::Reset*;
+      *HgmSimpleTimer::SetInterval*;
       *HgmSimpleTimer::Start*;
       *HgmSimpleTimer::Stop*;
 
@@ -168,6 +170,8 @@
       *HgmTouchManager::HandleRsFrame*;
       *HgmTouchManager::HandleTouchEvent*;
       *HgmTouchManager::HgmTouchManager*;
+      *HgmTouchManager::SetUpTimeout*;
+      *HgmTouchManager::SetRsIdleTimeout*;
       *HgmTouchManager::State2String*;
 
       *HgmPointerManager::CheckChangeStateValid*;

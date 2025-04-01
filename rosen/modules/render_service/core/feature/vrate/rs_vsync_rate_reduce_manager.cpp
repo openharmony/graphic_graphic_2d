@@ -22,7 +22,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "graphic_feature_param_manager.h"
-#include "main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
@@ -54,6 +54,7 @@ constexpr float V_VAL_LEVEL_2 = 0.8f;
 constexpr float V_VAL_LEVEL_3 = 0.6f;
 constexpr float V_VAL_LEVEL_4 = 0.4f;
 constexpr float V_VAL_LEVEL_5 = 0.2f;
+constexpr float V_VAL_LEVEL_6 = 0.1f;
 // ratio of area, such as biggest Rect and total visible Area
 constexpr float CONTINUOUS_RATIO_LEVEL_0 = 4.0f / 8.0f;
 constexpr float CONTINUOUS_RATIO_LEVEL_1 = 3.0f / 8.0f;
@@ -67,6 +68,8 @@ constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MIN_REFRESH_RATE = 30;
+constexpr int INVISBLE_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max();
+constexpr int V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max() >> 1;
 } // Anonymous namespace
 
 void RSVsyncRateReduceManager::SetFocusedNodeId(NodeId focusedNodeId)
@@ -217,11 +220,13 @@ void RSVsyncRateReduceManager::CalcRates()
     for (const auto& [nodeId, vRateInfo]: surfaceVRateMap_) {
         double vVal = 0;
         int visArea = vRateInfo.visibleRegion.Area();
-        if (nodeId == focusedNodeId_ ||
+        if (vRateInfo.visibleRegion.IsEmpty()) {
+            vVal = V_VAL_MIN;
+        } else if (nodeId == focusedNodeId_ ||
             visArea >= std::round(vRateInfo.appWindowArea * CONTINUOUS_RATIO_LEVEL_0)) {
             vVal = V_VAL_LEVEL_1;
         } else if (visArea <= std::round(vRateInfo.appWindowArea * CONTINUOUS_RATIO_LEVEL_5)) {
-            vVal = 0;
+            vVal = V_VAL_LEVEL_6;
         } else {
             RectI maxVisRect = CalcMaxVisibleRect(vRateInfo.visibleRegion, vRateInfo.appWindowArea).ToRectI();
             vVal = CalcVValByAreas(vRateInfo.appWindowArea, maxVisRect.width_ * maxVisRect.height_, visArea);
@@ -273,7 +278,10 @@ void RSVsyncRateReduceManager::NotifyVRates()
 int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (vVal <= 0) {
-        return std::numeric_limits<int>::max();
+        return INVISBLE_WINDOW_VSYNC_RATIO;
+    }
+    if (vVal <= V_VAL_LEVEL_6) {
+        return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;
     }
     if (vVal >= V_VAL_INTERVALS[0]) {
         return DEFAULT_RATE;
@@ -290,7 +298,7 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
             return std::min(minRate, rates[i - 1]);
         }
     }
-    return std::numeric_limits<int>::max();
+    return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;
 }
 
 inline Occlusion::Rect RSVsyncRateReduceManager::GetMaxVerticalRect(const Occlusion::Region &region)
@@ -375,7 +383,7 @@ float RSVsyncRateReduceManager::CalcVValByAreas(int windowArea, int maxVisRectAr
     if (visTotalArea >= level4Area || maxVisRectArea >= level5Area) {
         return V_VAL_LEVEL_5;
     }
-    return V_VAL_MIN;
+    return V_VAL_LEVEL_6;
 }
 
 uint64_t RSVsyncRateReduceManager::Now()

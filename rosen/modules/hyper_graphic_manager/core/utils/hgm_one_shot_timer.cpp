@@ -48,7 +48,8 @@ void HgmSimpleTimer::Start()
         if (startCallback_) {
             handler_->PostTask(startCallback_);
         }
-        handler_->PostTask([this] () { Loop(); }, name_, interval_.count());
+        auto time = interval_.load();
+        handler_->PostTask([this] () { Loop(); }, name_, time.count());
     }
 }
 
@@ -66,10 +67,17 @@ void HgmSimpleTimer::Reset()
     }
 }
 
+void HgmSimpleTimer::SetInterval(Interval valueMs)
+{
+    if (interval_.load() != valueMs) {
+        interval_.store(valueMs);
+    }
+}
+
 void HgmSimpleTimer::Loop()
 {
     auto delay = std::chrono::duration_cast<std::chrono::milliseconds>(
-        resetTimePoint_.load() + interval_ - clock_->Now());
+        resetTimePoint_.load() + interval_.load() - clock_->Now());
     if (delay > ZERO) {
         // reset
         if (running_.load() && handler_ != nullptr) {

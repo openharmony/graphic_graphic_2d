@@ -436,6 +436,11 @@ public:
         return name_;
     }
 
+    const std::string& GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -570,12 +575,15 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     void SetClonedNodeRenderDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable);
     bool IsCloneNode() const;
-    void SetClonedNodeId(NodeId id);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree);
 
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
+
+    bool GetForceDrawWithSkipped() const;
+    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped);
 
     void SetUIFirstIsPurge(bool IsPurge)
     {
@@ -1599,6 +1607,7 @@ private:
     bool needDrawFocusChange_ = false;
     bool forceUIFirstChanged_ = false;
     bool forceUIFirst_ = false;
+    bool uifirstForceDrawWithSkipped_ = false;
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
@@ -1696,6 +1705,7 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
+    std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     /*
@@ -1789,6 +1799,7 @@ private:
     bool isCloneNode_ = false;
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
+    bool clonedSourceNodeNeedOffscreen_ = true;
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};

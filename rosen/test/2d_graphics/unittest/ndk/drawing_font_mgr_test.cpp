@@ -314,6 +314,25 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontMgrTest014
+ * @tc.desc: test for get font family name with error data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest014, TestSize.Level1)
+{
+    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    ASSERT_NE(mgr, nullptr);
+
+    char *familyName = OH_Drawing_FontMgrGetFamilyName(mgr, -1);
+    EXPECT_EQ(familyName, nullptr);
+
+    familyName = OH_Drawing_FontMgrGetFamilyName(mgr, 20); // out of range
+    EXPECT_EQ(familyName, nullptr);
+
+    OH_Drawing_FontMgrDestroy(mgr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

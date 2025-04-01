@@ -210,6 +210,11 @@ public:
         return name_;
     }
 
+    std::string GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
@@ -765,6 +770,7 @@ private:
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
+    std::string bundleName_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;

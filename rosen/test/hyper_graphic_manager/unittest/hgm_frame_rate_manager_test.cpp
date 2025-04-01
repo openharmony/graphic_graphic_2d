@@ -734,7 +734,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
     auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
     ASSERT_NE(timer.handler_, nullptr);
     ASSERT_EQ(timer.name_, "HgmSimpleTimer");
-    ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
+    ASSERT_EQ(timer.interval_.load(), std::chrono::milliseconds(delay_60Ms));
     ASSERT_EQ(timer.startCallback_, nullptr);
     ASSERT_EQ(timer.expiredCallback_, nullptr);
     timer.Start();
@@ -915,6 +915,34 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
 }
 
 /**
+ * @tc.name: SetTimeoutParamsFromConfig
+ * @tc.desc: Verify the result of SetTimeoutParamsFromConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, SetTimeoutParamsFromConfig, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    auto time1 = mgr.touchManager_.upTimeoutTimer_.interval_.load();
+    auto time2 = mgr.touchManager_.rsIdleTimeoutTimer_.interval_.load();
+    ASSERT_EQ(time1, std::chrono::milliseconds(3000));
+    ASSERT_EQ(time2, std::chrono::milliseconds(600));
+
+    int32_t upTimeoutMs = 2000;
+    int32_t rsIdleTimeoutMs = 300;
+    configData->timeoutStrategyConfig_["up_timeout_ms"] = "2000";
+    configData->timeoutStrategyConfig_["rs_idle_timeout_ms"] = "300";
+
+    mgr.SetTimeoutParamsFromConfig(configData);
+    auto time3 = mgr.touchManager_.upTimeoutTimer_.interval_.load();
+    auto time4 = mgr.touchManager_.rsIdleTimeoutTimer_.interval_.load();
+    ASSERT_EQ(time3, std::chrono::milliseconds(upTimeoutMs));
+    ASSERT_EQ(time4, std::chrono::milliseconds(rsIdleTimeoutMs));
+}
+
+/**
  * @tc.name: GetStylusVec
  * @tc.desc: Verify the result of GetStylusVec
  * @tc.type: FUNC
@@ -1048,10 +1076,9 @@ HWTEST_F(HgmFrameRateMgrTest, HandleThermalFrameRate, Function | SmallTest | Lev
 {
     auto &hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
-    if (frameRateMgr == nullptr) {
+    if (frameRateMgr == nullptr || hgmCore.mPolicyConfigData_ == nullptr) {
         return;
     }
-
     frameRateMgr->HandleThermalFrameRate(true);
     EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, true);
 

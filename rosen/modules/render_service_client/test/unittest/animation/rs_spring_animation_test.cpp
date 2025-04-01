@@ -368,7 +368,7 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold003, TestSize.Level1)
     /**
      * @tc.steps: step2. start SetIsCustom test
      */
-    EXPECT_FALSE(springAnimation == nullptr);
+    ASSERT_TRUE(springAnimation != nullptr);
     EXPECT_FALSE(springAnimation->IsStarted());
     springAnimation->Start(canvasNode);
     EXPECT_TRUE(springAnimation->IsRunning());
@@ -399,7 +399,7 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold004, TestSize.Level1)
     /**
      * @tc.steps: step2. start SetIsCustom test
      */
-    EXPECT_FALSE(springAnimation == nullptr);
+    ASSERT_TRUE(springAnimation != nullptr);
     EXPECT_FALSE(springAnimation->IsStarted());
     springAnimation->Start(canvasNode);
     EXPECT_TRUE(springAnimation->IsRunning());
@@ -499,7 +499,7 @@ HWTEST_F(RSSpringAnimationTest, TargetTest002, TestSize.Level1)
     /**
      * @tc.steps: step2. settarget
      */
-    EXPECT_FALSE(springAnimation == nullptr);
+    ASSERT_TRUE(springAnimation != nullptr);
     EXPECT_FALSE(springAnimation->IsStarted());
     springAnimation->StartInner(canvasNode);
     auto target = springAnimation->target_.lock();
@@ -534,7 +534,7 @@ HWTEST_F(RSSpringAnimationTest, TargetTest003, TestSize.Level1)
     /**
      * @tc.steps: step2. settarget
      */
-    EXPECT_FALSE(springAnimation == nullptr);
+    ASSERT_TRUE(springAnimation != nullptr);
     EXPECT_FALSE(springAnimation->IsStarted());
     springAnimation->StartInner(nodeMock);
     auto target = springAnimation->target_.lock();

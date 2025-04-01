@@ -19,6 +19,8 @@
 #define XML_PARAM_FILTER_CACHE_ENABLED "FilterCacheEnabled"
 #define XML_PARAM_EFFECT_MERGE_ENABLED "EffectMergeEnabled"
 #define XML_PARAM_BLUR_ADAPTIVE_ADJUST "BlurAdaptiveAdjust"
+#define XML_PARAM_MESABLUR_ALL_ENABLED "MesablurAllEnabled"
+#define XML_PARAM_SIMPLIFIED_MESA_MODE "SimplifiedMesaMode"
 
 namespace OHOS::Rosen {
 
@@ -63,6 +65,18 @@ int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
         } else if (name == XML_PARAM_BLUR_ADAPTIVE_ADJUST) {
             FilterParam::SetBlurAdaptiveAdjust(isEnabled);
             RS_LOGI("FilterParamParse parse BlurAdaptiveAdjust %{public}d", FilterParam::IsBlurAdaptiveAdjust());
+        } else if (name == XML_PARAM_MESABLUR_ALL_ENABLED) {
+            FilterParam::SetMesablurAllEnable(isEnabled);
+            RS_LOGI("FilterParamParse parse MesablurAllEnabled %{public}d", FilterParam::IsMesablurAllEnable());
+        } else {
+            RS_LOGD("FilterParamParse unknown feature name");
+            return PARSE_ERROR;
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
+        if (name == XML_PARAM_SIMPLIFIED_MESA_MODE && IsNumber(val)) {
+            int num = stoi(val);
+            FilterParam::SetSimplifiedMesaMode(num);
+            RS_LOGI("FilterParamParse parse SetSimplifiedMesaMode %{public}d", FilterParam::GetSimplifiedMesaMode());
         } else {
             RS_LOGD("FilterParamParse unknown feature name");
             return PARSE_ERROR;
