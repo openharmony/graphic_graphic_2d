@@ -1477,7 +1477,7 @@ std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream
     uint32_t childCount;
     data.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
     for (uint32_t i = 0; i < childCount; i++) {
-        UnmarshalSubTreeLo(context, data, *node, fileVersion);
+        errorReason = UnmarshalSubTreeLo(context, data, *node, fileVersion);
         if (errorReason.size()) {
             return errorReason;
         }

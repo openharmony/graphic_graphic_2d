@@ -213,6 +213,7 @@ void RSGraphicTest::TearDown()
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     GetRootNode()->ResetTestSurface();
+    RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 }
@@ -230,7 +231,8 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     std::cout << "load subbtree to node file path is " << filePath << std::endl;
-    RSInterfaces::GetInstance().TestLoadFileSubTreeToNode(node->GetId(), filePath);
+    std::string command = "rssubtree_load " + std::to_string(node->GetId()) + " " + filePath;
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(LOAD_TREE_WAIT_TIME * RSParameterParse::Instance().testCaseWaitTime);
 }

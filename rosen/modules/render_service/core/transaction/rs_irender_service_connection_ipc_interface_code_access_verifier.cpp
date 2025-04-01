@@ -499,10 +499,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
 #endif
-        case static_cast<CodeUnderlyingType>(CodeEnumType::TEST_LOAD_FILE_SUB_TREE): {
-            hasPermission = IsStartByHdcd();
-            break;
-        }
         default: {
             break;
         }

@@ -447,8 +447,6 @@ public:
     int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);
