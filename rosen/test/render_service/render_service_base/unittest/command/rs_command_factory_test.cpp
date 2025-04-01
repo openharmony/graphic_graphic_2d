@@ -44,7 +44,7 @@ HWTEST_F(RSCommandFactoryTest, Register001, TestSize.Level1)
     RSCommandFactory& factory = RSCommandFactory::Instance();
     UnmarshallingFunc func = nullptr;
     factory.Register(0, 0, func);
-    EXPECT_TRUE(func == nullptr);
+    EXPECT_NE(factory.GetUnmarshallingFunc(0, 0), nullptr);
 
     uint16_t type = 65535; // for test
     uint16_t subtype = 65535; // for test
