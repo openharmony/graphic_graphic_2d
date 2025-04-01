@@ -409,6 +409,7 @@ private:
     bool hasSkipLayer_ = false;
     float curAlpha_ = 1.f;
     float globalZOrder_ = 0.0f;
+    bool isOffscreen_ = false;
     bool isScreenRotationAnimating_ = false;
     // use for not skip subtree prepare in first frame after screen rotation
     bool isFirstFrameAfterScreenRotation_ = false;

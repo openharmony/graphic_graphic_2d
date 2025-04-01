@@ -1466,6 +1466,9 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     auto preGlobalShouldPaint = globalShouldPaint_;
     globalShouldPaint_ &= node.ShouldPaint();
+    const auto& property = node.GetRenderProperties();
+    auto preIsOffscreen = isOffscreen_;
+    isOffscreen_ = isOffscreen_ || (property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone());
     CheckFilterCacheNeedForceClearOrSave(node);
     if (IsAccessibilityConfigChanged()) {
         node.SetIsAccessibilityConfigChanged(true);
@@ -1487,6 +1490,11 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     // update prepare clip before children
     UpdatePrepareClip(node);
     node.UpdateCurCornerRadius(curCornerRadius_);
+    // The meaning of first prepared offscreen node is either its colorBlendApplyType is not FAST or
+    // its colorBlendMode is NONE.
+    // Node will classified as blendWithBackground if it is the first prepared offscreen node and
+    // its colorBlendMode is neither NONE nor SRC_OVER.
+    node.SetBlendWithBackground(!preIsOffscreen && isOffscreen_ && property.IsColorBlendModeValid());
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
@@ -1500,6 +1508,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
+    isOffscreen_ = preIsOffscreen;
     curCornerRadius_ = curCornerRadius;
     node.OpincUpdateRootFlag(unchangeMarkEnable_);
     globalShouldPaint_ = preGlobalShouldPaint;
@@ -3216,7 +3225,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
         node.CalDrawBehindWindowRegion();
         globalFilterRect = node.GetFilterRect();
     }
-    if (node.GetRenderProperties().NeedFilter()) {
+    if (node.GetRenderProperties().NeedFilter() || node.IsBlendWithBackground()) {
         UpdateHwcNodeEnableByFilterRect(
             curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node),
             node.zOrderForCalcHwcNodeEnableByFilter_);

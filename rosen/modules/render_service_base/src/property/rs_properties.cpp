@@ -4593,7 +4593,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || IsColorBlendModeValid();
+                  mask_;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4715,7 +4715,6 @@ void RSProperties::SetColorBlendMode(int colorBlendMode)
     }
     SetDirty();
     contentDirty_ = true;
-    filterNeedUpdate_ = true;
 }
 
 int RSProperties::GetColorBlendMode() const
@@ -4729,6 +4728,11 @@ bool RSProperties::IsColorBlendModeValid() const
            colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE);
 }
 
+bool RSProperties::IsColorBlendModeNone() const
+{
+    return colorBlendMode_ == static_cast<int>(RSColorBlendMode::NONE);
+}
+
 void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
 {
     colorBlendApplyType_ = std::clamp<int>(colorBlendApplyType, 0, static_cast<int>(RSColorBlendApplyType::MAX));
@@ -4740,6 +4744,11 @@ void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
 int RSProperties::GetColorBlendApplyType() const
 {
     return colorBlendApplyType_;
+}
+
+bool RSProperties::IsColorBlendApplyTypeOffscreen() const
+{
+    return colorBlendApplyType_ != static_cast<int>(RSColorBlendApplyType::FAST);
 }
 
 bool RSProperties::GetHaveEffectRegion() const
