@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_LUMINANCE_CONTROL_H
 
 #include <cinttypes>
+#include <vector>
 
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
@@ -34,6 +35,28 @@ enum HdrStatus : uint32_t {
     HDR_PHOTO = 0x0001,
     HDR_VIDEO = 0x0010,
     AI_HDR_VIDEO = 0x0100,
+};
+
+class RSLumInterface {
+public:
+    virtual ~RSLumInterface() = default;
+    virtual bool Init() = 0;
+    virtual bool SetHdrStatus(ScreenId, HdrStatus) = 0;
+    virtual bool IsHdrOn(ScreenId) const = 0;
+    virtual bool IsDimmingOn(ScreenId) = 0;
+    virtual void DimmingIncrease(ScreenId) = 0;
+    virtual void SetSdrLuminance(ScreenId, uint32_t) = 0;
+    virtual uint32_t GetNewHdrLuminance(ScreenId) = 0;
+    virtual void SetNowHdrLuminance(ScreenId, uint32_t) = 0;
+    virtual bool IsNeedUpdateLuminance(ScreenId) = 0;
+    virtual float GetSdrDisplayNits(ScreenId) = 0;
+    virtual float GetDisplayNits(ScreenId) = 0;
+    virtual double GetNonlinearRatio(ScreenId, uint32_t) = 0;
+    virtual float CalScaler(const float&, const std::vector<uint8_t>&, const float&) = 0;
+    virtual bool IsHdrPictureOn() = 0;
+    virtual bool IsForceCloseHdr() const = 0;
+    virtual void ForceCloseHdr(uint32_t, bool) = 0;
+    virtual bool IsCloseHardwareHdr() const = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -60,7 +83,7 @@ public:
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
     RSB_EXPORT float CalScaler(const float& maxContentLightLevel,
-        int32_t dynamicMetadataSize, const float& ratio = 1.0f);
+        const std::vector<uint8_t>& dyMetadata, const float& ratio = 1.0f);
     RSB_EXPORT bool IsHdrPictureOn();
 
     RSB_EXPORT bool IsForceCloseHdr();
@@ -72,47 +95,17 @@ private:
     ~RSLuminanceControl();
 #ifdef ROSEN_OHOS
     bool LoadLibrary();
-    bool LoadStatusControl();
-    bool LoadLumControl();
-    bool LoadTmoControl();
     void CloseLibrary();
 
     bool initStatus_{false};
     void *extLibHandle_{nullptr};
+    RSLumInterface* rSLumInterface_{nullptr};
 
-    using SetHdrStatusFunc = bool(*)(ScreenId, HdrStatus);
-    using IsHdrOnFunc = bool(*)(ScreenId);
-    using IsDimmingOnFunc = bool(*)(ScreenId);
-    using DimmingIncreaseFunc = void(*)(ScreenId);
-    using SetSdrLuminanceFunc = void(*)(ScreenId, uint32_t);
-    using GetNewHdrLuminanceFunc = uint32_t(*)(ScreenId);
-    using SetNowHdrLuminanceFunc = void(*)(ScreenId, uint32_t);
-    using IsNeedUpdateLuminanceFunc = bool(*)(ScreenId);
-    using GetSdrDisplayNitsFunc = float(*)(ScreenId);
-    using GetDisplayNitsFunc = float(*)(ScreenId);
-    using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
-    using CalScalerFunc = float(*)(const float&, int32_t, const float&);
-    using IsHdrPictureOnFunc = bool(*)();
-    using IsForceCloseHdrFunc = bool(*)();
-    using ForceCloseHdrFunc = void(*)(uint32_t, bool);
-    using IsCloseHardwareHdrFunc = bool(*)();
+    using CreateFunc = RSLumInterface*(*)();
+    using DestroyFunc = void(*)();
 
-    SetHdrStatusFunc setHdrStatus_{nullptr};
-    IsHdrOnFunc isHdrOn_{nullptr};
-    IsDimmingOnFunc isDimmingOn_{nullptr};
-    DimmingIncreaseFunc dimmingIncrease_{nullptr};
-    SetSdrLuminanceFunc setSdrLuminance_{nullptr};
-    GetNewHdrLuminanceFunc getNewHdrLuminance_{nullptr};
-    SetNowHdrLuminanceFunc setNowHdrLuminance_{nullptr};
-    IsNeedUpdateLuminanceFunc isNeedUpdateLuminance_{nullptr};
-    GetSdrDisplayNitsFunc getSdrDisplayNits_{nullptr};
-    GetDisplayNitsFunc getDisplayNits_{nullptr};
-    GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
-    CalScalerFunc calScaler_{nullptr};
-    IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
-    IsForceCloseHdrFunc isForceCloseHdr_{nullptr};
-    ForceCloseHdrFunc forceCloseHdr_{nullptr};
-    IsCloseHardwareHdrFunc isCloseHardwareHdr_{nullptr};
+    CreateFunc create_{nullptr};
+    DestroyFunc destroy_{nullptr};
 #endif
 };
 

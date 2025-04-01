@@ -95,20 +95,13 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl002, TestSize.Level1)
 {
     auto& luminCtrl = RSLuminanceControl::Get();
     std::ignore = luminCtrl.LoadLibrary();
-    std::ignore = luminCtrl.LoadStatusControl();
-    std::ignore = luminCtrl.LoadLumControl();
-    std::ignore = luminCtrl.LoadTmoControl();
     luminCtrl.CloseLibrary();
 
     int32_t extLibHandle = 0;
     luminCtrl.extLibHandle_ = &extLibHandle;
     std::ignore = luminCtrl.LoadLibrary();
-    std::ignore = luminCtrl.LoadStatusControl();
-    std::ignore = luminCtrl.LoadLumControl();
-    std::ignore = luminCtrl.LoadTmoControl();
     luminCtrl.CloseLibrary();
     luminCtrl.extLibHandle_ = nullptr;
-    std::ignore = luminCtrl.LoadTmoControl();
 
     ASSERT_NE((&luminCtrl), nullptr);
 }
@@ -123,11 +116,11 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl003, TestSize.Level1)
 {
     auto& luminCtrl = RSLuminanceControl::Get();
     float maxCll = 1000.0f;
-    int32_t dyMetadataSize = 50.0f;
+    std::vector<uint8_t> dyMetadata = {1, 2, 3};
     float ratio = 0.0f;
-    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadataSize, ratio), 0.0f);
+    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio), 0.0f);
     ratio = 1.0f;
-    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadataSize, ratio), HDR_DEFAULT_SCALER);
+    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio), HDR_DEFAULT_SCALER);
 }
 
 /**

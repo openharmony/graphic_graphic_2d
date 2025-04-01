@@ -28,7 +28,6 @@ namespace Rosen {
 
 namespace {
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
-constexpr uint32_t DEFAULT_DYNAMIC_METADATA_SIZE = 50;
 constexpr size_t MATRIX_SIZE = 9;
 }; // namespace
 
@@ -185,7 +184,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
-            ret == GSERROR_OK ? parameter.dynamicMetadata.size() : DEFAULT_DYNAMIC_METADATA_SIZE, hdrBrightness);
+            ret == GSERROR_OK ? parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrBrightness);
     }
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
@@ -198,8 +197,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
     // color temperature
-    parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, ret == GSERROR_OK ?
-        parameter.dynamicMetadata : std::vector<uint8_t>(), parameter.inputColorSpace.colorSpaceInfo.matrix);
+    parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, (ret == GSERROR_OK &&
+        dynamicRangeMode != DynamicRangeMode::STANDARD) ? parameter.dynamicMetadata : std::vector<uint8_t>(),
+        parameter.inputColorSpace.colorSpaceInfo.matrix);
     if (parameter.layerLinearMatrix.size() >= MATRIX_SIZE) {
         // main diagonal indices of a 3x3 matrix are 0, 4 and 8
         RS_LOGD("bhdr Matrix[0]:%{public}.2f. Matrix[4]:%{public}.2f. Matrix[8]:%{public}.2f",
