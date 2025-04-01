@@ -47,6 +47,7 @@
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;

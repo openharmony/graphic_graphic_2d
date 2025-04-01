@@ -158,6 +158,9 @@
 #include "rs_frame_deadline_predict.h"
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
 
+#include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature_cfg/feature_param/feature_param.h"
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
