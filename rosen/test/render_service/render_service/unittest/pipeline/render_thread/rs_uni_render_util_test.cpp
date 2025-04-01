@@ -579,69 +579,6 @@ HWTEST_F(RSUniRenderUtilTest, GetLayerTransformTest002, TestSize.Level2)
 }
 
 /*
- * @tc.name: HandleHardwareNodeTest
- * @tc.desc: Verify function HandleHardwareNode
- * @tc.type: FUNC
- * @tc.require: issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    RSUniRenderUtil::HandleHardwareNode(node);
-    node->hasHardwareNode_ = true;
-    RSUniRenderUtil::HandleHardwareNode(node);
-    node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
-    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    RSUniRenderUtil::HandleHardwareNode(node);
-    EXPECT_FALSE(node->GetRSSurfaceHandler()->GetBuffer());
-}
-
-/*
- * @tc.name: HandleHardwareNodeTest002
- * @tc.desc: Test HandleHardwareNode add child to node
- * @tc.type: FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest002, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->hasHardwareNode_ = true;
-    id = 2;
-    auto child = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(child, nullptr);
-    node->AddChild(child);
-    RSUniRenderUtil::HandleHardwareNode(node);
-}
-
-/*
- * @tc.name: HandleHardwareNodeTest003
- * @tc.desc: Test HandleHardwareNode add childHardwareEnabledNodes_ to node
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest003, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->hasHardwareNode_ = true;
-    id = 2;
-    auto child = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(child, nullptr);
-    node->AddChild(child);
-
-    std::shared_ptr<RSSurfaceRenderNode> rsNode = nullptr;
-    std::weak_ptr<RSSurfaceRenderNode> rsNodeF = rsNode;
-    std::weak_ptr<RSSurfaceRenderNode> rsNodeT = std::make_shared<RSSurfaceRenderNode>(1);
-    node->childHardwareEnabledNodes_.emplace_back(rsNodeF);
-    node->childHardwareEnabledNodes_.emplace_back(rsNodeT);
-    RSUniRenderUtil::HandleHardwareNode(node);
-}
-
-/*
  * @tc.name: SortSubThreadNodesTest
  * @tc.desc: Verify function SortSubThreadNodes
  * @tc.type: FUNC

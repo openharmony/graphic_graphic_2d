@@ -1162,30 +1162,6 @@ void RSUniRenderUtil::CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRen
     oldSubThreadNodes = subThreadNodes;
 }
 
-void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
-{
-    if (node == nullptr || !node->HasHardwareNode()) {
-        return;
-    }
-    auto appWindow = node;
-    if (node->IsLeashWindow()) {
-        for (auto& child : *node->GetSortedChildren()) {
-            auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
-                appWindow = surfaceNodePtr;
-                break;
-            }
-        }
-    }
-    auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
-    for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
-        auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
-        if (hardwareEnabledNodePtr) {
-            hardwareEnabledNodePtr->SetHardwareDisabledByCache(false);
-        }
-    }
-}
-
 void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface)
 {
     RS_LOGD("ClearCacheSurface node: [%{public}" PRIu64 "]", node.GetId());

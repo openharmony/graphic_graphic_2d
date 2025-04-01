@@ -291,11 +291,6 @@ public:
         return isHardwareForcedByBackgroundAlpha_;
     }
 
-    void SetHardwareDisabledByCache(bool disabledByCache)
-    {
-        isHardwareDisabledByCache_ = disabledByCache;
-    }
-
     void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
     {
         isHardwareForcedDisabledByFilter_ = forcesDisabled;
@@ -1582,7 +1577,6 @@ private:
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
     bool isHardwareForcedDisabledBySrcRect_ = false;
-    bool isHardwareDisabledByCache_ = false;
     // Mark if the leash or main window node has transparent self-drawing node
     bool existTransparentHardwareEnabledNode_ = false;
     bool animateState_ = false;
