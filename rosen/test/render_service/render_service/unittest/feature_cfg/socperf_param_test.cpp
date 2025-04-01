@@ -44,26 +44,10 @@ void SOCPerfParamTest::TearDown() {}
  */
 HWTEST_F(SOCPerfParamTest, SetMultilayersSOCPerfEnable, Function | SmallTest | Level1)
 {
-    SOCPerfParam socPerfParam;
-    socPerfParam.SetMultilayersSOCPerfEnable(true);
-    EXPECT_EQ(socPerfParam.isMultilayersSOCPerfEnable_, true);
-    socPerfParam.SetMultilayersSOCPerfEnable(false);
-    EXPECT_EQ(socPerfParam.isMultilayersSOCPerfEnable_, false);
-}
-
-/**
- * @tc.name: SetUnlockSOCPerfEnable
- * @tc.desc: Verify the SetUnlockSOCPerfEnable function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(SOCPerfParamTest, SetUnlockSOCPerfEnable, Function | SmallTest | Level1)
-{
-    SOCPerfParam socPerfParam;
-    socPerfParam.SetUnlockSOCPerfEnable(true);
-    EXPECT_EQ(socPerfParam.isUnlockSOCPerfEnable_, true);
-    socPerfParam.SetUnlockSOCPerfEnable(false);
-    EXPECT_EQ(socPerfParam.isUnlockSOCPerfEnable_, false);
+    SOCPerfParam::SetMultilayersSOCPerfEnable(true);
+    EXPECT_EQ(SOCPerfParam::IsMultilayersSOCPerfEnable(), true);
+    SOCPerfParam::SetMultilayersSOCPerfEnable(false);
+    EXPECT_EQ(SOCPerfParam::IsMultilayersSOCPerfEnable(), false);
 }
 
 /**
@@ -74,57 +58,10 @@ HWTEST_F(SOCPerfParamTest, SetUnlockSOCPerfEnable, Function | SmallTest | Level1
  */
 HWTEST_F(SOCPerfParamTest, SetBlurSOCPerfEnable, Function | SmallTest | Level1)
 {
-    SOCPerfParam socPerfParam;
-    socPerfParam.SetBlurSOCPerfEnable(true);
-    EXPECT_EQ(socPerfParam.isBlurSOCPerfEnable_, true);
-    socPerfParam.SetBlurSOCPerfEnable(false);
-    EXPECT_EQ(socPerfParam.isBlurSOCPerfEnable_, false);
+    SOCPerfParam::SetBlurSOCPerfEnable(true);
+    EXPECT_EQ(SOCPerfParam::IsBlurSOCPerfEnable(), true);
+    SOCPerfParam::SetBlurSOCPerfEnable(false);
+    EXPECT_EQ(SOCPerfParam::IsBlurSOCPerfEnable(), false);
 }
-
-/**
- * @tc.name: IsMultilayersSOCPerfEnable
- * @tc.desc: Verify the result of IsMultilayersSOCPerfEnable function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(SOCPerfParamTest, IsMultilayersSOCPerfEnable, Function | SmallTest | Level1)
-{
-    SOCPerfParam socPerfParam;
-    socPerfParam.isMultilayersSOCPerfEnable_ = true;
-    EXPECT_TRUE(socPerfParam.IsMultilayersSOCPerfEnable());
-    socPerfParam.isMultilayersSOCPerfEnable_ = false;
-    EXPECT_FALSE(socPerfParam.IsMultilayersSOCPerfEnable());
-}
-
-/**
- * @tc.name: IsUnlockSOCPerfEnable
- * @tc.desc: Verify the result of IsUnlockSOCPerfEnable function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(SOCPerfParamTest, IsUnlockSOCPerfEnable, Function | SmallTest | Level1)
-{
-    SOCPerfParam socPerfParam;
-    socPerfParam.isUnlockSOCPerfEnable_ = true;
-    EXPECT_TRUE(socPerfParam.IsUnlockSOCPerfEnable());
-    socPerfParam.isUnlockSOCPerfEnable_ = false;
-    EXPECT_FALSE(socPerfParam.IsUnlockSOCPerfEnable());
-}
-
-/**
- * @tc.name: IsBlurSOCPerfEnable
- * @tc.desc: Verify the result of IsBlurSOCPerfEnable function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(SOCPerfParamTest, IsBlurSOCPerfEnable, Function | SmallTest | Level1)
-{
-    SOCPerfParam socPerfParam;
-    socPerfParam.isBlurSOCPerfEnable_ = true;
-    EXPECT_TRUE(socPerfParam.IsBlurSOCPerfEnable());
-    socPerfParam.isBlurSOCPerfEnable_ = false;
-    EXPECT_FALSE(socPerfParam.IsBlurSOCPerfEnable());
-}
-
 } // namespace Rosen
 } // namespace OHOS

@@ -540,9 +540,7 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
-    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
-    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+    if (!SOCPerfParam::IsBlurSOCPerfEnable()) {
         return;
     }
 
@@ -828,13 +826,7 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    bool isDeeplyRelGpuResEnable = false;
-    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
-    if (relGpuResParam != nullptr) {
-        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
-    }
-    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
+    auto task = [this, moment, deeply, isDefaultClean]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -854,7 +846,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || isDeeplyRelGpuResEnable) {
+            if (deeply || MEMParam::IsDeeplyRelGpuResEnable()) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -890,7 +882,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
+            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
