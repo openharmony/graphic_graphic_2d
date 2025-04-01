@@ -588,7 +588,7 @@ HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level1)
 
 /*
  * @tc.name: SetTextBlob001
- * @tc.desc: test SetTextBlob with textBlob
+ * @tc.desc: test SetTextBlob with null textBlob
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level1)
@@ -604,6 +604,22 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level1)
     EXPECT_NE(hmSymbolRun.textBlob_, nullptr);
     hmSymbolRun.SetTextBlob(nullptr);
     EXPECT_NE(hmSymbolRun.textBlob_, nullptr);
+}
+
+/*
+ * @tc.name: SetTextBlob002
+ * @tc.desc: test SetTextBlob with same content(before:"A",after:"A",Corresponding truth table: 111)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob002, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "A";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
 
     //glyphId1:"A", glyphId2:"A"
     //glyphId1.size() == 1,glyphId2.size() == 1,glyphId1[0] == glyphId2[0]
@@ -612,54 +628,172 @@ HWTEST_F(OHHmSymbolRunTest, SetTextBlob001, TestSize.Level1)
     hmSymbolRun.currentAnimationHasPlayed_ = true;
     hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetTextBlob003
+ * @tc.desc: test SetTextBlob with different content(before:"A",after:"B",Corresponding truth table: 110)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob003, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "A";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
 
     //glyphId1:"A", glyphId2:"B"
     //glyphId1.size() == 1,glyphId2.size() == 1,glyphId1[0] != glyphId2[0]
-    const char* str3 = "B";
-    auto textblob3 = Drawing::TextBlob::MakeFromText(str3, strlen(str3), font, Drawing::TextEncoding::UTF8);
-    hmSymbolRun.SetTextBlob(textblob3);
+    const char* str2 = "B";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
+    hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
 
-    //glyphId1:"B", glyphId2:"BA"
+/*
+ * @tc.name: SetTextBlob004
+ * @tc.desc: test SetTextBlob with different content(before:"A",after:"AB",Corresponding truth table: 101)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob004, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "A";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
+
+    //glyphId1:"A", glyphId2:"AB"
     //glyphId1.size() == 1,glyphId2.size() != 1,glyphId1[0] == glyphId2[0]
-    const char* str4 = "BA";
-    auto textblob4 = Drawing::TextBlob::MakeFromText(str4, strlen(str4), font, Drawing::TextEncoding::UTF8);
-    hmSymbolRun.currentAnimationHasPlayed_ = true;
-    hmSymbolRun.SetTextBlob(textblob4);
-    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
-
-    //glyphId1:"BA", glyphId2:"A"
-    //glyphId1.size() != 1,glyphId2.size() == 1,glyphId1[0] != glyphId2[0]
+    const char* str2 = "AB";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     hmSymbolRun.currentAnimationHasPlayed_ = true;
     hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetTextBlob005
+ * @tc.desc: test SetTextBlob with different content(before:"A",after:"BA",Corresponding truth table: 100)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob005, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "A";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
 
     //glyphId1:"A", glyphId2:"BA"
     //glyphId1.size() == 1,glyphId2.size() != 1,glyphId1[0] != glyphId2[0]
+    const char* str2 = "BA";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     hmSymbolRun.currentAnimationHasPlayed_ = true;
-    hmSymbolRun.SetTextBlob(textblob4);
+    hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
 
-    //glyphId1:"BA", glyphId2:"AB"
-    //glyphId1.size() != 1,glyphId2.size() != 1,glyphId1[0] != glyphId2[0]
-    const char* str5 = "AB";
-    auto textblob5 = Drawing::TextBlob::MakeFromText(str5, strlen(str5), font, Drawing::TextEncoding::UTF8);
+/*
+ * @tc.name: SetTextBlob006
+ * @tc.desc: test SetTextBlob with different content(before:"AB",after:"A",Corresponding truth table: 011)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob006, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "AB";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
+
+    //glyphId1:"AB", glyphId2:"A"
+    //glyphId1.size() != 1,glyphId2.size() == 1,glyphId1[0] == glyphId2[0]
+    const char* str2 = "A";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     hmSymbolRun.currentAnimationHasPlayed_ = true;
-    hmSymbolRun.SetTextBlob(textblob5);
+    hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetTextBlob007
+ * @tc.desc: test SetTextBlob with different content(before:"AB",after:"B",Corresponding truth table: 010)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob007, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "AB";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
+
+    //glyphId1:"AB", glyphId2:"B"
+    //glyphId1.size() != 1,glyphId2.size() == 1,glyphId1[0] != glyphId2[0]
+    const char* str2 = "B";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
+    hmSymbolRun.currentAnimationHasPlayed_ = true;
+    hmSymbolRun.SetTextBlob(textblob2);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetTextBlob008
+ * @tc.desc: test SetTextBlob with different content(before:"AB",after:"AC",Corresponding truth table: 001)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob008, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "AB";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
 
     //glyphId1:"AB", glyphId2:"AC"
     //glyphId1.size() != 1,glyphId2.size() != 1,glyphId1[0] == glyphId2[0]
-    const char* str6 = "AC";
-    auto textblob6 = Drawing::TextBlob::MakeFromText(str6, strlen(str6), font, Drawing::TextEncoding::UTF8);
+    const char* str2 = "AC";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     hmSymbolRun.currentAnimationHasPlayed_ = true;
-    hmSymbolRun.SetTextBlob(textblob6);
+    hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+}
 
-    //glyphId1:"AC", glyphId2:"B"
-    //glyphId1.size() != 1,glyphId2.size() == 1,glyphId1[0] != glyphId2[0]
+/*
+ * @tc.name: SetTextBlob009
+ * @tc.desc: test SetTextBlob with different content(before:"AB",after:"BA",Corresponding truth table: 000)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetTextBlob009, TestSize.Level1)
+{
+    Drawing::Font font;
+    const char* str1 = "AB";
+    auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
+        animationFunc = nullptr;
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
+
+    //glyphId1:"AB", glyphId2:"BA"
+    //glyphId1.size() != 1,glyphId2.size() != 1,glyphId1[0] != glyphId2[0]
+    const char* str2 = "BA";
+    auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     hmSymbolRun.currentAnimationHasPlayed_ = true;
-    hmSymbolRun.SetTextBlob(textblob3);
+    hmSymbolRun.SetTextBlob(textblob2);
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
 }
 
