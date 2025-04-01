@@ -791,8 +791,9 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curAlpha_ = 1.0f;
     globalZOrder_ = 0.0f;
     hasSkipLayer_ = false;
-    curZorderForCalcHwcNodeEnableByFilter_ = 0;
-    node.zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
+    rsUniHwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_ = 0;
+    node.GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
+        rsUniHwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
     node.UpdateRotation();
     if (!(RSMainThread::Instance()->IsRequestedNextVSync() || RSMainThread::Instance()->GetNextDVsyncAnimateFlag())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
@@ -1614,7 +1615,8 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
+            child->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
+                rsUniHwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
             child->QuickPrepare(shared_from_this());
             curContainerDirty_ = containerDirty;
         });
@@ -1629,7 +1631,8 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             rsDisplayNodeChildNum_++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
+            child->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
+                rsUniHwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
             child->QuickPrepare(shared_from_this());
         });
     }
@@ -3228,7 +3231,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     if (node.GetRenderProperties().NeedFilter() || node.IsBlendWithBackground()) {
         UpdateHwcNodeEnableByFilterRect(
             curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node),
-            node.zOrderForCalcHwcNodeEnableByFilter_);
+            node.GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_);
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect, globalHwcFilterRect);
@@ -3543,8 +3546,9 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
         bool isBackground = filterNode->GetRenderProperties().GetBackgroundFilter() != nullptr;
         bool isReverseNode = filterNode->GetCurFrameInfoDetail().curFrameReverseChildren ||
             node->GetCurFrameInfoDetail().curFrameReverseChildren;
-        if (filterZorder != 0 && node->zOrderForCalcHwcNodeEnableByFilter_ != 0 && isBackground && !isReverseNode &&
-            !isReverseOrder && node->zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
+        if (filterZorder != 0 && node->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ != 0 &&
+            isBackground && !isReverseNode && !isReverseOrder &&
+            node->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ > filterZorder) {
             return;
         }
     }

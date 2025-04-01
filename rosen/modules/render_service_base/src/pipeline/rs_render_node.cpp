@@ -918,7 +918,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
-        out += ", zOrder: " + std::to_string(zOrderForCalcHwcNodeEnableByFilter_);
+        out += ", zOrder: " + std::to_string(hwcRecorder_.zOrderForCalcHwcNodeEnableByFilter_);
     }
 #endif
     
