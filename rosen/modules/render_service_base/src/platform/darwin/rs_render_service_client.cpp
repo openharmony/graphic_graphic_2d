@@ -766,7 +766,7 @@ void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::
 }
 
 bool RSRenderServiceClient::GetHighContrastTextState()
-{ 
+{
     return false;
 }
 } // namespace Rosen
