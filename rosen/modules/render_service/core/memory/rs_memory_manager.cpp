@@ -88,7 +88,7 @@ constexpr int KILL_PROCESS_TYPE = 301;
 }
 
 std::mutex MemoryManager::mutex_;
-std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
+std::unordered_map<pid_t, uint64_t> MemoryManager::pidInfo_;
 uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
@@ -599,7 +599,7 @@ void MemoryManager::DumpMemorySnapshot(DfxString& log)
     std::unordered_map<pid_t, MemorySnapshotInfo> memorySnapshotInfo;
     MemorySnapshot::Instance().GetMemorySnapshot(memorySnapshotInfo);
     for (auto& [pid, snapshotInfo] : memorySnapshotInfo) {
-        std::string infoStr = "pid: " + std::to_string(pid) +
+        std::string infoStr = "pid: " + std::to_string(pid) + " " + snapshotInfo.bundleName +
             ", cpu: " + std::to_string(snapshotInfo.cpuMemory / MEMUNIT_RATE) +
             "KB, gpu: " + std::to_string(snapshotInfo.gpuMemory / MEMUNIT_RATE) + "KB";
         log.AppendFormat("%s\n", infoStr.c_str());
@@ -692,6 +692,8 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
         return;
     }
     frameCount_ = 0;
+
+    FillMemorySnapshot();
     std::unordered_map<pid_t, size_t> gpuMemory;
     gpuContext->GetUpdatedMemoryMap(gpuMemory);
 
@@ -707,7 +709,6 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
             totalMemoryReportTime_ = currentTime + MEMORY_REPORT_INTERVAL;
         }
 
-        std::string bundleName;
         bool needReport = false;
         for (const auto& [pid, memoryInfo] : infoMap) {
             if (memoryInfo.TotalMemory() <= memoryWarning_) {
@@ -718,24 +719,40 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
                 std::lock_guard<std::mutex> lock(mutex_);
                 auto it = pidInfo_.find(pid);
                 if (it == pidInfo_.end()) {
-                    int32_t uid;
-                    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-                    appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
-                    pidInfo_.emplace(pid, std::make_pair(bundleName, currentTime + MEMORY_REPORT_INTERVAL));
+                    pidInfo_.emplace(pid, currentTime + MEMORY_REPORT_INTERVAL);
                     needReport = true;
-                } else if (currentTime > it->second.second) {
-                    it->second.second = currentTime + MEMORY_REPORT_INTERVAL;
-                    bundleName = it->second.first;
+                } else if (currentTime > it->second) {
+                    it->second = currentTime + MEMORY_REPORT_INTERVAL;
                     needReport = true;
                 }
             }
             if (needReport) {
-                MemoryOverReport(pid, memoryInfo, bundleName, RSEventName::RENDER_MEMORY_OVER_WARNING);
+                MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING);
             }
         }
     };
     RSBackgroundThread::Instance().PostTask(task);
 #endif
+}
+ 
+void MemoryManager::FillMemorySnapshot()
+{
+    std::vector<pid_t> pidList;
+    MemorySnapshot::Instance().GetDirtyMemorySnapshot(pidList);
+    if (pidList.size() == 0) {
+        return;
+    }
+
+    std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    for (auto& pid : pidList) {
+        MemorySnapshotInfo& mInfo = infoMap[pid];
+        int32_t uid;
+        auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        appMgrClient.GetBundleNameByPid(pid, mInfo.bundleName, uid);
+    }
+#endif
+    MemorySnapshot::Instance().FillMemorySnapshot(infoMap);
 }
 
 static void KillProcessByPid(const pid_t pid, const std::string& processName, const std::string& reason)
@@ -766,10 +783,6 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     if (isGpu) {
         info.gpuMemory = overflowMemory;
     }
-    int32_t uid;
-    std::string bundleName;
-    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-    appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
     RSMainThread::Instance()->PostTask([]() {
         RS_TRACE_NAME_FMT("RSMem Dump Task");
         std::unordered_set<std::u16string> argSets;
@@ -787,13 +800,18 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
         + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
         + std::to_string(info.TotalMemory()) + "]";
-    MemoryOverReport(pid, info, bundleName, RSEventName::RENDER_MEMORY_OVER_ERROR);
-    KillProcessByPid(pid, bundleName, reason);
+
+    if (info.bundleName.empty()) {
+        int32_t uid;
+        auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        appMgrClient.GetBundleNameByPid(pid, info.bundleName, uid);
+    }
+    MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR);
+    KillProcessByPid(pid, info.bundleName, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
-void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
-    const std::string& reportName)
+void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName)
 {
     std::string gpuMemInfo;
     std::ifstream gpuMemInfoFile;
@@ -811,14 +829,14 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
-        "BUNDLE_NAME", bundleName,
+        "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
         "GPU_PROCESS_INFO", gpuMemInfo);
     RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
         "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
-        ret, pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+        ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
 }
 
 void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
