@@ -1755,7 +1755,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*params, *rscanvas);
         Drawing::Matrix invertMatrix;
-        if (pramas->GetMatrix().Invert(invertMatrix)) {
+        if (params->GetMatrix().Invert(invertMatrix)) {
             rscanvas->ConcatMatrix(invertMatrix);
         }
         RSDirtyRectsDfx rsDirtyRectsDfx(*this);
