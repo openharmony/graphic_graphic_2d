@@ -166,9 +166,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    auto targetSurface = virtualRenderDrawable->virtualSurface_;
-    ASSERT_NE(targetSurface, nullptr);
-    ASSERT_EQ(targetSurface->GetColorSpace(), mainRenderParams->GetNewColorSpace());
+    ASSERT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
 
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto newProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
@@ -176,9 +174,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
     auto newVirtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(newProcessor);
     ASSERT_NE(newVirtualProcessor, nullptr);
     newVirtualProcessor->InitForRenderThread(*virtualRenderDrawable, 0, renderEngine);
-    targetSurface = virtualRenderDrawable->virtualSurface_;
-    ASSERT_NE(targetSurface, nullptr);
-    ASSERT_EQ(targetSurface->GetColorSpace(), mainRenderParams->GetNewColorSpace());
+    ASSERT_EQ(newVirtualProcessor->renderFrameConfig_.colorGamut, mainRenderParams->GetNewColorSpace());
 }
 
 /**
