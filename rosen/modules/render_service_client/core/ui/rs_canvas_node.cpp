@@ -237,7 +237,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
     if (!GetHybridRender()) {
         return false;
     }
-    auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), Drawing::ColorType::COLORTYPE_BGRA_8888);
+    auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
     if (pixelMap == nullptr) {
         RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
         return false;
@@ -261,7 +261,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         RS_LOGE("RSCanvasNode::GetPixelmap pixelMap or rect is nullptr");
         return false;
     }
-    auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId());
+    auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
     if (srcPixelMap == nullptr) {
         RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
         return false;
