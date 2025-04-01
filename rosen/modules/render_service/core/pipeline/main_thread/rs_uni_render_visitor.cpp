@@ -1490,6 +1490,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     // update prepare clip before children
     UpdatePrepareClip(node);
     node.UpdateCurCornerRadius(curCornerRadius_);
+    // The meaning of first prepared offscreen node is either its colorBlendApplyType is not FAST or
+    // its colorBlendMode is NONE.
+    // Node will classified as blendWithBackground if it is the first prepared offscreen node and
+    // its colorBlendMode is neither NONE nor SRC_OVER.
     node.SetBlendWithBackground(!preIsOffscreen && isOffscreen_ && property.IsColorBlendModeValid());
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
