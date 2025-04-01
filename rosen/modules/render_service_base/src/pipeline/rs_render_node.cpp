@@ -4604,7 +4604,7 @@ void RSRenderNode::SetBlendWithBackground(bool isBlendWithBackground)
     isBlendWithBackground_ = isBlendWithBackground;
 }
 
-bool RSRenderNode::IsBlendWithBackground() const;
+bool RSRenderNode::IsBlendWithBackground() const
 {
     return isBlendWithBackground_;
 }
