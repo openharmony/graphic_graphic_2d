@@ -144,13 +144,16 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
     info.fence = surfaceHandler->GetAcquireFence();
     info.blendType = GRAPHIC_BLEND_SRCOVER;
     info.needClient = RSSystemProperties::IsForceClient();
-    auto matrix = params->GetMatrix();
+    auto matrix = Drawing::Matrix();
     info.matrix = GraphicMatrix {matrix.Get(Drawing::Matrix::Index::SCALE_X),
         matrix.Get(Drawing::Matrix::Index::SKEW_X), matrix.Get(Drawing::Matrix::Index::TRANS_X),
         matrix.Get(Drawing::Matrix::Index::SKEW_Y), matrix.Get(Drawing::Matrix::Index::SCALE_Y),
         matrix.Get(Drawing::Matrix::Index::TRANS_Y), matrix.Get(Drawing::Matrix::Index::PERSP_0),
         matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
-    info.gravity = static_cast<int32_t>(Gravity::RESIZE);
+    {
+        RS_TRACE_NAME_FMT("BuildComposeInfo frameGravity:%d", static_cast<int32_t>(params->GetFrameGravity));
+        info.gravity = static_cast<int32_t>(params->GetFrameGravity());
+    }
 
     const auto curDisplayParam = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
     if (curDisplayParam) {
@@ -1234,7 +1237,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
-    LayerRotate(layer, displayDrawable);
     // do not crop or scale down for displayNode's layer.
     return layer;
 }
