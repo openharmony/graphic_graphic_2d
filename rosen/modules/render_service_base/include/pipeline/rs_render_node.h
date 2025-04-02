@@ -423,9 +423,6 @@ public:
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
-    // store prev surface subtree's must-renewed info that need prepare
-    virtual void StoreMustRenewedInfo();
-    bool HasMustRenewedInfo() const;
     bool HasSubSurface() const;
 
     bool NeedInitCacheSurface();
@@ -529,9 +526,6 @@ public:
     }
 
     std::recursive_mutex& GetSurfaceMutex() const;
-
-    bool HasHardwareNode() const;
-    void SetHasHardwareNode(bool hasHardwareNode);
 
     bool HasAbilityComponent() const;
     void SetHasAbilityComponent(bool hasAbilityComponent);
@@ -952,7 +946,6 @@ protected:
     bool isShadowValidLastFrame_ = false;
     bool IsSelfDrawingNode() const;
     bool lastFrameHasAnimation_ = false;
-    bool mustRenewedInfo_ = false;
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffect_ = false;
@@ -1046,7 +1039,6 @@ private:
     bool isScale_ = false;
     bool isScaleInPreFrame_ = false;
     bool hasFilter_ = false;
-    bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
     bool isParentLeashWindow_ = false;

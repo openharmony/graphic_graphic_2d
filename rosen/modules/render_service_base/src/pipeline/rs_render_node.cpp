@@ -4292,16 +4292,6 @@ bool RSRenderNode::GetGeoUpdateDelay() const
     return geoUpdateDelay_;
 }
 
-void RSRenderNode::StoreMustRenewedInfo()
-{
-    mustRenewedInfo_ = hasHardwareNode_ || childHasVisibleFilter_ || childHasVisibleEffect_;
-}
-
-bool RSRenderNode::HasMustRenewedInfo() const
-{
-    return mustRenewedInfo_;
-}
-
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;
@@ -4374,14 +4364,7 @@ std::recursive_mutex& RSRenderNode::GetSurfaceMutex() const
 {
     return surfaceMutex_;
 }
-bool RSRenderNode::HasHardwareNode() const
-{
-    return hasHardwareNode_;
-}
-void RSRenderNode::SetHasHardwareNode(bool hasHardwareNode)
-{
-    hasHardwareNode_ = hasHardwareNode;
-}
+
 bool RSRenderNode::HasAbilityComponent() const
 {
     return hasAbilityComponent_;
