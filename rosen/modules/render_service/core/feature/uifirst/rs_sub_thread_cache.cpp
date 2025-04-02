@@ -40,6 +40,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_profiler.h"
 #include "utils/graphic_coretrace.h"
+#include "rs_frame_report.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #ifdef RS_ENABLE_VK
@@ -49,6 +50,14 @@
 #endif
 
 namespace {
+static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
+    OHOS::Rosen::Drawing::Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f);
+    return matrix;
+}();
+
 constexpr float SCALE_DIFF = 0.01f;
 }
 
@@ -211,6 +220,10 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
 bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSPaintFilterCanvas& canvas, const Vector2f& boundSize, uint32_t threadIndex, bool isUIFirst)
 {
+    if (!surfaceDrawable) {
+        RS_LOGE("DrawCacheSurface surfaceDrawable is nullptr");
+        return false;
+    }
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_DRAWCACHESURFACE);
     if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
@@ -416,7 +429,7 @@ void RsSubThreadCache::UpdateCompletedCacheSurface()
     }
 #endif
     std::swap(isCacheValid_, isCacheCompletedValid_);
-    isTextureValid_.store(isValid);
+    isTextureValid_.store(true);
     SetCacheSurfaceNeedUpdated(false);
 #endif
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface_, "cacheSurface_");
@@ -487,7 +500,8 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
         return false;
     }
     if (curDirtyRegion.IsEmpty()) {
-        RS_LOGD("Name:%{public}s Id:%{public}" PRIu64 " curDirtyRegion is empty", GetName().c_str(), GetId());
+        RS_LOGD("Name:%{public}s Id:%{public}" PRIu64 " curDirtyRegion is empty", surfaceDrawable->GetName().c_str(),
+            surfaceDrawable->GetId());
         return true;
     }
     RS_TRACE_NAME_FMT("UpdateCacheSurfaceDirtyManager[%s] %" PRIu64", curDirtyRegion[%d %d %d %d], hasCache:%d",
@@ -530,7 +544,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             isRecordCompletate = isRecordCompletate && surfaceNodeDrawable->GetRsSubThreadCache()
-                .UpdateCacheSurfaceDirtyManager(surfaceNodeDrawable, isCacheValid);
+                .UpdateCacheSurfaceDirtyManager(surfaceNodeDrawable.get(), isCacheValid);
         }
     }
     UpdateDirtyRecordCompletatedState(isRecordCompletate);
@@ -660,7 +674,7 @@ void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
 {
     if (!surfaceDrawable) {
         RS_LOGE("UpadteAllSurfaceUifirstDirtyEnableState surfaceDrawable is nullptr");
-        return false;
+        return;
     }
     SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
     SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
@@ -1000,8 +1014,8 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
-        RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
-        RS_LOGI("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceParams.GetName().c_str(),
+        RS_TRACE_NAME_FMT("[%s] reuse failed!", surfaceParams.GetName().c_str());
+        RS_LOGI("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceDrawable->name_.c_str(),
             surfaceDrawable->nodeId_);
     }
     surfaceDrawable->DrawForeground(canvas, bounds);

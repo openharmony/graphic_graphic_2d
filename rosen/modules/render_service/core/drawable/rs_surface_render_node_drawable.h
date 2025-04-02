@@ -52,12 +52,6 @@ public:
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
 
-    // uifirst
-    RsSubThreadCache& GetRsSubThreadCache()
-    {
-        return subThreadCache_;
-    }
-
     const std::string& GetName() const
     {
         return name_;
@@ -69,6 +63,12 @@ public:
         res.append("_name_");
         res.append(name_);
         return res;
+    }
+
+    // uifirst
+    RsSubThreadCache& GetRsSubThreadCache()
+    {
+        return subThreadCache_;
     }
 
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);

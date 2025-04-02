@@ -141,7 +141,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceParams->isSpherizeValid_ = false;
     surfaceParams->isAttractionValid_ = false;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceDrawable_->hasHdrPresent_ = true;
+    surfaceDrawable_->GetRsSubThreadCache().hasHdrPresent_ = true;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(!surfaceParams->IsAttractionValid());
 

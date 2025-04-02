@@ -94,7 +94,8 @@ HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceTest, TestSize.Level1)
     uint32_t threadIndex = 0;
     bool needCheckThread = false;
     bool releaseAfterGet = true;
-    auto result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet);
+    auto result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread,
+        releaseAfterGet);
     EXPECT_EQ(result, nullptr);
     ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
 
@@ -183,15 +184,18 @@ HWTEST_F(RSSubThreadCacheTest, DrawCacheSurfaceTest, TestSize.Level1)
     bool isUIFirst = false;
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    auto result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize, threadIndex, isUIFirst);
+    auto result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
+        threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
     surfaceDrawable_->boundsWidth_ = 1.f;
-    result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
+        threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
     surfaceDrawable_->boundsHeight_ = 1.f;
-    result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
+        threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 }
 
@@ -533,7 +537,7 @@ HWTEST_F(RSSubThreadCacheTest, BufferFormatNeedUpdateTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: #IA940V
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfx, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfx, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     Drawing::Canvas canvas;
@@ -556,7 +560,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfx, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfxTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfxTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
@@ -578,7 +582,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfxTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIAEDYI
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCacheTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
@@ -607,7 +611,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCacheTest, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCache002, TestSize.Level2)
+HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCache002, TestSize.Level2)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
@@ -625,7 +629,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCache002, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issueIANDBE
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetSubThreadSkip001, TestSize.Level2)
+HWTEST_F(RSSubThreadCacheTest, SetSubThreadSkip001, TestSize.Level2)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     

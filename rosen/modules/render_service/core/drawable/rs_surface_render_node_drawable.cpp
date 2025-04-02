@@ -68,8 +68,8 @@ constexpr float GAMMA2_2 = 2.2f;
 static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
     OHOS::Rosen::Drawing::Matrix matrix;
     matrix.SetMatrix(1.0f, 0.0f, 0.0f,
-                     0.0f, 1.0f, 0.0f,
-                     0.0f, 0.0f, 1.0f);
+                    0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f);
     return matrix;
 }();
 }
@@ -544,7 +544,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::DEAL_WITH_CACHED_WINDOW);
             return;
         }
-        if (subThreadCache_.DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
+        if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
             if (GetDrawSkipType() == DrawSkipType::NONE) {
                 SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
             }
@@ -552,9 +552,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     
-    auto cacheState = GetCacheSurfaceProcessedStatus();
-    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, false)) {
         SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
         return;
@@ -938,7 +936,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             }
             return;
         }
-        if (subThreadCache_.DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
             }
@@ -1219,6 +1217,11 @@ void RSSurfaceRenderNodeDrawable::EnableGpuOverDrawDrawBufferOptimization(Drawin
     canvas.DetachBrush();
 }
 
+const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const
+{
+    return visibleDirtyRegion_;
+}
+
 Drawing::Matrix RSSurfaceRenderNodeDrawable::GetGravityMatrix(float imgWidth, float imgHeight)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
@@ -1233,11 +1236,6 @@ Drawing::Matrix RSSurfaceRenderNodeDrawable::GetGravityMatrix(float imgWidth, fl
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
     return gravityMatrix;
-}
-
-const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const
-{
-    return visibleDirtyRegion_;
 }
 
 void RSSurfaceRenderNodeDrawable::SetVisibleDirtyRegion(const Occlusion::Region& region)

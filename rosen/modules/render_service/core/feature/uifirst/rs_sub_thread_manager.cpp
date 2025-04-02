@@ -15,6 +15,7 @@
 
 #include "rs_sub_thread_manager.h"
 #include <chrono>
+#include "rs_sub_thread_cache.h"
 #include "rs_trace.h"
 
 #include "common/rs_singleton.h"
