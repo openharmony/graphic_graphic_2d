@@ -203,7 +203,7 @@ public:
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
-    static bool RecalculateCoordinates(int angle);
+    static bool PortaitAngle(int angle);
 
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,

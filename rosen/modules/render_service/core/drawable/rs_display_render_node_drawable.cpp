@@ -1629,14 +1629,12 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
         } else {
             auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
             int angle = RSUniRenderUtil::GetRotationFromMatrix(curCanvas_->GetTotalMatrix());
-            if (RSBaseRenderUtil::RecalculateCoordinates(angle)) {
+            if (RSSystemProperties::IsSuperFoldDisplay() && RSBaseRenderUtil::PortaitAngle(angle)) {
                 scaleNum = mirrorHeight / mainWidth;
-                curCanvas_->Translate((mirrorHeight - scaleNum * mainWidth) / HALF,
-                    (mirrorWidth - scaleNum * mainHeight) / HALF);
-            } else {
-                curCanvas_->Translate((mirrorWidth - scaleNum * mainWidth) / HALF,
-                    (mirrorHeight - scaleNum * mainHeight) / HALF);
+                std::swap(mirrorWidth, mirrorHeight);
             }
+            curCanvas_->Translate((mirrorWidth - scaleNum * mainWidth) / HALF,
+                    (mirrorHeight - scaleNum * mainHeight) / HALF);
             curCanvas_->Scale(scaleNum, scaleNum);
             curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
         }
