@@ -339,6 +339,9 @@ HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
     auto &cache = ShaderCache::Instance();
     cache.filePath_ = "";
     cache.InitShaderCache(nullptr, 0, false);
+    cache.filePath_ = "test";
+    cache.InitShaderCache(nullptr, 0, false);
+    EXPECT_NE(cache.cacheData_, nullptr);
 }
 
 /**
@@ -351,10 +354,20 @@ HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
 HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
 {
     auto &cache = ShaderCache::Instance();
-    cache.initialized_ = false;
+    cache.InitShaderCache();
+    cache.CleanAllShaders();
     Drawing::Data key;
     Drawing::Data value;
     cache.Store(key, value);
+    size_t test1 = cache.QuerryShaderSize();
+    EXPECT_EQ(0, test1);
+    // for test
+    size_t size = 4;
+    key.BuildUninitialized(size);
+    value.BuildUninitialized(size);
+    cache.Store(key, value);
+    size_t test2 = cache.QuerryShaderSize();
+    EXPECT_NE(0, test2);
 }
 } // namespace Rosen
 } // namespace OHOS
