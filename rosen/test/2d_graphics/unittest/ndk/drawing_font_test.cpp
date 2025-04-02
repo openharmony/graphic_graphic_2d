@@ -113,10 +113,10 @@ HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics003, TestSize.Level1)
     EXPECT_NEAR(fontMetrics.descent, 1.440000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.bottom, 1.440000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 11.988000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 16.644001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 12, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 19.092000961303711, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.xMin, -0.684000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.xMax, 15.960001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 18.408000946044922, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);

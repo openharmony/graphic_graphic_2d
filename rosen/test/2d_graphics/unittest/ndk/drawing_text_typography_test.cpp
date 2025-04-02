@@ -51,6 +51,7 @@ const char* DEFAULT_LONG_TEXT =
 const double MAX_WIDTH = 800.0;
 const double SWEEP_DEGREE = 180.0;
 constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+const std::string VIS_LIST_FILE_NAME = "/system/fonts/visibility_list.json";
 } // namespace
 
 class OH_Drawing_TypographyTest : public testing::Test {
@@ -1166,9 +1167,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
     OH_Drawing_FontDescriptor* descriptor = OH_Drawing_CreateFontDescriptor();
     OH_Drawing_FontParser* parser = OH_Drawing_CreateFontParser();
 
-    static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
-    std::ifstream fileStream(FILE_NAME.c_str());
-    if (fileStream.is_open()) {
+    if (std::filesystem::exists(VIS_LIST_FILE_NAME)) {
         size_t fontNum;
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_NE(list, nullptr);
@@ -2933,9 +2932,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest101, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest102, TestSize.Level1)
 {
     OH_Drawing_FontParser* parser = OH_Drawing_CreateFontParser();
-    static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
-    std::ifstream fileStream(FILE_NAME.c_str());
-    if (fileStream.is_open()) {
+    if (std::filesystem::exists(VIS_LIST_FILE_NAME)) {
         size_t fontNum;
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_NE(list, nullptr);
@@ -4027,7 +4024,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_FontParserGetSystemFontListTest00
     ASSERT_NE(fontParser, nullptr);
     size_t value = 100; // 100 for test
     size_t* num = &value;
-    ASSERT_NE(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+    if (std::filesystem::exists(VIS_LIST_FILE_NAME)) {
+        ASSERT_NE(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+        EXPECT_EQ(value, 1);
+    } else {
+        ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
+        EXPECT_EQ(value, 0);
+    }
     num = nullptr;
     ASSERT_EQ(OH_Drawing_FontParserGetSystemFontList(fontParser, num), nullptr);
     fontParser = nullptr;
@@ -4131,7 +4134,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TextStyleGetShadowCountTest001, T
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Level1)
 {
-    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
+    OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextShadow* originShadow = OH_Drawing_CreateTextShadow();
+    OH_Drawing_TextStyleAddShadow(style, originShadow);
+    OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadowWithIndex(style, 0);
     ASSERT_NE(shadow, nullptr);
     uint32_t color = 0;
     OH_Drawing_Point* offset = OH_Drawing_PointCreate(0, 0);
@@ -4141,8 +4147,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_SetTextShadowTest001, TestSize.Le
     OH_Drawing_SetTextShadow(shadow, color, nullptr, blurRadius);
     OH_Drawing_SetTextShadow(nullptr, color, offset, blurRadius);
 
+    OH_Drawing_DestroyTextStyle(style);
     OH_Drawing_PointDestroy(offset);
-    OH_Drawing_DestroyTextShadow(shadow);
+    OH_Drawing_DestroyTextShadow(originShadow);
 }
 
 /*

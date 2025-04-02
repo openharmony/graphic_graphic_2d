@@ -258,7 +258,10 @@ template("graphics2d_source_set") {
       external_deps += [ "jsoncpp:jsoncpp" ]
     }
 
-    defines += [ "USE_ACE_SKIA" ]
+    defines += [
+      "USE_ACE_SKIA",
+      "OHOS_TEXT_ENABLE",
+    ]
 
     if (defined(ddgr_ext_configs) &&
         (current_os == "linux" || current_os == "mingw") &&

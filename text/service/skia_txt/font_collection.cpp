@@ -115,7 +115,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         return nullptr;
     }
     FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, familyName);
-    familyNames_.emplace(typeface->GetHash(), familyName);
+    familyNames_.emplace(ta.GetHash(), familyName);
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
