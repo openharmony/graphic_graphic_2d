@@ -356,7 +356,7 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
             argStr = str;
         }
     }
-    if (option == "id") {
+    if (option == "-id") {
         DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
     } else {
         if (args.find(argStr) != args.end()) {
@@ -445,7 +445,7 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
             argStr = str;
         }
     }
-    if (option == "id") {
+    if (option == "-id") {
         DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
     } else {
         if (args.find(argStr) != args.end()) {
