@@ -1196,8 +1196,9 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d alpha:%{public}f", __func__, GetName().c_str(),
-            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.alpha);
+        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
+            __func__, GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
+            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d", name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
@@ -1240,6 +1241,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     if (!drawCacheSuccess) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
+        RS_LOGI("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, name_.c_str(), nodeId_);
     }
     DrawForeground(canvas, bounds);
     DrawWatermark(canvas, surfaceParams);
