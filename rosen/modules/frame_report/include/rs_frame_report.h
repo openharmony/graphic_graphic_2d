@@ -38,6 +38,7 @@ enum class FrameSchedEvent {
     RS_POST_AND_WAIT = 10011,
     RS_BEGIN_FLUSH = 10012,
     RS_BLUR_PREDICT = 10013,
+    RS_DDGR_TASK = 10017,
 };
 
 using FrameGetEnableFunc = int (*)();
@@ -69,6 +70,7 @@ public:
     void UnblockMainThread();
     void PostAndWait();
     void BeginFlush();
+    void ReportDDGRTaskInfo();
 
 private:
     RsFrameReport();

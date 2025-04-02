@@ -184,6 +184,7 @@ public:
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
+    void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;

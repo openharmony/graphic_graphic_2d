@@ -48,6 +48,107 @@ void RSRoundCornerDisplayTest::TearDownTestCase() {}
 void RSRoundCornerDisplayTest::SetUp() {}
 void RSRoundCornerDisplayTest::TearDown() {}
 
+const std::vector<rs_rcd::RoundCornerLayer> RCD_LAYER_INFO_OK_CASE = {
+    {
+        "test1", // fileName
+        1, // offsetX
+        1, // offsetY
+        "test1.bin", // binFileName
+        10000, // bufferSize
+        2, // cldWidth
+        2, // cldHeight
+        nullptr
+    },
+    {
+        "TEST2", // fileName
+        100, // offsetX
+        200, // offsetY
+        "TEST2.bin", // binFileName
+        10, // bufferSize
+        15, // cldWidth
+        13, // cldHeight
+        nullptr
+    },
+    {
+        "test3", // fileName
+        1024, // offsetX
+        2048, // offsetY
+        "test3.bin", // binFileName
+        8000000, // bufferSize
+        77, // cldWidth
+        23, // cldHeight
+        nullptr
+    },
+    {
+        "TEST4", // fileName
+        3069, // offsetX
+        8096, // offsetY
+        "TEST4.bin", // binFileName
+        111111, // bufferSize
+        1111111, // cldWidth
+        1111111, // cldHeight
+        nullptr
+    },
+    {
+        "trdytfuygygi", // fileName
+        -3069, // offsetX
+        -8096, // offsetY
+        "hglkjhgliuhgiug.bin", // binFileName
+        -111111, // bufferSize
+        -1111111, // cldWidth
+        -1111111, // cldHeight
+        nullptr
+    }
+};
+
+const std::vector<std::array<std::string, 7>> RCD_LAYER_INFO_NG_CASE = {
+    {
+        "test1", // fileName
+        "1s2", // offsetX
+        "1", // offsetY
+        "test1.bin", // binFileName
+        "1s0000", // bufferSize
+        "s2", // cldWidth
+        "2d" // cldHeight
+    },
+    {
+        "TEST2", // fileName
+        "100sf", // offsetX
+        "200gh", // offsetY
+        "TEST2.bin", // binFileName
+        "10gh", // bufferSize
+        "15df", // cldWidth
+        "13jk" // cldHeight
+    },
+    {
+        "test3", // fileName
+        "10hj24", // offsetX
+        "2048", // offsetY
+        "test3.bin", // binFileName
+        "8000000", // bufferSize
+        "7d7", // cldWidth
+        "2g3" // cldHeight
+    },
+    {
+        "TEST4", // fileName
+        "30f69", // offsetX
+        "80s96", // offsetY
+        "TEST4.bin", // binFileName
+        "1111r11,", // bufferSize
+        "111e1111", // cldWidth
+        "1111g111" // cldHeight
+    },
+    {
+        "trdytfuygygi", // fileName
+        "-a3069", // offsetX
+        "-809s6", // offsetY
+        "hglkjhgliuhgiug.bin", // binFileName
+        "-111111,", // bufferSize
+        "-1111d111", // cldWidth
+        "-11h11111" // cldHeight
+    }
+};
+
 struct XMLProperty {
     std::string name;
     std::string value;
@@ -79,6 +180,20 @@ xmlNodePtr CreateRCDLayer(const std::string& nodeName, const rs_rcd::RoundCorner
         {rs_rcd::ATTR_BUFFERSIZE, std::to_string(layer.bufferSize)},
         {rs_rcd::ATTR_CLDWIDTH, std::to_string(layer.cldWidth)},
         {rs_rcd::ATTR_CLDHEIGHT, std::to_string(layer.cldHeight)}
+    };
+    return CreateNodeWithProperties(nodeName, properties);
+}
+
+xmlNodePtr CreateRCDLayer(const std::string& nodeName, const std::array<std::string, 7>& names)
+{
+    std::vector<XMLProperty> properties = {
+        {rs_rcd::ATTR_FILENAME, names[0]},
+        {rs_rcd::ATTR_OFFSET_X, names[1]},
+        {rs_rcd::ATTR_OFFSET_Y, names[2]},
+        {rs_rcd::ATTR_BINFILENAME, names[3]},
+        {rs_rcd::ATTR_BUFFERSIZE, names[4]},
+        {rs_rcd::ATTR_CLDWIDTH, names[5]},
+        {rs_rcd::ATTR_CLDHEIGHT, names[6]}
     };
     return CreateNodeWithProperties(nodeName, properties);
 }
@@ -924,27 +1039,29 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
     xmlFreeNode(nodePtr);
     nodePtr = nullptr;
 
-    cfgData = {
-        "bb", // fileName
-        10, // offsetX
-        100, // offsetY
-        "aaa.bin", // binFileName
-        10000, // bufferSize
-        20, // cldWidth
-        200, // cldHeight
-        nullptr};
-    nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
-    cfg.ReadXmlNode(nodePtr, properties);
+    for (auto okCase : RCD_LAYER_INFO_OK_CASE) {
+        auto nodeOK_Ptr = CreateRCDLayer(std::string("layer"), okCase);
+        cfg.ReadXmlNode(nodeOK_Ptr, properties);
 
-    EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
-    EXPECT_EQ(cfg.binFileName.compare(cfgData.binFileName), int{0});
-    EXPECT_EQ(cfg.bufferSize, cfgData.bufferSize);
-    EXPECT_EQ(cfg.offsetX, cfgData.offsetX);
-    EXPECT_EQ(cfg.offsetY, cfgData.offsetY);
-    EXPECT_EQ(cfg.cldWidth, cfgData.cldWidth);
-    EXPECT_EQ(cfg.cldHeight, cfgData.cldHeight);
-    xmlFreeNode(nodePtr);
-    nodePtr = nullptr;
+        EXPECT_EQ(cfg.fileName.compare(okCase.fileName), int{0});
+        EXPECT_EQ(cfg.binFileName.compare(okCase.binFileName), int{0});
+        EXPECT_EQ(cfg.bufferSize, okCase.bufferSize);
+        EXPECT_EQ(cfg.offsetX, okCase.offsetX);
+        EXPECT_EQ(cfg.offsetY, okCase.offsetY);
+        EXPECT_EQ(cfg.cldWidth, okCase.cldWidth);
+        EXPECT_EQ(cfg.cldHeight, okCase.cldHeight);
+        xmlFreeNode(nodeOK_Ptr);
+        nodeOK_Ptr = nullptr;
+    }
+
+    for (auto ngCase : RCD_LAYER_INFO_NG_CASE) {
+
+        auto nodeNG_Ptr = CreateRCDLayer(std::string("layer"), ngCase);
+        auto res = cfg.ReadXmlNode(nodeNG_Ptr, properties);
+        EXPECT_EQ(res, true);
+        xmlFreeNode(nodeNG_Ptr);
+        nodeNG_Ptr = nullptr;
+    }
 }
 
 /*

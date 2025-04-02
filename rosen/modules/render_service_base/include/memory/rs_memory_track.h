@@ -64,7 +64,8 @@ public:
     static MemoryTrack& Instance();
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
-    void DumpMemoryStatistics(DfxString& log, std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
+    void DumpMemoryStatistics(DfxString& log,
+        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
     bool GetPictureRecordMemInfo(const void* addr, MemoryInfo& info);
@@ -88,7 +89,7 @@ private:
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);
     void DumpMemoryPicStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func,
         const std::vector<MemoryInfo>& memPicRecord = {});
     bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
     void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);

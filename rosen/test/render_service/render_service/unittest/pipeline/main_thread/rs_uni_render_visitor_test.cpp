@@ -4285,7 +4285,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion002, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
-    surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4306,7 +4306,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion003, TestSize.Level
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->hasRemovedChild_ = true;
-    surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     RSDisplayNodeConfig config;
     auto rsContext = std::make_shared<RSContext>();
@@ -4333,25 +4333,68 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion004, TestSize.Level
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    
-    RSDisplayNodeConfig config;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(0, config, rsContext->weak_from_this());
-    auto dirtyManager = displayNode->GetDirtyManager();
-    ASSERT_NE(dirtyManager, nullptr);
-
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
-    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
-    surfaceNode->removedChildrenRect_ = RectI(1, 1, 10, 10);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    surfaceNode->hasChildrenOutOfRect_ = true;
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+/*
+ * @tc.name: MergeRemovedChildDirtyRegion005
+ * @tc.desc: Test MergeRemovedChildDirtyRegion while node's bounds geometry is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIBSNHZ
+ */
+HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+    surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    rsUniRenderVisitor->curSurfaceDirtyManager_->isDfxTarget_ = true;
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+/*
+ * @tc.name: MergeRemovedChildDirtyRegion006
+ * @tc.desc: Test MergeRemovedChildDirtyRegion while dirtyManager is target for DFX
+ * @tc.type: FUNC
+ * @tc.require: issuesIBSNHZ
+ */
+HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion006, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+    surfaceNode->GetDirtyManager()->MarkAsTargetForDfx();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    ASSERT_EQ(surfaceNode->hasRemovedChild_, false);
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
 }
 
 /*

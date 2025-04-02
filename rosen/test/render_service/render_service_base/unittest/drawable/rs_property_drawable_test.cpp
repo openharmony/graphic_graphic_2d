@@ -350,14 +350,14 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest012, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(&canvas, &rect);
+    drawFunc(filterCanvas.get(), &rect);
     drawable->filter_ = RSPropertyDrawableUtils::GenerateBehindWindowFilter(80.0f, 1.9f, 1.0f, RSColor(0xFFFFFFE5));
     EXPECT_NE(drawable->filter_, nullptr);
-    drawFunc(&canvas, &rect);
-    ASSERT_TRUE(true);
+    drawFunc(filterCanvas.get(), &rect);
 }
 
 /**

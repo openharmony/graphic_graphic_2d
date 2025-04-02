@@ -1951,5 +1951,16 @@ void RSUifirstManager::MarkSubHighPriorityType(RSSurfaceRenderNode& node)
     RS_OPTIONAL_TRACE_NAME_FMT("SubHighPriorityType::name:[%s] preSub:%d", node.GetName().c_str(), preSubHighPriority);
     node.SetPreSubHighPriorityType(preSubHighPriority == SurfaceHwcNodeType::DEFAULT_HWC_VIDEO);
 }
+
+void RSUifirstManager::RecordScreenRect(RSSurfaceRenderNode& node, RectI rect)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("RecordScreenRect stagingSurfaceParams is nullptr");
+        return;
+    }
+    stagingSurfaceParams->RecordScreenRect(rect);
+    node.AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

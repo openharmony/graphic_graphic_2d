@@ -420,14 +420,14 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
     return paragraph;
 }
 
-void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
+void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color, bool isUtf16Index)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return;
     }
     auto unresolvedPaintID = paragraph_->updateColor(from, to,
-        SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()));
+        SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()), isUtf16Index);
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }

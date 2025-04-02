@@ -323,7 +323,7 @@ void MemoryManager::CountMemory(
     std::for_each(pids.begin(), pids.end(), countMem);
 }
 
-static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
+static std::tuple<uint64_t, std::string, RectI, bool> FindGeoById(uint64_t nodeId)
 {
     constexpr int maxTreeDepth = 256;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -332,7 +332,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
     std::string windowName = "NONE";
     RectI nodeFrameRect;
     if (!node) {
-        return { windowId, windowName, nodeFrameRect };
+        return { windowId, windowName, nodeFrameRect, true };
     }
     nodeFrameRect =
         (node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
@@ -354,7 +354,7 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
     if (!windowsNameFlag) {
         windowName = "EXISTS-BUT-NO-SURFACE";
     }
-    return { windowId, windowName, nodeFrameRect };
+    return { windowId, windowName, nodeFrameRect, false };
 }
 
 void MemoryManager::DumpRenderServiceMemory(DfxString& log)

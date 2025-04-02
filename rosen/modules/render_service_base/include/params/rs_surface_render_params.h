@@ -312,6 +312,9 @@ public:
         return uiFirstFrameGravity_;
     }
 
+    RectI GetScreenRect() const;
+    void RecordScreenRect(RectI rect);
+
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const override;
 
@@ -716,6 +719,7 @@ private:
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
+    RectI screenRect_;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
