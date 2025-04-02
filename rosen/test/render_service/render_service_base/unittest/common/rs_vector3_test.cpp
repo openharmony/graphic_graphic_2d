@@ -286,4 +286,17 @@ HWTEST_F(Vector3Test, GetData001, TestSize.Level1)
     vector.GetData();
     EXPECT_TRUE(vector.data_[1] != 2.f);
 }
+
+/**
+ * @tc.name: IsNearEqual001
+ * @tc.desc: test results of IsNearEqual
+ * @tc.type: FUNC
+ * @tc.require: issueI9MO8D
+ */
+HWTEST_F(Vector3Test, IsNearEqual001, TestSize.Level1)
+{
+    Vector3 vector(1.f, 2.f, 2.f); // 1.f, 2.f, 2.f for test
+    Vector3 vectorNew(1.f, 2.f, 2.f); // 1.f, 2.f, 2.f for test
+    EXPECT_TRUE(vector.IsNearEqual(vectorNew, 3.f)); // 3.f for test
+}
 } // namespace OHOS::Rosen
