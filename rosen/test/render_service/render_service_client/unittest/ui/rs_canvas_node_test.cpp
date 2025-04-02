@@ -3917,7 +3917,7 @@ HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, GetBitmap001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(false);
+    canvasNode->SetHybridRenderCanvas(false);
     Drawing::Bitmap bitmap;
     auto ret = canvasNode->GetBitmap(bitmap);
     EXPECT_EQ(ret, false);
@@ -3932,7 +3932,7 @@ HWTEST_F(RSCanvasNodeTest, GetBitmap001, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, GetBitmap002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(true);
+    canvasNode->SetHybridRenderCanvas(true);
     Drawing::Bitmap bitmap;
     auto ret = canvasNode->GetBitmap(bitmap);
     EXPECT_EQ(ret, false);
@@ -3947,7 +3947,7 @@ HWTEST_F(RSCanvasNodeTest, GetBitmap002, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, GetPixelmap001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(false);
+    canvasNode->SetHybridRenderCanvas(false);
     auto ret = canvasNode->GetPixelmap(nullptr);
     EXPECT_EQ(ret, false);
 }
@@ -3961,7 +3961,7 @@ HWTEST_F(RSCanvasNodeTest, GetPixelmap001, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, GetPixelmap002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(true);
+    canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->GetPixelmap(nullptr);
     EXPECT_EQ(ret, false);
 }
@@ -3975,7 +3975,7 @@ HWTEST_F(RSCanvasNodeTest, GetPixelmap002, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(true);
+    canvasNode->SetHybridRenderCanvas(true);
     Drawing::Rect rect = {0, 0, 0, 0};
     auto ret = canvasNode->GetPixelmap(nullptr, nullptr, &rect);
     EXPECT_EQ(ret, false);
@@ -3990,7 +3990,7 @@ HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, ResetSurface001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(false);
+    canvasNode->SetHybridRenderCanvas(false);
     auto ret = canvasNode->ResetSurface(0, 0);
     EXPECT_EQ(ret, false);
 }
@@ -4004,7 +4004,7 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface001, TestSize.Level1)
 HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRender(true);
+    canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->ResetSurface(0, 0);
     EXPECT_EQ(ret, true);
 }

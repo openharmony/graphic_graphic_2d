@@ -80,7 +80,7 @@ RSCanvasNode::~RSCanvasNode()
 {
     CheckThread();
 #ifdef RS_ENABLE_VK
-    if (GetHybridRender()) {
+    if (IsHybridRenderCanvas()) {
         RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
     }
 #endif
@@ -234,7 +234,7 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 #ifdef RS_ENABLE_VK
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    if (!GetHybridRender()) {
+    if (!IsHybridRenderCanvas()) {
         return false;
     }
     auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
@@ -254,7 +254,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
 bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-    if (!GetHybridRender()) {
+    if (!IsHybridRenderCanvas()) {
         return false;
     }
     if (pixelMap == nullptr || rect == nullptr) {
@@ -278,7 +278,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
 
 bool RSCanvasNode::ResetSurface(int width, int height)
 {
-    if (!GetHybridRender()) {
+    if (!IsHybridRenderCanvas()) {
         return false;
     }
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, this->GetId(), true);

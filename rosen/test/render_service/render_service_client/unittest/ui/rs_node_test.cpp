@@ -6382,18 +6382,18 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
 #ifdef RS_ENABLE_VK
 /**
  * @tc.name: HybridRender001
- * @tc.desc: Test SetHybridRender and GetHybridRender
+ * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
  * @tc.type: FUNC
  * @tc.require: IBFOIN
  */
 HWTEST_F(RSNodeTest, HybridRender001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto ret = rsNode->GetHybridRender();
+    auto ret = rsNode->IsHybridRenderCanvas();
     EXPECT_EQ(ret, false);
 
-    rsNode->SetHybridRender(true);
-    ret = rsNode->GetHybridRender();
+    rsNode->SetHybridRenderCanvas(true);
+    ret = rsNode->IsHybridRenderCanvas();
     EXPECT_EQ(ret, true);
 }
 
@@ -6413,7 +6413,7 @@ HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
     rsNode->Dump(out1);
     ASSERT_TRUE(!out1.empty());
 
-    rsNode->SetHybridRender(true);
+    rsNode->SetHybridRenderCanvas(true);
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());

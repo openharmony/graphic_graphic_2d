@@ -3403,13 +3403,14 @@ RSNode::SharedPtr RSNode::GetParent()
 }
 
 #ifdef RS_ENABLE_VK
-bool RSNode::GetHybridRender() const
+bool RSNode::IsHybridRenderCanvas() const
 {
-    return hybridRender_;
+    return hybridRenderCanvas_;
 }
-void RSNode::SetHybridRender(bool hybridRender)
+
+void RSNode::SetHybridRenderCanvas(bool hybridRenderCanvas)
 {
-    hybridRender_ = hybridRender;
+    hybridRenderCanvas_ = hybridRenderCanvas;
 }
 #endif
 
@@ -3465,8 +3466,8 @@ void RSNode::Dump(std::string& out) const
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
 #ifdef RS_ENABLE_VK
-    out += "], hybridRender[";
-    out += hybridRender_ ? "true" : "false";
+    out += "], hybridRenderCanvas[";
+    out += hybridRenderCanvas_ ? "true" : "false";
 #endif
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {

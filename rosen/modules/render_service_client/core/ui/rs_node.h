@@ -561,8 +561,8 @@ public:
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
 #ifdef RS_ENABLE_VK
-    bool GetHybridRender() const;
-    void SetHybridRender(bool hybridRender);
+    bool IsHybridRenderCanvas() const;
+    void SetHybridRenderCanvas(bool hybridRenderCanvas);
 #endif
 
 protected:
@@ -698,7 +698,7 @@ private:
     mutable std::recursive_mutex propertyMutex_;
 
 #ifdef RS_ENABLE_VK
-    bool hybridRender_ = false;
+    bool hybridRenderCanvas_ = false;
 #endif
 
     friend class RSUIDirector;
