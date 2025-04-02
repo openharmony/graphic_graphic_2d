@@ -140,24 +140,22 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
         return false;
     }
 
-    {
-        // 1. marshalling RSTransactionData
+    // 1. marshalling RSTransactionData
 #ifdef RS_ENABLE_VK
-        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %d, %" PRIu64 "], timestamp:%ld",
-            transactionData->GetCommandCount(), pid_, transactionData->GetSendingTid(), transactionData->GetIndex(),
-            transactionData->GetTimestamp());
+    RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %d, %" PRIu64 "], timestamp:%ld",
+        transactionData->GetCommandCount(), pid_, transactionData->GetSendingTid(), transactionData->GetIndex(),
+        transactionData->GetTimestamp());
 #else
-        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], timestamp:%ld",
-            transactionData->GetCommandCount(), pid_, transactionData->GetIndex(), transactionData->GetTimestamp());
+    RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], timestamp:%ld",
+        transactionData->GetCommandCount(), pid_, transactionData->GetIndex(), transactionData->GetTimestamp());
 #endif
-        ROSEN_LOGI_IF(DEBUG_PIPELINE,
-            "MarshRSTransactionData cmdCount:%{public}lu transactionFlag:[pid:%{public}d index:%{public}" PRIu64 "]",
-            transactionData->GetCommandCount(), pid_, transactionData->GetIndex());
-        bool success = data->WriteParcelable(transactionData.get());
-        if (!success) {
-            ROSEN_LOGE("FillParcelWithTransactionData data.WriteParcelable failed!");
-            return false;
-        }
+    ROSEN_LOGI_IF(DEBUG_PIPELINE,
+        "MarshRSTransactionData cmdCount:%{public}lu transactionFlag:[pid:%{public}d index:%{public}" PRIu64 "]",
+        transactionData->GetCommandCount(), pid_, transactionData->GetIndex());
+    bool success = data->WriteParcelable(transactionData.get());
+    if (!success) {
+        ROSEN_LOGE("FillParcelWithTransactionData data.WriteParcelable failed!");
+        return false;
     }
 
     // 2. convert data to new ashmem parcel if size over threshold
