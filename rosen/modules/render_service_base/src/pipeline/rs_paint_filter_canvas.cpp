@@ -55,7 +55,7 @@ Drawing::RectI RSPaintFilterCanvasBase::GetRoundInDeviceClipBounds() const
     return canvas_->GetRoundInDeviceClipBounds();
 }
 
-uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
+CM_INLINE uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
 {
     return canvas_->GetSaveCount();
 }

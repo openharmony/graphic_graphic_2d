@@ -793,7 +793,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
     return SkipSyncState::STATE_NEED_CHECK;
 }
 
-bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node)
+CM_INLINE bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode>& node)
 {
     if (!node) {
         return false;
@@ -1496,7 +1496,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
 }
 
-bool RSUifirstManager::IsToSubByAppAnimation() const
+CM_INLINE bool RSUifirstManager::IsToSubByAppAnimation() const
 {
     for (auto& it : currentFrameEvent_) {
         if (std::find(toSubByAppAnimation_.begin(), toSubByAppAnimation_.end(), it.sceneId) !=
