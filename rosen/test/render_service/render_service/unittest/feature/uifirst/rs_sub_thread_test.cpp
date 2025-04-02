@@ -283,9 +283,9 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    nodeDrawable->SetTaskFrameCount(1);
+    nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);
     curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->GetTaskFrameCount());
+    EXPECT_TRUE(nodeDrawable->GetRsSubThreadCache().GetTaskFrameCount());
 }
 
 /**

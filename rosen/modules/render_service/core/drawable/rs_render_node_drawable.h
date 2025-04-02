@@ -232,6 +232,7 @@ private:
     }
     bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    friend class RsSubThreadCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

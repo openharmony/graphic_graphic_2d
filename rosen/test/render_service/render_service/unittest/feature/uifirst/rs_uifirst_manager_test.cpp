@@ -467,7 +467,7 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(surfaceDrawable, nullptr);
-    surfaceDrawable->SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    surfaceDrawable->GetRsSubThreadCache().SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     NodeId id = 10;
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1259,21 +1259,6 @@ HWTEST_F(RSUifirstManagerTest, GetNodeStatus001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddReuseNode001
- * @tc.desc: Test AddReuseNode
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, AddReuseNode001, TestSize.Level1)
-{
-    uifirstManager_.AddReuseNode(0);
-    EXPECT_TRUE(uifirstManager_.reuseNodes_.empty());
-
-    uifirstManager_.AddReuseNode(1);
-    EXPECT_FALSE(uifirstManager_.reuseNodes_.empty());
-}
-
-/**
  * @tc.name: OnProcessEventComplete001
  * @tc.desc: Test OnProcessEventComplete
  * @tc.type: FUNC
@@ -1536,7 +1521,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
-    adapter->hasHdrPresent_ = true;
+    adapter->GetRsSubThreadCache().hasHdrPresent_ = true;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());

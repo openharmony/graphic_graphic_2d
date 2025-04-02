@@ -155,7 +155,6 @@ public:
     {
         return nullptr;
     }
-    virtual void UpdateUifirstDirtyManager() {}
 
     using ClearSurfaceTask = std::function<void()>;
     void RegisterClearSurfaceFunc(ClearSurfaceTask task);

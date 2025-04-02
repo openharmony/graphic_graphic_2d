@@ -19,7 +19,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_draw_window_cache.h"
+#include "feature/uifirst/rs_draw_window_cache.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
