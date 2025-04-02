@@ -28,7 +28,10 @@ public:
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
 private:
+    friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
+
+    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

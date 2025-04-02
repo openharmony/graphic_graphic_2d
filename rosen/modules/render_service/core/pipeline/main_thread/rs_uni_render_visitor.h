@@ -499,8 +499,7 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
-    // used to check if hwc should enable for selfdraw-surface
-    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
+
     // Used for PC window resize scene
     RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
 
