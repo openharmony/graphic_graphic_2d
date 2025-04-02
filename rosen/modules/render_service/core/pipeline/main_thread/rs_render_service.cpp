@@ -446,12 +446,12 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         }
     }
     if (option == "-id") {
-        DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
+        ClearSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
     } else {
         if (args.find(argStr) != args.end()) {
-            DumpFps(dumpString, argStr);
+            ClearFps(dumpString, argStr);
         } else {
-            DumpSurfaceNodeFps(dumpString, argStr);
+            ClearSurfaceNodeFps(dumpString, argStr);
         }
     }
 }
