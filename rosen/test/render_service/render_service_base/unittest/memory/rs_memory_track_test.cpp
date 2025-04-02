@@ -292,7 +292,7 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest004, testing::ext::TestSize.Level1)
 HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Level1)
 {
     DfxString log;
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
     MemoryTrack::Instance().DumpMemoryStatistics(log, func);
     int ret = 0;
     ASSERT_EQ(ret, 0);
@@ -443,7 +443,7 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize
 {
     // for test
     DfxString log;
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
     MemoryTrack::Instance().DumpMemoryNodeStatistics(log);
     MemoryTrack::Instance().DumpMemoryPicStatistics(log, func);
     int ret = 1;
