@@ -23,7 +23,7 @@
 #include "common/rs_macros.h"
 #include "utils/system_properties.h"
 
-namespace OHOS {
+namespace OHOS { 
 namespace Rosen {
 
 enum class CrossNodeOffScreenRenderDebugType {
@@ -132,6 +132,13 @@ enum class DdgrOpincType {
 enum class DdgrOpincDfxType {
     OPINC_DFX_NONE,
     OPINC_DFX_AUTO,
+};
+
+enum class ComponentEnableSwitch {
+    TEXTBLOB = 0,
+    SVG,
+    HMSYMBOL,
+    CANVAS,
 };
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
@@ -331,6 +338,22 @@ public:
     static bool GetOptimizeHwcComposeAreaEnabled();
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
+
+#ifdef RS_ENABLE_VK
+    static bool GetHybridRenderEnabled();
+    static bool GetHybridRenderDfxEnabled();
+    static uint32_t GetHybridRenderTextBlobLenCount();
+    static bool GetHybridRenderParallelConvertEnabled();
+    static bool GetHybridRenderCanvasEnabled();
+    static bool GetHybridRenderMemeoryReleaseEnabled();
+    static bool GetHybridRenderSystemEnabled();
+    static int32_t GetHybridRenderCcmEnabled();
+    static int32_t GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
+    static bool GetHybridRenderTextBlobEnabled();
+    static bool GetHybridRenderSvgEnabled();
+    static bool GetHybridRenderHmsymbolEnabled();
+#endif
+
 private:
     RSSystemProperties() = default;
 

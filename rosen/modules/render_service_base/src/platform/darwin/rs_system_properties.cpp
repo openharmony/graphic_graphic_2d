@@ -17,8 +17,27 @@
 
 #include "transaction/rs_render_service_client.h"
 
+#ifdef RS_ENABLE_VK
+#include "parameter.h"
+#include "parameters.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
+constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
+struct GetComponentSwitch {
+    ComponentEnableSwitch type;
+    bool (*ComponentHybridSwitch)();
+};
+
+struct GetComponentSwitch ComponentSwitchTable[] = {
+    {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
+    {ComponentEnableSwitch::SVG, RSSystemProperties::GetHybridRenderSvgEnabled},
+    {ComponentEnableSwitch::HMSYMBOL, RSSystemProperties::GetHybridRenderHmsymbolEnabled},
+    {ComponentEnableSwitch::CANVAS, RSSystemProperties::GetHybridRenderCanvasEnabled},
+};
+#endif
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
@@ -634,5 +653,68 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return false;
+}
+
+int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetHybridRenderSystemEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderDfxEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderCanvasEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderSvgEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
+{
+    return false;
+}
+
+int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    return 0;
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS
