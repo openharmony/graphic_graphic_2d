@@ -358,7 +358,7 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
 
 void RSRenderParams::SetHDRBrightness(float hdrBrightness)
 {
-    if (hdrBrightness_ == hdrBrightness) {
+    if (ROSEN_EQ(hdrBrightness_, hdrBrightness)) {
         return;
     }
     hdrBrightness_ = hdrBrightness;

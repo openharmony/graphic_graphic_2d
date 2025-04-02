@@ -15,25 +15,25 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_static_library("frame_report") {
-    sanitize = {
-        cfi = true
-        cfi_cross_dso = true
-        cfi_no_nvcall = true
-        cfi_vcall_icall_only = true
-        debug = false
-    }
-    sources = []
-    include_dirs = []
-    external_deps = []
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_no_nvcall = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  sources = []
+  include_dirs = []
+  external_deps = []
 
-    if (current_os == "ohos") {
-        sources += [ "src/rs_frame_report.cpp" ]
-    } else {
-        sources += [ "src/mingw/rs_frame_report.cpp" ]
-    }
-    include_dirs += [ "include" ]
-    external_deps += [ "hilog:libhilog" ]
+  if (current_os == "ohos") {
+    sources += [ "src/rs_frame_report.cpp" ]
+  } else {
+    sources += [ "src/mingw/rs_frame_report.cpp" ]
+  }
+  include_dirs += [ "include" ]
+  external_deps += [ "hilog:libhilog" ]
 
-    part_name = "graphic_2d"
-    subsystem_name = "graphic"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
 }

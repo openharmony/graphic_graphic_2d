@@ -402,17 +402,22 @@ namespace {
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextRange textRange = skiaBlock.fRange;
-            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color);
+            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, true);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
+            bool hasShadow = skiaTextStyle.getShadowNumber() > 0;
             skiaTextStyle.resetShadows();
             for (const TextShadow& txtShadow : spTextStyle.textShadows) {
                 skiaTextStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));
             }
-            state = std::min(skt::InternalState::kFormatted, state);
+            if (hasShadow && spTextStyle.textShadows.size() > 0) {
+                state = std::min(skt::InternalState::kFormatted, state);
+                return;
+            }
+            state = std::min(skt::InternalState::kShaped, state);
         },
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
