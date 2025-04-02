@@ -2162,11 +2162,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         return;
     }
 
-    int32_t isAdaptive = frameRateMgr->AdaptiveStatus();
-    if (isAdaptive == SupportASStatus::SUPPORT_AS) {
-        frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
-    }
-
     static std::once_flag initUIFwkTableFlag;
     std::call_once(initUIFwkTableFlag, [this]() {
         if (auto config = HgmCore::Instance().GetPolicyConfigData(); config != nullptr) {
@@ -4334,6 +4329,30 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         RequestNextVSync();
     }
 }
+
+bool RSMainThread::CheckAdaptiveCompose()
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr || !context_) {
+        return false;
+    }
+    auto adaptiveStatus = frameRateMgr->AdaptiveStatus();
+    if (adaptiveStatus == SupportASStatus::NOT_SUPPORT) {
+        return false;
+    }
+    bool onlyGameNodeOnTree = frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
+    bool isNeedAdaptiveCompose = onlyGameNodeOnTree &&
+        context_->GetAnimatingNodeList().empty() &&
+        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    // in game adaptive sync mode and ignore animation scenario and mult-window scenario
+    // selfdrawing node request next vsync as UrgentSelfdrawing
+    if (isNeedAdaptiveCompose) {
+        RequestNextVSync("UrgentSelfdrawing");
+        return true;
+    }
+    return false;
+}
+
 
 void RSMainThread::ForceRefreshForUni(bool needDelay)
 {

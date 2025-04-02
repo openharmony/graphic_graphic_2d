@@ -81,6 +81,9 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
+    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
+        return;
+    }
     SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
 }
 

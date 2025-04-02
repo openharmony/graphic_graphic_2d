@@ -212,7 +212,7 @@ public:
     // only called by RSMainThread
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
     // only called by RSMainThread
-    void HandleGameNode(const RSRenderNodeMap& nodeMap);
+    bool HandleGameNode(const RSRenderNodeMap& nodeMap);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
