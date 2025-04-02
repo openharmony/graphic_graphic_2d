@@ -957,6 +957,15 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
+void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages)
+{
+    RectI damage;
+    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
+        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
+    });
+    surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
+}
+
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume)
 {
