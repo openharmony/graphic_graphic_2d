@@ -2317,5 +2317,18 @@ HWTEST_F(RSInterfacesTest, GetMemoryGraphics, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->GetMemoryGraphics();
 }
+
+/*
+ * @tc.name: SetAncoForceDoDirect
+ * @tc.desc: Test SetAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIBYASC
+ */
+HWTEST_F(RSInterfacesTest, SetAncoForceDoDirect, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool res = rsInterfaces->SetAncoForceDoDirect(false);
+    ASSERT_EQ(res, false);
+}
 } // namespace Rosen
 } // namespace OHOS
