@@ -2318,6 +2318,7 @@ HWTEST_F(RSInterfacesTest, GetMemoryGraphics, Function | SmallTest | Level2)
     rsInterfaces->GetMemoryGraphics();
 }
 
+
 /*
  * @tc.name: SetAncoForceDoDirect
  * @tc.desc: Test SetAncoForceDoDirect
