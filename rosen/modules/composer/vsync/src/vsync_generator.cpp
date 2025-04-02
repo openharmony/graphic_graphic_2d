@@ -596,7 +596,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     std::vector<VSyncGenerator::Listener> ret;
     int64_t offset = 0;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        // if listener is urgent, must execute immediately锛宲ush to vector
+        // if listener is urgent, must execute immediately and push to vector
         if (listeners_[i].isUrgent_) {
             offset = SystemTime() - listeners_[i].lastTime_;
             listeners_[i].isUrgent_ = false;
