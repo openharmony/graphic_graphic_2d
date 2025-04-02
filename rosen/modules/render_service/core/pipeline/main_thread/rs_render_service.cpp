@@ -343,7 +343,7 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::unordered_set<std::string> options("-name", "-id");
+    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
     std::string argStr("");
     std::string option("-name");
@@ -356,17 +356,14 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
             argStr = str;
         }
     }
-    switch (option) {
-        case "-id":
-            DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
-            break;
-        default:
-            if (args.find(layerName) != args.end()) {
-                DumpFps(dumpString, layerName);
-            } else {
-                DumpSurfaceNodeFps(dumpString, layerName);
-            }
-            break;
+    if (option == "id") {
+        DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
+    } else {
+        if (args.find(layerName) != args.end()) {
+            DumpFps(dumpString, layerName);
+        } else {
+            DumpSurfaceNodeFps(dumpString, layerName);
+        }
     }
 }
 
@@ -435,7 +432,7 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::unordered_set<std::string> options("-name", "-id");
+    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer"};
     std::string argStr("");
     std::string option("-name");
@@ -448,17 +445,14 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
             argStr = str;
         }
     }
-    switch (option) {
-        case "-id":
-            DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
-            break;
-        default:
-            if (args.find(layerName) != args.end()) {
-                DumpFps(dumpString, layerName);
-            } else {
-                DumpSurfaceNodeFps(dumpString, layerName);
-            }
-            break;
+    if (option == "id") {
+        DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
+    } else {
+        if (args.find(layerName) != args.end()) {
+            DumpFps(dumpString, layerName);
+        } else {
+            DumpSurfaceNodeFps(dumpString, layerName);
+        }
     }
 }
 
