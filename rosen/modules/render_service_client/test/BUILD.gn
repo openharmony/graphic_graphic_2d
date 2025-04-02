@@ -801,3 +801,35 @@ ohos_executable("render_service_client_first_frame_callback_demo") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
+ohos_executable("render_service_client_multi_instance_demo") {
+  sources = [ "render_service_client_multi_instance_demo.cpp" ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  public_external_deps = [ "$public_deps_skia" ]
+  
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "window_manager:libwm",
+    "window_manager:sms",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
