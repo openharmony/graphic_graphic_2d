@@ -79,8 +79,8 @@ HWTEST_F(RSMemoryGraphicTest, IncreaseCpuMemoryTest, testing::ext::TestSize.Leve
     memoryGraphic.SetGpuMemorySize(size1);
     memoryGraphic.IncreaseCpuMemory(glSize);
     memoryGraphic.IncreaseGpuMemory(graphicSize);
-    EXPECT_EQ(1.0, memoryGraphic.GetCpuMemorySize);
-    EXPECT_EQ(1.0, memoryGraphic.GetGpuMemorySize);
+    EXPECT_EQ(1.0, memoryGraphic.GetCpuMemorySize());
+    EXPECT_EQ(1.0, memoryGraphic.GetGpuMemorySize());
 }
 
 /**
