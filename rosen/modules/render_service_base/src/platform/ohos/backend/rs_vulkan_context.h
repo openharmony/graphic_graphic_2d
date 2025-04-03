@@ -16,6 +16,7 @@
 #ifndef RS_VULKAN_CONTEXT_H
 #define RS_VULKAN_CONTEXT_H
 
+#include <atomic>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -64,11 +65,42 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
+            DestroyCallbackRefsInner(info);
+        }
+
+        static void DestroyCallbackRefsFromRS(void* context)
+        {
+            if (context == nullptr) {
+                return;
+            }
+            CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
+            if (DestroyCallbackRefsInner(info)) {
+                RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            }
+        }
+
+        static void DestroyCallbackRefsFrom2DEngine(void* context)
+        {
+            if (context == nullptr) {
+                return;
+            }
+            CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
+            if (DestroyCallbackRefsInner(info)) {
+                RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            }
+        }
+
+        static bool DestroyCallbackRefsInner(CallbackSemaphoreInfo* info)
+        {
+            if (info == nullptr) {
+                return false;
+            }
             --info->mRefs;
             if (!info->mRefs) {
                 info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
                 delete info;
             }
+            return true;
         }
     };
     template <class T>
@@ -214,6 +246,9 @@ public:
     VkSemaphore RequireSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
     void DestroyAllSemaphoreFence();
+    static std::atomic<uint64_t> callbackSemaphoreInfoCnt_;
+    static std::atomic<uint64_t> callbackSemaphoreInfoRSDerefCnt_;
+    static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineDerefCnt_;
 
 friend class RsVulkanContext;
 private:

@@ -308,8 +308,12 @@ HWTEST_F(RSRenderParticleTest, GetPositionTest, Level1)
     auto particleParams = std::make_shared<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
+    constexpr float positionX = 15.f;
+    constexpr float positionY = 15.f;
+    Vector2f position = {positionX, positionY};
+    rsRenderParticle.SetPosition(position);
     v = rsRenderParticle.GetPosition();
-    EXPECT_EQ(v, v);
+    EXPECT_EQ(v, position);
 }
 
 /**
@@ -322,8 +326,12 @@ HWTEST_F(RSRenderParticleTest, GetVelocityTest, Level1)
     auto particleParams = std::make_shared<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
+    constexpr float velocityX = 15.f;
+    constexpr float velocityY = 15.f;
+    Vector2f velocity = {velocityX, velocityY};
+    rsRenderParticle.SetVelocity(velocity);
     v = rsRenderParticle.GetVelocity();
-    EXPECT_EQ(v, v);
+    EXPECT_EQ(v, velocity);
 }
 
 /**
@@ -336,8 +344,12 @@ HWTEST_F(RSRenderParticleTest, GetAccelerationTest, Level1)
     auto particleParams = std::make_shared<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     Vector2f v;
+    constexpr float accelerationX = 15.f;
+    constexpr float accelerationY = 15.f;
+    Vector2f acceleration = {accelerationX, accelerationY};
+    rsRenderParticle.SetVelocity(acceleration);
     v = rsRenderParticle.GetAcceleration();
-    EXPECT_EQ(v, v);
+    EXPECT_NE(v, acceleration);
 }
 
 /**

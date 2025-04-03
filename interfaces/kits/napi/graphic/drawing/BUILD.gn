@@ -29,7 +29,7 @@ config("local_drawing_config") {
 
   include_dirs = [
     "../drawing",
-    "../../../../../rosen/modules/2d_engine/rosen_text/skia_txt",
+    "../../../../../frameworks/text/adapter/skia",
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",

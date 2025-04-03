@@ -420,6 +420,7 @@ HWTEST_F(RSKeyframeAnimationTest, KeyframeAnimationTest001, TestSize.Level1)
     keyframeAnimation->InitInterpolationValue();
     keyframeAnimation->SetDurationKeyframe(true);
     keyframeAnimation->OnStart();
+    EXPECT_TRUE(keyframeAnimation->isDurationKeyframe_);
     GTEST_LOG_(INFO) << "RSKeyframeAnimationTest KeyframeAnimationTest001 end";
 }
 } // namespace Rosen

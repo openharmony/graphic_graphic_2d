@@ -53,7 +53,7 @@ HWTEST_F(RSImplicitAnimatorTest, BeginImplicitKeyFrameAnimationTest001, Level1)
     float fraction = 0.f;
     RSAnimationTimingCurve timingCurve;
     rsImplicitAnimator.BeginImplicitKeyFrameAnimation(fraction, timingCurve);
-    ASSERT_EQ(fraction, 0.f);
+    ASSERT_FALSE(fraction);
 }
 
 /**
@@ -91,7 +91,7 @@ HWTEST_F(RSImplicitAnimatorTest, NeedImplicitAnimationTest, Level1)
 {
     RSImplicitAnimator rsImplicitAnimator;
     bool res = rsImplicitAnimator.NeedImplicitAnimation();
-    ASSERT_EQ(res, false);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -105,7 +105,7 @@ HWTEST_F(RSImplicitAnimatorTest, BeginImplicitTransitionTest, Level1)
     bool isTransitionIn = true;
     auto effect = std::make_shared<RSTransitionEffect>();
     rsImplicitAnimator.BeginImplicitTransition(effect, isTransitionIn);
-    ASSERT_EQ(isTransitionIn, true);
+    ASSERT_TRUE(isTransitionIn);
 }
 
 /**
@@ -118,7 +118,7 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitTransitionTest, Level1)
     RSImplicitAnimator rsImplicitAnimator;
     int res = 0;
     rsImplicitAnimator.EndImplicitTransition();
-    ASSERT_EQ(res, 0);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -132,7 +132,7 @@ HWTEST_F(RSImplicitAnimatorTest, BeginImplicitPathAnimationTest, Level1)
     int res = 0;
     auto motionPathOption = std::make_shared<RSMotionPathOption>("path");
     rsImplicitAnimator.BeginImplicitPathAnimation(motionPathOption);
-    ASSERT_EQ(res, 0);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -145,7 +145,7 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitPathAnimationTest, Level1)
     RSImplicitAnimator rsImplicitAnimator;
     int res = 0;
     rsImplicitAnimator.EndImplicitPathAnimation();
-    ASSERT_EQ(res, 0);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -158,7 +158,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest, Level1)
     RSImplicitAnimator rsImplicitAnimator;
     int res = 0;
     rsImplicitAnimator.CreateImplicitAnimation(nullptr, nullptr, nullptr, nullptr);
-    ASSERT_EQ(res, 0);
+    ASSERT_FALSE(res);
 }
 
 /**

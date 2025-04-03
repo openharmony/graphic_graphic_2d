@@ -88,6 +88,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
+    "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
@@ -109,7 +110,6 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
     "core/pipeline/rs_unmarshal_task_manager.cpp",
-    "core/pipeline/rs_vsync_rate_reduce_manager.cpp",
     "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
@@ -287,17 +287,12 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
   ]
-  if (use_video_processing_engine) {
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-  }
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
-    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -387,6 +382,7 @@ ohos_shared_library("librender_service") {
     "ffrt:libffrt",
     "graphic_surface:frame_report",
     "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -399,6 +395,9 @@ ohos_shared_library("librender_service") {
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
   ]
+  if (graphic_2d_feature_rs_enable_uni_render) {
+    external_deps += [ "ability_runtime:ability_manager" ]
+  }
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
   }

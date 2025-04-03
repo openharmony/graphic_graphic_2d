@@ -303,10 +303,11 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
     }
 }
 
-void SurfaceNodeCommandHelper::SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId)
+void SurfaceNodeCommandHelper::SetClonedNodeInfo(
+    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetClonedNodeId(cloneNodeId);
+        node->SetClonedNodeInfo(cloneNodeId, needOffscreen);
     }
 }
 
@@ -403,7 +404,7 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
                 return;
             }
             auto windowContainer = displayRenderNode->GetWindowContainer();
-            if (windowContainer == nullptr) {
+            if (windowContainer == nullptr || !windowContainer->IsOnTheTree()) {
                 displayRenderNode->AddChild(surfaceRenderNode);
                 RS_LOGD("SurfaceNodeCommandHelper::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}"
                     PRIu64, surfaceRenderNode->GetId(), displayRenderNode->GetId());
@@ -431,7 +432,7 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
                 return;
             }
             auto windowContainer = displayRenderNode->GetWindowContainer();
-            if (windowContainer == nullptr) {
+            if (windowContainer == nullptr || !windowContainer->IsOnTheTree()) {
                 displayRenderNode->RemoveChild(surfaceRenderNode);
                 RS_LOGD("SurfaceNodeCommandHelper::DetachFromWindowContainer %{public}" PRIu64 " detach from %{public}"
                     PRIu64, surfaceRenderNode->GetId(), displayRenderNode->GetId());

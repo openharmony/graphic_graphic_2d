@@ -32,6 +32,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "utils/graphic_coretrace.h"
 #include "memory/rs_memory_manager.h"
+#include "mem_param.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -897,7 +898,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 
 void RSUniRenderThread::ReclaimMemory()
 {
-    if (!RSSystemProperties::GetReclaimMemoryEnabled()) {
+    if (!RSSystemProperties::GetReclaimMemoryEnabled() || !MEMParam::IsReclaimEnabled()) {
         return;
     }
 

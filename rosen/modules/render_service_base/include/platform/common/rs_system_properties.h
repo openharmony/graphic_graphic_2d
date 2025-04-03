@@ -272,8 +272,6 @@ public:
     static bool GetDrmEnabled();
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
-    static bool IsTabletType();
-    static bool IsPcType();
     static bool IsSuperFoldDisplay();
     static bool IsBetaRelease();
     static bool GetSyncTransactionEnabled();

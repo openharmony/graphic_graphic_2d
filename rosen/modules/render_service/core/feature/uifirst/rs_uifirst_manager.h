@@ -49,10 +49,13 @@ public:
     };
 
     void AddProcessDoneNode(NodeId id);
+    void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddReuseNode(NodeId id);
+
+    bool NeedNextDrawForSkippedNode();
 
     CacheProcessStatus GetNodeStatus(NodeId id);
     // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
@@ -182,6 +185,7 @@ public:
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
+    void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -199,12 +203,14 @@ private:
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
     void ProcessResetNode();
+    void ProcessSkippedNode();
     void ProcessDoneNode();
     void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
+    void ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
@@ -278,13 +284,15 @@ private:
     // use in RT & subThread
     std::mutex childernDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
+    std::mutex skippedNodeMutex_;
+    std::unordered_set<NodeId> subthreadProcessSkippedNode_;
 
     // pending post node: collect in main, use&clear in RT
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::list<NodeId> sortedSubThreadNodeIds_;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> pindingResetWindowCachedNodes_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;

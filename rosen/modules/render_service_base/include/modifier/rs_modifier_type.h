@@ -29,6 +29,9 @@ namespace Rosen {
 // 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 // 3. Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //    If a command is not used and you want to delete it, just COMMENT it
+// 4. MAX_RS_MODIFIER_TYPE always MUST be equla (GREATEST_ID_VALUE_IN_ENUM + 1)
+//    Example: If you added new enum value which id equal 400 and it greatest value in enum,
+//    you HAVE TO change MAX_RS_MODIFIER_TYPE id to 401
 enum class RSModifierType : int16_t {
     INVALID = 0,
     BOUNDS = 1,
@@ -164,26 +167,28 @@ enum class RSModifierType : int16_t {
     FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
-    CUSTOM = 134,
-    EXTENDED = 135,
-    TRANSITION = 136,
-    BACKGROUND_STYLE = 137,
-    CONTENT_STYLE = 138,
-    FOREGROUND_STYLE = 139,
-    OVERLAY_STYLE = 140,
-    NODE_MODIFIER = 141,
-    ENV_FOREGROUND_COLOR = 142,
-    ENV_FOREGROUND_COLOR_STRATEGY = 143,
-    GEOMETRYTRANS = 144,
-    CUSTOM_CLIP_TO_FRAME = 145,
-    HDR_BRIGHTNESS = 146,
-    BEHIND_WINDOW_FILTER_ENABLED = 147,
-    BEHIND_WINDOW_FILTER_RADIUS = 148,
-    BEHIND_WINDOW_FILTER_SATURATION = 149,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 150,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 151,
-    CHILDREN = 152, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 153,
+
+    CUSTOM = 200,
+    EXTENDED = 201,
+    TRANSITION = 202,
+    BACKGROUND_STYLE = 203,
+    CONTENT_STYLE = 204,
+    FOREGROUND_STYLE = 205,
+    OVERLAY_STYLE = 206,
+    NODE_MODIFIER = 207,
+    ENV_FOREGROUND_COLOR = 208,
+    ENV_FOREGROUND_COLOR_STRATEGY = 209,
+    GEOMETRYTRANS = 211,
+    CUSTOM_CLIP_TO_FRAME = 212,
+    HDR_BRIGHTNESS = 213,
+    BEHIND_WINDOW_FILTER_RADIUS = 214,
+    BEHIND_WINDOW_FILTER_SATURATION = 215,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 216,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 217,
+
+    CHILDREN = 240, // PLACEHOLDER, no such modifier, but we need a dirty flag
+    
+    MAX_RS_MODIFIER_TYPE = 255,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -366,7 +371,6 @@ public:
             case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
             case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
             case RSModifierType::HDR_BRIGHTNESS: return "HDRBrightness";
-            case RSModifierType::BEHIND_WINDOW_FILTER_ENABLED: return "BehindWindowFilterEnabled";
             case RSModifierType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSModifierType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";

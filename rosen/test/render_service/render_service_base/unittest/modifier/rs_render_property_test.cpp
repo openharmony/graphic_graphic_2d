@@ -366,6 +366,7 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
 {
     RSRenderAnimatableProperty<float> property1;
     RSRenderAnimatableProperty<Vector2f> property2;
+    RSRenderAnimatableProperty<Vector3f> property3f;
     RSRenderAnimatableProperty<Quaternion> property3;
     RSRenderAnimatableProperty<Vector4f> property4;
     RSRenderAnimatableProperty<Matrix3f> property5;
@@ -378,6 +379,7 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
     float zeroThreshold = 0.0;
     ASSERT_TRUE(property1.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property2.IsNearEqual(value, zeroThreshold));
+    ASSERT_TRUE(property3f.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property3.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property4.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property5.IsNearEqual(value, zeroThreshold));
@@ -446,5 +448,47 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     EXPECT_TRUE(property8.IsNearEqual(vector4ColorValue, zeroThreshold));
     EXPECT_TRUE(property9.IsNearEqual(rectValue, zeroThreshold));
     ASSERT_TRUE(property7.IsEqual(pFilterValue));
+}
+
+/**
+ * @tc.name: IsNearEqual003
+ * @tc.desc: Test IsNearEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, IsNearEqual003, TestSize.Level1)
+{
+    Vector3f vector3f;
+    RSRenderAnimatableProperty<Vector3f> property3f(vector3f);
+    std::shared_ptr<RSRenderProperty<Vector3f>> vector3fValue = std::make_shared<RSRenderProperty<Vector3f>>();
+    vector3fValue->Set(vector3f);
+    EXPECT_TRUE(property3f.IsNearEqual(vector3fValue, 1e-4));
+}
+
+/**
+ * @tc.name: dumptest
+ * @tc.desc: Test dump
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, dumptest, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderProperty<Vector3f>>();
+    prop->Set(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
+    std::string dumpOut;
+    prop->Dump(dumpOut);
+    EXPECT_EQ(dumpOut, std::string("[x:1.0 y:1.0 z:1.0]"));
+}
+
+/**
+ * @tc.name: tofloattest
+ * @tc.desc: Test toFloat
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderPropertyTest, tofloattest, TestSize.Level1)
+{
+    RSRenderAnimatableProperty<Vector3f> property3f(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
+    EXPECT_NEAR(property3f.ToFloat(), 1.73205f, 1e-4);  // 1.73205.f mod result
 }
 }

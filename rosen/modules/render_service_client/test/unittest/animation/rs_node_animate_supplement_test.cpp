@@ -421,10 +421,9 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
     std::weak_ptr<RSNode> weak = node;
     callback1 = [weak]() {
         auto node2 = weak.lock();
-        if (node2 == nullptr) {
-            return;
+        if (node2) {
+            node2->SetAlpha(0.2f);
         }
-        node2->SetAlpha(0.2f);
     };
     RSNode::AddKeyFrame(0.1f, RSAnimationTimingCurve::LINEAR, callback1);
     RSNode::AddKeyFrame(0.2f, callback1);
@@ -432,10 +431,9 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest014, TestSize.Level1)
     RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
     callback1 = [weak]() {
         auto node2 = weak.lock();
-        if (node2 == nullptr) {
-            return;
+        if (node2) {
+            node2->SetAlpha(0.3f);
         }
-        node2->SetAlpha(0.3f);
     };
     RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest014 end";

@@ -484,6 +484,17 @@ bool RSSurfaceRenderParams::IsWatermarkEmpty() const
     return watermarkHandles_.empty();
 }
 
+RectI RSSurfaceRenderParams::GetScreenRect() const
+{
+    return screenRect_;
+}
+
+void RSSurfaceRenderParams::RecordScreenRect(RectI rect)
+{
+    screenRect_ = rect;
+    needSync_ = true;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -556,6 +567,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
+    targetSurfaceParams->bundleName_ = bundleName_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
@@ -597,6 +609,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
+    targetSurfaceParams->screenRect_ = screenRect_;
     RSRenderParams::OnSync(target);
 }
 

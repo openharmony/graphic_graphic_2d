@@ -57,12 +57,12 @@ void RSFirstFrameNotifier::OnFirstFrameCommitCallback(ScreenId screenId)
 void RSFirstFrameNotifier::ExecIfFirstFrameCommit(ScreenId screenId)
 {
     if (firstFrameCommitScreens_.find(screenId) != firstFrameCommitScreens_.end()) {
+        firstFrameCommitScreens_.erase(screenId);
         RS_TRACE_NAME_FMT("ExecIfFirstFrameCommit screenId:%" PRIu64 ".", screenId);
-        RS_LOGI("ExecIfFirstFrameCommit screenId:%{public}" PRIu64 ".", screenId);
+        RS_LOGD("ExecIfFirstFrameCommit screenId:%{public}" PRIu64 ".", screenId);
         RSBackgroundThread::Instance().PostTask([this, screenId]() {
             OnFirstFrameCommitCallback(screenId);
         });
-        firstFrameCommitScreens_.erase(screenId);
     }
 }
 

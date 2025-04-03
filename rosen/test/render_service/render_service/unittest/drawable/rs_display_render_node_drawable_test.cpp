@@ -194,14 +194,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     ASSERT_NE(renderNode_, nullptr);
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
-    auto rotateOffScreenFeatureParam =
-         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
-    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
-    if (rotateOffScreenParam == nullptr) {
-        rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();
-    }
-    auto type = rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
-    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(true);
+    auto type = RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable();
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(true);
 
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     params->isRotationChanged_ = true;
@@ -217,7 +211,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->curCanvas_->surface_ = surface.get();
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     ASSERT_TRUE(displayDrawable_->curCanvas_->GetSurface());
-    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(type);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(type);
 }
 
 /**

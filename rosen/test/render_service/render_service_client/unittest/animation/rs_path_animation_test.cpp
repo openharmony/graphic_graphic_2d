@@ -56,7 +56,7 @@ HWTEST_F(RSPathAnimationTest, SetEndFractionTest001, Level1)
     auto per = std::make_shared<RSNode>(true);
     rsPathAnimation.StartInner(per);
     rsPathAnimation.SetEndFraction(frac);
-    ASSERT_EQ(res, true);
+    ASSERT_TRUE(res);
 }
 
 /**
@@ -92,7 +92,7 @@ HWTEST_F(RSPathAnimationTest, SetPathNeedAddOriginTest, Level1)
     auto per = std::make_shared<RSNode>(true);
     rsPathAnimation.StartInner(per);
     rsPathAnimation.SetPathNeedAddOrigin(needAddOrigin);
-    ASSERT_EQ(res, true);
+    ASSERT_TRUE(res);
 }
 
 /**

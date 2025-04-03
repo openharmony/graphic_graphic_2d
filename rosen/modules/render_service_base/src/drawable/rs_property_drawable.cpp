@@ -224,12 +224,11 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (ptr->needDrawBehindWindow_) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (!paintFilterCanvas || !canvas->GetSurface()) {
-                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow canvas:[%{public}d], surface:[%{public}d]",
-                    paintFilterCanvas != nullptr, canvas->GetSurface() != nullptr);
+            if (!canvas->GetSurface()) {
+                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow surface is nullptr");
                 return;
             }
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu], windowFreezeCapture[%d]",
                 ptr->renderNodeId_, paintFilterCanvas->GetIsWindowFreezeCapture());
             if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
@@ -385,8 +384,7 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
     if (stagingCacheManager_  == nullptr) {
         return;
     }
-    RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu]", stagingNodeId_);
-    stagingCacheManager_->MarkNeedClearFilterCache();
+    stagingCacheManager_->MarkNeedClearFilterCache(stagingNodeId_);
     ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%{public}lld]",
         static_cast<long long>(stagingNodeId_));
 }

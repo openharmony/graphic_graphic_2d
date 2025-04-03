@@ -65,7 +65,7 @@ HWTEST_F(RSAnimationManagerTest, AddAnimationTest001, TestSize.Level1)
     bool isInitialized_ = false;
     auto animation = std::make_shared<RSRenderAnimation>();
     rsAnimationManager.AddAnimation(animation);
-    ASSERT_EQ(isInitialized_, false);
+    ASSERT_FALSE(isInitialized_);
 }
 
 /**
@@ -79,7 +79,7 @@ HWTEST_F(RSAnimationManagerTest, RemoveAnimationTest001, TestSize.Level1)
     bool isInitialized_ = false;
     AnimationId keyId = 0;
     rsAnimationManager.RemoveAnimation(keyId);
-    ASSERT_EQ(isInitialized_, false);
+    ASSERT_FALSE(isInitialized_);
 }
 
 /**
@@ -93,7 +93,7 @@ HWTEST_F(RSAnimationManagerTest, CancelAnimationByPropertyIdTest001, TestSize.Le
     bool isInitialized_ = false;
     PropertyId id = 0;
     rsAnimationManager.CancelAnimationByPropertyId(id);
-    ASSERT_EQ(isInitialized_, false);
+    ASSERT_FALSE(isInitialized_);
 }
 
 /**
@@ -174,7 +174,7 @@ HWTEST_F(RSAnimationManagerTest, SetRateDeciderEnableTest, TestSize.Level1)
     bool enabled = false;
     FrameRateGetFunc func;
     rsAnimationManager.SetRateDeciderEnable(enabled, func);
-    EXPECT_EQ(enabled, false);
+    EXPECT_FALSE(enabled);
 }
 
 /**
@@ -218,7 +218,7 @@ HWTEST_F(RSAnimationManagerTest, GetDecideFrameRateRangeTest, TestSize.Level1)
     bool test = false;
     FrameRateRange frame;
     frame = rsAnimationManager.GetDecideFrameRateRange();
-    ASSERT_EQ(test, false);
+    ASSERT_FALSE(test);
 }
 
 /**
@@ -232,7 +232,7 @@ HWTEST_F(RSAnimationManagerTest, GetFrameRateRangeTest001, TestSize.Level1)
     bool test = false;
     FrameRateRange frame;
     frame = rsAnimationManager.GetFrameRateRange();
-    ASSERT_EQ(test, false);
+    ASSERT_FALSE(test);
 }
 
 /**

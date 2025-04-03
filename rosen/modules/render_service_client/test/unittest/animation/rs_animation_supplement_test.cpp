@@ -824,6 +824,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest016, TestSize.Level1)
     animation->GetRotationPropertyId(node);
     animation->SetRotation(node, 1.f);
     animation->InitInterpolationValue();
+    EXPECT_TRUE(animation->GetAutoReverse());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest016 end";
 }
 
@@ -912,6 +913,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
     animation1->OnStart();
     animation2->Start(node1);
     animation2->OnStart();
+    EXPECT_FALSE(node1->HasPropertyAnimation(0));
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest018 end";
 }
 
@@ -971,6 +973,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
     animation2->OnStart();
     animation3->Start(node1);
     animation3->OnStart();
+    EXPECT_FALSE(node1->HasPropertyAnimation(0));
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest019 end";
 }
 
@@ -1060,6 +1063,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     RSModifierExtractor extractor(id);
     extractor.GetCameraDistance();
     extractor.GetShadowMask();
+    EXPECT_TRUE(extractor.id_);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 end";
 }
 
@@ -1104,6 +1108,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     RSMaterialFilter rsMaterialFilter(style, dipScale, mode, ratio);
     rsMaterialFilter.IsEqual(nullptr);
     rsMaterialFilter.IsEqualZero();
+    EXPECT_EQ(rsMaterialFilter.colorMode_, mode);
 
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
@@ -1194,6 +1199,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
 
     Vector4 vec = { 0.f, 0.f, 0.f, 0.f };
     vec.IsNearEqual(vec1, 1.f);
+    EXPECT_TRUE(vec.IsZero());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 end";
 }
 
@@ -1248,7 +1254,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
     auto data4 = MyNewData();
     ret = (data3 == data4);
     ret = (data3 != data4);
-
+    EXPECT_TRUE(data3.IsEqual(data4));
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 end";
 }
 

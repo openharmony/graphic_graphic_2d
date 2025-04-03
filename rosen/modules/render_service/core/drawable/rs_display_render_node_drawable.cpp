@@ -617,8 +617,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
     SetScreenRotationForPointLight(*params);
 
-    const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-    const auto& activeSurfaceRect = GetSyncDirtyManager()->GetActiveSurfaceRect();
+    auto syncDirtyManager = GetSyncDirtyManager();
+    const RectI& dirtyRegion = syncDirtyManager->GetCurrentFrameDirtyRegion();
+    const auto& activeSurfaceRect = syncDirtyManager->GetActiveSurfaceRect().IsEmpty() ?
+        syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64
         "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
@@ -638,11 +640,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
         }
     }
+    screenManager->RemoveForceRefreshTask();
     if (SkipFrame(activeScreenRefreshRate, curScreenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
             curScreenInfo.skipFrameStrategy, curScreenInfo.skipFrameInterval, curScreenInfo.expectedRefreshRate);
-        screenManager->ForceRefreshOneFrameIfNoRNV();
+        screenManager->PostForceRefreshTask();
         return;
     }
     if (!curScreenInfo.isEqualVsyncPeriod) {
@@ -772,7 +775,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    UpdateSlrScale(screenInfo);
+    UpdateSlrScale(screenInfo, params);
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
     std::vector<RectI> curFrameVisibleRegionRects;
@@ -1574,6 +1577,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
         RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen mirroredParams is null");
         return;
     }
+    auto& mirrorDisplayParams = static_cast<RSDisplayRenderParams&>(*mirroredParams);
     const auto& nodeParams = GetRenderParams();
     if (!nodeParams) {
         RS_LOGE("RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
@@ -1616,6 +1620,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
         } else {
             scaleManager_->CheckOrRefreshScreen(mirrorWidth, mirrorHeight, mainWidth, mainHeight);
         }
+        scaleManager_->CheckOrRefreshColorSpace(mirrorDisplayParams.GetNewColorSpace());
         isMirrorSLRCopy_ = scaleManager_->GetIsSLRCopy();
     }
     // Scale
@@ -1624,9 +1629,13 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
             scaleManager_->CanvasScale(*curCanvas_);
         } else {
             auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
-            // 2 for calc X and Y
-            curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2,
-                (mirrorHeight - (scaleNum * mainHeight)) / 2);
+            int angle = RSUniRenderUtil::GetRotationFromMatrix(curCanvas_->GetTotalMatrix());
+            if (RSSystemProperties::IsSuperFoldDisplay() && RSBaseRenderUtil::PortraitAngle(angle)) {
+                scaleNum = mirrorHeight / mainWidth;
+                std::swap(mirrorWidth, mirrorHeight);
+            }
+            curCanvas_->Translate((mirrorWidth - scaleNum * mainWidth) / HALF,
+                (mirrorHeight - scaleNum * mainHeight) / HALF);
             curCanvas_->Scale(scaleNum, scaleNum);
             curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
         }
@@ -1749,6 +1758,10 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*params, *rscanvas);
+        Drawing::Matrix invertMatrix;
+        if (params->GetMatrix().Invert(invertMatrix)) {
+            rscanvas->ConcatMatrix(invertMatrix);
+        }
         RSDirtyRectsDfx rsDirtyRectsDfx(*this);
         rsDirtyRectsDfx.OnDraw(*rscanvas);
     } else {
@@ -2094,7 +2107,7 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
 }
 
-void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
+void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo, RSDisplayRenderParams* params)
 {
     if (screenInfo.isSamplingOn && RSSystemProperties::GetSLRScaleEnabled()) {
         if (slrScale_ == nullptr) {
@@ -2103,6 +2116,9 @@ void RSDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
         } else {
             slrScale_->CheckOrRefreshScreen(
                 screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
+        }
+        if (params != nullptr) {
+            slrScale_->CheckOrRefreshColorSpace(params->GetNewColorSpace());
         }
         screenInfo.samplingDistance = slrScale_->GetKernelSize();
     } else {

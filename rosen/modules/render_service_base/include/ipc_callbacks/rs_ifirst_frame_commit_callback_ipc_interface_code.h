@@ -26,4 +26,4 @@ enum class RSIFirstFrameCommitCallbackInterfaceCode : CodeUnderlyingType {
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IFIRST_FRAME_CALLBACK_INTERFACE_CODE_H
+#endif

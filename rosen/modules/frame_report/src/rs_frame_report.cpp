@@ -40,14 +40,7 @@ RsFrameReport& RsFrameReport::GetInstance()
     return instance;
 }
 
-RsFrameReport::RsFrameReport() {}
-
-RsFrameReport::~RsFrameReport()
-{
-    CloseLibrary();
-}
-
-void RsFrameReport::Init()
+RsFrameReport::RsFrameReport()
 {
     int ret = LoadLibrary();
     if (!ret) {
@@ -59,6 +52,16 @@ void RsFrameReport::Init()
     if (initFunc_ != nullptr) {
         initFunc_();
     }
+}
+
+RsFrameReport::~RsFrameReport()
+{
+    CloseLibrary();
+}
+
+void RsFrameReport::Init()
+{
+    ReportSchedEvent(FrameSchedEvent::INIT, {});
 }
 
 bool RsFrameReport::LoadLibrary()
@@ -240,6 +243,11 @@ void RsFrameReport::PostAndWait()
 void RsFrameReport::BeginFlush()
 {
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
+}
+
+void RsFrameReport::ReportDDGRTaskInfo()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
 }
 } // namespace Rosen
 } // namespace OHOS

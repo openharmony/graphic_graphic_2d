@@ -141,7 +141,6 @@ static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<
     }
     uint32_t recordCmdSize = parcel.ReadUint32();
     if (recordCmdSize == 0) {
-        ROSEN_LOGE("UnmarshallingRecordCmdToDrawCmdList ReadUint32 failed");
         return true;
     }
     if (recordCmdSize > USHRT_MAX) {
@@ -200,7 +199,6 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
     }
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
-        ROSEN_LOGE("UnmarshallingExtendObjectToDrawCmdList ReadUint32 failed");
         return true;
     }
     if (objectSize > USHRT_MAX) {

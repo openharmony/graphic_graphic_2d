@@ -160,8 +160,7 @@ void RSSubThread::DestroyShareEglContext()
 
 void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSUBTHREAD_DRAWABLECACHE);
+    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::RS_RSSUBTHREAD_DRAWABLECACHE);
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {
@@ -176,7 +175,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     NodeId nodeId = nodeDrawable->GetId();
     nodeDrawable->SetSubThreadSkip(false);
 
-    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
+    RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s] id:[%" PRIu64 "]", nodeDrawable->GetName().c_str(), nodeId);
     RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
@@ -189,12 +188,17 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->HasCachedTexture() &&
         nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount()) {
-        RS_TRACE_NAME_FMT("subthread skip node id %llu", nodeId);
+        RS_TRACE_NAME_FMT("subthread skip id:%llu", nodeId);
+        RS_LOGI("uifirst subthread skip id:%{public}" PRIu64 " name:%{public}s postFrame:%{public}" PRIu64
+            " curFrame:%{public}" PRIu64, nodeId, nodeDrawable->GetName().c_str(), nodeDrawable->GetTaskFrameCount(),
+            RSUniRenderThread::Instance().GetFrameCount());
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
         nodeDrawable->SetSubThreadSkip(true);
         nodeDrawable->ProcessSurfaceSkipCount();
         doingCacheProcessNum_--;
         RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
+        RSUifirstManager::Instance().AddProcessSkippedNode(nodeId);
+        RSMainThread::Instance()->RequestNextVSync("subthreadSkipped");
         return;
     }
     DrawableCacheWithSkImage(nodeDrawable);
@@ -209,7 +213,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
 
     RSSubThreadManager::Instance()->NodeTaskNotify(nodeId);
 
-    RSMainThread::Instance()->RequestNextVSync("subthread");
+    RSMainThread::Instance()->RequestNextVSync("subthreadDone");
 
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(nodeId);

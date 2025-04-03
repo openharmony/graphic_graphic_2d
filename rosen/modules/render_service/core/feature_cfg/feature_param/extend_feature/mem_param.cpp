@@ -25,4 +25,24 @@ void MEMParam::SetRSWatchPoint(std::string rsWatchPoint)
 {
     rsWatchPoint_ = rsWatchPoint;
 }
+
+int MEMParam::GetRSCacheLimitsResourceSize()
+{
+    return rsCacheLimitsResourceSize_;
+}
+
+void MEMParam::SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize)
+{
+    rsCacheLimitsResourceSize_ = rsCacheLimitsResourceSize;
+}
+
+bool MEMParam::IsReclaimEnabled()
+{
+    return isReclaimEnabled_;
+}
+
+void MEMParam::SetReclaimEnabled(bool isEnabled)
+{
+    isReclaimEnabled_ = isEnabled;
+}
 } // namespace OHOS::Rosen

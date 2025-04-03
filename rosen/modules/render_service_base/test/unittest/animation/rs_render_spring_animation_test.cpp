@@ -286,6 +286,7 @@ HWTEST_F(RSRenderSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
     auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
     float zeroThreshold = 0.5f;
     renderSpringAnimation->SetZeroThreshold(zeroThreshold);
+    EXPECT_TRUE(zeroThreshold);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetZeroThreshold001 end";
 }
 

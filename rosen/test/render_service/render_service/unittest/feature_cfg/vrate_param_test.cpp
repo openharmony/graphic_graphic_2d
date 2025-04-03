@@ -44,10 +44,9 @@ void VRateParamTest::TearDown() {}
  */
 HWTEST_F(VRateParamTest, SetVRateEnable, Function | SmallTest | Level1)
 {
-    VRateParam vrateParam;
-    vrateParam.SetVRateEnable(true);
+    VRateParam::SetVRateEnable(true);
     ASSERT_EQ(VRateParam::GetVRateEnable(), true);
-    vrateParam.SetVRateEnable(false);
+    VRateParam::SetVRateEnable(false);
     ASSERT_EQ(VRateParam::GetVRateEnable(), false);
 }
 } // namespace Rosen

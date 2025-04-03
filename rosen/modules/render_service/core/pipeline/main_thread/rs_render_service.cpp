@@ -32,6 +32,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
+#include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
 #ifdef RS_ENABLE_GPU
@@ -40,6 +41,7 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -988,17 +990,12 @@ void RSRenderService::RegisterGpuFuncs()
 // need called after GraphicFeatureParamManager::GetInstance().Init();
 void RSRenderService::FilterCCMInit()
 {
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    if (filterParam == nullptr) {
-        return;
-    }
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
-    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(
-        std::static_pointer_cast<FilterParam>(filterParam)->IsBlurAdaptiveAdjust());
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
+    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -47,6 +47,7 @@
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1359,7 +1360,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode001, TestSize.Level1)
     surfaceRenderNodeCloned->renderDrawable_ = clonedNodeRenderDrawableSharedPtr;
 
     surfaceRenderNode.isCloneNode_ = true;
-    surfaceRenderNode.SetClonedNodeId(surfaceRenderNodeCloned->GetId());
+    surfaceRenderNode.SetClonedNodeInfo(surfaceRenderNodeCloned->GetId(), true);
     auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
     ASSERT_TRUE(result);
 }
@@ -4284,7 +4285,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion002, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
-    surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4305,7 +4306,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion003, TestSize.Level
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->hasRemovedChild_ = true;
-    surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     RSDisplayNodeConfig config;
     auto rsContext = std::make_shared<RSContext>();
@@ -4332,25 +4333,68 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion004, TestSize.Level
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    
-    RSDisplayNodeConfig config;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(0, config, rsContext->weak_from_this());
-    auto dirtyManager = displayNode->GetDirtyManager();
-    ASSERT_NE(dirtyManager, nullptr);
-
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
-    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
-    surfaceNode->removedChildrenRect_ = RectI(1, 1, 10, 10);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    surfaceNode->hasChildrenOutOfRect_ = true;
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+/*
+ * @tc.name: MergeRemovedChildDirtyRegion005
+ * @tc.desc: Test MergeRemovedChildDirtyRegion while node's bounds geometry is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIBSNHZ
+ */
+HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+    surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    rsUniRenderVisitor->curSurfaceDirtyManager_->isDfxTarget_ = true;
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
+}
+
+/*
+ * @tc.name: MergeRemovedChildDirtyRegion006
+ * @tc.desc: Test MergeRemovedChildDirtyRegion while dirtyManager is target for DFX
+ * @tc.type: FUNC
+ * @tc.require: issuesIBSNHZ
+ */
+HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion006, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
+    surfaceNode->GetDirtyManager()->MarkAsTargetForDfx();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
     rsUniRenderVisitor->MergeRemovedChildDirtyRegion(*surfaceNode, true);
-    ASSERT_EQ(surfaceNode->hasRemovedChild_, false);
+    ASSERT_EQ(dirtyManager->GetCurrentFrameDirtyRegion(), DEFAULT_RECT);
 }
 
 /*
@@ -4487,7 +4531,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty001, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->containerFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->containerFilter_.empty());
 }
 
@@ -4513,7 +4557,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty002, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->globalFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->globalFilter_.empty());
 }
 
@@ -4539,7 +4583,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty003, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 
@@ -4568,7 +4612,8 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty004, TestSize.Le
     rsUniRenderVisitor->curDisplayDirtyManager_->currentFrameDirtyRegion_ = {};
 
     ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*surfaceNode, *dirtyManager, globalFilterRect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*surfaceNode, *dirtyManager,
+        globalFilterRect, globalFilterRect);
     ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 
@@ -4589,7 +4634,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha001,
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, rect, isHardwareEnableByBackgroundAlpha);
 }
 
 /**
@@ -4611,7 +4658,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha002,
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, rect, isHardwareEnableByBackgroundAlpha);
 }
 
 /**
@@ -4635,7 +4684,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha003,
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode2));
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, rect, isHardwareEnableByBackgroundAlpha);
 }
 
 /**
@@ -4656,7 +4707,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha004,
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, rect, isHardwareEnableByBackgroundAlpha);
 }
 
 /**
@@ -4672,7 +4725,47 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha005,
     hwcNodes.push_back(hwcNode);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, rect, isHardwareEnableByBackgroundAlpha);
+}
+
+/**
+ * @tc.name: UpdateHardwareStateByHwcNodeBackgroundAlpha006
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHardwareStateByHwcNodeBackgroundAlpha
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha006, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode1, nullptr);
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetNodeHasBackgroundColorAlpha(true);
+    ASSERT_NE(surfaceNode2->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    RectI absRect1 = RectI{0, 0, 200, 200};
+    surfaceNode2->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect1;
+    auto surfaceNode3 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode3, nullptr);
+    ASSERT_NE(surfaceNode3->GetRenderProperties().GetBoundsGeometry(), nullptr);
+    RectI absRect2 = RectI{100, 100, 50, 50};
+    surfaceNode3->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect2;
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes1;
+    hwcNodes1.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode1));
+    hwcNodes1.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode2));
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes2;
+    hwcNodes2.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode3));
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RectI rect;
+    bool isHardwareEnableByBackgroundAlpha = false;
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes1, rect, isHardwareEnableByBackgroundAlpha);
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes2, rect, isHardwareEnableByBackgroundAlpha);
 }
 
 /**
@@ -4835,7 +4928,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter003, TestSize.
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->transparentDirtyFilter_[node->GetId()].push_back(std::pair(node->GetId(), DEFAULT_RECT));
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
-    ASSERT_TRUE(childNode->isHardwareForcedDisabled_);
+    ASSERT_FALSE(childNode->isHardwareForcedDisabled_);
 }
 
 /**
@@ -6007,5 +6100,25 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
     rsUniRenderVisitor->UpdateDisplayRcdRenderNode();
+}
+
+/*
+ * @tc.name: UpdateAncoPrepareClip
+ * @tc.desc: Test UpdateAncoPrepareClip001, clipToBounds_ & clipToFrame_ = true;
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateAncoPrepareClip001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    hwcNodePtr->GetMutableRenderProperties().clipToBounds_ = true;
+    hwcNodePtr->GetMutableRenderProperties().clipToFrame_ = true;
+    rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);
 }
 } // OHOS::Rosen

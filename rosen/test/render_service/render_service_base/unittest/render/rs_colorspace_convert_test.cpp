@@ -481,21 +481,6 @@ HWTEST_F(RSColorspaceConvertTest, ConvertColorGamutToSpaceInfo007, TestSize.Leve
 
 /**
  * @tc.name: GetFovMetadata001
- * @tc.desc: test get fov metadata with nullptr buffer
- * @tc.type:FUNC
- * @tc.require: IAJ26A
- */
-HWTEST_F(RSColorspaceConvertTest, GetFovMetadata001, TestSize.Level1)
-{
-    VPEParameter parameter;
-    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
-    GSError ret = GSERROR_OK;
-    RSColorSpaceConvert::Instance().GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
-    ASSERT_TRUE(ret != GSERROR_OK); // buffer is nullptr
-}
-
-/**
- * @tc.name: GetFovMetadata002
  * @tc.desc: test get fov metadata normal case
  * @tc.type:FUNC
  * @tc.require: IAJ26A
@@ -518,9 +503,6 @@ HWTEST_F(RSColorspaceConvertTest, GetFovMetadata002, TestSize.Level1)
     std::vector<uint8_t> metadataSet{1, 18, 119, 33, 196, 253, 112, 171, 74, 230, 99, 23, 0, 244, 82,
         138, 13, 158, 100, 41, 50, 189, 111, 144, 3, 153, 75, 210, 243, 237, 19, 12, 128};
     ret = MetadataHelper::SetAdaptiveFOVMetadata(surfaceBuffer, metadataSet);
-    ASSERT_TRUE(ret == GSERROR_OK || ret == GSERROR_HDI_ERROR);
-    VPEParameter parameter;
-    RSColorSpaceConvert::Instance().GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
     ASSERT_TRUE(ret == GSERROR_OK || ret == GSERROR_HDI_ERROR);
 }
 } // namespace OHOS::Rosen

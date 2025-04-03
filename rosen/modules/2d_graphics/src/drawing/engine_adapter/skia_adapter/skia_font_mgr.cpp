@@ -115,20 +115,13 @@ bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkT
         checkStr.assign(name.c_str(), name.size());
     }
 
-    auto toLower = [](const std::string& input) {
-        std::string output(input.length(), 0);
-        std::transform(input.begin(), input.end(), output.begin(),
-            [](char c) { return (c & 0x80) ? c : ::tolower(c); }); // 0x80 means upper case
-        return output;
-    };
-    std::string lowFamilyName = toLower(checkStr);
-
-    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
-    for (const auto& themeFamily : themeFamilies) {
-        if (lowFamilyName == toLower(themeFamily)) {
-            TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts");
-            return false;
-        }
+    std::string lowFamilyName(checkStr.length() + 1, 0);
+    std::transform(
+        checkStr.begin(), checkStr.end(), lowFamilyName.begin(), [](char c) { return (c & 0x80) ? c : ::tolower(c); });
+    if (lowFamilyName.find("ohosthemefont") == 0) {
+        TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts: %{public}s %{public}zu",
+            lowFamilyName.c_str(), lowFamilyName.find("ohosthemefont"));
+        return false;
     }
 
     return true;

@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <limits>
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_thread_handler.h"
@@ -53,6 +54,8 @@ namespace {
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
+    const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
+    const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
     const static std::string LOW_BRIGHT = "LowBright";
     const static std::string STYLUS_PEN = "StylusPen";
     // CAUTION: with priority
@@ -136,6 +139,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        SetTimeoutParamsFromConfig(configData);
         GetLowBrightVec(configData);
         GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
@@ -190,6 +194,31 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+}
+
+void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (configData == nullptr || configData->timeoutStrategyConfig_.empty()) {
+        return;
+    }
+    int32_t upTimeoutMs = 0;
+    int32_t rsIdleTimeoutMs = 0;
+    if (configData->timeoutStrategyConfig_.find(S_UP_TIMEOUT_MS) != configData->timeoutStrategyConfig_.end() &&
+        XMLParser::IsNumber(configData->timeoutStrategyConfig_[S_UP_TIMEOUT_MS])) {
+        upTimeoutMs = static_cast<int32_t>(std::stoi(configData->timeoutStrategyConfig_[S_UP_TIMEOUT_MS]));
+    }
+    if (configData->timeoutStrategyConfig_.find(S_RS_IDLE_TIMEOUT_MS) != configData->timeoutStrategyConfig_.end() &&
+        XMLParser::IsNumber(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS])) {
+        rsIdleTimeoutMs = static_cast<int32_t>(std::stoi(configData->timeoutStrategyConfig_[S_RS_IDLE_TIMEOUT_MS]));
+    }
+    if (upTimeoutMs != 0) {
+        touchManager_.SetUpTimeout(upTimeoutMs);
+        HGM_LOGI("set upTimeout from Config");
+    }
+    if (rsIdleTimeoutMs != 0) {
+        touchManager_.SetRsIdleTimeout(rsIdleTimeoutMs);
+        HGM_LOGI("set rsIdleTimeout from Config");
+    }
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -441,11 +470,13 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
     int32_t& appFrameRate = finalRange.preferred_;
     // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
-    if (appFrameRate != 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d "
-            "return because changed by self", ExtractPid(linkerId), linkerId, iter->second);
-        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return because changed by self",
-                linkerId, iter->second);
+    if (appFrameRate != 0 && (finalRange.type_ != ACE_COMPONENT_FRAME_RATE_TYPE ||
+        (finalRange.type_ == ACE_COMPONENT_FRAME_RATE_TYPE && /*ArkUI Vote*/
+        iter->second != std::numeric_limits<int>::max()))) { /*invisible window*/
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return because "
+            "changed by self, not arkui vote, not invisble window", ExtractPid(linkerId), linkerId, iter->second);
+        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return because changed by self,"
+            " not arkui vote, not invisble window", linkerId, iter->second);
         return;
     }
 
@@ -618,7 +649,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
 {
     isAmbientEffect_ = false;
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
-    if (!configData) {
+    if (configData == nullptr) {
         return;
     }
 
@@ -1452,39 +1483,36 @@ bool HgmFrameRateManager::IsCurrentScreenSupportAS()
 
 void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 {
-    bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
-
-    if (isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
-        isAdaptive_.store(isGameSupportAS_);
-        return;
-    }
-
-    if (!isAdaptiveSyncEnabled) {
-        return;
-    }
-
     // VOTER_GAMES wins, enter adaptive vsync mode
     bool isGameVoter = voterName == "VOTER_GAMES";
 
-    if ((isAdaptive_.load() == SupportASStatus::SUPPORT_AS && isGameVoter) ||
-        (isAdaptive_.load() == SupportASStatus::NOT_SUPPORT && !isGameVoter)) {
+    if (!isGameVoter) {
+        isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
         return;
     }
 
-    if (isGameVoter && isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
+    if (isGameSupportAS_ == SupportASStatus::GAME_SCENE_SKIP) {
+        isAdaptive_.store(isGameSupportAS_);
+        return;
+    }
+    
+    if (!HgmCore::Instance().GetAdaptiveSyncEnabled()) {
+        return;
+    }
+
+    if (isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
         HGM_LOGI("this game does not support adaptive sync mode");
         return;
     }
 
-    if (isGameVoter && !IsCurrentScreenSupportAS()) {
+    if (!IsCurrentScreenSupportAS()) {
         HGM_LOGI("current screen not support adaptive sync mode");
         return;
     }
 
     HGM_LOGI("ProcessHgmFrameRate RSAdaptiveVsync change mode");
     RS_TRACE_BEGIN("ProcessHgmFrameRate RSAdaptiveVsync change mode");
-    isAdaptive_.load() == SupportASStatus::NOT_SUPPORT ? isAdaptive_.store(SupportASStatus::SUPPORT_AS) :
-        isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     RS_TRACE_END();
 }
 

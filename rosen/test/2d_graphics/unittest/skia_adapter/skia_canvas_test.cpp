@@ -790,7 +790,7 @@ HWTEST_F(SkiaCanvasTest, DrawColor001, TestSize.Level1)
  */
 HWTEST_F(SkiaCanvasTest, ClearStencil001, TestSize.Level1)
 {
-    auto skiaCanvas = std::make_shared<SkiaCanvas>(nullptr);
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
     ASSERT_TRUE(skiaCanvas != nullptr);
     RectI rect;
     constexpr uint32_t stencilVal{10};

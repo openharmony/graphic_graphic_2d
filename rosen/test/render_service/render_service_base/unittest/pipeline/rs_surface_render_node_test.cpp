@@ -451,15 +451,15 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetClonedNodeId
- * @tc.desc: function test SetClonedNodeId
+ * @tc.name: SetClonedNodeInfo
+ * @tc.desc: function test SetClonedNodeInfo
  * @tc.type:FUNC
  * @tc.require: issueIBKU7U
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeId, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeInfo, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    surfaceRenderNode.SetClonedNodeId(id + 1);
+    surfaceRenderNode.SetClonedNodeInfo(id + 1, true);
     bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
     ASSERT_TRUE(result);
 }
@@ -882,109 +882,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer002, TestSize.Level2)
     securityLayerNode->SetSecurityLayer(true);
 
     ASSERT_TRUE(parentNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo001
- * @tc.desc: Test StoreMustRenewedInfo while has filter
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo001, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
-    node->SetChildHasVisibleFilter(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo002
- * @tc.desc: Test StoreMustRenewedInfo while has effect node
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo002, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->InitRenderParams();
-    node->SetChildHasVisibleEffect(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo003
- * @tc.desc: Test StoreMustRenewedInfo while has hardware node
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo003, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetHasHardwareNode(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo004
- * @tc.desc: Test StoreMustRenewedInfo while is skip layer
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo004, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetSkipLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo005
- * @tc.desc: Test StoreMustRenewedInfo while is security layer
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo005, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetSecurityLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo006
- * @tc.desc: Test StoreMustRenewedInfo while is protected layer
- * @tc.type: FUNC
- * @tc.require: issueI7ZSC2
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo006, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetProtectedLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
 }
 
 /**
@@ -2267,6 +2164,43 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     ASSERT_TRUE(childNode->GetHDRPresent());
     childNode->ReduceHDRNum();
     ASSERT_FALSE(childNode->GetHDRPresent());
+}
+
+/**
+ * @tc.name: GetIsWideColorGamut001
+ * @tc.desc: GetIsWideColorGamut test
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetIsWideColorGamut001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->wideColorGamutNum_ = 0;
+    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
+    surfaceNode->wideColorGamutNum_++;
+    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
+}
+
+/**
+ * @tc.name: IncreaseWideColorGamutNum001
+ * @tc.desc: IncreaseWideColorGamutNum and ReduceWideColorGamutNum test
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IncreaseWideColorGamutNum001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->wideColorGamutNum_ = 0;
+    EXPECT_TRUE(surfaceNode->GetContext().lock() == nullptr);
+
+    surfaceNode->firstLevelNodeId_ = id + 1;
+    surfaceNode->IncreaseWideColorGamutNum();
+    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
+    surfaceNode->ReduceWideColorGamutNum();
+    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
 }
 
 /**

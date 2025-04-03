@@ -918,7 +918,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
-        out += ", zOrder: " + std::to_string(zOrderForCalcHwcNodeEnableByFilter_);
+        out += ", zOrder: " + std::to_string(hwcRecorder_.zOrderForCalcHwcNodeEnableByFilter_);
     }
 #endif
     
@@ -4292,16 +4292,6 @@ bool RSRenderNode::GetGeoUpdateDelay() const
     return geoUpdateDelay_;
 }
 
-void RSRenderNode::StoreMustRenewedInfo()
-{
-    mustRenewedInfo_ = hasHardwareNode_ || childHasVisibleFilter_ || childHasVisibleEffect_;
-}
-
-bool RSRenderNode::HasMustRenewedInfo() const
-{
-    return mustRenewedInfo_;
-}
-
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;
@@ -4374,14 +4364,7 @@ std::recursive_mutex& RSRenderNode::GetSurfaceMutex() const
 {
     return surfaceMutex_;
 }
-bool RSRenderNode::HasHardwareNode() const
-{
-    return hasHardwareNode_;
-}
-void RSRenderNode::SetHasHardwareNode(bool hasHardwareNode)
-{
-    hasHardwareNode_ = hasHardwareNode;
-}
+
 bool RSRenderNode::HasAbilityComponent() const
 {
     return hasAbilityComponent_;
@@ -4597,6 +4580,16 @@ void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
 {
     Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
     globalCornerRadius_ = curCornerRadius;
+}
+
+void RSRenderNode::SetBlendWithBackground(bool isBlendWithBackground)
+{
+    isBlendWithBackground_ = isBlendWithBackground;
+}
+
+bool RSRenderNode::IsBlendWithBackground() const
+{
+    return isBlendWithBackground_;
 }
 
 void RSRenderNode::ResetChangeState()

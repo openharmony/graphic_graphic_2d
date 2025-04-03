@@ -125,7 +125,7 @@ public:
     /**
      * @brief   Marshalling Draw Ops Param from vector to contiguous buffers.
      */
-    void MarshallingDrawOps();
+    void MarshallingDrawOps(Drawing::DrawCmdList *cmdlist = nullptr);
 
     /**
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
@@ -136,7 +136,7 @@ public:
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
      */
-    void PatchTypefaceIds(bool takeIdFromList = false);
+    void PatchTypefaceIds(std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList = nullptr);
 
     /**
      * @brief   Draw cmd is empty or not.
@@ -225,7 +225,7 @@ private:
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
 
-    void ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList);
+    void ProfilerTextBlob(void* handle, uint32_t count, std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList = nullptr);
 
     int32_t width_;
     int32_t height_;

@@ -28,6 +28,20 @@ using namespace ANIMATIONTEST;
 class RSSpringAnimationTest : public RSAnimationBaseTest {
 };
 
+class RSNodeMock : public RSNode {
+public:
+    explicit RSNodeMock(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr)
+        : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
+    {}
+    ~RSNodeMock() = default;
+
+    bool NeedForcedSendToRemote() const override
+    {
+        return true;
+    }
+};
+
 /**
  * @tc.name: GetTimingCurveTest001
  * @tc.desc: Verify the GetTimingCurve of SpringAnimationTest
@@ -332,6 +346,68 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetZeroThreshold003
+ * @tc.desc: Verify the SetZeroThreshold of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SetZeroThreshold003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold003 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto byProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, byProperty);
+    springAnimation->SetZeroThreshold(0.01f);
+    springAnimation->SetZeroThreshold(-0.01f);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    ASSERT_TRUE(springAnimation != nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold003 end";
+}
+
+/**
+ * @tc.name: SetZeroThreshold004
+ * @tc.desc: Verify the SetZeroThreshold of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SetZeroThreshold004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold004 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto byProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, byProperty);
+    springAnimation->SetZeroThreshold(0.001f);
+    springAnimation->SetZeroThreshold(-0.001f);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    ASSERT_TRUE(springAnimation != nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold004 end";
+}
+
+/**
  * @tc.name: SetIsCustomTest003
  * @tc.desc: Verify the SetIsCustom of RSInterpolatingSpringAnimation
  * @tc.type: FUNC
@@ -397,6 +473,80 @@ HWTEST_F(RSSpringAnimationTest, TargetTest001, TestSize.Level1)
     EXPECT_TRUE(springAnimation->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest002 end";
+}
+
+/**
+ * @tc.name: TargetTest002
+ * @tc.desc: Verify the SetIsCustom of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, TargetTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest002 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetIsCustom(false);
+    RSAnimationTimingCurve timingCurve = springAnimation->GetTimingCurve();
+    /**
+     * @tc.steps: step2. settarget
+     */
+    ASSERT_TRUE(springAnimation != nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->StartInner(canvasNode);
+    auto target = springAnimation->target_.lock();
+    ASSERT_TRUE(target != nullptr);
+    springAnimation->OnStart();
+    EXPECT_FALSE(target->NeedForcedSendToRemote());
+    canvasNode->isRenderServiceNode_ = true;
+    canvasNode->isTextureExportNode_ = false;
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest002 end";
+}
+
+HWTEST_F(RSSpringAnimationTest, TargetTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest002 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto nodeMock = std::make_shared<RSNodeMock>(true);
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    nodeMock->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetIsCustom(false);
+    RSAnimationTimingCurve timingCurve = springAnimation->GetTimingCurve();
+    /**
+     * @tc.steps: step2. settarget
+     */
+    ASSERT_TRUE(springAnimation != nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->StartInner(nodeMock);
+    auto target = springAnimation->target_.lock();
+    ASSERT_TRUE(target != nullptr);
+    springAnimation->OnStart();
+    EXPECT_TRUE(target->NeedForcedSendToRemote());
+    animationSurfaceNode->isRenderServiceNode_ = true;
+    animationSurfaceNode->isTextureExportNode_ = false;
+    springAnimation->Start(nodeMock);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest003 end";
 }
 } // namespace Rosen
 } // namespace OHOS

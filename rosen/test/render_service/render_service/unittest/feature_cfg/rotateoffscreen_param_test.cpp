@@ -44,11 +44,24 @@ void RotateOffScreenParamTest::TearDown() {}
  */
 HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenDisplayNodeEnable, Function | SmallTest | Level1)
 {
-    RotateOffScreenParam rotateOffScreenParam;
-    rotateOffScreenParam.SetRotateOffScreenDisplayNodeEnable (true);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable (true);
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), true);
-    rotateOffScreenParam.SetRotateOffScreenDisplayNodeEnable(false);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(false);
     ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable(), false);
+}
+
+/**
+ * @tc.name: SetRotateOffScreenSurfaceNodeEnable
+ * @tc.desc: Verify the SetRotateOffScreenSurfaceNodeEnable function
+ * @tc.type: FUNC
+ * @tc.require: #IBOKAG
+ */
+HWTEST_F(RotateOffScreenParamTest, SetRotateOffScreenSurfaceNodeEnable, Function | SmallTest | Level1)
+{
+    RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable (true);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable(), true);
+    RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
+    ASSERT_EQ(RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable(), false);
 }
 } // namespace Rosen
 } // namespace OHOS

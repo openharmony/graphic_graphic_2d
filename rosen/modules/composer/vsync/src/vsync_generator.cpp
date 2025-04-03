@@ -684,6 +684,12 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
         VLOGE("AddListener failed, cb is null.");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
+    for (auto it = listeners_.begin(); it < listeners_.end(); ++it) {
+        if (it->callback_ == cb) {
+            VLOGI("this listener has been added.");
+            return VSYNC_ERROR_OK;
+        }
+    }
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
@@ -1035,7 +1041,6 @@ VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator
     }
     if (!removeFlag) {
         VLOGE("RemoveListener, not found, size = %{public}zu", listeners_.size());
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     return VSYNC_ERROR_OK;
 }

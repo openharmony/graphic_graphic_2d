@@ -43,7 +43,7 @@ HWTEST_F(RSAnimationFractionTest, InitTest001, TestSize.Level1)
     RSAnimationFraction rsAnimationFraction;
     bool isInitialized_ = false;
     rsAnimationFraction.Init();
-    ASSERT_EQ(isInitialized_, false);
+    ASSERT_FALSE(isInitialized_);
 }
 
 /**
@@ -94,7 +94,7 @@ HWTEST_F(RSAnimationFractionTest, SetDirectionAfterStartTest001, TestSize.Level1
     RSAnimationFraction rsAnimationFraction;
     ForwardDirection direction = ForwardDirection::NORMAL;
     rsAnimationFraction.SetDirectionAfterStart(direction);
-    EXPECT_EQ(direction, ForwardDirection::NORMAL);
+    EXPECT_EQ(rsAnimationFraction.direction_, direction);
 }
 
 /**
@@ -164,7 +164,7 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFractionTest001, TestSize.Level1)
     RSAnimationFraction rsAnimationFraction;
     int64_t time = 0;
     rsAnimationFraction.GetAnimationFraction(time);
-    ASSERT_EQ(time, 0);
+    ASSERT_FALSE(time);
 }
 
 /**
@@ -251,7 +251,7 @@ HWTEST_F(RSAnimationFractionTest, UpdateReverseStateTest001, TestSize.Level1)
     finish = false;
     rsAnimationFraction.SetAutoReverse(false);
     rsAnimationFraction.UpdateReverseState(finish);
-    EXPECT_EQ(finish, false);
+    EXPECT_FALSE(finish);
 
     finish = true;
     rsAnimationFraction.SetDirection(false);
@@ -262,13 +262,13 @@ HWTEST_F(RSAnimationFractionTest, UpdateReverseStateTest001, TestSize.Level1)
     rsAnimationFraction.SetDirection(false);
     rsAnimationFraction.SetAutoReverse(false);
     rsAnimationFraction.UpdateReverseState(finish);
-    EXPECT_EQ(finish, true);
+    EXPECT_TRUE(finish);
 
     finish = false;
     rsAnimationFraction.SetDirection(false);
     rsAnimationFraction.SetAutoReverse(false);
     rsAnimationFraction.UpdateReverseState(finish);
-    EXPECT_EQ(finish, false);
+    EXPECT_FALSE(finish);
 }
 
 /**
@@ -283,7 +283,7 @@ HWTEST_F(RSAnimationFractionTest, UpdateRemainTimeFractionTest001, TestSize.Leve
     float fraction = 0.f;
     int remainTime = 1;
     rsAnimationFraction.UpdateRemainTimeFraction(fraction, remainTime);
-    ASSERT_EQ(time, 0);
+    EXPECT_FALSE(time);
 }
 
 /**
@@ -298,7 +298,7 @@ HWTEST_F(RSAnimationFractionTest, UpdateRemainTimeFractionTest002, TestSize.Leve
     float fraction = 1.f;
     int remainTime = 1;
     rsAnimationFraction.UpdateRemainTimeFraction(fraction, remainTime);
-    ASSERT_EQ(time, 0);
+    EXPECT_FALSE(time);
 }
 
 /**

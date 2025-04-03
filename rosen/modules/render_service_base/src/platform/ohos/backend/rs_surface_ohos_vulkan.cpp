@@ -15,6 +15,7 @@
 
 #include "rs_surface_ohos_vulkan.h"
 
+#include <atomic>
 #include <memory>
 #include "memory/rs_tag_tracker.h"
 #include "native_buffer_inner.h"
@@ -315,7 +316,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     drawingFlushInfo.numSemaphores = 1;
     drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
     drawingFlushInfo.finishedProc = [](void *context) {
-        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(context);
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFrom2DEngine(context);
     };
     drawingFlushInfo.finishedContext = callbackInfo;
     {
@@ -342,23 +343,25 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         if (err == VK_ERROR_DEVICE_LOST) {
             vkContext.DestroyAllSemaphoreFence();
         }
-        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
         return false;
     }
     callbackInfo->mFenceFd = ::dup(fenceFd);
+    RsVulkanInterface::callbackSemaphoreInfoCnt_.fetch_add(+1, std::memory_order_relaxed);
     mReservedFlushFd = ::dup(fenceFd);
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
-        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+        RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
         return false;
     }
     mSurfaceList.pop_front();
-    RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
+    RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
+
     callbackInfo = nullptr;
     surface.fence.reset();
     surface.lastPresentedCount = mPresentCount;

@@ -330,7 +330,7 @@ bool RSSystemProperties::GetReclaimMemoryEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("persist.reclaim.memory.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (ConvertToInt(enable, 1) != 0) && (system::GetParameter("const.product.devicetype", "pc") != "wearable");
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -1027,19 +1027,6 @@ bool RSSystemProperties::IsPhoneType()
 {
     static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
     return isPhone;
-}
-
-bool RSSystemProperties::IsTabletType()
-{
-    static bool isTablet = system::GetParameter("const.product.devicetype", "pc") == "tablet";
-    return isTablet;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
-                       (system::GetParameter("const.product.devicetype", "pc") == "2in1");
-    return isPc;
 }
 
 bool RSSystemProperties::IsSuperFoldDisplay()

@@ -171,6 +171,10 @@ bool JsTextBlob::OnMakeDrawingRect(napi_env& env, napi_value& argv, Rect& drawin
 
 bool JsTextBlob::OnMakeRunBuffer(napi_env& env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, napi_value& array)
 {
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsTextBlob::OnMakeRunBuffer size exceeds the upper limit");
+        return false;
+    }
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempRunBuffer = nullptr;
         napi_get_element(env, array, i, &tempRunBuffer);

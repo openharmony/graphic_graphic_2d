@@ -79,7 +79,6 @@ void RSRenderServiceListener::OnBufferAvailable()
                 RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
                 return;
             }
-            
         }
     }
     SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());

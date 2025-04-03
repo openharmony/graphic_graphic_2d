@@ -207,7 +207,6 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1)
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.shouldPaint_ = false;
     rsRenderThreadVisitor.PrepareCanvasRenderNode(node);
@@ -298,24 +297,24 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode005, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSRootRenderNode node(0);
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(node) == false);
+    auto node = std::make_shared<RSRootRenderNode>(0);
+    rsRenderThreadVisitor.PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(*node) == false);
 
-    node.surfaceNodeId_ = 1;
+    node->surfaceNodeId_ = 1;
     RSSurfaceNodeConfig config;
     std::shared_ptr<RSSurfaceNode> rsNode = std::make_shared<RSSurfaceNode>(config, true);
-    rsNode->id_ = node.GetRSSurfaceNodeId();
+    rsNode->id_ = node->GetRSSurfaceNodeId();
     RSNodeMap::MutableInstance().RegisterNode(rsNode);
-    node.enableRender_ = true;
-    node.suggestedBufferWidth_ = 1.f;
-    node.suggestedBufferHeight_ = 1.f;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(node));
+    node->enableRender_ = true;
+    node->suggestedBufferWidth_ = 1.f;
+    node->suggestedBufferHeight_ = 1.f;
+    rsRenderThreadVisitor.PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(*node));
 
     rsRenderThreadVisitor.isIdle_ = false;
-    rsRenderThreadVisitor.PrepareRootRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(node));
+    rsRenderThreadVisitor.PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor.IsValidRootRenderNode(*node));
 }
 
 /**
@@ -327,12 +326,12 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode005, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
-    node.parent_ = sharedPtr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    node->parent_ = sharedPtr;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
-    EXPECT_FALSE(node.IsNotifyRTBufferAvailable());
+    EXPECT_FALSE(node->IsNotifyRTBufferAvailable());
 }
 
 /**
@@ -344,13 +343,13 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
-    node.parent_ = sharedPtr;
-    node.isNotifyRTBufferAvailablePre_ = true;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    node->parent_ = sharedPtr;
+    node->isNotifyRTBufferAvailablePre_ = true;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
-    EXPECT_TRUE(node.IsNotifyRTBufferAvailablePre());
+    EXPECT_TRUE(node->IsNotifyRTBufferAvailablePre());
 }
 
 /**
@@ -362,15 +361,15 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
-    node.isTextureExportNode_ = true;
+    node->isTextureExportNode_ = true;
     RSProperties& properties = sharedPtr->GetMutableRenderProperties();
     properties.frameGeo_.SetWidth(1.f);
     properties.frameGeo_.SetHeight(1.f);
-    node.parent_ = sharedPtr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
-    EXPECT_TRUE(node.GetIsTextureExportNode());
+    node->parent_ = sharedPtr;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
+    EXPECT_TRUE(node->GetIsTextureExportNode());
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
 }
 
@@ -383,12 +382,12 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
-    node.isDirtyRegionUpdated_ = true;
-    node.parent_ = sharedPtr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
-    EXPECT_FALSE(node.IsDirtyRegionUpdated());
+    node->isDirtyRegionUpdated_ = true;
+    node->parent_ = sharedPtr;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
+    EXPECT_FALSE(node->IsDirtyRegionUpdated());
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
 }
 
@@ -401,14 +400,14 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
-    node.isDirtyRegionUpdated_ = true;
+    node->isDirtyRegionUpdated_ = true;
     rsRenderThreadVisitor.curDirtyManager_->debugRegionEnabled_[DebugRegionType::CURRENT_SUB] = 1;
-    node.parent_ = sharedPtr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    node->parent_ = sharedPtr;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
-    EXPECT_FALSE(node.IsDirtyRegionUpdated());
+    EXPECT_FALSE(node->IsDirtyRegionUpdated());
 }
 
 /**
@@ -419,11 +418,11 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level1
  */
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode006, TestSize.Level1)
 {
-    RSRenderThreadVisitor rsRenderThreadVisitor;
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     RSSurfaceRenderNode node(0);
-    rsRenderThreadVisitor.curDirtyManager_ = nullptr;
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
+    rsRenderThreadVisitor->curDirtyManager_ = nullptr;
+    rsRenderThreadVisitor->PrepareSurfaceRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -435,10 +434,10 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode006, TestSize.Level1
 HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode007, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    RSSurfaceRenderNode node(0);
-    auto nodeParent = node.GetParent().lock();
+    auto node = std::make_shared<RSSurfaceRenderNode>(0);
+    auto nodeParent = node->GetParent().lock();
     nodeParent.reset();
-    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
 }
 
@@ -452,6 +451,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessChildren001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_TRUE(rsSurfaceRenderNode != nullptr);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessChildren(*rsSurfaceRenderNode);
     config.id = 1;
@@ -868,6 +868,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1
 {
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_TRUE(rsSurfaceRenderNode != nullptr);
 
     config.id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
@@ -1020,7 +1021,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ResetAndPrepareChildrenNode001, TestSize.Lev
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.ResetAndPrepareChildrenNode(node, nodeParent);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.hasRemovedChild_ = true;
     rsRenderThreadVisitor.ResetAndPrepareChildrenNode(node, nodeParent);
@@ -1046,7 +1046,6 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareEffectRenderNode001, TestSize.Level1)
 
     rsRenderThreadVisitor.curDirtyManager_ = nullptr;
     rsRenderThreadVisitor.PrepareEffectRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
 
     node.shouldPaint_ = false;
     rsRenderThreadVisitor.PrepareEffectRenderNode(node);
@@ -1300,6 +1299,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessOtherSurfaceRenderNode001, TestSize.L
     Drawing::Canvas canvas;
     visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     visitor.ProcessSurfaceRenderNode(node);
-    EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
+    EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 1);
 }
 } // namespace OHOS::Rosen

@@ -45,14 +45,14 @@ void RSAnimationGroupTest::TearDown() {}
  */
 HWTEST_F(RSAnimationGroupTest, AddAnimationTest001, Level1)
 {
-    bool res = true;
+    int res = 1;
     auto animation = std::make_shared<RSAnimation>();
     RSAnimationGroup rsAnimationGroup;
     NodeId id_;
     auto per = std::make_shared<RSNode>(true, id_);
     rsAnimationGroup.StartInner(per);
     rsAnimationGroup.AddAnimation(animation);
-    ASSERT_EQ(res, true);
+    ASSERT_TRUE(res);
 }
 
 /**
@@ -94,14 +94,14 @@ HWTEST_F(RSAnimationGroupTest, AddAnimationTest003, Level3)
  */
 HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest001, Level1)
 {
-    bool res = true;
+    int res = 1;
     auto animation = nullptr;
     RSAnimationGroup rsAnimationGroup;
     NodeId id_;
     auto per = std::make_shared<RSNode>(true, id_);
     rsAnimationGroup.StartInner(per);
     rsAnimationGroup.RemoveAnimation(animation);
-    ASSERT_EQ(res, true);
+    ASSERT_TRUE(res);
 }
 
 /**

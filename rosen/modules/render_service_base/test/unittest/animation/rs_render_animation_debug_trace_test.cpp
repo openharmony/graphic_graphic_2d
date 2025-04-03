@@ -61,7 +61,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace001, TestSize.Level
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
-
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace001 end";
 }
 
@@ -87,7 +87,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace002, TestSize.Level
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     system("param set persist.rosen.animationtrace.enabled 0");
-
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace002 end";
 }
 
@@ -112,7 +112,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace003, TestSize.Level
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
-
+    EXPECT_TRUE(renderNode.GetNodeName().empty());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace003 end";
 }
 

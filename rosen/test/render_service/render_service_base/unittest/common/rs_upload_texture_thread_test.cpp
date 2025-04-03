@@ -45,5 +45,6 @@ HWTEST_F(RSUploadTextureThreadTest, testing, TestSize.Level1)
     RSUploadTextureThread::Instance().PostSyncTask(nullptr);
     std::string name = "name";
     RSUploadTextureThread::Instance().RemoveTask(name);
+    EXPECT_EQ(0, RSUploadTextureThread::Instance().GetFrameCount());
 }
 } // namespace OHOS::Rosen

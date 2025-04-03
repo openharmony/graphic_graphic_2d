@@ -272,7 +272,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount(output);
-        if (RSSystemProperties::IsSuperFoldDisplay()) {
+        if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId() == 0) {
             std::vector<LayerInfoPtr> reviseLayers = layers;
             ChangeLayersForActiveRectOutside(reviseLayers, curScreenId);
             output->SetLayerInfo(reviseLayers);
@@ -449,7 +449,8 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
             return false;
         }
         if (hasGameScene && AdaptiveModeStatus(output) == SupportASStatus::GAME_SCENE_SKIP) {
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip dalayTime Calculation");
+            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip delayTime Calculation");
+            RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
         isLastAdaptive_ = false;

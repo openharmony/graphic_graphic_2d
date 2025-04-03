@@ -44,6 +44,26 @@ bool RsCommonHook::GetVideoSurfaceFlag() const
     return videoSurfaceFlag_;
 }
 
+void RsCommonHook::SetP3NodeCountFlag(bool p3NodeCountFlag)
+{
+    p3NodeCountFlag_ = p3NodeCountFlag;
+}
+
+bool RsCommonHook::GetP3NodeCountFlag() const
+{
+    return p3NodeCountFlag_;
+}
+
+void RsCommonHook::SetIsCoveredSurfaceCloseP3(bool isCoveredSurfaceCloseP3)
+{
+    isCoveredSurfaceCloseP3_ = isCoveredSurfaceCloseP3;
+}
+
+bool RsCommonHook::GetIsCoveredSurfaceCloseP3() const
+{
+    return isCoveredSurfaceCloseP3_;
+}
+
 // skip hwcnode hardware state updating
 void RsCommonHook::SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
 {

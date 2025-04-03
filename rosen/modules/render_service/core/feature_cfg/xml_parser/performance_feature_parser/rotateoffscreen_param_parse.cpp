@@ -31,7 +31,7 @@ int32_t RotateOffScreenParamParse::ParseFeatureParam(FeatureParamMapType &featur
             continue;
         }
 
-        if (ParseRotateOffScreenInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseRotateOffScreenInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("RotateOffScreenParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -39,26 +39,20 @@ int32_t RotateOffScreenParamParse::ParseFeatureParam(FeatureParamMapType &featur
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t RotateOffScreenParamParse::ParseRotateOffScreenInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t RotateOffScreenParamParse::ParseRotateOffScreenInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
-    if (iter == featureMap.end()) {
-        RS_LOGE("RotateOffScreenParamParse stop parsing, no initializing param map");
-        return PARSE_INTERNAL_FAIL;
-    }
-    rotateOffScreenParam_ = std::static_pointer_cast<RotateOffScreenParam>(iter->second);
-
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*currNode);
-    auto name = ExtractPropertyValue("name", *currNode);
-    auto val = ExtractPropertyValue("value", *currNode);
+    int xmlParamType = GetXmlNodeAsInt(node);
+    auto name = ExtractPropertyValue("name", node);
+    auto val = ExtractPropertyValue("value", node);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "RotateOffScreenDisplayNodeEnabled") {
-            rotateOffScreenParam_->SetRotateOffScreenDisplayNodeEnable(isEnabled);
+            RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(isEnabled);
             RS_LOGI("RotateOffScreenParamParse parse RotateOffScreenDisplayNodeEnable %{public}d", isEnabled);
+        } else if (name == "RotateOffScreenSurfaceNodeEnabled") {
+            RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(isEnabled);
+            RS_LOGI("RotateOffScreenParamParse parse RotateOffScreenSurfaceNodeEnable %{public}d", isEnabled);
         }
     }
     return PARSE_EXEC_SUCCESS;

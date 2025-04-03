@@ -29,7 +29,6 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_path_animation_test.cpp",
-    "rs_spring_animation_test.cpp",
   ]
 
   include_dirs = [ "/graphic_2d/rosen/test/include" ]

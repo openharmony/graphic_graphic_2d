@@ -19,8 +19,6 @@
 #include <cstdint>
 
 #include "get_object.h"
-#include "rosen_text/typography.h"
-#include "rosen_text/typography_create.h"
 
 #include "drawing_color_space.h"
 

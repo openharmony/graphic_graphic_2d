@@ -52,7 +52,6 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
   ]
 
   deps = [
-    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
     "../../../../../modules/render_service_base:render_service_base_src",
@@ -62,6 +61,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:buffer_handle",
+    "graphics_effect:graphics_effect_core",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
   ]

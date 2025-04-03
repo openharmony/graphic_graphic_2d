@@ -15,7 +15,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service/transaction"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service/transaction"
 
 group("unittest") {
   testonly = true
@@ -153,9 +154,10 @@ ohos_unittest("RSUnmarshalThreadTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
   }
 }
 

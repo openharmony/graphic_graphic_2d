@@ -172,6 +172,7 @@ HWTEST_F(RSAnimationFractionTest, AnimationScaleChangedCallback001, TestSize.Lev
     GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 start";
     RSAnimationFraction::OnAnimationScaleChangedCallback("", "1", nullptr);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
+    EXPECT_TRUE(RSAnimationFraction::animationScale_);
     GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 end";
 }
 } // namespace Rosen

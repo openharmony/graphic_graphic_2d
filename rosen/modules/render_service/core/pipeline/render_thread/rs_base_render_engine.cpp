@@ -577,8 +577,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     RSColorSpaceConvert::Instance().GetHDRStaticMetadata(params.buffer, parameter.staticMetadata, ret);
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
-    RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer,
-        parameter.adaptiveFOVMetadata, ret);
+    RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer, parameter.adaptiveFOVMetadata);
 #endif
 
     parameter.width = params.buffer->GetWidth();

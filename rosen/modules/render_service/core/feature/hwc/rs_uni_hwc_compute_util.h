@@ -20,7 +20,30 @@
 namespace OHOS {
 namespace Rosen {
 class RSUniHwcComputeUtil {
-
+public:
+    static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
+        const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
+    static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
+    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+    static void DealWithNewSrcRect(Drawing::Rect& newSrcRect, Drawing::Rect newDstRect,
+        Drawing::Matrix inverseTotalMatrix, Drawing::Matrix inverseGravityMatrix,
+        const GraphicTransformType consumerTransformType);
+    static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+    static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
+    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
+    static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
+        const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
+    static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
+        const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
+    static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
+    static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
+        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
+    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
+        sptr<IConsumerSurface> consumer);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -194,6 +194,10 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     }
     Drawing::Point* texsPoint = builder.TexCoords();
     uint16_t* indices = builder.Indices();
+    if (!texsPoint || !indices) {
+        ROSEN_LOGE("Drawing_napi::textPoint or indices is nullptr");
+        return;
+    }
 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
@@ -519,7 +523,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
 
-    Point3 offset, lightPos;
+    Point3 offset;
+    Point3 lightPos;
     if (!ConvertFromJsPoint3d(env, argv[ARGC_ONE], offset) || !ConvertFromJsPoint3d(env, argv[ARGC_TWO], lightPos)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_ONE] or argv[ARGC_TWO] is invalid.");
         return nullptr;
@@ -528,7 +533,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     double lightRadius = 0.0f;
     GET_DOUBLE_PARAM(ARGC_THREE, lightRadius);
 
-    ColorQuad ambientColor, spotColor;
+    ColorQuad ambientColor;
+    ColorQuad spotColor;
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_FOUR], ambientColor) ||
         !ConvertFromAdaptHexJsColor(env, argv[ARGC_FIVE], spotColor)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_FOUR] or argv[ARGC_FIVE] is invalid.");
@@ -985,6 +991,10 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
 
 static bool OnMakePoints(napi_env& env, Point* point, uint32_t size, napi_value& array)
 {
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsTextBlob::OnMakePoints size exceeds the upper limit");
+        return false;
+    }
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempNumber = nullptr;
         napi_get_element(env, array, i, &tempNumber);

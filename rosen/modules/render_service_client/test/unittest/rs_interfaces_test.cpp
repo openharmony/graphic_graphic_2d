@@ -130,6 +130,20 @@ HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: SetPhysicalScreenResolution001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, SetPhysicalScreenResolution001, Function | SmallTest | Level2)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = rsInterfaces->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
+/*
 * Function: SetVirtualScreenResolution/GetVirtualScreenResolution
 * Type: Function
 * Rank: Important(2)
@@ -2290,6 +2304,18 @@ HWTEST_F(RSInterfacesTest, NotifyPageName, Function | SmallTest | Level2)
     rsInterfaces->NotifyPageName("com.package.other", "page", true);
     rsInterfaces->NotifyPageName("com.package.other", "page", false);
     ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: GetMemoryGraphics
+ * @tc.desc: Test GetMemoryGraphics
+ * @tc.type: FUNC
+ * @tc.require: issueIBPH63
+ */
+HWTEST_F(RSInterfacesTest, GetMemoryGraphics, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->GetMemoryGraphics();
 }
 } // namespace Rosen
 } // namespace OHOS

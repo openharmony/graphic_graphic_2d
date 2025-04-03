@@ -50,12 +50,17 @@ VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
         isGeneratorEnable = generator->IsEnable();
         if (isGeneratorEnable) {
             ret = generator->AddListener(phaseOffset, this);
+            if (ret != VSYNC_ERROR_OK) {
+                isGeneratorEnable = false;
+            }
         } else {
             ret = VSYNC_ERROR_API_FAILED;
         }
     } else {
         ret = generator->RemoveListener(this);
-        isGeneratorEnable = enable;
+        if (ret == VSYNC_ERROR_OK) {
+            isGeneratorEnable = false;
+        }
     }
 
     enabled_ = isGeneratorEnable;

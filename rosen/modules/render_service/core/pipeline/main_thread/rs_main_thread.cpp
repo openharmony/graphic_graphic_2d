@@ -156,6 +156,10 @@
 // blur predict
 #include "rs_frame_blur_predict.h"
 #include "rs_frame_deadline_predict.h"
+#include "feature_cfg/feature_param/extend_feature/mem_param.h"
+
+#include "feature_cfg/graphic_feature_param_manager.h"
+#include "feature_cfg/feature_param/feature_param.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -163,6 +167,9 @@ static const std::string RS_INTERVAL_NAME = "renderservice";
 #if defined(ACCESSIBILITY_ENABLE)
 using namespace OHOS::AccessibilityConfig;
 #endif
+
+#undef LOG_TAG
+#define LOG_TAG "RSMainThread"
 
 namespace OHOS {
 namespace Rosen {
@@ -770,11 +777,12 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (cacheLimitsResourceSize > maxResourcesSize) {
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
     }
-    int systemCacheLimitsResourceSize =
-            std::atoi((system::GetParameter("persist.sys.graphics.skiacachelimit", "0")).c_str());
-    if (systemCacheLimitsResourceSize > 0) {
-        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitsResourceSize);
+    static int systemCacheLimitResourceSize = MEMParam::GetRSCacheLimitsResourceSize();
+    RS_LOGD("systemCacheLimitResourceSize: %{public}d", systemCacheLimitResourceSize);
+    if (systemCacheLimitResourceSize > 0) {
+        gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitResourceSize);
     }
+
     auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();
     gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
 #endif
@@ -1359,7 +1367,7 @@ void RSMainThread::ProcessCommandForUniRender()
             for (auto& rsTransaction : rsTransactionElem.second) {
                 // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
                 // 0, or if there have been previous transactions of this process considered as synchronous, then all
-                // subsequent transactions of this process need to be synchronized.
+                // subsequent transactions of this process will be synchronized.
                 if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
                     syncTransactionData_.count(rsTransactionElem.first) > 0)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
@@ -2363,6 +2371,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s HardwareForcedDisabled is true", __func__);
     }
+    // need draw skipped node at cur frame
+    doDirectComposition_ &= LIKELY(!RSUifirstManager::Instance().NeedNextDrawForSkippedNode());
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
     bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
@@ -2500,30 +2510,30 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     auto displayNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(children->front());
     if (!displayNode ||
         displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
-        RS_LOGE("RSMainThread::DoDirectComposition displayNode state error");
+        RS_LOGE("DoDirectComposition displayNode state error");
         return false;
     }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("RSMainThread::DoDirectComposition screenManager is nullptr");
+        RS_LOGE("DoDirectComposition screenManager is nullptr");
         return false;
     }
     auto screenInfo = screenManager->QueryScreenInfo(displayNode->GetScreenId());
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
-        RS_LOGE("RSMainThread::DoDirectComposition: ScreenState error!");
+        RS_LOGE("DoDirectComposition: ScreenState error!");
         return false;
     }
 #ifdef RS_ENABLE_GPU
     auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
     auto renderEngine = GetRenderEngine();
     if (processor == nullptr || renderEngine == nullptr) {
-        RS_LOGE("RSMainThread::DoDirectComposition: RSProcessor or renderEngine is null!");
+        RS_LOGE("DoDirectComposition: RSProcessor or renderEngine is null!");
         return false;
     }
 
     if (!processor->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
         INVALID_SCREEN_ID, renderEngine)) {
-        RS_LOGE("RSMainThread::DoDirectComposition: processor init failed!");
+        RS_LOGE("DoDirectComposition: processor init failed!");
         return false;
     }
 #endif
@@ -2544,7 +2554,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to Execute"
+        RS_LOGW("DoDirectComposition: hardwareThread task has too many to Execute"
                 " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
         RSHardwareThread::Instance().DumpEventQueue();
     }
@@ -2552,7 +2562,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     uint32_t screenId = displayNode->GetScreenId();
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode == nullptr) {
-            RS_LOGE("RSMainThread::DoDirectComposition: surfaceNode is null!");
+            RS_LOGE("DoDirectComposition: surfaceNode is null!");
             continue;
         }
         RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
@@ -2564,10 +2574,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
             }
-            auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
             std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-            if (displayLock != nullptr) {
-                ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+            if (auto ancestorDisplayNode = surfaceNode->GetAncestorDisplayNode().lock()) {
+                ancestor = ancestorDisplayNode->ReinterpretCastTo<RSDisplayRenderNode>();
             }
             if (ancestor != nullptr && params->GetDRMGlobalPositionEnabled()) {
                 params->SetOffsetX(ancestor->GetDisplayOffsetX());
@@ -2596,22 +2605,20 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #ifdef RS_ENABLE_GPU
         RSUniRenderThread::Instance().PostSyncTask([processor, displayNode]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
-            auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-            hgmCore.SetDirectCompositionFlag(true);
+            HgmCore::Instance().SetDirectCompositionFlag(true);
             processor->ProcessDisplaySurface(*displayNode);
             processor->PostProcess();
         });
 #endif
     } else {
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        hgmCore.SetDirectCompositionFlag(true);
+        HgmCore::Instance().SetDirectCompositionFlag(true);
 #ifdef RS_ENABLE_GPU
         processor->ProcessDisplaySurface(*displayNode);
         processor->PostProcess();
 #endif
     }
 
-    RS_LOGD("RSMainThread::DoDirectComposition end");
+    RS_LOGD("DoDirectComposition end");
     return true;
 }
 
@@ -3371,12 +3378,7 @@ void RSMainThread::ClearSelfDrawingNodes()
 {
     selfDrawingNodes_.clear();
 }
-#ifdef RS_ENABLE_GPU
-const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThread::GetSelfDrawables() const
-{
-    return selfDrawables_;
-}
-#endif
+
 void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
                                          float onVsyncStartTimeSteadyFloat)
 {
@@ -3423,9 +3425,11 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
         allowFramerateChange = context_->GetAnimatingNodeList().empty() &&
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
-    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, vsyncPeriod, allowFramerateChange);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, period = %{public}lld, allowFramerateChange = %{public}d",
-        static_cast<long long>(timestamp), static_cast<long long>(vsyncPeriod), allowFramerateChange);
+    OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
+    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld,"
+        "period = %{public}lld, allowFramerateChange = %{public}d",
+        static_cast<long long>(timestamp), static_cast<long long>(curTime_),
+        static_cast<long long>(vsyncPeriod), allowFramerateChange);
 }
 #endif
 

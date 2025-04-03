@@ -139,7 +139,8 @@ public:
     bool IsStencilPixelOcclusionCullingEnable() const;
 
     // Use in updating hwcnode hardware state with background alpha
-    void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
+    void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
+        RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
 
     bool IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList);
     // Use end
@@ -213,8 +214,9 @@ private:
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
+    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI globalFilterRect) const;
 
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
@@ -239,6 +241,7 @@ private:
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateAncoPrepareClip(RSSurfaceRenderNode& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
@@ -384,6 +387,10 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
+    // record nodes which has transparent clean filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
+    // record nodes which has transparent dirty filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = -1;
@@ -402,6 +409,7 @@ private:
     bool hasSkipLayer_ = false;
     float curAlpha_ = 1.f;
     float globalZOrder_ = 0.0f;
+    bool isOffscreen_ = false;
     bool isScreenRotationAnimating_ = false;
     // use for not skip subtree prepare in first frame after screen rotation
     bool isFirstFrameAfterScreenRotation_ = false;
@@ -491,8 +499,7 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
-    // used to check if hwc should enable for selfdraw-surface
-    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
+
     // Used for PC window resize scene
     RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
 

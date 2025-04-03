@@ -159,7 +159,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
 }
 
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    bool manuallyHandleFilterCahe, bool shouldClearFilteredCache,
+    bool manuallyHandleFilterCache, bool shouldClearFilteredCache,
     const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
 {
@@ -179,7 +179,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        if (manuallyHandleFilterCahe ? DrawFilterWithoutSnapshot(canvas, filter, src, dst, shouldClearFilteredCache)
+        if (manuallyHandleFilterCache ? DrawFilterWithoutSnapshot(canvas, filter, src, dst, shouldClearFilteredCache)
             :DrawFilterWithoutSnapshot(canvas, filter, src, dst, renderClearFilteredCacheAfterDrawing_)) {
             return;
         } else {
@@ -516,12 +516,12 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     isFilterCacheValid_ = false;
 }
 
-void RSFilterCacheManager::MarkNeedClearFilterCache()
+void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
 {
-    RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache forceUseCache_:%d,"
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d",
+        "forceClearCacheWithLastFrame:%d, rotationChanged:%d", nodeId,
         stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,

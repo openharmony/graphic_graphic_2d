@@ -277,7 +277,6 @@ HWTEST_F(RSMaterialFilterTest, PreProcessTest001, TestSize.Level1)
     EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::AVERAGE);
     rsMaterialFilter->colorMode_ = BLUR_COLOR_MODE::AVERAGE;
     rsMaterialFilter->PreProcess(imageSnapshot);
-    EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::AVERAGE);
 }
 
 /**

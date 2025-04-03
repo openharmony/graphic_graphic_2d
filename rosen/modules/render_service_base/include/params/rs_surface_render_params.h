@@ -210,6 +210,11 @@ public:
         return name_;
     }
 
+    std::string GetBundleName() const
+    {
+        return bundleName_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
@@ -306,6 +311,9 @@ public:
     {
         return uiFirstFrameGravity_;
     }
+
+    RectI GetScreenRect() const;
+    void RecordScreenRect(RectI rect);
 
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const override;
@@ -438,8 +446,7 @@ public:
 
     bool GetNeedOffscreen() const
     {
-        return (RSSystemProperties::GetSurfaceOffscreenEnadbled() &&
-                !RSSystemProperties::IsPcType()) ? needOffscreen_ : false;
+        return RSSystemProperties::GetSurfaceOffscreenEnadbled() ? needOffscreen_ : false;
     }
 
     void SetLayerCreated(bool layerCreated) override
@@ -712,6 +719,7 @@ private:
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
+    RectI screenRect_;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -766,6 +774,7 @@ private:
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
+    std::string bundleName_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
