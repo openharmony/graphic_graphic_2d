@@ -36,6 +36,32 @@ void RSVulkanContextTest::SetUp() {}
 void RSVulkanContextTest::TearDown() {}
 
 /**
+ * @tc.name: RSVulkanContext001
+ * @tc.desc: test results of init RSVulkanContext for uniRender
+ * @tc.type:FUNC
+ * @tc.require: issueIBWFN1
+ */
+HWTEST_F(RSVulkanContextTest, RSVulkanContext001, TestSize.Level1)
+{
+    RsVulkanContext::isHybridRender_ = false;
+    RsVulkanContext context;
+    ASSERT_NE(context.vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)], nullptr);
+}
+
+/**
+ * @tc.name: RSVulkanContext002
+ * @tc.desc: test results of init RSVulkanContext for hybrid render
+ * @tc.type:FUNC
+ * @tc.require: issueIBWFN1
+ */
+HWTEST_F(RSVulkanContextTest, RSVulkanContext002, TestSize.Level1)
+{
+    RsVulkanContext::isHybridRender_ = true;
+    RsVulkanContext context;
+    ASSERT_NE(context.vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)], nullptr);
+}
+
+/**
  * @tc.name: SetupLoaderProcAddresses001
  * @tc.desc: test results of SetupLoaderProcAddresses
  * @tc.type:FUNC
@@ -62,6 +88,25 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateInstance002
+ * @tc.desc: test results of CreateInstance repeatedly
+ * @tc.type:FUNC
+ * @tc.require: issueIBWFN1
+ */
+HWTEST_F(RSVulkanContextTest, CreateInstance002, TestSize.Level1)
+{
+    RsVulkanInterface rsVulkanInterface;
+
+    rsVulkanInterface.CreateInstance();
+    auto instance1 =  rsVulkanInterface.instance_;
+
+    rsVulkanInterface.CreateInstance();
+    auto instance2 =  rsVulkanInterface.instance_;
+
+    ASSERT_EQ(instance1, instance2);
+}
+
+/**
  * @tc.name: SelectPhysicalDevice001
  * @tc.desc: test results of SelectPhysicalDevice
  * @tc.type:FUNC
@@ -70,8 +115,9 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
+    rsVulkanInterface.Init(VulkanInterfaceType::BASIC_RENDER, false);
     auto ret = rsVulkanInterface.SelectPhysicalDevice(true);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
