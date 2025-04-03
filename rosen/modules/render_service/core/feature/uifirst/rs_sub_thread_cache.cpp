@@ -480,7 +480,7 @@ std::shared_ptr<RSDirtyRegionManager> RsSubThreadCache::GetSyncUifirstDirtyManag
 }
 
 bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    bool hasCompleteCache)
+    bool hasCompleteCache, bool isLastFrameSkip)
 {
     if (!surfaceDrawable) {
         RS_LOGE("UpdateCacheSurfaceDirtyManager surfaceDrawable is nullptr");
@@ -494,6 +494,9 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
     auto curDirtyRegion = surfaceDrawable->syncDirtyManager_->GetDirtyRegion();
     auto& curFrameDirtyRegion = surfaceDrawable->syncDirtyManager_->GetUifirstFrameDirtyRegion();
     curDirtyRegion = curDirtyRegion.JoinRect(curFrameDirtyRegion);
+    if (isLastFrameSkip) {
+        curDirtyRegion = curDirtyRegion.JoinRect(syncUifirstDirtyManager_->GetUiLatestHistoryDirtyRegions(1));
+    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("UpdateCacheSurfaceDirtyManager surfaceParams is nullptr");
@@ -512,11 +515,9 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
         return false;
     }
     if (!hasCompleteCache) {
-        RectI surfaceDirtyRect = surfaceParams->GetAbsDrawRect();
-        syncUifirstDirtyManager_->MergeDirtyRect(surfaceDirtyRect);
-    } else {
-        syncUifirstDirtyManager_->MergeDirtyRect(curDirtyRegion);
+        curDirtyRegion = surfaceParams->GetAbsDrawRect();
     }
+    syncUifirstDirtyManager_->MergeDirtyRect(curDirtyRegion);
     // set history dirty count
     syncUifirstDirtyManager_->SetBufferAge(1); // 1 means buffer age
     // update history dirty count
@@ -536,15 +537,16 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
         UpdateDirtyRecordCompletatedState(false);
         return;
     }
-    auto isCacheValid = IsCacheValid();
-    auto isRecordCompletate = UpdateCacheSurfaceDirtyManager(surfaceDrawable, isCacheValid);
+    bool isCacheValid = IsCacheValid();
+    bool isLastFrameSkip = GetSurfaceSkipCount() > 0;
+    auto isRecordCompletate = UpdateCacheSurfaceDirtyManager(surfaceDrawable, isCacheValid, isLastFrameSkip);
     // nested surfacenode uifirstDirtyManager update is required
     for (const auto& nestedDrawable : surfaceDrawable->
         GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             isRecordCompletate = isRecordCompletate && surfaceNodeDrawable->GetRsSubThreadCache()
-                .UpdateCacheSurfaceDirtyManager(surfaceNodeDrawable.get(), isCacheValid);
+                .UpdateCacheSurfaceDirtyManager(surfaceNodeDrawable.get(), isCacheValid, isLastFrameSkip);
         }
     }
     UpdateDirtyRecordCompletatedState(isRecordCompletate);
