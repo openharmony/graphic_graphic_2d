@@ -42,6 +42,7 @@ private:
     inline static bool isHfbcDisableListMode_ = true;
 };
 
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // HYPER_GRAPHIC_MANAGER_CORE_HGM_HFBC_CONFIG_H
