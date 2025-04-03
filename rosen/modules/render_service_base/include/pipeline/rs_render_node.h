@@ -35,12 +35,12 @@
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
+#include "hwc/rs_hwc_recorder.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_snapshot.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "pipeline/rs_hwc_recorder.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
@@ -327,8 +327,6 @@ public:
     void UpdateChildrenRect(const RectI& subRect);
     void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
-    void SetBlendWithBackground(bool isBlendWithBackground);
-    bool IsBlendWithBackground() const;
 
     virtual void AddDirtyType(RSModifierType type)
     {
@@ -1060,7 +1058,6 @@ private:
     bool foregroundFilterRegionChanged_ = false;
     bool foregroundFilterInteractWithDirty_ = false;
     bool isOccluded_ = false;
-    bool isBlendWithBackground_ = false;
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;

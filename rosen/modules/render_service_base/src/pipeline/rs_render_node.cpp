@@ -4582,16 +4582,6 @@ void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
     globalCornerRadius_ = curCornerRadius;
 }
 
-void RSRenderNode::SetBlendWithBackground(bool isBlendWithBackground)
-{
-    isBlendWithBackground_ = isBlendWithBackground;
-}
-
-bool RSRenderNode::IsBlendWithBackground() const
-{
-    return isBlendWithBackground_;
-}
-
 void RSRenderNode::ResetChangeState()
 {
     srcOrClipedAbsDrawRectChangeFlag_ = false;
