@@ -28,6 +28,7 @@
 #include <event_handler.h>
 
 #include "hgm_frame_rate_manager.h"
+#include "hgm_hfbc_config.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -328,6 +329,12 @@ public:
     {
         screenSwitchDssEnableMap_[screenId] = switchDssEnable;
     }
+
+    // called by RSMainThread
+    HgmHfbcConfig& GetHfbcConfig()
+    {
+        return hfbcConfig_;
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -388,6 +395,7 @@ private:
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
     std::unordered_map<ScreenId, bool> screenSwitchDssEnableMap_; // only called/used by RSHardwareThread
+    HgmHfbcConfig hfbcConfig_;
 
     friend class HWCParam;
 };

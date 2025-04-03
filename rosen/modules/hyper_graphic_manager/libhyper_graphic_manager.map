@@ -32,6 +32,7 @@
       *HgmCore::CheckCustomFrameRateModeValid*;
       *HgmCore::GetActiveScreen*;
       *HgmCore::GetCurrentRefreshRateMode*;
+      *HgmCore::GetHfbcConfig*;
       *HgmCore::GetIdealPeriod*;
       *HgmCore::GetModesToApply*;
       *HgmCore::GetScreen*;
