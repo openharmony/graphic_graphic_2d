@@ -357,12 +357,12 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         }
     }
     if (option == "-id") {
-        DumpSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
+        DumpSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
     } else {
         if (args.find(argStr) != args.end()) {
             DumpFps(dumpString, argStr);
         } else {
-            DumpSurfaceNodeFps(dumpString, argStr);
+            DumpSurfaceNodeFpsByName(dumpString, argStr);
         }
     }
 }
@@ -381,7 +381,7 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) c
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& layerName) const
+void RSRenderService::DumpSurfaceNodeFpsByName(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -400,7 +400,7 @@ void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& l
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const
+void RSRenderService::DumpSurfaceNodeFpsById(std::string& dumpString, NodeId nodeId) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -446,12 +446,12 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         }
     }
     if (option == "-id") {
-        ClearSurfaceNodeFps(dumpString, SafeStringToULL(argStr));
+        ClearSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
     } else {
         if (args.find(argStr) != args.end()) {
             ClearFps(dumpString, argStr);
         } else {
-            ClearSurfaceNodeFps(dumpString, argStr);
+            ClearSurfaceNodeFpsByName(dumpString, argStr);
         }
     }
 }
@@ -474,7 +474,7 @@ void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) 
     }
 }
 
-void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& layerName) const
+void RSRenderService::ClearSurfaceNodeFpsByName(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -493,7 +493,7 @@ void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& 
     }
 }
 
-void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, NodeId nodeId) const
+void RSRenderService::ClearSurfaceNodeFpsById(std::string& dumpString, NodeId nodeId) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
