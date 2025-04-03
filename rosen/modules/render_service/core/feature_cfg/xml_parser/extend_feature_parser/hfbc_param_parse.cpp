@@ -60,11 +60,8 @@ int32_t HFBCParamParse::ParseHfbcInternal(xmlNode &node)
                 HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
                 RS_LOGI("HFBCParamParse postTask about hfbcConfig");
                 hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
-                if (val == "0") { // enable list mode
-                    hfbcConfig.SetHfbcControlMode(false);
-                } else {
-                    hfbcConfig.SetHfbcControlMode(true);
-                }
+                // 0: enable list mode, other: disable list mode
+                hfbcConfig.SetHfbcControlMode(val != "0");
             });
         }
     }
