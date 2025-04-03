@@ -203,6 +203,8 @@ public:
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
+    static bool PortraitAngle(int angle);
+
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
