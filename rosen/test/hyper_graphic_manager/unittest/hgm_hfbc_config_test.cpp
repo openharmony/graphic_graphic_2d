@@ -50,6 +50,7 @@ HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
         { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
     };
     ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+
     EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
     for (const auto& pkg : hfbcConfig) {
         EXPECT_EQ(g_hfbcConfig.hfbcConfig_.find(pkg.first) != g_hfbcConfig.hfbcConfig_.end(), true);
