@@ -53,8 +53,8 @@ namespace {
 static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
     OHOS::Rosen::Drawing::Matrix matrix;
     matrix.SetMatrix(1.0f, 0.0f, 0.0f,
-                    0.0f, 1.0f, 0.0f,
-                    0.0f, 0.0f, 1.0f);
+                     0.0f, 1.0f, 0.0f,
+                     0.0f, 0.0f, 1.0f);
     return matrix;
 }();
 
@@ -502,21 +502,12 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
         RS_LOGE("UpdateCacheSurfaceDirtyManager surfaceParams is nullptr");
         return false;
     }
-    if (curDirtyRegion.IsEmpty()) {
-        RS_LOGD("Name:%{public}s Id:%{public}" PRIu64 " curDirtyRegion is empty", surfaceDrawable->GetName().c_str(),
-            surfaceDrawable->GetId());
-        return true;
+    if (!hasCompleteCache) {
+        curDirtyRegion = surfaceParams->GetAbsDrawRect();
     }
     RS_TRACE_NAME_FMT("UpdateCacheSurfaceDirtyManager[%s] %" PRIu64", curDirtyRegion[%d %d %d %d], hasCache:%d",
         surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), curDirtyRegion.GetLeft(),
         curDirtyRegion.GetTop(), curDirtyRegion.GetWidth(), curDirtyRegion.GetHeight(), hasCompleteCache);
-    if (!surfaceParams->GetAbsDrawRect().IsInsideOf(surfaceParams->GetScreenRect())) {
-        RS_LOGD("surface outof dispaly updateCacheSurfaceDirtyManager not support");
-        return false;
-    }
-    if (!hasCompleteCache) {
-        curDirtyRegion = surfaceParams->GetAbsDrawRect();
-    }
     syncUifirstDirtyManager_->MergeDirtyRect(curDirtyRegion);
     // set history dirty count
     syncUifirstDirtyManager_->SetBufferAge(1); // 1 means buffer age
@@ -610,9 +601,10 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         return true;
     }
     auto absDrawRect = surfaceParams->GetAbsDrawRect();
-    if (absDrawRect.GetWidth() == 0 || absDrawRect.GetHeight() == 0) {
-        RS_LOGE("absDrawRect width or height is zero");
-        return true;
+    if (absDrawRect.GetWidth() == 0 || absDrawRect.GetHeight() == 0 ||
+        !absDrawRect.IsInsideOf(surfaceParams->GetScreenRect())) {
+        RS_LOGD("absRect params is err or out of dispaly");
+        return false;
     }
     auto surfaceBounds = surfaceParams->GetBounds();
     float widthScale = surfaceBounds.GetWidth() / static_cast<float>(absDrawRect.GetWidth());

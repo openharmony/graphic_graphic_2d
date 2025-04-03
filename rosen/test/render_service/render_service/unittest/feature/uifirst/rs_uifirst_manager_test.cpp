@@ -1254,7 +1254,7 @@ HWTEST_F(RSUifirstManagerTest, GetNodeStatus001, TestSize.Level1)
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), surfaceDrawable));
-    surfaceDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
+    surfaceDrawable->GetRsSubThreadCache().SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     EXPECT_EQ(uifirstManager_.GetNodeStatus(surfaceNode->GetId()), CacheProcessStatus::DOING);
 }
 
@@ -1723,7 +1723,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateCompletedSurface, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), surfaceDrawable));
 
     uifirstManager_.UpdateCompletedSurface(surfaceNode->GetId());
-    ASSERT_TRUE(surfaceDrawable->isTextureValid_);
+    ASSERT_TRUE(surfaceDrawable->GetRsSubThreadCache().isTextureValid_);
 }
 
 /**
