@@ -187,8 +187,8 @@ HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
     RenderContext renderContext;
     renderContext.InitializeEglContext();
     renderContext.DamageFrame(0, 0, 0, 0);
-    EXPECT_NE(renderContext.eglDisplay, nullptr);
-    EXPECT_NE(renderContext.eglSurface, nullptr);
+    EXPECT_NE(renderContext.eglDisplay_, nullptr);
+    EXPECT_NE(renderContext.eglSurface_, nullptr);
 #endif
 }
 
@@ -208,8 +208,8 @@ HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
     RenderContext renderContext;
     renderContext.InitializeEglContext();
     renderContext.MakeSelfCurrent();
-    EXPECT_NE(renderContext.eglDisplay, EGL_NO_CONTEXT);
-    EXPECT_NE(renderContext.eglSurface, EGL_NO_SURFACE);
+    EXPECT_NE(renderContext.eglDisplay_, EGL_NO_CONTEXT);
+    EXPECT_NE(renderContext.eglSurface_, EGL_NO_SURFACE);
 #endif
 }
 
