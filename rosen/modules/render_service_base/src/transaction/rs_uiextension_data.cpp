@@ -36,11 +36,23 @@ bool RSUIExtensionData::MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel&
 void RSUIExtensionData::UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& parcel)
 {
     // Read coordinates(4 int), scale(2 float), anchor position(2float).
-    rectInfo.relativeCoords.SetAll(parcel.ReadInt32(), parcel.ReadInt32(), parcel.ReadInt32(), parcel.ReadInt32());
-    rectInfo.scale[0] = parcel.ReadFloat();
-    rectInfo.scale[1] = parcel.ReadFloat();
-    rectInfo.anchor[0] = parcel.ReadFloat();
-    rectInfo.anchor[1] = parcel.ReadFloat();
+    int32_t left{0};
+    int32_t top{0};
+    int32_t width{0};
+    int32_t height{0};
+    if (!parcel.ReadInt32(left) || !parcel.ReadInt32(top) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
+        RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read relativeCoords failed");
+        return;
+    }
+    rectInfo.relativeCoords.SetAll(left, top, width, height);
+    if (!parcel.ReadFloat(rectInfo.scale[0]) || !parcel.ReadFloat(rectInfo.scale[1])) {
+        RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read scale failed");
+        return;
+    }
+    if (!parcel.ReadFloat(rectInfo.anchor[0]) || !parcel.ReadFloat(rectInfo.anchor[1])) {
+        RS_LOGE("RSUIExtensionData::UnmarshallingRectInfo Read anchor failed");
+        return;
+    }
 }
 
 
@@ -76,16 +88,28 @@ RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
     if (!uiExtensionData) {
         return nullptr;
     }
-    auto mapSize = parcel.ReadUint32();
+    uint32_t mapSize{0};
+    if (!parcel.ReadUint32(mapSize)) {
+        ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read mapSize failed");
+        return nullptr;
+    }
     if (mapSize > uiExtensionData->secData_.max_size()) {
         RS_LOGE("RSUIExtensionData Unmarshalling failed, map size overflow.");
         delete uiExtensionData;
         return nullptr;
     }
     for (uint32_t hostIndex = 0; hostIndex < mapSize; ++hostIndex) {
-        uint64_t hostNodeId = parcel.ReadUint64();
+        uint64_t hostNodeId{0};
+        if (!parcel.ReadUint64(hostNodeId)) {
+            ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read hostNodeId failed");
+            return nullptr;
+        }
         uiExtensionData->secData_.insert(std::make_pair(hostNodeId, std::vector<SecSurfaceInfo>()));
-        uint32_t uiExtensionNodesCount = parcel.ReadUint32();
+        uint32_t uiExtensionNodesCount{0};
+        if (!parcel.ReadUint32(uiExtensionNodesCount)) {
+            ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read uiExtensionNodesCount failed");
+            return nullptr;
+        }
         if (uiExtensionNodesCount > uiExtensionData->secData_[hostNodeId].max_size()) {
             RS_LOGE("RSUIExtensionData Unmarshalling failed, vector size overflow.");
             delete uiExtensionData;
@@ -94,11 +118,24 @@ RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
         for (uint32_t uiExtensionIndex = 0; uiExtensionIndex < uiExtensionNodesCount; ++uiExtensionIndex) {
             SecSurfaceInfo secSurfaceInfo;
             UnmarshallingRectInfo(secSurfaceInfo.uiExtensionRectInfo, parcel);
-            secSurfaceInfo.hostPid = parcel.ReadInt32();
-            secSurfaceInfo.uiExtensionPid = parcel.ReadInt32();
-            secSurfaceInfo.hostNodeId = parcel.ReadUint64();
-            secSurfaceInfo.uiExtensionNodeId = parcel.ReadUint64();
-            uint32_t upperNodesCount = parcel.ReadUint32();
+            int32_t tempHostPid{0};
+            int32_t tempUiExtensionPid{0};
+            uint64_t tempHostNodeId{0};
+            uint64_t tempUiExtensionNodeId{0};
+            if (!parcel.ReadInt32(tempHostPid) || !parcel.ReadInt32(tempUiExtensionPid) ||
+                !parcel.ReadUint64(tempHostNodeId) || !parcel.ReadUint64(tempUiExtensionNodeId)) {
+                ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read secSurfaceInfo failed");
+                return nullptr;
+            }
+            secSurfaceInfo.hostPid = static_cast<pid_t>(tempHostPid);
+            secSurfaceInfo.uiExtensionPid = static_cast<pid_t>(tempUiExtensionPid);
+            secSurfaceInfo.hostNodeId = tempHostNodeId;
+            secSurfaceInfo.uiExtensionNodeId = tempUiExtensionNodeId;
+            uint32_t upperNodesCount{0};
+            if (!parcel.ReadUint32(upperNodesCount)) {
+                ROSEN_LOGE("RSUIExtensionData::Unmarshalling Read upperNodesCount failed");
+                return nullptr;
+            }
             if (upperNodesCount > secSurfaceInfo.upperNodes.max_size()) {
                 RS_LOGE("RSUIExtensionData Unmarshalling failed, upperNodes size overflow.");
                 delete uiExtensionData;

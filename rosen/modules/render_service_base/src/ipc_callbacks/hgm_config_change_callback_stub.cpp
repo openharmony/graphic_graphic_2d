@@ -24,6 +24,7 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSIHgmConfigChangeCallback::GetDescriptor()) {
+        RS_LOGE("RSHgmConfigChangeCallbackStub::OnRemoteRequest read token failed!");
         return ERR_INVALID_STATE;
     }
 

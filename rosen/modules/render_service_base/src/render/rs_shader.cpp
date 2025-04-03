@@ -94,7 +94,11 @@ bool RSShader::Marshalling(Parcel& parcel)
 bool RSShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
     needReset = false;
-    int32_t type = parcel.ReadInt32();
+    int32_t type{0};
+    if (!parcel.ReadInt32(type)) {
+        ROSEN_LOGE("RSShader::Unmarshalling Read type failed");
+        return false;
+    }
     if (type == -1) {
         needReset = true;
         return true;

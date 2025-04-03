@@ -176,7 +176,10 @@ ErrCode RSRenderServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     if (err != NO_ERROR) {
         return false;
     }
-    enable = reply.ReadBool();
+    if (!reply.ReadBool(enable)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetUniRenderEnabled Read enable failed!");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -220,7 +223,10 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSDisplayNodeConfig& di
         return ERR_INVALID_VALUE;
     }
 
-    success = reply.ReadBool();
+    if (!reply.ReadBool(success)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode Read success failed!");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -248,7 +254,10 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConf
         return ERR_INVALID_VALUE;
     }
 
-    success = reply.ReadBool();
+    if (!reply.ReadBool(success)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode Read success failed");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -368,7 +377,10 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelMapByProcessId(
         repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    repCode = reply.ReadInt32();
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelMapByProcessId Read repCode failed");
+        return ERR_INVALID_VALUE;
+    }
     if (repCode == SUCCESS) {
         pixelMapInfoVector.clear();
         if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapInfoVector)) {
@@ -418,6 +430,8 @@ ErrCode RSRenderServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> 
 
     if (reply.ReadBool()) {
         pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
+    } else {
+        ROSEN_LOGE("CreatePixelMapFromSurface: ReadBool err.");
     }
     return ERR_OK;
 }
@@ -482,8 +496,11 @@ ScreenId RSRenderServiceConnectionProxy::GetDefaultScreenId()
     if (err != NO_ERROR) {
         return INVALID_SCREEN_ID;
     }
-
-    ScreenId id = reply.ReadUint64();
+    ScreenId id{0};
+    if (!reply.ReadUint64(id)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetDefaultScreenId Read id failed");
+        return ERR_INVALID_VALUE;
+    }
     return id;
 }
 
@@ -504,8 +521,11 @@ ScreenId RSRenderServiceConnectionProxy::GetActiveScreenId()
     if (err != NO_ERROR) {
         return INVALID_SCREEN_ID;
     }
-
-    ScreenId id = reply.ReadUint64();
+    uint64_t id{0};
+    if (!reply.ReadUint64(id)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetActiveScreenId Read id failed");
+        return ERR_INVALID_VALUE;
+    }
     return id;
 }
 
@@ -528,7 +548,11 @@ std::vector<ScreenId> RSRenderServiceConnectionProxy::GetAllScreenIds()
         return std::vector<ScreenId>();
     }
 
-    uint32_t size = reply.ReadUint32();
+    uint32_t size{0};
+    if (!reply.ReadUint32(size)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetAllScreenIds Read size failed");
+        return std::vector<ScreenId>();
+    }
     size_t readableSize = reply.GetReadableBytes() / sizeof(ScreenId);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > screenIds.max_size()) {
@@ -615,7 +639,11 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
         return INVALID_SCREEN_ID;
     }
 
-    ScreenId id = reply.ReadUint64();
+    uint64_t id{0};
+    if (!reply.ReadUint64(id)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateVirtualScreen Read id failed");
+        return INVALID_SCREEN_ID;
+    }
     return id;
 }
 
@@ -754,7 +782,11 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
         return RS_CONNECTION_ERROR;
     }
 
-    int32_t status = reply.ReadInt32();
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList Read status failed");
+        return READ_PARCEL_ERR;
+    }
     return status;
 }
 
@@ -830,7 +862,11 @@ int32_t RSRenderServiceConnectionProxy::SetMirrorScreenVisibleRect(
         return RS_CONNECTION_ERROR;
     }
 
-    int32_t status = reply.ReadInt32();
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetMirrorScreenVisibleRect Read status failed");
+        return READ_PARCEL_ERR;
+    }
     return status;
 }
 
@@ -1230,7 +1266,11 @@ uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return SUCCESS;
     }
-    uint32_t rate = reply.ReadUint32();
+    uint32_t rate{0};
+    if (!reply.ReadUint32(rate)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate Read rate failed");
+        return READ_PARCEL_ERR;
+    }
     return rate;
 }
 
@@ -1251,7 +1291,11 @@ int32_t RSRenderServiceConnectionProxy::GetCurrentRefreshRateMode()
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return SUCCESS;
     }
-    int32_t refreshRateMode = reply.ReadInt32();
+    int32_t refreshRateMode{0};
+    if (!reply.ReadInt32(refreshRateMode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetCurrentRefreshRateMode Read refreshRateMode failed");
+        return READ_PARCEL_ERR;
+    }
     return refreshRateMode;
 }
 
@@ -1276,7 +1320,11 @@ std::vector<int32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRa
     if (err != NO_ERROR) {
         return screenSupportedRates;
     }
-    uint64_t rateCount = reply.ReadUint64();
+    uint64_t rateCount{0};
+    if (!reply.ReadUint64(rateCount)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRates Read rateCount failed");
+        return screenSupportedRates;
+    }
     size_t readableSize = reply.GetReadableBytes();
     size_t len = static_cast<size_t>(rateCount);
     if (len > readableSize || len > screenSupportedRates.max_size()) {
@@ -1308,7 +1356,11 @@ bool RSRenderServiceConnectionProxy::GetShowRefreshRateEnabled()
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return SUCCESS;
     }
-    bool enable = reply.ReadBool();
+    bool enable{false};
+    if (!reply.ReadBool(enable)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetCurrentRefreshRateMode Read enable failed");
+        return READ_PARCEL_ERR;
+    }
     return enable;
 }
 
@@ -1356,7 +1408,11 @@ uint32_t RSRenderServiceConnectionProxy::GetRealtimeRefreshRate(ScreenId id)
         ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
         return SUCCESS;
     }
-    uint32_t rate = reply.ReadUint32();
+    uint32_t rate{0};
+    if (!reply.ReadUint32(rate)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRealtimeRefreshRate Read rate failed");
+        return READ_PARCEL_ERR;
+    }
     return rate;
 }
 
@@ -1385,7 +1441,10 @@ ErrCode RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid, std::string& e
         return ERR_INVALID_VALUE;
     }
 
-    enable = reply.ReadString();
+    if (!reply.ReadString(enable)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRefreshInfo Read enable failed");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -1415,7 +1474,11 @@ int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id,
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: SendRequest error.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t status = reply.ReadInt32();
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution Read status failed");
+        return READ_PARCEL_ERR;
+    }
     return status;
 }
 
@@ -1448,7 +1511,11 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, 
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t status = reply.ReadInt32();
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenResolution Read status failed");
+        return READ_PARCEL_ERR;
+    }
     return status;
 }
 
@@ -1844,7 +1911,11 @@ std::vector<RSScreenModeInfo> RSRenderServiceConnectionProxy::GetScreenSupported
         return screenSupportedModes;
     }
 
-    uint64_t modeCount = reply.ReadUint64();
+    uint64_t modeCount{0};
+    if (!reply.ReadUint64(modeCount)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedModes Read modeCount failed");
+        return screenSupportedModes;
+    }
     size_t readableSize = reply.GetReadableBytes();
     size_t len = static_cast<size_t>(modeCount);
     if (len > readableSize || len > screenSupportedModes.max_size()) {
@@ -1882,7 +1953,11 @@ ErrCode RSRenderServiceConnectionProxy::GetMemoryGraphics(std::vector<MemoryGrap
         return ERR_INVALID_VALUE;
     }
 
-    uint64_t count = reply.ReadUint64();
+    uint64_t count{0};
+    if (!reply.ReadUint64(count)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetMemoryGraphics Read count failed");
+        return ERR_INVALID_VALUE;
+    }
     size_t readableSize = reply.GetReadableBytes();
     size_t len = static_cast<size_t>(count);
     if (len > readableSize || len > memoryGraphics.max_size()) {
@@ -1922,8 +1997,10 @@ ErrCode RSRenderServiceConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, fl
         return ERR_INVALID_VALUE;
     }
 
-    cpuMemSize = reply.ReadFloat();
-    gpuMemSize = reply.ReadFloat();
+    if (!reply.ReadFloat(cpuMemSize) || !reply.ReadFloat(gpuMemSize)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetTotalAppMemSize Read MemSize failed");
+        return READ_PARCEL_ERR;
+    }
     success = true;
     return ERR_OK;
 }
@@ -2054,7 +2131,11 @@ int32_t RSRenderServiceConnectionProxy::GetScreenBacklight(ScreenId id)
     if (err != NO_ERROR) {
         return INVALID_BACKLIGHT_VALUE;
     }
-    int32_t level = reply.ReadInt32();
+    int32_t level{0};
+    if (!reply.ReadInt32(level)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenBacklight Read level failed");
+        return INVALID_BACKLIGHT_VALUE;
+    }
     return level;
 }
 
@@ -2175,7 +2256,11 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts(ScreenId i
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedColorGamuts Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
         mode.clear();
         std::vector<uint32_t> modeRecv;
@@ -2207,7 +2292,11 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedMetaDataKeys(
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedMetaDataKeys Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
         keys.clear();
         std::vector<uint32_t> keyRecv;
@@ -2238,9 +2327,18 @@ int32_t RSRenderServiceConnectionProxy::GetScreenColorGamut(ScreenId id, ScreenC
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenColorGamut Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
-        mode = static_cast<ScreenColorGamut>(reply.ReadUint32());
+        uint32_t readMode{0};
+        if (!reply.ReadUint32(readMode)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenColorGamut Read mode failed");
+            return READ_PARCEL_ERR;
+        }
+        mode = static_cast<ScreenColorGamut>(readMode);
     }
     return result;
 }
@@ -2268,7 +2366,11 @@ int32_t RSRenderServiceConnectionProxy::SetScreenColorGamut(ScreenId id, int32_t
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenColorGamut Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2295,7 +2397,11 @@ int32_t RSRenderServiceConnectionProxy::SetScreenGamutMap(ScreenId id, ScreenGam
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenGamutMap Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2322,7 +2428,11 @@ int32_t RSRenderServiceConnectionProxy::SetScreenCorrection(ScreenId id, ScreenR
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenCorrection Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2345,9 +2455,18 @@ int32_t RSRenderServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGam
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenGamutMap Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
-        mode = static_cast<ScreenGamutMap>(reply.ReadUint32());
+        uint32_t readMode{0};
+        if (!reply.ReadUint32(readMode)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenGamutMap Read mode failed");
+            return READ_PARCEL_ERR;
+        }
+        mode = static_cast<ScreenGamutMap>(readMode);
     }
     return result;
 }
@@ -2371,7 +2490,11 @@ int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSSc
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRCapability Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result != SUCCESS) {
         return result;
     }
@@ -2406,9 +2529,17 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelFormat(ScreenId id, GraphicPixel
         resCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadInt32();
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelFormat Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
     if (resCode == SUCCESS) {
-        pixelFormat = static_cast<GraphicPixelFormat>(reply.ReadUint32());
+        uint32_t readFormat{0};
+        if (!reply.ReadUint32(readFormat)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelFormat Read readFormat failed");
+            return READ_PARCEL_ERR;
+        }
+        pixelFormat = static_cast<GraphicPixelFormat>(readFormat);
     }
     return ERR_OK;
 }
@@ -2468,7 +2599,10 @@ ErrCode RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(
         resCode =  RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadInt32();
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
     if (resCode == SUCCESS) {
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
@@ -2501,9 +2635,17 @@ ErrCode RSRenderServiceConnectionProxy::GetScreenHDRFormat(ScreenId id, ScreenHD
         resCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadInt32();
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRFormat Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
     if (resCode == SUCCESS) {
-        hdrFormat = static_cast<ScreenHDRFormat>(reply.ReadUint32());
+        uint32_t readFormat{0};
+        if (!reply.ReadUint32(readFormat)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenHDRFormat1 Read readFormat failed");
+            return READ_PARCEL_ERR;
+        }
+        hdrFormat = static_cast<ScreenHDRFormat>(readFormat);
     }
     return ERR_OK;
 }
@@ -2562,7 +2704,10 @@ ErrCode RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
         resCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadInt32();
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
     if (resCode == SUCCESS) {
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
@@ -2596,9 +2741,17 @@ ErrCode RSRenderServiceConnectionProxy::GetScreenColorSpace(
         resCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadInt32();
+    if (!reply.ReadInt32(resCode)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenColorSpace Read resCode failed");
+        return READ_PARCEL_ERR;
+    }
     if (resCode == SUCCESS) {
-        colorSpace = static_cast<GraphicCM_ColorSpaceType>(reply.ReadUint32());
+        uint32_t type{0};
+        if (!reply.ReadUint32(type)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenColorSpace Read type failed");
+            return READ_PARCEL_ERR;
+        }
+        colorSpace = static_cast<GraphicCM_ColorSpaceType>(type);
     }
     return ERR_OK;
 }
@@ -2656,7 +2809,12 @@ int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType&
     }
     int32_t result = reply.ReadInt32();
     if (result == SUCCESS) {
-        screenType = static_cast<RSScreenType>(reply.ReadUint32());
+        uint32_t type{0};
+        if (!reply.ReadUint32(type)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::GetScreenType Read type failed");
+            return READ_PARCEL_ERR;
+        }
+        screenType = static_cast<RSScreenType>(type);
     }
     return result;
 }
@@ -2683,7 +2841,11 @@ ErrCode RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bi
         success = false;
         return ERR_INVALID_VALUE;
     }
-    bool result = reply.ReadBool();
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBitmap Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (!result || !RSMarshallingHelper::Unmarshalling(reply, bitmap)) {
         RS_LOGE("RSRenderServiceConnectionProxy::GetBitmap: Unmarshalling failed");
         success = false;
@@ -2717,7 +2879,11 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
     if (err != NO_ERROR) {
         return false;
     }
-    bool result = reply.ReadBool();
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2745,7 +2911,11 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id
     if (err != NO_ERROR) {
         return false;
     }
-    bool result = reply.ReadBool();
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2802,7 +2972,11 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<M
         success = false;
         return ERR_INVALID_VALUE;
     }
-    bool result = reply.ReadBool();
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetPixelmap Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (!result || !RSMarshallingHelper::Unmarshalling(reply, pixelmap)) {
         RS_LOGD("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
         success = false;
@@ -2854,7 +3028,11 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         RS_LOGD("RSRenderServiceConnectionProxy::RegisterTypeface: RegisterTypeface failed");
         return false;
     }
-    bool result = reply.ReadBool();
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTypeface Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2900,7 +3078,11 @@ int32_t RSRenderServiceConnectionProxy::GetDisplayIdentificationData(ScreenId id
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetDisplayIdentificationData Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result != SUCCESS) {
         RS_LOGE("RSRenderServiceConnectionProxy::GetDisplayIdentificationData: failed");
         return result;
@@ -2948,7 +3130,11 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, 
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPixelFormat Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -2976,9 +3162,16 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate(
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
-        actualRefreshRate = reply.ReadUint32();
+        if (!reply.ReadUint32(actualRefreshRate)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate Read actualRefreshRate failed");
+            return READ_PARCEL_ERR;
+        }
     }
     return result;
 }
@@ -3008,7 +3201,12 @@ uint32_t RSRenderServiceConnectionProxy::SetScreenActiveRect(
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    return reply.ReadUint32();
+    uint32_t result{0};
+    if (!reply.ReadUint32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenActiveRect Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -3073,7 +3271,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenHDRFormat Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3098,7 +3300,11 @@ int32_t RSRenderServiceConnectionProxy::UnRegisterSurfaceOcclusionChangeCallback
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenColorSpace Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3122,7 +3328,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmConfigChangeCallback(sptr<RSI
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmConfigChangeCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmConfigChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3147,7 +3357,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3183,7 +3397,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
         ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterHgmRefreshRateModeChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3223,7 +3441,12 @@ int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdate
             "Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE(
+            "RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3276,7 +3499,11 @@ bool RSRenderServiceConnectionProxy::SetSystemAnimatedScenes(
     if (err != NO_ERROR) {
         return false;
     }
-    bool result = reply.ReadBool();
+    bool result{0};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSystemAnimatedScenes Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -3372,7 +3599,11 @@ int32_t RSRenderServiceConnectionProxy::ResizeVirtualScreen(ScreenId id, uint32_
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ResizeVirtualScreen: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t status = reply.ReadInt32();
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ResizeVirtualScreen Read status failed");
+        return READ_PARCEL_ERR;
+    }
     return status;
 }
 
@@ -3771,11 +4002,14 @@ void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const st
     }
 
     if (!data.WriteString(pkgName) || !data.WriteUint32(listSize)) {
+        ROSEN_LOGE(
+            "RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent Write pakName or listSize failed.");
         return;
     }
 
     for (const auto& [key, value] : newConfig) {
         if (!data.WriteString(key) || !data.WriteString(value)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent Write key or value failed.");
             return;
         }
     }
@@ -3979,10 +4213,24 @@ std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnectionProxy::GetActiveDirt
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetActiveDirtyRegionInfo: Send Request err.");
         return activeDirtyRegionInfos;
     }
-    int32_t activeDirtyRegionInfosSize = reply.ReadInt32();
+    int32_t activeDirtyRegionInfosSize{0};
+    if (!reply.ReadInt32(activeDirtyRegionInfosSize)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetActiveDirtyRegionInfo Read activeDirtyRegionInfosSize failed");
+        return activeDirtyRegionInfos;
+    }
     while (activeDirtyRegionInfosSize--) {
-        activeDirtyRegionInfos.emplace_back(ActiveDirtyRegionInfo(reply.ReadInt64(), reply.ReadInt32(),
-            reply.ReadInt32(), reply.ReadString()));
+        int64_t activeDirtyRegionArea{0};
+        int32_t activeFramesNumber{0};
+        int32_t pidOfBelongsApp{0};
+        std::string windowName;
+        if (!reply.ReadInt64(activeDirtyRegionArea) || !reply.ReadInt32(activeFramesNumber) ||
+            !reply.ReadInt32(pidOfBelongsApp) || !reply.ReadString(windowName)) {
+            ROSEN_LOGE(
+                "RSRenderServiceConnectionProxy::GetActiveDirtyRegionInfo Read parcel failed");
+            return activeDirtyRegionInfos;
+        }
+        activeDirtyRegionInfos.emplace_back(
+            ActiveDirtyRegionInfo(activeDirtyRegionArea, activeFramesNumber, pidOfBelongsApp, windowName));
     }
     return activeDirtyRegionInfos;
 }
@@ -4004,7 +4252,17 @@ GlobalDirtyRegionInfo RSRenderServiceConnectionProxy::GetGlobalDirtyRegionInfo()
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetGlobalDirtyRegionInfo: Send Request err.");
         return globalDirtyRegionInfo;
     }
-    return GlobalDirtyRegionInfo(reply.ReadInt64(), reply.ReadInt32(), reply.ReadInt32(), reply.ReadInt32());
+    int64_t globalDirtyRegionAreas{0};
+    int32_t globalFramesNumber{0};
+    int32_t skipProcessFramesNumber{0};
+    int32_t mostSendingPidWhenDisplayNodeSkip{0};
+    if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
+        !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
+        return globalDirtyRegionInfo;
+    }
+    return GlobalDirtyRegionInfo(
+        globalDirtyRegionAreas, globalFramesNumber, skipProcessFramesNumber, mostSendingPidWhenDisplayNodeSkip);
 }
 
 LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()
@@ -4024,7 +4282,15 @@ LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetLayerComposeInfo: Send Request err.");
         return layerComposeInfo;
     }
-    return LayerComposeInfo(reply.ReadInt32(), reply.ReadInt32(), reply.ReadInt32());
+    int32_t uniformRenderFrameNumber{0};
+    int32_t offlineComposeFrameNumber{0};
+    int32_t redrawFrameNumber{0};
+    if (!reply.ReadInt32(uniformRenderFrameNumber) || !reply.ReadInt32(offlineComposeFrameNumber) ||
+        !reply.ReadInt32(redrawFrameNumber)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetLayerComposeInfo Read parcel failed");
+        return layerComposeInfo;
+    }
+    return LayerComposeInfo(uniformRenderFrameNumber, offlineComposeFrameNumber, redrawFrameNumber);
 }
 
 HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo()
@@ -4045,7 +4311,11 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo: Send Request err.");
         return hwcDisabledReasonInfos;
     }
-    int32_t size = reply.ReadInt32();
+    int32_t size{0};
+    if (!reply.ReadInt32(size)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo Read size failed");
+        return hwcDisabledReasonInfos;
+    }
     size_t readableSize = reply.GetReadableBytes() / HWC_DISABLED_REASON_INFO_MINIMUM_SIZE;
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
@@ -4234,7 +4504,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
         if (err != NO_ERROR) {
             return RS_CONNECTION_ERROR;
         }
-        int32_t result = reply.ReadInt32();
+        int32_t result{0};
+        if (!reply.ReadInt32(result)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterUIExtensionCallback Read result failed");
+            return READ_PARCEL_ERR;
+        }
         return result;
     } else {
         ROSEN_LOGE("RegisterUIExtensionCallback: WriteUint64[userId] OR WriteRemoteObject[callback] err.");
@@ -4265,7 +4539,11 @@ bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, Virtual
     if (err != NO_ERROR) {
         return false;
     }
-    bool result = reply.ReadBool();
+    bool result{0};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenStatus Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -4454,7 +4732,11 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Send request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 
@@ -4506,7 +4788,11 @@ ErrCode RSRenderServiceConnectionProxy::SetOverlayDisplayMode(int32_t mode)
         ROSEN_LOGE("%{public}s: SendRequest failed. err:%{public}d.", __func__, err);
         return ERR_INVALID_VALUE;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetOverlayDisplayMode Read result failed");
+        return READ_PARCEL_ERR;
+    }
     ROSEN_LOGI("%{public}s: mode:%{public}d, result:%{public}d.", __func__, mode, result);
     return result == 0 ? ERR_OK : ERR_INVALID_VALUE;
 }

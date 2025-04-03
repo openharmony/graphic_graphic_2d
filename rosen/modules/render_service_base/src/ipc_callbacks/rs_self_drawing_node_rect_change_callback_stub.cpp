@@ -24,6 +24,7 @@ int RSSelfDrawingNodeRectChangeCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSISelfDrawingNodeRectChangeCallback::GetDescriptor()) {
+        ROSEN_LOGE("RSISelfDrawingNodeRectChangeCallback::OnRemoteRequest WriteInterfaceToken failed");
         return ERR_INVALID_STATE;
     }
 

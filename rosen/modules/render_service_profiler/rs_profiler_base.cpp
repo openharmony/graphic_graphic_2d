@@ -1241,7 +1241,10 @@ void RSProfiler::WriteParcelData(Parcel& parcel)
         return;
     }
 
-    parcel.WriteUint64(NewAshmemDataCacheId());
+    if (!parcel.WriteUint64(NewAshmemDataCacheId())) {
+        HRPE("Unable to write NewAshmemDataCacheId failed");
+        return;
+    }
 }
 
 const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
@@ -1272,6 +1275,7 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("RSProfiler::SkipParcelData read isClientEnabled failed");
         return false;
     }
     if (!isClientEnabled) {

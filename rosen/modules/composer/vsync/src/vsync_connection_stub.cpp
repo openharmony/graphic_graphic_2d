@@ -42,18 +42,31 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         case IVSYNC_CONNECTION_GET_RECEIVE_FD: {
             int32_t fd = -1;
             int32_t ret = GetReceiveFd(fd);
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             if (ret != VSYNC_ERROR_OK) {
                 // check add log
                 return ret;
             }
-            reply.WriteFileDescriptor(fd);
+            if (!reply.WriteFileDescriptor(fd)) {
+                VLOGE("IVSYNC_CONNECTION_GET_RECEIVE_FD Write fd failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             break;
         }
         case IVSYNC_CONNECTION_SET_RATE: {
-            int32_t rate = data.ReadInt32();
+            int32_t rate{0};
+            if (!data.ReadInt32(rate)) {
+                VLOGE("IVSYNC_CONNECTION_SET_RATE Read rate failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             int32_t ret = SetVSyncRate(rate);
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_SET_RATE Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             if (ret != VSYNC_ERROR_OK) {
                 // check add log
                 return ret;
@@ -62,28 +75,52 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         }
         case IVSYNC_CONNECTION_DESTROY: {
             int32_t ret = Destroy();
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_DESTROY Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             return ret;
         }
         case IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH: {
-            auto dvsyncOn = data.ReadBool();
+            bool dvsyncOn{false};
+            if (!data.ReadBool(dvsyncOn)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Read dvsyncOn failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             int32_t ret = SetUiDvsyncSwitch(dvsyncOn);
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             return ret;
         }
         case IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG: {
             if (!CheckCallingPermission()) {
-                return VSYNC_ERROR_UNKOWN;
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
-            int32_t bufferCount = data.ReadInt32();
+            int32_t bufferCount{0};
+            if (!data.ReadInt32(bufferCount)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read bufferCount failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             int32_t ret = SetUiDvsyncConfig(bufferCount);
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             return ret;
         }
         case IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH: {
-            auto dvsyncOn = data.ReadBool();
+            bool dvsyncOn{false};
+            if (!data.ReadBool(dvsyncOn)) {
+                VLOGE("IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH Read dvsyncOn failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             int32_t ret = SetNativeDVSyncSwitch(dvsyncOn);
-            reply.WriteInt32(ret);
+            if (!reply.WriteInt32(ret)) {
+                VLOGE("IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH Write ret failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
             return ret;
         }
         default: {
