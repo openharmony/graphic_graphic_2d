@@ -148,7 +148,7 @@ ohos_static_library("hdibackend_test_common") {
   public_configs = [ ":hdibackend_test_common_public_config" ]
 
   public_deps =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer" ]
+      [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   public_external_deps = [
     "c_utils:utils",

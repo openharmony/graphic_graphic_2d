@@ -102,7 +102,7 @@ ohos_unittest("vsync_receiver_test") {
     "../../../../../modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
-  
+
   external_deps = [ "ipc:ipc_core" ]
 }
 
