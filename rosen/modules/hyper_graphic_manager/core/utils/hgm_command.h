@@ -205,8 +205,6 @@ public:
     // <"up_timeout_ms", 3000>
     std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
-    // <"pkgName", "1">
-    std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     SupportedModeMap supportedModeConfigs_;

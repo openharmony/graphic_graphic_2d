@@ -35,6 +35,29 @@ void HfbcParamTest::SetUpTestCase() {}
 void HfbcParamTest::TearDownTestCase() {}
 void HfbcParamTest::SetUp() {}
 void HfbcParamTest::TearDown() {}
+namespace {
+bool g_blackListMode = true;
+
+bool CheckHfbcStatus(const std::vector<std::string>& packageList)
+{
+    const std::unordered_map<std::string, std::string>& hfbcConfig = HFBCParam::GetHfbcConfigMap();
+
+    bool isHfbcDisabled = false;
+    // disable the HFBC, when the package name exists in the configList
+    for (auto& pkg : packageList) {
+        std::string pkgNameForCheck = pkg.substr(0, pkg.find(':'));
+        bool isFind = hfbcConfig.find(pkgNameForCheck) != hfbcConfig.end();
+        if (g_blackListMode && isFind) {
+            isHfbcDisabled = true;
+            break;
+        } else if ((!g_blackListMode) && (!isFind)) {
+            isHfbcDisabled = true;
+            break;
+        }
+    }
+    return isHfbcDisabled;
+}
+}
 
 /**
  * @tc.name: SetHfbcConfigForApp
@@ -44,15 +67,43 @@ void HfbcParamTest::TearDown() {}
  */
 HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
 {
-    HFBCParam hfbcParam;
+    EXPECT_EQ(HFBCParam::GetHfbcConfigMap().size(), 0);
+
     std::string appName = "com.test.banapp";
-    const std::unordered_map<std::string, std::string>& hfbcConfig = hfbcParam.GetHfbcConfigMap();
+    std::vector<std::string> packages = { appName };
 
-    EXPECT_EQ(hfbcConfig.find(appName) != hfbcConfig.end(), false);
+    EXPECT_EQ(CheckHfbcStatus(packages), false);
 
-    hfbcParam.SetHfbcConfigForApp(appName, "1");
-    EXPECT_EQ(hfbcConfig.find(appName) != hfbcConfig.end(), true);
+    HFBCParam::SetHfbcConfigForApp(appName, "1");
+
+    EXPECT_EQ(CheckHfbcStatus(packages), true);
+
+    packages = { { "com.test.banapp2", "1"} };
+    EXPECT_EQ(CheckHfbcStatus(packages), false);
 }
 
+/**
+ * @tc.name: SetHfbcConfigForApp2
+ * @tc.desc: Verify the SetHfbcConfigForApp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HfbcParamTest, SetHfbcConfigForApp2, Function | SmallTest | Level1)
+{
+    // disable list mode
+    g_blackListMode = false;
+    EXPECT_EQ(HFBCParam::GetHfbcConfigMap().size(), 0);
+    std::string appName = "com.test.banapp";
+    std::vector<std::string> packages = { appName };
+
+    EXPECT_EQ(CheckHfbcStatus(packages), true);
+
+    HFBCParam::SetHfbcConfigForApp(appName, "1");
+
+    EXPECT_EQ(CheckHfbcStatus(packages), false);
+
+    packages = { { "com.test.banapp2", "1"} };
+    EXPECT_EQ(CheckHfbcStatus(packages), true);
+}
 } // namespace Rosen
 } // namespace OHOS
