@@ -51,11 +51,11 @@ ohos_unittest("RSAibarShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -102,11 +102,11 @@ ohos_unittest("RSBorderTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -156,11 +156,11 @@ ohos_unittest("RSColorExtractTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -216,11 +216,11 @@ ohos_unittest("RSColorfulShadowFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -270,11 +270,11 @@ ohos_unittest("RSImageCacheTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -321,11 +321,11 @@ ohos_unittest("RSKawaseBlurShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -372,11 +372,11 @@ ohos_unittest("RSHpsBlurTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -468,11 +468,11 @@ ohos_unittest("RSMESABlurShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -571,11 +571,11 @@ ohos_unittest("RSLightUpEffectFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -627,11 +627,11 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -683,11 +683,11 @@ ohos_unittest("RSMaterialFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -744,11 +744,11 @@ ohos_unittest("RSPixelMapUtilTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -797,11 +797,11 @@ ohos_unittest("RSColorspaceConvertTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",
