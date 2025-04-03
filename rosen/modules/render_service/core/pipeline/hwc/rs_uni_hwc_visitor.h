@@ -27,9 +27,17 @@ public:
     void UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
+
+    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const;
+
 private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
+
+    // record nodes which has transparent clean filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
+    // record nodes which has transparent dirty filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
     int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
 };

@@ -128,5 +128,15 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     RSUniHwcComputeUtil::CalcSrcRectByBufferFlip(node, uniRenderVisitor_.screenInfo_);
     node.SetCalcRectInPrepare(true);
 }
+
+RectI RSUniHwcVisitor::GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const
+{
+    RectI childEffectRect;
+    if (!globalFilterRect.IsEmpty()) {
+        childEffectRect = globalFilterRect.JoinRect(node.GetFilterRect());
+    }
+    return childEffectRect;
+}
+
 } // namespace Rosen
 } // namespace OHOS

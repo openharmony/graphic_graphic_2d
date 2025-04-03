@@ -1659,8 +1659,8 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     curDisplayDirtyManager_->Clear();
     transparentCleanFilter_.clear();
     transparentDirtyFilter_.clear();
-    transparentHwcCleanFilter_.clear();
-    transparentHwcDirtyFilter_.clear();
+    rsUniHwcVisitor_->transparentHwcCleanFilter_.clear();
+    rsUniHwcVisitor_->transparentHwcDirtyFilter_.clear();
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
@@ -3224,7 +3224,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
     auto globalFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
         GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
     auto globalHwcFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
-        GetHwcVisibleEffectDirty(node, globalFilterRect) : globalFilterRect;
+        rsUniHwcVisitor_->GetHwcVisibleEffectDirty(node, globalFilterRect) : globalFilterRect;
     if (node.NeedDrawBehindWindow()) {
         node.CalDrawBehindWindowRegion();
         globalFilterRect = node.GetFilterRect();
@@ -3602,10 +3602,10 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfa
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    auto cleanFilter = transparentHwcCleanFilter_.find(node->GetId());
-    bool cleanFilterFound = (cleanFilter != transparentHwcCleanFilter_.end());
-    auto dirtyFilter = transparentHwcDirtyFilter_.find(node->GetId());
-    bool dirtyFilterFound = (dirtyFilter != transparentHwcDirtyFilter_.end());
+    auto cleanFilter = rsUniHwcVisitor_->transparentHwcCleanFilter_.find(node->GetId());
+    bool cleanFilterFound = (cleanFilter != rsUniHwcVisitor_->transparentHwcCleanFilter_.end());
+    auto dirtyFilter = rsUniHwcVisitor_->transparentHwcDirtyFilter_.find(node->GetId());
+    bool dirtyFilterFound = (dirtyFilter != rsUniHwcVisitor_->transparentHwcDirtyFilter_.end());
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
     for (auto it = curMainAndLeashSurfaces.rbegin(); it != curMainAndLeashSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -3782,15 +3782,6 @@ RectI RSUniRenderVisitor::GetVisibleEffectDirty(RSRenderNode& node) const
     return childEffectRect;
 }
 
-RectI RSUniRenderVisitor::GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI globalFilterRect) const
-{
-    RectI childEffectRect;
-    if (!globalFilterRect.IsEmpty()) {
-        childEffectRect = globalFilterRect.JoinRect(node.GetFilterRect());
-    }
-    return childEffectRect;
-}
-
 void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect)
 {
@@ -3813,12 +3804,14 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
                 RS_OPTIONAL_TRACE_NAME_FMT("CollectFilterInfoAndUpdateDirty::surfaceNode:%s, add node[%lld] to "
                     "transparentCleanFilter", curSurfaceNode_->GetName().c_str(), node.GetId());
                 transparentCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
-                transparentHwcCleanFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
+                rsUniHwcVisitor_->transparentHwcCleanFilter_[curSurfaceNode_->GetId()].
+                    push_back({node.GetId(), globalHwcFilterRect});
                 isNodeAddedToTransparentCleanFilters = true;
             }
             if (isIntersect) {
                 transparentDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
-                transparentHwcDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalHwcFilterRect});
+                rsUniHwcVisitor_->transparentHwcDirtyFilter_[curSurfaceNode_->GetId()].
+                    push_back({node.GetId(), globalHwcFilterRect});
                 RS_LOGD("RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty global merge transparentDirtyFilter "
                     "%{public}s, global dirty %{public}s, add rect %{public}s", curSurfaceNode_->GetName().c_str(),
                     curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
