@@ -28,7 +28,22 @@ struct RSHwcRecorder {
     RSHwcRecorder& operator=(const RSHwcRecorder&) = delete;
     RSHwcRecorder& operator=(RSHwcRecorder&&) = delete;
 
+    void SetBlendWithBackground(bool isBlendWithBackground) { isBlendWithBackground_ = isBlendWithBackground; }
+    bool IsBlendWithBackground() const { return isBlendWithBackground_; }
+
+    bool isBlendWithBackground_ = false;
+
     int32_t zOrderForCalcHwcNodeEnableByFilter_ = 0;
+};
+
+struct RSHwcSurfaceRecorder {
+    RSHwcSurfaceRecorder() = default;
+    ~RSHwcSurfaceRecorder() = default;
+
+    RSHwcSurfaceRecorder(const RSHwcSurfaceRecorder&) = delete;
+    RSHwcSurfaceRecorder(RSHwcSurfaceRecorder&&) = delete;
+    RSHwcSurfaceRecorder& operator=(const RSHwcSurfaceRecorder&) = delete;
+    RSHwcSurfaceRecorder& operator=(RSHwcSurfaceRecorder&&) = delete;
 };
 
 } // namespace Rosen

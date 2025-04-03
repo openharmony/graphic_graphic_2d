@@ -1735,7 +1735,6 @@ HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ScreenId id = {};
     surfaceNode->DetachFromWindowContainer(id);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -882,7 +882,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
     // check whether to enable HFBC
-    HgmHfbcConfig::HandleHfbcConfig(packageList);
+    HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
+    hfbcConfig.HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
         for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {

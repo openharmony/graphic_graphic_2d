@@ -724,10 +724,9 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationStart001, TestSize.Level1)
     EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetAnimationStart());
 }
 
-
 /*
  * @tc.name: SetCommonSubType001
- * @tc.desc: test SetCommonSubType with commonSubType
+ * @tc.desc: test SetCommonSubType with commonSubType::DOWN
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level1)
@@ -752,6 +751,32 @@ HWTEST_F(OHHmSymbolRunTest, SetCommonSubType001, TestSize.Level1)
 
     hmSymbolRun.SetCommonSubType(Drawing::DrawingCommonSubType::DOWN);
     EXPECT_EQ(hmSymbolRun.symbolTxt_.GetCommonSubType(), Drawing::DrawingCommonSubType::DOWN);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetCommonSubType002
+ * @tc.desc: test SetCommonSubType with commonSubType::UP
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetCommonSubType002, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.SetAnimationStart(true);
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::BOUNCE);
+
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
     EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);

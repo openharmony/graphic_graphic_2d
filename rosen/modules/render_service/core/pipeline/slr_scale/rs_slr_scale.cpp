@@ -349,7 +349,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSSLRScaleFunction::MakeLaplaceShaderEff
             vec4 bottom = imageShader.eval(coord - half2(0.0, 1.0));
             vec4 left = imageShader.eval(coord - half2(1.0, 0.0));
             vec4 right = imageShader.eval(coord + half2(1.0, 0.0));
-            return c + alpha* (4.0 * c - top - bottom - left - right);
+            return clamp(c + alpha * (4.0 * c - top - bottom - left - right), 0.0, 1.0);
         }
     )");
 

@@ -164,7 +164,8 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
 }
 
 std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
-    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, ScreenInfo& screenInfo)
+    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge,
+    ScreenInfo& screenInfo, bool isSecScreen)
 {
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
@@ -174,7 +175,8 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
     auto& curAllSurfaceDrawables = params->GetAllMainAndLeashSurfaceDrawables();
     auto dirtyManager = displayDrawable.GetSyncDirtyManager();
     RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayDrawable, bufferAge);
-    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(curAllSurfaceDrawables);
+    Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
+        curAllSurfaceDrawables, *params, isSecScreen);
 
     RectI rect = dirtyManager->GetRectFlipWithinSurface(dirtyManager->GetDirtyRegionInVirtual());
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
@@ -399,9 +401,16 @@ void RSUniRenderUtil::MergeDirtyHistoryInVirtual(DrawableV2::RSDisplayRenderNode
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables)
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+    RSDisplayRenderParams& displayParams, bool isSecScreen)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual, failed to get screen manager!");
+        return allSurfaceVisibleDirtyRegion;
+    }
+    auto curBlackList = screenManager->GetVirtualScreenBlackList(displayParams.GetScreenId());
     for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
         if (surfaceNodeDrawable == nullptr) {
@@ -413,9 +422,13 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
             RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
             continue;
         }
-        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty() ||
-            surfaceParams->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
-            surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
+        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
+            continue;
+        }
+        if (surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP) && !isSecScreen) {
+            continue;
+        }
+        if (curBlackList.find(surfaceParams->GetId()) != curBlackList.end()) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();

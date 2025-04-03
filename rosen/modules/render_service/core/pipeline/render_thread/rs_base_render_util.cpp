@@ -1974,5 +1974,9 @@ pid_t RSBaseRenderUtil::GetLastSendingPid()
     return lastSendingPid_;
 }
 
+bool RSBaseRenderUtil::PortraitAngle(int angle)
+{
+    return angle == RS_ROTATION_90 || angle == RS_ROTATION_270;
+}
 } // namespace Rosen
 } // namespace OHOS

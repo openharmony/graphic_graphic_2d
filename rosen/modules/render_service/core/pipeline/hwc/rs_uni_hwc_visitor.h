@@ -19,16 +19,22 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSCanvasRenderNode;
 class RSUniRenderVisitor;
 class RSUniHwcVisitor {
 public:
     explicit RSUniHwcVisitor(RSUniRenderVisitor& visitor);
     ~RSUniHwcVisitor();
+
+    // Compute
     void UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
 
     RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const;
+
+    bool UpdateIsOffscreen(RSCanvasRenderNode& node);
+    void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
 private:
     friend class RSUniRenderVisitor;
@@ -40,6 +46,8 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
     int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
+
+    bool isOffscreen_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

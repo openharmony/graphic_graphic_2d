@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("feature_cfg_test") {
-  module_out_path = "graphic_2d/rosen/modules/feature_cfg"
+  module_out_path = "graphic_2d/graphic_2d/rosen/modules/feature_cfg"
 
   cflags = [
     "-Wall",

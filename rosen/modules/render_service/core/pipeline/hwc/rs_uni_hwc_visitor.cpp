@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 #include "rs_uni_hwc_visitor.h"
+
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 #include "common/rs_optional_trace.h"
 
@@ -136,6 +138,19 @@ RectI RSUniHwcVisitor::GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI&
         childEffectRect = globalFilterRect.JoinRect(node.GetFilterRect());
     }
     return childEffectRect;
+}
+
+bool RSUniHwcVisitor::UpdateIsOffscreen(RSCanvasRenderNode& node)
+{
+    const auto& property = node.GetRenderProperties();
+    bool isCurrOffscreen = isOffscreen_;
+    isOffscreen_ |= property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone();
+    // The meaning of first prepared offscreen node is either its colorBlendApplyType is not FAST or
+    // its colorBlendMode is NONE.
+    // Node will classified as blendWithBackground if it is the first prepared offscreen node and
+    // its colorBlendMode is neither NONE nor SRC_OVER.
+    node.GetHwcRecorder().SetBlendWithBackground(!isCurrOffscreen && isOffscreen_ && property.IsColorBlendModeValid());
+    return isCurrOffscreen;
 }
 
 } // namespace Rosen

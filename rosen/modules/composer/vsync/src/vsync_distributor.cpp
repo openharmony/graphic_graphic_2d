@@ -1597,6 +1597,11 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 
 void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->NotifyTouchEvent(touchStatus, touchCnt);
+    }
+#endif
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().NotifyTouchEvent(touchStatus, touchCnt);
 #endif

@@ -14,7 +14,8 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service/pipeline"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service/pipeline"
 
 group("unittest") {
   testonly = true

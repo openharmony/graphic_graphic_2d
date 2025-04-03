@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/render_service_base"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
 third_party_path = "//third_party"
 
 ohos_unittest("RSRenderTest") {

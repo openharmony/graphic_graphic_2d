@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_test/graphic_test"
+module_output_path = "graphic_2d/graphic_2d/graphic_test"
 
 drawing_engine_sources = []
 hardware_manager_sources = []
