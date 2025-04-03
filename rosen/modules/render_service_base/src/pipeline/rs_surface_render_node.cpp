@@ -3283,8 +3283,8 @@ void RSSurfaceRenderNode::SetSdrNit(float sdrNit)
 
 void RSSurfaceRenderNode::SetDisplayNit(float displayNit)
 {
-#ifdef RS_ENABLE_GPU//
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());//
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetDisplayNit(displayNit);
     }

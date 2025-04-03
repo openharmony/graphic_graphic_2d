@@ -1056,7 +1056,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
     // color temperature
     params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
-    params.hasMetadata = surfaceParams.GetSdrHasMetadata(); //
+    params.hasMetadata = surfaceParams.GetSdrHasMetadata();
 #endif
     params.colorFollow = surfaceParams.GetColorFollow(); // force the buffer to follow the colorspace of canvas
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
