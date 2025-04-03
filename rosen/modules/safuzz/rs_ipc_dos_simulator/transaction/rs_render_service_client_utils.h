@@ -25,6 +25,7 @@
 #endif
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
@@ -269,6 +270,23 @@ public:
 
 private:
     RSRenderServiceClient* client_;
+};
+
+class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {
+public:
+    explicit CustomSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback) : cb_(callback)
+    {}
+    ~CustomSelfDrawingNodeRectChangeCallback() override {};
+
+    void OnSelfDrawingNodeRectChange(std::shared_ptr<RSSelfDrawingNodeRectData> rectData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(rectData);
+        }
+    }
+
+private:
+    SelfDrawingNodeRectChangeCallback cb_;
 };
 } // namespace Rosen
 } // namespace OHOS
