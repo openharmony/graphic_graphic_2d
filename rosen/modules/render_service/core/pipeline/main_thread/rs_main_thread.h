@@ -593,6 +593,7 @@ private:
 #ifdef RS_ENABLE_GPU
     bool needDrawFrame_ = true;
     bool needPostAndWait_ = true;
+    bool isLastFrameNeedPostAndWait_ = true;
 #endif
 
     bool isNeedResetClearMemoryTask_ = false;

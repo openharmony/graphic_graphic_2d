@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t STANDARD_REFRESH_RATE = 60;
+constexpr uint32_t MAX_REFRESH_RATE_TO_OPTIMIZE_JANK_LOAD = 90;
 constexpr int64_t TIMESTAMP_INITIAL = -1;
 constexpr int32_t TRACE_ID_INITIAL = -1;
 constexpr float TIMESTAMP_INITIAL_FLOAT = -1.f;
@@ -54,10 +55,9 @@ struct JankFrames {
     bool isAnimationInterrupted_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
-    int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
-    int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t traceCreateTime_ = TIMESTAMP_INITIAL;
     int64_t traceCreateTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t traceTerminateTime_ = TIMESTAMP_INITIAL;
     int64_t traceTerminateTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t maxFrameOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastMaxFrameOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
@@ -131,7 +131,8 @@ public:
     void SetEndTime(bool skipJankAnimatorFrame = false, bool discardJankFrames = false,
                     uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE,
                     bool doDirectComposition = false, bool isReportTaskDelayed = false);
-    void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed);
+    void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed,
+        std::function<void(const std::function<void()>&)> postTaskHandler = nullptr);
     void ReportJankStats();
     void ReportSceneJankStats(const AppInfo& appInfo);
     void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
@@ -150,6 +151,11 @@ private:
     ~RSJankStats() = default;
     DISALLOW_COPY_AND_MOVE(RSJankStats);
 
+    void SetStartTimeInner(bool doDirectComposition = false);
+    void SetEndTimeInner(bool skipJankAnimatorFrame = false, bool discardJankFrames = false,
+                         uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE,
+                         bool doDirectComposition = false, bool isReportTaskDelayed = false);
+    bool NeedPostTaskToUniRenderThread() const;
     void UpdateEndTime();
     void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
     size_t GetJankRangeType(int64_t missedVsync) const;

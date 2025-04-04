@@ -1242,6 +1242,13 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
     return size;
 }
 
+bool RSSystemProperties::GetJankLoadOptimizeEnabled()
+{
+    static bool jankLoadOptimizeEnabled =
+        system::GetBoolParameter("persist.sys.graphic.jankLoadOptimize.enabled", true);
+    return jankLoadOptimizeEnabled;
+}
+
 int RSSystemProperties::GetRSNodeLimit()
 {
     static int rsNodeLimit =

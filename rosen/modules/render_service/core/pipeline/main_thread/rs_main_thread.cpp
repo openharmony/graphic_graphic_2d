@@ -2708,6 +2708,7 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 #ifdef RS_ENABLE_GPU
+    isLastFrameNeedPostAndWait_ = needPostAndWait_;
     needPostAndWait_ = !doDirectComposition_ && needDrawFrame_;
     if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
@@ -3375,7 +3376,11 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                               .refreshRate_ = GetDynamicRefreshRate(),
                                               .discardJankFrames_ = GetDiscardJankFrames(),
                                               .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame() };
-        drawFrame_.PostDirectCompositionJankStats(rsParams);
+        // optimize jank load when 1) global optimization flag is true, 2) at least two consecutive frames do direct
+        // composition, 3) refresh rate of current frame does not overstep a preset threshold
+        bool optimizeLoad = RSSystemProperties::GetJankLoadOptimizeEnabled() && !isLastFrameNeedPostAndWait_ &&
+            rsParams.refreshRate_ <= MAX_REFRESH_RATE_TO_OPTIMIZE_JANK_LOAD;
+        drawFrame_.PostDirectCompositionJankStats(rsParams, optimizeLoad);
     }
     if (isUniRender_) {
         SetDiscardJankFrames(false);
@@ -3828,6 +3833,7 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
         RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
 
         if (needUpdateJankStats) {
+            isLastFrameNeedPostAndWait_ = needPostAndWait_;
             needPostAndWait_ = false;
             RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
         }
