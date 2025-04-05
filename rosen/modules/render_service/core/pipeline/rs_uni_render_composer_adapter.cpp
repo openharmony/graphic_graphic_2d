@@ -151,7 +151,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
         matrix.Get(Drawing::Matrix::Index::TRANS_Y), matrix.Get(Drawing::Matrix::Index::PERSP_0),
         matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     {
-        RS_TRACE_NAME_FMT("BuildComposeInfo frameGravity:%d", static_cast<int32_t>(params->GetFrameGravity));
+        RS_TRACE_NAME_FMT("BuildComposeInfo frameGravity:%d", static_cast<int32_t>(params->GetFrameGravity()));
         info.gravity = static_cast<int32_t>(params->GetFrameGravity());
     }
 
