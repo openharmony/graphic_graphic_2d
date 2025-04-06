@@ -95,12 +95,6 @@ public:
         focusedLeashWindowId_ = leashId;
     }
 
-    void SetSubThreadConfig(uint32_t threadIndex)
-    {
-        isHardwareForcedDisabled_ = true;
-        threadIndex_ = threadIndex;
-    }
-
     bool GetAnimateState() const
     {
         return doAnimate_;
