@@ -225,20 +225,14 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
         if (nextTimeStamp - occurTimestamp > periodRecord_ * 3 / 2) { // 3/2 means no more than 1.5 period
             RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
         }
-        // if is urgent, don't need to wait, we execute callback immediately
-        if (!isUrgent_.load()) {
-            std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
-            nextTimeStamp_ = nextTimeStamp;
-            auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
-            if (err == std::cv_status::timeout) {
-                isWakeup = true;
-            } else if (isUrgent_.load()) {
-                // upon being awakened and is urgent, execute immediately
-                RS_TRACE_NAME_FMT("VSyncGenerator::WaitForTimeout  isurgent");
-            } else {
-                ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
-                return;
-            }
+        std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+        nextTimeStamp_ = nextTimeStamp;
+        auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
+        if (err == std::cv_status::timeout) {
+            isWakeup = true;
+        } else {
+            ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
+            return;
         }
     }
     ListenerVsyncEventCB(occurTimestamp, nextTimeStamp, occurReferenceTime, isWakeup);
@@ -594,28 +588,12 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(
 std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(int64_t now, int64_t referenceTime)
 {
     std::vector<VSyncGenerator::Listener> ret;
-    int64_t offset = 0;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
-        // if listener is urgent, must execute immediately and push to vector
-        if (listeners_[i].isUrgent_) {
-            offset = SystemTime() - listeners_[i].lastTime_;
-            listeners_[i].isUrgent_ = false;
-            listeners_[i].lastTime_ = SystemTime();
-            ret.push_back(listeners_[i]);
-            continue;
-        }
-
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
         if (t - SystemTime() < ERROR_THRESHOLD) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
-    }
-    // if is urgent, isUrgent_'s value to false
-    // change vsync's refrenceTime, and then vsync loop use this as a refrence point
-    if (isUrgent_.load()) {
-        referenceTime_ = referenceTime_ + offset - wakeupDelay_;
-        isUrgent_.store(false);
     }
     // Start of DVSync
     CollectDVSyncListener(dvsyncListener_, now, ret);
@@ -698,10 +676,22 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncGenerator::AddListener(int64_t phase,
-                                       const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb,
-                                       bool isUrgent,
-                                       int64_t lastVsyncTime)
+bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime)
+{
+    int64_t now = SystemTime();
+    int64_t offset = (now - lastVsyncTime) % period_;
+    if (period_ - offset > PERIOD_CHECK_THRESHOLD) {
+        timestamp = now;
+        period = period_;
+        std::lock_guard<std::mutex> locker(mutex_);
+        referenceTime_ = referenceTime_ + offset - wakeupDelay_;
+        
+        return true;
+    }
+    return false;
+}
+
+VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
 {
     ScopedBytrace func("AddListener");
     std::lock_guard<std::mutex> locker(mutex_);
@@ -718,8 +708,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase,
     Listener listener;
     listener.phase_ = phase;
     listener.callback_ = cb;
-    listener.lastTime_ = lastVsyncTime > 0 ? lastVsyncTime : SystemTime() - period_ + phase_;
-    listener.isUrgent_ = isUrgent;
+    listener.lastTime_ = SystemTime() - period_ + phase_;
 
     listeners_.push_back(listener);
 
@@ -736,7 +725,6 @@ VsyncError VSyncGenerator::AddListener(int64_t phase,
     if (i == listenersRecord_.size()) {
         listenersRecord_.push_back(listener);
     }
-    isUrgent_.store(isUrgent);
     con_.notify_all();
     WaitForTimeoutConNotifyLocked();
     return VSYNC_ERROR_OK;

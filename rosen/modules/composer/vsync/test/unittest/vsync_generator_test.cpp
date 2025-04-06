@@ -764,19 +764,6 @@ HWTEST_F(VSyncGeneratorTest, AddListener004, Function | MediumTest| Level0)
 }
 
 /*
-* Function: AddListener005
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call AddListener
- */
-HWTEST_F(VSyncGeneratorTest, AddListener005, Function | MediumTest| Level0)
-{
-    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback, true, SystemTime()), VSYNC_ERROR_OK);
-}
-
-/*
 * Function: RemoveListener001
 * Type: Function
 * Rank: Important(2)

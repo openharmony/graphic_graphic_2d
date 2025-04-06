@@ -29,6 +29,19 @@ VSyncController::~VSyncController()
 {
 }
 
+bool VSyncController::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period)
+{
+    if (generator_ == nullptr) {
+        return false;
+    }
+    const sptr<VSyncGenerator> generator = generator_.promote();
+    if (generator == nullptr) {
+        return false;
+    }
+
+    return generator->NeedPreexecute(timestamp, period, lastVsyncTime_);
+}
+
 VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
 {
     if (generator_ == nullptr) {
@@ -49,7 +62,7 @@ VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
         // We need to tell the distributor to use the software vsync
         isGeneratorEnable = generator->IsEnable();
         if (isGeneratorEnable) {
-            ret = generator->AddListener(phaseOffset, this, isUrgent_, lastVsyncTime_);
+            ret = generator->AddListener(phaseOffset, this);
             if (ret != VSYNC_ERROR_OK) {
                 isGeneratorEnable = false;
             }
@@ -63,7 +76,6 @@ VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
         }
     }
 
-    isUrgent_ = false;
     enabled_ = isGeneratorEnable;
     return ret;
 }

@@ -50,10 +50,7 @@ public:
     virtual VsyncError SetEnable(bool enable, bool& isGeneratorEnable);
     VsyncError SetCallback(Callback* cb);
     VsyncError SetPhaseOffset(int64_t offset);
-    void SetUrgent(bool isUrgent)
-    {
-        isUrgent_ = isUrgent;
-    }
+    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period);
 
 private:
     friend class DVSyncController;
@@ -69,7 +66,6 @@ private:
     std::mutex offsetMutex_;
     int64_t phaseOffset_;
     bool enabled_;
-    bool isUrgent_ = false;
     int64_t lastVsyncTime_;
 };
 } // namespace Rosen

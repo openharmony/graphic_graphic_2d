@@ -601,11 +601,10 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
     return true;
 }
 
-void VSyncDistributor::EnableVSync(bool isUrgent)
+void VSyncDistributor::EnableVSync()
 {
     if (controller_ != nullptr && vsyncEnabled_ == false) {
         controller_->SetCallback(this);
-        controller_->SetUrgent(isUrgent);
         controller_->SetEnable(true, vsyncEnabled_);
         // Start of DVSync
         RecordEnableVsync();
@@ -1044,7 +1043,10 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
             connection->rate_ = 0;
         }
         connection->triggerThisTime_ = true;
-        EnableVSync(isUrgent);
+        if (isUrgent) {
+            NeedPreexecute = VSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        }
+        EnableVSync();
         // Start of DVSync
         DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
         // adaptive sync game mode, urgent scenario don't need to preexecute
@@ -1572,6 +1574,25 @@ void VSyncDistributor::DVSyncRecordRNV(const sptr<VSyncConnection> &connection, 
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().RecordRNV(connection, fromWhom, vsyncMode_, lastVSyncTS);
 #endif
+}
+
+bool VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
+    int64_t &period, int64_t &vsyncCount)
+{
+    if (controller_ == nullptr || vsyncEnabled_) {
+        return false;
+    }
+    bool NeedPreexecute = controller_->NeedPreexecuteAndUpdateTs(timestamp, period);
+    if (NeedPreexecute) {
+        RS_TRACE_NAME_FMT("VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs timestamp:%ld, period:%ld", timestamp, period);
+        event_.vsyncCount++;
+        vsyncCount = event_.vsyncCount;
+        if (connection->rate_ == 0) {
+            connection->rate_ = -1;
+        }
+        connection->triggerThisTime_ = false;
+    }
+    return NeedPreexecute;
 }
 
 bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,

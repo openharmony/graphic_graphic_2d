@@ -55,10 +55,7 @@ public:
     VSyncGenerator() = default;
     virtual ~VSyncGenerator() noexcept = default;
     virtual VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) = 0;
-    virtual VsyncError AddListener(int64_t phase,
-                                   const sptr<Callback>& cb,
-                                   bool isUrgent = false,
-                                   int64_t lastVsyncTime = 0) = 0;
+    virtual VsyncError AddListener(int64_t phase, const sptr<Callback>& cb) = 0;
     virtual VsyncError RemoveListener(const sptr<Callback>& cb) = 0;
     virtual VsyncError ChangePhaseOffset(const sptr<Callback>& cb, int64_t offset) = 0;
     virtual bool IsEnable() = 0;
@@ -91,6 +88,7 @@ public:
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     // End of DVSync
     virtual void PrintGeneratorStatus() = 0;
+    virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -108,10 +106,7 @@ public:
     VSyncGenerator(const VSyncGenerator &) = delete;
     VSyncGenerator &operator=(const VSyncGenerator &) = delete;
     VsyncError UpdateMode(int64_t period, int64_t phase, int64_t referenceTime) override;
-    VsyncError AddListener(int64_t phase,
-                           const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb,
-                           bool isUrgent,
-                           int64_t lastVsyncTime) override;
+    VsyncError AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError ChangePhaseOffset(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb, int64_t offset) override;
     bool IsEnable() override;
@@ -145,6 +140,7 @@ public:
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     // End of DVSync
     void PrintGeneratorStatus() override;
+    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -152,7 +148,6 @@ private:
         int64_t phase_;
         sptr<OHOS::Rosen::VSyncGenerator::Callback> callback_;
         int64_t lastTime_;
-        bool isUrgent_ = false;
     };
 
     VSyncGenerator();
@@ -198,7 +193,6 @@ private:
     std::mutex waitForTimeoutMtx_;
     std::condition_variable waitForTimeoutCon_;
     std::thread thread_;
-    std::atomic<bool> isUrgent_ = false;
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;
