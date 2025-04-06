@@ -799,8 +799,6 @@ private:
         std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
-    std::unordered_map<NodeId, // map<first level node ID, drm surface node>
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_;
 
     // used for watermark
     std::mutex watermarkMutex_;

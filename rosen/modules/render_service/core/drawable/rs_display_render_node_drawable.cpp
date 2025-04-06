@@ -38,6 +38,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/drm/rs_drm_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -283,45 +284,6 @@ bool RSDisplayRenderNodeDrawable::HardCursorCreateLayer(std::shared_ptr<RSProces
     return false;
 }
 
-void RSDisplayRenderNodeDrawable::DRMCreateLayer(std::shared_ptr<RSProcessor> processor)
-{
-    auto& hardwareDrawables =
-        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& [displayNodeId, drawable] : hardwareDrawables) {
-        if (UNLIKELY(!drawable) || !drawable->GetRenderParams()) {
-            continue;
-        }
-        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        auto& params = surfaceDrawable->GetRenderParams();
-        if (UNLIKELY(!params)) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
-        if (UNLIKELY(!surfaceParams) || !surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
-            continue;
-        }
-        // calculate matrix
-        auto layerInfo = surfaceParams->GetLayerInfo();
-        Drawing::Matrix tmpMatrix = surfaceParams->GetTotalMatrix();
-        tmpMatrix.PostConcat(curCanvasMatrix_);
-        layerInfo.matrix = tmpMatrix;
-        // calculate dstRect
-        Drawing::Rect absRect;
-        tmpMatrix.MapRect(absRect, surfaceParams->GetBounds());
-        layerInfo.dstRect.x = absRect.left_;
-        layerInfo.dstRect.y = absRect.top_;
-        layerInfo.dstRect.w = absRect.right_ - absRect.left_;
-        layerInfo.dstRect.h = absRect.bottom_ - absRect.top_;
-        // calculate transformType
-        GraphicTransformType rotateEnum =
-            RSBaseRenderUtil::RotateEnumToInt(RSUniRenderUtil::GetRotationFromMatrix(tmpMatrix) % 360,
-            RSBaseRenderUtil::GetFlipTransform(layerInfo.transformType));
-        layerInfo.transformType = rotateEnum;
-        surfaceParams->SetLayerInfo(layerInfo);
-        processor->CreateLayerForRenderThread(*surfaceDrawable);
-    }
-}
-
 void RSDisplayRenderNodeDrawable::RenderOverDraw()
 {
     bool isEnabled = false;
@@ -416,7 +378,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-            if (surfaceParams && surfaceParams->GetDRMGlobalPositionEnabled()) {
+            if (surfaceParams && surfaceParams->GetHwcGlobalPositionEnabled()) {
                 surfaceParams->SetOffsetX(offsetX_);
                 surfaceParams->SetOffsetY(offsetY_);
                 surfaceParams->SetRogWidthRatio(surfaceParams->IsDRMCrossNode() ?
@@ -960,7 +922,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-            if (surfaceParams && surfaceParams->GetDRMGlobalPositionEnabled()) {
+            if (surfaceParams && surfaceParams->GetHwcGlobalPositionEnabled()) {
                 surfaceParams->SetOffsetX(offsetX_);
                 surfaceParams->SetOffsetY(offsetY_);
                 surfaceParams->SetRogWidthRatio(surfaceParams->IsDRMCrossNode() ?
@@ -1390,8 +1352,8 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
         (RSSystemParameters::GetWiredScreenOndrawEnabled() && !enableVisibleRect_ &&
-            (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || isProcessSecLayer)) ||
-            mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
+            (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || isProcessSecLayer ||
+                mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)));
     if (isRedraw) {
         isMirrorSLRCopy_ = false;
     } else {
@@ -1413,11 +1375,12 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
         DrawWiredMirrorCopy(*mirroredDrawable);
     }
+    Drawing::Matrix curCanvasMatrix = curCanvas_->GetTotalMatrix();
     curCanvas_->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     renderFrame->Flush();
-    if (mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
-        DRMCreateLayer(processor);
+    if (isRedraw && mirroredParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
+        RSDrmUtil::DRMCreateLayer(processor, curCanvasMatrix);
         params.SetGlobalZOrder(params.GetGlobalZOrder() + 1);
     }
     processor->ProcessDisplaySurfaceForRenderThread(*this);
@@ -1640,8 +1603,6 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
             curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
         }
     }
-    // save matrix for drm
-    curCanvasMatrix_ = curCanvas_->GetTotalMatrix();
 }
 
 void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)

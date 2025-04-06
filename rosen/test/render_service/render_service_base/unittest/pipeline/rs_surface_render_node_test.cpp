@@ -653,32 +653,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDRMGlobalPositionEnabledTest
- * @tc.desc: SetDRMGlobalPositionEnabled and GetDRMGlobalPositionEnabled
+ * @tc.name: SetHwcGlobalPositionEnabledTest
+ * @tc.desc: SetHwcGlobalPositionEnabled and GetHwcGlobalPositionEnabled
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMGlobalPositionEnabledTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcGlobalPositionEnabledTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetDRMGlobalPositionEnabled(), true);
+    node->SetHwcGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetHwcGlobalPositionEnabled(), true);
 }
 
 /**
- * @tc.name: SetDRMCrossNodeTest
- * @tc.desc: SetDRMCrossNode and GetDRMCrossNode
+ * @tc.name: SetHwcCrossNodeTest
+ * @tc.desc: SetHwcCrossNode and GetDRMCrossNode
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMCrossNodeTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMCrossNode(true);
+    node->SetHwcCrossNode(true);
     ASSERT_EQ(node->IsDRMCrossNode(), true);
-    node->SetDRMCrossNode(false);
+    node->SetHwcCrossNode(false);
     ASSERT_FALSE(node->IsDRMCrossNode());
 }
 

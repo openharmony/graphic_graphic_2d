@@ -1800,8 +1800,8 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
         if (firstLevelNode) {
-            node.SetDRMGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
-            node.SetDRMCrossNode(firstLevelNode->IsFirstLevelCrossNode());
+            node.SetHwcGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
+            node.SetHwcCrossNode(firstLevelNode->IsFirstLevelCrossNode());
         }
     }
     UpdateAncoPrepareClip(node);
@@ -3379,8 +3379,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             auto firstLevelNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNodePtr->GetFirstLevelNode());
             if (firstLevelNode) {
-                hwcNodePtr->SetDRMGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
-                hwcNodePtr->SetDRMCrossNode(firstLevelNode->IsFirstLevelCrossNode());
+                hwcNodePtr->SetHwcGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
+                hwcNodePtr->SetHwcCrossNode(firstLevelNode->IsFirstLevelCrossNode());
             }
         }
         UpdateDstRect(*hwcNodePtr, rect, clipRect);

@@ -314,7 +314,7 @@ void RSUniHwcComputeUtil::LayerRotate(RSSurfaceRenderNode& node, const ScreenInf
 
 void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
-    if (node.GetDRMGlobalPositionEnabled()) {
+    if (node.GetHwcGlobalPositionEnabled()) {
         return;
     }
     auto dstRect = node.GetDstRect();

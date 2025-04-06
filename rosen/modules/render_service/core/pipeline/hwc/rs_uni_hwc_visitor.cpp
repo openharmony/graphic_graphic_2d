@@ -77,11 +77,11 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
 void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (node.GetDRMGlobalPositionEnabled()) {
+    if (node.GetHwcGlobalPositionEnabled()) {
         dstRect.left_ -= uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetX();
         dstRect.top_ -= uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetY();
     }
-    if (!node.IsHardwareEnabledTopSurface() && !node.GetDRMGlobalPositionEnabled()) {
+    if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, uniRenderVisitor_.screenInfo_.width,
             uniRenderVisitor_.screenInfo_.height));
@@ -93,8 +93,8 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
             dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-    auto offsetX = node.GetDRMGlobalPositionEnabled() ? uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetX() : 0;
-    auto offsetY = node.GetDRMGlobalPositionEnabled() ? uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetY() : 0;
+    auto offsetX = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetX() : 0;
+    auto offsetY = node.GetHwcGlobalPositionEnabled() ? uniRenderVisitor_.curDisplayNode_->GetDisplayOffsetY() : 0;
     dstRect.left_ = static_cast<int>(std::round(dstRect.left_ *
         uniRenderVisitor_.screenInfo_.GetRogWidthRatio()) + offsetX);
     dstRect.top_ = static_cast<int>(std::round(dstRect.top_ *
@@ -105,7 +105,7 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
         uniRenderVisitor_.screenInfo_.GetRogHeightRatio()));
 
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
-        !node.GetDRMGlobalPositionEnabled()) {
+        !node.GetHwcGlobalPositionEnabled()) {
         dstRect = dstRect.IntersectRect(uniRenderVisitor_.curSurfaceNode_->GetDstRect());
     }
     // Set the destination rectangle of the node
