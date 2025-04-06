@@ -174,6 +174,8 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isDumpRsTreeDetailEnabled_ = RSSystemProperties::GetDumpRsTreeDetailEnabled();
 }
 
+RSUniRenderVisitor::~RSUniRenderVisitor() {}
+
 void RSUniRenderVisitor::PartialRenderOptionInit()
 {
     isPartialRenderEnabled_ = DirtyRegionParam::IsDirtyRegionEnable();
@@ -222,35 +224,6 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         isDirtyAlignEnabled_ = true;
     }
 }
-
-RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUniRenderVisitor()
-{
-    currentVisitDisplay_ = visitor.currentVisitDisplay_;
-    screenInfo_ = visitor.screenInfo_;
-    specialLayerManager_ = visitor.specialLayerManager_;
-    displaySpecailSurfaceChanged_ = visitor.displaySpecailSurfaceChanged_;
-    hasCaptureWindow_ = visitor.hasCaptureWindow_;
-    hasFingerprint_ = visitor.hasFingerprint_;
-    parentSurfaceNodeMatrix_ = visitor.parentSurfaceNodeMatrix_;
-    curAlpha_ = visitor.curAlpha_;
-    dirtyFlag_ = visitor.dirtyFlag_;
-    curDisplayNode_ = visitor.curDisplayNode_;
-    currentFocusedNodeId_ = visitor.currentFocusedNodeId_;
-    prepareClipRect_ = visitor.prepareClipRect_;
-    isOpDropped_ = visitor.isOpDropped_;
-    isDirtyAlignEnabled_ = visitor.isDirtyAlignEnabled_;
-    isStencilPixelOcclusionCullingEnabled_ = visitor.isStencilPixelOcclusionCullingEnabled_;
-    isPartialRenderEnabled_ = visitor.isPartialRenderEnabled_;
-    isAllSurfaceVisibleDebugEnabled_ = visitor.isAllSurfaceVisibleDebugEnabled_;
-    isHardwareForcedDisabled_ = visitor.isHardwareForcedDisabled_;
-    advancedDirtyType_ = visitor.advancedDirtyType_;
-    doAnimate_ = visitor.doAnimate_;
-    isDirty_ = visitor.isDirty_;
-    layerNum_ = visitor.layerNum_;
-    isDumpRsTreeDetailEnabled_ = visitor.isDumpRsTreeDetailEnabled_;
-}
-
-RSUniRenderVisitor::~RSUniRenderVisitor() {}
 
 void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap)
 {

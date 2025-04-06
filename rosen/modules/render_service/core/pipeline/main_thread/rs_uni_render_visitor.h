@@ -47,7 +47,7 @@ class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
     RSUniRenderVisitor();
-    explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
+    RSUniRenderVisitor(const RSUniRenderVisitor& visitor) = delete;
     ~RSUniRenderVisitor() override;
 
     // To prepare nodes between displayRenderNode and app nodes.
