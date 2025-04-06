@@ -359,7 +359,7 @@ private:
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
-    std::unique_ptr<RSUniHwcVisitor> rsUniHwcVisitor_;
+    std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
