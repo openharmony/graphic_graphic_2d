@@ -832,5 +832,22 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest |
     hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
 }
+
+/**
+ * @tc.name: IsSwitchDssEnable
+ * @tc.desc: Verify the result of IsSwitchDssEnable function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, IsSwitchDssEnable, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    ScreenId screenId = 2;
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
+    hgmCore.SetScreenSwitchDssEnable(screenId, true);
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), true);
+    hgmCore.SetScreenSwitchDssEnable(screenId, false);
+    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
+}
 } // namespace Rosen
 } // namespace OHOS
