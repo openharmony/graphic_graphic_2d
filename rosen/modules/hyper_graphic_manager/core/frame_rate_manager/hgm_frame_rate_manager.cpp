@@ -37,6 +37,7 @@
 #include "hdi_device.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_hisysevent.h"
+#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1618,6 +1619,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
+
+    auto sampler = CreateVsyncSampler();
+    sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
     return resultVoteInfo;
 }
 
