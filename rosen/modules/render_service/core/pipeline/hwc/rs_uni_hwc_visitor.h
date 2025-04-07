@@ -42,9 +42,9 @@ public:
         const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder);
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
-        RSSurfaceRenderNode& hwcNodePtr);
+        RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
-        RSSurfaceRenderNode& hwcNodePtr);
+        RSSurfaceRenderNode& hwcNode);
 
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
