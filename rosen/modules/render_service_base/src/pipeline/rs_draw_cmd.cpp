@@ -744,6 +744,64 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
     sampling_.Dump(out);
 }
 
+/* DrawHybridPixelMapOpItem */
+UNMARSHALLING_REGISTER(DrawHybridPixelMapOpItem, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM,
+    DrawHybridPixelMapOpItem::Unmarshalling, sizeof(DrawHybridPixelMapOpItem::ConstructorHandle));
+
+DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(
+    const DrawCmdList& cmdList, DrawHybridPixelMapOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, HYBRID_RENDER_PIXELMAP_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+}
+
+std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawHybridPixelMapOpItem>(
+        cmdList, static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawHybridPixelMapOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto objectHandle = CmdListHelper::AddImageObjectToCmdList(cmdList, objectHandle_);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+}
+
+void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawHybridPixelMapOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetPaint(paint_);
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, false);
+}
+
+void DrawHybridPixelMapOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawHybridPixelMapOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+void DrawHybridPixelMapOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
+}
+
 /* DrawPixelMapRectOpItem */
 UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
     DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));

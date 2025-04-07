@@ -153,7 +153,7 @@ class RSB_EXPORT RSPaintFilterCanvas : public RSPaintFilterCanvasBase {
 public:
     RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
-    ~RSPaintFilterCanvas() override = default;;
+    ~RSPaintFilterCanvas() override = default;
 
     void CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
@@ -224,6 +224,10 @@ public:
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
+
+#ifdef RS_ENABLE_VK
+    void AttachPaintWithColor(const Drawing::Paint& paint);
+#endif
 
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
@@ -311,6 +315,14 @@ public:
     void SetHdrOn(bool isHdrOn);
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
+#ifdef RS_ENABLE_VK
+    bool IsRenderWithForegroundColor() const {
+        return isRenderWithForegroundColor;
+    }
+    void SetRenderWithForegroundColor(bool renderFilterStatus) {
+        isRenderWithForegroundColor = renderFilterStatus;
+    }
+#endif
 
 protected:
     using Env = struct {
@@ -355,6 +367,10 @@ private:
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
     bool isWindowFreezeCapture_ = false;
+#ifdef RS_ENABLE_VK
+    bool isRenderWithForegroundColor = false;
+#endif
+
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -381,6 +397,20 @@ private:
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 };
+
+#ifdef RS_ENABLE_VK
+class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
+public:
+    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) :
+        RSPaintFilterCanvas(canvas, alpha) {}
+
+    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) :
+        RSPaintFilterCanvas(surface, alpha) {}
+
+    //Override the AttachPaint method
+    CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
+};
+#endif
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
 class RSB_EXPORT RSAutoCanvasRestore {

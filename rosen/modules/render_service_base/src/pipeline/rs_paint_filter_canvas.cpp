@@ -1059,6 +1059,19 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
 
+#ifdef RS_ENABLE_VK
+void RSPaintFilterCanvas::AttachPaintWithColor(const Drawing::Paint& paint)
+{
+    Paint p(paint);
+    Drawing::Filter filter;
+
+    filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(this->GetEnvForegroundColor(), BlendMode::SRC_ATOP));
+    p.SetFilter(filter);
+
+    this->AttachPaint(p);
+}
+#endif
+
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
 {
     return surface_;
@@ -1647,5 +1660,15 @@ void RSPaintFilterCanvas::SetIsWindowFreezeCapture(bool isWindowFreezeCapture)
 {
     isWindowFreezeCapture_ = isWindowFreezeCapture;
 }
+
+#ifdef RS_ENABLE_VK
+CoreCanvas& RSHybridRenderPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
+{
+    if(paint.GetColor() == Color::COLOR_FOREGROUND) {
+        RSPaintFilterCanvas::SetRenderWithForegroundColor(true);
+    }
+    return RSPaintFilterCanvas::AttachPaint(paint);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
