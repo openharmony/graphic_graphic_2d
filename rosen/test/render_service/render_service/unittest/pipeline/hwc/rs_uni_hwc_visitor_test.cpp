@@ -358,12 +358,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBufferSize, TestSize.Level1)
     rsUniHwcVisitor->UpdateHwcNodeEnableByBufferSize(*node2);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableBySrcRect_001
-* @tc.desc: Test UpdateHwcNodeEnableBySrcRect when node is hardware forced disabled.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableBySrcRect_001
+ * @tc.desc: Test UpdateHwcNodeEnableBySrcRect when node is hardware forced disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -378,12 +378,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_001, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnableBySrcRect(*surfaceNode);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableBySrcRect_002
-* @tc.desc: Test UpdateHwcNodeEnableBySrcRect when consumer is not nullptr.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableBySrcRect_002
+ * @tc.desc: Test UpdateHwcNodeEnableBySrcRect when consumer is not nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -402,12 +402,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_002, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnableBySrcRect(*surfaceNode);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableBySrcRect_003
-* @tc.desc: Test UpdateHwcNodeEnableBySrcRect when node is hardware disabled by src rect.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableBySrcRect_003
+ * @tc.desc: Test UpdateHwcNodeEnableBySrcRect when node is hardware disabled by src rect.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_003, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -427,12 +427,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableBySrcRect_003, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnableBySrcRect(*surfaceNode);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnable_001
-* @tc.desc: Test UpdateHwcNodeEnable when surfaceNode is nullptr.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnable_001
+ * @tc.desc: Test UpdateHwcNodeEnable when surfaceNode is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -452,12 +452,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_001, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnable();
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnable_002
-* @tc.desc: Test UpdateHwcNodeEnable when hwcNodes is empty.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnable_002
+ * @tc.desc: Test UpdateHwcNodeEnable when hwcNodes is empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -479,12 +479,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_002, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnable();
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnable_003
-* @tc.desc: Test UpdateHwcNodeEnable when hwcNodePtr is not on the tree.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnable_003
+ * @tc.desc: Test UpdateHwcNodeEnable when hwcNodePtr is not on the tree.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_003, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -509,12 +509,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_003, TestSize.Level2)
     rsUniHwcVisitor->UpdateHwcNodeEnable();
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_001
-* @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode is hardware forced disabled.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_001
+ * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode is hardware forced disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -534,12 +534,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_001, TestSiz
     EXPECT_EQ(hwcRects.size(), 0);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_002
-* @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode has corner radius and anco force do direct.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_002
+ * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode has corner radius and anco force do direct.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -565,12 +565,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, TestSiz
     EXPECT_EQ(hwcRects.size(), 1);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_003
-* @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode intersects with hwcRects.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_003
+ * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode intersects with hwcRects.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_003, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -599,12 +599,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_003, TestSiz
     EXPECT_EQ(hwcRects.size(), 2);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_004
-* @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode does not intersect with hwcRects.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelf_004
+ * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelf when hwcNode does not intersect with hwcRects.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_004, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -633,12 +633,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_004, TestSiz
     EXPECT_EQ(hwcRects.size(), 2);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByNodeBelow
-* @tc.desc: Test RSUniRenderVistorTest.UpdateHwcNodeEnableByNodeBelow
-* @tc.type: FUNC
-* @tc.require: issuesI8MQCS
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByNodeBelow
+ * @tc.desc: Test RSUniRenderVistorTest.UpdateHwcNodeEnableByNodeBelow
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByNodeBelow, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -945,12 +945,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateTransparentHwcNodeEnable002, TestSize.Level1
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 }
 
-/*
-* @tc.name: UpdateChildHwcNodeEnabledByHwcNodeBelow
-* @tc.desc: Test RSUniRenderVistorTest.UpdateChildHwcNodeEnableByHwcNodeBelow
-* @tc.type: FUNC
-* @tc.require: issuesI8MQCS
-*/
+/**
+ * @tc.name: UpdateChildHwcNodeEnabledByHwcNodeBelow
+ * @tc.desc: Test RSUniRenderVistorTest.UpdateChildHwcNodeEnableByHwcNodeBelow
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateChildHwcNodeEnableByHwcNodeBelow, TestSize.Level2)
 {
     auto appNode = RSTestUtil::CreateSurfaceNode();
@@ -976,12 +976,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateChildHwcNodeEnableByHwcNodeBelow, TestSize.L
     rsUniHwcVisitor->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByFilterRect
-* @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with intersect rect
-* @tc.type: FUNC
-* @tc.require: issuesI9V0N7
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with intersect rect
+ * @tc.type: FUNC
+ * @tc.require: issuesI9V0N7
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1010,12 +1010,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Level
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByFilterRect
-* @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with empty rect
-* @tc.type: FUNC
-* @tc.require: issuesI9V0N7
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with empty rect
+ * @tc.type: FUNC
+ * @tc.require: issuesI9V0N7
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1037,12 +1037,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect002, TestSize.Level
     rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, rect, 1, false, 0);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByFilterRect
-* @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with no hwcNode
-* @tc.type: FUNC
-* @tc.require: issuesI9V0N7
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect with no hwcNode
+ * @tc.type: FUNC
+ * @tc.require: issuesI9V0N7
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1064,19 +1064,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Level
     rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, rect, 1, false, 0);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_001
-* @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when Intersect return false.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_001
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when Intersect return false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
     ASSERT_NE(rsUniHwcVisitor, nullptr);
-
+  
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
@@ -1093,12 +1093,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_001, TestSi
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_002
-* @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when rendernode is nullptr.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_002
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when rendernode is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1125,12 +1125,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_002, TestSi
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_003
-* @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when rendernode is not null and AIBarFilterCache is not valid.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_003
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when rendernode is not null and AIBarFilterCache is not valid.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_003, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1160,12 +1160,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_003, TestSi
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByGlobalDirtyFilter_001
-* @tc.desc: Test UpdateHwcNodeEnableByGlobalDirtyFilter when Intersect return false.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalDirtyFilter_001
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalDirtyFilter when Intersect return false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1189,12 +1189,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_001, TestSi
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
-/*
-* @tc.name: UpdateHwcNodeEnableByGlobalDirtyFilter_002
-* @tc.desc: Test UpdateHwcNodeEnableByGlobalDirtyFilter when rendernode is nullptr.
-* @tc.type: FUNC
-* @tc.require: issueIAJY2P
-*/
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalDirtyFilter_002
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalDirtyFilter when rendernode is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();

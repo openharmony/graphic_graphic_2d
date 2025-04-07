@@ -14,6 +14,10 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
+config("public_config") {
+  include_dirs = [ "include" ]
+}
+
 ohos_static_library("frame_report") {
   sanitize = {
     cfi = true
@@ -22,6 +26,18 @@ ohos_static_library("frame_report") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  cflags = [
+    "-O3",
+    "-fno-semantic-interposition",
+    "-fwhole-program-vtables",
+    "-flto",
+    "-fno-unwind-tables",
+    "-fno-asynchronous-unwind-tables",
+  ]
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+  ]
   sources = []
   include_dirs = []
   external_deps = []
@@ -31,7 +47,8 @@ ohos_static_library("frame_report") {
   } else {
     sources += [ "src/mingw/rs_frame_report.cpp" ]
   }
-  include_dirs += [ "include" ]
+
+  public_configs = [ ":public_config" ]
   external_deps += [ "hilog:libhilog" ]
 
   part_name = "graphic_2d"

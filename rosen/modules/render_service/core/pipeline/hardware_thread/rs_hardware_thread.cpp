@@ -455,7 +455,6 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
         if (AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
             RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Adaptive Mode");
             RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
-            isLastAdaptive_ = true;
             return false;
         }
         if (hasGameScene && AdaptiveModeStatus(output) == SupportASStatus::GAME_SCENE_SKIP) {
@@ -463,7 +462,6 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
             RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
-        isLastAdaptive_ = false;
     } else {
         if (!hgmCore.IsDelayMode()) {
             return false;
@@ -629,7 +627,6 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
         return SupportASStatus::NOT_SUPPORT;
     }
 
-    bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
 
     // if in game adaptive vsync mode and do direct composition,send layer immediately
@@ -638,22 +635,12 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
         if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
-            if (isSamplerEnabled) {
-                // when phone enter game adaptive sync mode must disable vsync sampler
-                hdiBackend_->SetVsyncSamplerEnabled(output, false);
-            }
             return SupportASStatus::SUPPORT_AS;
         }
         if (adaptiveStatus == SupportASStatus::GAME_SCENE_SKIP) {
             return SupportASStatus::GAME_SCENE_SKIP;
         }
     }
-    if (isLastAdaptive_ && !isSamplerEnabled) {
-        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
-        hdiBackend_->SetVsyncSamplerEnabled(output, true);
-        hdiBackend_->StartSample(output);
-    }
-
     return SupportASStatus::NOT_SUPPORT;
 }
 
