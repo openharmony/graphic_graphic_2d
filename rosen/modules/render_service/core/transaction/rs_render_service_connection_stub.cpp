@@ -962,15 +962,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t preferred{0};
             uint32_t type{0};
             uint32_t componentScene{0};
+            uint32_t dragScene{0};
             int32_t animatorExpectedFrameRate{0};
             if (!data.ReadUint32(min) || !data.ReadUint32(max) || !data.ReadUint32(preferred) ||
-                !data.ReadUint32(type) || !data.ReadUint32(componentScene) ||
+                !data.ReadUint32(type) || !data.ReadUint32(componentScene) || !data.ReadUint32(dragScene) ||
                 !data.ReadInt32(animatorExpectedFrameRate)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SYNC_FRAME_RATE_RANGE Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SyncFrameRateRange(id, {min, max, preferred, type, static_cast<ComponentScene>(componentScene)},
+            SyncFrameRateRange(id, {min, max, preferred, type, static_cast<ComponentScene>(componentScene), dragScene},
                 animatorExpectedFrameRate);
             break;
         }

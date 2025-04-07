@@ -40,7 +40,7 @@ enum ComponentScene : int32_t {
 class FrameRateRange {
 public:
     FrameRateRange() : min_(0), max_(0), preferred_(0), type_(0), isEnergyAssurance_(false),
-        componentScene_(ComponentScene::UNKNOWN_SCENE) {}
+        componentScene_(ComponentScene::UNKNOWN_SCENE), dragScene_(0) {}
 
     FrameRateRange(int min, int max, int preferred) : min_(min), max_(max), preferred_(preferred) {}
 
@@ -49,6 +49,9 @@ public:
 
     FrameRateRange(int min, int max, int preferred, uint32_t type, ComponentScene componentScene)
         : min_(min), max_(max), preferred_(preferred), type_(type), componentScene_(componentScene) {}
+
+    FrameRateRange(int min, int max, int preferred, uint32_t type, ComponentScene componentScene, int32_t dragScene)
+        : min_(min), max_(max), preferred_(preferred), type_(type), componentScene_(componentScene), dragScene_(dragScene) {}
 
     bool IsZero() const
     {
@@ -91,12 +94,22 @@ public:
         this->type_ = type;
     }
 
+    void Set(int min, int max, int preferred, uint32_t type, int32_t dragScene)
+    {
+        this->min_ = min;
+        this->max_ = max;
+        this->preferred_ = preferred;
+        this->type_ = type;
+        this->dragScene_ = dragScene;
+    }
+
     bool Merge(const FrameRateRange& other)
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_, other.type_);
             this->isEnergyAssurance_ = other.isEnergyAssurance_;
             this->componentScene_ = other.componentScene_;
+            this->dragScene_ = other.dragScene_;
             return true;
         }
         return false;
@@ -163,6 +176,7 @@ public:
     uint32_t type_ = 0;
     bool isEnergyAssurance_ = false;
     ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
+    int32_t dragScene_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -53,6 +53,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
+    constexpr long DRAG_SCENE_CHANGE_RATE_TIMEOUT = 100; // 100ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
     const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
@@ -382,13 +383,34 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
+    isDragScene_ = finalRange.dragScene_ == 1;
     if (finalRange.IsValid()) {
-        auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+        auto refreshRate = AvoidChangeRateFrequent(CalcRefreshRate(curScreenId_.load(), finalRange));
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLtpoRefreshRate_: [%d]",
+            isDragScene_, refreshRate, lastLtpoRefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
         DeliverRefreshRateVote({.voterName = "VOTER_LTPO"}, REMOVE_VOTE);
     }
+}
+
+void HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
+{
+    if (!isDragScene_) {
+        return refreshRate;
+    }
+
+    auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
+                    .time_since_epoch()).count();
+    if (refreshRate < lastLtpoRefreshRate_ && curTime - lastLtpoVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
+        return lastLtpoRefreshRate_;
+    }
+
+    lastLtpoRefreshRate_ = refreshRate;
+    lastLtpoVoteTime_ = curTime;
+    return refreshRate;
+
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
@@ -1452,6 +1474,9 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
                 ProcessVoteLog(curVoteInfo, true);
                 continue;
             }
+        }
+        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+            continue;
         }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {

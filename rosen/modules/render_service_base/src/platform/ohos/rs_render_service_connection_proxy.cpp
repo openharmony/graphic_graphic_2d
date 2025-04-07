@@ -1213,7 +1213,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, co
     }
     if (!data.WriteUint32(range.min_) || !data.WriteUint32(range.max_) ||
         !data.WriteUint32(range.preferred_) || !data.WriteUint32(range.type_) ||
-        !data.WriteUint32(range.componentScene_)) {
+        !data.WriteUint32(range.componentScene_) || !data.WriteUint32(range.dragScene_)) {
         ROSEN_LOGE("SyncFrameRateRange: WriteUint32 range err.");
         return;
     }
