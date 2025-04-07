@@ -1460,6 +1460,8 @@ public:
 
     void ResetIsBufferFlushed();
 
+    void ResetSurfaceNodeStates();
+
     bool IsUIBufferAvailable();
 
     bool GetUIExtensionUnobscured() const;

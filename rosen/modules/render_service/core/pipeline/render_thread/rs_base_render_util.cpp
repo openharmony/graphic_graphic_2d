@@ -902,7 +902,9 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
     }
     // maxDirtyListSize > 1 means QueueSize >3 too
     if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
-        RS_TRACE_NAME("DropFrame");
+        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+            RS_TRACE_NAME("DropFrame");
+        }
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         returnValue.fence = SyncFence::InvalidFence();
         int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
@@ -953,6 +955,15 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
         damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
     });
     return {damage.left_, damage.top_, damage.width_, damage.height_};
+}
+
+void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages)
+{
+    RectI damage;
+    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
+        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
+    });
+    surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
 }
 
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
@@ -1006,13 +1017,15 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
-            "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
-            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
-            surfaceBuffer->buffer->GetSeqNum());
+        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+            RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
+                              "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
+                surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+                surfaceBuffer->buffer->GetSeqNum());
+        }
         // The damages of buffer will be merged here, only single damage is supported so far
-        Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
-        if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
+        MergeBufferDamages(surfaceBuffer->damageRect, returnValue.damages);
+        if (surfaceBuffer->damageRect.h <= 0 || surfaceBuffer->damageRect.w <= 0) {
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
         }
@@ -1020,8 +1033,8 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         // but the damages is specified relative to the top-left in rs.
         // The damages in vk is also transformed to the same as gl now.
         // [planning]: Unify the damage's coordinate systems of vk and gl.
-        damageAfterMerge.y = surfaceBuffer->buffer->GetHeight() - damageAfterMerge.y - damageAfterMerge.h;
-        surfaceBuffer->damageRect = damageAfterMerge;
+        surfaceBuffer->damageRect.y =
+            surfaceBuffer->buffer->GetHeight() - surfaceBuffer->damageRect.y - surfaceBuffer->damageRect.h;
         if (consumer->IsBufferHold()) {
             surfaceHandler.SetHoldBuffer(surfaceBuffer);
             surfaceBuffer = nullptr;

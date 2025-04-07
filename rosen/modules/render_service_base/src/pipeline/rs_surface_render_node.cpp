@@ -3556,5 +3556,25 @@ void RSSurfaceRenderNode::ResetIsBufferFlushed()
     AddToPendingSyncList();
 }
 
+void RSSurfaceRenderNode::ResetSurfaceNodeStates()
+{
+    animateState_ = false;
+    isRotating_ = false;
+    specialLayerChanged_ = false;
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: surfaceParams is nullptr");
+        return;
+    }
+    if (!surfaceParams->GetIsBufferFlushed()) {
+        return;
+    }
+    surfaceParams->SetIsBufferFlushed(false);
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS
