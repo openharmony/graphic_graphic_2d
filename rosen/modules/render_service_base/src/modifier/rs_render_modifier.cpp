@@ -340,7 +340,7 @@ void RSHDRBrightnessRenderModifier::Update(const std::shared_ptr<RSRenderPropert
 {
     if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(prop)) {
         auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
-        renderProperty->Set(property->Get());
+        renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());
     }
 }
 
