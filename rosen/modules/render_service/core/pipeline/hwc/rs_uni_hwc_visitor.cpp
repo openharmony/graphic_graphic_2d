@@ -223,7 +223,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
     bool cleanFilterFound = (cleanFilter != transparentHwcCleanFilter_.end());
     auto dirtyFilter = transparentHwcDirtyFilter_.find(node->GetId());
     bool dirtyFilterFound = (dirtyFilter != transparentHwcDirtyFilter_.end());
-    auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
+    auto& curMainAndLeashSurfaces = uniRenderVisitor_.curDisplayNode_->GetAllMainAndLeashSurfaces();
     for (auto it = curMainAndLeashSurfaces.rbegin(); it != curMainAndLeashSurfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (surfaceNode == nullptr) {

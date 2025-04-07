@@ -3502,24 +3502,24 @@ bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, st
 void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
     const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
 {
-    rsUniHwcVisitor_->CalcHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
+    hwcVisitor_->CalcHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
     const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
 {
-    rsUniHwcVisitor_->UpdateHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
+    hwcVisitor_->UpdateHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    rsUniHwcVisitor_->UpdateHwcNodeEnableByGlobalFilter(node);
+    hwcVisitor_->UpdateHwcNodeEnableByGlobalFilter(node);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNodePtr)
 {
-    rsUniHwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, hwcNodePtr);
+    hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, hwcNodePtr);
 }
 
 inline static void ResetSubSurfaceNodesCalState(
