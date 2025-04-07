@@ -105,6 +105,7 @@ ohos_shared_library("text_napi_impl") {
   external_deps = [
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
