@@ -1393,7 +1393,7 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
 {
-    static uint32_t textBlobLenCount = GetHybridRenderSystemEnabled() &&
+    static uint32_t textBlobLenCount =
         system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT);
     return textBlobLenCount;
 }
@@ -1421,7 +1421,7 @@ bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
 
 bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 {
-    static bool textblobEnabled =
+    static bool textblobEnabled = GetHybridRenderSystemEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", false);
     return textblobEnabled;
 }
