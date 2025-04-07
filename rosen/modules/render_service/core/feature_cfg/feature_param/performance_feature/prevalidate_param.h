@@ -30,7 +30,7 @@ protected:
     static void SetPrevalidateEnable(bool isEnable);
 
 private:
-    inline static isPrevalidateEnable_ = true;
+    inline static bool isPrevalidateEnable_ = true;
 
     friend class PrevalidateParamParse;
 };

@@ -38,16 +38,16 @@ void PrevalidateParamParseTest::TearDown() {}
 
 /**
  * @tc.name: ParseFeatureParamTest001
- * @tc.desc: 
+ * @tc.desc: Verify the ParseFeatureParam function
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueIBZ2P9
  */
-HWTEST_F(PrevalidateParamTest, ParseFeatureParamTest001, Function | SmallTest | Level1)
+HWTEST_F(PrevalidateParamParseTest, ParseFeatureParamTest001, Function | SmallTest | Level1)
 {
     FeatureParamMapType featureMap;
     xmlNode node;
     PrevalidateParamParse parse;
-    auot ret = parse.ParseFeatureParam(featureMap, node);;
+    auto ret = parse.ParseFeatureParam(featureMap, node);;
     ASSERT_EQ(ret, PARSE_GET_CHILD_FAIL);
 }
 } // namespace Rosen
