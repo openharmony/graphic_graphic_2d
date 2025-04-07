@@ -5242,6 +5242,22 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddKeyFrame02
+ * @tc.desc: test results of AddKeyFrame02
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddKeyFrame02, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsNode->AddKeyFrame(nullptr, 1.f, timingCurve, propertyCallback);
+    rsNode->AddKeyFrame(nullptr, 1.f, propertyCallback);
+}
+
+/**
  * @tc.name: AddDurationKeyFrame
  * @tc.desc: test results of AddDurationKeyFrame
  * @tc.type: FUNC
