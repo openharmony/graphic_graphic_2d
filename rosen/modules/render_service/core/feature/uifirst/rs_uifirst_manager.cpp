@@ -1377,6 +1377,30 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
     return false;
 }
 
+void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType)
+{
+    // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
+    // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
+    if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE &&
+        !node.GetSubThreadAssignable()) {
+        RS_TRACE_NAME_FMT("AssignMainThread selfAndParentShouldPaint: %d, skipDraw: %d",
+            node.GetSelfAndParentShouldPaint(), node.GetSkipDraw());
+        UifirstStateChange(node, MultiThreadCacheType::NONE); // mark as draw win in RT thread
+        if (node.GetSelfAndParentShouldPaint() && !node.GetSkipDraw()) {
+            node.SetSubThreadAssignable(true); // mark as assignable to uifirst next frame
+            node.SetNeedCacheSurface(true); // mark as that needs cache win in RT
+            node.SetHwcChildrenDisabledState();
+            RS_OPTIONAL_TRACE_NAME_FMT("name:%s id:%" PRIu64 " children disabled by uifirst first frame",
+                node.GetName().c_str(), node.GetId());
+            // delte caches when node is not on the tree.
+            auto func = &RSUifirstManager::ProcessTreeStateChange;
+            node.RegisterTreeStateChangeCallback(func);
+        }
+    } else {
+        UifirstStateChange(node, cacheType);
+    }
+}
+
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
 {
     bool flag = ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
@@ -1597,35 +1621,15 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        ProcessFirstFrameCache(node, MultiThreadCacheType::LEASH_WINDOW);
         return;
     }
     if (RSUifirstManager::IsNonFocusWindowCache(node, ancestorNodeHasAnimation)) {
-        // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
-        // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
-        if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && !node.GetSubThreadAssignable()) {
-            RS_TRACE_NAME_FMT("AssignMainThread selfAndParentShouldPaint: %d, skipDraw: %d",
-                node.GetSelfAndParentShouldPaint(), node.GetSkipDraw());
-            UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
-            if (node.GetSelfAndParentShouldPaint() && !node.GetSkipDraw()) {
-                node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
-                node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
-
-                // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
-                node.SetHwcChildrenDisabledState();
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst first frame",
-                    node.GetName().c_str(), node.GetId());
-
-                auto func = &RSUifirstManager::ProcessTreeStateChange;
-                node.RegisterTreeStateChangeCallback(func);
-            }
-        } else {
-            UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
-        }
+        ProcessFirstFrameCache(node, MultiThreadCacheType::NONFOCUS_WINDOW);
         return;
     }
     if (RSUifirstManager::IsArkTsCardCache(node, ancestorNodeHasAnimation)) {
-        UifirstStateChange(node, MultiThreadCacheType::ARKTS_CARD);
+        ProcessFirstFrameCache(node, MultiThreadCacheType::ARKTS_CARD);
         return;
     }
     UifirstStateChange(node, MultiThreadCacheType::NONE);
@@ -1650,10 +1654,6 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
-            }
-            if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
-                node.SetUifirstUseStarting(LeashWindowContainMainWindowAndStarting(*surfaceNode));
-                NotifyUIStartingWindow(node.GetId(), true);
             }
             auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);

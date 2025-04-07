@@ -242,6 +242,9 @@ private:
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
 
+    // starting
+    void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
+
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
     bool isUiFirstSupportFlag_ = false;
