@@ -43,6 +43,8 @@ private:
     std::shared_ptr<Drawing::Image> GetDownSample4xAndMixImage(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& image) const;
     void UpdateLightBlurResultCache(const std::shared_ptr<Drawing::Image>& image);
+    bool NeedClearLightBlurResultCache(Drawing::Canvas& canvas) const;
+    void ClearLightBlurResultCache();
     void DrawImageOnCanvas(Drawing::Canvas& canvas, const Drawing::Image& image, const LightBlurParameter& param);
 
     static std::shared_ptr<Drawing::RuntimeEffect> downSample4xAndMixShader_;
