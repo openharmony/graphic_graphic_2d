@@ -50,7 +50,6 @@ struct GetComponentSwitch ComponentSwitchTable[] = {
     {ComponentEnableSwitch::CANVAS, RSSystemProperties::GetHybridRenderCanvasEnabled},
 };
 #endif
-
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
