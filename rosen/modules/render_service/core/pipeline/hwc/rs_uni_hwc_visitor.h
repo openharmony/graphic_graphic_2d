@@ -46,6 +46,9 @@ public:
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
         RSSurfaceRenderNode& hwcNodePtr);
 
+    // DFX
+    HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
+
 private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;

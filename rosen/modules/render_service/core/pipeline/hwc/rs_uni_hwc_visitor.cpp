@@ -186,7 +186,7 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurface
         node->SetIsHwcPendingDisabled(true);
         node->SetHardwareForcedDisabledState(true);
         node->SetHardWareDisabledByReverse(isReverseOrder);
-        hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node->GetId(),
+        hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
             HwcDisabledReasons::DISABLED_BY_FLITER_RECT, node->GetName());
     }
 }
@@ -297,7 +297,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 hwcNodePtr.GetSrcRect().GetTop(), hwcNodePtr.GetSrcRect().GetBottom());
 #endif
             hwcNodePtr.SetHardwareForcedDisabledState(true);
-            hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(hwcNodePtr.GetId(),
+            hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr.GetId(),
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_CLEAN_FLITER, hwcNodePtr.GetName());
             break;
         }
@@ -333,7 +333,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
                 hwcNodePtr->GetSrcRect().GetTop(), hwcNodePtr->GetSrcRect().GetBottom());
 #endif
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
+            hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_DIRTY_FLITER, hwcNodePtr->GetName());
             break;
         }
