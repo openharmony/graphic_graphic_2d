@@ -45,8 +45,10 @@ template<RSCommandPermissionType permissionType, uint16_t commandType, uint16_t 
     typename... Params>
 class RSCommandTemplate : public RSCommand {
 public:
-    RSCommandTemplate(const Params&... params) : params_(params...) {}
-    RSCommandTemplate(std::tuple<Params...>&& params) : params_(std::move(params)) {}
+    RSCommandTemplate(const Params&... params)
+        : params_(params...), commandType_(commandType), commandSubType_(commandSubType) {}
+    RSCommandTemplate(std::tuple<Params...>&& params)
+        : params_(std::move(params)), commandType_(commandType), commandSubType_(commandSubType) {}
     ~RSCommandTemplate() override = default;
 
     RSCommandPermissionType GetAccessPermission() const override
@@ -56,11 +58,11 @@ public:
 
     uint16_t GetType() const override
     {
-        return commandType;
+        return commandType_;
     }
     uint16_t GetSubType() const override
     {
-        return commandSubType;
+        return commandSubType_;
     }
 
     std::shared_ptr<Drawing::DrawCmdList> GetDrawCmdList() const override
@@ -128,6 +130,8 @@ public:
 
 private:
     std::tuple<Params...> params_;
+    uint16_t commandType_;
+    uint16_t commandSubType_;
 
 #ifdef RS_PROFILER_ENABLED
     void Patch(PatchFunction function) override
