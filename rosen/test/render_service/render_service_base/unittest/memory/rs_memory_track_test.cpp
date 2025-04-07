@@ -294,7 +294,7 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Lev
     DfxString log;
     std::string str1 = log.GetString();
     ASSERT_EQ(str1, "");
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
     MemoryTrack::Instance().DumpMemoryStatistics(log, func);
     std::string str2 = log.GetString();
     ASSERT_NE(str2, "");
