@@ -395,7 +395,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
     }
 }
 
-void HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
+uint32_t HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
 {
     if (!isDragScene_) {
         return refreshRate;
