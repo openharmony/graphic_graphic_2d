@@ -17,28 +17,8 @@
 
 #include "transaction/rs_render_service_client.h"
 
-#ifdef RS_ENABLE_VK
-#include "parameter.h"
-#include "parameters.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
-#ifdef RS_ENABLE_VK
-constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
-struct GetComponentSwitch {
-    ComponentEnableSwitch type;
-    bool (*ComponentHybridSwitch)();
-};
-
-struct GetComponentSwitch ComponentSwitchTable[] = {
-    {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
-    {ComponentEnableSwitch::SVG, RSSystemProperties::GetHybridRenderSvgEnabled},
-    {ComponentEnableSwitch::HMSYMBOL, RSSystemProperties::GetHybridRenderHmsymbolEnabled},
-    {ComponentEnableSwitch::CANVAS, RSSystemProperties::GetHybridRenderCanvasEnabled},
-};
-#endif
-
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
