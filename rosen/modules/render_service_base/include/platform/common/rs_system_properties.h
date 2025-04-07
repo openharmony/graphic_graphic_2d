@@ -134,12 +134,19 @@ enum class DdgrOpincDfxType {
     OPINC_DFX_AUTO,
 };
 
+#ifdef RS_ENABLE_VK
 enum class ComponentEnableSwitch {
     TEXTBLOB = 0,
     SVG,
     HMSYMBOL,
     CANVAS,
 };
+
+struct GetComponentSwitch {
+    ComponentEnableSwitch type;
+    bool (*ComponentHybridSwitch)();
+};
+#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
