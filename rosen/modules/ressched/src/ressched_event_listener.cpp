@@ -104,8 +104,16 @@ void ResschedEventListener::SetIsFirstReport(bool value)
 void ResschedEventListener::HandleFrameRateStatisticsReport(uint32_t eventValue,
     std::unordered_map<std::string, std::string> extInfo)
 {
-    uint32_t pid = static_cast<uint32_t>(std::stoul(extInfo["pid"].c_str(), nullptr, 10));
-    uint32_t type = static_cast<uint32_t>(std::stoul(extInfo["type"].c_str(), nullptr, 10));
+    uint32_t pid;
+    uint32_t type;
+    auto resultPid =
+        std::from_chars(extInfo.at("pid").data(), extInfo.at("pid").data() + extInfo.at("pid").size(), pid);
+    auto resultType =
+        std::from_chars(extInfo.at("type").data(), extInfo.at("type").data() + extInfo.at("type").size(), type);
+    if (resultPid.ec != std::errc() || resultType.ec != std::errc()) {
+        return;
+    }
+
     switch (eventValue) {
         case ResourceSchedule::ResType::EventValue::EVENT_VALUE_FRAME_RATE_STATISTICS_START:
             HandleFrameRateStatisticsBeginAsync(pid, type);
