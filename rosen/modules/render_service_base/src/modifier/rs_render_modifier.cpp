@@ -319,7 +319,7 @@ void RSCustomClipToFrameRenderModifier::Update(const std::shared_ptr<RSRenderPro
 {
     if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(prop)) {
         auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
-        renderProperty->Set(property->Get());
+        renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());
     }
 }
 
