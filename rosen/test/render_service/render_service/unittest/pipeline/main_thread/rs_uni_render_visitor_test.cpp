@@ -5565,10 +5565,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    rsUniRenderVisitor->isHardwareForcedDisabled_ = true;
+    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = true;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 
-    rsUniRenderVisitor->isHardwareForcedDisabled_ = false;
+    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = false;
     rsSurfaceRenderNode->dynamicHardwareEnable_ = false;
     rsSurfaceRenderNode->isFixRotationByUser_ = true;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);

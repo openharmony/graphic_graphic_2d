@@ -468,7 +468,12 @@ void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRender
 
 bool RSUniRenderVisitor::IsHardwareComposerEnabled()
 {
-    return !isHardwareForcedDisabled_;
+    return !hwcVisitor_->isHardwareForcedDisabled_;
+}
+
+void RSUniRenderVisitor::MarkHardwareForcedDisabled()
+{
+    hwcVisitor_->isHardwareForcedDisabled_ = true;
 }
 
 void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
@@ -1660,7 +1665,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         return false;
     }
     if (geoPtr->IsNeedClientCompose()) {
-        isHardwareForcedDisabled_ = true;
+        hwcVisitor_->isHardwareForcedDisabled_ = true;
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: id:%" PRIu64 " disabled by displayNode rotation", node.GetId());
     }
 

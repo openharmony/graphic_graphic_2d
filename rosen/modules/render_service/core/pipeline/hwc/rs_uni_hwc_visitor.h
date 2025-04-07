@@ -43,6 +43,9 @@ private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
 
+    // indicates if hardware composer is totally disabled
+    bool isHardwareForcedDisabled_ = false;
+
     // record nodes which has transparent clean filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
     // record nodes which has transparent dirty filter
