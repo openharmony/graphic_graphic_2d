@@ -33,11 +33,11 @@ ohos_unittest("RenderServiceMemoryTest") {
   deps = [
     "./../../../../../modules/2d_graphics:2d_graphics",
     "./../../../../../modules/render_service:librender_service",
-    "//third_party/googletest:gtest_main",
   ]
   defines = []
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]

@@ -100,10 +100,8 @@ public:
         return doAnimate_;
     }
 
-    void MarkHardwareForcedDisabled()
-    {
-        isHardwareForcedDisabled_ = true;
-    }
+    // Enable HWCompose
+    void MarkHardwareForcedDisabled();
 
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
 
@@ -416,7 +414,7 @@ private:
     bool filterInGlobal_ = true;
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
+
     // to record and pass container node dirty to leash node.
     bool curContainerDirty_ = false;
     bool isOcclusionEnabled_ = false;
@@ -462,7 +460,6 @@ private:
     std::vector<NodeId> uiBufferAvailableId_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
-    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
     // vector of last frame mainwindow surface visible info
