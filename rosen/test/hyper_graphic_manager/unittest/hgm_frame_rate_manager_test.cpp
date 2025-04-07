@@ -1351,5 +1351,42 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level1)
     EXPECT_EQ(frameRateMgr->appPageUrlStrategy_.pageUrlConfig_,
         frameRateMgr->multiAppStrategy_.screenSettingCache_.pageUrlConfig);
 }
+
+/**
+ * @tc.name: CollectGameRateDiscountChange
+ * @tc.desc: Verify the result of CollectGameRateDiscountChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CollectGameRateDiscountChange, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    InitHgmFrameRateManager(mgr);
+    FrameRateRange appExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    FrameRateRange appZeroExpectedRange = {OLED_MIN_HZ, OLED_120_HZ, OLED_MIN_HZ};
+    FrameRateRange appErrExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_MIN_HZ};
+
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    std::vector<uint64_t> linkerIds = {frameRateLinkerId1, frameRateLinkerId2};
+
+    mgr.currRefreshRate_ = OLED_60_HZ;
+    uint32_t rateDiscount = 0;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    rateDiscount = 1;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    rateDiscount = 2;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange);
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appZeroExpectedRange);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appErrExpectedRange), false);
+
+    mgr.currRefreshRate_ = OLED_MIN_HZ;
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appZeroExpectedRange), false);
+
+    mgr.EraseGameRateDiscountMap(frameRateLinkerId1);
+}
 } // namespace Rosen
 } // namespace OHOS

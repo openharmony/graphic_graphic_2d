@@ -226,6 +226,8 @@ public:
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
+    // called by OS_IPC thread
+    bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -235,6 +237,7 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
+    bool CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
@@ -292,6 +295,7 @@ private:
         curGameNodeName_ = nodeName;
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
+    void EraseGameRateDiscountMap(pid_t pid);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -370,6 +374,8 @@ private:
     std::map<uint64_t, int> vRatesMap_;
     ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
+    // FORMAT: <linkerid, rateDiscount>
+    std::map<uint64_t, uint32_t> gameRateDiscountMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

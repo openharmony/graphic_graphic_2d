@@ -575,6 +575,9 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         CollectVRateChange(linker.first, expectedRange);
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
+        if (CollectGameRateDiscountChange(linker.first, expectedRange)) {
+            appFrameRate = expectedRange.preferred_;
+        }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
@@ -1737,6 +1740,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
         iter->second.clear();
     }
 
+    EraseGameRateDiscountMap(pid);
+
     if (pidRecord_.count(pid) == 0) {
         return;
     }
@@ -1750,9 +1755,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 iter = voterInfo.first.erase(iter);
                 MarkVoteChange(voter);
                 break;
-            } else {
-                ++iter;
             }
+            ++iter;
         }
     }
 }
@@ -1955,6 +1959,73 @@ void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
             }
         },
         FRAME_RATE_REPORT_DELAY_TIME);
+}
+
+bool HgmFrameRateManager::SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount)
+{
+    HgmTaskHandleThread::Instance().PostTask([this, linkerIds, rateDiscount] () {
+        for (auto linkerId : linkerIds) {
+            gameRateDiscountMap_[linkerId] = rateDiscount;
+        }
+        UpdateSoftVSync(false);
+    });
+    return true;
+}
+
+void HgmFrameRateManager::EraseGameRateDiscountMap(pid_t pid)
+{
+    for (auto iter = gameRateDiscountMap_.begin(); iter != gameRateDiscountMap_.end(); ++iter) {
+        if (ExtractPid(iter->first) == pid) {
+            gameRateDiscountMap_.erase(iter);
+            break;
+        }
+    }
+}
+
+bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange)
+{
+    auto iter = gameRateDiscountMap_.find(linkerId);
+    if (iter == gameRateDiscountMap_.end()) {
+        return false;
+    }
+    if (iter->second == 1 || iter->second == 0) {
+        return false;
+    }
+    if (expectedRange.preferred_ == 0 && currRefreshRate_ == 0) {
+        return false;
+    }
+    int32_t tmpPreferred = expectedRange.preferred_;
+    int32_t tmpMin = expectedRange.min_;
+    int32_t tmpMax = expectedRange.max_;
+    if (expectedRange.preferred_ == 0) {
+        expectedRange.preferred_ = currRefreshRate_ / static_cast<int32_t>(iter->second);
+    } else {
+        expectedRange.preferred_ = std::min(expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_)) /
+            static_cast<int32_t>(iter->second);
+    }
+    expectedRange.min_ = expectedRange.preferred_;
+    expectedRange.max_ = expectedRange.preferred_;
+
+    int32_t drawingFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
+    if (drawingFrameRate != expectedRange.preferred_) {
+        RS_TRACE_NAME_FMT("CollectGameRateDiscountChange failed, linkerId=%" PRIu64
+            ", rateDiscount=%d, preferred=%d drawingFrameRate=%d currRefreshRate=%d",
+            linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate_));
+        HGM_LOGD("CollectGameRateDiscountChange failed, linkerId=%{public}" PRIu64
+            ", rateDiscount=%{public}d, preferred=%{public}d drawingFrameRate=%{public}d currRefreshRate=%{public}d",
+            linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate_));
+        expectedRange.preferred_ = tmpPreferred;
+        expectedRange.min_ = tmpMin;
+        expectedRange.max_ = tmpMax;
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CollectGameRateDiscountChange linkerId=%" PRIu64
+        ", rateDiscount=%d, preferred=%d currRefreshRate=%d",
+        linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_));
+    HGM_LOGD("CollectGameRateDiscountChange succeed, linkerId=%{public}" PRIu64
+        ", rateDiscount=%{public}d, preferred=%{public}d currRefreshRate=%{public}d",
+        linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_));
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

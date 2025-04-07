@@ -50,7 +50,8 @@ std::shared_ptr<OHOS::Rosen::VSyncReceiver> CreateAndInitVSyncReceiver(
         receiver = rsClient.CreateVSyncReceiver(
             vsyncName, nativeVSync->frameRateLinker_->GetId(), nullptr, windowID, true);
     } else {
-        receiver = rsClient.CreateVSyncReceiver(vsyncName);
+        nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+        receiver = rsClient.CreateVSyncReceiver(vsyncName, nativeVSync->frameRateLinker_->GetId());
     }
     if (receiver == nullptr) {
         VLOGE("Create VSyncReceiver failed");

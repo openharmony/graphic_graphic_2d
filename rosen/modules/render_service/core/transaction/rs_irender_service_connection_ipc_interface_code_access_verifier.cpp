@@ -303,6 +303,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_SOFT_VSYNC_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_DYNAMIC_MODE_EVENT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_DYNAMIC_MODE_EVENT");
             break;

@@ -4160,6 +4160,44 @@ ErrCode RSRenderServiceConnectionProxy::NotifySoftVsyncEvent(uint32_t pid, uint3
     return ERR_OK;
 }
 
+bool RSRenderServiceConnectionProxy::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name,
+    uint32_t rateDiscount)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifySoftVsyncRateDiscountEvent: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    if (!data.WriteUint32(pid)) {
+        ROSEN_LOGE("NotifySoftVsyncRateDiscountEvent: WriteUint32 pid err.");
+        return false;
+    }
+    if (!data.WriteString(name)) {
+        ROSEN_LOGE("NotifySoftVsyncRateDiscountEvent: WriteString rateDiscount err.");
+        return false;
+    }
+    if (!data.WriteUint32(rateDiscount)) {
+        ROSEN_LOGE("NotifySoftVsyncRateDiscountEvent: WriteUint32 rateDiscount err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifySoftVsyncRateDiscountEvent: Send Request err.");
+        return false;
+    }
+    bool enable{false};
+    if (!reply.ReadBool(enable)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifySoftVsyncRateDiscountEvent: Read enable failed");
+        return false;
+    }
+    return enable;
+}
+
 void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     MessageParcel data;

@@ -115,6 +115,9 @@
       *HgmFrameRateManager::UpdateVoteRule*;
       *HgmFrameRateManager::HandleGameNode*;
       *HgmFrameRateManager::UpdateSoftVSync*;
+      *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
+      *HgmFrameRateManager::EraseGameRateDiscountMap*;
+      *HgmFrameRateManager::CollectGameRateDiscountChange*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;
