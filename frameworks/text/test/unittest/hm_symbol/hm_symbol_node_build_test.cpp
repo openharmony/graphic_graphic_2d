@@ -346,6 +346,160 @@ HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
     symbolNode.ClearAnimation();
     EXPECT_EQ(symbolNode.effectStrategy_, RSEffectStrategy::NONE);
 }
+
+/*
+ * @tc.name: SetSymbolId001
+ * @tc.desc: test SetAnimation function
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolId001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetSymbolId(1);
+    EXPECT_EQ(symbolNode.symblSpanId_, 1);
+}
+
+/*
+ * @tc.name: SetAnimationMode001
+ * @tc.desc: test SetAnimationMode with hierarchical
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetAnimationMode(0);
+    EXPECT_EQ(symbolNode.animationMode_, 0);
+}
+
+/*
+ * @tc.name: SetAnimationMode002
+ * @tc.desc: test SetAnimationMode with whole
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode002, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetAnimationMode(1);
+    EXPECT_EQ(symbolNode.animationMode_, 1);
+}
+
+/*
+ * @tc.name: SetAnimationMode003
+ * @tc.desc: test SetAnimationMode with boundary value
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationMode003, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetAnimationMode(500);
+    EXPECT_EQ(symbolNode.animationMode_, 1);
+}
+
+/*
+ * @tc.name: SetRepeatCount001
+ * @tc.desc: test SetRepeatCount function
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetRepeatCount001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetRepeatCount(1);
+    EXPECT_EQ(symbolNode.repeatCount_, 1);
+}
+
+/*
+ * @tc.name: SetAnimationStart001
+ * @tc.desc: test SetAnimationStart function
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetAnimationStart001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetAnimationStart(true);
+    EXPECT_EQ(symbolNode.animationStart_, true);
+}
+
+/*
+ * @tc.name: SetCurrentAnimationHasPlayed001
+ * @tc.desc: test SetCurrentAnimationHasPlayed function
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCurrentAnimationHasPlayed001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetCurrentAnimationHasPlayed(true);
+    EXPECT_EQ(symbolNode.currentAnimationHasPlayed_, true);
+}
+
+/*
+ * @tc.name: SetCommonSubType001
+ * @tc.desc: test SetCommonSubType with commonSubType::DOWN
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetCommonSubType(Drawing::DrawingCommonSubType::DOWN);
+    EXPECT_EQ(symbolNode.commonSubType_, Drawing::DrawingCommonSubType::DOWN);
+}
+
+/*
+ * @tc.name: SetCommonSubType002
+ * @tc.desc: test SetCommonSubType with commonSubType::UP
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType002, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
+    RSHMSymbolData symbol;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::NONE;
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationOne);
+    symbolNode.SetCommonSubType(Drawing::DrawingCommonSubType::UP);
+    EXPECT_EQ(symbolNode.commonSubType_, Drawing::DrawingCommonSubType::UP);
+}
+
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
