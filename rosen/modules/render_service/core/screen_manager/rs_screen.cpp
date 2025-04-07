@@ -18,15 +18,16 @@
 #include <algorithm>
 #include <cinttypes>
 
+#include "hisysevent.h"
+
 #include "graphic_feature_param_manager.h"
+#include "hgm_core.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "platform/common/rs_hisysevent.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "string_utils.h"
-#include "hisysevent.h"
-#include "hgm_core.h"
-#include "platform/common/rs_hisysevent.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSScreen"
@@ -114,10 +115,6 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
     RS_LOGW("init virtual: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
         ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
         id_, mirroredId_, width_, height_, name_.c_str(), screenType_);
-}
-
-RSScreen::~RSScreen() noexcept
-{
 }
 
 void RSScreen::VirtualScreenInit() noexcept

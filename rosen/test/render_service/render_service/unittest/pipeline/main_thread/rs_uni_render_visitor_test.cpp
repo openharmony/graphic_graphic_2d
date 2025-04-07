@@ -2954,7 +2954,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo003, TestSize.Level2)
     auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
     // 480, 320 width and height for test
     auto mirrorId = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, nullptr);
-    screenManager->SetScreenMirror(id, mirrorId);
 
     displayConfig.screenId = id;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, displayConfig, rsContext->weak_from_this());
