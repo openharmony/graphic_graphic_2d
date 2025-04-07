@@ -49,7 +49,7 @@ GRAPHIC_TEST(TestTemplateImageTest, CONTENT_DISPLAY_TEST, test1)
     };
 
     uint32_t pngsize = sizeof(pngData) / sizeof(uint8_t);
-    auto testNodeBgImg = SetUpNodeBgImage(pngData, pngsize, { x, y, screenWidth, screenHeight });
+    auto testNodeBgImg = SetUpNodeBgImage(pngData, pngsize, { 0, 0, screenWidth, screenHeight });
     GetRootNode()->AddChild(testNodeBgImg);
     RegisterNode(testNodeBgImg);
 }
