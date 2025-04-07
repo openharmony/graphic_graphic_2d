@@ -464,7 +464,7 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize
  */
 HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Level1)
 {
-    MemoryInfo info = {.pid = -1, size = sizeof(10)}; //for test
+    MemoryInfo info = {.pid = -1, .size = sizeof(10)}; //for test
     const NodeId id = 1; // fot test
     MemoryTrack& test1 = MemoryTrack::Instance();
     test1.AddNodeRecord(id, info);
@@ -483,7 +483,7 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Lev
  */
 HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest002, testing::ext::TestSize.Level1)
 {
-    MemoryInfo info = {.pid = 0, size = sizeof(10)}; //for test
+    MemoryInfo info = {.pid = 0, .size = sizeof(10)}; //for test
     const NodeId id = 0; // fot test
     MemoryTrack& test1 = MemoryTrack::Instance();
     test1.AddNodeRecord(id, info);
