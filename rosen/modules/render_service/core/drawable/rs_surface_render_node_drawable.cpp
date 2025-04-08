@@ -379,6 +379,27 @@ void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& c
     canvas.ConcatMatrix(unobscuredUECMatrixMap.at(GetId()));
 }
 
+bool RSSurfaceRenderNodeDrawable::DrawCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas,
+    const RSSurfaceRenderParams& surfaceParams)
+{
+    auto sourceDisplayNodeDrawable =
+        std::static_pointer_cast<RSDisplayRenderNodeDrawable>(
+            surfaceParams.GetSourceDisplayRenderNodeDrawable().lock());
+    if (sourceDisplayNodeDrawable) {
+        auto cacheImgForMultiScreenView = sourceDisplayNodeDrawable->GetCacheImgForMultiScreenView();
+        if (cacheImgForMultiScreenView) {
+            RS_TRACE_NAME_FMT("DrawCacheImageForMultiScreenView with cache id:%llu rect:%s",
+                surfaceParams.GetId(), surfaceParams.GetRRect().rect_.ToString().c_str());
+            RSUniRenderUtil::ProcessCacheImageForMultiScreenView(canvas, *cacheImgForMultiScreenView,
+                surfaceParams.GetRRect().rect_);
+        } else {
+            RS_TRACE_NAME_FMT("DrawCacheImageForMultiScreenView without cache id:%llu", surfaceParams.GetId());
+        }
+        return true;
+    }
+    return false;
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
@@ -415,6 +436,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (surfaceParams->IsUnobscuredUIExtension() && !UIExtensionNeedToDraw()) {
         RS_LOGE("Current Unobsucred UEC[%{public}s,%{public}" PRIu64 "] needn't to draw",
             name_.c_str(), surfaceParams->GetId());
+        return;
+    }
+    if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
         return;
     }
     auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
@@ -769,6 +793,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + name_ + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " +
         std::to_string(surfaceParams->GetGlobalAlpha()));
+    if (DrawCacheImageForMultiScreenView(*rscanvas, *surfaceParams)) {
+        return;
+    }
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
 
     // First node don't need to concat matrix for application

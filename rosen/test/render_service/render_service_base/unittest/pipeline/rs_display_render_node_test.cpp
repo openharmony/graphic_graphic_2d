@@ -857,4 +857,19 @@ HWTEST_F(RSDisplayRenderNodeTest, SetVirtualScreenMuteStatus, TestSize.Level1)
     displayNode->SetVirtualScreenMuteStatus(true);
     ASSERT_TRUE(displayNode->GetVirtualScreenMuteStatus());
 }
+
+/**
+ * @tc.name: GetTargetSurfaceRenderNodeId
+ * @tc.desc: test results of Set/GetTargetSurfaceRenderNodeId
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    NodeId targetSurfaceRenderNodeId = 2;
+    displayNode->SetTargetSurfaceRenderNodeId(targetSurfaceRenderNodeId);
+    ASSERT_EQ(displayNode->GetTargetSurfaceRenderNodeId(), targetSurfaceRenderNodeId);
+}
 } // namespace OHOS::Rosen
