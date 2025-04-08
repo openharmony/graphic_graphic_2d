@@ -2107,7 +2107,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
     }
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
-    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
     if (waitForRT) {
@@ -4166,7 +4165,6 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
         return;
     }
-    RSUifirstManager::Instance().SetUseDmaBuffer(!isCurtainScreenOn);
     isCurtainScreenOn_ = isCurtainScreenOn;
     isCurtainScreenUsingStatusChanged_ = true;
     SetDirtyFlag();

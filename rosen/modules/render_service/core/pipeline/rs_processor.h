@@ -48,8 +48,6 @@ public:
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
-    virtual void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
-        RSSurfaceRenderParams& params) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void PostProcess() = 0;

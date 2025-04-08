@@ -141,7 +141,6 @@ ohos_shared_library("librender_service") {
     "core/drawable/rs_canvas_drawing_render_node_drawable.cpp",
     "core/drawable/rs_canvas_render_node_drawable.cpp",
     "core/drawable/rs_display_render_node_drawable.cpp",
-    "core/drawable/rs_dma_buffer_surface_render_node_drawable.cpp",
     "core/drawable/rs_effect_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable.cpp",
     "core/drawable/rs_render_node_drawable_autocache.cpp",
@@ -173,7 +172,6 @@ ohos_shared_library("librender_service") {
       "core/pipeline/parallel_render/rs_render_task.cpp",
       "core/pipeline/parallel_render/rs_sub_thread.cpp",
       "core/pipeline/parallel_render/rs_sub_thread_manager.cpp",
-      "core/pipeline/parallel_render/rs_ui_first_render_listener.cpp",
     ]
   }
 

@@ -383,10 +383,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
-    auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
     auto isHardCursor = HardCursorCreateLayer(processor);
-    if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0 && !isHardCursor) {
+    if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() && !isHardCursor) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -413,8 +411,6 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         RSHardwareThread::Instance().DumpEventQueue();
     }
     processor->ProcessDisplaySurfaceForRenderThread(*this);
-
-    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
 
     // commit RCD layers
     auto rcdInfo = std::make_unique<RcdInfo>();
@@ -882,7 +878,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDirtyRects({GetSyncDirtyManager()->GetRectFlipWithinSurface(screenInfo.activeRect)});
     }
     processor->ProcessDisplaySurfaceForRenderThread(*this);
-    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     processor->PostProcess();
     RS_TRACE_END();
 

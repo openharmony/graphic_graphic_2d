@@ -83,9 +83,6 @@ public:
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
 
-    void UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder);
-    void CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor);
-    
     void SetUiFirstSwitch(bool uiFirstSwitch)
     {
         isUiFirstOn_ = uiFirstSwitch;
@@ -132,19 +129,10 @@ public:
         collectedCardNodes_.erase(id);
     }
 
-    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> GetPendingPostDrawables()
-    {
-        return pendingPostDrawables_;
-    }
-
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetPendingPostNodes()
     {
         return pendingPostNodes_;
     }
-
-    void SetUseDmaBuffer(bool val);
-    bool GetUseDmaBuffer(const std::string& name);
-    bool IsScreenshotAnimation();
 
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
@@ -159,7 +147,7 @@ public:
     bool IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node);
 
 private:
-    RSUifirstManager();
+    RSUifirstManager() = default;
     ~RSUifirstManager() = default;
     RSUifirstManager(const RSUifirstManager&);
     RSUifirstManager(const RSUifirstManager&&);
@@ -234,7 +222,6 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
-    std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
     bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
 
@@ -265,18 +252,11 @@ private:
         { "LAUNCHER_SCROLL" }, // desktop swipe
         { "SCROLL_2_AA" }, // desktop to negativeScreen
     };
-    const std::vector<std::string> screenshotAnimation_ = {
-        { "SCREENSHOT_SCALE_ANIMATION" },
-        { "SCREENSHOT_DISMISS_ANIMATION" },
-    };
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
     };
 
-    // use in MainThread & RT & subThread
-    std::mutex useDmaBufferMutex_;
-    bool useDmaBuffer_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;
