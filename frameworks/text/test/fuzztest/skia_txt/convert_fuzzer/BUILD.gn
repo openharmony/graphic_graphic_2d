@@ -22,6 +22,7 @@ ohos_fuzztest("ConvertFuzzTest") {
   module_out_path = text_test_out_path
   fuzz_config_file = "."
 
+  configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   include_dirs = [
     "$rosen_text_root/interface/export",
     "$rosen_text_root/interface/export/rosen_test",
@@ -45,7 +46,7 @@ ohos_fuzztest("ConvertFuzzTest") {
   ]
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
+    "$rosen_text_root:rosen_text",
   ]
 
   external_deps = [

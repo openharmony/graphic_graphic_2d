@@ -42,6 +42,7 @@ group("common_deps") {
   public_deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/utils/test_header:test_header",
+    "$rosen_text_root:rosen_text",
   ]
 }
 

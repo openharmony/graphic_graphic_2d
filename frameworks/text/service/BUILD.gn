@@ -63,6 +63,7 @@ ohos_source_set("rosen_text_skia") {
 
   external_deps = [
     "hilog:libhilog",
+    "ipc:ipc_core",
     "jsoncpp:jsoncpp",
     "skia:skia_canvaskit",
   ]
@@ -71,11 +72,8 @@ ohos_source_set("rosen_text_skia") {
     "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
     "texgine:libtexgine_source",
   ]
-  is_cross_platform =
-      current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
-      current_os == "android" || current_os == "ios"
 
-  if (!is_cross_platform) {
+  if (platform_is_ohos) {
     external_deps += [
       "hitrace:hitrace_meter",
       "init:libbegetutil",

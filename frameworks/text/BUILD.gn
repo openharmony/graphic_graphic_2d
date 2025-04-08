@@ -13,8 +13,8 @@
 
 import("//build/ohos.gni")
 
-ohos_source_set("rosen_text_inner") {
-  public_deps = [ "service:rosen_text_skia" ]
+ohos_shared_library("rosen_text") {
+  deps = [ "service:rosen_text_skia" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
