@@ -773,7 +773,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");
@@ -786,8 +786,9 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
-        std::string name = node->GetName() + " " + std::to_string(node->GetId());
-        nodeTags.push_back({node->GetId(), name});
+        NodeId nodeId = node->GetId();
+        std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
+        nodeTags.push_back({nodeId, name});
     });
     PostSyncTask([&log, &nodeTags, this]() {
         if (!uniRenderEngine_) {

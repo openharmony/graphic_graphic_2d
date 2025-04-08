@@ -23,7 +23,6 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
-#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
@@ -511,7 +510,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
         RS_RSDISPLAYRENDERNODEDRAWABLE_ONDRAW, GetId());
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
+    RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_DISPLAY_NODE);
     SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame
     (void)canvas;
@@ -893,7 +892,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     RsFrameReport::GetInstance().BeginFlush();
     renderFrame->Flush();
     RS_TRACE_END();
