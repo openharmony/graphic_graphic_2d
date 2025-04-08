@@ -65,8 +65,6 @@
 #include "socperf_param.h"
 #include "surface_capture_param_parse.h"
 #include "surface_capture_param.h"
-#include "gpu_resource_release_param_parse.h"
-#include "gpu_resource_release_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
 
@@ -116,8 +114,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<SurfaceCaptureParam>(); }},
     {FEATURE_CONFIGS[UI_CAPTURE], [] {return std::make_unique<UICaptureParamParse>(); },
         [] {return std::make_unique<UICaptureParam>(); }},
-    {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
-        [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },
         [] { return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[VRATE], [] { return std::make_unique<VRateParamParse>(); },

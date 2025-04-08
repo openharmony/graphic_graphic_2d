@@ -17,23 +17,12 @@
 
 namespace OHOS::Rosen {
 
-SOCPerfParam& SOCPerfParam::GetInstance()
-{
-    static SOCPerfParam instance;
-    return instance;
-}
-
-bool SOCPerfParam::IsMultilayersSOCPerfEnable() const
+bool SOCPerfParam::IsMultilayersSOCPerfEnable()
 {
     return isMultilayersSOCPerfEnable_;
 }
 
-bool SOCPerfParam::IsUnlockSOCPerfEnable() const
-{
-    return isUnlockSOCPerfEnable_;
-}
-
-bool SOCPerfParam::IsBlurSOCPerfEnable() const
+bool SOCPerfParam::IsBlurSOCPerfEnable()
 {
     return isBlurSOCPerfEnable_;
 }
@@ -41,11 +30,6 @@ bool SOCPerfParam::IsBlurSOCPerfEnable() const
 void SOCPerfParam::SetMultilayersSOCPerfEnable(bool isMultilayersSOCPerfEnable)
 {
     isMultilayersSOCPerfEnable_ = isMultilayersSOCPerfEnable;
-}
-
-void SOCPerfParam::SetUnlockSOCPerfEnable(bool isUnlockSOCPerfEnable)
-{
-    isUnlockSOCPerfEnable_ = isUnlockSOCPerfEnable;
 }
 
 void SOCPerfParam::SetBlurSOCPerfEnable(bool isBlurSOCPerfEnable)
