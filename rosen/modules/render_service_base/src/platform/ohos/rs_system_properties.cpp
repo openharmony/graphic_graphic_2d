@@ -1371,6 +1371,7 @@ int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
     return hybridRenderCcmEnabled;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderSystemEnabled()
 {
     static bool hybridRenderSystemEnabled = Drawing::SystemProperties::IsUseVulkan() &&
@@ -1399,6 +1400,7 @@ bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
     return paraConvertEnabled;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
     static bool canvasEnabled = GetHybridRenderSystemEnabled() &&
@@ -1413,6 +1415,7 @@ bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
     return memoryReleaseEnabled;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 {
     static bool textblobEnabled = GetHybridRenderSystemEnabled() &&
@@ -1420,6 +1423,7 @@ bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
     return textblobEnabled;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderSvgEnabled()
 {
     static bool svgEnabled = GetHybridRenderSystemEnabled() &&
@@ -1427,6 +1431,7 @@ bool RSSystemProperties::GetHybridRenderSvgEnabled()
     return svgEnabled;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 {
     static bool hmsymbolEnabled = GetHybridRenderSystemEnabled() &&
