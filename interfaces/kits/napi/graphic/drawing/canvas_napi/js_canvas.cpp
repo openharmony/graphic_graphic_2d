@@ -194,6 +194,10 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     }
     Drawing::Point* texsPoint = builder.TexCoords();
     uint16_t* indices = builder.Indices();
+    if (!texsPoint || !indices) {
+        ROSEN_LOGE("Drawing_napi::textPoint or indices is nullptr");
+        return;
+    }
 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
@@ -985,6 +989,10 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
 
 static bool OnMakePoints(napi_env& env, Point* point, uint32_t size, napi_value& array)
 {
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("JsTextBlob::OnMakePoints size exceeds the upper limit");
+        return false;
+    }
     for (uint32_t i = 0; i < size; i++) {
         napi_value tempNumber = nullptr;
         napi_get_element(env, array, i, &tempNumber);
