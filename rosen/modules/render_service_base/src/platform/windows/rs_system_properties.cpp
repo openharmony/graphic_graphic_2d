@@ -645,6 +645,7 @@ int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
     return 0;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderSystemEnabled()
 {
     return false;
@@ -665,6 +666,7 @@ bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
     return false;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
     return false;
@@ -675,16 +677,19 @@ bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
     return false;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 {
     return false;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderSvgEnabled()
 {
     return false;
 }
 
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 {
     return false;
