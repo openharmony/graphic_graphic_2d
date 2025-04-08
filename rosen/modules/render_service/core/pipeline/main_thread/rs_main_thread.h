@@ -837,6 +837,8 @@ private:
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
