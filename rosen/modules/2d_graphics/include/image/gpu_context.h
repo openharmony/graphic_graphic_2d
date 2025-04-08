@@ -165,6 +165,12 @@ public:
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes);
 
     /**
+     * @brief                   Specify the GPU purgeable resource cache limit.
+     * @param purgeableMaxCount The maximum number of purgeable queue resources that need to be cleaned.
+     */
+    void SetPurgeableResourceLimit(int purgeableMaxCount);
+
+    /**
      * @brief                   Gets the current GPU resource cache usage.
      * @param resourceCount     If non-null, returns the number of resources that are held in the cache.
      * @param resourceBytes     If non-null, returns the total number of bytes of video memory held in the cache.

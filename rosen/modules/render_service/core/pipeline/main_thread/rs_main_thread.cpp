@@ -792,6 +792,8 @@ void RSMainThread::UpdateGpuContextCacheSize()
     if (systemCacheLimitsResourceSize > 0) {
         gpuContext->SetResourceCacheLimits(maxResources, systemCacheLimitsResourceSize);
     }
+    auto purgeableMaxCount = RSSystemParameters::GetPurgeableResourceLimit();
+    gpuContext->SetPurgeableResourceLimit(purgeableMaxCount);
 #endif
 }
 
