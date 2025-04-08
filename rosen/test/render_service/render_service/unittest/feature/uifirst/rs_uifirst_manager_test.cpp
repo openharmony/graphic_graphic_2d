@@ -696,6 +696,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode1->firstLevelNodeId_ = surfaceNode1->GetId();
+    surfaceNode1->SetSubThreadAssignable(true);
     // 1. surfaceNode1 only has animation.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
@@ -746,6 +747,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     surfaceNode1->SetIsScale(true);
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     surfaceNode1->UpdateChildSubSurfaceNodes(surfaceNode2, true);
+    surfaceNode1->SetSubThreadAssignable(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
     uifirstManager_.isRecentTaskScene_ = false;
@@ -764,6 +766,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     uifirstManager_.negativeScreenNodeId_ = 1;
     surfaceNode3->instanceRootNodeId_ = 1;
     surfaceNode3->shouldPaint_ = true;
+    surfaceNode1->SetSubThreadAssignable(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
     ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
 }
