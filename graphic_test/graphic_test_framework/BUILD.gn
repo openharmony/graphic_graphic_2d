@@ -72,10 +72,10 @@ ohos_source_set("rs_graphic_test_src") {
     "$rosen_root/modules/render_service:librender_service",
     "$rosen_root/modules/render_service_base:librender_service_base",
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest",
   ]
 
   public_external_deps = [
+    "googletest:gtest",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -95,7 +95,10 @@ ohos_shared_library("rs_graphic_test") {
 
   public_deps = [
     ":rs_graphic_test_src",
-    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "googletest:gtest_main",
   ]
 
   part_name = "graphic_2d"

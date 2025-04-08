@@ -50,7 +50,6 @@ ohos_unittest("RSProfilerArchiveTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -80,7 +79,6 @@ ohos_unittest("RSProfilerCaptureDataTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -110,7 +108,6 @@ ohos_unittest("RSProfilerNetworkTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -140,7 +137,6 @@ ohos_unittest("RSProfilerPacketTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -170,7 +166,6 @@ ohos_unittest("RSProfilerSocketTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -202,7 +197,6 @@ ohos_unittest("RSProfilerTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -232,7 +226,6 @@ ohos_unittest("RSProfilerUtilsTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -257,7 +250,6 @@ ohos_unittest("RSProfilerCommandTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [

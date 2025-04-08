@@ -36,12 +36,12 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -66,12 +66,12 @@ ohos_unittest("RSCanvasNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -96,12 +96,12 @@ ohos_unittest("RSDisplayNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -126,12 +126,12 @@ ohos_unittest("RSEffectNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -156,12 +156,12 @@ ohos_unittest("RSNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -186,12 +186,12 @@ ohos_unittest("RSProxyNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -216,12 +216,12 @@ ohos_unittest("RSRootNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -246,12 +246,12 @@ ohos_unittest("RSSurfaceExtractorTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -276,12 +276,12 @@ ohos_unittest("RSSurfaceNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -307,12 +307,12 @@ ohos_unittest("RSTextureExportTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -337,12 +337,12 @@ ohos_unittest("RSUIDirectorTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
