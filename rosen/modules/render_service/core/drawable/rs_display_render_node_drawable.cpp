@@ -1912,6 +1912,8 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilterWithP3(RSPaintFilterCanvas& c
     offscreenCanvas->DetachBrush();
 
     auto offscreenImage = offscreenCanvas->GetSurface()->GetImageSnapshot();
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ResetMatrix();
     canvas.DrawImage(*offscreenImage, 0.f, 0.f, Drawing::SamplingOptions());
 }
 
