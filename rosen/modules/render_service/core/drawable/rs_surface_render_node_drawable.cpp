@@ -844,6 +844,36 @@ void RSSurfaceRenderNodeDrawable::ResetVirtualScreenWhiteListRootId(NodeId id)
     }
 }
 
+bool RSSurfaceRenderNodeDrawable::IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams)
+{
+    // leash window has no visible region, we should check its children.
+    if (surfaceParams.IsLeashWindow()) {
+        for (const auto& nestedDrawable : GetDrawableVectorById(surfaceParams.GetAllSubSurfaceNodeIds())) {
+            auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
+            if (!surfaceDrawable) {
+                continue;
+            }
+            auto renderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+            if (!renderParams) {
+                continue;
+            }
+            if (!IsVisibleRegionEqualOnPhysicalAndVirtual(*renderParams)) {
+                RS_LOGD("%{public}s visible region not equal, id:%{public}" PRIu64,
+                    renderParams->GetName().c_str(), renderParams->GetId());
+                RS_TRACE_NAME_FMT("%s visible region not equal, id:%" PRIu64,
+                    renderParams->GetName().c_str(), renderParams->GetId());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    auto visibleRegion = surfaceParams.GetVisibleRegion();
+    auto virtualVisibleRegion = surfaceParams.GetVisibleRegionInVirtual();
+    // use XOR to check if two regions are equal.
+    return visibleRegion.Xor(virtualVisibleRegion).IsEmpty();
+}
+
 void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
@@ -920,7 +950,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
-        enableVisiableRect)) {
+        enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
         if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
