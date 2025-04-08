@@ -36,6 +36,20 @@ public:
     bool UpdateIsOffscreen(RSCanvasRenderNode& node);
     void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
+    void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnable();
+    void UpdateHwcNodeEnableByNodeBelow();
+    void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
+        std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
+    // Use in updating hwcnode hardware state with background alpha
+    void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
+        RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
+    void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
+        std::shared_ptr<RSSurfaceRenderNode>& appNode);
+    void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
         const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,

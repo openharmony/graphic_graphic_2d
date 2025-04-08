@@ -1482,6 +1482,11 @@ public:
         return selfAndParentShouldPaint_;
     }
 
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1501,10 +1506,6 @@ private:
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
     void SetUIExtensionUnobscured(bool obscured);
-    inline bool IsHardwareDisabledBySrcRect() const
-    {
-        return isHardwareForcedDisabledBySrcRect_;
-    }
     void OnSubSurfaceChanged();
     void UpdateChildSubSurfaceNodes(RSSurfaceRenderNode::SharedPtr node, bool isOnTheTree);
     bool IsYUVBufferFormat() const;
