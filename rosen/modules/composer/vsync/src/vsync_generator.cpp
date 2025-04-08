@@ -686,7 +686,7 @@ bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& peri
         std::lock_guard<std::mutex> locker(mutex_);
         referenceTime_ = referenceTime_ + offset - wakeupDelay_;
         RS_TRACE_NAME_FMT("NeedPreexecuteAndUpdateTs, new referenceTime:%ld, timestamp:%ld, period:%ld,",
-        referenceTime_, timestamp, period);
+            referenceTime_, timestamp, period);
         return true;
     }
     return false;
