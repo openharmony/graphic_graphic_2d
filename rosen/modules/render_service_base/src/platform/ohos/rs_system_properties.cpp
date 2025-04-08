@@ -24,11 +24,6 @@
 #include "scene_board_judgement.h"
 #include "pipeline/rs_uni_render_judgement.h"
 
-#ifdef RS_ENABLE_VK
-#include "parameter.h"
-#include "parameters.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 namespace {
