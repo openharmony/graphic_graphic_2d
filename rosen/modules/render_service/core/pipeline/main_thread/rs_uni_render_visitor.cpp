@@ -1,17 +1,17 @@
 /*
-* Copyright (c) 2022 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include <memory>
@@ -2310,13 +2310,13 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow()
 void RSUniRenderVisitor::UpdateTransparentHwcNodeEnable(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
-hwcVisitor_->UpdateTransparentHwcNodeEnable(hwcNodes);
+    hwcVisitor_->UpdateTransparentHwcNodeEnable(hwcNodes);
 }
 
 void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
     std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
-hwcVisitor_->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
+    hwcVisitor_->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
 }
 
 void RSUniRenderVisitor::UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode,
@@ -2396,7 +2396,7 @@ bool RSUniRenderVisitor::CheckIfRoundCornerIntersectDRM(const float& ratio, std:
 void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
     std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner)
 {
-hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, hwcNode, isIntersectWithRoundCorner);
+    hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, hwcNode, isIntersectWithRoundCorner);
 }
 
 void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
@@ -3562,10 +3562,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay() const
         return;
     }
 
-    RectI dirtyRectTop;
-    RectI dirtyRectBottom;
+    RectI dirtyRectTop, dirtyRectBottom;
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
-        curDisplayNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
+            curDisplayNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
         RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge topRcdNode dirty "
                 "%{public}s, global dirty %{public}s, add rect %{public}s",
             std::to_string(curDisplayNode_->GetScreenId()).c_str(),
@@ -3574,7 +3573,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay() const
         curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectTop);
     }
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
-        curDisplayNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
+            curDisplayNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
         RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
                 "%{public}s, global dirty %{public}s, add rect %{public}s",
             std::to_string(curDisplayNode_->GetScreenId()).c_str(),
