@@ -2561,7 +2561,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
-    RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         DoScreenRcdTask(*displayNode, processor);
     }
@@ -4921,7 +4920,6 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
         return;
     }
-    RSUifirstManager::Instance().SetUseDmaBuffer(!isCurtainScreenOn);
     isCurtainScreenOn_ = isCurtainScreenOn;
     isCurtainScreenUsingStatusChanged_ = true;
     SetDirtyFlag();

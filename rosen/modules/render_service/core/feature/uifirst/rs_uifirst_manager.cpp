@@ -52,9 +52,6 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-RSUifirstManager::RSUifirstManager() : useDmaBuffer_(false)
-{}
-
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
@@ -625,30 +622,10 @@ void RSUifirstManager::UpdateSkipSyncNode()
 void RSUifirstManager::ProcessSubDoneNode()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("ProcessSubDoneNode");
-    ConvertPendingNodeToDrawable();
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
     ResetCurrentFrameDeletedCardNodes();
-}
-
-void RSUifirstManager::ConvertPendingNodeToDrawable()
-{
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    pendingPostDrawables_.clear();
-    for (const auto& iter : pendingPostNodes_) {
-        if (iter.second && GetUseDmaBuffer(iter.second->GetName())) {
-            if (auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(iter.second)) {
-                pendingPostDrawables_.emplace_back(
-                    std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawableNode));
-            }
-        }
-    }
 }
 
 static inline void SetUifirstSkipPartialSync(const std::shared_ptr<RSRenderNode> &node, bool needSync)
@@ -1199,17 +1176,6 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     return false;
 }
 
-bool RSUifirstManager::IsScreenshotAnimation()
-{
-    for (auto& it : currentFrameEvent_) {
-        if (std::find(screenshotAnimation_.begin(), screenshotAnimation_.end(), it.sceneId) !=
-            screenshotAnimation_.end()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 {
     if (currentFrameEvent_.empty()) {
@@ -1266,9 +1232,6 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
-    if (RSUifirstManager::Instance().GetUseDmaBuffer(node.GetName())) {
-        return true;
-    }
     bool isNeedAssignToSubThread = false;
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
@@ -1502,30 +1465,6 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     UifirstStateChange(node, MultiThreadCacheType::NONE);
 }
 
-void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects)
-{
-    if (!GetUseDmaBuffer(node.GetName())) {
-        return;
-    }
-    bool intersect = false;
-    for (auto& rect : rects) {
-        if (rect.Intersect(node.GetAbsDrawRect())) {
-            intersect = true;
-            break;
-        }
-    }
-    node.SetHardwareForcedDisabledState(intersect);
-    if (intersect) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by uifirstNodeUseDma",
-            node.GetName().c_str(), node.GetId());
-    }
-    Drawing::Matrix totalMatrix;
-    float alpha = 1.f;
-    auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-    RSUniRenderUtil::AccumulateMatrixAndAlpha(surfaceNode, totalMatrix, alpha);
-    node.SetTotalMatrix(totalMatrix);
-}
-
 void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType)
 {
     auto lastFrameCacheType = node.GetLastFrameUifirstFlag();
@@ -1603,51 +1542,6 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
     node.SetUifirstChildrenDirtyRectParam(rect);
 }
 
-void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
-{
-    if (!processor) {
-        return;
-    }
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    for (auto& drawable : pendingPostDrawables_) {
-        if (!drawable) {
-            continue;
-        }
-        auto& param = drawable->GetRenderParams();
-        if (!param) {
-            continue;
-        }
-        auto params = static_cast<RSSurfaceRenderParams*>(param.get());
-        if (params && params->GetHardwareEnabled()) {
-            processor->CreateUIFirstLayer(*drawable, *params);
-        }
-    }
-}
-
-void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
-{
-    {
-        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-        if (!useDmaBuffer_) {
-            return;
-        }
-    }
-    for (const auto& iter : pendingPostNodes_) {
-        auto& node = iter.second;
-        if (node && GetUseDmaBuffer(node->GetName())) {
-            node->GetRSSurfaceHandler()->SetGlobalZOrder(node->IsHardwareForcedDisabled() ? -1.f : zOrder++);
-            auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
-            node->UpdateHwcNodeLayerInfo(transform);
-            node->SetIsLastFrameHwcEnabled(!node->IsHardwareForcedDisabled());
-        }
-    }
-}
-
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
     RSUifirstManager::Instance().CheckCurrentFrameHasCardNodeReCreate(node);
@@ -1672,17 +1566,6 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 void RSUifirstManager::AddCapturedNodes(NodeId id)
 {
     capturedNodes_.push_back(id);
-}
-
-void RSUifirstManager::SetUseDmaBuffer(bool val)
-{
-    useDmaBuffer_ = false;
-}
-
-bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
-{
-    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
-    return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
 
 void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()

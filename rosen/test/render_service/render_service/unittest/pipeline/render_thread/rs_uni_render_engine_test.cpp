@@ -172,43 +172,4 @@ HWTEST_F(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
     param.useCPU = true;
     uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
 }
-
-/**
- * @tc.name: DrawHdiLayerWithParams001
- * @tc.desc: test DrawHdiLayerWithParams
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST_F(RSUniRenderEngineTest, DrawUIFirstCacheWithParams, TestSize.Level1)
-{
-    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-    // Resources for Vulkan and DDGR API
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        uniRenderEngine->Init();
-    }
-    std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
-    // End resources definition
-    int canvasWidth = 10;
-    int canvasHeight = 10;
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasWidth, canvasHeight);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    } else {
-        drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(canvasWidth, canvasHeight);
-        drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
-    }
-    ASSERT_NE(canvas, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    BufferDrawParam param;
-    param.threadIndex = 0;
-    param.useCPU = false;
-    param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    uniRenderEngine->DrawUIFirstCacheWithParams(*canvas, param);
-    param.useCPU = true;
-    uniRenderEngine->DrawUIFirstCacheWithParams(*canvas, param);
-}
 } // namespace OHOS::Rosen

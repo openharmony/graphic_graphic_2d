@@ -47,7 +47,6 @@ public:
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
