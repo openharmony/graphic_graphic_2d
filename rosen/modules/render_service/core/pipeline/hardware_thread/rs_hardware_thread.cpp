@@ -81,7 +81,8 @@ constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
 constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
-constexpr uint32_t MAX_SURFACE_NAME_LENGTH = 280;
+constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 280;
+constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 17;
 }
 
 static int64_t SystemTime()
@@ -433,10 +434,10 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
             continue;
         }
         count += (layer->GetSurface()->GetName().length() + 1);
-    }  
+    }
     std::string surfaceName = "SurfaceName: [";
     bool isFirst = true;
-    if (count < MAX_SURFACE_NAME_LENGTH) {
+    if (count < MAX_TOTAL_SURFACE_NAME_LENGTH) {
         for (const auto& layer : layers) {
             if (layer == nullptr || layer->GetSurface() == nullptr) {
                 continue;
@@ -455,11 +456,11 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
                 continue;
             }
             if (isFirst) {
-                surfaceName += layer->GetSurface()->GetName().subStr(0, 17);
+                surfaceName += layer->GetSurface()->GetName().subStr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
                 isFirst = false;
                 continue;
             }
-            surfaceName += ", " + layer->GetSurface()->GetName().subStr(0, 17);
+            surfaceName += ", " + layer->GetSurface()->GetName().subStr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
         }
         surfaceName += "]";
     }
