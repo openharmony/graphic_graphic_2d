@@ -24,7 +24,6 @@ ohos_fuzztest("HdiBackendFuzzTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [
     "-g",
@@ -38,13 +37,13 @@ ohos_fuzztest("HdiBackendFuzzTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/utils:socketpair",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 
