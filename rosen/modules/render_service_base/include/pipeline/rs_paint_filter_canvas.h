@@ -402,10 +402,12 @@ private:
 class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
     RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) :
-        RSPaintFilterCanvas(canvas, alpha) {}
+        RSPaintFilterCanvas(canvas, alpha)
+    {}
 
     RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) :
-        RSPaintFilterCanvas(surface, alpha) {}
+        RSPaintFilterCanvas(surface, alpha)
+    {}
 
     //Override the AttachPaint method
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
