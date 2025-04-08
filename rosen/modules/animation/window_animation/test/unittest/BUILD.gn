@@ -32,9 +32,6 @@ ohos_unittest("RSWindowAnimationTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/animation/window_animation:window_animation",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/window/window_manager/wm:libwm",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -48,6 +45,8 @@ ohos_unittest("RSWindowAnimationTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "ipc:libdbinder",
+    "googletest:gtest_main",
+    "window_manager:libwm",
   ]
 
   subsystem_name = "graphic"

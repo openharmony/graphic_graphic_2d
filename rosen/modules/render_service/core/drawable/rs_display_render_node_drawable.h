@@ -184,7 +184,6 @@ private:
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
     bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
-    void DRMCreateLayer(std::shared_ptr<RSProcessor> processor);
     void FindHardCursorNodes(RSDisplayRenderParams& params);
     // For P3-scRGB Control
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
@@ -241,7 +240,6 @@ private:
     Drawing::RectI lastVisibleRect_;
     int32_t offscreenTranslateX_ = 0;
     int32_t offscreenTranslateY_ = 0;
-    Drawing::Matrix curCanvasMatrix_;
 
     bool isRenderSkipIfScreenOff_ = false;
 };

@@ -626,5 +626,44 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest022, TestSize.Level1)
     RSNode::CloseImplicitCancelAnimation();
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest022 end";
 }
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest023
+ * @tc.desc: Verify the setcallback of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest023 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto node = std::make_shared<RSNodeMock>(true);
+    EXPECT_TRUE(node != nullptr);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(100);
+    RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR);
+    RSNode::CloseImplicitAnimation();
+    PropertyCallback callback1;
+    std::weak_ptr<RSNode> weak = node;
+    callback1 = [weak]() {
+        auto node2 = weak.lock();
+        if (node2) {
+            node2->SetAlpha(0.2f);
+        }
+    };
+    RSNode::AddKeyFrame(nullptr, 0.1f, RSAnimationTimingCurve::LINEAR, callback1);
+    RSNode::AddKeyFrame(nullptr, 0.2f, callback1);
+    PropertyCallback callback2;
+    RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    callback1 = [weak]() {
+        auto node2 = weak.lock();
+        if (node2) {
+            node2->SetAlpha(0.3f);
+        }
+    };
+    RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, callback2);
+    GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest023 end";
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -375,10 +375,10 @@ public:
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
 
-    void SetDRMGlobalPositionEnabled(bool isEnabled);
-    bool GetDRMGlobalPositionEnabled() const;
+    void SetHwcGlobalPositionEnabled(bool isEnabled);
+    bool GetHwcGlobalPositionEnabled() const;
 
-    void SetDRMCrossNode(bool isCrossNode);
+    void SetHwcCrossNode(bool isCrossNode);
     bool IsDRMCrossNode() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
@@ -791,8 +791,8 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float rogWidthRatio_ = 1.0f;
-    bool isDRMGlobalPositionEnabled_ = false;
-    bool isDRMCrossNode_ = false;
+    bool isHwcGlobalPositionEnabled_ = false;
+    bool isHwcCrossNode_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

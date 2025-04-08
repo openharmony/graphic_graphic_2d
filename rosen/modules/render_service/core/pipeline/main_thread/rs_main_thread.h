@@ -186,8 +186,7 @@ public:
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
-    void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string& bundleName, const std::string& abilityName, uint64_t focusNodeId);
+    void SetFocusAppInfo(const FocusAppInfo& info);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
@@ -594,6 +593,7 @@ private:
 #ifdef RS_ENABLE_GPU
     bool needDrawFrame_ = true;
     bool needPostAndWait_ = true;
+    bool isLastFrameNeedPostAndWait_ = true;
 #endif
 
     bool isNeedResetClearMemoryTask_ = false;
@@ -800,8 +800,6 @@ private:
         std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
-    std::unordered_map<NodeId, // map<first level node ID, drm surface node>
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -841,6 +839,8 @@ private:
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

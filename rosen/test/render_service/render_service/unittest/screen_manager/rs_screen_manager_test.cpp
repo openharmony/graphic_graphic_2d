@@ -727,33 +727,6 @@ HWTEST_F(RSScreenManagerTest, GetScreenType_001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetScreenMirror_001
- * @tc.desc: Test SetScreenMirror
- * @tc.type: FUNC
- * @tc.require: issueI5ZK2I
- */
-HWTEST_F(RSScreenManagerTest, SetScreenMirror_001, testing::ext::TestSize.Level2)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ScreenId id = screenManager->GetDefaultScreenId();
-
-    std::string name = "virtualScreen01";
-    uint32_t width = 480;
-    uint32_t height = 320;
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurface, nullptr);
-
-    auto mirrorId = screenManager->CreateVirtualScreen(name, width, height, psurface);
-    ASSERT_NE(INVALID_SCREEN_ID, mirrorId);
-    screenManager->SetScreenMirror(id, mirrorId);
-}
-
-/*
  * @tc.name: SetScreenConstraint_001
  * @tc.desc: Test SetScreenConstraint
  * @tc.type: FUNC

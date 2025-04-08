@@ -129,7 +129,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         matrix.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
         canvas.ConcatMatrix(matrix);
     }
-    auto boundSize = surfaceParams.GetFrameRect();
+    auto boundSize = surfaceParams.GetBounds();
     // draw background
     surfaceDrawable->DrawBackground(canvas, boundSize);
     const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(image_->GetWidth(), image_->GetHeight());

@@ -217,6 +217,14 @@ enum class TpFeatureConfigType : uint8_t {
 };
 #endif
 
+struct FocusAppInfo {
+    int32_t pid = -1;
+    int32_t uid = -1;
+    std::string bundleName = "";
+    std::string abilityName = "";
+    uint64_t focusNodeId = 0;
+};
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;

@@ -653,32 +653,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDRMGlobalPositionEnabledTest
- * @tc.desc: SetDRMGlobalPositionEnabled and GetDRMGlobalPositionEnabled
+ * @tc.name: SetHwcGlobalPositionEnabledTest
+ * @tc.desc: SetHwcGlobalPositionEnabled and GetHwcGlobalPositionEnabled
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMGlobalPositionEnabledTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcGlobalPositionEnabledTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetDRMGlobalPositionEnabled(), true);
+    node->SetHwcGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetHwcGlobalPositionEnabled(), true);
 }
 
 /**
- * @tc.name: SetDRMCrossNodeTest
- * @tc.desc: SetDRMCrossNode and GetDRMCrossNode
+ * @tc.name: SetHwcCrossNodeTest
+ * @tc.desc: SetHwcCrossNode and GetDRMCrossNode
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMCrossNodeTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMCrossNode(true);
+    node->SetHwcCrossNode(true);
     ASSERT_EQ(node->IsDRMCrossNode(), true);
-    node->SetDRMCrossNode(false);
+    node->SetHwcCrossNode(false);
     ASSERT_FALSE(node->IsDRMCrossNode());
 }
 
@@ -2439,6 +2439,31 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+}
+
+/**
+ * @tc.name: ResetSurfaceNodeStates
+ * @tc.desc: test if node could Reset Surface Node States correctly
+ * @tc.type: FUNC
+ * @tc.require: #IBZ3UR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceNodeStates, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = nullptr;
+    ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
+    testNode->ResetSurfaceNodeStates();
+
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->ResetSurfaceNodeStates();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+    ASSERT_FALSE(testNode->GetAnimateState());
+    ASSERT_FALSE(testNode->IsRotating());
+    ASSERT_FALSE(testNode->IsSpecialLayerChanged());
 }
 
 /**

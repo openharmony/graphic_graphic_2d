@@ -2954,7 +2954,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo003, TestSize.Level2)
     auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
     // 480, 320 width and height for test
     auto mirrorId = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, nullptr);
-    screenManager->SetScreenMirror(id, mirrorId);
 
     displayConfig.screenId = id;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, displayConfig, rsContext->weak_from_this());
@@ -5565,10 +5564,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    rsUniRenderVisitor->isHardwareForcedDisabled_ = true;
+    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = true;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 
-    rsUniRenderVisitor->isHardwareForcedDisabled_ = false;
+    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = false;
     rsSurfaceRenderNode->dynamicHardwareEnable_ = false;
     rsSurfaceRenderNode->isFixRotationByUser_ = true;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);

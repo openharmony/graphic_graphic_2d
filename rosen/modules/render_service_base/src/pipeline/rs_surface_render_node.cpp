@@ -830,44 +830,44 @@ bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
     return isGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderNode::SetDRMGlobalPositionEnabled(bool isEnabled)
+void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
 {
-    if (isGlobalPositionEnabled_ == isEnabled) {
+    if (isHwcGlobalPositionEnabled_ == isEnabled) {
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetDRMGlobalPositionEnabled(isEnabled);
+    surfaceParams->SetHwcGlobalPositionEnabled(isEnabled);
     AddToPendingSyncList();
 
-    isDRMGlobalPositionEnabled_ = isEnabled;
+    isHwcGlobalPositionEnabled_ = isEnabled;
 }
 
-bool RSSurfaceRenderNode::GetDRMGlobalPositionEnabled() const
+bool RSSurfaceRenderNode::GetHwcGlobalPositionEnabled() const
 {
-    return isDRMGlobalPositionEnabled_;
+    return isHwcGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderNode::SetDRMCrossNode(bool isDRMCrossNode)
+void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
 {
-    if (isDRMCrossNode_ == isDRMCrossNode) {
+    if (isHwcCrossNode_ == isDRMCrossNode) {
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetDRMCrossNode(isDRMCrossNode);
+    surfaceParams->SetHwcCrossNode(isDRMCrossNode);
     AddToPendingSyncList();
 
-    isDRMCrossNode_ = isDRMCrossNode;
+    isHwcCrossNode_ = isDRMCrossNode;
 }
 
 bool RSSurfaceRenderNode::IsDRMCrossNode() const
 {
-    return isDRMCrossNode_;
+    return isHwcCrossNode_;
 }
 
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
@@ -3556,5 +3556,25 @@ void RSSurfaceRenderNode::ResetIsBufferFlushed()
     AddToPendingSyncList();
 }
 
+void RSSurfaceRenderNode::ResetSurfaceNodeStates()
+{
+    animateState_ = false;
+    isRotating_ = false;
+    specialLayerChanged_ = false;
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetSurfaceNodeStates: surfaceParams is nullptr");
+        return;
+    }
+    if (!surfaceParams->GetIsBufferFlushed()) {
+        return;
+    }
+    surfaceParams->SetIsBufferFlushed(false);
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

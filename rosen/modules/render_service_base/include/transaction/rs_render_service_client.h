@@ -166,8 +166,7 @@ public:
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
-    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
-        uint64_t focusNodeId);
+    int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
     ScreenId GetDefaultScreenId();
     ScreenId GetActiveScreenId();
@@ -416,6 +415,8 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
@@ -447,8 +448,6 @@ public:
     int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <memory>
 #include "gtest/gtest.h"
 
 #include "draw/brush.h"
+#include "image/image.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_light_blur_shader_filter.h"
 #include "render/rs_shader_filter.h"
@@ -87,6 +89,35 @@ HWTEST_F(RSLightBlurShaderFilterTest, RSLightBlurShaderFilterTest003, TestSize.L
     LightBlurParameter para { src, dst, Drawing::Brush() };
     EXPECT_EQ(filter->GetRadius(), 1);
     filter->ApplyLightBlur(canvas, image, para);
+}
+
+/**
+ * @tc.name: RSLightBlurShaderFilterTest004
+ * @tc.desc: Verify function ApplyLightBlur and ClearLightBlurResultCache
+ * @tc.type:FUNC
+ * @tc.require: issuesIBZ4YD
+ */
+HWTEST_F(RSLightBlurShaderFilterTest, RSLightBlurShaderFilterTest004, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, format);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    EXPECT_TRUE(image->BuildFromBitmap(bitmap));
+    int radius = 1;
+    auto filter = std::make_shared<RSLightBlurShaderFilter>(radius);
+    Drawing::Canvas canvas;
+    Drawing::Rect src(0, 0, 5, 5);
+    Drawing::Rect dst(0, 0, 5, 5);
+    LightBlurParameter para { src, dst, Drawing::Brush() };
+    EXPECT_EQ(filter->GetRadius(), 1);
+    filter->ApplyLightBlur(canvas, image, para);
+
+    filter->lightBlurResultCache_[0] = std::make_shared<Drawing::Image>();
+    filter->lightBlurResultCache_[1] = std::make_shared<Drawing::Image>();
+    filter->ClearLightBlurResultCache();
+    EXPECT_EQ(filter->lightBlurResultCache_[0], nullptr);
+    EXPECT_EQ(filter->lightBlurResultCache_[1], nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

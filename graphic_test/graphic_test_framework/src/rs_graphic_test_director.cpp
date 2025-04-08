@@ -146,6 +146,9 @@ void RSGraphicTestDirector::Run()
     vsyncWaiter_ = std::make_shared<VSyncWaiter>(handler_);
     runner_->Run();
 
+    profilerThread_ = std::make_shared<RSGraphicTestProfilerThread>();
+    profilerThread_->Start();
+
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
@@ -282,6 +285,13 @@ void RSGraphicTestDirector::OnVSync(int64_t time)
     //also have animation request next frame
     if (HasUIRunningAnimation()) {
         RequestNextVSync();
+    }
+}
+
+void RSGraphicTestDirector::SendProfilerCommand(const std::string command)
+{
+    if (profilerThread_) {
+        profilerThread_->SendCommand(command);
     }
 }
 } // namespace Rosen

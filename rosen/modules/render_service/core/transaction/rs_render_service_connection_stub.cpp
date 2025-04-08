@@ -184,13 +184,13 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -573,8 +573,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_PROFILER_PATCH_NODE_ID(data, focusNodeId);
-            int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
-            if (!reply.WriteInt32(status)) {
+            FocusAppInfo info = {
+                .pid = pid,
+                .uid = uid,
+                .bundleName = bundleName,
+                .abilityName = abilityName,
+                .focusNodeId = focusNodeId};
+            int32_t repCode;
+            if (SetFocusAppInfo(info, repCode) != ERR_OK || !reply.WriteInt32(repCode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_FOCUS_APP_INFO Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1736,8 +1742,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = SetGlobalDarkColorMode(isDark);
-            if (!reply.WriteBool(result)) {
+            bool success;
+            if (SetGlobalDarkColorMode(isDark, success) != ERR_OK || !reply.WriteBool(success)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_GLOBAL_DARK_COLOR_MODE Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -2316,8 +2322,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .w = w,
                 .h = h
             };
-            uint32_t result = SetScreenActiveRect(id, activeRect);
-            if (!reply.WriteUint32(result)) {
+            uint32_t repCode;
+            if (SetScreenActiveRect(id, activeRect, repCode) != ERR_OK || !reply.WriteUint32(repCode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_RECT Write result failed!");
                 return ERR_INVALID_REPLY;
             }
@@ -2335,8 +2341,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = RegisterOcclusionChangeCallback(callback);
-            if (!reply.WriteInt32(status)) {
+            int32_t repCode;
+            if (RegisterOcclusionChangeCallback(callback, repCode) != ERR_OK || !reply.WriteInt32(repCode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -2427,9 +2433,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool result = SetSystemAnimatedScenes(
-                static_cast<SystemAnimatedScenes>(systemAnimatedScenes), isRegularAnimation);
-            if (!reply.WriteBool(result)) {
+            bool success;
+            if (SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes),
+                isRegularAnimation, success) != ERR_OK || !reply.WriteBool(success)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SYSTEM_ANIMATED_SCENES Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -3226,6 +3232,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW) : {
+            std::string nodeIdStr;
+            bool isColorFollow{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isColorFollow)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_COLOR_FOLLOW Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetColorFollow(nodeIdStr, isColorFollow);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
             NotifyScreenSwitched();
             break;
@@ -3286,17 +3304,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE) : {
-            NodeId nodeId = {};
-            std::string filePath;
-            if (!data.ReadUint64(nodeId) || !data.ReadString(filePath)) {
-                RS_LOGE("RSRenderServiceConnectionStub::TEST_LOAD_FILE_SUB_TREE Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            RS_PROFILER_TEST_LOAD_FILE_SUB_TREE(nodeId, filePath);
-            break;
-        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

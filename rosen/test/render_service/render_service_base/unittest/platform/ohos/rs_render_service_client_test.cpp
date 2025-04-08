@@ -361,7 +361,13 @@ HWTEST_F(RSClientTest, CreatePixelMapFromSurfaceId001, TestSize.Level1)
 HWTEST_F(RSClientTest, SetFocusAppInfo001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    auto ret = rsClient->SetFocusAppInfo(1, 1, "bundleNameTest", "abilityNameTest", 1);
+    FocusAppInfo info = {
+        .pid = 1,
+        .uid = 1,
+        .bundleName = "bundleNameTest",
+        .abilityName = "abilityNameTest",
+        .focusNodeId = 1};
+    auto ret = rsClient->SetFocusAppInfo(info);
     ASSERT_EQ(ret, SUCCESS);
 }
 

@@ -69,7 +69,6 @@
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) RSProfiler::PatchTypefaceId(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
-#define RS_PROFILER_TEST_LOAD_FILE_SUB_TREE(nodeId, path) RSProfiler::TestLoadFileSubTree(nodeId, path)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
@@ -107,7 +106,6 @@
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
-#define RS_PROFILER_TEST_LOAD_FILE_SUB_TREE(nodeId, path)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -225,7 +223,6 @@ public:
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
     RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
-    RSB_EXPORT static void TestLoadFileSubTree(NodeId nodeId, const std::string &filePath);
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsSharedMemoryEnabled();
@@ -492,6 +489,7 @@ private:
 
     static void TestSaveSubTree(const ArgList& args);
     static void TestLoadSubTree(const ArgList& args);
+    static void TestClearSubTree(const ArgList& args);
 private:
     using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
     static const CommandRegistry COMMANDS;

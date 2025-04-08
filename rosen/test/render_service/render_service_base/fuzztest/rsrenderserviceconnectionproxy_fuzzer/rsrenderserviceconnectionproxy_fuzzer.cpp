@@ -171,6 +171,16 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::string getRefreshInfoEnable;
     bool getBitmapSuccess;
     bool getPixelmapSuccess;
+    FocusAppInfo appInfo = {
+        .pid = pid1,
+        .uid = uid,
+        .bundleName = name,
+        .abilityName = name,
+        .focusNodeId = id1};
+    int32_t repCode = GetData<int32_t>();
+    uint32_t retureCode = GetData<uint32_t>();
+    bool success = GetData<bool>();
+
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
     rsRenderServiceConnectionProxy.GetMemoryGraphic(pid, memoryGraphic);
@@ -185,7 +195,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.CreateVSyncConnection(conn, name, token, vsyncConnParam);
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect, pixelMap);
-    rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);
+    rsRenderServiceConnectionProxy.SetFocusAppInfo(appInfo, repCode);
     rsRenderServiceConnectionProxy.GetDefaultScreenId();
     rsRenderServiceConnectionProxy.GetActiveScreenId();
     rsRenderServiceConnectionProxy.GetAllScreenIds();
@@ -194,7 +204,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RemoveVirtualScreen(id1);
     rsRenderServiceConnectionProxy.SetScreenChangeCallback(callback);
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
-    rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect);
+    rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect, retureCode);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
     rsRenderServiceConnectionProxy.SetRefreshRateMode(pid1);
     rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, 0);
@@ -239,7 +249,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RegisterTypeface(id1, typeface);
     rsRenderServiceConnectionProxy.UnRegisterTypeface(id1);
     rsRenderServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width);
-    rsRenderServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback);
+    rsRenderServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);
     rsRenderServiceConnectionProxy.RegisterSurfaceOcclusionChangeCallback(id1, callbackTwo, partitionPoints);
     rsRenderServiceConnectionProxy.UnRegisterSurfaceOcclusionChangeCallback(id1);
     rsRenderServiceConnectionProxy.RegisterHgmConfigChangeCallback(rsIHgmConfigChangeCallback);
@@ -247,7 +257,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
     rsRenderServiceConnectionProxy.SetAppWindowNum(width);
-    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false);
+    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
     rsRenderServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsRenderServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);
     rsRenderServiceConnectionProxy.ReportJankStats();

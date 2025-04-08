@@ -150,6 +150,19 @@ void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
     }
 }
 
+void RSColorSpaceConvert::GetVideoDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& videoDynamicMetadata, GSError& ret)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceBuffer is nullptr. Failed to get videoDynamicMetadata.");
+        return;
+    }
+    ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, videoDynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetVideoDynamicMetadata failed with ret: %{public}u.", ret);
+    }
+}
+
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
     VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode,
     float hdrBrightness)

@@ -301,7 +301,47 @@ HWTEST_F(RSKeyframeAnimationTest, RSNodeAnimateTest001, TestSize.Level1)
         EXPECT_TRUE(animation->IsRunning());
         NotifyStartAnimation();
     }
-    GTEST_LOG_(INFO) << "RSSpringAnimationTest RSNodeAnimateTest001 end";
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RSNodeAnimateTest001 end";
+}
+
+/**
+ * @tc.name: RSNodeAnimateTest002
+ * @tc.desc: Verify the RSNodeAnimate of KeyframeAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, RSNodeAnimateTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RSNodeAnimateTest002 start";
+    /**
+     * @tc.steps: step1. init RSNodeAnimate
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(ANIMATION_NORMAL_SCALE);
+    auto modifier = std::make_shared<RSScaleModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        RSNode::AddKeyFrame(
+            nullptr, 0.1f, RSAnimationTimingCurve::EASE, [&property]() { property->Set(ANIMATION_TENTH_SCALE); });
+        RSNode::AddKeyFrame(
+            nullptr, 0.5f, RSAnimationTimingCurve::EASE, [&property]() { property->Set(ANIMATION_HALF_SCALE); });
+        RSNode::AddKeyFrame(
+            nullptr, 1.0f, RSAnimationTimingCurve::EASE, [&property]() { property->Set(ANIMATION_NORMAL_SCALE); });
+    });
+    /**
+     * @tc.steps: step2. start GetTimingCurve test
+     */
+    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
+    if (animations.size() == CORRECT_SIZE) {
+        auto animation = std::static_pointer_cast<RSKeyframeAnimation>(animations[FIRST_ANIMATION]);
+        EXPECT_TRUE(animation != nullptr);
+        EXPECT_TRUE(animation->IsRunning());
+        NotifyStartAnimation();
+    }
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RSNodeAnimateTest002 end";
 }
 
 /**

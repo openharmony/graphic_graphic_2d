@@ -47,7 +47,7 @@ class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
     RSUniRenderVisitor();
-    explicit RSUniRenderVisitor(const RSUniRenderVisitor& visitor);
+    RSUniRenderVisitor(const RSUniRenderVisitor& visitor) = delete;
     ~RSUniRenderVisitor() override;
 
     // To prepare nodes between displayRenderNode and app nodes.
@@ -95,21 +95,13 @@ public:
         focusedLeashWindowId_ = leashId;
     }
 
-    void SetSubThreadConfig(uint32_t threadIndex)
-    {
-        isHardwareForcedDisabled_ = true;
-        threadIndex_ = threadIndex;
-    }
-
     bool GetAnimateState() const
     {
         return doAnimate_;
     }
 
-    void MarkHardwareForcedDisabled()
-    {
-        isHardwareForcedDisabled_ = true;
-    }
+    // Enable HWCompose
+    void MarkHardwareForcedDisabled();
 
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
 
@@ -236,6 +228,8 @@ private:
     void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
+    void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
+        const Drawing::Matrix& absMatrix, const RectI& absRect);
     void UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
@@ -359,7 +353,7 @@ private:
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
-    std::unique_ptr<RSUniHwcVisitor> rsUniHwcVisitor_;
+    std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -422,7 +416,7 @@ private:
     bool filterInGlobal_ = true;
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
+
     // to record and pass container node dirty to leash node.
     bool curContainerDirty_ = false;
     bool isOcclusionEnabled_ = false;
@@ -468,7 +462,6 @@ private:
     std::vector<NodeId> uiBufferAvailableId_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
-    uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
     // vector of last frame mainwindow surface visible info
@@ -477,8 +470,7 @@ private:
     static void ProcessUnpairedSharedTransitionNode();
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
-    // use for hardware compose disabled reason collection
-    HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
+
     std::shared_ptr<RsHdrCollection> rsHdrCollection_ = RsHdrCollection::GetInstance();
 
     bool zoomStateChange_ = false;

@@ -402,7 +402,14 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
     std::string str = "";
     int32_t pid = INVALID_VALUE;
     int32_t uid = INVALID_VALUE;
-    mainThread->SetFocusAppInfo(pid, uid, str, str, 0);
+    
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = str,
+        .abilityName = str,
+        .focusNodeId = 0};
+    mainThread->SetFocusAppInfo(info);
     ASSERT_EQ(mainThread->focusAppPid_, pid);
 }
 
@@ -425,7 +432,13 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
     std::string str = "";
     int32_t pid = INVALID_VALUE;
     int32_t uid = INVALID_VALUE;
-    mainThread->SetFocusAppInfo(pid, uid, str, str, newFocusNode->GetId());
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = str,
+        .abilityName = str,
+        .focusNodeId = newFocusNode->GetId()};
+    mainThread->SetFocusAppInfo(info);
     ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
 }
 
@@ -1058,7 +1071,13 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId003, TestSize.Level2)
     pid_t pid = ExtractPid(nodeId);
     mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str, node->GetId());
+    FocusAppInfo info = {
+        .pid = -1,
+        .uid = -1,
+        .bundleName = str,
+        .abilityName = str,
+        .focusNodeId = node->GetId()};
+    mainThread->SetFocusAppInfo(info);
     mainThread->SetFocusLeashWindowId();
     ASSERT_EQ(mainThread->GetFocusLeashWindowId(), INVALID_NODEID);
 }
@@ -1089,7 +1108,13 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId004, TestSize.Level2)
     pid_t parentNodePid = ExtractPid(parentNodeId);
     mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
+    FocusAppInfo info = {
+        .pid = -1,
+        .uid = -1,
+        .bundleName = str,
+        .abilityName = str,
+        .focusNodeId = childNode->GetId()};
+    mainThread->SetFocusAppInfo(info);
     mainThread->SetFocusLeashWindowId();
     ASSERT_EQ(mainThread->GetFocusLeashWindowId(), INVALID_NODEID);
 }
@@ -1120,7 +1145,13 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId005, TestSize.Level2)
     mainThread->context_->nodeMap.renderNodeMap_[childNodePid][childNodeId] = childNode;
     mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
-    mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
+    FocusAppInfo info = {
+        .pid = -1,
+        .uid = -1,
+        .bundleName = str,
+        .abilityName = str,
+        .focusNodeId = childNode->GetId()};
+    mainThread->SetFocusAppInfo(info);
     mainThread->SetFocusLeashWindowId();
     ASSERT_EQ(mainThread->GetFocusLeashWindowId(), INVALID_NODEID);
 }

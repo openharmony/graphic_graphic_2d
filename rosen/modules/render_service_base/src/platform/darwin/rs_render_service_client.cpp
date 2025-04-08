@@ -159,8 +159,7 @@ bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, 
     return false;
 }
 
-int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
+int32_t RSRenderServiceClient::SetFocusAppInfo(const FocusAppInfo& info)
 {
     return false;
 }
@@ -742,6 +741,10 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
+void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+}
+
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
 }
@@ -758,10 +761,6 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
 
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
-{
-}
-
-void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
 {
 }
 } // namespace Rosen

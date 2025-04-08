@@ -131,8 +131,6 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue002, testing::
     EXPECT_EQ(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME), 0x00002E);
     EXPECT_EQ(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE), 0x00002F);
-    EXPECT_EQ(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE), 0x000030);
 
     EXPECT_EQ(static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID), 0x001000);

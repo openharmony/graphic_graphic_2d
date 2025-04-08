@@ -147,7 +147,7 @@ void RSDrawFrame::PostAndWait()
     }
 }
 
-void RSDrawFrame::PostDirectCompositionJankStats(const JankDurationParams& rsParams)
+void RSDrawFrame::PostDirectCompositionJankStats(const JankDurationParams& rsParams, bool optimizeLoad)
 {
     RS_TRACE_NAME_FMT("PostDirectCompositionJankStats, parallel type %d", static_cast<int>(rsParallelType_));
     switch (rsParallelType_) {
@@ -156,10 +156,17 @@ void RSDrawFrame::PostDirectCompositionJankStats(const JankDurationParams& rsPar
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
         default: {
             bool isReportTaskDelayed = unirenderInstance_.IsMainLooping();
-            auto task = [rsParams, isReportTaskDelayed]() -> void {
-                RSJankStats::GetInstance().HandleDirectComposition(rsParams, isReportTaskDelayed);
-            };
-            unirenderInstance_.PostTask(task);
+            if (optimizeLoad) { // judge whether we should post task to unirender thread when we need to optimize load
+                auto postTaskHandler = [this](const std::function<void()>& task) {
+                    unirenderInstance_.PostTask(task);
+                };
+                RSJankStats::GetInstance().HandleDirectComposition(rsParams, isReportTaskDelayed, postTaskHandler);
+            } else { // directly post task to unirender thread when we do not need to optimize load
+                auto task = [rsParams, isReportTaskDelayed]() -> void {
+                    RSJankStats::GetInstance().HandleDirectComposition(rsParams, isReportTaskDelayed);
+                };
+                unirenderInstance_.PostTask(task);
+            }
         }
     }
 }

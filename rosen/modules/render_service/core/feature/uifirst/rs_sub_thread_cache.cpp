@@ -956,6 +956,9 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     }
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_DEALWITHUIFIRSTCACHE);
+    if (drawWindowCache_.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams)) {
+        return true;
+    }
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
     auto cacheState = GetCacheSurfaceProcessedStatus();
     if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
@@ -969,8 +972,8 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d", surfaceParams.GetName().c_str(),
-        surfaceParams.GetId(), enableType);
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
+        surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
     Drawing::Rect bounds = surfaceParams.GetBounds();
     RSAutoCanvasRestore acr(&canvas);
     // Alpha and matrix have been applied in func CaptureSurface
@@ -997,14 +1000,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         surfaceDrawable->DrawBackground(canvas, bounds);
     }
     canvas.SetStencilVal(stencilVal);
-    bool drawCacheSuccess = true;
-    if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
-        drawCacheSuccess = DrawUIFirstCacheWithStarting(surfaceDrawable, canvas, surfaceParams.GetUifirstUseStarting());
-    } else {
-        bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
-            uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
-        drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, canSkipFirstWait);
-    }
+    bool drawCacheSuccess = DrawUIFirstCache(surfaceDrawable, canvas, false);
     canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
