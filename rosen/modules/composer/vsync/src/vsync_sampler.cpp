@@ -193,11 +193,13 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
             auto intervalStamp = timeStamp - preSample;
 
             if (intervalStamp <= 0) {
+                RS_TRACE_NAME_FMT("VSyncSampler::AddSample, invalid sample, preSample is larger");
                 numSamples_ = 0;
                 return true;
             }
             
-            if (isAdaptive_.load() && CreateVsyncGenerator() -> CheckSampleIsAdaptive(intervalStamp)) {
+            if (isAdaptive_.load() && CreateVsyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
+                RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
                 numSamples_ = 0;
                 return true;
             }
