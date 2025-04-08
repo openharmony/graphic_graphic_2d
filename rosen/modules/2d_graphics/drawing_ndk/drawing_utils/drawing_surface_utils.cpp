@@ -96,9 +96,14 @@ std::shared_ptr<Drawing::Surface> CreateVulkanWindowSurface(Drawing::GPUContext*
         return nullptr;
     }
 
-    NativeBufferUtils::NativeSurfaceInfo* nativeSurface = new NativeBufferUtils::NativeSurfaceInfo();
+    NativeBufferUtils::NativeSurfaceInfo* nativeSurface = new(std::nothrow) NativeBufferUtils::NativeSurfaceInfo();
     if (nativeSurface == nullptr) {
         LOGE("CreateVulkanWindowSurface: create nativeSurface failed!");
+        NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer);
+        if (fenceFd != -1) {
+            close(fenceFd);
+            fenceFd = -1;
+        }
         return nullptr;
     }
 
