@@ -270,13 +270,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
 
-        bool isScreenPowerOff = false;
+        bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
-            isScreenPowerOff = screenManager->IsScreenPowerOff(output->GetScreenId());
+            isScreenPoweringOff = screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        if (!isScreenPowerOff) {
+        if (!isScreenPoweringOff) {
             ExecuteSwitchRefreshRate(output, param.rate);
             PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
             AddRefreshRateCount(output);
@@ -289,7 +289,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         } else {
             output->SetLayerInfo(layers);
         }
-        if (output->IsDeviceValid() && !isScreenPowerOff) {
+        if (output->IsDeviceValid() && !isScreenPoweringOff) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
         }

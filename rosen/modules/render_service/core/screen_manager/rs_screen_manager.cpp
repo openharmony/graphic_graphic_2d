@@ -982,13 +982,19 @@ RSScreenCapability RSScreenManager::GetScreenCapability(ScreenId id) const
 
 ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
 {
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return INVALID_POWER_STATUS;
-    }
+    ScreenPowerStatus status = ScreenPowerStatus::INVALID_POWER_STATUS;
+    RSBackgroundThread::Instance().PostSyncTask([id, &status, this]() {
+        auto screen = GetScreen(id);
+        if (screen == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            status = INVALID_POWER_STATUS;
+            return;
+        }
 
-    return static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+        status = static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+    });
+
+    return status;
 }
 
 ScreenRotation RSScreenManager::GetScreenCorrection(ScreenId id) const
@@ -1468,7 +1474,7 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
     return SUCCESS;
 }
 
-void RSScreenManager::SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerStatus status)
+void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1524,14 +1530,17 @@ void RSScreenManager::SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerS
 
 void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
-        RS_LOGD("[power_off_ongoing] ScreenID: %{public}" PRIu64 " PowerStatus is %{public}d", id, status);
-        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
-        screenPowerStatus_[id] = ScreenPowerStatus::POWER_STATUS_OFF_ONGOING;
-    }
-
     RSBackgroundThread::Instance().PostTask([id, status, this]() {
-        SetScreenPowerStatusForBackgroud(id, status);
+        if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
+            RS_LOGD("[powering_off] ScreenID: %{public}" PRIu64 " PowerStatus is %{public}d", id, status);
+            std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+            isScreenPoweringOff_.insert(id);
+        }
+
+        UpdateScreenPowerStatus(id, status);
+
+        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+        isScreenPoweringOff_.erase(id);
     });
 }
 
@@ -2212,8 +2221,13 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
         return false;
     }
     return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||
-        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF ||
-        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ONGOING;
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+}
+
+bool RSScreenManager::IsScreenPoweringOff(ScreenId id) const
+{
+    std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
+    return isScreenPoweringOff_.find(id) != isScreenPoweringOff_.end();
 }
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
