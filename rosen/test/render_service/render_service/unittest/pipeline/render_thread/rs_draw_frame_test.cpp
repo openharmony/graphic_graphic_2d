@@ -53,10 +53,10 @@ HWTEST_F(RSDrawFrameTest, PostDirectCompositionJankStatsTest, TestSize.Level1)
     RSDrawFrame drawFrame_;
     JankDurationParams rsParams;
     bool optimizeLoadTrue = true;
-    DrawFrame.PostDirectCompositionJankStats(rsParams, optimizeLoadTrue);
+    drawFrame_.PostDirectCompositionJankStats(rsParams, optimizeLoadTrue);
     EXPECT_TRUE(optimizeLoadTrue);
     bool optimizeLoadFalse = false;
-    DrawFrame.PostDirectCompositionJankStats(rsParams, optimizeLoadFalse);
+    drawFrame_.PostDirectCompositionJankStats(rsParams, optimizeLoadFalse);
     EXPECT_FALSE(optimizeLoadFalse);
 }
 
