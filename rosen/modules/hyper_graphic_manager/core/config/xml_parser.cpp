@@ -21,6 +21,8 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
 constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
+constexpr int32_t UP_TIMEOUT_MS = 3000;
 }
 
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
@@ -54,6 +56,14 @@ int32_t XMLParser::Parse()
 
     if (ParseInternal(*root) == false) {
         return XML_PARSE_INTERNAL_FAIL;
+    }
+    auto& timeoutStrategyConfig = mParsedData_->timeoutStrategyConfig_;
+    if (timeoutStrategyConfig.find(S_UP_TIMEOUT_MS) != timeoutStrategyConfig.end() &&
+        IsNumber(timeoutStrategyConfig[S_UP_TIMEOUT_MS])) {
+        int32_t upTimeoutMs = static_cast<int32_t>(std::stoi(timeoutStrategyConfig[S_UP_TIMEOUT_MS]));
+        for (auto& [_, val] : mParsedData_->strategyConfigs_) {
+            val.upTimeOut = val.upTimeOut == UP_TIMEOUT_MS ? upTimeoutMs : val.upTimeOut;
+        }
     }
     return EXEC_SUCCESS;
 }
@@ -238,37 +248,11 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-
         auto name = ExtractPropertyValue("name", *currNode);
-        auto min = ExtractPropertyValue("min", *currNode);
-        auto max = ExtractPropertyValue("max", *currNode);
-        auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
-        auto pointerMode = ExtractPropertyValue("pointerMode", *currNode);
-        auto idleFps = ExtractPropertyValue("idleFps", *currNode);
-        auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
-        auto drawMin = ExtractPropertyValue("drawMin", *currNode);
-        auto drawMax = ExtractPropertyValue("drawMax", *currNode);
-        auto down = ExtractPropertyValue("down", *currNode);
-        auto supportAS = ExtractPropertyValue("supportAS", *currNode);
-        if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
+        PolicyConfigData::StrategyConfig strategy;
+        if (!BuildStrategyConfig(*currNode, strategy)) {
             return HGM_ERROR;
         }
-
-        PolicyConfigData::StrategyConfig strategy;
-        strategy.min = std::stoi(min);
-        strategy.max = std::stoi(max);
-        strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
-        strategy.pointerMode = IsNumber(pointerMode) ?
-            static_cast<PointerModeType>(std::stoi(pointerMode)) :
-            PointerModeType::POINTER_DISENABLED;
-        strategy.idleFps = IsNumber(idleFps) ?
-            std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
-            std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
-        strategy.isFactor = isFactor;
-        strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
-        strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
-        strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
-        strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
         ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -757,5 +741,37 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
         pageUrlConfigMap[packageName] = pageUrlConfig;
     }
     return EXEC_SUCCESS;
+}
+
+bool XMLParser::BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::StrategyConfig &strategy)
+{
+    auto min = ExtractPropertyValue("min", currNode);
+    auto max = ExtractPropertyValue("max", currNode);
+    auto dynamicMode = ExtractPropertyValue("dynamicMode", currNode);
+    auto pointerMode = ExtractPropertyValue("pointerMode", currNode);
+    auto idleFps = ExtractPropertyValue("idleFps", currNode);
+    auto isFactor = ExtractPropertyValue("isFactor", currNode) == "1"; // 1:true, other:false
+    auto drawMin = ExtractPropertyValue("drawMin", currNode);
+    auto drawMax = ExtractPropertyValue("drawMax", currNode);
+    auto down = ExtractPropertyValue("down", currNode);
+    auto supportAS = ExtractPropertyValue("supportAS", currNode);
+    auto upTimeOut = ExtractPropertyValue("upTimeOut", currNode);
+    if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
+        return false;
+    }
+    strategy.min = std::stoi(min);
+    strategy.max = std::stoi(max);
+    strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+    strategy.pointerMode = IsNumber(pointerMode) ? static_cast<PointerModeType>(std::stoi(pointerMode)) :
+        PointerModeType::POINTER_DISENABLED;
+    strategy.idleFps = IsNumber(idleFps) ? std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
+        std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+    strategy.isFactor = isFactor;
+    strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
+    strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
+    strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
+    strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
+    strategy.upTimeOut = IsNumber(upTimeOut) ? std::stoi(upTimeOut) : UP_TIMEOUT_MS;
+    return true;
 }
 } // namespace OHOS::Rosen

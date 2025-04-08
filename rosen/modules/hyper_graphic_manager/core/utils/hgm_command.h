@@ -112,6 +112,8 @@ public:
         int32_t down;
         // Does this game app require Adaptive Sync? Yes/No/Skip Required
         int32_t supportAS;
+        // milliseconds
+        int32_t upTimeOut;
         // <bufferName, fps>
         std::unordered_map<std::string, int32_t> bufferFpsMap;
     };
