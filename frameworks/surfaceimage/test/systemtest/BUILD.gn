@@ -63,7 +63,6 @@ ohos_static_library("native_image_system_common") {
   public_deps = [
     "$graphic_2d_root:libnative_image",
     "$graphic_2d_root/utils:libgraphic_utils",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_external_deps = [
