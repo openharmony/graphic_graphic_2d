@@ -129,8 +129,8 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         if (curBuffer && bufSeqNum) {
             *bufSeqNum = curBuffer->GetSeqNum();
         }
+        surfaceHandler->ResetBufferAvailableCount();
     }
-    surfaceHandler->ResetBufferAvailableCount();
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
     RSMainThread::Instance()->PostTask([surfaceNode]() {
         auto node = surfaceNode.lock();
