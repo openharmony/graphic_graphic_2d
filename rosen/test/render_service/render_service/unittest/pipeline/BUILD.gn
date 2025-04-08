@@ -1013,7 +1013,6 @@ config("rs_test_common_public_config") {
     "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
     "$memmgr_root/interface/innerkits/include",
     "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
   cflags = [
