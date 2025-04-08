@@ -2453,14 +2453,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
-        if (false) { // planning: move to prepare
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
-                rootNode->GetFirstChild());
-            std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
-            std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            const auto& nodeMap = context_->GetNodeMap();
-            RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
-        }
         lastWatermarkFlag_ = watermarkFlag_;
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();

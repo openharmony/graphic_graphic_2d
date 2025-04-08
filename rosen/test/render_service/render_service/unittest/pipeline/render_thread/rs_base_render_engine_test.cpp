@@ -41,19 +41,6 @@ void RSBaseRenderEngineUnitTest::SetUp() {}
 void RSBaseRenderEngineUnitTest::TearDown() {}
 
 /**
- * @tc.name: InitCaptureTest
- * @tc.desc: Test InitCapture
- * @tc.type: FUNC
- * @tc.require: issueI6GJ1Z
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, InitCaptureTest, TestSize.Level1)
-{
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->InitCapture(true);
-    ASSERT_NE(renderEngine->captureRenderContext_, nullptr);
-}
-
-/**
  * @tc.name: ResetCurrentContextTest
  * @tc.desc: Test ResetCurrentContext
  * @tc.type: FUNC
@@ -63,10 +50,10 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
 {
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->ResetCurrentContext();
-    ASSERT_EQ(renderEngine->captureRenderContext_, nullptr);
+    ASSERT_EQ(renderEngine->renderContext_, nullptr);
     renderEngine->renderContext_ = std::make_shared<RenderContext>();
     renderEngine->ResetCurrentContext();
-    ASSERT_EQ(renderEngine->captureRenderContext_, nullptr);
+    ASSERT_EQ(renderEngine->renderContext_, nullptr);
 }
 
 /**
