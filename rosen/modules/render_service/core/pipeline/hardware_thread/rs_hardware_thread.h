@@ -131,6 +131,7 @@ private:
     int64_t intervalTimePoints_ = 0;
     bool isLastAdaptive_ = false;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
+    std::string GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers);
     std::mutex preAllocMutex_;
     std::mutex frameBufferSurfaceOhosMapMutex_;
     std::mutex surfaceMutex_;
