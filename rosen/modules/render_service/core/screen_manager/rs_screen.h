@@ -42,7 +42,6 @@ struct VirtualScreenConfigs {
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
     std::unordered_set<uint64_t> whiteList = {};
-    std::unordered_set<uint64_t> blackListSet = {};
 };
 
 class RSScreen {

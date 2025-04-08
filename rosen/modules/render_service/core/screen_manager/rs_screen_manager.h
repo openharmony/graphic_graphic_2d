@@ -175,6 +175,7 @@ public:
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 
+    virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
@@ -194,7 +195,6 @@ public:
     virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
     virtual bool IsVisibleRectSupportRotation(ScreenId id) const = 0;
 
-    virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
 };
 
@@ -424,9 +424,11 @@ private:
 
     HdiBackend *composer_ = nullptr;
     std::atomic<ScreenId> defaultScreenId_ = INVALID_SCREEN_ID;
+
+    std::mutex virtualScreenIdMutex_;
     std::queue<ScreenId> freeVirtualScreenIds_;
-    uint32_t virtualScreenCount_ = 0;
-    uint32_t currentVirtualScreenNum_ = 0;
+    std::atomic<uint32_t> virtualScreenCount_ = 0;
+    std::atomic<uint32_t> currentVirtualScreenNum_ = 0;
 
     mutable std::shared_mutex screenChangeCallbackMutex_;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
@@ -447,10 +449,11 @@ private:
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
 
+    uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
+
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
 
-    uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
 
     mutable std::mutex renderControlMutex_;
