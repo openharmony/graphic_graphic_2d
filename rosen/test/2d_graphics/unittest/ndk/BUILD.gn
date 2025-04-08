@@ -100,7 +100,6 @@ ohos_unittest("2d_graphics_ndk_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "googletest:gtest_main",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
     "image_framework:pixelmap",

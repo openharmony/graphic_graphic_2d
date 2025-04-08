@@ -38,8 +38,6 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
     "$rosen_text_root:rosen_text",
   ]
 
-  external_deps = [ "googletest:gtest_main" ]
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
