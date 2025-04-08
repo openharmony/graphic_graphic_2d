@@ -99,7 +99,7 @@ public:
 
     void SetCacheDir(const std::string& path);
 #ifdef ACCESSIBILITY_ENABLE
-    bool GetHighContrast();
+    bool GetHighContrast() const;
 #endif
 
     void PostTask(const std::function<void()>&& task);
