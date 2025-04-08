@@ -358,6 +358,27 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
+        return;
+    }
+
+    if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
+        std::shared_ptr<RSDisplayRenderNode> mirrorNode = node.GetMirrorSource().lock();
+        if (!mirrorNode) {
+            return;
+        }
+        std::vector<ScreenColorGamut> mode;
+        int32_t ret = screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
+        if (ret != SUCCESS) {
+            RS_LOGD("RSUniRenderVisitor::HandleColorGamuts GetScreenSupportedColorGamuts failed, errorCode=%{public}d",
+                ret);
+            return;
+        };
+        bool isSupportedDisplayP3 =
+            std::any_of(mode.begin(), mode.end(), [](const auto& gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
+        if (isSupportedDisplayP3) {
+            // wired mirror and mirror support P3, mirror gamut = main gamut
+            node.SetColorSpace(mirrorNode->GetColorSpace());
+        }
     }
 }
 
