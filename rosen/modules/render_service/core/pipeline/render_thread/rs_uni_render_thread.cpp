@@ -1097,7 +1097,7 @@ void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
                 hasPurgeShaderCacheTask_ = false;
             },
             PURGE_SHADER_CACHE_AFTER_ANIMATE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_SIX_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
+            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_SIX_FRAMES) / GetRefreshRate(),
             AppExecFwk::EventQueue::Priority::LOW);
     }
 #else
