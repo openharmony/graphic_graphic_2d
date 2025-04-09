@@ -20,17 +20,17 @@ using namespace OHOS::ColorManager;
 
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
-    ani_status status = ANI_ERROR;
     ani_env *env;
     if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
         ACMLOGE("Unsupported %{public}d", ANI_VERSION_1);
+        return ANI_ERROR;
     }
 
     static const char *staticNsName = "L@ohos/graphics/colorSpaceManager/colorSpaceManager;";
     ani_namespace kitNs;
-    status = env->FindNamespace(staticNsName, &kitNs);
-    if (status != ANI_OK) {
+    if (ANI_OK != env->FindNamespace(staticNsName, &kitNs)) {
         ACMLOGE("FindNamespace err");
+        return ANI_ERROR;
     }
 
     std::array kitFunctions = {
@@ -46,6 +46,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 
     if (ANI_OK != env->Namespace_BindNativeFunctions(kitNs, kitFunctions.data(), kitFunctions.size())) {
         ACMLOGE("Cannot bind native methods to %{public}s", staticNsName);
+        return ANI_ERROR;
     }
 
     if (ANI_OK != AniColorSpaceManager::AniColorSpaceManagerInit(env)) {
