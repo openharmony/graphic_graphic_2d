@@ -40,19 +40,19 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    Typography* typography = nullptr;
-    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], typography))) {
+    void* nativePointer = nullptr;
+    if (!(argv[0] != nullptr && napi_get_value_external(env, argv[0], &nativePointer) == napi_ok)) {
         TEXT_LOGE("Failed to convert");
         return nullptr;
     }
 
+    std::shared_ptr<Typography> typography(static_cast<Typography*>(nativePointer));
     if (typography == nullptr) {
         TEXT_LOGE("Null typography");
         return nullptr;
     }
 
-    std::shared_ptr<Typography> typographyShared(typography);
-    JsParagraph *jsParagraph = new(std::nothrow) JsParagraph(typographyShared);
+    JsParagraph* jsParagraph = new (std::nothrow) JsParagraph(typography);
     if (jsParagraph == nullptr) {
         return nullptr;
     }
@@ -693,8 +693,10 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        const napi_value* argv = reinterpret_cast<napi_value*>(typography.release());
-        status = napi_new_instance(env, constructor, ARGC_ONE, argv, &result);
+        napi_value argv = nullptr;
+        napi_create_external(
+            env, typography.release(), [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
+        status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);
         if (status == napi_ok) {
             return result;
         } else {
