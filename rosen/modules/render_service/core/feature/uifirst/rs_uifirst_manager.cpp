@@ -433,7 +433,7 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         RS_LOGI("erase processingNode %{public}" PRIu64, id);
-        RS_TRACE_NAME_FMT("erase processingNode %s %{public}" PRIu64, drawable->GetName().c_str(), id);
+        RS_TRACE_NAME_FMT("erase processingNode %s %" PRIu64, drawable->GetName().c_str(), id);
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
         // skipped by doing, need update cache because the doing cache is too old
