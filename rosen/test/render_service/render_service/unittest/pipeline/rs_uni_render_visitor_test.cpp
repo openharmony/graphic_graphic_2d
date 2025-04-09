@@ -4905,6 +4905,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Le
     uint32_t height = 300;
     RectI rect{left, top, width, height};
     surfaceNode2->SetDstRect(rect);
+    surfaceNode2->renderContent_->renderProperties_.boundsGeo_->absRect_ = rect;
     surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -5422,7 +5423,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty001, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->containerFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->containerFilter_.empty());
 }
 
@@ -5448,7 +5449,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty002, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->globalFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->globalFilter_.empty());
 }
 
@@ -5474,7 +5475,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty003, TestSize.Le
     RectI rect(0, 0, 0, 0);
 
     ASSERT_TRUE(rsUniRenderVisitor->transparentCleanFilter_.empty());
-    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect);
+    rsUniRenderVisitor->CollectFilterInfoAndUpdateDirty(*node, *dirtyManager, rect, rect);
     ASSERT_FALSE(rsUniRenderVisitor->transparentCleanFilter_.empty());
 }
 

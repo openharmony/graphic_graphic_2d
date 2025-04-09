@@ -247,9 +247,9 @@ private:
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
-        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
+        RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect, const RectI& globalHwcFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
-
+    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI globalFilterRect) const;
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
         RSSurfaceRenderNode& hwcNodePtr);
@@ -660,7 +660,10 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
-
+    // record nodes which has transparent clean filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcCleanFilter_;
+    // record nodes which has transparent dirty filter
+    std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
     std::vector<RectI> globalFilterRects_;
     std::vector<RectI> globalSurfaceBounds_;
     // visible filter in transparent surface or display must prepare
