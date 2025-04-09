@@ -31,6 +31,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "memory/rs_tag_tracker.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -96,8 +97,8 @@ void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImage
     vkImageInfo->sharingMode = imageInfo.sharingMode;
 }
 
-OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
-    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM)
+OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
+    OHOS::Rosen::RSTagTracker::TAGTYPE tag, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM)
 {
     VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -153,7 +154,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
     auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
     std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
-    memStat.InsertResource(timeStamp, static_cast<uint64_t>(memRequirements.size));
+    memStat.InsertResource(timeStamp, pid, tag, static_cast<uint64_t>(memRequirements.size));
     OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
     OHOS::Rosen::Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -3274,7 +3275,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        auto initCacheBackendTexture = MakeBackendTexture(width, height);
+        auto initCacheBackendTexture = MakeBackendTexture(
+            width, height, ExtractPid(GetId()), RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE);
         auto vkTextureInfo = initCacheBackendTexture.GetTextureInfo().GetVKTextureInfo();
         if (!initCacheBackendTexture.IsValid() || !vkTextureInfo) {
             if (func) {

@@ -117,8 +117,8 @@ public:
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
         const VkImageCreateInfo& imageInfo);
-    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
-        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
+        RSTagTracker::TAGTYPE tag, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
