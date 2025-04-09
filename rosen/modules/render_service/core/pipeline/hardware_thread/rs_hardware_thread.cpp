@@ -435,21 +435,13 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
         }
         count += layer->GetSurface()->GetName().length();
     }
-    std::string surfaceName = "Name:";
-    if (count < MAX_TOTAL_SURFACE_NAME_LENGTH) {
-        for (const auto& layer : layers) {
-            if (layer == nullptr || layer->GetSurface() == nullptr) {
-                continue;
-            }
-            surfaceName += "," + layer->GetSurface()->GetName();
+    std::string surfaceName = "Names:";
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            continue;
         }
-    } else {
-        for (const auto& layer : layers) {
-            if (layer == nullptr || layer->GetSurface() == nullptr) {
-                continue;
-            }
-            surfaceName += "," + layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
-        }
+        surfaceName += ("," + (count < MAX_TOTAL_SURFACE_NAME_LENGTH ? layer->GetSurface()->GetName() :
+            layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH)));
     }
     return surfaceName;
 }
