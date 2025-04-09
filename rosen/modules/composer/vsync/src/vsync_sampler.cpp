@@ -198,7 +198,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
                 return true;
             }
             
-            if (isAdaptive_.load() && CreateVsyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
+            if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
                 RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
                 numSamples_ = 0;
                 return true;
