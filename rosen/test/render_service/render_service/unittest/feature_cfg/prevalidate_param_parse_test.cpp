@@ -16,14 +16,14 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "prevalidate_param.h"
+#include "prevalidate_param_parse.h"
 
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 
-class PrevalidateParamTest : public testing::Test {
+class PrevalidateParamParseTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -31,23 +31,24 @@ public:
     void TearDown();
 };
 
-void PrevalidateParamTest::SetUpTestCase() {}
-void PrevalidateParamTest::TearDownTestCase() {}
-void PrevalidateParamTest::SetUp() {}
-void PrevalidateParamTest::TearDown() {}
+void PrevalidateParamParseTest::SetUpTestCase() {}
+void PrevalidateParamParseTest::TearDownTestCase() {}
+void PrevalidateParamParseTest::SetUp() {}
+void PrevalidateParamParseTest::TearDown() {}
 
 /**
- * @tc.name: ParamSettingAndGettingTest
- * @tc.desc: Verify the SetPrevalidateEnable and IsPrevalidateEnable function
+ * @tc.name: ParseFeatureParamTest001
+ * @tc.desc: Verify the ParseFeatureParam function
  * @tc.type: FUNC
- * @tc.require: #IBMVNU
+ * @tc.require: issueIBZ2P9
  */
-HWTEST_F(PrevalidateParamTest, ParamSettingAndGettingTest, Function | SmallTest | Level1)
+HWTEST_F(PrevalidateParamParseTest, ParseFeatureParamTest001, Function | SmallTest | Level1)
 {
-    PrevalidateParam::SetPrevalidateEnable(false);
-    ASSERT_FALSE(PrevalidateParam::IsPrevalidateEnable());
-    PrevalidateParam::SetPrevalidateEnable(true);
-    ASSERT_TRUE(PrevalidateParam::IsPrevalidateEnable());
+    FeatureParamMapType featureMap;
+    xmlNode node;
+    PrevalidateParamParse parse;
+    auto ret = parse.ParseFeatureParam(featureMap, node);;
+    ASSERT_EQ(ret, PARSE_GET_CHILD_FAIL);
 }
 } // namespace Rosen
 } // namespace OHOS
