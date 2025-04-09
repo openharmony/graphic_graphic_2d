@@ -27,25 +27,32 @@ namespace {
 const std::string CLASS_NAME = "Paragraph";
 }
 
-std::unique_ptr<Typography> JsParagraph::g_Typography = nullptr;
 thread_local napi_ref JsParagraph::constructor_ = nullptr;
 
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 {
-    size_t argCount = 0;
     napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsThis, nullptr);
     if (status != napi_ok) {
         TEXT_LOGE("JsParagraph::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
 
-    if (!g_Typography) {
-        TEXT_LOGE("JsParagraph::Constructor g_Typography is nullptr");
+    Typography* typography = nullptr;
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], typography))) {
+        TEXT_LOGE("Failed to convert");
         return nullptr;
     }
 
-    JsParagraph *jsParagraph = new(std::nothrow) JsParagraph(std::move(g_Typography));
+    if (typography == nullptr) {
+        TEXT_LOGE("Null typography");
+        return nullptr;
+    }
+
+    std::shared_ptr<Typography> typographyShared(typography);
+    JsParagraph *jsParagraph = new(std::nothrow) JsParagraph(typographyShared);
     if (jsParagraph == nullptr) {
         return nullptr;
     }
@@ -686,8 +693,8 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        g_Typography = std::move(typography);
-        status = napi_new_instance(env, constructor, 0, nullptr, &result);
+        const napi_value* argv = reinterpret_cast<napi_value*>(typography.release());
+        status = napi_new_instance(env, constructor, ARGC_ONE, argv, &result);
         if (status == napi_ok) {
             return result;
         } else {
