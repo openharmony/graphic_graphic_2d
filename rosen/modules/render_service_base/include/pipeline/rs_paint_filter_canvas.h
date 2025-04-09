@@ -385,21 +385,22 @@ private:
 #ifdef RS_ENABLE_VK
 class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
 public:
-    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) :
-        RSPaintFilterCanvas(canvas, alpha)
+    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) : RSPaintFilterCanvas(canvas, alpha)
     {}
 
-    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) :
-        RSPaintFilterCanvas(surface, alpha)
+    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) : RSPaintFilterCanvas(surface, alpha)
     {}
 
     //Override the AttachPaint method
     CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
 
-    bool IsRenderWithForegroundColor() const {
+    bool IsRenderWithForegroundColor() const
+    {
         return isRenderWithForegroundColor;
     }
-    void SetRenderWithForegroundColor(bool renderFilterStatus) {
+
+    void SetRenderWithForegroundColor(bool renderFilterStatus)
+    {
         isRenderWithForegroundColor = renderFilterStatus;
     }
 private:
