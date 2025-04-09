@@ -441,8 +441,8 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
         if (layer == nullptr || layer->GetSurface() == nullptr) {
             continue;
         }
-        surfaceName += ((exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
-            layer->GetSurface()->GetName()) + ",");
+        surfaceName += (exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
+                                      layer->GetSurface()->GetName()) + ",";
     }
     return surfaceName;
 }
