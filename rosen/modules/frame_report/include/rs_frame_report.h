@@ -38,6 +38,7 @@ enum class FrameSchedEvent {
     RS_POST_AND_WAIT = 10011,
     RS_BEGIN_FLUSH = 10012,
     RS_BLUR_PREDICT = 10013,
+    RS_MODIFIER_INFO = 10014,
     RS_DDGR_TASK = 10017,
 };
 
@@ -58,7 +59,9 @@ public:
     void Init();
     int GetEnable();
     void ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload);
-
+#ifdef RS_ENABLE_VK
+    void ModifierReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload);
+#endif
     void ProcessCommandsStart();
     void AnimateStart();
     void RenderStart(uint64_t timestamp);
