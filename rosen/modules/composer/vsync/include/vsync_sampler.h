@@ -85,7 +85,7 @@ public:
     virtual int32_t StartSample(bool forceReSample) override;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
     virtual uint64_t GetVsyncEnabledScreenId() override;
-    virtual bool SetAdaptive(bool isAdaptive) override;
+    virtual void SetAdaptive(bool isAdaptive) override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
