@@ -141,8 +141,10 @@ void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRend
         (!hardCursorNode->ShouldPaint() && !hardCursorNode->GetHardCursorStatus())) {
         return;
     }
-    auto nodeId = hardCursorNode->GetId();
-    hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    if (hardCursorNode->IsOnTheTree()) {
+        auto nodeId = hardCursorNode->GetId();
+        hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    }
 }
 
 const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& RSPointerWindowManager::GetHardCursorNode() const
@@ -207,6 +209,19 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         }
     }
     return false;
+}
+
+void RSPointerWindowManager::CollectAllHardCursor(
+    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+{
+    if (hardCursorNode.IsHardwareEnabledTopSurface() &&
+        (hardCursorNode.ShouldPaint() || hardCursorNode.GetHardCursorStatus())) {
+        auto surfaceNodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorNode.GetRenderDrawable());
+        if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
+            hardCursorDrawableMap_.emplace(curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
