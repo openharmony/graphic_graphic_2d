@@ -346,6 +346,7 @@ void RSUniRenderThread::Render()
         RS_RSUNIRENDERTHREAD_RENDER);
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
+        return;
     }
     if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
         std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
