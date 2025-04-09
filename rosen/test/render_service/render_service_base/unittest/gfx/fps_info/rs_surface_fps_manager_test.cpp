@@ -61,13 +61,20 @@ HWTEST_F(RSSurfaceFpsManagerTest, RegisterAndUnregister, TestSize.Level1)
 HWTEST_F(RSSurfaceFpsManagerTest, GetSurfaceFps, TestSize.Level1)
 {
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    NodeId id = 1000;
+    pid_t pid = 1;
+    NodeId id = 1ull << 32;
     std::string name = "surfacefps0";
-    NodeId uid = 1001;
+    pid_t upid = 2;
+    NodeId uid = 2ull << 32;
     std::string uname = "surfacefps1";
+    bool isUnique = false;
     surfaceFpsManager.RegisterSurfaceFps(id, name);
     EXPECT_NE(nullptr, surfaceFpsManager.GetSurfaceFps(id));
     EXPECT_EQ(nullptr, surfaceFpsManager.GetSurfaceFps(uid));
+    EXPECT_NE(nullptr, surfaceFpsManager.GetSurfaceFps(name, isUnique));
+    EXPECT_EQ(nullptr, surfaceFpsManager.GetSurfaceFps(uname, isUnique));
+    EXPECT_NE(nullptr, surfaceFpsManager.GetSurfaceFpsByPid(pid));
+    EXPECT_EQ(nullptr, surfaceFpsManager.GetSurfaceFpsByPid(upid));
     surfaceFpsManager.UnregisterSurfaceFps(id);
 }
 
@@ -103,9 +110,12 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTime, TestSize.Level1)
 HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearDump, TestSize.Level1)
 {
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    NodeId id = 1000;
-    NodeId uid = 1001;
+    pid_t pid = 1;
+    NodeId id = 1ull << 32;
     std::string name = "surfacefps0";
+    pid_t upid = 2;
+    NodeId uid = 2ull << 32;
+    std::string uname = "surfacefps1";
     surfaceFpsManager.RegisterSurfaceFps(id, name);
     std::string result("");
     surfaceFpsManager.Dump(result, id);
@@ -114,11 +124,36 @@ HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearDump, TestSize.Level1)
     surfaceFpsManager.Dump(result, uid);
     EXPECT_FALSE(result.find("surface") != std::string::npos);
     result.clear();
+    surfaceFpsManager.Dump(result, name);
+    EXPECT_TRUE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.Dump(result, uname);
+    EXPECT_FALSE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.DumpByPid(result, pid);
+    EXPECT_TRUE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.DumpByPid(result, upid);
+    EXPECT_FALSE(result.find("surface") != std::string::npos);
+    result.clear();
     surfaceFpsManager.ClearDump(result, id);
     EXPECT_TRUE(result.find("surface") != std::string::npos);
     result.clear();
     surfaceFpsManager.ClearDump(result, uid);
     EXPECT_FALSE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearDump(result, name);
+    EXPECT_TRUE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearDump(result, uname);
+    EXPECT_FALSE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearDumpByPid(result, pid);
+    EXPECT_TRUE(result.find("surface") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearDumpByPid(result, upid);
+    EXPECT_FALSE(result.find("surface") != std::string::npos);
+    result.clear();
     surfaceFpsManager.UnregisterSurfaceFps(id);
 }
 }
