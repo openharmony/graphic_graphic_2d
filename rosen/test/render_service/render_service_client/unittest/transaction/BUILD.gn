@@ -39,7 +39,6 @@ ohos_unittest("RSRenderServiceClientTransactionTest") {
 
   deps = [
     "../../../../../modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"

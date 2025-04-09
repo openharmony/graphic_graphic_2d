@@ -53,9 +53,7 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
   deps = [
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gtest_main",
   ]
-  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
