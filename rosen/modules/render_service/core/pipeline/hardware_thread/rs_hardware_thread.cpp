@@ -428,7 +428,7 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
 
 std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers)
 {
-    int count = 0;
+    uint32_t count = 0;
     for (const auto& layer : layers) {
         if (layer == nullptr || layer->GetSurface() == nullptr) {
             continue;
@@ -456,11 +456,11 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
                 continue;
             }
             if (isFirst) {
-                surfaceName += layer->GetSurface()->GetName().subStr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
+                surfaceName += layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
                 isFirst = false;
                 continue;
             }
-            surfaceName += ", " + layer->GetSurface()->GetName().subStr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
+            surfaceName += ", " + layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH);
         }
         surfaceName += "]";
     }
