@@ -113,8 +113,6 @@ public:
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-    static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 #ifdef RS_ENABLE_VK
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
@@ -125,8 +123,6 @@ public:
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
-    static void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        Drawing::Matrix& matrix, float& alpha);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
     static SecSurfaceInfo GenerateSecSurfaceInfoFromNode(
         NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo);
@@ -166,7 +162,6 @@ public:
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
-    static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     static bool FrameAwareTraceBoost(size_t layerNum);
     static void RequestPerf(uint32_t layerLevel, bool onOffTag);
