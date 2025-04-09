@@ -67,6 +67,7 @@ ohos_shared_library("librender_service") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
+        defines += [ "CM_FEATURE_ENABLE" ]
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service.profdata",

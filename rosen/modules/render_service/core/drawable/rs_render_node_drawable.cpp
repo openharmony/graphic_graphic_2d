@@ -104,7 +104,8 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
-void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
+CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
+    Drawing::Canvas& canvas, RSRenderParams& params)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSRENDERNODEDRAWABLE_GENERATECACHEIFNEED);
@@ -252,7 +253,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     curDrawingCacheRoot_ = root;
 }
 
-void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
+CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::

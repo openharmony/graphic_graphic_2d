@@ -2743,7 +2743,7 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
     isOnlyBasicGeoTransform_ = isOnlyBasicGeoTransform_ && BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifierType);
 }
 
-void RSRenderNode::ApplyModifiers()
+CM_INLINE void RSRenderNode::ApplyModifiers()
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
         " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
