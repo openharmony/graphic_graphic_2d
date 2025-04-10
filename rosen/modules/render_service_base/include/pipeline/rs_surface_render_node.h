@@ -348,8 +348,7 @@ public:
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
-        return isHardwareForcedDisabled_ ||
-            GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
+        return isHardwareForcedDisabled_;
     }
 
     bool IsLeashOrMainWindow() const

@@ -3202,6 +3202,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_001, Test
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_EQ(surfaceNode->GetDstRect().GetWidth(), 0);
+    ASSERT_EQ(surfaceNode->GetDstRect().GetHeight(), 0);
+    surfaceNode->isHardwareForcedDisabled_ = true;
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 
     std::vector<RectI> hwcRects;
