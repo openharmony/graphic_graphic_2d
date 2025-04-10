@@ -28,18 +28,16 @@ ohos_unittest("RSSystemParametersTest") {
   include_dirs = [
     "./../../../../../modules/render_service/core",
     "./../../../../../modules/render_service_base/include",
-    "$graphic_surface_root/interfaces/inner_api/surface",
-    "$graphic_surface_root/interfaces/inner_api/common",
   ]
 
   deps = [
     "./../../../../../modules/render_service:librender_service",
     "./../../../../../modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
   defines = []
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
