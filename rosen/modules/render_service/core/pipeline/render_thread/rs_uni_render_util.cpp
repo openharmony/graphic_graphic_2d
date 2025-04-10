@@ -127,6 +127,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
     Occlusion::Region damageRegion;
+    RS_TRACE_NAME_FMT("AdvancedDirtyRegionType is [%d]", static_cast<int>(uniParam->GetAdvancedDirtyType()));
     switch (uniParam->GetAdvancedDirtyType()) {
         case AdvancedDirtyRegionType::DISABLED:
             damageRegion = dirtyRegion.Or(globalDirtyRegion);

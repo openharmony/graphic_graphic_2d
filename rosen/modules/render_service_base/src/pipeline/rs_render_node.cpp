@@ -1656,7 +1656,8 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
 
 void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
-    dirtyManager.MergeDirtyRect(oldDirty_);
+    // it is necessary to ensure that last frame dirty rect is merged
+    auto oldDirtyRect = oldDirty_;
     if (absDrawRect_ != oldAbsDrawRect_) {
         if (isSelfDrawingNode_) {
             // merge self drawing node last frame size and join current frame size to absDrawRect_ when changed
@@ -1667,16 +1668,14 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
     }
     // easily merge oldDirty if switch to invisible
     if (!shouldPaint_ && isLastVisible_) {
+        dirtyManager.MergeDirtyRect(oldDirtyRect);
         return;
     }
     auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
     dirtyRect = IsFirstLevelCrossNode() ? dirtyRect : dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
-    if (!dirtyRect.IsEmpty()) {
-        dirtyManager.MergeDirtyRect(dirtyRect);
-        isDirtyRegionUpdated_ = true;
-    }
+    dirtyManager.MergeDirtyRect(dirtyRect.JoinRect(oldDirtyRect));
     // compute inward-rounding abs draw rect, used for opaque region calculations
     auto dirtyRectF = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRectF_ : absDrawRectF_;
     innerAbsDrawRect_ = RSObjAbsGeometry::DeflateToRectI(dirtyRectF);
@@ -2217,11 +2216,6 @@ bool RSRenderNode::GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Ma
     return true;
 }
 
-inline static Drawing::Rect Rect2DrawingRect(const RectF& r)
-{
-    return Drawing::Rect(r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_);
-}
-
 void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
     const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect)
 {
@@ -2229,13 +2223,9 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     if (!GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
         return;
     }
-    Drawing::RectF absDrawRect;
-    absMatrix.MapRect(absDrawRect, Rect2DrawingRect(selfDrawRect_));
-    absDrawRect_ = RectI(absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight());
+    absDrawRect_ = RSObjAbsGeometry::MapRect(selfDrawRect_, absMatrix);
     oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
-    Drawing::RectF absRect;
-    absMatrix.MapRect(absRect, Rect2DrawingRect(GetRenderProperties().GetBoundsRect()));
-    filterRect = RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight());
+    filterRect = RSObjAbsGeometry::MapRect(GetRenderProperties().GetBoundsRect(), absMatrix);
     filterRect = filterRect.IntersectRect(clipRect);
     filterRegion_ = filterRect;
     if (filterRect == lastFilterRegion_) {
