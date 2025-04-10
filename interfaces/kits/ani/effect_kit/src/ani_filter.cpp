@@ -82,6 +82,10 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
 {
     AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
     bool falseCpu = false;
+    if (!thisFilter) {
+        EFFECT_LOG_E("thisFilter is null");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
     if (thisFilter->Render(falseCpu) != DrawError::ERR_OK) {
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
