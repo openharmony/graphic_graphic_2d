@@ -208,6 +208,20 @@ ohos_source_set("rosen_ohos_sources") {
           "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
         ]
+        ldflags = [
+          "-Wl,-plugin-opt=-split-machine-functions",
+          "-Wl,-mllvm",
+          "-Wl,-fixup-unconditional-branch-unsafely",
+          "-Wl,--no-create-thunks-introduced-by-mfs",
+          "-Wl,-mllvm",
+          "-Wl,-mfs-psi-cutoff=999500",
+          "-Wl,-z",
+          "-Wl,keep-text-section-prefix",
+          "-Wl,--symbol-ordering-file=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                  root_build_dir),
+          "-Wl,--no-warn-symbol-ordering",
+        ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]
