@@ -64,6 +64,9 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         if (name == "HwcExpandingScreenEnabled") {
             hwcParam_->SetHwcExpandingScreenEnabled(isEnabled);
             RS_LOGI("parse HwcExpandingScreenEnabled %{public}d", hwcParam_->IsHwcExpandingScreenEnabled());
+        } else if (name == "SolidLayerEnabled") {
+            hwcParam_->SetSolidLayerEnable(isEnabled);
+            RS_LOGI("parse SolidLayerEnabled %{public}d", hwcParam_->IsSolidLayerEnable());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {

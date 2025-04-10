@@ -121,6 +121,8 @@ private:
     std::unordered_map<uint32_t, LayerPtr> layerIdMap_;
     // surface unique id -- layer ptr
     std::unordered_map<uint64_t, LayerPtr> surfaceIdMap_;
+    // solidLayer unique id -- layer ptr
+    std::unordered_map<uint64_t, LayerPtr> solidSurfaceIdMap_;
     uint32_t screenId_;
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;

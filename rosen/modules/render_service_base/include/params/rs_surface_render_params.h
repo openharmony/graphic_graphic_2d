@@ -621,6 +621,16 @@ public:
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
 
+    const Color& GetSolidLayerColor() const
+    {
+        return solidLayerColor_;
+    }
+
+    void SetSolidLayerColor(Color solidLayerColor)
+    {
+        solidLayerColor_ = solidLayerColor;
+    }
+
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
     inline bool HasSubSurfaceNodes() const
@@ -720,6 +730,7 @@ private:
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
+    Color solidLayerColor_ = RgbPalette::Transparent();
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
