@@ -57,7 +57,6 @@ public:
     void ResetVirtualScreenWhiteListRootId(NodeId id);
 
     void SubDraw(Drawing::Canvas& canvas);
-    void ClipRoundRect(Drawing::Canvas& canvas);
 
     void UpdateCacheSurface();
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
@@ -67,23 +66,6 @@ public:
     {
         return name_;
     }
-
-    // Dma Buffer
-    bool UseDmaBuffer();
-
-    bool IsSurfaceCreated() const
-    {
-        return surfaceCreated_;
-    }
-
-    void ClearBufferQueue();
-
-#ifndef ROSEN_CROSS_PLATFORM
-    bool CreateSurface();
-#endif
-    BufferRequestConfig GetFrameBufferRequestConfig();
-    std::unique_ptr<RSRenderFrame> RequestFrame(
-        RenderContext* renderContext, std::shared_ptr<Drawing::GPUContext> grContext);
 
     // UIFirst
     void SetSubmittedSubThreadIndex(uint32_t index)
@@ -244,10 +226,6 @@ public:
     uint32_t GetUifirstPostOrder() const;
     void SetUifirstPostOrder(uint32_t order);
 
-    std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerUiFirstOnDraw()
-    {
-        return surfaceHandlerUiFirst_;
-    }
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> GetConsumerOnDraw() const
     {
@@ -325,7 +303,6 @@ private:
     bool uiExtensionNeedToDraw_ = false;
 
     // UIFIRST
-    std::shared_ptr<RSSurfaceHandler> surfaceHandlerUiFirst_ = nullptr;
     UIFirstParams uiFirstParams;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;

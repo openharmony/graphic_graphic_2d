@@ -39,7 +39,6 @@ public:
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
-    void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override;
 private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
