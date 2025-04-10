@@ -1229,6 +1229,8 @@ private:
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
 
+    void ChildrenListDump(std::string& out) const;
+
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
     friend class RSContext;
