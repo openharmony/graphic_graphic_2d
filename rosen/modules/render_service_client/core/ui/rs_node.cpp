@@ -874,6 +874,7 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
+    bounds_ = bounds;
     SetProperty<RSBoundsModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BOUNDS, bounds);
     OnBoundsSizeChanged();
     if (GetStagingProperties().GetBounds().x_ != 0 || GetStagingProperties().GetBounds().y_ != 0) {
@@ -906,6 +907,7 @@ void RSNode::SetBoundsWidth(float width)
     auto bounds = property->Get();
     bounds.z_ = width;
     property->Set(bounds);
+    bounds_ = bounds;
     OnBoundsSizeChanged();
 }
 
@@ -929,6 +931,7 @@ void RSNode::SetBoundsHeight(float height)
     auto bounds = property->Get();
     bounds.w_ = height;
     property->Set(bounds);
+    bounds_ = bounds;
     OnBoundsSizeChanged();
 }
 
@@ -3452,6 +3455,8 @@ void RSNode::Dump(std::string& out) const
     } else {
         out += "null";
     }
+    out += "], bounds[" + std::to_string(bounds_.x_) + ", " + std::to_string(bounds.y_) + ", " +
+        std::to_string(bounds_.z_) + ", " + std::to_string(bounds.w_);
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {

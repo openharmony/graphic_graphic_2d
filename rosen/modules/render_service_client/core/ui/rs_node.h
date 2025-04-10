@@ -681,6 +681,7 @@ private:
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
+    Vector4f bounds_ = {0, 0, 0, 0};
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
