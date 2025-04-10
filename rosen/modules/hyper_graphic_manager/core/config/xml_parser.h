@@ -75,6 +75,7 @@ private:
     void ParseAppBufferList(xmlNode &node);
     int32_t ParsePageUrlStrategy(xmlNode &node,
         std::unordered_map<std::string, PolicyConfigData::PageUrlConfig> &pageUrlConfigMap);
+    bool BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::StrategyConfig &strategy);
     xmlDoc *xmlDocument_ = nullptr;
     std::unique_ptr<PolicyConfigData> mParsedData_ = nullptr;
 };

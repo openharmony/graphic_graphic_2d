@@ -150,6 +150,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
+        touchManager_.SetUpTimeout(strategy.upTimeOut);
         idleFps_ = strategy.idleFps;
         HandleIdleEvent(true);
     });
