@@ -411,9 +411,12 @@ void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
 
 void RSUIDirector::FlushModifier()
 {
-    auto rsUIContext = rsUIContext_;
-    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    std::shared_ptr<RSModifierManager> modifierManager = nullptr;
+    if (rsUIContext_ == nullptr) {
+        modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    } else {
+        modifierManager = rsUIContext_->GetRSModifierManager();
+    }
     if (modifierManager == nullptr) {
         return;
     }
