@@ -27,16 +27,16 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     }
 
     static const char* staticClassName = "L@ohos/effectKit/effectKit;";
-    ani_class staticCls;
-    if (env->FindClass(staticClassName, &staticCls) != ANI_OK) {
-        EFFECT_LOG_I("[ANI_Constructor] FindClass failed");
+    ani_namespace effectKitNamespace;
+    if (env->FindNamespace(staticClassName, &effectKitNamespace) != ANI_OK) {
+        EFFECT_LOG_I("[ANI_Constructor] FindNamespace failed");
         return ANI_ERROR;
     }
     std::array staticMethods = {
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniFilter::CreateEffect) },
     };
-    if (env->Class_BindNativeMethods(staticCls, staticMethods.data(), staticMethods.size()) != ANI_OK) {
-        EFFECT_LOG_I("[ANI_Constructor] Class_BindNativeMethods failed");
+    if (env->Namespace_BindNativeFunctions(effectKitNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
+        EFFECT_LOG_I("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
     OHOS::Rosen::AniFilter::Init(env);

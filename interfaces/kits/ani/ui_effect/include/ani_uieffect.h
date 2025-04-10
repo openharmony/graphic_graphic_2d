@@ -43,7 +43,7 @@ public:
     AniEffect();
     ~AniEffect();
     static ani_object CreateEffect(ani_env* env);
-    static ani_object CreateBrightnessBlender(ani_env* env, ani_object obj, ani_object para);
+    static ani_object CreateBrightnessBlender(ani_env* env, ani_object para);
     static ani_object BackgroundColorBlender(ani_env* env, ani_object obj, ani_object para);
 
 private:

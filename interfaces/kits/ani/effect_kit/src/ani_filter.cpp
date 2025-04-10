@@ -89,7 +89,7 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
     return Media::PixelMapAni::CreatePixelMap(env, thisFilter->GetDstPixelMap());
 }
 
-ani_object AniFilter::CreateEffect(ani_env* env, ani_object obj, ani_object para)
+ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
 {
     auto aniFilter = std::make_unique<AniFilter>();
     std::shared_ptr<Media::PixelMap> pixelMap(AniEffectKitUtils::GetPixelMapFromEnv(env, para));
