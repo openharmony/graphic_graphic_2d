@@ -417,7 +417,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit002, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RequestLayerInfo info;
-    uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
 }
 
 /**
