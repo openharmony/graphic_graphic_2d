@@ -53,7 +53,7 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
     ani_status ret;
     ani_long nativeObj {};
     if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
-        EFFECT_LOG_E("Object_GetField_Long fetch failed");
+        EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
         return nullptr;
     }
     AniFilter* aniFilter = reinterpret_cast<AniFilter*>(nativeObj);

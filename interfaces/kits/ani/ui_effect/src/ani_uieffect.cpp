@@ -121,7 +121,7 @@ ani_object AniEffect::CreateEffect(ani_env* env)
     return retVal;
 }
 
-ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object obj, ani_object para)
+ani_object AniEffect::CreateBrightnessBlender(ani_env* env, ani_object para)
 {
     ani_object retVal {};
     ani_class cls;
@@ -176,9 +176,9 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         return ANI_ERROR;
     };
     static const char* staticClassName = "L@ohos/graphics/uiEffect/uiEffect;";
-    ani_class staticCls;
-    if (env->FindClass(staticClassName, &staticCls) != ANI_OK) {
-        UIEFFECT_LOG_E("[ANI_Constructor] FindClass failed");
+    ani_namespace uiEffectNamespace;
+    if (env->FindNamespace(staticClassName, &uiEffectNamespace) != ANI_OK) {
+        UIEFFECT_LOG_E("[ANI_Constructor] FindNamespace failed");
         return ANI_ERROR;
     };
     std::array staticMethods = {
@@ -186,8 +186,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         ani_native_function { "createBrightnessBlender", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) },
     };
-    if (env->Class_BindNativeMethods(staticCls, staticMethods.data(), staticMethods.size()) != ANI_OK) {
-        UIEFFECT_LOG_E("[ANI_Constructor] Class_BindNativeMethods failed");
+    if (env->Namespace_BindNativeFunctions(uiEffectNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
+        UIEFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
     static const std::string ani_class_VisualEffect = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
