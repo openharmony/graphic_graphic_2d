@@ -362,6 +362,7 @@ bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
 mindspore_root = "//third_party/mindspore"
 rosen_root = "//foundation/graphic/graphic_2d/rosen"
+drivers_display_interface = "//drivers/peripheral/display/interfaces"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&
