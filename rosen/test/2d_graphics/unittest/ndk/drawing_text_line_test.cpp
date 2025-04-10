@@ -34,6 +34,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
+namespace {
+    constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 
 class NativeDrawingLineTest : public testing::Test {
 public:
@@ -414,16 +417,16 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
     double ascent = 0.0;
     double descent = 0.0;
     double leading = 0.0;
+    std::vector<float> widthArr = {206.639786, 490.139404, 459.509460};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
-        EXPECT_EQ(leading, 0);
-        EXPECT_GT(width, 0);
-        EXPECT_LE(width, 500.0);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(leading, 0.0, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -446,20 +449,24 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
     double ascent = 0.0;
     double descent = 0.0;
     double leading = 0.0;
+    std::vector<float> widthArr = {290.939697, 498.239380, 458.309509, 0.0, 497.952301, 409.497314, 51.300049};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
         EXPECT_EQ(leading, 0);
-        if (index == 3) {
-            EXPECT_EQ(width, 0);
+        if (index == 4) {
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 7.431193, FLOAT_DATA_EPSILON);
+        } else if (index == 5) {
+            EXPECT_NEAR(ascent, -35.369999, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 9.690001, FLOAT_DATA_EPSILON);
         } else {
-            EXPECT_GT(width, 0);
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         }
-        EXPECT_LE(width, 500.0);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -484,8 +491,8 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         EXPECT_EQ(leading, 0);
         EXPECT_EQ(width, 0);
     }

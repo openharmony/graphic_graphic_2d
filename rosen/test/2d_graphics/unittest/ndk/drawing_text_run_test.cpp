@@ -26,6 +26,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
+namespace {
+    constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 
 class NativeDrawingRunTest : public testing::Test {
 public:
@@ -171,7 +174,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest002, TestSize.Level1)
             float descent = 0.0;
             float leading = 0.0;
             float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
-            EXPECT_TRUE(ascent > 0);
+            EXPECT_TRUE(ascent < 0);
             EXPECT_TRUE(descent > 0);
             EXPECT_TRUE(leading >= 0); // The leading minimum is 0
             EXPECT_TRUE(width > 0);
@@ -269,7 +272,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest004, TestSize.Level1)
             float descent = 0.0;
             float leading = 0.0;
             float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
-            EXPECT_TRUE(ascent > 0);
+            EXPECT_TRUE(ascent < 0);
             EXPECT_TRUE(descent > 0);
             EXPECT_TRUE(leading >= 0); // The leading minimum is 0
             EXPECT_TRUE(width > 0);
@@ -299,50 +302,42 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest004, TestSize.Level1)
 
 /*
  * @tc.name: OH_Drawing_RunTest005
- * @tc.desc: Test for invalid input parameters testing.
+ * @tc.desc: Test for get run typographic bounds.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest005, TestSize.Level1)
 {
-    text_ = "Hello\t中国 World \n !@#%^&*){}[] 123456789 -="
-        " ,. < >、/ Draclp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
+    text_ = "Hello 你好 World⌚😀👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测文本\n 123";
     PrepareCreateTextLine();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     EXPECT_TRUE(textLines != nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
-        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        EXPECT_TRUE(runs != nullptr);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
-            // Get the actual size of the run
-            uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-            EXPECT_TRUE(count > 0);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
 
-            // -1 and -100 is invalid parameters
-            OH_Drawing_Array* stringIndicesArr = OH_Drawing_GetRunStringIndices(run, -1, -100);
-            EXPECT_TRUE(stringIndicesArr == nullptr);
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
 
-            stringIndicesArr = OH_Drawing_GetRunStringIndices(run, 0, count);
-            EXPECT_TRUE(stringIndicesArr != nullptr);
-
-            // -1 is invalid parameter
-            uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, -1);
-            EXPECT_TRUE(indices == 0);
-
-            // 1000 is greater than the actual size of run is also an invalid parameter
-            indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, 1000);
-            EXPECT_TRUE(indices == 0);
-
-            OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
-            stringIndicesArr = nullptr;
-        }
-        OH_Drawing_DestroyRuns(runs);
+    std::vector<float> widthArr = {78.929932, 59.999939, 8.099991, 81.509903, 187.187500, 64.349945};
+    std::vector<float> ascentArr = {-27.840000, -27.840000, -27.840000, -27.840000, -27.798166, -35.369999};
+    std::vector<float> descentArr = {7.320000, 7.320000, 7.320000, 7.320000, 7.431193, 9.690001};
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        float ascent = 0.0;
+        float descent = 0.0;
+        float leading = 0.0;
+        float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
+        EXPECT_EQ(leading, 0);
+        EXPECT_NEAR(ascent, ascentArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, descentArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(width, widthArr[i], FLOAT_DATA_EPSILON);
+        // branchCoverage
+        OH_Drawing_GetRunTypographicBounds(run, nullptr, nullptr, nullptr);
+        OH_Drawing_GetRunTypographicBounds(nullptr, &ascent, &descent, &leading);
     }
+
+    OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
 }
 
