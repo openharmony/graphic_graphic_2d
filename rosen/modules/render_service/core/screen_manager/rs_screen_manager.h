@@ -419,7 +419,7 @@ private:
     ScreenId GenerateVirtualScreenId();
     void ForceRefreshOneFrame() const;
 
-    mutable std::mutex screenMapmutex_;
+    mutable std::mutex screenMapMutex_;
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
