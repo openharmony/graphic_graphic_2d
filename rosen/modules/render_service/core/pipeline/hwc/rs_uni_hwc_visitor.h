@@ -37,7 +37,6 @@ public:
     void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
-    void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
@@ -59,6 +58,10 @@ public:
         RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
         RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
+    void UpdatePrepareClip(RSRenderNode& node);
+    void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
+        const Drawing::Matrix& absMatrix, const RectI& absRect);
 
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
@@ -66,6 +69,12 @@ public:
 private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
+
+    // Functions
+    bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
+        const RSRenderNode& rootNode);
+    void UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
+        const RSRenderNode& rootNode);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

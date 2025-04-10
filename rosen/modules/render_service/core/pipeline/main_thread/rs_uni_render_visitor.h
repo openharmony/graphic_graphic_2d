@@ -225,7 +225,6 @@ private:
     void ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& extendRegion, const RSRenderNodeMap& nodeMap);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
-    void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
@@ -324,10 +323,6 @@ private:
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
-    bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
-        const RSRenderNode& rootNode);
-    void UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
-        const RSRenderNode& rootNode);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);

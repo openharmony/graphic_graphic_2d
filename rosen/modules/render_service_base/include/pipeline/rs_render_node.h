@@ -877,6 +877,7 @@ public:
 
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC();
+    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
@@ -886,7 +887,6 @@ protected:
     static NodeId GenerateId();
 
     virtual void OnApplyModifiers() {}
-    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
     enum class NodeDirty {
         CLEAN = 0,

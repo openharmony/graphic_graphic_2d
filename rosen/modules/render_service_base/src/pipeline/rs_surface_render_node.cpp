@@ -178,17 +178,6 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     }
 }
 
-void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    const auto& buffer = surfaceHandler_->GetBuffer();
-    isHardwareForcedDisabledBySrcRect_ = false;
-    if (buffer == nullptr) {
-        return;
-    }
-#endif
-}
-
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
