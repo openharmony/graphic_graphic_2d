@@ -1962,5 +1962,16 @@ void RSUifirstManager::RecordScreenRect(RSSurfaceRenderNode& node, RectI rect)
     stagingSurfaceParams->RecordScreenRect(rect);
     node.AddToPendingSyncList();
 }
+
+void RSUifirstManager::RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("RecordDirtyRegionMatrix stagingSurfaceParams is nullptr");
+        return;
+    }
+    stagingSurfaceParams->RecordDirtyRegionMatrix(matrix);
+    node.AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

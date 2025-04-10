@@ -576,6 +576,22 @@ bool RsSubThreadCache::GetUifrstDirtyEnableFlag() const
     return uifrstDirtyEnableFlag_;
 }
 
+bool RsSubThreadCache::GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix,
+    Drawing::RectF& latestDirtyRect, Drawing::RectF& absDrawRect)
+{
+    Drawing::Matrix inverseMatrix;
+    if (!matrix.Invert(inverseMatrix)) {
+        return false;
+    }
+    Drawing::RectF latestDirtyRectTemp = {0, 0, 0, 0};
+    Drawing::RectF absDrawRectTemp = {0, 0, 0, 0};
+    std::swap(latestDirtyRectTemp, latestDirtyRect);
+    std::swap(absDrawRectTemp, absDrawRect);
+    inverseMatrix.MapRect(latestDirtyRect, latestDirtyRectTemp);
+    inverseMatrix.MapRect(absDrawRect, absDrawRectTemp);
+    return true;
+}
+
 bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     Drawing::RectI& dirtyRect)
 {
@@ -596,9 +612,6 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
     RectI latestDirtyRect = uifirstDirtyManager->GetUiLatestHistoryDirtyRegions();
     if (latestDirtyRect.IsEmpty()) {
         dirtyRect = {};
-        RS_TRACE_NAME_FMT("uifirstDirtyManager[%s] %" PRIu64", dirtyRect[%d %d %d %d]",
-            surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(),
-            dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight());
         return true;
     }
     auto absDrawRect = surfaceParams->GetAbsDrawRect();
@@ -607,22 +620,25 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGD("absRect params is err or out of dispaly");
         return false;
     }
+    Drawing::RectF curDrityRegion = Drawing::RectF(latestDirtyRect.GetLeft(), latestDirtyRect.GetTop(),
+        latestDirtyRect.GetRight(), latestDirtyRect.GetBottom());
+    Drawing::RectF curAbsDrawRect = Drawing::RectF(absDrawRect.GetLeft(), absDrawRect.GetTop(),
+        absDrawRect.GetRight(), absDrawRect.GetBottom());
+    if (!GetCurDirtyRegionWithMatrix(surfaceParams->GetDirtyRegionMatrix(), curDrityRegion, curAbsDrawRect)) {
+        return false;
+    }
     auto surfaceBounds = surfaceParams->GetBounds();
-    float widthScale = surfaceBounds.GetWidth() / static_cast<float>(absDrawRect.GetWidth());
-    float heightScale = surfaceBounds.GetHeight() / static_cast<float>(absDrawRect.GetHeight());
-    float left = (static_cast<float>(latestDirtyRect.GetLeft() - absDrawRect.GetLeft())) * widthScale;
-    float top = (static_cast<float>(latestDirtyRect.GetTop() - absDrawRect.GetTop())) * heightScale;
-    float width = static_cast<float>(latestDirtyRect.GetWidth()) * widthScale;
-    float height = static_cast<float>(latestDirtyRect.GetHeight()) * heightScale;
+    float widthScale = surfaceBounds.GetWidth() / curAbsDrawRect.GetWidth();
+    float heightScale = surfaceBounds.GetHeight() / curAbsDrawRect.GetHeight();
+    float left = (curDrityRegion.GetLeft() - curAbsDrawRect.GetLeft()) * widthScale;
+    float top = (curDrityRegion.GetTop() - curAbsDrawRect.GetTop()) * heightScale;
+    float width = curDrityRegion.GetWidth() * widthScale;
+    float height = curDrityRegion.GetHeight() * heightScale;
     Drawing::RectF tempRect = Drawing::RectF(left, top, left + width, top + height);
     dirtyRect = tempRect.RoundOut();
-    RS_TRACE_NAME_FMT("uifirstDirtyManager[%s] %" PRIu64", scaleW:%.1f scaleH:%.1f, bounds[w:%.1f h:%.1f]"
-        ", lR[%d %d %d %d], absR[%d %d %d %d], tR[%.1f %.1f %.1f %.1f], resultR[%d %d %d %d]",
-        surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), widthScale, heightScale,
-        surfaceBounds.GetWidth(), surfaceBounds.GetHeight(),
-        latestDirtyRect.GetLeft(), latestDirtyRect.GetTop(), latestDirtyRect.GetWidth(), latestDirtyRect.GetHeight(),
-        absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight(),
-        tempRect.GetLeft(), tempRect.GetTop(), tempRect.GetWidth(), tempRect.GetHeight(),
+    RS_TRACE_NAME_FMT("lR[%.1f %.1f %.1f %.1f], absR[%.1f %.1f %.1f %.1f], resultR[%d %d %d %d]",
+        curDrityRegion.GetLeft(), curDrityRegion.GetTop(), curDrityRegion.GetWidth(), curDrityRegion.GetHeight(),
+        curAbsDrawRect.GetLeft(), curAbsDrawRect.GetTop(), curAbsDrawRect.GetWidth(), curAbsDrawRect.GetHeight(),
         dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight());
     return true;
 }

@@ -495,6 +495,17 @@ void RSSurfaceRenderParams::RecordScreenRect(RectI rect)
     needSync_ = true;
 }
 
+void RSSurfaceRenderParams::RecordDirtyRegionMatrix(const Drawing::Matrix& matrix)
+{
+    dirtyRegionMatrix_ = matrix;
+    needSync_ = true;
+}
+
+const Drawing::Matrix& RSSurfaceRenderParams::GetDirtyRegionMatrix()
+{
+    return dirtyRegionMatrix_;
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -610,6 +621,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
+    targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     RSRenderParams::OnSync(target);
 }
 
