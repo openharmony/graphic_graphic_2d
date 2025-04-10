@@ -86,16 +86,12 @@ std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(u
 
 void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceInThread()
 {
-    if (UseDmaBuffer()) {
-        ClearBufferQueue();
-    } else {
-        std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
-        if (clearCacheSurfaceFunc_) {
-            clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-        }
-        ClearCacheSurface();
+    std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
+    if (clearCacheSurfaceFunc_) {
+        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+            cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
     }
+    ClearCacheSurface();
 }
 
 void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
@@ -336,7 +332,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 bool RSSurfaceRenderNodeDrawable::HasCachedTexture() const
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    return isTextureValid_.load() || surfaceHandlerUiFirst_->GetBuffer() != nullptr;
+    return isTextureValid_.load();
 #else
     return true;
 #endif

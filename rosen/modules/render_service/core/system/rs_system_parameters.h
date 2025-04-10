@@ -72,7 +72,6 @@ public:
     static bool GetSolidLayerHwcEnabled();
     static bool GetControlBufferConsumeEnabled();
     static bool GetHideNotchStatus();
-    static bool GetUIFirstDmaBufferEnabled();
     static bool GetTcacheEnabled();
     static bool GetWiredScreenOndrawEnabled();
     static bool GetArsrPreEnabled();

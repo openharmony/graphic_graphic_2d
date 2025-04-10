@@ -410,7 +410,6 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, ClearCacheSurfaceInThreadTest, 
     ASSERT_NE(surfaceDrawable_, nullptr);
     RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func;
     surfaceDrawable_->ClearCacheSurfaceInThread();
-    ASSERT_FALSE(surfaceDrawable_->UseDmaBuffer());
     ASSERT_FALSE(surfaceDrawable_->clearCacheSurfaceFunc_);
 
     func = [](std::shared_ptr<Drawing::Surface>&& oldSurface, std::shared_ptr<Drawing::Surface>&& newSurface,
@@ -418,13 +417,5 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, ClearCacheSurfaceInThreadTest, 
     surfaceDrawable_->clearCacheSurfaceFunc_ = func;
     surfaceDrawable_->ClearCacheSurfaceInThread();
     ASSERT_TRUE(surfaceDrawable_->clearCacheSurfaceFunc_);
-
-    std::string str = surfaceDrawable_->name_;
-    RSUifirstManager::Instance().useDmaBuffer_ = true;
-    surfaceDrawable_->name_ = "ScreenShotWindow";
-    surfaceDrawable_->ClearCacheSurfaceInThread();
-    ASSERT_TRUE(surfaceDrawable_->UseDmaBuffer());
-    RSUifirstManager::Instance().useDmaBuffer_ = false;
-    surfaceDrawable_->name_ = str;
 }
 }

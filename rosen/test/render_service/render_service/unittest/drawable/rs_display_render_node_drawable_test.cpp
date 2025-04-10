@@ -463,11 +463,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     auto result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    std::shared_ptr<RSSurfaceRenderNodeDrawable> drawable = nullptr;
-    RSUifirstManager::Instance().pendingPostDrawables_.push_back(drawable);
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    ASSERT_EQ(result, false);
-
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
@@ -493,7 +488,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
-    RSUifirstManager::Instance().pendingPostDrawables_.clear();
 }
 
 /**

@@ -75,14 +75,10 @@ public:
         RSDisplayRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateRCDLayerInfo(
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
-    bool CreateUIFirstLayerInfo(
-        RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
     bool IsLoadSuccess() const;
     void CollectSurfaceNodeLayerInfo(
         std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
-    void CollectUIFirstLayerInfo(std::vector<RequestLayerInfo>& uiFirstLayers, uint32_t curFps, float zOrder,
-        const ScreenInfo& screenInfo);
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
