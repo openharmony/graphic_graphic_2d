@@ -164,16 +164,21 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
 
 void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)
 {
-    auto color = params.GetBackgroundColor();
+    // color can be APP Node color or XCOM color
+    auto color = params.GetSolidLayerColor();
     if (!params.GetIsHwcEnabledBySolidLayer()) {
         auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
         solidColorLayer->CopyLayerInfo(layer);
         if (layer->GetZorder() > 0) {
             solidColorLayer->SetZorder(layer->GetZorder() - 1);
+        } else {
+            RS_LOGW("CreateSolidColorLayer name:%{public}s Zorder error!", params.GetName().c_str());
         }
         solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         auto dstRect = params.layerInfo_.dstRect;
         GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
+        RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] color:%08x",
+            params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h, color.AsArgbInt());
         solidColorLayer->SetLayerSize(layerRect);
         solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
         solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});

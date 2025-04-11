@@ -48,4 +48,14 @@ void HWCParam::MoveDataToHgmCore()
         hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
     }
 }
+
+bool HWCParam::IsSolidLayerEnable()
+{
+    return isSolidLayerEnable_;
+}
+
+void HWCParam::SetSolidLayerEnable(bool isEnable)
+{
+    isSolidLayerEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

@@ -1010,7 +1010,15 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 
-            SurfaceNodeInfo surfaceNodeInfo = {surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect};
+            // Use to adapt to AIBar DSS solution
+            Color solidLayerColor = RgbPalette::Transparent();
+            if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
+                solidLayerColor = surfaceParams.GetSolidLayerColor();
+                RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());
+            }
+            SurfaceNodeInfo surfaceNodeInfo = {
+                surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect, solidLayerColor};
+
             HveFilter::GetHveFilter().PushSurfaceNodeInfo(surfaceNodeInfo);
         }
         return;

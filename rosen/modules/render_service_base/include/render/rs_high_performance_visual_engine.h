@@ -32,6 +32,7 @@ struct SurfaceNodeInfo {
     Drawing::Matrix matrix_ = {};
     Drawing::Rect srcRect_;
     Drawing::Rect dstRect_;
+    Color solidLayerColor_;
 };
 class RSB_EXPORT HveFilter {
 public:

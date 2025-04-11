@@ -614,6 +614,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
+    targetSurfaceParams->solidLayerColor_ = solidLayerColor_;
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
     targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;

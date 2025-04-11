@@ -36,6 +36,14 @@ public:
     bool UpdateIsOffscreen(RSCanvasRenderNode& node);
     void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
+    const Color& FindAppBackgroundColor(RSSurfaceRenderNode& node);
+    bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
+        const RectI& nodeAbsRect, Color& nodeBgColor);
+    bool CheckBranchOcclusion(const std::shared_ptr<RSRenderNode>& branchNode,
+        const RectI& nodeAbsRect, std::stack<Color>& nodeBgColor);
+    bool GetSolidLayerEnabled();
+    void SolidLayerDisabled(RSSurfaceRenderNode& node);
+    void SolidLayerEnabled(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);

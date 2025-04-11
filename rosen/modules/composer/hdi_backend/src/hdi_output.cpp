@@ -41,7 +41,6 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
-static int32_t SOLID_SURFACE_COUNT = 0;
 static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
@@ -133,16 +132,24 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
 void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    uint32_t solidLayerCount = 0;
     for (auto &layerInfo : layerInfos) {
         if (layerInfo == nullptr) {
             HLOGE("current layerInfo is null");
             continue;
         }
         if (layerInfo->GetSurface() == nullptr) {
-            if (layerInfo->GetCompositionType() ==
-                GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-                CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
+            if (layerInfo->GetCompositionType() != GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+                continue;
             }
+            auto iter = solidSurfaceIdMap_.find(solidLayerCount);
+            if (iter != solidSurfaceIdMap_.end()) {
+                const LayerPtr &layer = iter->second;
+                layer->UpdateLayerInfo(layerInfo);
+                solidLayerCount++;
+                continue;
+            }
+            CreateLayerLocked(solidLayerCount++, layerInfo);
             continue;
         }
 
@@ -180,7 +187,17 @@ void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 
 void HdiOutput::DeletePrevLayersLocked()
 {
-    auto surfaceIter = surfaceIdMap_.begin();
+    auto surfaceIter = solidSurfaceIdMap_.begin();
+    while (surfaceIter != solidSurfaceIdMap_.end()) {
+        const LayerPtr &layer = surfaceIter->second;
+        if (!layer->GetLayerStatus()) {
+            solidSurfaceIdMap_.erase(surfaceIter++);
+        } else {
+            ++surfaceIter;
+        }
+    }
+
+    surfaceIter = surfaceIdMap_.begin();
     while (surfaceIter != surfaceIdMap_.end()) {
         const LayerPtr &layer = surfaceIter->second;
         if (!layer->GetLayerStatus()) {
@@ -244,7 +261,13 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
     uint32_t layerId = layer->GetLayerId();
 
     layerIdMap_[layerId] = layer;
-    surfaceIdMap_[surfaceId] = layer;
+
+    if (layerInfo->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+        // solid layer's surfaceId is unique, use solidLayerCount as key, to avoid conflict with normal layer
+        solidSurfaceIdMap_[surfaceId] = layer;
+    } else {
+        surfaceIdMap_[surfaceId] = layer;
+    }
 
     if (device_ == nullptr) {
         HLOGE("[%{public}s]HdiDevice is nullptr.", __func__);
@@ -768,7 +791,7 @@ void HdiOutput::Dump(std::string &result) const
         }
         auto surface = layer->GetLayerInfo()->GetSurface();
         const std::string& name = surface ? surface->GetName() :
-            "Layer Without Surface" + std::to_string(SOLID_SURFACE_COUNT);
+            "Layer Without Surface" + std::to_string(layer->GetLayerInfo()->GetZorder());
         auto info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";
@@ -889,6 +912,19 @@ void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfo
             .surfaceId = iter->first,
             .layer = iter->second,
         };
+        dumpLayerInfos.emplace_back(layerInfo);
+    }
+
+    for (auto iter = solidSurfaceIdMap_.begin(); iter != solidSurfaceIdMap_.end(); ++iter) {
+        if (iter->second == nullptr || iter->second->GetLayerInfo() == nullptr) {
+            continue;
+        }
+        struct LayerDumpInfo layerInfo = {
+            .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
+            .surfaceId = iter->first,
+            .layer = iter->second,
+        };
+
         dumpLayerInfos.emplace_back(layerInfo);
     }
 
