@@ -69,6 +69,7 @@
       *HgmEnergyConsumptionPolicy::GetVideoCallFrameRate*;
       *HgmEnergyConsumptionPolicy::SetCurrentPkgName*;
 
+      *HgmFrameRateManager::AvoidChangeRateFrequent*;
       *HgmFrameRateManager::CalcRefreshRate*;
       *HgmFrameRateManager::ChangePriority*;
       *HgmFrameRateManager::CleanPageUrlVote*;

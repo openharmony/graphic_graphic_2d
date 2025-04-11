@@ -1302,6 +1302,32 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: AvoidChangeRateFrequent
+ * @tc.desc: Verify the result of AvoidChangeRateFrequent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, AvoidChangeRateFrequent, Function | SmallTest | Level1)
+{
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    
+    frameRateMgr->isDragScene_ = false;
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
+
+    frameRateMgr->isDragScene_ = true;
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 120);
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
+}
+
+/**
  * @tc.name: ChangePriority
  * @tc.desc: Verify the result of ChangePriority
  * @tc.type: FUNC
