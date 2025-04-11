@@ -2318,9 +2318,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest31)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_31");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest33)
+GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest32)
 {
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_33");
+    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_32");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest33)
