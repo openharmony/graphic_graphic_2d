@@ -199,9 +199,6 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        if (fenceFd >= 0) {
-            close(fenceFd);
-        }
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
