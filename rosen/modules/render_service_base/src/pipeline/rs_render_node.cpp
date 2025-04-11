@@ -825,7 +825,6 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
 {
     auto sortedChildren = GetSortedChildren();
     const int childrenCntLimit = 10;
-
     if (!isFullChildrenListValid_) {
         out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
         if (!fullChildrenList_->empty()) {
